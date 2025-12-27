@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: CONFIDENTIALITÉ</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- STYLE UNIFIÉ --- */
+        .legal-layout { display: flex; min-height: 100vh; }
+        .legal-sidebar { width: 260px; background-color: #161b29; padding: 30px 20px; border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; border-left: 3px solid var(--primary); }
+        .legal-link { color: var(--text-muted); text-decoration: none; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
+        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
+        
+        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
+        .doc-section { margin-bottom: 40px; }
+        .doc-title { color: #fff; font-family: 'Russo One'; font-size: 1.5rem; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .doc-text { color: var(--text-muted); line-height: 1.8; font-size: 0.95rem; text-align: justify; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .data-table th, .data-table td { border: 1px solid rgba(255,255,255,0.1); padding: 12px; text-align: left; color: var(--text-muted); }
+        .data-table th { background: rgba(255,255,255,0.05); color: #fff; font-family: 'Russo One'; }
+
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; }
+            .legal-sidebar { width: 100%; height: auto; padding: 15px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; gap: 10px; background: #131824; position: sticky; top: 0; z-index: 50; }
+            .sidebar-title { display: none; }
+            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
+            .legal-content-area { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="legal-layout">
+        <nav class="legal-sidebar">
+            <div class="sidebar-title">SECTION JURIDIQUE</div>
+            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
+            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
+            <a href="legal_privacy.html" class="legal-link active"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
+            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        </nav>
+
+        <main class="legal-content-area">
+            <h1 class="titular" style="font-size:2rem; margin-bottom:10px; color:var(--accent);">POLITIQUE DE CONFIDENTIALITÉ (RGPD)</h1>
+            <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:40px;">Conformité Européenne - V2.0</div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">1. COLLECTE DES DONNÉES</h2>
+                <div class="doc-text">
+                    Dans le cadre de l'utilisation de TITAN OS, nous collectons les données suivantes nécessaires au fonctionnement du jeu et du suivi sportif :
+                    <table class="data-table">
+                        <thead><tr><th>Type de Donnée</th><th>Finalité</th><th>Conservation</th></tr></thead>
+                        <tbody>
+                            <tr><td>Email & Identité</td><td>Authentification unique (Login)</td><td>Durée du compte</td></tr>
+                            <tr><td>Données Biométriques (Poids, Taille)</td><td>Calcul des statistiques RPG (Force, Santé)</td><td>Jusqu'à modification</td></tr>
+                            <tr><td>Activités Sportives</td><td>Progression du jeu, XP, Historique</td><td>Illimité (sauf suppression)</td></tr>
+                            <tr><td>Messages Chat</td><td>Communication inter-joueurs</td><td>Archivage temporaire</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">2. HÉBERGEMENT ET SÉCURITÉ</h2>
+                <div class="doc-text">
+                    Les données sont stockées de manière sécurisée sur les serveurs de <strong>Supabase</strong> (Infrastructure AWS). Les mots de passe sont hachés et salés (cryptage irréversible) avant stockage. Aucune donnée n'est vendue à des tiers publicitaires. L'accès à la base de données est strictement restreint à l'administrateur technique (Théo).
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">3. VOS DROITS (ART. 15 À 22 RGPD)</h2>
+                <div class="doc-text">
+                    Conformément au Règlement Général sur la Protection des Données, vous disposez des droits suivants sur vos données :
+                    <ul>
+                        <li><strong>Droit d'accès :</strong> Vous pouvez demander une copie de toutes vos données brutes.</li>
+                        <li><strong>Droit de rectification :</strong> Modifiez votre profil directement dans l'application.</li>
+                        <li><strong>Droit à l'effacement :</strong> Vous pouvez demander la suppression totale de votre compte et de vos données en contactant l'administrateur ou via le bouton "Supprimer mon compte" (si disponible).</li>
+                    </ul>
+                    Pour exercer ces droits, contactez l'administrateur via la messagerie interne ou par email.
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

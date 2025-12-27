@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#fb923c">
+    <link rel="apple-touch-icon" href="./images/logo.png">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Service Worker Registered"))
+            .catch(err => console.log("Service Worker Failed", err));
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TITAN: HUB</title>
+    <link rel="stylesheet" href="./css/style.css?v=5">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        .hub-header { background: linear-gradient(to right, #1e2538, #10141e); border: 2px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 40px; text-align: center; margin-bottom: 40px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .hub-header::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top right, rgba(251, 146, 60, 0.1), transparent 60%); pointer-events: none; }
+        .hero-btn { display: inline-flex; align-items: center; justify-content: center; gap: 15px; background: linear-gradient(to bottom, #fb923c, #ea580c); color: #fff; padding: 20px 50px; border-radius: 16px; font-family: 'Russo One'; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 0 #c2410c; transition: transform 0.1s; cursor: pointer; text-decoration: none; border: 2px solid rgba(255,255,255,0.2); }
+        .hero-btn:hover { filter: brightness(1.1); transform: translateY(-2px); } .hero-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #c2410c; }
+        .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .module-card { background: #1e2538; border-radius: 20px; padding: 30px; border: 2px solid rgba(255,255,255,0.03); cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; justify-content: space-between; height: 220px; position: relative; overflow: hidden; }
+        .module-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #232b42; }
+        .module-icon { font-size: 4rem; opacity: 0.1; position: absolute; bottom: -10px; right: -10px; transition: 0.3s; }
+        .module-card:hover .module-icon { opacity: 0.2; transform: scale(1.1) rotate(-10deg); }
+        .module-title { font-family: 'Russo One'; font-size: 1.4rem; margin-bottom: 10px; color: #fff; }
+        .module-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+        .module-link { margin-top: auto; color: var(--accent); font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
+        .quick-stats { display: flex; justify-content: center; gap: 30px; margin-top: 20px; }
+        .q-val { font-family: 'Russo One'; font-size: 1.2rem; color: #fff; }
+        .q-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+           
+        </nav>
+
+        <main class="main-content">
+            
+            <header class="main-header" style="margin-bottom:20px;">
+                <div class="desktop-only hub-header">
+                    <div style="font-family:'Russo One'; color:var(--primary); font-size:1rem; letter-spacing:2px; margin-bottom:10px;">STATUT : OPÉRATIONNEL</div>
+                    <h1 style="font-size:2.5rem; margin-bottom:30px;">PRÊT POUR LA MISSION ?</h1>
+                    <a href="training.html" class="hero-btn"><i class="ri-play-circle-fill"></i> LANCER SÉANCE</a>
+                    <div class="quick-stats">
+                        <div class="q-stat"><div class="q-val" style="color:var(--gold);"><span id="hub-credits">0</span></div><div class="q-label">Crédits</div></div>
+                        <div class="q-stat"><div class="q-val" style="color:var(--accent);"><span id="hub-xp">0</span></div><div class="q-label">XP Total</div></div>
+                        <div class="q-stat"><div class="q-val" style="color:var(--success);"><span id="hub-streak">0</span></div><div class="q-label">Série Jours</div></div>
+                    </div>
+                </div>
+
+                <div class="mobile-user-bar">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-top:0px;">
+                        <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
+                            <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
+                            <div>
+                                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+                        </div>
+                    </div>
+                    <a href="training.html" class="btn btn-action" style="margin-top:20px; display:flex; justify-content:center;">
+                        <i class="ri-play-circle-fill"></i> LANCER SÉANCE
+                    </a>
+                </div>
+            </header>
+
+            <h3 class="titular" style="margin-bottom:20px; padding-left:10px; border-left:4px solid var(--accent);">MODULES</h3>
+            
+            <div class="module-grid">
+                <div class="module-card" onclick="window.location.href='adventure.html'">
+                    <i class="ri-map-2-line module-icon"></i>
+                    <div><div class="module-title" style="color:var(--danger)">CAMPAGNE & BOSS</div><div class="module-desc">Affrontez les gardiens et progressez.</div></div>
+                    <div class="module-link">ACCÉDER <i class="ri-arrow-right-line"></i></div>
+                </div>
+                <div class="module-card" onclick="window.location.href='talents.html'">
+                    <i class="ri-mind-map module-icon"></i>
+                    <div><div class="module-title" style="color:var(--accent)">MAÎTRISE</div><div class="module-desc">Arbre de talents et bonus passifs.</div></div>
+                    <div class="module-link">AMÉLIORER <i class="ri-arrow-right-line"></i></div>
+                </div>
+                <div class="module-card" onclick="window.location.href='stats.html'">
+                    <i class="ri-bar-chart-grouped-line module-icon"></i>
+                    <div><div class="module-title" style="color:var(--success)">ANALYSE</div><div class="module-desc">Graphiques et biométrie.</div></div>
+                    <div class="module-link">VOIR <i class="ri-arrow-right-line"></i></div>
+                </div>
+                <div class="module-card" onclick="window.location.href='profile.html'">
+                    <i class="ri-shield-user-line module-icon"></i>
+                    <div><div class="module-title" style="color:var(--gold)">ARMURERIE</div><div class="module-desc">Inventaire, loot et équipement.</div></div>
+                    <div class="module-link">GÉRER <i class="ri-arrow-right-line"></i></div>
+                </div>
+            </div>
+
+            <footer style="margin-top: 40px; padding-top: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); opacity: 0.5;">
+                <a href="legal_hub.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; transition: 0.3s;" onmouseover="this.style.color='#fff'; this.style.opacity='1'" onmouseout="this.style.color='var(--text-muted)'; this.style.opacity='0.6'">
+                    <i class="ri-shield-check-line"></i> PROTOCOLE LÉGAL
+                </a>
+            </footer>
+
+        </main>
+    </div>
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(!state) return;
+            if(document.getElementById('hub-credits')) document.getElementById('hub-credits').innerText = state.user.credits;
+            if(document.getElementById('hub-xp')) document.getElementById('hub-xp').innerText = state.user.xp.toLocaleString();
+            let streak = state.history.length > 0 && state.user.dailyXp > 0 ? 1 : 0;
+            if(document.getElementById('hub-streak')) document.getElementById('hub-streak').innerText = streak;
+
+            if(document.getElementById('mobileName')) {
+                document.getElementById('mobileName').innerText = state.user.name;
+                document.getElementById('mobileLvl').innerText = state.user.level;
+                document.getElementById('mobileCredits').innerText = state.user.credits;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: HISTORIQUE</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <style>
+        .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: var(--text-muted); padding: 10px 20px; border-radius: 12px; font-family: 'Russo One'; font-size: 0.8rem; cursor: pointer; transition: 0.2s; flex: none; }
+        .filter-btn:hover { color: #fff; border-color: #fff; }
+        .filter-btn.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 4px 15px rgba(251, 146, 60, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+           
+        </nav>
+        <main class="main-content">
+
+        <div class="mobile-user-bar">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
+            <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
+            <div>
+                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+        </div>
+    </div>
+</div>
+
+            <h1 class="titular" style="margin-bottom:30px;">Journal d'Activités</h1>
+            <div class="card" style="padding:20px;">
+                <div style="display:flex; gap:15px; margin-bottom:20px;">
+                    <div style="flex:1; position:relative;">
+                        <i class="ri-search-line" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+                        <input type="text" id="search-input" class="input-tech" style="padding-left:45px;" placeholder="Rechercher..." onkeyup="renderLogs()">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px;">
+                    <button class="filter-btn active" onclick="filterCat('all', this)">TOUT</button>
+                    <button class="filter-btn" onclick="filterCat('force', this)">FORCE</button>
+                    <button class="filter-btn" onclick="filterCat('cardio', this)">CARDIO</button>
+                    <button class="filter-btn" onclick="filterCat('mental', this)">MENTAL</button>
+                </div>
+            </div>
+            <div class="card">
+                <div style="border-bottom:2px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:800; color:var(--text-muted); letter-spacing:1px;">SESSIONS ENREGISTRÉES</span>
+                    <span style="font-weight:800; color:var(--primary); background:rgba(251, 146, 60, 0.1); padding:5px 10px; border-radius:8px;" id="log-count">0</span>
+                </div>
+                <div id="logs-container"></div>
+            </div>
+        </main>
+    </div>
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script>
+        let currentCat = 'all';
+        function filterCat(cat, btn) {
+            currentCat = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            renderLogs();
+        }
+        function renderLogs() {
+            const container = document.getElementById('logs-container');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            container.innerHTML = "";
+            if(!state || !state.history) return;
+            const filtered = state.history.filter(log => {
+                const matchCat = currentCat === 'all' || log.cat === currentCat;
+                const matchSearch = log.sport.toLowerCase().includes(search) || (log.details && log.details.toLowerCase().includes(search)) || log.date.includes(search);
+                return matchCat && matchSearch;
+            });
+            document.getElementById('log-count').innerText = filtered.length;
+            if(filtered.length === 0) { container.innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-muted); font-style:italic;'>Aucun résultat.</div>"; return; }
+            filtered.forEach(log => {
+                const el = document.createElement('div');
+                el.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:15px 0; border-bottom:1px solid rgba(255,255,255,0.05);";
+                let col = "var(--accent)"; if(log.cat==='force')col="#f87171"; if(log.cat==='cardio')col="#38bdf8"; if(log.cat==='mental')col="#a78bfa";
+                el.innerHTML = `<div style="display:flex; align-items:center; gap:15px;"><div style="width:45px; height:45px; background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; color:${col}; font-size:1.2rem;"><i class="${log.icon}"></i></div><div><div style="font-weight:800; color:#fff; font-size:1rem;">${log.sport}</div><div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${log.date} • ${log.details}</div></div></div><div style="text-align:right;"><div style="font-family:'Russo One'; font-size:1.2rem; color:#fff;">${log.value} <span style="font-size:0.8rem; color:var(--text-muted); font-family:'Outfit'; font-weight:600;">${log.unit}</span></div><div style="font-size:0.75rem; color:var(--success); font-weight:700; margin-top:2px;">+${log.xp} XP</div></div>`;
+                container.appendChild(el);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', renderLogs);
+    </script>
+</body>
+</html>

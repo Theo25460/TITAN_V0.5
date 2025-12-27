@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: MENTIONS</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- STYLE UNIFIÉ --- */
+        .legal-layout { display: flex; min-height: 100vh; }
+        .legal-sidebar { width: 260px; background-color: #161b29; padding: 30px 20px; border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; border-left: 3px solid var(--primary); }
+        .legal-link { color: var(--text-muted); text-decoration: none; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
+        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
+        
+        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
+        .info-block { background: #1e2538; padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px; }
+        .info-label { color: var(--gold); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .info-val { color: #fff; font-size: 1.1rem; line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; }
+            .legal-sidebar { width: 100%; height: auto; padding: 15px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; gap: 10px; background: #131824; position: sticky; top: 0; z-index: 50; }
+            .sidebar-title { display: none; }
+            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
+            .legal-content-area { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="legal-layout">
+        <nav class="legal-sidebar">
+            <div class="sidebar-title">SECTION JURIDIQUE</div>
+            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
+            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
+            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
+            <a href="legal_mentions.html" class="legal-link active"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        </nav>
+
+        <main class="legal-content-area">
+            <h1 class="titular" style="font-size:2rem; margin-bottom:40px; color:var(--gold);">MENTIONS LÉGALES</h1>
+
+            <div class="info-block">
+                <div class="info-label">ÉDITEUR DU SERVICE</div>
+                <div class="info-val">
+                    <strong>Projet TITAN OS</strong><br>
+                    Développé et géré par : Théo (Étudiant)<br>
+                    Contact : Via la messagerie interne
+                </div>
+            </div>
+
+            <div class="info-block">
+                <div class="info-label">HÉBERGEMENT TECHNIQUE</div>
+                <div class="info-val">
+                    <strong>Site Web (Front-end) :</strong><br>
+                    Netlify, Inc., 2325 3rd Street, Suite 215, San Francisco, California 94107, USA.<br><br>
+                    <strong>Base de Données & Authentification (Back-end) :</strong><br>
+                    Supabase, Inc., Singapore. (Infrastructure conforme RGPD / AWS Europe).
+                </div>
+            </div>
+
+            <div class="info-block">
+                <div class="info-label">CRÉDITS & RESSOURCES</div>
+                <div class="info-val">
+                    Conception graphique : Théo<br>
+                    Icônes : Remix Icon (Open Source)<br>
+                    Polices : Google Fonts (Russo One, Outfit)<br>
+                    Illustrations : Génération IA / Assets Libres de droits
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

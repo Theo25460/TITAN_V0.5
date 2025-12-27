@@ -1,0 +1,397 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Russo+One&display=swap');
+
+:root {
+    /* --- PALETTE TITAN OS --- */
+    --bg-app: #10141e; 
+    --bg-panel: #1e2538; 
+    --bg-sidebar: #161b29;
+    --primary: #fb923c; 
+    --primary-dark: #ea580c; 
+    --accent: #38bdf8;
+    --gold: #facc15; 
+    --danger: #ef4444; 
+    --success: #4ade80;
+    --text-main: #ffffff; 
+    --text-muted: #94a3b8;
+    --radius-l: 24px; 
+    --radius-m: 16px; 
+    --radius-s: 12px;
+    --border-ui: 2px solid rgba(255,255,255,0.05);
+}
+
+/* --- APP FEEL (Supprime les effets de texte) --- */
+html, body {
+    user-select: none;          /* Empêche la sélection de texte (bleu) */
+    -webkit-user-select: none;  /* Safari/Chrome */
+    cursor: default;            /* Force le curseur flèche */
+}
+
+/* Cache le trait qui clignote partout... */
+* {
+    caret-color: transparent;
+}
+
+/* ...SAUF dans les champs où on DOIT écrire (sinon on ne voit pas où on tape) */
+input, textarea, [contenteditable] {
+    caret-color: var(--accent); /* Le curseur sera de la couleur de ton thème */
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+/* RESET GLOBAL */
+* { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+body { 
+    margin: 0; padding: 0;
+    background-color: var(--bg-app); 
+    color: var(--text-main); 
+    font-family: 'Outfit', sans-serif; 
+    font-size: 16px; line-height: 1.5;
+    min-height: 100vh; overflow-x: hidden; 
+}
+
+/* TYPOGRAPHIE */
+h1, h2, h3, .titular { 
+    font-family: 'Russo One', sans-serif; 
+    text-transform: uppercase; 
+    margin: 0; 
+    color: #fff; 
+    letter-spacing: 1px; 
+}
+
+/* LAYOUT & SIDEBAR */
+.layout { 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
+.sidebar {
+    background: var(--bg-sidebar); 
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 15px; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+    overflow-x: auto; 
+    white-space: nowrap; 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+    flex-shrink: 0;
+}
+
+.brand-logo {
+    height: 40px;
+    width: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+}
+
+.brand { display: none; }
+.nav-category, .profile-widget { display: none; }
+
+.nav-link {
+    display: inline-flex; align-items: center; gap: 8px; 
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05); 
+    border-radius: 20px; 
+    color: var(--text-muted);
+    text-decoration: none; 
+    font-weight: 700; 
+    font-size: 0.85rem; 
+    transition: 0.2s;
+}
+.nav-link i { font-size: 1.1rem; }
+.nav-link.active { background: var(--primary); color: #000; }
+
+.main-content { 
+    flex: 1; padding: 20px; width: 100%; overflow: visible; 
+}
+
+/* COMPOSANTS STANDARDS */
+.card, .panel, .quest-card, .login-card, .raid-card, .boss-stage {
+    background: var(--bg-panel); 
+    border-radius: var(--radius-l); 
+    border: var(--border-ui);
+    padding: 25px; 
+    margin-bottom: 20px; 
+    position: relative; 
+    width: 100%;
+}
+
+.btn { 
+    padding: 16px; 
+    border-radius: var(--radius-s); 
+    border: none; 
+    font-family: 'Russo One'; 
+    text-transform: uppercase; 
+    cursor: pointer; 
+    display: flex; justify-content: center; align-items: center; gap: 10px; 
+    color: #fff; width: 100%; font-size: 1rem; transition: 0.2s; 
+}
+.btn-action { 
+    background: linear-gradient(to bottom, #fb923c, #ea580c); 
+    box-shadow: 0 4px 0 #c2410c; 
+}
+.btn-action:active { transform: translateY(2px); box-shadow: none; }
+
+.input-tech { 
+    width: 100%; background: #131824; border: 2px solid #2d364f; 
+    padding: 15px; color: #fff; font-family: 'Outfit'; font-weight: 600; 
+    border-radius: var(--radius-s); font-size: 1rem; 
+}
+
+/* --- SYSTÈME CHARGE & RELEASE (COMBAT V3) --- */
+
+.capacitor-box {
+    background: linear-gradient(to bottom, #1e2538, #0f131c);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+}
+
+.capacitor-val {
+    font-family: 'Russo One';
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.btn-unleash {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to bottom, #475569, #1e293b); /* Gris par défaut */
+    border: 2px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: 'Russo One';
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 15px;
+    box-shadow: 0 5px 0 #0f172a;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-unleash:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+.btn-unleash:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.overcharge { animation: pulseGlow 1s infinite alternate; border-color: var(--gold); }
+@keyframes pulseGlow { from { box-shadow: 0 0 10px var(--gold); } to { box-shadow: 0 0 30px var(--gold); } }
+
+/* Dégâts flottants */
+.damage-number {
+    position: absolute; font-family: 'Russo One'; font-size: 3rem; color: #fff;
+    pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 100;
+    text-shadow: 0 0 10px #000; left: 50%; top: 40%;
+}
+.dmg-crit { color: var(--gold); font-size: 4rem; text-shadow: 0 0 20px var(--gold); }
+.dmg-weak { color: #94a3b8; font-size: 2rem; opacity: 0.8; }
+
+.shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+@keyframes floatUp { 0% { transform:translate(-50%,0) scale(0.5); opacity:0; } 20% { transform:translate(-50%,-50px) scale(1.5); opacity:1; } 100% { transform:translate(-50%,-150px) scale(1); opacity:0; } }
+@keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+
+/* --- AUTRES STYLES --- */
+.grid-2, .adventure-grid, .rpg-layout { display: flex; flex-direction: column; gap: 20px; }
+.mobile-user-bar { display: none; }
+
+/* MODALES */
+.sys-modal-overlay, .loot-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(16, 20, 30, 0.85); backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.sys-modal-overlay.active { opacity: 1; pointer-events: all; }
+.sys-modal-card {
+    background: #1e2538; width: 90%; max-width: 400px;
+    border-radius: 24px; padding: 30px; text-align: center;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    transform: scale(0.9) translateY(20px); transition: 0.3s;
+}
+.sys-modal-overlay.active .sys-modal-card { transform: scale(1) translateY(0); }
+.modal-type-danger { border-color: var(--danger); }
+.modal-type-success { border-color: var(--success); }
+.modal-type-levelup { border-color: var(--gold); background: linear-gradient(to bottom, #2a2615, #1e2538); }
+.sys-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 12px 30px; border-radius: 12px; font-family: 'Russo One'; cursor: pointer; margin-top: 15px; }
+
+/* =======================================================
+   GUILDE ELITE UI (NOUVEAU)
+   ======================================================= */
+.guild-dashboard { display: grid; gap: 20px; }
+
+/* Header Guilde */
+.guild-header-elite { 
+    background: linear-gradient(90deg, #10141e, #1e2538); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    border-radius: 16px; padding: 20px; 
+    display: flex; justify-content: space-between; align-items: center; 
+    position: relative; overflow: hidden;
+}
+.guild-header-elite::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary); }
+.g-level-badge { background: var(--gold); color: #000; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; display: inline-block; margin-right: 10px; }
+
+/* Boss Arena */
+.boss-arena { text-align: center; padding: 30px; background: radial-gradient(circle at center, #231515 0%, #10141e 100%); border: 1px solid var(--danger); border-radius: 20px; position: relative; }
+.boss-arena-avatar { font-size: 4rem; color: var(--danger); animation: float 3s ease-in-out infinite; filter: drop-shadow(0 0 20px var(--danger)); }
+.boss-health-container { margin-top: 20px; position: relative; }
+.boss-health-fill-elite { height: 16px; background: linear-gradient(90deg, #ef4444, #b91c1c); border-radius: 8px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); transition: width 0.5s; }
+
+/* Mission Grid */
+.mission-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.mission-card { 
+    background: #161b29; border: 1px solid rgba(255,255,255,0.05); 
+    border-radius: 12px; padding: 15px; position: relative; overflow: hidden; transition: 0.2s; 
+}
+.mission-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); background: #1e2538; }
+.mission-card.done { border-color: var(--success); background: rgba(74, 222, 128, 0.05); opacity: 0.7; }
+.m-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--gold); float: left; margin-right: 15px; }
+.m-progress { height: 4px; background: rgba(255,255,255,0.1); margin-top: 10px; border-radius: 2px; overflow: hidden; }
+.m-bar { height: 100%; background: var(--accent); transition: width 0.5s; }
+
+/* Battle Log (ANCIEN) */
+.battle-log { 
+    background: #000; border: 1px solid #333; border-radius: 12px; 
+    height: 150px; overflow-y: auto; padding: 15px; 
+    font-family: 'Courier New', monospace; font-size: 0.8rem; 
+    color: var(--text-muted); 
+}
+.log-line { margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
+.log-highlight { color: var(--accent); font-weight: bold; }
+.log-damage { color: var(--danger); font-weight: bold; }
+
+/* COMMS PANEL (Tchat Guilde) */
+.comms-panel { background: #0f131c; border: 1px solid #333; border-radius: 12px; display: flex; flex-direction: column; height: 300px; overflow: hidden; }
+.comms-tabs { display: flex; border-bottom: 1px solid #333; background: #161b29; }
+.comms-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+.comms-tab.active { background: #1e2538; color: #fff; border-bottom: 2px solid var(--accent); }
+.comms-content { flex: 1; overflow-y: auto; padding: 10px; font-family: 'Courier New', monospace; font-size: 0.8rem; display: none; }
+.comms-content.active { display: block; }
+.guild-msg { margin-bottom: 8px; line-height: 1.4; word-wrap: break-word; }
+.msg-author { font-weight: bold; color: var(--primary); }
+.msg-system { color: var(--text-muted); font-style: italic; border-left: 2px solid var(--accent); padding-left: 8px; }
+.comms-input-zone { display: flex; padding: 10px; background: #161b29; border-top: 1px solid #333; }
+.comms-input { flex: 1; background: #0f131c; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-family: 'Outfit'; font-size: 0.8rem; }
+.comms-btn { background: var(--accent); border: none; color: #000; padding: 0 12px; border-radius: 6px; margin-left: 8px; cursor: pointer; font-weight: bold; }
+
+/* RESPONSIVE */
+@media (min-width: 1024px) {
+    .layout { flex-direction: row; overflow: hidden; height: 100vh; }
+    .sidebar { width: 280px; height: 100vh; flex-direction: column; border-right: 2px solid rgba(255,255,255,0.05); border-bottom: none; padding: 30px; overflow-y: auto; align-items: stretch; position: relative; }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 900; margin-bottom: 20px; color: #fff; }
+    .nav-category { display: block; margin-top: 20px; margin-bottom: 10px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); border-left: 2px solid var(--primary); padding-left: 10px; }
+    .profile-widget { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-panel); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; cursor: pointer; }
+    .nav-link { display: flex; width: 100%; padding: 12px 15px; background: transparent; margin-bottom: 5px; font-size: 0.9rem; }
+    .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .main-content { padding: 40px; overflow-y: auto; height: 100vh; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+    .adventure-grid { display: grid; grid-template-columns: 1fr 350px; height: calc(100vh - 140px); min-height: 600px; }
+    .rpg-layout { display: grid; grid-template-columns: 350px 380px 1fr; height: calc(100vh - 140px); min-height: 600px; }
+    
+    /* Guild Desktop Layout */
+    .guild-dashboard { grid-template-columns: 1fr 350px; grid-template-rows: auto 1fr; }
+    .guild-header-elite { grid-column: 1 / -1; }
+    .boss-col { grid-column: 2; grid-row: 2; }
+    .missions-col { grid-column: 1; grid-row: 2; }
+}
+
+@media (max-width: 768px) {
+    body { padding-bottom: 90px; }
+    .layout { flex-direction: column; height: auto; overflow: visible; }
+    .main-content { padding: 20px 15px; height: auto; overflow: visible; width: 100%; }
+    .mobile-user-bar { display: block !important; }
+    .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: rgba(19, 24, 36, 0.98); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 5px; padding: 0 15px; overflow-x: auto; z-index: 1000; box-shadow: 0 -5px 30px rgba(0,0,0,0.5); }
+    .nav-link { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent !important; width: 68px; height: 100%; font-size: 0.6rem; }
+    .nav-link i { font-size: 1.5rem; margin-bottom: 2px; }
+    .nav-link.active { color: #fff !important; }
+    .nav-link.active i { color: var(--primary); transform: translateY(-3px); }
+    .grid-2, .adventure-grid, .rpg-layout { display: flex !important; flex-direction: column !important; height: auto !important; }
+    .guild-dashboard { display: flex; flex-direction: column; }
+}
+
+/* --- LE JUICE (Effets Visuels) --- */
+
+/* 1. Animation de tremblement (Shake) pour le Boss */
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.boss-shake {
+  animation: shake 0.5s; /* Durée du tremblement */
+  animation-iteration-count: 1; 
+}
+
+/* 2. Chiffres de dégâts flottants */
+.damage-number {
+  position: absolute;
+  color: #ff4d4d; /* Rouge vif */
+  font-weight: bold;
+  font-size: 1.5rem;
+  pointer-events: none; /* Pour cliquer au travers */
+  animation: floatUp 1s ease-out forwards; /* L'animation joue et l'élément reste à la fin (avant suppression JS) */
+  z-index: 1000;
+  text-shadow: 2px 2px 0px black; /* Contour noir pour lisibilité */
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(1.5); /* Monte et grossit */
+  }
+}
+
+/* 3. Flash de la barre d'XP */
+@keyframes xpFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(2); box-shadow: 0 0 15px gold; }
+  100% { filter: brightness(1); }
+}
+
+.xp-gain-effect {
+  animation: xpFlash 0.5s ease-in-out;
+}
+
+/* 4. Effet de Level Up (Overlay simple) */
+.level-up-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 4rem;
+  color: gold;
+  text-shadow: 0 0 20px orangered;
+  z-index: 2000;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+
+.level-up-active {
+  transform: translate(-50%, -50%) scale(1);
+}

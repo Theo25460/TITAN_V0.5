@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: TROPHÉES</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <style>
+        /* NAVIGATION INTERNE */
+        .trophy-nav { display: flex; gap: 10px; margin-bottom: 25px; }
+        .nav-tab { flex: 1; text-align: center; padding: 15px; background: var(--bg-panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; color: var(--text-muted); font-family: 'Russo One'; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s; }
+        .nav-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        /* GRILLE SUCCÈS */
+        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .ach-card { background: #131824; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; opacity: 0.5; filter: grayscale(1); transition: 0.3s; position: relative; overflow: hidden; }
+        .ach-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--gold); background: linear-gradient(to right, #1e2538, #131824); box-shadow: 0 4px 20px rgba(250, 204, 21, 0.1); }
+        .ach-icon { width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); flex-shrink: 0; }
+        .ach-card.unlocked .ach-icon { background: var(--gold); color: #000; }
+        .ach-info h3 { font-size: 1rem; color: #fff; margin-bottom: 5px; }
+        .ach-info p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3; margin: 0; }
+        .ach-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--gold); width: 0%; transition: width 1s; }
+
+        /* BESTIAIRE (POKEDEX) */
+        .bestiary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .monster-card { background: #131824; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; text-align: center; cursor: pointer; transition: 0.3s; position: relative; aspect-ratio: 3/4; display: flex; flex-direction: column; }
+        .monster-card:hover { transform: translateY(-5px); border-color: var(--danger); }
+        .m-img { flex: 1; background-size: cover; background-position: center; position: relative; filter: grayscale(1) brightness(0.5); }
+        .monster-card.defeated .m-img { filter: none; }
+        .monster-card.unknown .m-img { filter: brightness(0); background-color: #000; }
+        .m-content { padding: 10px; background: #1e2538; border-top: 1px solid rgba(255,255,255,0.05); }
+        .m-name { font-family: 'Russo One'; font-size: 0.8rem; color: #fff; margin-bottom: 2px; }
+        .m-status { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .status-killed { color: var(--success); }
+        .status-alive { color: var(--danger); }
+        .status-locked { color: var(--text-muted); }
+
+        /* MODAL LORE */
+        .lore-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 20px; }
+        .lore-card { background: #1e2538; width: 100%; max-width: 500px; border-radius: 24px; border: 2px solid var(--danger); overflow: hidden; position: relative; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .lore-header { height: 200px; background-size: cover; background-position: center; position: relative; }
+        .lore-header::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, #1e2538); }
+        .lore-body { padding: 30px; text-align: center; }
+        .lore-badge { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 8px; color: var(--danger); font-weight: 800; border: 1px solid var(--danger); font-size: 0.8rem; }
+        
+        @keyframes popUp { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar"></nav> 
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            
+            <header style="margin-bottom:30px;">
+                <h1 class="titular">Salle des Trophées</h1>
+                <div style="color:var(--text-muted)">Registre des exploits et données xénobiologiques.</div>
+            </header>
+
+            <div class="trophy-nav">
+                <div class="nav-tab active" onclick="switchTab('achievements', this)"><i class="ri-medal-fill"></i> SUCCÈS</div>
+                <div class="nav-tab" onclick="switchTab('bestiary', this)"><i class="ri-book-dead-fill"></i> BESTIAIRE</div>
+            </div>
+
+            <div id="view-achievements">
+                <div class="card" style="margin-bottom:20px; text-align:center;">
+                    <div style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:5px;">PROGRESSION TOTALE</div>
+                    <div style="font-family:'Russo One'; font-size:2rem; color:var(--gold);" id="total-completion">0%</div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:10px; overflow:hidden;">
+                        <div id="total-bar" style="height:100%; width:0%; background:var(--gold);"></div>
+                    </div>
+                </div>
+                <div class="achievements-grid" id="ach-container"></div>
+            </div>
+
+            <div id="view-bestiary" style="display:none;">
+                <div class="bestiary-grid" id="monster-container"></div>
+            </div>
+
+            <div id="lore-modal" class="lore-modal" onclick="closeLore()">
+                <div class="lore-card" onclick="event.stopPropagation()">
+                    <div class="lore-header" id="lore-img">
+                        <div class="lore-badge" id="lore-status">VAINCU</div>
+                    </div>
+                    <div class="lore-body">
+                        <div style="font-size:3rem; color:var(--danger); margin-top:-60px; margin-bottom:10px; position:relative; z-index:2;"><i id="lore-icon"></i></div>
+                        <h2 class="titular" id="lore-name">NOM DU MONSTRE</h2>
+                        <div style="color:var(--text-muted); font-weight:bold; margin-bottom:20px;">BOSS DE NIVEAU <span id="lore-lvl">1</span></div>
+                        <p style="color:#fff; line-height:1.6; font-size:0.95rem; font-style:italic;" id="lore-desc">Description...</p>
+                        <div style="margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-around;">
+                            <div><div style="font-size:0.7rem; color:var(--text-muted);">PV MAX</div><div style="font-weight:800; color:var(--success);" id="lore-hp">0</div></div>
+                            <div><div style="font-size:0.7rem; color:var(--text-muted);">FAIBLESSE</div><div style="font-weight:800; color:var(--accent);" id="lore-weak">--</div></div>
+                        </div>
+                        <button class="btn" style="background:rgba(255,255,255,0.1); margin-top:20px; width:100%;" onclick="closeLore()">FERMER</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(!state) return;
+            initSystem(); 
+            
+            const stats = calculatePlayerStats();
+            renderAchievements(stats);
+            renderBestiary();
+        });
+
+        function switchTab(view, btn) {
+            document.getElementById('view-achievements').style.display = 'none';
+            document.getElementById('view-bestiary').style.display = 'none';
+            document.getElementById('view-' + view).style.display = 'block';
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // --- SUCCÈS ---
+        function calculatePlayerStats() {
+            let totalDist = 0, totalTons = 0, totalSessions = state.history.length, totalMindMin = 0;
+            let streaks = 0, currentStreak = 0, maxStreak = 0;
+            let forceSess=0, cardioSess=0, mentalSess=0;
+            let lootOpened = 0; // Il faudrait stocker ça dans state.user.stats, ici on approxime à 0 si pas tracké
+
+            state.history.forEach(log => {
+                if(log.cat === 'cardio' && log.unit === 'km') totalDist += log.value;
+                if(log.extended && log.extended.gps_dist) totalDist += log.extended.gps_dist;
+                if(log.cat === 'force' && log.unit === 'kg') totalTons += log.value;
+                if(log.cat === 'mental' && log.unit === 'min') totalMindMin += log.value;
+                if(log.cat === 'mental' && log.unit === 'h') totalMindMin += (log.value * 60);
+                if(log.cat === 'force') forceSess++;
+                if(log.cat === 'cardio') cardioSess++;
+                if(log.cat === 'mental') mentalSess++;
+            });
+
+            // Calcul Streak simple (approximatif)
+            // Pour faire propre, il faudrait le calculer dans main.js à chaque login
+            // Ici on va utiliser le nombre de sessions comme proxy pour les succès 'session'
+            
+            return {
+                sessions: totalSessions,
+                boss_lvl: state.game.boss.lvl, 
+                credits: state.user.credits,
+                tonnage: totalTons,
+                distance: totalDist,
+                level: state.user.level,
+                inventory_count: state.inventory.length + Object.keys(state.equipped).length,
+                mind_min: totalMindMin,
+                friends: state.social && state.social.friends ? state.social.friends.length : 0,
+                has_guild: state.myGuild ? 1 : 0,
+                equipped_count: Object.keys(state.equipped).filter(k => state.equipped[k]).length,
+                cat_force: forceSess,
+                cat_cardio: cardioSess,
+                cat_mental: mentalSess,
+                zone_reached: state.game.campaign.stage,
+                health_score: state.user.dailyHealth ? state.user.dailyHealth.score : 0,
+                streak: 1 // Placeholder, nécessite tracking dans state
+            };
+        }
+
+        function renderAchievements(stats) {
+            const container = document.getElementById('ach-container');
+            container.innerHTML = "";
+            let unlockedCount = 0;
+
+            ACHIEVEMENTS_DB.forEach(ach => {
+                let currentVal = stats[ach.type] || 0;
+                let isUnlocked = currentVal >= ach.target;
+                if(state.user.achievements && state.user.achievements.includes(ach.id)) isUnlocked = true; // Déjà validé
+                
+                // Si nouveau déblocage, on pourrait le save, mais ici c'est visuel
+                if(isUnlocked) unlockedCount++;
+
+                const pct = Math.min((currentVal / ach.target) * 100, 100);
+                
+                container.innerHTML += `
+                <div class="ach-card ${isUnlocked ? 'unlocked' : ''}">
+                    <div class="ach-progress" style="width:${pct}%"></div>
+                    <div class="ach-icon"><i class="${ach.icon}"></i></div>
+                    <div class="ach-info">
+                        <h3>${ach.title}</h3>
+                        <p>${ach.desc}</p>
+                        ${!isUnlocked ? `<div style="font-size:0.65rem; color:var(--accent); margin-top:5px;">${Math.floor(currentVal)} / ${ach.target}</div>` : '<div style="font-size:0.65rem; color:var(--gold); margin-top:5px; font-weight:bold;">ACCOMPLI</div>'}
+                    </div>
+                </div>`;
+            });
+
+            const totalPct = Math.floor((unlockedCount / ACHIEVEMENTS_DB.length) * 100);
+            document.getElementById('total-completion').innerText = totalPct + "%";
+            document.getElementById('total-bar').style.width = totalPct + "%";
+        }
+
+        // --- BESTIAIRE ---
+        function renderBestiary() {
+            const container = document.getElementById('monster-container');
+            container.innerHTML = "";
+            const currentBossLvl = state.game.boss.lvl;
+
+            BOSS_DB.forEach((boss, index) => {
+                const bossLvl = index + 1; 
+                let statusClass = "unknown";
+                let statusText = "???";
+                
+                if (bossLvl < currentBossLvl) { statusClass = "defeated"; statusText = "ÉLIMINÉ"; } 
+                else if (bossLvl === currentBossLvl) { statusClass = "alive"; statusText = "CIBLE ACTUELLE"; } 
+                else { statusClass = "unknown"; statusText = "VERROUILLÉ"; }
+
+                let bgStyle = `background: linear-gradient(to bottom, #1e2538, #000);`;
+                
+                container.innerHTML += `
+                <div class="monster-card ${statusClass}" onclick="openLore(${index}, '${statusClass}')">
+                    <div class="m-img" style="${bgStyle}">
+                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; color:rgba(255,255,255,0.2);">
+                            <i class="${boss.icon}"></i>
+                        </div>
+                    </div>
+                    <div class="m-content">
+                        <div class="m-name">${statusClass === 'unknown' ? '???' : boss.name}</div>
+                        <div class="m-status status-${statusClass === 'defeated' ? 'killed' : (statusClass === 'alive' ? 'alive' : 'locked')}">${statusText}</div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function openLore(index, status) {
+            if(status === 'unknown') return alert("Données cryptées. Atteignez le niveau requis.");
+            const boss = BOSS_DB[index];
+            document.getElementById('lore-modal').style.display = 'flex';
+            document.getElementById('lore-name').innerText = boss.name;
+            document.getElementById('lore-lvl').innerText = index + 1;
+            document.getElementById('lore-desc').innerText = boss.desc;
+            document.getElementById('lore-hp').innerText = boss.baseHp.toLocaleString();
+            document.getElementById('lore-weak').innerText = boss.weak;
+            document.getElementById('lore-icon').className = boss.icon;
+            
+            const statusBadge = document.getElementById('lore-status');
+            if(status === 'defeated') {
+                statusBadge.innerText = "CLASSIFIÉ : ÉLIMINÉ";
+                statusBadge.style.color = "var(--success)"; statusBadge.style.borderColor = "var(--success)";
+            } else {
+                statusBadge.innerText = "CIBLE ACTIVE";
+                statusBadge.style.color = "var(--danger)"; statusBadge.style.borderColor = "var(--danger)";
+            }
+        }
+        function closeLore() { document.getElementById('lore-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>

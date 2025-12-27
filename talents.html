@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: MAÎTRISE</title>
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* HEADER */
+        .header-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
+        }
+
+        /* SECTION ARBRE */
+        .skill-section { 
+            margin-bottom: 40px; 
+            background: rgba(255,255,255,0.02); 
+            border-radius: 16px; 
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .skill-header { 
+            display: flex; align-items: center; gap: 15px; 
+            margin-bottom: 20px; 
+        }
+        
+        .skill-track { 
+            display: flex; gap: 30px; overflow-x: auto; 
+            padding: 10px; position: relative; 
+            min-height: 120px; align-items: center;
+        }
+        .skill-track::before { 
+            content: ''; position: absolute; left: 40px; right: 40px; top: 40px; height: 4px; 
+            background: rgba(255,255,255,0.1); z-index: 0; 
+        }
+
+        /* BULLE TALENT */
+        .node-wrapper { 
+            position: relative; z-index: 1; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-width: 90px;
+        }
+        
+        .node { 
+            width: 70px; height: 70px; background: #131824; 
+            border: 3px solid #2d364f; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.8rem; color: #475569; 
+            cursor: pointer; transition: 0.2s; 
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .node-name { font-family: 'Russo One'; font-size: 0.75rem; color: #fff; text-transform: uppercase; margin-bottom: 2px; }
+        .node-desc { font-size: 0.65rem; color: var(--text-muted); max-width: 120px; text-align: center; display: none; }
+        .node-cost { font-size: 0.7rem; color: var(--gold); font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px; margin-top: 5px;}
+
+        .node:hover { transform: scale(1.1); }
+        .node:hover + .node-info .node-desc { display: block; position: absolute; background: #000; padding: 5px; z-index: 10; border-radius: 4px; border: 1px solid #333; }
+
+        .node.unlocked { color: #fff !important; background: #1e2538; box-shadow: 0 0 15px currentColor; }
+        .node.available { border-color: #fff !important; color: rgba(255,255,255,0.5); animation: pulseAvailable 2s infinite; }
+        .node.locked { opacity: 0.6; filter: grayscale(1); }
+
+        @keyframes pulseAvailable { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .modal-card { background: #131824; border: 2px solid #fff; padding: 30px; border-radius: 20px; max-width: 350px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar"></nav>
+
+        <main class="main-content">
+            <div id="mobile-header-placeholder"></div>
+
+            <div class="header-panel">
+                <div>
+                    <h1 class="titular">MATRICE NEURALE</h1>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">ARBRE DE COMPÉTENCES</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.7rem; color:var(--text-muted);">POINTS DISPO</div>
+                    <div style="font-family:'Russo One'; font-size:1.8rem; color:var(--accent);" id="talent-pts">--</div>
+                </div>
+            </div>
+
+            <div id="tree-container">
+                <div style="text-align:center; padding:50px; color:rgba(255,255,255,0.3);">Initialisation des systèmes...</div>
+            </div>
+            
+            <div id="confirm-modal" class="modal-overlay">
+                <div class="modal-card" id="modal-content"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTreeStructure();
+            waitForState();
+        });
+
+        // FONCTION SÉCURISÉE POUR RÉCUPÉRER LE STATE
+        function getGlobalState() {
+            // Essaie de trouver la variable 'state' déclarée dans main.js
+            try { return state; } catch(e) {}
+            // Fallback sur window.state
+            if(window.state) return window.state;
+            return null;
+        }
+
+        // ATTENTE ACTIVE DU CHARGEMENT DE LA SAUVEGARDE
+        function waitForState() {
+            const s = getGlobalState();
+            if (s && s.user && s.user.level) {
+                console.log("TITAN TALENTS : Profil chargé. Niveau " + s.user.level);
+                updateTreeState();
+            } else {
+                // Pas encore prêt, on réessaie dans 100ms
+                setTimeout(waitForState, 100);
+            }
+        }
+
+        // 1. DESSINER LA STRUCTURE
+        function renderTreeStructure() {
+            const container = document.getElementById('tree-container');
+            if (typeof TALENT_PATHS === 'undefined' || typeof TALENT_TREE === 'undefined') {
+                container.innerHTML = "<div style='color:red; padding:20px;'>ERREUR CRITIQUE : data.js non détecté.</div>";
+                return;
+            }
+
+            let html = '';
+            TALENT_PATHS.forEach(path => {
+                const talentsInPath = Object.values(TALENT_TREE).filter(t => t.path === path.id);
+                
+                html += `
+                <div class="skill-section">
+                    <div class="skill-header">
+                        <div style="width:40px; height:40px; background:${path.color}; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#000; font-size:1.4rem;"><i class="${path.icon}"></i></div>
+                        <div>
+                            <div style="font-family:'Russo One'; font-size:1rem; color:#fff;">${path.name}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${path.subtitle}</div>
+                        </div>
+                    </div>
+                    <div class="skill-track">
+                `;
+
+                talentsInPath.forEach(t => {
+                    html += `
+                        <div class="node-wrapper">
+                            <div class="node locked" id="node-${t.id}" onclick="clickTalent('${t.id}')" style="border-color:${path.color};">
+                                <i class="${t.icon}"></i>
+                            </div>
+                            <div class="node-info">
+                                <div class="node-name">${t.name}</div>
+                                <div class="node-cost">${t.cost} PTS</div>
+                                <div class="node-desc">${t.desc}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 2. METTRE À JOUR L'ÉTAT
+        function updateTreeState() {
+            const s = getGlobalState();
+            if(!s) return;
+            const user = s.user;
+            
+            // Calcul Points : Niveau - 1 (ex: Niv 2 = 1 pt)
+            const totalPointsGagnes = Math.max(0, user.level - 1);
+            let pointsDepenses = 0;
+            const unlocked = user.unlockedTalents || [];
+
+            unlocked.forEach(id => {
+                if(TALENT_TREE[id]) pointsDepenses += TALENT_TREE[id].cost;
+            });
+
+            const pointsRestants = totalPointsGagnes - pointsDepenses;
+            user.talentPoints = pointsRestants; // Sync
+            
+            document.getElementById('talent-pts').innerText = pointsRestants;
+
+            // Mise à jour visuelle
+            Object.values(TALENT_TREE).forEach(t => {
+                const el = document.getElementById(`node-${t.id}`);
+                if(!el) return;
+
+                const isUnlocked = unlocked.includes(t.id);
+                const parentUnlocked = t.prev ? unlocked.includes(t.prev) : true;
+                const canBuy = !isUnlocked && parentUnlocked && pointsRestants >= t.cost;
+                const pathInfo = TALENT_PATHS.find(p => p.id === t.path);
+                const color = pathInfo ? pathInfo.color : '#fff';
+
+                el.className = "node";
+                el.style.color = "#475569";
+                el.style.borderColor = "#2d364f";
+                el.style.boxShadow = "none";
+                el.style.animation = "none";
+
+                if (isUnlocked) {
+                    el.classList.add('unlocked');
+                    el.style.color = color;
+                    el.style.borderColor = color;
+                    el.style.boxShadow = `0 0 15px ${color}`;
+                } else if (canBuy) {
+                    el.classList.add('available');
+                    el.style.borderColor = "#fff";
+                    el.style.color = "#fff";
+                } else {
+                    el.classList.add('locked');
+                }
+            });
+        }
+
+        // 3. GESTION DU CLIC
+        let selectedId = null;
+
+        function clickTalent(id) {
+            const s = getGlobalState();
+            if(!s) return alert("Chargement...");
+            
+            const t = TALENT_TREE[id];
+            const user = s.user;
+            const unlocked = user.unlockedTalents || [];
+            
+            if(unlocked.includes(id)) return;
+            if(t.prev && !unlocked.includes(t.prev)) return alert("⛔ DÉBLOQUEZ LE TALENT PRÉCÉDENT.");
+
+            selectedId = id;
+            const pathInfo = TALENT_PATHS.find(p => p.id === t.path);
+            const canAfford = user.talentPoints >= t.cost;
+
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.style.borderColor = pathInfo.color;
+            content.innerHTML = `
+                <div style="font-size:3rem; color:${pathInfo.color}; margin-bottom:10px;"><i class="${t.icon}"></i></div>
+                <h2 style="font-family:'Russo One'; margin-bottom:10px; text-transform:uppercase;">${t.name}</h2>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">${t.desc}</p>
+                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:20px;">
+                    COÛT : <span style="color:${canAfford ? '#fff' : 'var(--danger)'}; font-weight:bold;">${t.cost} PTS</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <button class="btn" onclick="closeModal()" style="background:transparent; border:1px solid rgba(255,255,255,0.2);">ANNULER</button>
+                    ${canAfford ? `<button class="btn btn-action" onclick="confirmUnlock()" style="background:${pathInfo.color}; color:#000;">DÉBLOQUER</button>` : `<button class="btn" disabled style="opacity:0.5;">MANQUE PTS</button>`}
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+
+        function confirmUnlock() {
+            if(!selectedId) return;
+            const s = getGlobalState();
+            if(!s) return;
+
+            if(!s.user.unlockedTalents) s.user.unlockedTalents = [];
+            s.user.unlockedTalents.push(selectedId);
+            
+            saveState(); // Update main.js
+            closeModal();
+            updateTreeState();
+        }
+    </script>
+</body>
+</html>

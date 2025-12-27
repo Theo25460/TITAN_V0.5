@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: SANTÉ</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <style>
+        .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .input-card { background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 15px; transition: 0.2s; }
+        .input-card:focus-within { border-color: var(--primary); background: rgba(255,255,255,0.02); }
+        .icon-box { width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent); flex-shrink: 0; }
+        
+        /* Jauge de Score (CORRIGÉ) */
+        .score-circle { 
+            width: 200px; height: 200px; border-radius: 50%; border: 10px solid #131824; 
+            margin: 0 auto 30px auto; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; position: relative; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); transition: 0.5s; 
+        }
+        .score-val { 
+            font-family: 'Russo One'; 
+            font-size: 3.2rem; /* Réduit pour que 100% passe large */
+            line-height: 1; z-index: 2; 
+        }
+        .score-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; z-index: 2; margin-top: 5px; }
+        .score-bonus { font-size: 1rem; font-weight: 800; margin-top: 10px; padding: 5px 15px; border-radius: 20px; background: #131824; z-index: 2; border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Status Colors */
+        .status-buff { border-color: var(--success); color: var(--success); box-shadow: 0 0 30px rgba(74, 222, 128, 0.2); }
+        .status-neutral { border-color: var(--primary); color: var(--primary); }
+        .status-debuff { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); }
+
+        .range-wrap { flex: 1; }
+        .range-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar"></nav> <main class="main-content">
+            <div class="mobile-user-bar">
+    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
+            <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
+            <div>
+                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+        </div>
+    </div>
+</div>
+            <h1 class="titular" style="margin-bottom:30px;">Bio-Feedback</h1>
+            
+            <div class="grid-2">
+                <div>
+                    <div class="card" style="margin-bottom:20px;">
+                        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">
+                            <i class="ri-information-line"></i> Remplissez ce que vous pouvez. Le système s'adapte aux données fournies pour calculer votre <strong>Condition Physique</strong> du jour.
+                        </p>
+                        <form id="health-form" onsubmit="saveHealthCheck(event)">
+                            <div class="health-grid" style="grid-template-columns: 1fr;">
+                                
+                                <div class="input-card">
+                                    <div class="icon-box"><i class="ri-moon-line"></i></div>
+                                    <div style="flex:1;">
+                                        <label class="form-label">Sommeil (Heures)</label>
+                                        <input type="number" step="0.1" id="in-sleep" class="input-tech" placeholder="Ex: 7.5">
+                                    </div>
+                                </div>
+
+                                <div class="input-card">
+                                    <div class="icon-box" style="color:#38bdf8;"><i class="ri-drop-line"></i></div>
+                                    <div style="flex:1;">
+                                        <label class="form-label">Hydratation (Litres)</label>
+                                        <input type="number" step="0.1" id="in-water" class="input-tech" placeholder="Ex: 2.0">
+                                    </div>
+                                </div>
+
+                                <div class="input-card">
+                                    <div class="icon-box" style="color:#facc15;"><i class="ri-footprint-line"></i></div>
+                                    <div style="flex:1;">
+                                        <label class="form-label">Marche (Pas)</label>
+                                        <input type="number" id="in-steps" class="input-tech" placeholder="Ex: 8000">
+                                    </div>
+                                </div>
+
+                                <div class="input-card">
+                                    <div class="icon-box" style="color:#4ade80;"><i class="ri-restaurant-line"></i></div>
+                                    <div class="range-wrap">
+                                        <label class="form-label">Qualité Nutrition</label>
+                                        <input type="range" id="in-nutrition" min="0" max="5" step="1" value="0" oninput="document.getElementById('disp-nutri').innerText = this.value > 0 ? this.value + '/5' : 'Non renseigné'">
+                                        <div class="range-labels"><span>Mauvais</span><span id="disp-nutri" style="color:#fff; font-weight:bold;">Non renseigné</span><span>Excellent</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="input-card">
+                                    <div class="icon-box" style="color:#ef4444;"><i class="ri-pulse-line"></i></div>
+                                    <div class="range-wrap">
+                                        <label class="form-label">Niveau de Stress</label>
+                                        <input type="range" id="in-stress" min="0" max="5" step="1" value="0" oninput="document.getElementById('disp-stress').innerText = this.value > 0 ? this.value + '/5' : 'Non renseigné'">
+                                        <div class="range-labels"><span>Zen</span><span id="disp-stress" style="color:#fff; font-weight:bold;">Non renseigné</span><span>Panique</span></div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <button type="submit" class="btn btn-action" style="margin-top:20px; padding:20px;">
+                                <i class="ri-save-3-line"></i> SYNCHRONISER & CALCULER
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card" style="text-align:center; height:100%;">
+                        <h3 class="titular" style="font-size:1.2rem; margin-bottom:30px;">ÉTAT DU SYSTÈME</h3>
+                        
+                        <div id="score-display" class="score-circle status-neutral">
+                            <div class="score-val" id="score-percent">--</div>
+                            <div class="score-label">CONDITION</div>
+                            <div class="score-bonus" id="score-effect">NEUTRE</div>
+                        </div>
+
+                        <div style="text-align:left; background:#131824; padding:20px; border-radius:12px; margin-top:20px;">
+                            <div style="font-weight:bold; color:#fff; margin-bottom:10px;"><i class="ri-magic-line"></i> EFFETS ACTIFS :</div>
+                            <ul style="margin:0; padding-left:20px; color:var(--text-muted); font-size:0.9rem; line-height:1.6;" id="effect-list">
+                                <li>En attente de données...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Charge les données du jour si elles existent
+            if(state.user.dailyHealth && state.user.dailyHealth.date === new Date().toISOString().split('T')[0]) {
+                const h = state.user.dailyHealth;
+                if(h.sleep) document.getElementById('in-sleep').value = h.sleep;
+                if(h.water) document.getElementById('in-water').value = h.water;
+                if(h.steps) document.getElementById('in-steps').value = h.steps;
+                if(h.nutrition) { document.getElementById('in-nutrition').value = h.nutrition; document.getElementById('disp-nutri').innerText = h.nutrition + '/5'; }
+                if(h.stress) { document.getElementById('in-stress').value = h.stress; document.getElementById('disp-stress').innerText = h.stress + '/5'; }
+                updateUI(h.score, h.multiplier);
+            }
+        });
+
+        function saveHealthCheck(e) {
+            e.preventDefault();
+            
+            const inputs = {
+                sleep: parseFloat(document.getElementById('in-sleep').value) || 0,
+                water: parseFloat(document.getElementById('in-water').value) || 0,
+                steps: parseFloat(document.getElementById('in-steps').value) || 0,
+                nutrition: parseInt(document.getElementById('in-nutrition').value) || 0,
+                stress: parseInt(document.getElementById('in-stress').value) || 0
+            };
+
+            // Appel de la fonction logique dans main.js
+            const result = calculateHealthScore(inputs);
+            
+            // Mise à jour de l'affichage
+            updateUI(result.score, result.multiplier);
+        }
+
+        function updateUI(score, multiplier) {
+            const circle = document.getElementById('score-display');
+            const percent = document.getElementById('score-percent');
+            const effect = document.getElementById('score-effect');
+            const list = document.getElementById('effect-list');
+
+            percent.innerText = Math.round(score) + '%';
+            
+            // Gestion des classes CSS (Couleurs)
+            circle.className = 'score-circle'; // Reset
+            if(score >= 80) circle.classList.add('status-buff');
+            else if(score < 50) circle.classList.add('status-debuff');
+            else circle.classList.add('status-neutral');
+
+            // Texte et Bonus
+            let bonusTxt = "NEUTRE (x1.0)";
+            let details = "";
+
+            if(multiplier > 1) {
+                const p = Math.round((multiplier - 1) * 100);
+                bonusTxt = `BONUS +${p}%`;
+                effect.style.color = "var(--success)";
+                details = `<li style="color:var(--success)">Gain d'XP augmenté de ${p}%</li><li>Récupération optimale</li>`;
+            } else if (multiplier < 1) {
+                const p = Math.round((1 - multiplier) * 100);
+                bonusTxt = `MALUS -${p}%`;
+                effect.style.color = "var(--danger)";
+                details = `<li style="color:var(--danger)">Gain d'XP réduit de ${p}%</li><li>Risque de fatigue accru</li>`;
+            } else {
+                effect.style.color = "var(--primary)";
+                details = `<li>XP Standard (100%)</li><li>État stable</li>`;
+            }
+
+            effect.innerText = bonusTxt;
+            list.innerHTML = details;
+        }
+    </script>
+</body>
+</html>

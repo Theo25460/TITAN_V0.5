@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: PROTOCOLE LÉGAL</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- LAYOUT SPÉCIFIQUE LEGAL --- */
+        .legal-layout { display: flex; min-height: 100vh; }
+        
+        .legal-sidebar {
+            width: 260px;
+            background-color: #161b29;
+            padding: 30px 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-title {
+            color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem;
+            text-transform: uppercase; margin-bottom: 30px; padding-left: 10px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .legal-link {
+            color: var(--text-muted); text-decoration: none; padding: 12px 15px;
+            margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
+        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
+        .back-link:hover { background: #b91c1c; }
+
+        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
+
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        
+        .legal-card {
+            background: #1e2538; border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 30px; position: relative; overflow: hidden;
+            transition: 0.3s; text-decoration: none; display: flex; flex-direction: column;
+        }
+        .legal-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #232b42; }
+        .card-icon { font-size: 2.5rem; margin-bottom: 15px; color: var(--text-muted); }
+        .card-title { font-family: 'Russo One'; font-size: 1.2rem; color: #fff; margin-bottom: 10px; }
+        .card-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
+        .card-arrow { color: var(--accent); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; }
+            
+            .legal-sidebar {
+                width: 100%; height: auto; padding: 15px;
+                flex-direction: row; overflow-x: auto;
+                border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1);
+                white-space: nowrap; gap: 10px;
+                background: #131824;
+                position: sticky; top: 0; z-index: 50;
+            }
+            
+            .sidebar-title { display: none; } /* On cache le titre pour gagner de la place */
+            
+            .legal-link { 
+                padding: 8px 15px; margin: 0; font-size: 0.8rem; 
+                background: rgba(255,255,255,0.05); flex-shrink: 0;
+            }
+            
+            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
+            
+            .legal-content-area { padding: 20px; }
+            .mobile-user-bar { display: none !important; } /* On cache la barre user ici pour focus lecture */
+        }
+    </style>
+</head>
+<body>
+    <div class="legal-layout">
+        
+        <nav class="legal-sidebar">
+            <div class="sidebar-title">SECTION JURIDIQUE</div>
+            <a href="legal_hub.html" class="legal-link active"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
+            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
+            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
+            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        </nav>
+
+        <main class="legal-content-area">
+            <header style="max-width: 800px; margin-bottom: 40px;">
+                <div style="display:inline-block; background:rgba(239,68,68,0.1); color:var(--danger); font-weight:800; padding:5px 12px; border-radius:20px; font-size:0.75rem; margin-bottom:15px; border:1px solid rgba(239,68,68,0.3);">
+                    <i class="ri-alarm-warning-line"></i> ZONE DE CONFORMITÉ
+                </div>
+                <h1 class="titular" style="font-size: 2.5rem; margin-bottom: 10px;">PROTOCOLES DE DÉFENSE</h1>
+                <p style="color:var(--text-muted); font-size:1rem; line-height:1.6;">
+                    L'accès et l'utilisation du système TITAN OS impliquent l'adhésion totale aux protocoles ci-dessous. 
+                    Ces documents définissent vos droits, mais surtout vos devoirs stricts au sein de l'infrastructure.
+                </p>
+            </header>
+
+            <div class="hub-grid">
+                
+                <a href="legal_cgu.html" class="legal-card">
+                    <i class="ri-scales-3-line card-icon" style="color:var(--primary);"></i>
+                    <div class="card-title">CONDITIONS GÉNÉRALES</div>
+                    <div class="card-desc">Le contrat inflexible entre vous et le Système. Règles de conduite, sanctions pénales en cas d'abus, et décharge de responsabilité médicale.</div>
+                    <div class="card-arrow" style="color:var(--primary);">CONSULTER LE RÈGLEMENT <i class="ri-arrow-right-line"></i></div>
+                </a>
+
+                <a href="legal_privacy.html" class="legal-card">
+                    <i class="ri-lock-password-line card-icon" style="color:var(--accent);"></i>
+                    <div class="card-title">DONNÉES & VIE PRIVÉE</div>
+                    <div class="card-desc">Transparence totale sur l'usage de vos données biométriques. Conformité RGPD, cryptage et droit à l'oubli numérique.</div>
+                    <div class="card-arrow" style="color:var(--accent);">VOIR LA POLITIQUE <i class="ri-arrow-right-line"></i></div>
+                </a>
+
+                <a href="legal_mentions.html" class="legal-card">
+                    <i class="ri-government-line card-icon" style="color:var(--gold);"></i>
+                    <div class="card-title">MENTIONS LÉGALES</div>
+                    <div class="card-desc">Identification de l'éditeur, hébergement sécurisé et propriété intellectuelle exclusive des actifs TITAN.</div>
+                    <div class="card-arrow" style="color:var(--gold);">IDENTIFICATION <i class="ri-arrow-right-line"></i></div>
+                </a>
+
+            </div>
+            
+            <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color:var(--text-muted); font-size:0.8rem;">
+                <p>&copy; 2025 TITAN OS. Tous droits réservés. Système sous surveillance.</p>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

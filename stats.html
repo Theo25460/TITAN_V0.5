@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: DONNÉES</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- STYLES KPI & GRAPHIQUES (Analyse Globale) --- */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .kpi-card { background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; height: 140px; transition: 0.2s; }
+        .kpi-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.02); transform: translateY(-2px); }
+        .kpi-icon { position: absolute; right: -10px; bottom: -10px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg); transition: 0.3s; }
+        .kpi-card:hover .kpi-icon { transform: rotate(0deg) scale(1.1); opacity: 0.1; }
+        .kpi-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 1; }
+        .kpi-val { font-family: 'Russo One'; font-size: 1.5rem; color: #fff; z-index: 1; margin-top: auto; line-height: 1.1; }
+        .kpi-sub { font-size: 0.75rem; color: var(--accent); font-weight: 600; margin-top: 5px; z-index: 1; }
+        
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-top: 40px; }
+        .section-title { font-family: 'Russo One'; font-size: 1.1rem; color: #fff; text-transform: uppercase; }
+        
+        /* Contrôles du Graphique */
+        .chart-toolbar { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .chart-select { background: #131824; color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; font-family: 'Outfit'; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .chart-select:focus { border-color: var(--primary); }
+        .period-group { display: flex; gap: 5px; background: #131824; padding: 4px; border-radius: 8px; }
+        .period-btn { padding: 6px 12px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .period-btn.active { background: var(--primary); color: #000; }
+
+        /* --- STYLES DÉTAILS (Focus Sport) --- */
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: var(--bg-panel); border: 2px solid rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; position: relative; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
+        .metric-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.03); transform: translateY(-3px); }
+        .metric-icon { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 10px; }
+        .metric-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; }
+        .metric-val { font-family: 'Russo One'; font-size: 1.8rem; color: #fff; line-height: 1.1; margin-top: 5px; }
+        .metric-unit { font-size: 0.9rem; font-family: 'Outfit'; font-weight: 600; color: var(--primary); }
+        
+        .sport-selector-container { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+        #detailSportSelect { background: #131824; border: 2px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 20px; border-radius: 10px; font-family: 'Outfit'; font-weight: 700; font-size: 1rem; cursor: pointer; flex: 1; }
+        #detailSportSelect:focus { border-color: var(--accent); }
+        
+        .weather-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+        .extra-highlight { color: var(--gold); }
+
+        /* --- NAVIGATION ONGLETS (Style repris de Social) --- */
+        .stats-nav { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+        .nav-tab { flex: 1; text-align: center; padding: 15px; background: var(--bg-panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; color: var(--text-muted); font-family: 'Russo One'; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s; min-width: 120px; }
+        .nav-tab:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar"></nav>
+
+        <main class="main-content">
+            <div class="mobile-user-bar">
+    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
+            <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
+            <div>
+                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+        </div>
+    </div>
+</div>
+            <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <div><h1 class="titular">Centre de Données</h1><div style="color:var(--text-muted)">Analyse de performance & biométrie.</div></div>
+                <div class="card" style="margin:0; padding:10px 25px; border:none; background:linear-gradient(to bottom, var(--primary), var(--primary-dark)); color:#fff;">
+                    <div style="font-size:0.7rem; font-weight:800;">TITAN SCORE</div>
+                    <div style="font-family:'Russo One'; font-size:1.5rem; line-height:1;" id="titan-score">0</div>
+                </div>
+            </header>
+
+            <div class="stats-nav">
+                <div class="nav-tab active" onclick="switchView('global', this)"><i class="ri-pie-chart-2-line"></i> VUE GLOBALE</div>
+                <div class="nav-tab" onclick="switchView('details', this)"><i class="ri-focus-3-line"></i> FOCUS DISCIPLINE</div>
+            </div>
+
+            <div id="view-global" class="view-section">
+                
+                <div class="card">
+                    <div class="chart-toolbar">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <i class="ri-line-chart-line" style="color:var(--accent);"></i>
+                            <select id="chart-sport" class="chart-select" onchange="updateChart()">
+                                <option value="all">Tous les sports</option>
+                            </select>
+                            <select id="chart-metric" class="chart-select" onchange="updateChart()">
+                                <option value="xp">XP Gagné</option>
+                                <option value="time">Durée (min)</option>
+                                <option value="vol">Volume/Dist (km/kg)</option>
+                                <option value="rpe">Intensité (RPE)</option>
+                                <option value="count">Nombre Séances</option>
+                            </select>
+                        </div>
+                        <div class="period-group">
+                            <button class="period-btn active" onclick="setPeriod('week', this)">7J</button>
+                            <button class="period-btn" onclick="setPeriod('month', this)">MOIS</button>
+                            <button class="period-btn" onclick="setPeriod('year', this)">ANNÉE</button>
+                        </div>
+                    </div>
+                    <div class="chart-container"><canvas id="activityChart"></canvas></div>
+                </div>
+
+                <div class="section-header" style="margin-top:20px;">
+                    <i class="ri-flashlight-fill" style="color:var(--primary);"></i>
+                    <span class="section-title">PERFORMANCE ATHLÉTIQUE</span>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><i class="ri-calendar-check-fill kpi-icon"></i><div class="kpi-label">Sessions Totales</div><div class="kpi-val"><span id="stat-sessions">0</span></div><div class="kpi-sub">Assiduité</div></div>
+                    <div class="kpi-card"><i class="ri-time-fill kpi-icon"></i><div class="kpi-label">Temps d'Effort</div><div class="kpi-val"><span id="stat-time">0</span> h</div><div class="kpi-sub">Cumulé</div></div>
+                    <div class="kpi-card"><i class="ri-weight-fill kpi-icon"></i><div class="kpi-label">Tonnage (Force)</div><div class="kpi-val"><span id="stat-tons">0</span> t</div><div class="kpi-sub">Total soulevé</div></div>
+                    <div class="kpi-card"><i class="ri-run-fill kpi-icon"></i><div class="kpi-label">Distance (Cardio)</div><div class="kpi-val"><span id="stat-dist">0</span> km</div><div class="kpi-sub">Parcourue</div></div>
+                    <div class="kpi-card"><i class="ri-mountain-fill kpi-icon"></i><div class="kpi-label">Dénivelé +</div><div class="kpi-val"><span id="stat-elev">0</span> m</div><div class="kpi-sub">Ascension</div></div>
+                    
+                    <div class="kpi-card" style="border-color:var(--primary);"><i class="ri-fire-fill kpi-icon"></i><div class="kpi-label" style="color:var(--primary);">Série Actuelle</div><div class="kpi-val"><span id="stat-streak">0</span> j</div><div class="kpi-sub">Jours consécutifs</div></div>
+                    <div class="kpi-card"><i class="ri-trophy-fill kpi-icon"></i><div class="kpi-label">Record XP / Sess.</div><div class="kpi-val"><span id="stat-record-xp">0</span></div><div class="kpi-sub">Meilleure séance</div></div>
+                    <div class="kpi-card"><i class="ri-barbell-fill kpi-icon"></i><div class="kpi-label">Charge Max</div><div class="kpi-val"><span id="stat-max-load">0</span> kg</div><div class="kpi-sub">Poids le plus lourd</div></div>
+                    <div class="kpi-card"><i class="ri-pie-chart-fill kpi-icon"></i><div class="kpi-label">Ratio Force/Cardio</div><div class="kpi-val"><span id="stat-ratio">50/50</span></div><div class="kpi-sub">Équilibre</div></div>
+                    <div class="kpi-card"><i class="ri-calendar-2-fill kpi-icon"></i><div class="kpi-label">Volume Mois</div><div class="kpi-val"><span id="stat-month-vol">0</span> h</div><div class="kpi-sub">Mois en cours</div></div>
+                </div>
+
+                <div class="section-header">
+                    <i class="ri-heart-pulse-fill" style="color:var(--accent);"></i>
+                    <span class="section-title">SANTÉ & BIO</span>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><i class="ri-scales-3-fill kpi-icon"></i><div class="kpi-label">IMC</div><div class="kpi-val" id="stat-imc">--</div><div class="kpi-sub" id="stat-imc-text">...</div></div>
+                    <div class="kpi-card"><i class="ri-fire-line kpi-icon"></i><div class="kpi-label">Métabolisme</div><div class="kpi-val"><span id="stat-bmr">0</span> <span style="font-size:1rem;">kcal</span></div><div class="kpi-sub">Basal</div></div>
+                    <div class="kpi-card"><i class="ri-drop-fill kpi-icon"></i><div class="kpi-label">Hydratation</div><div class="kpi-val"><span id="stat-water">0</span> L</div><div class="kpi-sub">Objectif</div></div>
+                    <div class="kpi-card"><i class="ri-moon-fill kpi-icon"></i><div class="kpi-label">Sommeil Moy.</div><div class="kpi-val"><span id="stat-sleep">--</span> / 5</div><div class="kpi-sub">Qualité</div></div>
+                    
+                    <div class="kpi-card"><i class="ri-restaurant-fill kpi-icon"></i><div class="kpi-label">Score Nutrition</div><div class="kpi-val"><span id="stat-nutri">--</span> / 5</div><div class="kpi-sub">Moyenne</div></div>
+                    <div class="kpi-card" style="border-color:#ef4444;"><i class="ri-battery-charge-fill kpi-icon"></i><div class="kpi-label" style="color:#ef4444;">Récupération</div><div class="kpi-val"><span id="stat-recov">0</span> h</div><div class="kpi-sub">Depuis dernière sess.</div></div>
+                    <div class="kpi-card"><i class="ri-pulse-line kpi-icon"></i><div class="kpi-label">Charge RPE</div><div class="kpi-val"><span id="stat-load">0</span></div><div class="kpi-sub">Unités arbitraires</div></div>
+                    <div class="kpi-card"><i class="ri-calendar-event-fill kpi-icon"></i><div class="kpi-label">Densité</div><div class="kpi-val"><span id="stat-freq">0</span></div><div class="kpi-sub">Sess. / Semaine</div></div>
+                    <div class="kpi-card"><i class="ri-zzz-fill kpi-icon"></i><div class="kpi-label">Dette Sommeil</div><div class="kpi-val"><span id="stat-sleep-debt">0</span></div><div class="kpi-sub">Vs Optimal (5/5)</div></div>
+                </div>
+
+                <div class="section-header">
+                    <i class="ri-sword-fill" style="color:var(--gold);"></i>
+                    <span class="section-title">RPG STATUS</span>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="border-color:var(--gold);"><i class="ri-vip-crown-fill kpi-icon"></i><div class="kpi-label" style="color:var(--gold);">Niveau</div><div class="kpi-val" style="color:var(--gold);" id="rpg-lvl">1</div></div>
+                    <div class="kpi-card"><i class="ri-copper-coin-fill kpi-icon"></i><div class="kpi-label">Crédits</div><div class="kpi-val" id="rpg-gold">0</div></div>
+                    <div class="kpi-card"><i class="ri-skull-2-fill kpi-icon"></i><div class="kpi-label">Boss Kill</div><div class="kpi-val" id="rpg-boss">0</div></div>
+                    <div class="kpi-card"><i class="ri-task-fill kpi-icon"></i><div class="kpi-label">Quêtes</div><div class="kpi-val" id="rpg-quests">0</div></div>
+                </div>
+            </div>
+
+            <div id="view-details" class="view-section" style="display:none;">
+                <div class="sport-selector-container">
+                    <div style="font-weight:700; color:var(--accent); text-transform:uppercase; display:flex; align-items:center; gap:10px;"><i class="ri-focus-3-line"></i> CIBLE :</div>
+                    <select id="detailSportSelect" onchange="calculateDetails()"></select>
+                </div>
+
+                <div id="dashboard-content" style="display:none;">
+                    <h3 class="section-title" style="color:var(--primary); margin-top:0;"><i class="ri-stack-line"></i> VOLUMES GLOBAUX</h3>
+                    <div class="detail-grid">
+                        <div class="metric-card"><i class="ri-calendar-check-line metric-icon"></i><span class="metric-label">Total Sessions</span><span class="metric-val" id="d-sessions">0</span></div>
+                        <div class="metric-card"><i class="ri-timer-line metric-icon"></i><span class="metric-label">Temps Cumulé</span><span class="metric-val"><span id="d-time">0</span> <span class="metric-unit">h</span></span></div>
+                        <div class="metric-card"><i class="ri-route-line metric-icon"></i><span class="metric-label">Distance / Charge</span><span class="metric-val"><span id="d-volume">0</span> <span class="metric-unit" id="d-unit-1">km</span></span></div>
+                        <div class="metric-card"><i class="ri-vip-crown-line metric-icon" style="color:var(--gold);"></i><span class="metric-label">Record Personnel</span><span class="metric-val"><span id="d-record">0</span> <span class="metric-unit" id="d-unit-rec">km</span></span></div>
+                    </div>
+
+                    <div id="extra-section" style="display:none;">
+                        <h3 class="section-title" style="color:var(--gold);"><i class="ri-database-2-line"></i> DONNÉES SPÉCIFIQUES</h3>
+                        <div class="detail-grid" id="extra-grid"></div>
+                    </div>
+
+                    <h3 class="section-title" style="color:var(--accent);"><i class="ri-pulse-line"></i> INTENSITÉ & PHYSIO</h3>
+                    <div class="detail-grid">
+                        <div class="metric-card"><i class="ri-speed-line metric-icon"></i><span class="metric-label">Moyenne / Séance</span><span class="metric-val"><span id="d-avg-val">0</span> <span class="metric-unit" id="d-unit-avg">km</span></span></div>
+                        <div class="metric-card"><i class="ri-heart-pulse-fill metric-icon" style="color:#f87171;"></i><span class="metric-label">FC Moyenne</span><span class="metric-val"><span id="d-hr">--</span> <span class="metric-unit">BPM</span></span></div>
+                        <div class="metric-card"><i class="ri-fire-fill metric-icon" style="color:#fb923c;"></i><span class="metric-label">Ressenti (RPE)</span><span class="metric-val"><span id="d-rpe">--</span> <span class="metric-unit">/ 10</span></span></div>
+                        <div class="metric-card" id="card-elev"><i class="ri-mountain-line metric-icon"></i><span class="metric-label">Dénivelé Total</span><span class="metric-val"><span id="d-elev">0</span> <span class="metric-unit">m</span></span></div>
+                    </div>
+
+                    <div class="card" style="margin-top:30px; display:flex; align-items:center; justify-content:space-between;">
+                        <div><div class="metric-label" style="margin-bottom:5px;">MÉTÉO DOMINANTE</div><div style="font-size:1.2rem; font-weight:bold; color:#fff;" id="d-weather">Non définie</div></div>
+                        <div style="text-align:right;"><div class="metric-label" style="margin-bottom:5px;">DERNIÈRE SESSION</div><div style="font-size:1.1rem; font-weight:bold; color:var(--text-muted);" id="d-last">--/--/----</div></div>
+                    </div>
+                </div>
+
+                <div id="empty-state" style="text-align:center; padding:50px; color:var(--text-muted); display:none;">
+                    <i class="ri-file-list-3-line" style="font-size:3rem; margin-bottom:10px; opacity:0.5;"></i>
+                    <p>Aucune donnée disponible pour ce sport.</p>
+                    <button class="btn btn-action" style="width:auto; margin:20px auto;" onclick="window.location.href='training.html'">GO TRAINING</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script>
+        let myChart = null;
+        let currentPeriod = 'week';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem(STATE_KEY)) state = JSON.parse(localStorage.getItem(STATE_KEY));
+            if(!state) return;
+
+            // Remplir le select Sport (Graphique)
+            const sportSel = document.getElementById('chart-sport');
+            const activeSports = [...new Set(state.history.map(l => l.sport))].sort();
+            activeSports.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s; opt.innerText = s;
+                sportSel.appendChild(opt);
+            });
+
+            // Initialiser les calculs globaux
+            calculateStats();
+            updateChart();
+
+            // Initialiser le selecteur de l'onglet Détails
+            initDetailSelector(activeSports);
+        });
+
+        // --- NAVIGATION ONGLETS ---
+        function switchView(viewName, tabEl) {
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            document.getElementById('view-' + viewName).style.display = 'block';
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            if(tabEl) tabEl.classList.add('active');
+            
+            // Si on switch sur détails, on lance le calcul
+            if(viewName === 'details') calculateDetails();
+        }
+
+        // --- LOGIQUE VUE GLOBALE ---
+        function setPeriod(p, btn) {
+            currentPeriod = p;
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateChart();
+        }
+
+        function calculateStats() {
+            let dist=0, tons=0, mins=0, xp=0, elev=0;
+            let sumRpe=0, countRpe=0, sumSleep=0, countSleep=0, sumNutri=0, countNutri=0;
+            let forceCount=0, cardioCount=0, mentalCount=0;
+            let maxXp=0, maxLoad=0;
+            const now = new Date();
+            let monthMins = 0;
+            let dates = state.history.map(l => l.date).sort().reverse();
+            let uniqueDates = [...new Set(dates)];
+            let streak = 0;
+            let checkDate = new Date();
+            checkDate.setHours(0,0,0,0);
+            let hasToday = uniqueDates.includes(checkDate.toISOString().split('T')[0]);
+            let streakDate = new Date(checkDate);
+            if(!hasToday) streakDate.setDate(streakDate.getDate() - 1);
+            
+            for(let i=0; i<uniqueDates.length; i++) {
+                let d = new Date(uniqueDates[i]);
+                d.setHours(0,0,0,0);
+                if(d.getTime() === streakDate.getTime()) { streak++; streakDate.setDate(streakDate.getDate() - 1); } 
+                else if (d.getTime() > streakDate.getTime()) { continue; } else { break; }
+            }
+
+            let lastTime = state.history.length > 0 ? new Date(state.history[0].id) : null;
+            let hoursSince = lastTime ? Math.floor((new Date() - lastTime) / (1000*60*60)) : 0;
+
+            state.history.forEach(l => {
+                xp += l.xp;
+                if(l.xp > maxXp) maxXp = l.xp;
+                let dur = 0;
+                if(l.details && l.details.includes('min')) { const m = l.details.match(/(\d+) min/); if(m) dur = parseInt(m[1]); } 
+                else if(l.extended && l.extended.val2 > 0) dur = l.extended.val2;
+                else if(l.cat === 'cardio' && l.unit === 'km') dur = l.value * 6;
+                mins += dur;
+                let lDate = new Date(l.date);
+                if(lDate.getMonth() === now.getMonth() && lDate.getFullYear() === now.getFullYear()) monthMins += dur;
+                if(l.cat === 'force') forceCount++; if(l.cat === 'cardio') cardioCount++; if(l.cat === 'mental') mentalCount++;
+                if(l.cat === 'cardio' && l.unit === 'km') dist += l.value;
+                if(l.extended && l.extended.gps_dist) dist += l.extended.gps_dist;
+                if(l.cat === 'force' && l.unit === 'kg' && l.details.includes('@')) tons += l.value;
+                if(l.extended && l.extended.exercises) { l.extended.exercises.forEach(ex => { if(ex.weight > maxLoad) maxLoad = ex.weight; }); }
+                if(l.elevation) elev += l.elevation; if(l.extended && l.extended.elevation) elev += l.extended.elevation;
+                if(l.extended && l.extended.bio) {
+                    if(l.extended.bio.rpe > 0) { sumRpe += parseInt(l.extended.bio.rpe); countRpe++; }
+                    if(l.extended.bio.sleep > 0) { sumSleep += parseInt(l.extended.bio.sleep); countSleep++; }
+                    if(l.extended.bio.nutrition > 0) { sumNutri += parseInt(l.extended.bio.nutrition); countNutri++; }
+                }
+            });
+
+            document.getElementById('stat-sessions').innerText = state.history.length;
+            document.getElementById('stat-time').innerText = (mins/60).toFixed(1);
+            document.getElementById('stat-tons').innerText = (tons/1000).toFixed(1);
+            document.getElementById('stat-dist').innerText = Math.round(dist);
+            document.getElementById('stat-elev').innerText = Math.round(elev);
+            document.getElementById('stat-streak').innerText = streak;
+            document.getElementById('stat-record-xp').innerText = maxXp;
+            document.getElementById('stat-max-load').innerText = maxLoad;
+            
+            let totalFC = forceCount + cardioCount;
+            let ratio = totalFC > 0 ? Math.round((forceCount/totalFC)*100) : 50;
+            document.getElementById('stat-ratio').innerText = `${ratio}/${100-ratio}%`;
+            document.getElementById('stat-month-vol').innerText = (monthMins/60).toFixed(1);
+
+            const bio = state.user.bio;
+            if(bio && bio.weight > 0) {
+                let h = bio.height / 100;
+                let imc = (bio.weight / (h*h)).toFixed(1);
+                document.getElementById('stat-imc').innerText = imc;
+                let t="Normal", c="#4ade80";
+                if(imc < 18.5) { t="Maigreur"; c="#38bdf8"; } else if(imc >= 25) { t="Surpoids"; c="#facc15"; }
+                document.getElementById('stat-imc-text').innerText = t; document.getElementById('stat-imc').style.color = c;
+                let bmr = (10 * bio.weight) + (6.25 * bio.height) - (5 * bio.age) + 5;
+                document.getElementById('stat-bmr').innerText = Math.round(bmr);
+                document.getElementById('stat-water').innerText = (bio.weight * 0.035).toFixed(1);
+            }
+
+            let avgSleep = countSleep > 0 ? (sumSleep/countSleep).toFixed(1) : "-";
+            document.getElementById('stat-sleep').innerText = avgSleep;
+            document.getElementById('stat-nutri').innerText = countNutri > 0 ? (sumNutri/countNutri).toFixed(1) : "-";
+            document.getElementById('stat-recov').innerText = hoursSince;
+            document.getElementById('stat-load').innerText = Math.round((sumRpe/countRpe || 0) * (mins/state.history.length || 0));
+            let dense = state.history.length > 0 ? (state.history.length / 30).toFixed(1) : 0; 
+            document.getElementById('stat-freq').innerText = dense;
+            let sleepDebt = avgSleep !== "-" ? (5 - parseFloat(avgSleep)).toFixed(1) : "-";
+            document.getElementById('stat-sleep-debt').innerText = sleepDebt > 0 ? `-${sleepDebt}` : "OK";
+
+            document.getElementById('rpg-lvl').innerText = state.user.level;
+            document.getElementById('rpg-gold').innerText = state.user.credits;
+            document.getElementById('rpg-boss').innerText = state.game.boss.lvl - 1;
+            document.getElementById('rpg-quests').innerText = state.game.quests.filter(q=>q.done).length;
+            
+            let score = Math.floor((state.user.xp / 100) + (state.history.length * 10) + (tons / 100));
+            document.getElementById('titan-score').innerText = score;
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            const sportFilter = document.getElementById('chart-sport').value;
+            const metric = document.getElementById('chart-metric').value;
+            
+            let labels = [], dataPoints = [];
+            const today = new Date();
+            let days = 7; 
+            let labelFmt = {weekday:'short'};
+
+            if(currentPeriod === 'month') { days = 30; labelFmt = {day:'numeric', month:'short'}; }
+            if(currentPeriod === 'year') { days = 12; labelFmt = {month:'short'}; }
+
+            for(let i = days - 1; i >= 0; i--) {
+                let d = new Date();
+                if(currentPeriod === 'year') { d.setMonth(today.getMonth() - i); labels.push(d.toLocaleDateString('fr-FR', labelFmt)); } 
+                else { d.setDate(today.getDate() - i); labels.push(d.toLocaleDateString('fr-FR', labelFmt)); }
+                dataPoints.push(0);
+            }
+
+            state.history.forEach(l => {
+                if(sportFilter !== 'all' && l.sport !== sportFilter) return;
+                let val = 0;
+                if(metric === 'xp') val = l.xp;
+                else if(metric === 'count') val = 1;
+                else if(metric === 'rpe' && l.extended && l.extended.bio) val = parseInt(l.extended.bio.rpe) || 0;
+                else if(metric === 'vol') val = l.value; 
+                else if(metric === 'time') {
+                    if(l.details.includes('min')) val = parseInt(l.details.match(/(\d+) min/)[1]);
+                    else if(l.extended.val2) val = l.extended.val2;
+                }
+
+                let ld = new Date(l.date);
+                let idx = -1;
+                if(currentPeriod === 'year') {
+                    let mDiff = (today.getFullYear() - ld.getFullYear()) * 12 + (today.getMonth() - ld.getMonth());
+                    if(mDiff >= 0 && mDiff < 12) idx = 11 - mDiff;
+                } else {
+                    let timeDiff = today.setHours(0,0,0,0) - ld.setHours(0,0,0,0);
+                    let dayDiff = Math.floor(timeDiff / (1000*3600*24));
+                    if(dayDiff >= 0 && dayDiff < days) idx = (days - 1) - dayDiff;
+                }
+                if(idx >= 0) { if(metric === 'rpe') { if(val > dataPoints[idx]) dataPoints[idx] = val; } else { dataPoints[idx] += val; } }
+            });
+
+            if(myChart) myChart.destroy();
+            let color = '#fb923c';
+            if(metric === 'rpe') color = '#ef4444';
+            if(metric === 'vol') color = '#38bdf8';
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: metric.toUpperCase(), data: dataPoints, backgroundColor: color, borderRadius: 4 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8', font: {size: 10} } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' }, beginAtZero: true } }
+                }
+            });
+        }
+
+        // --- LOGIQUE VUE DÉTAILS ---
+        function initDetailSelector(activeSports) {
+            const select = document.getElementById('detailSportSelect');
+            const content = document.getElementById('dashboard-content');
+            const empty = document.getElementById('empty-state');
+            
+            if (activeSports.length === 0) { 
+                select.disabled = true; select.innerHTML = "<option>Aucune activité</option>"; 
+                content.style.display = 'none'; empty.style.display = 'block'; 
+                return; 
+            }
+            
+            select.innerHTML = "";
+            activeSports.forEach(sportLabel => { 
+                const opt = document.createElement('option'); opt.value = sportLabel; opt.innerText = sportLabel; select.appendChild(opt); 
+            });
+            content.style.display = 'block'; empty.style.display = 'none'; 
+        }
+
+        function calculateDetails() {
+            state = JSON.parse(localStorage.getItem(STATE_KEY)); // Re-sync
+            const selectedLabel = document.getElementById('detailSportSelect').value; 
+            if(!SPORTS_CONFIG) return;
+            const sportKey = Object.keys(SPORTS_CONFIG).find(k => SPORTS_CONFIG[k].label === selectedLabel); 
+            const conf = SPORTS_CONFIG[sportKey]; 
+            const logs = state.history.filter(log => log.sport === selectedLabel);
+            
+            if(logs.length === 0) return;
+
+            let totalVal=0, totalTime=0, totalElev=0, maxVal=0, sumRPE=0, countRPE=0, sumHR=0, countHR=0, weatherCounts={};
+            logs.forEach(log => {
+                totalVal += log.value; 
+                if(log.value > maxVal) maxVal = log.value;
+                let st = 0; 
+                if(log.details && log.details.includes('min')) { const match = log.details.match(/(\d+) min/); if(match) st = parseInt(match[1]); } 
+                else if(log.extended && log.extended.val2 > 0) { st = log.extended.val2; } 
+                else if(conf.cat === 'cardio' && conf.unit === 'km') { st = log.value * 6; }
+                totalTime += st;
+                if(log.extended){ 
+                    if(log.extended.elevation) totalElev += log.extended.elevation; if(log.elevation) totalElev += log.elevation;
+                    if(log.extended.bio && log.extended.bio.rpe > 0){ sumRPE += parseInt(log.extended.bio.rpe); countRPE++; }
+                    if(log.extended.weather) weatherCounts[log.extended.weather] = (weatherCounts[log.extended.weather]||0)+1; 
+                }
+            });
+
+            document.getElementById('d-sessions').innerText = logs.length; 
+            document.getElementById('d-time').innerText = (totalTime/60).toFixed(1);
+            let dv = Math.round(totalVal), du = conf.unit; 
+            if(conf.unit === 'kg' && totalVal > 1000){ dv = (totalVal/1000).toFixed(1); du = "Tonnes"; }
+            
+            document.getElementById('d-volume').innerText = dv; document.getElementById('d-unit-1').innerText = du; 
+            document.getElementById('d-record').innerText = maxVal; document.getElementById('d-unit-rec').innerText = conf.unit;
+            document.getElementById('d-avg-val').innerText = (totalVal/logs.length).toFixed(1); document.getElementById('d-unit-avg').innerText = conf.unit;
+            document.getElementById('d-rpe').innerText = countRPE > 0 ? (sumRPE/countRPE).toFixed(1) : "--"; 
+            
+            const ec = document.getElementById('card-elev'); 
+            if(totalElev > 0){ ec.style.display = 'flex'; document.getElementById('d-elev').innerText = totalElev; } else { ec.style.display = 'none'; }
+
+            let bw = "N/A", mw = 0, wN = {'sun':'Ensoleillé ☀️','cloud':'Nuageux ☁️','rain':'Pluvieux 🌧️','snow':'Neige ❄️','indoor':'Intérieur 🏠'};
+            for(const[w,c] of Object.entries(weatherCounts)){ if(c > mw){ mw = c; bw = wN[w]||w; } }
+            document.getElementById('d-weather').innerHTML = mw > 0 ? `<span class="weather-badge">${bw}</span>` : "--"; 
+            document.getElementById('d-last').innerText = logs[0].date;
+
+            const extraSection = document.getElementById('extra-section');
+            const extraGrid = document.getElementById('extra-grid');
+            extraGrid.innerHTML = "";
+
+            if(conf.extraFields && conf.extraFields.length > 0) {
+                extraSection.style.display = 'block';
+                conf.extraFields.forEach(field => {
+                    let fieldTotal = 0, fieldCount = 0, fieldMax = 0, valCounts = {};
+                    logs.forEach(l => {
+                        if(l.extended && l.extended.extras && l.extended.extras[field.id]) {
+                            const val = l.extended.extras[field.id];
+                            if(field.type === 'number') {
+                                const num = parseFloat(val);
+                                if(!isNaN(num)) { fieldTotal += num; fieldCount++; if(num > fieldMax) fieldMax = num; }
+                            } else { valCounts[val] = (valCounts[val] || 0) + 1; fieldCount++; }
+                        }
+                    });
+
+                    if(fieldCount > 0) {
+                        const card = document.createElement('div'); card.className = 'metric-card';
+                        let displayVal = "", subInfo = "";
+                        if(field.type === 'number') {
+                            if(field.id === 'watts' || field.id === 'cadence' || field.id === 'swolf') { displayVal = Math.round(fieldTotal / fieldCount); subInfo = `Max: ${fieldMax}`; } 
+                            else { displayVal = fieldTotal; subInfo = `Moy: ${(fieldTotal/logs.length).toFixed(1)}`; }
+                        } else {
+                            let topVal = "-", maxOcc = 0;
+                            for(const [k,v] of Object.entries(valCounts)) { if(v > maxOcc) { maxOcc = v; topVal = k; } }
+                            displayVal = topVal; subInfo = `${Math.round((maxOcc/fieldCount)*100)}% du temps`;
+                        }
+                        card.innerHTML = `<div class="metric-label extra-highlight">${field.label}</div><div class="metric-val" style="font-size:1.4rem;">${displayVal}</div><div style="font-size:0.75rem; color:var(--text-muted); margin-top:5px;">${subInfo}</div>`;
+                        extraGrid.appendChild(card);
+                    }
+                });
+                if(extraGrid.children.length === 0) extraGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); font-size:0.8rem; font-style:italic;">Pas encore de données spécifiques.</div>`;
+            } else { extraSection.style.display = 'none'; }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: OPÉRATIONS</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#fb923c">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(console.error);
+        }
+    </script>
+
+    <style>
+        /* --- STYLES SPÉCIFIQUES TRAINING --- */
+        .ops-nav { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
+        .nav-tab { flex: 1; text-align: center; padding: 15px; background: var(--bg-panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; color: var(--text-muted); font-family: 'Russo One'; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s; min-width: 140px; }
+        .nav-tab:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        .search-wrapper { position: relative; width: 100%; z-index: 100; }
+        .suggestions-box { position: absolute; top: 100%; left: 0; width: 100%; background: #131824; border: 2px solid var(--primary); border-top: none; max-height: 300px; overflow-y: auto; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+        .suggestions-box.show { display: block !important; }
+        .suggestion-item { padding: 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; display: flex; align-items: center; gap: 15px; font-family: 'Outfit'; font-weight: 600; transition: 0.2s; }
+        .suggestion-item:hover { background: var(--primary); color: #000; padding-left: 25px; }
+
+        .bio-slider-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .bio-slider-row { display: flex; align-items: center; gap: 10px; }
+        .bio-label { font-size: 0.8rem; color: var(--text-muted); width: 80px; font-weight: bold; }
+        .bio-val { font-family: 'Russo One'; color: var(--accent); width: 30px; text-align: right; }
+
+        .gym-builder { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .exo-item { background: #131824; padding: 10px; margin-bottom: 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; }
+        
+        details { background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.03); border-radius: 16px; margin-bottom: 12px; }
+        summary { padding: 15px; cursor: pointer; font-weight: 700; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .details-content { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--primary); }
+        
+        .gpx-card { background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 15px; border-radius: 12px; margin-top: 15px; display: none; animation: pop 0.3s ease; }
+        .gpx-stat { font-family: 'Russo One'; color: #fff; font-size: 1.1rem; }
+        .gpx-label { font-size: 0.7rem; color: var(--accent); font-weight: 800; text-transform: uppercase; }
+
+        /* Conteneur Carte */
+        #map-container {
+            height: 250px; width: 100%; border-radius: 12px; margin-top: 15px;
+            border: 2px solid rgba(255,255,255,0.1); display: none;
+        }
+        #map-container.active { display: block; }
+
+        @keyframes pop { from{transform:translateY(10px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+           
+        </nav>
+
+        <main class="main-content">
+            <div class="mobile-user-bar">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
+                        <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
+                        <div>
+                            <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+                    </div>
+                </div>
+            </div>
+            
+            <header style="margin-bottom:30px;">
+                <h1 class="titular">Opérations</h1>
+                <div style="color:var(--text-muted)">Enregistrement de mission & Archives.</div>
+            </header>
+
+            <div class="ops-nav">
+                <div class="nav-tab active" onclick="switchView('new', this)"><i class="ri-add-circle-fill"></i> NOUVELLE SÉANCE</div>
+                <div class="nav-tab" onclick="switchView('history', this)"><i class="ri-file-list-3-line"></i> JOURNAL</div>
+            </div>
+
+            <div id="view-new" class="view-section">
+                <div class="grid-2">
+                    <div class="card" style="overflow: visible;">
+                        <form id="training-form" onsubmit="handleSubmit(event)">
+                            
+                            <div class="form-group" style="position:relative; z-index: 50;">
+                                <label class="form-label">Discipline Cible</label>
+                                <div class="search-wrapper">
+                                    <i class="ri-search-line" style="position:absolute; right:15px; top:15px; color:var(--text-muted); pointer-events:none;"></i>
+                                    <input type="text" id="sport-search" class="input-tech" placeholder="Rechercher (ex: 'ball', 'velo')..." autocomplete="off">
+                                    <div id="suggestions-box" class="suggestions-box"></div>
+                                </div>
+                                <input type="hidden" id="sport-key">
+                            </div>
+
+                            <div id="core-fields" style="margin-bottom:25px; padding:25px; background:rgba(255,255,255,0.02); border-radius:16px; border:2px dashed rgba(255,255,255,0.05);">
+                                <div style="text-align:center; color:var(--text-muted); font-style:italic; font-size:0.9rem;">
+                                    <i class="ri-arrow-up-line"></i> Sélectionnez une activité.
+                                </div>
+                            </div>
+
+                            <div id="analysis-module" style="display:none;">
+                                <details open>
+                                    <summary><span><i class="ri-pulse-line"></i> ANALYSE BIOMÉTRIQUE</span></summary>
+                                    <div class="details-content">
+                                        <div class="bio-slider-group">
+                                            <div class="bio-slider-row">
+                                                <span class="bio-label">Ressenti</span>
+                                                <input type="range" id="bio-rpe" min="1" max="10" value="5" oninput="document.getElementById('disp-rpe').innerText=this.value">
+                                                <span class="bio-val" id="disp-rpe">5</span>
+                                            </div>
+                                            <div class="bio-slider-row">
+                                                <span class="bio-label">Sommeil</span>
+                                                <input type="range" id="bio-sleep" min="1" max="5" value="3" oninput="document.getElementById('disp-sleep').innerText=this.value">
+                                                <span class="bio-val" id="disp-sleep">3</span>
+                                            </div>
+                                            <div class="bio-slider-row">
+                                                <span class="bio-label">Nutrition</span>
+                                                <input type="range" id="bio-nutri" min="1" max="5" value="3" oninput="document.getElementById('disp-nutri').innerText=this.value">
+                                                <span class="bio-val" id="disp-nutri">3</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <div id="extra-fields-container"></div>
+
+                            <button type="submit" class="btn btn-action" style="width:100%; margin-top:20px; padding:18px; font-size:1rem;">
+                                <i class="ri-save-3-line"></i> ENREGISTRER LA SESSION
+                            </button>
+                        </form>
+                    </div>
+
+                    <div>
+                        <div class="card">
+                            <label class="form-label" style="margin-bottom:15px;"><i class="ri-database-2-fill" style="color:var(--accent);"></i> IMPORT GPS</label>
+                            <div class="upload-zone" onclick="document.getElementById('file-upload').click()">
+                                <div style="font-weight:800; color:#fff;">DROPPER GPX</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:5px;">Compatible tout sport</div>
+                                <input type="file" id="file-upload" style="display:none;" accept=".gpx" onchange="handleFileImport(this)">
+                            </div>
+                            
+                            <div id="gpx-preview" class="gpx-card">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <div><div class="gpx-stat" id="gpx-dist">0 km</div><div class="gpx-label">Distance</div></div>
+                                    <div style="text-align:right;"><div class="gpx-stat" id="gpx-time">0 min</div><div class="gpx-label">Durée</div></div>
+                                </div>
+                                <div><div class="gpx-stat" id="gpx-ele">0 m</div><div class="gpx-label">Dénivelé</div></div>
+                            </div>
+
+                            <div id="map-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-history" class="view-section" style="display:none;">
+                <div class="card" style="text-align:center;">
+                    <p style="color:var(--text-muted);">Pour consulter l'historique détaillé et les cartes, accédez à la page complète.</p>
+                    <a href="activities.html" class="btn btn-action" style="width:auto; margin:15px auto;">VOIR L'HISTORIQUE</a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/social.js"></script>
+    
+    <script>
+        // --- NAVIGATION INTERNE ---
+        function switchView(viewName, tabEl) {
+            // Redirection directe vers activities.html pour l'historique complet
+            if(viewName === 'history') {
+                window.location.href = 'activities.html';
+                return;
+            }
+            
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            document.getElementById('view-' + viewName).style.display = 'block';
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            if(tabEl) tabEl.classList.add('active');
+        }
+
+        /* =========================================
+           LOGIQUE SAISIE & UI SPECIFIQUE
+           ========================================= */
+        const searchInput = document.getElementById('sport-search');
+        const suggestionsDiv = document.getElementById('suggestions-box');
+        const hiddenKeyInput = document.getElementById('sport-key');
+        const coreFields = document.getElementById('core-fields');
+        const analysisModule = document.getElementById('analysis-module');
+        const extraContainer = document.getElementById('extra-fields-container');
+        
+        let sportsList = [];
+        let gymSession = [];
+
+        window.addEventListener('load', () => {
+            if(typeof SPORTS_CONFIG !== 'undefined') {
+                sportsList = Object.keys(SPORTS_CONFIG).map(key => ({ key: key, label: SPORTS_CONFIG[key].label, icon: SPORTS_CONFIG[key].icon }));
+            }
+        });
+
+        // AUTOCOMPLETE
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            suggestionsDiv.innerHTML = '';
+            if (val.length < 1) { suggestionsDiv.classList.remove('show'); return; }
+            const matches = sportsList.filter(s => s.label.toLowerCase().includes(val));
+            if (matches.length > 0) {
+                suggestionsDiv.classList.add('show');
+                matches.forEach(sport => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerHTML = `<i class="${sport.icon}" style="color:var(--primary)"></i> ${sport.label}`;
+                    item.onclick = () => {
+                        searchInput.value = sport.label;
+                        hiddenKeyInput.value = sport.key;
+                        suggestionsDiv.classList.remove('show');
+                        generateForm(sport.key);
+                    };
+                    suggestionsDiv.appendChild(item);
+                });
+            } else { suggestionsDiv.classList.remove('show'); }
+        });
+        document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) suggestionsDiv.classList.remove('show'); });
+
+        // GÉNÉRATION CHAMPS FORMULAIRE
+        function generateForm(key) {
+            const conf = SPORTS_CONFIG[key];
+            if(!conf) return;
+            gymSession = [];
+            analysisModule.style.display = 'block'; 
+            let html = "";
+
+            if(conf.formType === 'builder_gym') {
+                html += `
+                    <div class="gym-builder">
+                        <div style="display:flex; gap:10px; margin-bottom:15px;">
+                            <input type="text" id="ex-name" class="input-tech" placeholder="Exercice" style="flex:2;">
+                            <input type="number" id="ex-weight" class="input-tech" placeholder="Kg" style="flex:1;">
+                            <input type="number" id="ex-sets" class="input-tech" placeholder="Séries" style="flex:1;">
+                            <input type="number" id="ex-reps" class="input-tech" placeholder="Reps" style="flex:1;">
+                            <button type="button" class="btn btn-action" style="width:auto; padding:0 15px;" onclick="addExercise()"><i class="ri-add-line"></i></button>
+                        </div>
+                        <div id="gym-list"></div>
+                        <div style="margin-top:10px; font-size:0.8rem; color:var(--text-muted); text-align:right;">Total Volume: <span id="gym-vol">0</span> kg</div>
+                    </div>`;
+            } else if (conf.formType === 'climb_pro') {
+                html += `
+                    <div class="grid-2">
+                        <div class="form-group"><label class="form-label">Hauteur Totale (m)</label><input type="number" id="val-1" class="input-tech" placeholder="Mètres"></div>
+                        <div class="form-group"><label class="form-label">Nombre de voies</label><input type="number" id="val-count" class="input-tech" placeholder="Nb"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Cotation Max Réussie</label>
+                    <select id="val-grade" class="input-tech"><option value="4">4</option><option value="5a">5a</option><option value="5b">5b</option><option value="5c">5c</option><option value="6a">6a</option><option value="6b">6b</option><option value="6c">6c</option><option value="7a">7a+</option></select></div>`;
+            } else if (conf.formType === 'gps_full') {
+                html += `
+                    <div class="grid-2">
+                        <div class="form-group"><label class="form-label">Distance (${conf.unit})</label><input type="number" step="0.01" id="val-1" class="input-tech" placeholder="0.00"></div>
+                        <div class="form-group"><label class="form-label">Durée (min)</label><input type="number" id="val-2" class="input-tech" placeholder="Minutes"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Dénivelé positif (m)</label><input type="number" id="val-elev" class="input-tech" placeholder="D+"></div>`;
+            } else {
+                html += `<div class="form-group"><label class="form-label">Volume (${conf.unit})</label><input type="number" step="0.01" id="val-1" class="input-tech" placeholder="Valeur"></div>`;
+                if(conf.formType === 'gps_simple' || conf.unit === 'min') {
+                     if(conf.unit !== 'min') html += `<div class="form-group"><label class="form-label">Durée (min) <span style="font-size:0.7rem; color:var(--text-muted);">(Optionnel)</span></label><input type="number" id="val-2" class="input-tech" placeholder="Temps"></div>`;
+                }
+            }
+
+            if(conf.extraFields && conf.extraFields.length > 0) {
+                html += `<div style="margin-top:20px; padding-top:20px; border-top:1px dashed rgba(255,255,255,0.1);">`;
+                html += `<label class="form-label" style="color:var(--accent); margin-bottom:15px;"><i class="ri-equalizer-line"></i> DONNÉES SPÉCIFIQUES</label>`;
+                html += `<div class="grid-2">`;
+                conf.extraFields.forEach(field => {
+                    let inputHtml = '';
+                    if(field.type === 'select') {
+                        inputHtml = `<select id="extra-${field.id}" class="input-tech">`;
+                        field.options.forEach(opt => inputHtml += `<option value="${opt}">${opt}</option>`);
+                        inputHtml += `</select>`;
+                    } else {
+                        inputHtml = `<input type="${field.type}" id="extra-${field.id}" class="input-tech" placeholder="${field.placeholder || ''}">`;
+                    }
+                    html += `<div class="form-group" style="margin-bottom:10px;"><label class="form-label">${field.label}</label>${inputHtml}</div>`;
+                });
+                html += `</div></div>`;
+            }
+            coreFields.innerHTML = html;
+            extraContainer.innerHTML = ""; 
+        }
+
+        // --- GPX TO FORM ---
+        function applyGpxToForm(data, btnZone) {
+            btnZone.innerHTML = `<div style="font-weight:800; color:var(--success);"><i class="ri-check-line"></i> GPX OK</div>`;
+            document.getElementById('gpx-preview').style.display = 'block';
+            document.getElementById('gpx-dist').innerText = data.dist + ' km';
+            document.getElementById('gpx-time').innerText = data.time + ' min';
+            document.getElementById('gpx-ele').innerText = data.ele + ' m';
+
+            const key = hiddenKeyInput.value; if(!key) return; const conf = SPORTS_CONFIG[key];
+            const v1 = document.getElementById('val-1'); const v2 = document.getElementById('val-2'); const vEle = document.getElementById('val-elev');
+            
+            // Auto-fill des champs
+            if(conf.unit === 'km' && v1) v1.value = data.dist; 
+            else if((conf.unit === 'min' || conf.unit === 'h') && v1) v1.value = data.time; 
+            
+            if(v2 && !v2.value && conf.unit === 'km') v2.value = data.time;
+            if(vEle) vEle.value = data.ele;
+        }
+
+        // --- GYM BUILDER LOGIC ---
+        function addExercise() { 
+            const name=document.getElementById('ex-name').value; 
+            const w=parseFloat(document.getElementById('ex-weight').value)||0; 
+            const s=parseInt(document.getElementById('ex-sets').value)||0; 
+            const r=parseInt(document.getElementById('ex-reps').value)||0; 
+            if(!name||w===0||s===0||r===0)return; 
+            gymSession.push({name,weight:w,sets:s,reps:r}); 
+            document.getElementById('ex-name').value=''; 
+            document.getElementById('ex-weight').value=''; 
+            document.getElementById('ex-sets').value=''; 
+            document.getElementById('ex-reps').value=''; 
+            document.getElementById('ex-name').focus(); 
+            renderGymList(); 
+        }
+        function renderGymList() { 
+            const div=document.getElementById('gym-list'); 
+            div.innerHTML=''; 
+            let totalVol=0; 
+            gymSession.forEach((ex,idx)=>{ 
+                const vol=ex.weight*ex.sets*ex.reps; 
+                totalVol+=vol; 
+                div.innerHTML+=`<div class="exo-item"><div style="color:#fff;font-weight:700;">${ex.name}</div><div style="color:var(--text-muted);font-size:0.9rem;">${ex.sets}x${ex.reps} @ ${ex.weight}kg</div><div style="color:var(--accent);font-weight:800;font-size:0.8rem;display:flex;align-items:center;gap:10px;">${vol} kg<i class="ri-close-line" style="color:var(--danger);cursor:pointer;" onclick="removeEx(${idx})"></i></div></div>`; 
+            }); 
+            document.getElementById('gym-vol').innerText=totalVol; 
+        }
+        function removeEx(idx) { gymSession.splice(idx,1); renderGymList(); }
+
+        // --- SUBMIT ---
+        function handleSubmit(e) {
+            e.preventDefault();
+            if(state.user.isGuest === true) { if(confirm("⚠️ Action impossible en Mode Invité. Se connecter ?")) window.location.href = 'login.html'; return; }
+
+            try {
+                const key = hiddenKeyInput.value;
+                if(!key) return alert("Sélectionnez un sport !");
+                const conf = SPORTS_CONFIG[key];
+                
+                const metrics = {
+                    val1: document.getElementById('val-1') ? parseFloat(document.getElementById('val-1').value) : 0,
+                    val2: document.getElementById('val-2') ? parseFloat(document.getElementById('val-2').value) : 0,
+                    elevation: document.getElementById('val-elev') ? parseFloat(document.getElementById('val-elev').value) : 0,
+                    count: document.getElementById('val-count') ? parseFloat(document.getElementById('val-count').value) : 0,
+                    grade: document.getElementById('val-grade') ? document.getElementById('val-grade').value : "",
+                    exercises: gymSession,
+                    bio: { rpe: document.getElementById('bio-rpe').value, sleep: document.getElementById('bio-sleep').value, nutrition: document.getElementById('bio-nutri').value },
+                    extras: {}
+                };
+
+                if(conf.extraFields) { conf.extraFields.forEach(field => { const el = document.getElementById(`extra-${field.id}`); if(el && el.value) metrics.extras[field.id] = el.value; }); }
+                
+                // Si des données GPX ont été chargées, on les passe (géré par logActivity dans main.js)
+                if(typeof tempGpxData !== 'undefined' && tempGpxData) { 
+                    if(conf.unit !== 'km') metrics.extras.gps_dist = tempGpxData.dist; 
+                    if(!metrics.elevation && tempGpxData.ele > 0) metrics.elevation = tempGpxData.ele; 
+                }
+
+                // Appel au noyau (main.js)
+                logActivity(key, metrics);
+                
+                // Reset UI
+                document.getElementById('training-form').reset();
+                coreFields.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-style:italic; font-size:0.9rem;"><i class="ri-arrow-up-line"></i> Sélectionnez une activité.</div>`;
+                searchInput.value = ""; hiddenKeyInput.value = ""; gymSession = []; analysisModule.style.display = 'none';
+                document.getElementById('gpx-preview').style.display = 'none';
+                
+                // Reset Map
+                if(mapInstance) { 
+                    mapInstance.remove(); 
+                    mapInstance = null; 
+                    document.getElementById('map-container').style.display='none'; 
+                }
+                
+            } catch(err) { alert("ERREUR SYSTÈME : " + err.message); }
+        }
+    </script>
+</body>
+</html>

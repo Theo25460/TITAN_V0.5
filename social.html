@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: SOCIAL</title>
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* STYLE SPÉCIFIQUE AU MODULE SOCIAL */
+
+        /* Bloc "À venir" pour les Guildes */
+        .coming-soon-card {
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0, 0, 0, 0.2),
+                rgba(0, 0, 0, 0.2) 10px,
+                rgba(234, 179, 8, 0.05) 10px,
+                rgba(234, 179, 8, 0.05) 20px
+            );
+            border: 2px dashed var(--gold);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .lock-icon { 
+            font-size: 3rem; 
+            color: var(--gold); 
+            margin-bottom: 15px; 
+            display: block; 
+            opacity: 0.8;
+        }
+        .cs-title { 
+            font-family: 'Russo One'; 
+            color: #fff; 
+            font-size: 1.5rem; 
+            margin-bottom: 10px; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Section Amis */
+        .friends-panel {
+            background: var(--bg-panel); 
+            padding: 25px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .friend-card {
+            background: #1e2538; 
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
+        .friend-card:hover {
+            border-color: rgba(255,255,255,0.2);
+            background: #232b42;
+        }
+
+        .add-friend-box { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 25px; 
+        }
+        .input-friend { 
+            flex: 1; 
+            background: #131824; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            color: #fff; 
+            padding: 15px; 
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .input-friend:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .section-title {
+            font-family:'Russo One'; 
+            margin-bottom:15px; 
+            color:#fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar"></nav>
+
+        <main class="main-content">
+            <h1 class="titular" style="margin-bottom:20px; font-size: 2rem;">RÉSEAU TITAN</h1>
+
+            <div class="coming-soon-card">
+                <i class="ri-lock-2-fill lock-icon"></i>
+                <div class="cs-title">MODULE GUILDE & CHAT</div>
+                <p style="font-size: 0.9rem; line-height: 1.5; max-width: 500px; margin: 0 auto;">
+                    La connexion au réseau neuronal des guildes est actuellement en cours de maintenance pour mise à niveau.
+                    Revenez dans la version 0.6 pour créer votre escouade.
+                </p>
+                <div style="margin-top: 20px; font-weight: 800; color: var(--gold); border: 1px solid var(--gold); display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem;">
+                    STATUT : À VENIR
+                </div>
+            </div>
+
+            <div class="friends-panel">
+                <h3 class="section-title"><i class="ri-user-add-line" style="color:var(--accent);"></i> AJOUTER UN ALLIÉ</h3>
+                
+                <div class="add-friend-box">
+                    <input type="text" id="friend-code-input" class="input-friend" placeholder="Entrer Matricule (ex: TN-F71E)">
+                    <button class="btn btn-action" onclick="addFriendAction()" style="padding: 0 25px;">
+                        <i class="ri-user-follow-fill"></i>
+                    </button>
+                </div>
+
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+
+                <h3 class="section-title" style="font-size:0.9rem; color:var(--text-muted);">
+                    LISTE D'ALLIÉS <span id="friend-count" style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:10px; font-size:0.7rem;">0</span>
+                </h3>
+                
+                <div id="friends-list-container">
+                    <div style="text-align:center; color:var(--text-muted); font-style:italic; padding:30px;">
+                        <i class="ri-ghost-line" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+                        Aucun allié connecté sur le réseau.
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/data.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/social.js"></script>
+</body>
+</html>

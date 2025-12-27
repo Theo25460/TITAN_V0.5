@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>TITAN: CGU</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- STYLE IDENTIQUE AU HUB POUR COHÉRENCE --- */
+        .legal-layout { display: flex; min-height: 100vh; }
+        .legal-sidebar { width: 260px; background-color: #161b29; padding: 30px 20px; border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; border-left: 3px solid var(--primary); }
+        .legal-link { color: var(--text-muted); text-decoration: none; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
+        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
+        
+        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
+        .doc-section { margin-bottom: 40px; }
+        .doc-title { color: #fff; font-family: 'Russo One'; font-size: 1.5rem; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .doc-text { color: var(--text-muted); line-height: 1.8; font-size: 0.95rem; text-align: justify; }
+        .doc-text strong { color: #fff; }
+        .warning-box { background: rgba(239,68,68,0.1); border: 1px solid var(--danger); color: #ffcccc; padding: 20px; border-radius: 12px; margin: 20px 0; font-size: 0.9rem; }
+
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; }
+            .legal-sidebar { width: 100%; height: auto; padding: 15px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; gap: 10px; background: #131824; position: sticky; top: 0; z-index: 50; }
+            .sidebar-title { display: none; }
+            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
+            .legal-content-area { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="legal-layout">
+        <nav class="legal-sidebar">
+            <div class="sidebar-title">SECTION JURIDIQUE</div>
+            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
+            <a href="legal_cgu.html" class="legal-link active"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
+            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
+            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        </nav>
+
+        <main class="legal-content-area">
+            <h1 class="titular" style="font-size:2rem; margin-bottom:10px; color:var(--primary);">CONDITIONS GÉNÉRALES D'UTILISATION</h1>
+            <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:40px;">Dernière mise à jour : 29 Novembre 2025</div>
+
+            <div class="doc-section">
+                <div class="warning-box">
+                    <i class="ri-alert-fill"></i> <strong>AVERTISSEMENT IMPORTANT : SANTÉ ET SÉCURITÉ</strong><br><br>
+                    L'application TITAN OS est un outil ludique de suivi. <strong>Elle ne remplace en aucun cas un avis médical, un diagnostic ou un traitement professionnel.</strong> L'Utilisateur reconnaît utiliser l'application à ses propres risques et périls. L'Éditeur ne saurait être tenu responsable de tout accident, blessure ou problème de santé survenant lors de la pratique des exercices suggérés.
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">ARTICLE 1 : OBJET ET ACCEPTATION</h2>
+                <div class="doc-text">
+                    Les présentes Conditions Générales d'Utilisation (ci-après "CGU") ont pour objet de définir les modalités de mise à disposition des services de l'application <strong>TITAN OS</strong>. L'accès à l'application et son utilisation supposent l'acceptation <strong>pleine, entière et sans réserve</strong> par l'Utilisateur des présentes CGU. En cas de non-acceptation, l'Utilisateur se doit de renoncer à l'accès aux services proposés.
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">ARTICLE 2 : RESPONSABILITÉ PÉNALE DE L'UTILISATEUR</h2>
+                <div class="doc-text">
+                    L'Utilisateur est seul responsable du contenu (textes, messages, données) qu'il met en ligne via les espaces de communication (Chat, Messagerie, Guilde).<br><br>
+                    Il s'engage formellement à ne pas publier de contenus :
+                    <ul>
+                        <li>Contraires à l'ordre public et aux bonnes mœurs.</li>
+                        <li>À caractère injurieux, diffamatoire, raciste, xénophobe, révisionniste ou portant atteinte à l'honneur ou à la réputation d'autrui.</li>
+                        <li>Incitant à la discrimination, à la haine d'une personne ou d'un groupe de personnes à raison de leur origine ou de leur appartenance ou de leur non-appartenance à une ethnie, une nation, une race ou une religion déterminée.</li>
+                        <li>Menaçant une personne ou un groupe de personnes.</li>
+                    </ul>
+                    <strong>Toute infraction à ces règles pourra faire l'objet d'un signalement immédiat aux autorités compétentes (Police / Gendarmerie) avec transmission de l'adresse IP et des logs de connexion, conformément à la législation en vigueur.</strong>
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">ARTICLE 3 : PROPRIÉTÉ INTELLECTUELLE</h2>
+                <div class="doc-text">
+                    La structure générale de l'application TITAN OS, ainsi que les textes, graphiques, images (dont les Boss et Items), sons et vidéos la composant, sont la propriété exclusive de l'Éditeur (Théo). Toute représentation et/ou reproduction et/ou exploitation partielle ou totale des contenus et services proposés par l'application, par quelque procédé que ce soit, sans l'autorisation préalable et par écrit de l'Éditeur est strictement interdite et serait susceptible de constituer une contrefaçon au sens des articles L 335-2 et suivants du Code de la propriété intellectuelle.
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <h2 class="doc-title">ARTICLE 4 : GESTION DES COMPTES ET BANNISSEMENT</h2>
+                <div class="doc-text">
+                    L'Éditeur se réserve le droit de suspendre ou de supprimer le compte de tout Utilisateur qui ne respecterait pas les présentes CGU, notamment en cas de triche (modification frauduleuse des stats locales), de harcèlement ou de comportement nuisible à la communauté, et ce, sans préavis ni indemnité. La fonctionnalité "ADMIN GOD MODE" permet à l'Éditeur de surveiller et modérer l'activité pour garantir la sécurité de tous.
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
