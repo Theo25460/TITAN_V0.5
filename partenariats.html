@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Partenariats sport, salles et marques | TITAN OS Sport</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: #f2f7fb;
+            font-family: var(--font-ui);
+        }
+
+        .partners-shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 70px;
+        }
+
+        .partners-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 34px;
+        }
+
+        .partners-brand,
+        .partners-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #f2f7fb;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .partners-brand {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            letter-spacing: 0.02em;
+        }
+
+        .partners-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            filter: drop-shadow(0 0 18px rgba(126, 220, 255, 0.38));
+        }
+
+        .partners-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .partners-link {
+            min-height: 42px;
+            padding: 0 14px;
+            border: 1px solid rgba(126, 220, 255, 0.18);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.045);
+            font-size: 0.78rem;
+        }
+
+        .partners-link.primary {
+            background: linear-gradient(135deg, rgba(126, 220, 255, 0.95), rgba(61, 159, 216, 0.92));
+            color: #041019;
+            border-color: rgba(171, 235, 255, 0.72);
+        }
+
+        .partners-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+            gap: 28px;
+            align-items: stretch;
+            margin-bottom: 22px;
+        }
+
+        .partners-panel {
+            border: 1px solid rgba(126, 220, 255, 0.14);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(13, 23, 34, 0.92), rgba(5, 8, 13, 0.92)),
+                linear-gradient(112deg, rgba(126, 220, 255, 0.11), transparent 42%);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+            padding: 24px;
+        }
+
+        .partners-kicker {
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .partners-title {
+            margin: 0 0 14px;
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 3.1rem;
+            line-height: 0.92;
+            text-transform: uppercase;
+        }
+
+        .partners-lead {
+            margin: 0;
+            color: #aab8c5;
+            line-height: 1.7;
+            max-width: 760px;
+        }
+
+        .partners-signal {
+            display: grid;
+            align-content: space-between;
+            gap: 18px;
+        }
+
+        .partners-signal-logo {
+            display: grid;
+            place-items: center;
+            min-height: 210px;
+            border: 1px dashed rgba(126, 220, 255, 0.22);
+            border-radius: 8px;
+            background:
+                linear-gradient(rgba(126, 220, 255, 0.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(126, 220, 255, 0.055) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .partners-signal-logo img {
+            width: min(160px, 62%);
+            filter: drop-shadow(0 0 32px rgba(126, 220, 255, 0.5));
+        }
+
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .partners-stat {
+            min-height: 126px;
+            border: 1px solid rgba(126, 220, 255, 0.14);
+            border-radius: 8px;
+            background: rgba(8, 14, 21, 0.82);
+            padding: 16px;
+        }
+
+        .partners-stat span {
+            display: block;
+            color: #8ea0af;
+            font-size: 0.74rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .partners-stat strong {
+            display: block;
+            margin: 10px 0 6px;
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-size: 2.1rem;
+            line-height: 1;
+        }
+
+        .partners-stat small {
+            color: #9eafbf;
+            line-height: 1.45;
+        }
+
+        .partners-section {
+            border-top: 1px solid rgba(126, 220, 255, 0.12);
+            padding-top: 24px;
+            margin-top: 24px;
+        }
+
+        .partners-section h2 {
+            margin: 0 0 12px;
+            color: #ffffff;
+            font-family: var(--font-display);
+            font-size: 1.45rem;
+            font-style: italic;
+            text-transform: uppercase;
+        }
+
+        .partners-timeline {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .partners-timeline article {
+            border: 1px solid rgba(126, 220, 255, 0.14);
+            border-radius: 8px;
+            background: rgba(8, 14, 21, 0.72);
+            padding: 14px;
+        }
+
+        .partners-timeline strong {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .partners-timeline p,
+        .partners-note {
+            margin: 0;
+            color: #9eafbf;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 860px) {
+            .partners-nav,
+            .partners-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .partners-nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .partners-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .partners-grid,
+            .partners-timeline {
+                grid-template-columns: 1fr;
+            }
+
+            .partners-title {
+                font-size: 2.35rem;
+            }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Découvre les partenariats TITAN OS Sport pour les salles, clubs, marques, médias et structures qui veulent créer une expérience multisport engageante.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/partenariats">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/partenariats">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/partenariats">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Partenariats sport, salles et marques | TITAN OS Sport">
+    <meta property="og:description" content="Découvre les partenariats TITAN OS Sport pour les salles, clubs, marques, médias et structures qui veulent créer une expérience multisport engageante.">
+    <meta property="og:url" content="https://titan-app.fr/partenariats">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Partenariats sport, salles et marques | TITAN OS Sport">
+    <meta name="twitter:description" content="Découvre les partenariats TITAN OS Sport pour les salles, clubs, marques, médias et structures qui veulent créer une expérience multisport engageante.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "AboutPage",
+          "@id": "https://titan-app.fr/partenariats#webpage",
+          "url": "https://titan-app.fr/partenariats",
+          "name": "Partenariats sport, salles et marques | TITAN OS Sport",
+          "headline": "Partenariats sport, salles et marques | TITAN OS Sport",
+          "description": "Découvre les partenariats TITAN OS Sport pour les salles, clubs, marques, médias et structures qui veulent créer une expérience multisport engageante.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/partenariats#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/partenariats#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Partenariats sport, salles et marques",
+              "item": "https://titan-app.fr/partenariats"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body class="partners-page" data-page="partenariats">
+    <main class="partners-shell">
+        <nav class="partners-nav" aria-label="Navigation partenariats">
+            <a class="partners-brand" href="./service.html">
+                <img src="./image/logo.png" alt="Logo TITAN OS" width="42" height="42" decoding="async">
+                <span>TITAN OS</span>
+            </a>
+            <div class="partners-actions">
+                <a class="partners-link" href="./service.html"><i class="ri-lifebuoy-line"></i> Service</a>
+                <a class="partners-link primary" id="partner-contact" href="mailto:titanteam.app@gmail.com?subject=Partenariat%20TITAN%20OS"><i class="ri-mail-send-line"></i> Contact</a>
+            </div>
+        </nav>
+
+        <section class="partners-hero">
+            <div class="partners-panel">
+                <div class="partners-kicker">Entreprises / Partenariats</div>
+                <h1 class="partners-title">TITAN OS en chiffres</h1>
+                <p class="partners-lead">
+                    Cette page présente le projet aux partenaires, salles, marques, médias et structures sportives. Les chiffres publics sont regroupés et anonymes : aucun profil, message ou historique individuel n’est exposé.
+                </p>
+            </div>
+            <aside class="partners-panel partners-signal" aria-label="Signal TITAN OS">
+                <div class="partners-signal-logo">
+                    <img src="./image/logo.png" alt="" width="160" height="160" loading="lazy" decoding="async">
+                </div>
+                <p class="partners-note" id="stats-status">Chargement des statistiques publiques…</p>
+            </aside>
+        </section>
+
+        <section class="partners-grid" aria-label="Statistiques publiques TITAN OS">
+            <article class="partners-stat">
+                <span>Agents inscrits</span>
+                <strong data-stat="agentsTotal">--</strong>
+                <small>Comptes app presents en base.</small>
+            </article>
+            <article class="partners-stat">
+                <span>Seances enregistrees</span>
+                <strong data-stat="trainingLogsTotal">--</strong>
+                <small>Historique sportif synchronise.</small>
+            </article>
+            <article class="partners-stat">
+                <span>Combats archives</span>
+                <strong data-stat="combatLogsTotal">--</strong>
+                <small>Progression RPG sauvegardee.</small>
+            </article>
+            <article class="partners-stat">
+                <span>Boss disponibles</span>
+                <strong data-stat="bossesTotal">--</strong>
+                <small>Contenu campagne serveur.</small>
+            </article>
+            <article class="partners-stat">
+                <span>Guildes creees</span>
+                <strong data-stat="guildsTotal">--</strong>
+                <small>Signal communautaire actif.</small>
+            </article>
+            <article class="partners-stat">
+                <span>Visiteurs web</span>
+                <strong data-stat="webVisitors">A connecter</strong>
+                <small>Trafic exact a brancher a l'analytics de production.</small>
+            </article>
+        </section>
+
+        <section class="partners-section">
+            <h2>Histoire courte</h2>
+            <div class="partners-timeline">
+                <article>
+                    <strong>Prototype V0.5</strong>
+                    <p>Une PWA sport gamifiee pensee mobile, gratuite et synchronisee.</p>
+                </article>
+                <article>
+                    <strong>Données protégées</strong>
+                    <p>Progression, economie, social, boutique et sauvegarde passent par la base.</p>
+                </article>
+                <article>
+                    <strong>Beta publique</strong>
+                    <p>Navigation simplifiee, onboarding, plafonds hebdomadaires et UX mobile prioritaire.</p>
+                </article>
+                <article>
+                    <strong>Partenariats</strong>
+                    <p>Ouverture aux salles, createurs, marques sportives et structures locales.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script>
+        (async function titanLoadPartnerStats() {
+            const status = document.getElementById('stats-status');
+            const formatter = new Intl.NumberFormat('fr-FR');
+
+            function setStat(key, value) {
+                const node = document.querySelector(`[data-stat="${key}"]`);
+                if (!node) return;
+                if (value === null || value === undefined || value === '') {
+                    node.textContent = key === 'webVisitors' ? 'A connecter' : '--';
+                    return;
+                }
+                node.textContent = typeof value === 'number' ? formatter.format(value) : String(value);
+            }
+
+            try {
+                const client = await (window.waitForTitanSupabase ? window.waitForTitanSupabase(2500) : Promise.resolve(null));
+                const contact = document.getElementById('partner-contact');
+                if (contact && window.TITAN_EXTERNAL_URLS?.supportMailto) {
+                    contact.href = window.TITAN_EXTERNAL_URLS.supportMailto.replace('Feedback%20TITAN%20OS', 'Partenariat%20TITAN%20OS');
+                }
+                if (!client) throw new Error('Client Supabase indisponible');
+
+                const { data, error } = await client.rpc('titan_public_partnership_stats');
+                if (error) throw error;
+
+                const stats = data || {};
+                ['agentsTotal', 'trainingLogsTotal', 'combatLogsTotal', 'bossesTotal', 'guildsTotal', 'webVisitors'].forEach((key) => {
+                    setStat(key, stats[key]);
+                });
+
+                const generated = stats.generatedAt ? new Date(stats.generatedAt) : null;
+                status.textContent = generated && !Number.isNaN(generated.getTime())
+                    ? `Statistiques publiques mises a jour le ${generated.toLocaleDateString('fr-FR')}.`
+                    : 'Statistiques publiques synchronisees.';
+            } catch (error) {
+                console.warn('[TITAN PARTNERS] Stats indisponibles:', error);
+                if (status) status.textContent = 'Statistiques live indisponibles pour le moment.';
+            }
+        })();
+    </script>
+</body>
+</html>

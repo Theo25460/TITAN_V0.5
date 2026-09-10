@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Premiers pas - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        .onboarding-steps { display:grid; gap:14px; counter-reset: step; }
+        .onboarding-step {
+            display:grid; grid-template-columns:48px minmax(0, 1fr); gap:14px; align-items:start;
+            padding:16px; border-radius:8px; border:1px solid rgba(148,163,184,0.14);
+            background:rgba(30,41,59,0.45); counter-increment: step;
+        }
+        .step-index {
+            width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
+            background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.24); color:#38bdf8;
+            font-family:'Russo One';
+        }
+        .step-index::before { content: counter(step); }
+        .step-title { font-family:'Russo One'; color:#fff; font-size:1rem; margin-bottom:6px; }
+        .step-text { color:#94a3b8; line-height:1.55; font-size:0.9rem; }
+        .step-action { margin-top:12px; display:inline-flex; align-items:center; gap:8px; min-height:40px; padding:0 13px; border-radius:8px; background:#38bdf8; color:#020617; font-weight:900; text-decoration:none; }
+        .starter-card {
+            margin-top:18px; padding:18px; border-radius:8px; border:1px solid rgba(16,185,129,0.2);
+            background:rgba(16,185,129,0.06);
+        }
+        .starter-title { font-family:'Russo One'; color:#fff; margin-bottom:8px; }
+        .starter-card ul { margin:0; padding-left:18px; color:#cbd5e1; line-height:1.55; font-size:0.9rem; }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Parcours court pour comprendre TITAN OS et enregistrer une premiere seance.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="bingbot" content="noindex, follow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/onboarding">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/onboarding">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/onboarding">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Premiers pas - TITAN OS">
+    <meta property="og:description" content="Parcours court pour comprendre TITAN OS et enregistrer une premiere seance.">
+    <meta property="og:url" content="https://titan-app.fr/onboarding">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Premiers pas - TITAN OS">
+    <meta name="twitter:description" content="Parcours court pour comprendre TITAN OS et enregistrer une premiere seance.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/onboarding#webpage",
+          "url": "https://titan-app.fr/onboarding",
+          "name": "Premiers pas - TITAN OS",
+          "headline": "Premiers pas - TITAN OS",
+          "description": "Parcours court pour comprendre TITAN OS et enregistrer une premiere seance.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/onboarding#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/onboarding#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Premiers pas",
+              "item": "https://titan-app.fr/onboarding"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="onboarding">
+    <div class="layout">
+        <nav class="sidebar"></nav>
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            <header style="margin-bottom:24px;">
+                <div style="font-size:0.7rem; color:var(--accent); font-weight:900; letter-spacing:2px;">DEMARRAGE</div>
+                <h1 class="titular" style="font-size:2rem;">PREMIERS PAS</h1>
+                <p style="color:#94a3b8; max-width:720px; line-height:1.55;">Un parcours court pour passer de recrue a premiere seance enregistree.</p>
+            </header>
+
+            <section class="onboarding-steps">
+                <article class="onboarding-step">
+                    <div class="step-index"></div>
+                    <div>
+                        <div class="step-title">Choisir ton identite</div>
+                        <div class="step-text">Definis un pseudo lisible et un avatar. Ce sont les elements visibles dans le social, les defis et les captures de progression.</div>
+                        <a class="step-action" href="./profile.html"><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
+                    </div>
+                </article>
+                <article class="onboarding-step">
+                    <div class="step-index"></div>
+                    <div>
+                        <div class="step-title">Choisir une discipline simple</div>
+                        <div class="step-text">Commence par une activite facile a mesurer: marche, course, velo, pompes, gainage ou musculation. L'objectif est de creer une trace propre.</div>
+                        <a class="step-action" href="./training.html"><i class="ri-run-line"></i> Enregistrer une seance</a>
+                    </div>
+                </article>
+                <article class="onboarding-step">
+                    <div class="step-index"></div>
+                    <div>
+                        <div class="step-title">Voir l'impact direct</div>
+                        <div class="step-text">Apres validation, regarde ce qui change: XP, credits, charge, radar, boss, journal, records contextualises et prochain cap coach.</div>
+                        <a class="step-action" href="./stats.html"><i class="ri-line-chart-line"></i> Voir les progres</a>
+                    </div>
+                </article>
+                <article class="onboarding-step">
+                    <div class="step-index"></div>
+                    <div>
+                        <div class="step-title">Comprendre les donnees</div>
+                        <div class="step-text">Si un terme parait flou, ouvre le guide : XP, crédits, fraîcheur, plateau, comparaison personnelle, catalogue multisport et spécificités sportives y sont expliqués.</div>
+                        <a class="step-action" href="./guide.html#donnees"><i class="ri-database-2-line"></i> Lire le dictionnaire</a>
+                    </div>
+                </article>
+            </section>
+
+            <section class="starter-card">
+                <div class="starter-title"><i class="ri-flag-line" style="color:var(--success);"></i> Premiere mission conseillee</div>
+                <ul>
+                    <li>10 a 20 minutes de marche rapide, course douce ou velo.</li>
+                    <li>Ressenti entre 4 et 6 pour garder une premiere trace realiste.</li>
+                    <li>Une note courte: contexte, sensation principale, objectif suivant.</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+</body>
+</html>
+

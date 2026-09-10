@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Calcul de la progression sportive | Méthode TITAN OS Sport</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: #06070A;
+            color: #e2e8f0;
+            font-family: var(--font-ui, 'Inter', system-ui, sans-serif);
+            background-image:
+                linear-gradient(rgba(116, 240, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(116, 240, 255, 0.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+        }
+
+        .algo-shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 72px;
+        }
+
+        .algo-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 12px 0 30px;
+        }
+
+        .algo-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .algo-brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            box-shadow: 0 0 18px rgba(77, 163, 255, 0.35);
+        }
+
+        .algo-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .algo-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 8px;
+            color: #e2e8f0;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+
+        .algo-link.primary {
+            background: #74F0FF;
+            color: #06070A;
+            border-color: #74F0FF;
+        }
+
+        .algo-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+            gap: 34px;
+            align-items: center;
+            padding: 34px 0 44px;
+        }
+
+        .algo-kicker {
+            color: #74F0FF;
+            font-family: var(--font-mono, monospace);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .algo-title {
+            color: #fff;
+            font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+            font-size: clamp(2rem, 5vw, 4.55rem);
+            letter-spacing: 0;
+            line-height: 0.98;
+            margin: 0 0 18px;
+        }
+
+        .algo-lead {
+            color: #cbd5e1;
+            font-size: 1.06rem;
+            line-height: 1.74;
+            max-width: 760px;
+        }
+
+        .algo-panel {
+            border: 1px solid rgba(116, 240, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(17, 21, 27, 0.78);
+            padding: 18px;
+        }
+
+        .algo-meter {
+            display: grid;
+            gap: 12px;
+        }
+
+        .algo-meter-row {
+            display: grid;
+            gap: 6px;
+        }
+
+        .algo-meter-top {
+            display: flex;
+            justify-content: space-between;
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .algo-bar {
+            height: 9px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .algo-bar span {
+            display: block;
+            height: 100%;
+            width: var(--fill);
+            background: linear-gradient(90deg, #4DA3FF, #74F0FF);
+        }
+
+        .algo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 12px 0 34px;
+        }
+
+        .algo-card,
+        .algo-section,
+        .algo-faq article {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .algo-card {
+            padding: 18px;
+        }
+
+        .algo-card i {
+            color: #74F0FF;
+            font-size: 1.55rem;
+        }
+
+        .algo-card h2,
+        .algo-section h2,
+        .algo-faq h3 {
+            color: #fff;
+            font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .algo-card h2 {
+            font-size: 1rem;
+            margin: 13px 0 8px;
+        }
+
+        .algo-card p,
+        .algo-section p,
+        .algo-section li,
+        .algo-faq p {
+            color: #cbd5e1;
+            font-size: 0.96rem;
+            line-height: 1.72;
+        }
+
+        .algo-section {
+            padding: 24px;
+            margin: 14px 0;
+        }
+
+        .algo-section h2 {
+            font-size: 1.38rem;
+            margin: 0 0 12px;
+        }
+
+        .algo-flow {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .algo-flow div {
+            border: 1px solid rgba(116, 240, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(6, 7, 10, 0.42);
+            padding: 12px;
+            min-height: 92px;
+        }
+
+        .algo-flow strong {
+            display: block;
+            color: #fff;
+            font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .algo-flow span {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .algo-faq {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .algo-faq article {
+            padding: 18px;
+        }
+
+        .algo-faq h3 {
+            font-size: 0.98rem;
+            margin: 0 0 8px;
+        }
+
+        @media (max-width: 880px) {
+            .algo-hero,
+            .algo-grid,
+            .algo-flow,
+            .algo-faq {
+                grid-template-columns: 1fr;
+            }
+
+            .algo-nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .algo-actions {
+                justify-content: flex-start;
+                width: 100%;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Comprends comment TITAN OS Sport relie charge d’entraînement, régularité, récupération et XP pour rendre la progression lisible sans diagnostic médical.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/algorithme">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/algorithme">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/algorithme">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Calcul de la progression sportive | Méthode TITAN OS Sport">
+    <meta property="og:description" content="Comprends comment TITAN OS Sport relie charge d’entraînement, régularité, récupération et XP pour rendre la progression lisible sans diagnostic médical.">
+    <meta property="og:url" content="https://titan-app.fr/algorithme">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Calcul de la progression sportive | Méthode TITAN OS Sport">
+    <meta name="twitter:description" content="Comprends comment TITAN OS Sport relie charge d’entraînement, régularité, récupération et XP pour rendre la progression lisible sans diagnostic médical.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://acscdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//acscdn.com">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "Article",
+          "@id": "https://titan-app.fr/algorithme#webpage",
+          "url": "https://titan-app.fr/algorithme",
+          "name": "Calcul de la progression sportive | Méthode TITAN OS Sport",
+          "headline": "Calcul de la progression sportive | Méthode TITAN OS Sport",
+          "description": "Comprends comment TITAN OS Sport relie charge d’entraînement, régularité, récupération et XP pour rendre la progression lisible sans diagnostic médical.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/algorithme#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/algorithme#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Calcul de la progression sportive | Méthode TITAN OS Sport",
+              "item": "https://titan-app.fr/algorithme"
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://titan-app.fr/algorithme#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "TITAN OS utilise-t-il une IA medicale ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. TITAN OS utilise un moteur de progression sportive et ne remplace pas un medecin, un kine ou un coach certifie."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Pourquoi utiliser l'XP dans le sport ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "L'XP rend la regularite visible et transforme les seances en progression mesurable sans promettre de resultat instantane."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Comment commencer avec TITAN OS ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Enregistre une premiere seance, puis laisse l'historique construire des signaux plus utiles au fil des semaines."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="algorithme">
+    <main class="algo-shell">
+        <nav class="algo-nav" aria-label="Navigation TITAN OS">
+            <a class="algo-brand" href="/">
+                <img src="./image/logo.png" alt="Logo TITAN OS" width="44" height="44">
+                <span>TITAN OS</span>
+            </a>
+            <div class="algo-actions">
+                <a class="algo-link" href="guide.html"><i class="ri-compass-3-line"></i> Doctrine</a>
+                <a class="algo-link" href="stats.html"><i class="ri-line-chart-line"></i> Metrics</a>
+                <a class="algo-link primary" href="training.html"><i class="ri-run-line"></i> Enregistrer une séance</a>
+            </div>
+        </nav>
+
+        <header class="algo-hero">
+            <div>
+                <div class="algo-kicker">Progression Engine // Algorithmic Training OS</div>
+                <h1 class="algo-title">Le moteur algorithmique de progression physique.</h1>
+                <p class="algo-lead">
+                    TITAN OS ne veut pas etre une app fitness de plus. Son angle est plus rare: transformer chaque effort reel en signal exploitable. Une seance devient une trace, la trace devient charge, la charge devient decision, et la decision construit une progression visible.
+                </p>
+            </div>
+            <aside class="algo-panel" aria-label="Signal algorithmique TITAN OS">
+                <div class="algo-meter">
+                    <div class="algo-meter-row">
+                        <div class="algo-meter-top"><span>Charge recente</span><span>72</span></div>
+                        <div class="algo-bar"><span style="--fill:72%;"></span></div>
+                    </div>
+                    <div class="algo-meter-row">
+                        <div class="algo-meter-top"><span>Regularite</span><span>84</span></div>
+                        <div class="algo-bar"><span style="--fill:84%;"></span></div>
+                    </div>
+                    <div class="algo-meter-row">
+                        <div class="algo-meter-top"><span>Recuperation</span><span>61</span></div>
+                        <div class="algo-bar"><span style="--fill:61%;"></span></div>
+                    </div>
+                    <div class="algo-meter-row">
+                        <div class="algo-meter-top"><span>Progression XP</span><span>93</span></div>
+                        <div class="algo-bar"><span style="--fill:93%;"></span></div>
+                    </div>
+                </div>
+            </aside>
+        </header>
+
+        <section class="algo-grid" aria-label="Piliers du moteur algorithmique">
+            <article class="algo-card">
+                <i class="ri-pulse-line"></i>
+                <h2>Charge</h2>
+                <p>Le systeme observe l'accumulation recente: volume, duree, intensite ressentie et frequence des missions.</p>
+            </article>
+            <article class="algo-card">
+                <i class="ri-rest-time-line"></i>
+                <h2>Recuperation</h2>
+                <p>La progression n'est pas seulement pousser plus fort. TITAN OS signale quand l'alternance devient plus rentable que l'empilement.</p>
+            </article>
+            <article class="algo-card">
+                <i class="ri-crosshair-2-line"></i>
+                <h2>Decision</h2>
+                <p>Le moteur transforme l'historique en prochains gestes: mission conseillee, objectif hebdo, records, XP et campagne.</p>
+            </article>
+        </section>
+
+        <section class="algo-section">
+            <h2>La difference: un systeme, pas une promesse</h2>
+            <p>
+                Le marche du sport est sature de compteurs, de plans parfaits et de promesses rapides. TITAN OS prend une autre position: il ne pretend pas connaitre ton corps mieux que toi. Il construit une memoire tactique de ce que tu fais vraiment, puis rend cette memoire lisible.
+            </p>
+            <p>
+                C'est ce positionnement qui nous distingue des apps de fitness classiques: l'objectif n'est pas seulement de suivre une seance, mais de transformer la repetition en architecture de progression.
+            </p>
+        </section>
+
+        <section class="algo-section">
+            <h2>La boucle algorithmique TITAN OS</h2>
+            <div class="algo-flow">
+                <div><strong>1. Capturer</strong><span>Sport, valeur, duree, intensite, contexte et notes de mission.</span></div>
+                <div><strong>2. Normaliser</strong><span>Transformer des disciplines differentes en signaux comparables.</span></div>
+                <div><strong>3. Evaluer</strong><span>Charge, regularite, recuperation, records et progression recente.</span></div>
+                <div><strong>4. Convertir</strong><span>XP, credits, niveaux, trophees et impact sur la campagne.</span></div>
+                <div><strong>5. Orienter</strong><span>Proposer la prochaine action utile: pousser, varier ou recuperer.</span></div>
+            </div>
+        </section>
+
+        <section class="algo-section">
+            <h2>Pourquoi cette strategie SEO nous donne un territoire</h2>
+            <p>
+                Le nom TITAN OS est deja utilise ailleurs. Notre axe SEO doit donc etre plus precis que le nom: <strong>moteur algorithmique de progression physique</strong>, <strong>systeme de progression sportive</strong>, <strong>entrainement gamifie par XP</strong>, <strong>charge d'entrainement lisible</strong>. Ces expressions sont plus longues, moins bruyantes et beaucoup plus proches de notre promesse produit.
+            </p>
+            <p>
+                Au lieu de combattre frontalement les geants du fitness sur des mots generiques, TITAN OS cree une categorie: un cockpit de progression physique ou l'algorithme sert la discipline, pas l'inverse.
+            </p>
+        </section>
+
+        <section class="algo-section">
+            <h2>Questions frequentes</h2>
+            <div class="algo-faq">
+                <article>
+                    <h3>TITAN OS est-il une IA medicale ?</h3>
+                    <p>Non. Le moteur aide a lire l'entrainement et la progression. Il ne remplace pas un medecin, un kine ou un coach certifie.</p>
+                </article>
+                <article>
+                    <h3>Pourquoi utiliser l'XP dans le sport ?</h3>
+                    <p>L'XP donne une forme visible aux efforts discrets. Elle rend la regularite plus concrete et aide a revenir sans dependre d'une motivation fragile.</p>
+                </article>
+                <article>
+                    <h3>Le systeme favorise-t-il seulement les grosses seances ?</h3>
+                    <p>Non. Une progression durable vient aussi de la reprise, des seances faciles, de la recuperation et de la constance.</p>
+                </article>
+                <article>
+                    <h3>Comment commencer ?</h3>
+                    <p>Enregistre une premiere mission, puis laisse TITAN OS construire ton historique. Plus la trace est propre, plus les decisions deviennent utiles.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+

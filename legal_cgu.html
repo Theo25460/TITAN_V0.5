@@ -1,99 +1,427 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: CGU</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Conditions d'utilisation - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        /* --- STYLE IDENTIQUE AU HUB POUR COHÉRENCE --- */
-        .legal-layout { display: flex; min-height: 100vh; }
-        .legal-sidebar { width: 260px; background-color: #161b29; padding: 30px 20px; border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-title { color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; border-left: 3px solid var(--primary); }
-        .legal-link { color: var(--text-muted); text-decoration: none; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
-        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
-        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
+        /* --- STYLE JURIDIQUE SPÉCIFIQUE (NOIR & SÉRIEUX) --- */
+        body { background-color: #06070A; color: #cbd5e1; font-family: 'Outfit', sans-serif; }
         
-        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
-        .doc-section { margin-bottom: 40px; }
-        .doc-title { color: #fff; font-family: 'Russo One'; font-size: 1.5rem; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .doc-text { color: var(--text-muted); line-height: 1.8; font-size: 0.95rem; text-align: justify; }
-        .doc-text strong { color: #fff; }
-        .warning-box { background: rgba(239,68,68,0.1); border: 1px solid var(--danger); color: #ffcccc; padding: 20px; border-radius: 12px; margin: 20px 0; font-size: 0.9rem; }
+        .legal-layout { display: flex; min-height: 100vh; }
+        
+        /* SIDEBAR IDENTIQUE AU RESTE DE L'APP */
+        .legal-sidebar { 
+            width: 260px; background-color: #161b29; padding: 30px 20px; 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            display: flex; flex-direction: column; flex-shrink: 0; 
+            position: sticky; top: 0; height: 100vh;
+        }
+        .sidebar-title { 
+            color: var(--primary, #fb923c); font-family: 'Russo One'; font-size: 1.2rem; 
+            text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; 
+            border-left: 3px solid var(--primary, #fb923c); 
+        }
+        .legal-link { 
+            color: #94a3b8; text-decoration: none; padding: 12px 15px; 
+            margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; 
+            display: flex; align-items: center; gap: 10px; transition: 0.2s; 
+        }
+        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .legal-link.active { 
+            background-color: rgba(251,146,60,0.1); color: var(--primary, #fb923c); 
+            border: 1px solid rgba(251,146,60,0.2); 
+        }
+        .back-link { margin-top: auto; color: #fff; background: var(--danger, #ef4444); justify-content: center; }
+        .back-link:hover { background: #dc2626; }
 
+        /* CONTENU PRINCIPAL */
+        .legal-content-area { flex-grow: 1; padding: 60px; overflow-y: auto; background: #06070A; }
+        
+        .doc-header { margin-bottom: 50px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .doc-meta { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .titular { font-family: 'Russo One'; font-size: 2.5rem; color: #fff; margin: 0; }
+        
+        .article-box { margin-bottom: 40px; }
+        .article-title { 
+            color: #fff; font-family: 'Russo One'; font-size: 1.2rem; 
+            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .article-number { color: var(--primary, #fb923c); opacity: 0.6; }
+        
+        .article-text { 
+            line-height: 1.8; font-size: 1rem; color: #cbd5e1; text-align: justify; 
+            background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .article-text strong { color: #fff; font-weight: 600; }
+        .article-text ul { margin: 15px 0 15px 20px; padding: 0; }
+        .article-text li { margin-bottom: 8px; }
+
+        /* ALERT BOXES */
+        .alert-box { 
+            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); 
+            color: #fca5a5; padding: 25px; border-radius: 12px; margin: 30px 0; 
+            display: flex; gap: 15px; align-items: flex-start;
+        }
+        .alert-icon { font-size: 1.5rem; color: var(--danger, #ef4444); margin-top: -3px; }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
             .legal-layout { flex-direction: column; }
-            .legal-sidebar { width: 100%; height: auto; padding: 15px; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; gap: 10px; background: #131824; position: sticky; top: 0; z-index: 50; }
+            .legal-sidebar { 
+                width: 100%; height: auto; padding: 15px; position: sticky; top: 0; z-index: 50;
+                flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); 
+                white-space: nowrap; gap: 10px; background: #131824; 
+            }
             .sidebar-title { display: none; }
-            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; background: rgba(255,255,255,0.05); flex-shrink: 0; }
-            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
+            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; flex-shrink: 0; }
             .legal-content-area { padding: 20px; }
+            .titular { font-size: 1.8rem; }
         }
     </style>
+
+    <meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Lis les conditions generales d'utilisation de TITAN OS: acces gratuit, TITAN+, responsabilite sportive, moderation, donnees et droits.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/legal_cgu">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/legal_cgu">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/legal_cgu">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Conditions d'utilisation - TITAN OS">
+    <meta property="og:description" content="Lis les conditions generales d'utilisation de TITAN OS: acces gratuit, TITAN+, responsabilite sportive, moderation, donnees et droits.">
+    <meta property="og:url" content="https://titan-app.fr/legal_cgu">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Conditions d'utilisation - TITAN OS">
+    <meta name="twitter:description" content="Lis les conditions generales d'utilisation de TITAN OS: acces gratuit, TITAN+, responsabilite sportive, moderation, donnees et droits.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/legal_cgu#webpage",
+          "url": "https://titan-app.fr/legal_cgu",
+          "name": "Conditions d'utilisation - TITAN OS",
+          "headline": "Conditions d'utilisation - TITAN OS",
+          "description": "Lis les conditions generales d'utilisation de TITAN OS: acces gratuit, TITAN+, responsabilite sportive, moderation, donnees et droits.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/legal_cgu#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/legal_cgu#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Conditions d'utilisation",
+              "item": "https://titan-app.fr/legal_cgu"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body class="legal-page legal-document legal-cgu" data-page="legal_cgu">
     <div class="legal-layout">
-        <nav class="legal-sidebar">
-            <div class="sidebar-title">SECTION JURIDIQUE</div>
-            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
-            <a href="legal_cgu.html" class="legal-link active"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
-            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
-            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
-            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        <nav class="legal-sidebar" aria-label="Navigation legale">
+            <div class="sidebar-title">Legal</div>
+            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> Vue globale</a>
+            <a href="legal_cgu.html" class="legal-link active"><i class="ri-file-text-line"></i> CGU</a>
+            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
+            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> Mentions</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> Retour app</a>
         </nav>
 
         <main class="legal-content-area">
-            <h1 class="titular" style="font-size:2rem; margin-bottom:10px; color:var(--primary);">CONDITIONS GÉNÉRALES D'UTILISATION</h1>
-            <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:40px;">Dernière mise à jour : 29 Novembre 2025</div>
+            
+            <header class="doc-header">
+                <div class="doc-meta">DOCUMENT RÉFÉRENCE : TOU-2026-V4</div>
+                <h1 class="titular">CONDITIONS GÉNÉRALES D'UTILISATION</h1>
+                <div class="doc-subtitle">
+                    VERSION PUBLIQUE - 31 JUILLET 2026
+                </div>
+            </header>
 
-            <div class="doc-section">
-                <div class="warning-box">
-                    <i class="ri-alert-fill"></i> <strong>AVERTISSEMENT IMPORTANT : SANTÉ ET SÉCURITÉ</strong><br><br>
-                    L'application TITAN OS est un outil ludique de suivi. <strong>Elle ne remplace en aucun cas un avis médical, un diagnostic ou un traitement professionnel.</strong> L'Utilisateur reconnaît utiliser l'application à ses propres risques et périls. L'Éditeur ne saurait être tenu responsable de tout accident, blessure ou problème de santé survenant lors de la pratique des exercices suggérés.
+            <div class="alert-box">
+                <i class="ri-pulse-line alert-icon"></i>
+                <div>
+                    <strong style="color:#fff; text-transform:uppercase; font-family:'Russo One';">Avertissement Santé Majeur</strong><br>
+                    TITAN OS est une application de gamification et de suivi personnel. Elle ne constitue pas un dispositif médical, un diagnostic, une prescription, ni un coaching sportif professionnel.
+                    Les objectifs, XP, alertes et analyses restent indicatifs. En cas de douleur, vertige, malaise, blessure, pathologie, reprise sportive ou doute, cessez l'activité et consultez un professionnel de santé.
                 </div>
             </div>
 
-            <div class="doc-section">
-                <h2 class="doc-title">ARTICLE 1 : OBJET ET ACCEPTATION</h2>
-                <div class="doc-text">
-                    Les présentes Conditions Générales d'Utilisation (ci-après "CGU") ont pour objet de définir les modalités de mise à disposition des services de l'application <strong>TITAN OS</strong>. L'accès à l'application et son utilisation supposent l'acceptation <strong>pleine, entière et sans réserve</strong> par l'Utilisateur des présentes CGU. En cas de non-acceptation, l'Utilisateur se doit de renoncer à l'accès aux services proposés.
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">01.</span> OBJET ET ACCEPTATION</div>
+                <div class="article-text">
+                    Les présentes Conditions Générales d'Utilisation (ci-après "CGU") régissent l'accès et l'utilisation de <strong>TITAN OS</strong> (le "Service"), depuis un ordinateur ou un appareil mobile.<br><br>
+                    En créant un compte ou en poursuivant l'utilisation du Service, l'utilisateur accepte les présentes CGU. S'il les refuse, il peut cesser d'utiliser le Service et demander la suppression de ses données selon la Politique de confidentialité.
                 </div>
             </div>
 
-            <div class="doc-section">
-                <h2 class="doc-title">ARTICLE 2 : RESPONSABILITÉ PÉNALE DE L'UTILISATEUR</h2>
-                <div class="doc-text">
-                    L'Utilisateur est seul responsable du contenu (textes, messages, données) qu'il met en ligne via les espaces de communication (Chat, Messagerie, Guilde).<br><br>
-                    Il s'engage formellement à ne pas publier de contenus :
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">02.</span> ACCÈS ET DISPONIBILITÉ (SLA)</div>
+                <div class="article-text">
+                    <strong>2.1. Nature du Service :</strong> TITAN OS est un petit projet indépendant porté par deux amis d'université. Le Service est en beta et évolue rapidement grâce à nos connaissances, notre créativité et l'aide ponctuelle d'outils d'IA pour le développement.<br>
+                    <strong>2.2. Continuité :</strong> l'équipe s'efforce de maintenir le Service accessible, mais des interruptions peuvent survenir pour maintenance, correction, mise à jour, hébergement, réseau ou sécurité.<br>
+                    <strong>2.3. Sauvegarde :</strong> le Service conserve une copie sur l'appareil et/ou sur le compte. Aucune technologie n'est parfaite : l'utilisateur doit éviter de saisir des informations dont il ne souhaite pas conserver de copie numérique.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">03.</span> MODÈLE ÉCONOMIQUE & PUBLICITÉ</div>
+                <div class="article-text">
+                    <strong>3.1. Accès gratuit :</strong> les sports, les séances, l'historique, la progression, les statistiques essentielles et l'aventure sont proposés gratuitement. La boutique ne vend aucune puissance et les récompenses sont identiques pour tous.<br><br>
+                    <strong>3.2. Publicité encadrée :</strong> aucune publicité n'est actuellement chargée. Si cela change, elle ne devra pas bloquer l'enregistrement d'une séance, la connexion, les pages légales ou la suppression du compte.<br><br>
+                    <strong>3.3. Consentement :</strong> les traceurs publicitaires ou de mesure non strictement nécessaires sont soumis au consentement lorsque la réglementation l'exige. Les choix peuvent être conservés dans le navigateur.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">04.</span> ABONNEMENT TITAN+</div>
+                <div class="article-text">
+                    <strong>4.1. Contenu de TITAN+ :</strong> l'abonnement optionnel ajoute des analyses avancées, des plans courts adaptatifs, des tableaux personnalisables, des notes enrichies et des collections visuelles. Il n'augmente jamais les XP, les crédits, les plafonds, les dégâts ou les chances de réussite.<br>
+                    <strong>4.2. Paiement :</strong> les transactions sont opérées par <strong>Paddle</strong>, notre partenaire de paiement et vendeur officiel. TITAN OS ne stocke aucune coordonnée bancaire et reçoit seulement les informations nécessaires à la gestion de TITAN+.<br>
+                    <strong>4.3. Prix, taxes et factures :</strong> les prix, taxes applicables, moyens de paiement, factures et conditions affichées au checkout sont gérés par Paddle. L'utilisateur doit vérifier les informations de commande avant validation.<br>
+                    <strong>4.4. Rétractation, remboursement et litiges de paiement :</strong> les conditions applicables sont affichées par Paddle avant validation du paiement et peuvent dépendre du pays de l'acheteur, du type de produit numérique et du moment d'utilisation du service. Pour toute demande, l'utilisateur peut contacter le support TITAN OS ou le support Paddle.<br>
+                    <strong>4.5. Abonnement et résiliation :</strong> l'utilisateur peut demander l'arrêt du renouvellement depuis les moyens fournis par Paddle ou via le support TITAN OS. La perte de TITAN+ peut intervenir à la fin de la période payée, en cas de remboursement, d'annulation, d'expiration, d'impayé ou de fraude.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">05.</span> MONNAIE ET BIENS VIRTUELS</div>
+                <div class="article-text">
+                    <strong>5.1. Absence de valeur :</strong> Les "Crédits", "Items", "Niveaux" et "Succès" acquis dans le Service sont des éléments de fiction ludique. Ils ne possèdent <strong>aucune valeur monétaire réelle</strong> et ne peuvent en aucun cas être convertis, remboursés ou échangés contre de l'argent réel ou des biens physiques.<br>
+                    <strong>5.2. Licence d'utilisation :</strong> l'utilisateur bénéficie d'un droit personnel d'accès et d'utilisation du compte, des fonctionnalités et des biens virtuels tant que son compte reste actif et conforme aux règles du Service.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">06.</span> CODE DE CONDUITE & ANTI-TRICHE</div>
+                <div class="article-text">
+                    Pour garantir l'intégrité de l'écosystème TITAN, l'Utilisateur s'interdit formellement de :
                     <ul>
-                        <li>Contraires à l'ordre public et aux bonnes mœurs.</li>
-                        <li>À caractère injurieux, diffamatoire, raciste, xénophobe, révisionniste ou portant atteinte à l'honneur ou à la réputation d'autrui.</li>
-                        <li>Incitant à la discrimination, à la haine d'une personne ou d'un groupe de personnes à raison de leur origine ou de leur appartenance ou de leur non-appartenance à une ethnie, une nation, une race ou une religion déterminée.</li>
-                        <li>Menaçant une personne ou un groupe de personnes.</li>
+                        <li>Utiliser des logiciels tiers, bots ou scripts pour automatiser la progression (Farming).</li>
+                        <li>Exploiter des failles (Glitchs) pour gagner indûment de l'XP ou des Crédits.</li>
+                        <li>Tenter de contourner les protections ou de modifier frauduleusement les données envoyées au service.</li>
+                        <li>Tenir des propos injurieux, racistes ou harcelants dans les espaces sociaux (Chat/Guildes).</li>
                     </ul>
-                    <strong>Toute infraction à ces règles pourra faire l'objet d'un signalement immédiat aux autorités compétentes (Police / Gendarmerie) avec transmission de l'adresse IP et des logs de connexion, conformément à la législation en vigueur.</strong>
+                    <strong>Modération :</strong> en cas d'abus, l'équipe peut limiter une fonctionnalité, retirer un contenu, suspendre temporairement un compte ou supprimer un compte en cas de violation grave. L'utilisateur peut contacter le support pour comprendre la décision, sauf urgence de sécurité, fraude manifeste ou obligation légale.
                 </div>
             </div>
 
-            <div class="doc-section">
-                <h2 class="doc-title">ARTICLE 3 : PROPRIÉTÉ INTELLECTUELLE</h2>
-                <div class="doc-text">
-                    La structure générale de l'application TITAN OS, ainsi que les textes, graphiques, images (dont les Boss et Items), sons et vidéos la composant, sont la propriété exclusive de l'Éditeur (Théo). Toute représentation et/ou reproduction et/ou exploitation partielle ou totale des contenus et services proposés par l'application, par quelque procédé que ce soit, sans l'autorisation préalable et par écrit de l'Éditeur est strictement interdite et serait susceptible de constituer une contrefaçon au sens des articles L 335-2 et suivants du Code de la propriété intellectuelle.
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">07.</span> CONTENU UTILISATEUR (AVATARS)</div>
+                <div class="article-text">
+                    L'Utilisateur est seul responsable des contenus qu'il met en ligne (notamment les images de profil/avatars). Il garantit détenir les droits nécessaires sur ces images.<br>
+                    Il est strictement interdit d'uploader des contenus : pornographiques, violents, illégaux, ou portant atteinte à la dignité humaine. L'Éditeur se réserve le droit de supprimer tout contenu jugé inapproprié sans préavis.
                 </div>
             </div>
 
-            <div class="doc-section">
-                <h2 class="doc-title">ARTICLE 4 : GESTION DES COMPTES ET BANNISSEMENT</h2>
-                <div class="doc-text">
-                    L'Éditeur se réserve le droit de suspendre ou de supprimer le compte de tout Utilisateur qui ne respecterait pas les présentes CGU, notamment en cas de triche (modification frauduleuse des stats locales), de harcèlement ou de comportement nuisible à la communauté, et ce, sans préavis ni indemnité. La fonctionnalité "ADMIN GOD MODE" permet à l'Éditeur de surveiller et modérer l'activité pour garantir la sécurité de tous.
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">07B.</span> CHAT, ALLIÉS ET GUILDES</div>
+                <div class="article-text">
+                    Les modules sociaux permettent d'échanger avec d'autres utilisateurs. L'Utilisateur s'engage à ne pas publier d'informations personnelles sensibles, de messages de harcèlement, de spam, de contenus illégaux ou de propos discriminatoires.
+                    Les guildes locales sont fournies comme outil d'organisation ludique et ne constituent pas un service de messagerie privée garanti. L'Éditeur peut modérer ou retirer un contenu social en cas d'abus signalé.
                 </div>
             </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">08.</span> IA, CONTENUS ET EXACTITUDE</div>
+                <div class="article-text">
+                    TITAN OS peut contenir du code, des textes, idées de design, mécaniques ou contenus créés avec l'aide d'outils d'intelligence artificielle. Ces outils servent à assister l'équipe, pas à remplacer le jugement humain. Malgré les vérifications, des erreurs, incohérences ou formulations imparfaites peuvent subsister.<br><br>
+                    Les contenus de progression, conseils, résumés et analyses ne doivent pas être interprétés comme des avis médicaux, juridiques, financiers ou professionnels. L'utilisateur conserve son discernement et reste responsable de ses décisions.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">09.</span> PROPRIÉTÉ INTELLECTUELLE</div>
+                <div class="article-text">
+                    La structure générale, le code source original, l'univers graphique, les textes narratifs, les noms des Boss, les règles de progression et le concept de TITAN OS appartiennent à l'équipe éditrice, sous réserve des droits des bibliothèques, icônes, polices, cartes, services tiers et éléments open source utilisés. Toute reproduction, extraction massive, copie commerciale ou ingénierie inverse abusive est interdite sans autorisation.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">10.</span> DONNÉES PERSONNELLES</div>
+                <div class="article-text">
+                    L'utilisation du Service implique la collecte et le traitement de données (Progression, Email, Pseudo). Ces traitements sont effectués dans le strict respect du Règlement Général sur la Protection des Données (RGPD).<br>
+                    L'Utilisateur est invité à consulter notre <a href="legal_privacy.html" style="color:var(--primary); text-decoration:none;">Politique de Confidentialité</a> pour exercer ses droits (Export, Suppression).
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">11.</span> MINEURS</div>
+                <div class="article-text">
+                    TITAN OS n'est pas destiné à contourner l'autorité parentale. Les mineurs doivent utiliser le Service avec l'accord et sous la responsabilité de leur représentant légal, en particulier pour les fonctionnalités sociales, les achats, les publicités et la pratique sportive.
+                </div>
+            </div>
+
+            <div class="article-box">
+                <div class="article-title"><span class="article-number">12.</span> DROIT APPLICABLE</div>
+                <div class="article-text">
+                    Les présentes CGU sont soumises au droit français, sous réserve des règles impératives applicables aux consommateurs. En cas de difficulté, l'utilisateur est invité à contacter d'abord <a href="mailto:titanteam.app@gmail.com" style="color:var(--primary); text-decoration:none;">titanteam.app@gmail.com</a> afin de rechercher une solution amiable. À défaut, les juridictions compétentes seront déterminées selon les règles légales applicables.
+                </div>
+            </div>
+
+            <footer class="legal-footer">
+                © 2026 TITAN OS PROJECT. Tous droits réservés.<br>
+                Dernière mise à jour : 31 juillet 2026.
+            </footer>
 
         </main>
     </div>
 </body>
 </html>
+

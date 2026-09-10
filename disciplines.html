@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Disciplines - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <style>
+        .discipline-header { margin-bottom: 26px; border-left: 4px solid var(--accent); padding-left: 16px; }
+        .discipline-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px; }
+        .discipline-card { background:rgba(30,41,59,0.62); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:16px; }
+        .discipline-card.complete { border-color:rgba(16,185,129,0.45); box-shadow:0 0 18px rgba(16,185,129,0.08); }
+        .discipline-title { display:flex; align-items:center; gap:10px; font-family:'Russo One'; color:#fff; text-transform:uppercase; font-size:0.95rem; }
+        .discipline-title i { color:var(--accent); font-size:1.25rem; }
+        .discipline-meta { color:#94a3b8; font-size:0.74rem; margin-top:5px; }
+        .discipline-level { margin-top:12px; display:grid; gap:6px; }
+        .discipline-level-top { display:flex; justify-content:space-between; color:#cbd5e1; font-size:0.72rem; font-weight:800; }
+        .discipline-level-track { height:7px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden; }
+        .discipline-level-fill { height:100%; width:var(--discipline-progress, 0%); background:linear-gradient(90deg, #38bdf8, #10b981); }
+        .badge-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+        .badge-token { border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#64748b; border-radius:999px; padding:5px 8px; font-size:0.68rem; font-weight:800; }
+        .badge-token.on { color:#10b981; border-color:rgba(16,185,129,0.45); background:rgba(16,185,129,0.1); }
+        .record-list { margin-top:12px; display:grid; gap:7px; }
+        .record-line { display:flex; justify-content:space-between; gap:10px; border-top:1px dashed rgba(255,255,255,0.08); padding-top:7px; color:#cbd5e1; font-size:0.74rem; }
+        .record-line strong { color:#fff; font-family:'Russo One'; font-size:0.76rem; }
+        .title-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:24px; }
+        .title-card { border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.035); border-radius:10px; padding:13px; display:flex; gap:10px; align-items:center; opacity:0.55; }
+        .title-card.on { opacity:1; border-color:rgba(126, 220, 255,0.38); background:rgba(126, 220, 255,0.06); }
+        .title-card i { color:#9ee7ff; font-size:1.3rem; }
+        .section-title { font-family:'Russo One'; color:#fff; text-transform:uppercase; margin:28px 0 14px; display:flex; align-items:center; gap:8px; }
+        .adventure-feed { display:grid; gap:10px; }
+        .feed-row { background:rgba(15,23,42,0.75); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:11px; display:flex; justify-content:space-between; gap:14px; align-items:center; }
+        .feed-row span { color:#94a3b8; font-size:0.72rem; }
+        .discipline-header { display:flex; justify-content:space-between; gap:18px; align-items:flex-end; }
+        .discipline-header-action { min-height:44px; display:inline-flex; align-items:center; gap:8px; padding:0 13px; border:1px solid rgba(126,220,255,.24); border-radius:8px; background:rgba(126,220,255,.07); color:#dff8ff; font-size:.72rem; font-weight:900; }
+        .discipline-catalog { margin-bottom:30px; padding:18px; border:1px solid rgba(126,220,255,.2); border-radius:10px; background:linear-gradient(145deg,rgba(126,220,255,.065),rgba(255,255,255,.025)); }
+        .discipline-catalog-head { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
+        .discipline-catalog-head h2 { margin:4px 0 0; font-size:1.2rem; }
+        .discipline-catalog-head p { margin:6px 0 0; color:#94a3b8; max-width:720px; font-size:.78rem; line-height:1.45; }
+        .discipline-catalog-count { color:#9ee7ff; font-family:var(--font-display); white-space:nowrap; }
+        .discipline-catalog-search { position:relative; margin-top:15px; }
+        .discipline-catalog-search i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9ee7ff; }
+        .discipline-catalog-search input { padding-left:43px!important; min-height:50px; background:rgba(2,8,15,.58)!important; }
+        .discipline-catalog-filters { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+        .discipline-catalog-filter { min-height:36px; padding:0 10px; border:1px solid rgba(255,255,255,.1); border-radius:999px; background:rgba(255,255,255,.035); color:#94a3b8; font-size:.65rem; font-weight:900; }
+        .discipline-catalog-filter.active { background:#7edcff; color:#031019; border-color:#7edcff; }
+        .discipline-catalog-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:9px; margin-top:14px; }
+        .discipline-catalog-card { display:flex; flex-direction:column; min-height:176px; padding:13px; border:1px solid rgba(255,255,255,.08); border-radius:8px; background:rgba(4,10,18,.56); }
+        .discipline-catalog-card-top { display:flex; justify-content:space-between; gap:10px; }
+        .discipline-catalog-card i { color:#7edcff; font-size:1.18rem; }
+        .discipline-catalog-card small { color:#4cc9b0; font-weight:900; text-transform:uppercase; }
+        .discipline-catalog-card strong { display:block; margin-top:10px; color:#fff; font-family:var(--font-display); font-size:.85rem; text-transform:uppercase; }
+        .discipline-catalog-card p { margin:6px 0 12px; color:#8396a8; font-size:.69rem; line-height:1.4; }
+        .discipline-catalog-card a { margin-top:auto; color:#dff8ff; font-size:.68rem; font-weight:900; }
+        .discipline-card-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:13px; }
+        .discipline-card-actions a { min-height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0 10px; border:1px solid rgba(126,220,255,.16); border-radius:7px; color:#ccefff; font-size:.65rem; font-weight:900; }
+        @media (max-width:640px) {
+            .discipline-header,.discipline-catalog-head { align-items:flex-start; flex-direction:column; }
+            .discipline-catalog { padding:13px; }
+            .discipline-catalog-grid { grid-template-columns:1fr; }
+        }
+    </style>
+<meta name="theme-color" content="#0f172a">
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Disciplines TITAN OS: sports pratiques, specialisations, familles d'effort et lecture personnelle de ta progression physique.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/disciplines">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/disciplines">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/disciplines">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Disciplines - TITAN OS">
+    <meta property="og:description" content="Disciplines TITAN OS: sports pratiques, specialisations, familles d'effort et lecture personnelle de ta progression physique.">
+    <meta property="og:url" content="https://titan-app.fr/disciplines">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Disciplines - TITAN OS">
+    <meta name="twitter:description" content="Disciplines TITAN OS: sports pratiques, specialisations, familles d'effort et lecture personnelle de ta progression physique.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/disciplines#webpage",
+          "url": "https://titan-app.fr/disciplines",
+          "name": "Disciplines - TITAN OS",
+          "headline": "Disciplines - TITAN OS",
+          "description": "Disciplines TITAN OS: sports pratiques, specialisations, familles d'effort et lecture personnelle de ta progression physique.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/disciplines#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/disciplines#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Disciplines",
+              "item": "https://titan-app.fr/disciplines"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="disciplines">
+    <div class="layout">
+        <nav class="sidebar"></nav>
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            <header class="discipline-header">
+                <div>
+                    <div style="font-size:0.7rem; color:var(--accent); letter-spacing:2px; font-weight:800;">REGISTRE SPORTIF</div>
+                    <h1 class="titular" style="font-size:1.8rem; margin:0;">MES SPORTS</h1>
+                </div>
+                <a class="discipline-header-action" href="/sports"><i class="ri-search-line"></i> Trouver un sport</a>
+            </header>
+
+            <div class="section-title"><i class="ri-medal-line"></i> SPORTS PRATIQUÉS</div>
+            <div class="discipline-grid" id="discipline-grid"></div>
+
+            <details class="discipline-secondary">
+                <summary><i class="ri-trophy-line"></i> Titres ludiques</summary>
+                <div class="title-grid" id="titles-grid"></div>
+            </details>
+
+            <a class="discipline-adventure-link" href="./adventure.html"><i class="ri-compass-3-line"></i><span><strong>Ouvrir l’aventure</strong><small>Les récits et récompenses ludiques restent optionnels.</small></span><i class="ri-arrow-right-line"></i></a>
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/sport-discovery.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    <script>
+        let disciplineCatalogFamily = 'all';
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('discipline-catalog-search')?.addEventListener('input', renderDisciplineCatalog);
+            setTimeout(renderDisciplinePage, 450);
+        });
+        window.addEventListener('titan:catalog-ready', renderDisciplinePage);
+
+        function disciplineEscapeText(value, maxLength = 140) {
+            const safe = window.titanSafeText
+                ? window.titanSafeText(value, maxLength)
+                : String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+            return window.titanEscapeText
+                ? window.titanEscapeText(safe)
+                : safe.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function disciplineSafeIcon(value, fallback = 'ri-flashlight-line') {
+            const icon = String(value ?? '').trim();
+            return /^ri-[a-z0-9-]+$/i.test(icon) ? icon : fallback;
+        }
+
+        function disciplineSafeToken(value) {
+            return String(value ?? '').trim().replace(/[^a-z0-9_-]/gi, '').slice(0, 80);
+        }
+
+        function renderDisciplinePage() {
+            if(!window.state || !window.state.user) return;
+            if(window.titanUpdateTitles) window.titanUpdateTitles();
+            renderTitles();
+            renderDisciplines();
+        }
+
+        function renderDisciplineCatalogFilters() {
+            const target = document.getElementById('discipline-catalog-filters');
+            if(!target || !window.TITAN_SPORT_FAMILIES) return;
+            target.innerHTML = window.TITAN_SPORT_FAMILIES.map(family => `
+                <button type="button" class="discipline-catalog-filter ${disciplineCatalogFamily === family.id ? 'active' : ''}" onclick="setDisciplineCatalogFamily('${disciplineSafeToken(family.id)}')" aria-pressed="${disciplineCatalogFamily === family.id ? 'true' : 'false'}">${disciplineEscapeText(family.label, 40)}</button>
+            `).join('');
+        }
+
+        function setDisciplineCatalogFamily(familyId) {
+            disciplineCatalogFamily = (window.TITAN_SPORT_FAMILIES || []).some(family => family.id === familyId) ? familyId : 'all';
+            renderDisciplineCatalogFilters();
+            renderDisciplineCatalog();
+        }
+
+        function renderDisciplineCatalog() {
+            const grid = document.getElementById('discipline-catalog-grid');
+            const count = document.getElementById('discipline-catalog-count');
+            if(!grid || !count) return;
+            const entries = window.titanSportEntriesFromConfig ? window.titanSportEntriesFromConfig(window.SPORTS_CONFIG || {}) : [];
+            if(!entries.length) {
+                count.textContent = 'Connexion au catalogue…';
+                grid.innerHTML = '<div class="discipline-meta">Chargement de tes sports…</div>';
+                return;
+            }
+            const query = document.getElementById('discipline-catalog-search')?.value || '';
+            const ranked = entries
+                .filter(entry => window.titanSportFamilyMatches(entry, disciplineCatalogFamily))
+                .map(entry => ({ ...entry, score:window.titanSportSearchScore(entry, query) }))
+                .filter(entry => !query.trim() || entry.score > 0)
+                .sort((a,b) => (query.trim() ? b.score - a.score : 0) || Number(a.conf.sortOrder || 0) - Number(b.conf.sortOrder || 0) || String(a.conf.label).localeCompare(String(b.conf.label), 'fr'));
+            count.textContent = `${ranked.length} sport${ranked.length > 1 ? 's' : ''}`;
+            if(!ranked.length) {
+                grid.innerHTML = '<div class="discipline-meta">Aucun résultat. Essaie un alias ou une autre famille.</div>';
+                return;
+            }
+            grid.innerHTML = ranked.slice(0, 24).map(entry => {
+                const metrics = window.titanSportMetricLabels(entry.conf, 3);
+                const meta = metrics.length ? metrics.join(' // ') : `${entry.conf.unit || 'mesure'} // intensité // notes`;
+                return `<article class="discipline-catalog-card">
+                    <div class="discipline-catalog-card-top"><i class="${disciplineSafeIcon(entry.conf.icon)}"></i><small>${disciplineEscapeText(window.titanSportCategoryLabel(entry.conf), 35)}</small></div>
+                    <strong>${disciplineEscapeText(entry.conf.label, 90)}</strong>
+                    <p>${disciplineEscapeText(entry.conf.description || entry.conf.trackingSummary?.headline || meta, 150)}</p>
+                    <a href="/training?sport=${encodeURIComponent(disciplineSafeToken(entry.key))}">Enregistrer ce sport →</a>
+                </article>`;
+            }).join('');
+        }
+
+        function renderTitles() {
+            const grid = document.getElementById('titles-grid');
+            const unlocked = window.state.user.unlockedTitles || ['title-recruit'];
+            grid.innerHTML = (window.TITAN_TITLES || []).map(title => {
+                const on = unlocked.includes(title.id);
+                return `<div class="title-card ${on ? 'on' : ''}" ${on ? `onclick="setActiveTitle('${disciplineSafeToken(title.id)}')"` : ''}>
+                    <i class="${disciplineSafeIcon(title.icon, 'ri-medal-line')}"></i>
+                    <div><div style="font-family:'Russo One'; color:#fff; font-size:0.82rem;">${disciplineEscapeText(title.label, 80)}</div><div style="font-size:0.68rem; color:#94a3b8;">${window.state.user.activeTitle === title.id ? 'Actif' : (on ? 'Debloque' : 'Verrouille')}</div></div>
+                </div>`;
+            }).join('');
+        }
+
+        function setActiveTitle(id) {
+            if(!(window.state.user.unlockedTitles || []).includes(id)) return;
+            window.state.user.activeTitle = id;
+            if(window.saveState) window.saveState({ forceCloud: true });
+            if(window.showNotification) window.showNotification('success', 'TITRE ACTIF', (window.titanGetTitleById ? window.titanGetTitleById(id).label : id));
+            if(window.injectSidebar) window.injectSidebar();
+            if(window.injectMobileHeader) window.injectMobileHeader();
+            renderTitles();
+        }
+
+        function renderDisciplines() {
+            const grid = document.getElementById('discipline-grid');
+            const history = window.state.history || [];
+            const sports = Object.create(null);
+            history.forEach(log => {
+                const sportKey = String(log.sport || 'sport').slice(0, 80);
+                if(!sports[sportKey]) sports[sportKey] = { count:0, xp:0 };
+                sports[sportKey].count += 1;
+                sports[sportKey].xp += parseFloat(log.xp) || 0;
+            });
+            const entries = Object.entries(sports).sort((a,b) => b[1].count - a[1].count);
+            if(entries.length === 0) {
+                grid.innerHTML = `<div class="discipline-card"><div class="discipline-title"><i class="ri-compass-3-line"></i> Aucun signal</div><div class="discipline-meta">Enregistre une seance pour ouvrir le registre.</div></div>`;
+                return;
+            }
+            grid.innerHTML = entries.map(([sport, data]) => renderSportCard(sport, data)).join('');
+        }
+
+        function renderSportCard(sport, data) {
+            const conf = window.SPORTS_CONFIG?.[sport] || {};
+            const badges = window.state.user.disciplineBadges?.[sport] || [];
+            const targets = [3, 5, 10, 25, 50, 100];
+            const records = window.state.user.records?.[sport] || {};
+            const level = Math.max(1, Math.floor(Math.sqrt(Math.max(0, data.xp) / 220)) + 1);
+            const currentFloor = Math.pow(level - 1, 2) * 220;
+            const nextFloor = Math.pow(level, 2) * 220;
+            const levelPct = Math.min(100, Math.round(((data.xp - currentFloor) / Math.max(1, nextFloor - currentFloor)) * 100));
+            const recordHtml = Object.values(records).slice(0, 4).map(record => `
+                <div class="record-line"><span>${disciplineEscapeText(record.label || 'Record', 80)}</span><strong>${Number(record.value).toLocaleString()} ${disciplineEscapeText(record.unit || '', 20)}</strong></div>`).join('');
+            const safeSportLabel = disciplineEscapeText(conf.label || sport, 90);
+            const safeIcon = disciplineSafeIcon(conf.icon);
+            return `<div class="discipline-card ${badges.length >= 3 ? 'complete' : ''}">
+                <div class="discipline-title"><i class="${safeIcon}"></i> ${safeSportLabel}</div>
+                <div class="discipline-meta">${data.count} traces // ${Math.round(data.xp).toLocaleString()} XP</div>
+                <div class="discipline-level">
+                    <div class="discipline-level-top"><span>Niveau discipline ${level}</span><span>${levelPct}%</span></div>
+                    <div class="discipline-level-track"><div class="discipline-level-fill" style="--discipline-progress:${levelPct}%"></div></div>
+                </div>
+                <div class="badge-row">${targets.map(target => `<span class="badge-token ${badges.includes(`${sport}_${target}`) ? 'on' : ''}">x${target}</span>`).join('')}</div>
+                <div class="record-list">${recordHtml || '<div class="discipline-meta">Aucun record archive.</div>'}</div>
+                <div class="discipline-card-actions">
+                    <a href="/training?sport=${encodeURIComponent(disciplineSafeToken(sport))}"><i class="ri-add-line"></i> Ajouter</a>
+                    <a href="/sport_details?sport=${encodeURIComponent(disciplineSafeToken(sport))}"><i class="ri-line-chart-line"></i> Analyser</a>
+                </div>
+            </div>`;
+        }
+
+        function renderAdventureFeed() {
+            const feed = document.getElementById('adventure-feed');
+            const logs = window.state.game?.adventureLog || [];
+            if(!logs.length) {
+                feed.innerHTML = `<div class="feed-row"><div><strong>Journal vide</strong><br><span>Neutralise une cible en campagne pour alimenter cette archive.</span></div></div>`;
+                return;
+            }
+            feed.innerHTML = logs.slice(0, 12).map(row => `
+                <div class="feed-row">
+                    <div><strong>${disciplineEscapeText(row.enemy || 'Cible', 90)}</strong><br><span>${disciplineEscapeText(row.zone || 'Zone', 60)} // ${disciplineEscapeText(row.type || 'Combat', 40)} // ${disciplineEscapeText(row.rarity || 'Standard', 40)}</span></div>
+                    <div style="text-align:right;"><strong>${Math.floor(Number(row.reward) || 0)} $</strong><br><span>${new Date(row.date).toLocaleDateString('fr-FR')}</span></div>
+                </div>`).join('');
+        }
+    </script>
+</body>
+</html>
+

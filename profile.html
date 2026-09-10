@@ -1,538 +1,990 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: PROFIL</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
+    <title>Profil utilisateur - TITAN OS</title>
     
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
     <style>
-        /* LAYOUT PRINCIPAL */
-        .rpg-layout { 
-            display: grid; 
-            grid-template-columns: 350px 380px 1fr; 
-            gap: 25px; 
-            height: calc(100vh - 140px); 
-            min-height: 650px; 
+        /* --- STYLE SPECIFIQUE PROFIL --- */
+        .profile-header {
+            text-align: center; margin-bottom: 30px;
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px; border-radius: 20px; position: relative;
         }
-
-        /* STYLE DES PANNEAUX */
-        .panel { 
-            background: var(--bg-panel); 
-            border-radius: 24px; 
-            border: 1px solid rgba(255,255,255,0.05); 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        .panel-header {
-            padding: 15px 20px;
-            background: rgba(0,0,0,0.4);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-family: 'Russo One';
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-shrink: 0;
-        }
-        .panel-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-            scrollbar-width: none; 
-        }
-        .panel-content::-webkit-scrollbar { display: none; }
-
-        /* 1. IDENTITÉ (GAUCHE) */
-        .avatar-section { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; }
-        .avatar-circle-lg {
-            width: 70px; height: 70px; border-radius: 50%; 
-            background: #10141e; border: 2px solid var(--accent);
+        .current-avatar-box {
+            width: 110px; height: 110px; border-radius: 50%; 
+            background: #1e2538; border: 3px solid var(--accent);
+            margin: 0 auto 15px auto; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; color: var(--accent);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+            font-size: 3rem; color: var(--text-muted);
+            transition: 0.3s; position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
-        .id-text h2 { font-size: 1.2rem; margin: 0; line-height: 1.2; color: #fff; }
-        .id-text .lvl-badge { background: var(--primary); color: #000; font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        .current-avatar-box:hover { border-color: #fff; }
 
-        /* RADAR CHART */
-        .radar-box {
-            background: #0f131c; border-radius: 20px; padding: 15px;
-            border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; position: relative;
+        .user-name { font-family: 'Russo One'; font-size: 1.8rem; color: #fff; margin-bottom: 5px; }
+        .user-meta { 
+            font-size: 0.75rem; color: var(--text-muted); 
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; 
+            font-family: 'Russo One';
         }
-        .radar-title { position: absolute; top: 15px; left: 15px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; }
-        .radar-wrapper { position: relative; height: 260px; width: 100%; margin-top: 10px; }
-
-        /* BIO INPUTS */
-        .bio-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; }
-        .bio-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .bio-input-group { flex: 1; position: relative; }
-        .bio-input-group label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 800; text-transform: uppercase; }
-        .input-bio {
-            width: 100%; background: #131824; border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; padding: 10px; border-radius: 8px; font-family: 'Russo One'; font-size: 0.9rem;
-            transition: 0.2s; text-align: center;
-        }
-        .input-bio:focus { border-color: var(--primary); background: #0f131c; }
-
-        /* 2. DOLL (CENTRE) - Retour à la version stable */
-        .doll-area { position: relative; background: radial-gradient(circle at center, #1e2538 0%, #10141e 80%); }
-        
-        /* IMAGE DE FOND (SILHOUETTE) */
-        .body-silhouette { 
-            position: absolute; 
-            top: 55%; /* Centrage vertical */
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 100%; 
-            height: 90%; 
-            background-image: url('./images/inventaire.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            opacity: 0.5;
-            pointer-events: none; 
-            z-index: 0;
-        }
-
-        /* CASES (SLOTS) - Taille d'origine */
-        .gear-slot { 
-            width: 68px; height: 68px; 
-            background: rgba(19, 24, 36, 0.6); 
-            border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; 
-            position: absolute; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; transition: 0.2s; color: rgba(255,255,255,0.3); font-size: 1.6rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3); backdrop-filter: blur(4px);
-            z-index: 10;
-        }
-        .gear-slot:hover { border-color: #fff; color: #fff; transform: scale(1.1); z-index: 50; background: rgba(255,255,255,0.1); }
-        
-        /* --- POSITIONNEMENT DES SLOTS --- */
-        
-        /* Tête : Tout en haut */
-        .pos-head { top: 8%; left: 50%; transform: translateX(-50%); } 
-        
-        /* Torse : Sur la poitrine */
-        .pos-chest { top: 28%; left: 50%; transform: translateX(-50%); } 
-        
-        /* Gants : Au niveau de la taille/mains */
-        .pos-hands { top: 46%; left: 50%; transform: translateX(-50%); }
-
-        /* Jambières : Genoux */
-        .pos-legs { top: 62%; left: 50%; transform: translateX(-50%); } 
-        
-        /* Bottes : Chevilles */
-        .pos-feet { top: 82%; left: 50%; transform: translateX(-50%); } 
-        
-        /* Arme (Main Droite) : Écartée gauche */
-        .pos-mainhand { top: 35%; left: 12%; } 
-        
-        /* Bouclier (Main Gauche) : Écartée droite */
-        .pos-offhand { top: 35%; right: 12%; } 
-
-        .stat-summary { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; gap: 10px; z-index: 20; }
-        .stat-badge { background: #0f131c; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; }
-
-        /* 3. INVENTAIRE (DROITE) */
-        .inv-filters { 
-            display: flex; gap: 8px; padding: 15px 20px; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            flex-shrink: 0; 
-        }
-        .filter-tag { font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; color: var(--text-muted); font-weight: 700; }
-        .filter-tag.active { background: var(--primary); color: #000; }
-        
-        .inv-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); 
-            gap: 10px; 
-            padding: 15px; 
-            overflow-y: auto; 
-            flex: 1; 
-            min-height: 0; 
-            align-content: start;
+        .meta-tag { 
+            background: rgba(255,255,255,0.05); padding: 6px 14px; 
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); 
+            display: flex; align-items: center; gap: 6px; transition: 0.3s;
         }
         
-        .inv-item { aspect-ratio: 1; background: #131824; border-radius: 12px; border: 2px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem; color: var(--text-muted); position: relative; transition: 0.2s; }
-        .inv-item:hover { background: #1e2538; border-color: #fff; color: #fff; transform: translateY(-2px); }
+        .selection-area {
+            background: #131824; border-radius: 16px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+        }
+        .section-title {
+            font-family: 'Russo One'; font-size: 0.9rem; color: var(--text-muted); 
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+        }
         
-        .rare-1 { border-color: #475569; }
-        .rare-2 { border-color: #0ea5e9; box-shadow: 0 0 10px rgba(14, 165, 233, 0.1); color: #0ea5e9; }
-        .rare-3 { border-color: #eab308; box-shadow: 0 0 15px rgba(234, 179, 8, 0.15); color: #eab308; animation: pulseGold 3s infinite; }
-        @keyframes pulseGold { 0%,100%{box-shadow: 0 0 10px rgba(234,179,8,0.2);} 50%{box-shadow: 0 0 25px rgba(234,179,8,0.5);} }
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .avatar-option {
+            aspect-ratio: 1/1; background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1); border-radius: 10px;
+            cursor: pointer; overflow: hidden; transition: 0.2s; position: relative;
+        }
+        .avatar-option img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .avatar-option:hover { border-color: #fff; transform: translateY(-2px); }
+        .avatar-option.selected { border-color: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+        
+        .input-group { display: flex; gap: 10px; }
+        .input-field {
+            flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px; border-radius: 12px; color: #fff; font-family: 'Outfit'; font-size: 1rem;
+            outline: none; transition: 0.3s;
+        }
+        .input-field:focus { border-color: var(--accent); }
+        
+        .save-btn {
+            background: var(--accent); color: #000; padding: 0 20px;
+            font-family: 'Russo One'; border: none; border-radius: 12px; cursor: pointer;
+            font-size: 1rem; text-transform: uppercase; transition: 0.2s;
+        }
+        .save-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+        
+        .danger-btn {
+            background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444;
+            padding: 15px; font-family: 'Russo One'; border-radius: 12px; cursor: pointer;
+            width: 100%; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem;
+        }
+        .danger-btn:active { transform: scale(0.98); }
+        .danger-btn.confirm-state { background: #ef4444 !important; color: #fff !important; animation: pulseRed 1s infinite; border-color: #ef4444 !important; }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
-        /* Recycle */
-        .recycle-mode .inv-item { border-color: #ef4444 !important; opacity: 0.7; }
-        .recycle-mode .inv-item:hover { opacity: 1; background: rgba(239,68,68,0.1); }
-        .recycle-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .recycle-btn.active { background: var(--danger); color: #fff; border-color: var(--danger); box-shadow: 0 0 15px rgba(239,68,68,0.4); }
+        .data-btn {
+            background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary); color: var(--primary);
+            padding: 15px; font-family: 'Russo One'; border-radius: 12px; cursor: pointer;
+            width: 100%; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem;
+        }
+        .data-btn:hover { background: rgba(56, 189, 248, 0.2); }
+        
+        .legal-footer {
+            margin-top: 40px; padding-top: 20px; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+            text-align: center; opacity: 0.5; padding-bottom: 20px;
+        }
+        .legal-link {
+            font-size: 0.75rem; color: #64748b; 
+            text-decoration: none; font-family: 'Inter', sans-serif;
+            display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .legal-link:hover { color: #fff; opacity: 1; }
 
-        /* LOOT MODAL */
-        .loot-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; perspective: 1000px; }
-        .loot-overlay.active { opacity: 1; pointer-events: all; }
-        .loot-stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .crate-container { text-align: center; animation: dropBox 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .crate-icon { font-size: 12rem; color: var(--gold); filter: drop-shadow(0 0 50px rgba(250, 204, 21, 0.3)); }
-        .shaking { animation: violentShake 0.5s ease-in-out infinite; }
-        .flash-bang { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; }
-        .flash-active { animation: flashAnim 0.8s ease-out forwards; }
-        .godrays { position: absolute; top: 50%; left: 50%; width: 800px; height: 800px; background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.05) 0deg 10deg, transparent 10deg 20deg); transform: translate(-50%, -50%); border-radius: 50%; z-index: 5; animation: spinRays 20s linear infinite; display: none; opacity: 0.5; }
-        .item-reveal-card { display: none; background: #1e2538; border-radius: 24px; padding: 50px; text-align: center; width: 90%; max-width: 400px; border: 2px solid rgba(255,255,255,0.1); position: relative; z-index: 10; box-shadow: 0 0 100px rgba(0,0,0,0.8); animation: popItem 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        @keyframes dropBox { from { transform: translateY(-100vh) scale(0.5); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-        @keyframes violentShake { 0% { transform: translate(0,0) rotate(0); } 25% { transform: translate(-5px, 5px) rotate(-5deg); } 50% { transform: translate(5px, -5px) rotate(5deg); } 75% { transform: translate(-5px, -5px) rotate(-5deg); } 100% { transform: translate(0,0) rotate(0); } }
-        @keyframes flashAnim { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes popItem { from { transform: scale(0) translateY(50px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-        @keyframes spinRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .profile-quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .profile-quick {
+            min-height: 74px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.035);
+            border-radius: 12px;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-family: 'Russo One';
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .profile-quick i { font-size: 1.35rem; color: var(--accent); }
+        .profile-quick:hover { transform: translateY(-2px); border-color: var(--accent); background: rgba(56,189,248,0.08); color:#fff; }
+
+        .profile-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+            gap: 18px;
+            align-items: start;
+        }
+        .profile-column { min-width: 0; }
+
+        .profile-help-text {
+            margin-top: 10px;
+            color: #94a3b8;
+            font-size: 0.78rem;
+            line-height: 1.5;
+        }
+        .identity-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .identity-card {
+            border:1px solid rgba(56,189,248,0.15);
+            background:rgba(56,189,248,0.055);
+            border-radius:10px;
+            padding:13px;
+            min-width:0;
+        }
+        .identity-card .label { color:#94a3b8; font-size:0.68rem; text-transform:uppercase; font-weight:900; letter-spacing:1px; }
+        .identity-card .value { color:#fff; font-family:'Russo One'; margin-top:5px; overflow-wrap:anywhere; }
+        .identity-card .sub { color:#cbd5e1; font-size:0.76rem; line-height:1.4; margin-top:6px; }
+        .profile-quality-list { display:grid; gap:8px; margin-top:12px; }
+        .profile-quality-row { display:grid; grid-template-columns:92px minmax(0, 1fr) 34px; gap:8px; align-items:center; color:#cbd5e1; font-size:0.72rem; }
+        .profile-quality-track { height:7px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden; }
+        .profile-quality-fill { display:block; height:100%; width:var(--quality-score,0%); background:linear-gradient(90deg, #38bdf8, #10b981); }
+        .privacy-grid { display:grid; gap:10px; }
+        .privacy-toggle {
+            display:grid; grid-template-columns:minmax(0, 1fr) auto; align-items:center; gap:12px;
+            position:relative; min-height:70px;
+            padding:13px 14px; border:1px solid rgba(255,255,255,0.08); border-radius:8px;
+            background:rgba(255,255,255,0.035); color:#cbd5e1;
+            cursor:pointer; transition:border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
+        .privacy-toggle:hover { border-color:rgba(158,231,255,0.26); background:rgba(158,231,255,0.045); }
+        .privacy-toggle.is-enabled {
+            border-color:rgba(76,201,176,0.48);
+            background:rgba(76,201,176,0.085);
+            box-shadow:inset 3px 0 0 #4cc9b0;
+        }
+        .privacy-toggle.is-disabled {
+            border-color:rgba(239,68,68,0.32);
+            background:rgba(239,68,68,0.055);
+            box-shadow:inset 3px 0 0 #ef6c6c;
+        }
+        .privacy-toggle strong { display:block; color:#fff; font-size:0.86rem; margin-bottom:3px; }
+        .privacy-toggle span span { color:#94a3b8; font-size:0.75rem; line-height:1.35; }
+        .privacy-toggle::after {
+            content:attr(data-state);
+            position:absolute; right:74px; top:12px;
+            color:#cbd5e1; font-size:0.62rem; font-weight:900; text-transform:uppercase; letter-spacing:0.05em;
+        }
+        .privacy-toggle.is-enabled::after { color:#7df0cf; }
+        .privacy-toggle.is-disabled::after { color:#ff9a9a; }
+        .privacy-toggle input {
+            appearance:none; -webkit-appearance:none;
+            width:54px; height:30px; border-radius:999px; flex-shrink:0;
+            border:1px solid rgba(255,255,255,0.16);
+            background:rgba(15,23,42,0.94);
+            box-shadow:inset 0 0 0 1px rgba(0,0,0,0.28);
+            cursor:pointer; position:relative; transition:background 0.18s ease, border-color 0.18s ease;
+        }
+        .privacy-toggle input::before {
+            content:""; position:absolute; top:4px; left:4px; width:20px; height:20px; border-radius:50%;
+            background:#94a3b8; transition:transform 0.18s ease, background 0.18s ease;
+        }
+        .privacy-toggle input:checked { background:rgba(76,201,176,0.92); border-color:#7df0cf; }
+        .privacy-toggle input:checked::before { transform:translateX(24px); background:#03130f; }
+        .privacy-toggle input:focus-visible { outline:2px solid #9ee7ff; outline-offset:3px; }
+
+        @media (max-width: 860px) {
+            .profile-header { padding: 22px 14px; border-radius: 12px; }
+            .current-avatar-box { width: 92px; height: 92px; }
+            .user-name { font-size: 1.35rem; overflow-wrap:anywhere; }
+            .profile-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .identity-grid { grid-template-columns: 1fr; }
+            .profile-layout { grid-template-columns: 1fr; gap: 0; }
+            .input-group { flex-direction: column; }
+            .save-btn { min-height: 46px; }
+            .avatar-grid { grid-template-columns: repeat(5, 1fr); }
+            .selection-area { padding: 14px !important; }
+            .section-title { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 430px) {
+            .avatar-grid { grid-template-columns: repeat(4, 1fr); }
+            .profile-quick { min-height: 66px; font-size: 0.62rem; }
+            .user-meta { justify-content: stretch; }
+            .meta-tag { flex: 1 1 calc(50% - 10px); justify-content:center; padding: 7px 8px; }
+        }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Espace personnel TITAN OS pour gerer le profil, les preferences et les cosmetiques.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/profile">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/profile">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/profile">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Profil utilisateur - TITAN OS">
+    <meta property="og:description" content="Espace personnel TITAN OS pour gerer le profil, les preferences et les cosmetiques.">
+    <meta property="og:url" content="https://titan-app.fr/profile">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Profil utilisateur - TITAN OS">
+    <meta name="twitter:description" content="Espace personnel TITAN OS pour gerer le profil, les preferences et les cosmetiques.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/profile#webpage",
+          "url": "https://titan-app.fr/profile",
+          "name": "Profil utilisateur - TITAN OS",
+          "headline": "Profil utilisateur - TITAN OS",
+          "description": "Espace personnel TITAN OS pour gerer le profil, les preferences et les cosmetiques.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/profile#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/profile#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Profil utilisateur",
+              "item": "https://titan-app.fr/profile"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="profile">
     <div class="layout">
-        <nav class="sidebar"></nav>
-
+        <nav class="sidebar"></nav> 
         <main class="main-content">
-            <div id="mobile-header-placeholder"></div>
+            <div class="mobile-user-bar"></div>
+            
+            <header style="margin-bottom:30px;">
+                <div style="font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">COMPTE ET PRÉFÉRENCES</div>
+                <h1 class="titular">Profil & préférences</h1>
+            </header>
 
-            <div class="rpg-layout">
+            <div class="profile-header">
+                <div class="current-avatar-box">
+                    <div id="current-avatar-display" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                        <i class="ri-user-3-fill"></i>
+                    </div>
+                </div>
+
+                <div class="user-name" id="profile-name">Recrue</div>
                 
-                <div class="panel">
-                    <div class="panel-header">BASE DE DONNÉES JOUEUR</div>
-                    <div class="panel-content">
-                        <div class="avatar-section">
-                            <div class="avatar-circle-lg"><i class="ri-user-3-fill"></i></div>
-                            <div class="id-text">
-                                <h2 id="id-name">JOUEUR</h2>
-                                
-                                <div style="display:flex; align-items:center; gap:10px; margin:5px 0;">
-                                    <span style="font-family:'Outfit'; color:var(--accent); font-weight:800; font-size:0.9rem; letter-spacing:1px; background:rgba(56, 189, 248, 0.1); padding:2px 8px; border-radius:4px; border:1px solid rgba(56, 189, 248, 0.2); cursor:pointer;" onclick="copyFriendCode()" title="Copier le matricule">
-                                        ID: <span id="id-code">TN-????</span> <i class="ri-file-copy-line" style="font-size:0.8rem;"></i>
-                                    </span>
-                                </div>
-
-                                <div class="lvl-badge">NIVEAU <span id="id-lvl">1</span></div>
-                            </div>
-                        </div>
-
-                        <div class="radar-box">
-                            <div class="radar-title">ANALYSE TACTIQUE</div>
-                            <div class="radar-wrapper">
-                                <canvas id="statsRadar"></canvas>
-                            </div>
-                        </div>
-
-                        <div class="bio-container">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                                <div style="font-weight:800; color:#fff; font-size:0.8rem; letter-spacing:1px;">
-                                    <i class="ri-heart-pulse-line" style="color:var(--primary);"></i> BIO-MÉTRIE
-                                </div>
-                                <button class="recycle-btn" onclick="saveBio()" style="border-color:var(--success); color:var(--success); font-weight:bold;">
-                                    <i class="ri-save-3-line"></i> SAUVER
-                                </button>
-                            </div>
-                            <div class="bio-row">
-                                <div class="bio-input-group">
-                                    <label>POIDS (kg)</label>
-                                    <input type="number" id="in-weight" class="input-bio" placeholder="0">
-                                </div>
-                                <div class="bio-input-group">
-                                    <label>TAILLE (cm)</label>
-                                    <input type="number" id="in-height" class="input-bio" placeholder="0">
-                                </div>
-                            </div>
-                            <div class="bio-input-group">
-                                <label>ÂGE (Années)</label>
-                                <input type="number" id="in-age" class="input-bio" placeholder="0">
-                            </div>
-                        </div>
-
-                        <div style="margin-top:25px;" id="account-actions"></div>
-                    </div>
-                </div>
-
-                <div class="panel doll-area">
-                    <div class="panel-header" style="background:transparent; border:none; position:absolute; top:0; left:0; width:100%; z-index:20;">ARMURE ACTIVE</div>
-                    
-                    <div class="body-silhouette"></div>
-                    
-                    <div class="gear-slot pos-head" id="slot-head" onclick="unequip('head')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-chest" id="slot-chest" onclick="unequip('chest')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-mainhand" id="slot-mainhand" onclick="unequip('mainhand')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-offhand" id="slot-offhand" onclick="unequip('offhand')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-hands" id="slot-hands" onclick="unequip('hands')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-legs" id="slot-legs" onclick="unequip('legs')"><i class="ri-add-line"></i></div>
-                    <div class="gear-slot pos-feet" id="slot-feet" onclick="unequip('feet')"><i class="ri-add-line"></i></div>
-
-                    <div class="stat-summary">
-                        <div class="stat-badge" style="color:#ef4444; border-color:#ef4444;"><i class="ri-sword-fill"></i> <span id="tot-str">0</span></div>
-                        <div class="stat-badge" style="color:#38bdf8; border-color:#38bdf8;"><i class="ri-flashlight-fill"></i> <span id="tot-agi">0</span></div>
-                        <div class="stat-badge" style="color:#4ade80; border-color:#4ade80;"><i class="ri-shield-cross-fill"></i> <span id="tot-end">0</span></div>
-                        <div class="stat-badge" style="color:#a855f7; border-color:#a855f7;"><i class="ri-brain-fill"></i> <span id="tot-mind">0</span></div>
-                    </div>
-                </div>
-
-                <div class="panel" id="inv-panel">
-                    <div class="panel-header">
-                        <div style="display:flex; align-items:center; gap:8px; color:var(--gold);">
-                            <i class="ri-copper-coin-fill" style="font-size:1.2rem;"></i> 
-                            <span style="font-size:1.1rem; font-weight:800;" id="global-credits">0</span>
-                        </div>
-                        <button class="recycle-btn" id="recycle-btn" onclick="toggleRecycleMode()"><i class="ri-recycle-line"></i> RECYCLER</button>
-                    </div>
-                    <div class="inv-filters">
-                        <div class="filter-tag active" onclick="filterInv('all', this)">TOUT</div>
-                        <div class="filter-tag" onclick="filterInv('equip', this)">ÉQUIPEMENT</div>
-                        <div class="filter-tag" onclick="filterInv('rare', this)">RARE+</div>
-                    </div>
-                    
-                    <div class="inv-grid" id="inventory-container">
-                        </div>
-                    
-                    <div style="margin-top:auto; padding:20px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.2); flex-shrink:0;">
-                        <button class="btn btn-action" style="width:100%; justify-content:space-between; padding:15px 20px;" onclick="buyLootBox()">
-                            <div style="display:flex; align-items:center; gap:10px;"><i class="ri-treasure-map-line" style="font-size:1.2rem;"></i> COFFRE MYSTÈRE</div>
-                            <div style="font-size:0.9rem; opacity:0.8;">200 $</div>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <div id="loot-modal" class="loot-overlay">
-                <div class="flash-bang" id="flash-bang"></div>
-                <div class="loot-stage">
-                    <div id="crate-view" class="crate-container"><i class="ri-archive-drawer-fill crate-icon" id="crate-anim"></i><h2 style="margin-top:20px; color:#fff;">OUVERTURE...</h2></div>
-                    <div class="godrays" id="godrays"></div>
-                    <div id="item-view" class="item-reveal-card">
-                        <div style="font-weight:800; letter-spacing:2px; margin-bottom:15px; color:var(--text-muted);">ITEM OBTENU</div>
-                        <div id="reveal-icon" style="font-size:5rem; margin-bottom:20px; color:#fff;"></div>
-                        <h1 id="reveal-name" class="titular" style="font-size:1.8rem; margin-bottom:5px;">NOM</h1>
-                        <div id="reveal-rarity" style="font-weight:800; color:var(--gold); margin-bottom:20px;">RARETÉ</div>
-                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; font-weight:bold; color:var(--accent); margin-bottom:10px;"><span id="reveal-stats">+0 BONUS</span></div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic; margin-bottom:20px;" id="reveal-desc">...</div>
-                        <button class="btn btn-action" style="width:100%;" onclick="location.reload()">AJOUTER À L'INVENTAIRE</button>
-                    </div>
+                <div class="user-meta">
+                    <span class="meta-tag"><i class="ri-shield-star-fill"></i> NIV. <span id="profile-lvl">1</span></span>
+                    <span id="elite-tag" class="meta-tag" style="display:none; color:#9ee7ff; border-color:#9ee7ff; background:rgba(126, 220, 255, 0.1);">
+                        <i class="ri-vip-crown-2-fill"></i> ELITE
+                    </span>
+                    <span class="meta-tag" style="color:#94a3b8; border-color:#334155;"><i class="ri-fingerprint-line"></i> <span id="profile-id">ID-000</span></span>
+                    <span class="meta-tag" style="color:var(--gold); border-color:var(--gold);"><i class="ri-money-dollar-circle-fill"></i> <span id="profile-credits">0</span></span>
                 </div>
             </div>
 
+            <div class="selection-area" id="identity-os-section" style="border-color: rgba(56,189,248,0.18);">
+                <div class="section-title"><i class="ri-user-star-line"></i> PROFIL SPORTIF</div>
+                <div id="profile-identity-os">
+                    <div class="profile-help-text">On rassemble tes premieres traces...</div>
+                </div>
+            </div>
+
+            <div class="profile-quick-grid">
+                <button class="profile-quick" type="button" onclick="document.getElementById('name-input').focus()"><i class="ri-edit-2-line"></i><span>Pseudo</span></button>
+                <button class="profile-quick" type="button" onclick="document.getElementById('avatar-section').scrollIntoView({behavior:'smooth', block:'start'})"><i class="ri-image-edit-line"></i><span>Avatars</span></button>
+                <button class="profile-quick" type="button" onclick="exportData()"><i class="ri-download-cloud-2-line"></i><span>Export</span></button>
+                <button class="profile-quick" type="button" onclick="window.location.href='legal_hub.html'"><i class="ri-scales-3-line"></i><span>Legal</span></button>
+            </div>
+
+            <div class="selection-area">
+                <div class="section-title"><i class="ri-id-card-fill"></i> IDENTITE</div>
+                <div class="input-group">
+                    <input type="text" id="name-input" class="input-field" placeholder="Nom de code..." maxlength="24">
+                    <button class="save-btn" onclick="saveName()">ENREGISTRER</button>
+                </div>
+                <div class="profile-help-text">Ce nom apparait dans le profil, le social et le canal de discussion.</div>
+            </div>
+
+            <div class="selection-area" id="avatar-section">
+                <div class="section-title"><i class="ri-image-edit-line"></i> AVATARS DISPONIBLES</div>
+                <div class="avatar-grid" id="avatar-grid">
+                    </div>
+            </div>
+
+            <div class="selection-area" id="cosmetic-section">
+                <div class="section-title"><i class="ri-vip-crown-2-line"></i> TITAN+</div>
+                <div style="margin-bottom:14px; font-size:0.76rem; color:#94a3b8; line-height:1.45;">
+                    Cadres et effets de victoire sont uniquement visuels et n’influencent jamais les performances.
+                </div>
+                <div class="section-title" style="font-size:0.72rem; margin-top:4px;"><i class="ri-user-star-line"></i> CADRES AVATAR</div>
+                <div class="cosmetic-grid" id="frame-grid"></div>
+                <div class="section-title" style="font-size:0.72rem; margin-top:18px;"><i class="ri-focus-3-line"></i> EFFETS VISUELS</div>
+                <div class="cosmetic-grid" id="grenade-skin-grid"></div>
+                <div class="section-title" style="font-size:0.72rem; margin-top:18px;"><i class="ri-medal-line"></i> VICTOIRE</div>
+                <div class="cosmetic-grid" id="victory-effect-grid"></div>
+            </div>
+
+            <div class="selection-area" id="privacy-section" style="border-color: rgba(167, 139, 250, 0.24);">
+                <div class="section-title"><i class="ri-lock-2-line"></i> CONFIDENTIALITE</div>
+                <div class="profile-help-text" style="margin-bottom:12px;">Choisis ce qui peut apparaitre ailleurs dans TITAN. Le compte et les donnees sensibles restent proteges cote serveur.</div>
+                <div class="privacy-grid">
+                    <label class="privacy-toggle">
+                        <span><strong>Profil public</strong><span>Ton pseudo et ton avatar peuvent apparaitre dans les espaces sociaux.</span></span>
+                        <input type="checkbox" id="privacy-public-profile" onchange="savePrivacySettings()">
+                    </label>
+                    <label class="privacy-toggle">
+                        <span><strong>Stats visibles</strong><span>Tes stats globales peuvent etre affichees avec ton profil.</span></span>
+                        <input type="checkbox" id="privacy-show-stats" onchange="savePrivacySettings()">
+                    </label>
+                    <label class="privacy-toggle">
+                        <span><strong>Presence sociale</strong><span>Active defis, reactions et invitations avec les autres joueurs.</span></span>
+                        <input type="checkbox" id="privacy-social-presence" onchange="savePrivacySettings()">
+                    </label>
+                    <label class="privacy-toggle">
+                        <span><strong>Classement amis</strong><span>Compare ton rythme avec tes allies. Jamais public sans accord.</span></span>
+                        <input type="checkbox" id="privacy-friend-rankings" onchange="savePrivacySettings()">
+                    </label>
+                </div>
+            </div>
+
+            <div class="selection-area" style="border-color: rgba(56, 189, 248, 0.3);">
+                <div class="section-title" style="color:var(--primary); border-color:rgba(56, 189, 248, 0.2);">
+                    <i class="ri-shield-user-line"></i> MES DONNÉES ET MA CONFIDENTIALITÉ
+                </div>
+                <div style="margin-bottom:15px; font-size:0.8rem; color:#94a3b8; line-height:1.4;">
+                    Tu peux recuperer une copie de tes donnees ou demander leur suppression.
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                    <button class="data-btn" onclick="exportData()">
+                        <i class="ri-download-2-line"></i> TÉLÉCHARGER MES DONNÉES
+                    </button>
+                </div>
+            </div>
+
+            <div class="selection-area" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="section-title" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
+                    <i class="ri-alert-line"></i> ZONE DANGER
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <button id="auth-btn" class="danger-btn" onclick="handleAuthAction()" style="border-color:rgba(255,255,255,0.1); color:#fff;">
+                        <i class="ri-logout-box-r-line"></i> LOGOUT
+                    </button>
+                    <button id="btn-cache" class="danger-btn" onclick="clearCacheAction()" style="border-color:rgba(255,255,255,0.1); color:#fff; font-size:0.75rem;">
+                        <i class="ri-refresh-line"></i> RESET CACHE
+                    </button>
+                </div>
+                <button id="btn-delete" class="danger-btn" onclick="deleteAccountAction()" style="width:100%; background:rgba(239,68,68,0.2);">
+                    <i class="ri-skull-line"></i> SUPPRIMER MON COMPTE
+                </button>
+            </div>
+
+            <div class="legal-footer">
+                <a href="legal_hub.html" class="legal-link">
+                    <i class="ri-scales-3-line"></i> Mentions legales & confidentialite
+                </a>
+                <div style="font-size: 0.65rem; color: #475569; margin-top: 5px;">TITAN OS beta - TITAN OS v83.0</div>
+            </div>
         </main>
     </div>
 
-    <script src="./js/items.js"></script>
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
     <script>
-        let isRecycleMode = false; let currentFilter = 'all'; let radarChart = null;
-
         document.addEventListener('DOMContentLoaded', () => {
-            if(!state) return;
+            // Petite securite pour attendre que state.js soit pret
+            const checkState = setInterval(() => {
+                if(window.state && window.state.user) {
+                    clearInterval(checkState);
+                    renderProfile();
+                } else if (!window.state) {
+                    // Si state n'existe toujours pas apres un moment (bug chargement)
+                    console.warn("Attente state...");
+                }
+            }, 100);
             
-            // Remplissage des infos profil
-            document.getElementById('id-name').innerText = state.user.name;
-            document.getElementById('id-lvl').innerText = state.user.level;
-            document.getElementById('id-code').innerText = state.user.friendCode || "TN-ERR";
-            
-            if(state.user.bio) {
-                document.getElementById('in-weight').value = state.user.bio.weight;
-                document.getElementById('in-height').value = state.user.bio.height;
-                document.getElementById('in-age').value = state.user.bio.age;
-            }
-
-            renderAccountModule();
-            
-            // Rendu des graphiques et inventaire
-            const stats = calculateTotalStats();
-            renderRadar(stats);
-            renderDoll();
-            renderInventory();
+            // Timeout de securite
+            setTimeout(() => { clearInterval(checkState); }, 5000);
         });
 
-        // --- GESTION DU COMPTE (MODIFIÉ) ---
+        function renderProfile() {
+            const user = window.state.user || {}; // Fallback objet vide
+            document.getElementById('profile-name').innerText = user.name || "Recrue";
+            document.getElementById('profile-lvl').innerText = user.level || 1;
+            document.getElementById('profile-credits').innerText = (user.credits || 0).toLocaleString();
+            document.getElementById('name-input').value = user.name || "";
+            const privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, user.privacy || {});
+            const privacyPublic = document.getElementById('privacy-public-profile');
+            const privacyStats = document.getElementById('privacy-show-stats');
+            const privacySocial = document.getElementById('privacy-social-presence');
+            const privacyRankings = document.getElementById('privacy-friend-rankings');
+            if (privacyPublic) privacyPublic.checked = privacy.publicProfile !== false;
+            if (privacyStats) privacyStats.checked = privacy.showStats !== false;
+            if (privacySocial) privacySocial.checked = privacy.socialPresence !== false;
+            if (privacyRankings) privacyRankings.checked = privacy.friendRankings === true;
+            syncPrivacyToggleVisuals();
 
-        function renderAccountModule() {
-            const div = document.getElementById('account-actions');
+            if(user.is_elite) {
+                document.getElementById('elite-tag').style.display = 'flex';
+                document.querySelector('.current-avatar-box').style.borderColor = '#9ee7ff';
+            }
+            const profileNameEl = document.getElementById('profile-name');
+            profileNameEl.textContent = user.name || "Recrue";
+            if(window.titanRenderPremiumIcon) profileNameEl.insertAdjacentHTML('beforeend', ` ${window.titanRenderPremiumIcon(user)}`);
+            const avatarFrame = window.titanGetAvatarFrameClass ? window.titanGetAvatarFrameClass(user) : 'frame-standard';
+            const avatarBoxEl = document.querySelector('.current-avatar-box');
+            avatarBoxEl.classList.remove('frame-standard', 'frame-aegis', 'frame-neon', 'frame-frost', 'frame-crimson', 'titan-elite-avatar-effect');
+            avatarBoxEl.classList.add('titan-avatar-frame', avatarFrame);
+            if(window.titanIsElite && window.titanIsElite(user)) avatarBoxEl.classList.add('titan-elite-avatar-effect');
+
+            const authBtn = document.getElementById('auth-btn');
+            // Securite sur l'ID
+            const isGuest = user.id ? user.id.startsWith('guest_') : true;
+
+            if(isGuest) {
+                authBtn.innerHTML = '<i class="ri-login-box-line"></i> SE CONNECTER';
+                authBtn.style.color = '#4ade80'; 
+                authBtn.style.borderColor = '#4ade80';
+                authBtn.style.background = 'rgba(74, 222, 128, 0.1)';
+            } else {
+                authBtn.innerHTML = '<i class="ri-logout-box-r-line"></i> LOGOUT';
+                authBtn.style.color = '#fff';
+                authBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+                authBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+            }
+
+            const idBox = document.getElementById('profile-id');
+            if (user.friend_code || user.friendCode) { 
+                 idBox.innerText = user.friend_code || user.friendCode;
+                 idBox.parentElement.style.borderColor = "var(--primary)";
+                 idBox.parentElement.style.color = "#fff";
+                 idBox.parentElement.style.background = "rgba(56, 189, 248, 0.1)";
+            } else {
+                let guestSuffix = (user.id || "").replace('guest_', '').slice(-4).toUpperCase();
+                if(!guestSuffix) guestSuffix = "0000";
+                idBox.innerText = `GUEST-${guestSuffix}`;
+                idBox.parentElement.style.borderColor = "#334155";
+                idBox.parentElement.style.color = "#94a3b8";
+                idBox.parentElement.style.background = "transparent";
+            }
             
-            // 1. Changement de mot de passe
-            let passwordHtml = `
-                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
-                    <div style="font-weight:800; color:#fff; font-size:0.8rem; margin-bottom:10px;">SÉCURITÉ</div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="password" id="new-password" class="input-bio" placeholder="Nouveau mot de passe" style="text-align:left;">
-                        <button class="recycle-btn" onclick="updateUserPassword()" style="border-color:var(--primary); color:var(--primary);">
-                            <i class="ri-save-2-line"></i>
-                        </button>
+            // --- CORRECTION AVATAR (Simplifi?) ---
+            const avatarBox = document.getElementById('current-avatar-display');
+            avatarBox.replaceChildren();
+            if (user.avatar) {
+                const avatarSrc = window.getAvatarUrl ? window.getAvatarUrl(user.avatar) : `./image/avatar/${user.avatar}`;
+                const img = document.createElement('img');
+                img.src = avatarSrc;
+                img.alt = 'Avatar';
+                img.style.cssText = 'width:100%; height:100%; object-fit:cover; border-radius:50%;';
+                img.onerror = function() { this.src = './image/logo.png'; };
+                avatarBox.appendChild(img);
+                document.querySelector('.current-avatar-box').style.background = 'transparent';
+            } else {
+                avatarBox.innerHTML = `<i class="ri-user-3-fill"></i>`;
+                document.querySelector('.current-avatar-box').style.background = '#1e2538';
+            }
+
+            // Generation Grille Avatars (pour ceux qui veulent utiliser les locaux)
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = "";
+            for(let i=1; i<=10; i++) {
+                const fileName = `avatar_${i}.png`;
+                const isSelected = (user.avatar === fileName);
+                const div = document.createElement('div');
+                div.className = `avatar-option ${isSelected ? 'selected' : ''}`;
+                div.onclick = () => selectAvatar(fileName);
+                const img = document.createElement('img');
+                img.src = `./image/avatar/${fileName.replace(/\.png$/i, '.webp')}`;
+                img.alt = `Avatar ${i}`;
+                img.onerror = function() { this.parentElement.style.display = 'none'; }; // Masque si pas dispo
+                div.appendChild(img);
+                grid.appendChild(div);
+            }
+            renderProfileIdentity(user);
+            renderCosmeticControls();
+        }
+
+        function syncPrivacyToggleVisuals() {
+            document.querySelectorAll('.privacy-toggle input[type="checkbox"]').forEach(input => {
+                const toggle = input.closest('.privacy-toggle');
+                if(!toggle) return;
+                const enabled = input.checked === true;
+                toggle.classList.toggle('is-enabled', enabled);
+                toggle.classList.toggle('is-disabled', !enabled);
+                toggle.dataset.state = enabled ? 'Actif' : 'Coupe';
+                input.setAttribute('aria-checked', enabled ? 'true' : 'false');
+            });
+        }
+
+        function profileEscapeText(value, maxLength = 140) {
+            const safe = window.titanSafeText
+                ? window.titanSafeText(value, maxLength)
+                : String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+            return window.titanEscapeText
+                ? window.titanEscapeText(safe)
+                : safe.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function renderProfileIdentity(user) {
+            const target = document.getElementById('profile-identity-os');
+            if(!target) return;
+            const radar = window.titanGetPhysicalRadar ? window.titanGetPhysicalRadar() : user.physicalQualities;
+            const archetype = user.archetype || (window.titanDeriveArchetype ? window.titanDeriveArchetype(radar) : null);
+            const reputation = user.reputation || (window.titanDeriveReputation ? window.titanDeriveReputation(radar) : null);
+            const profession = user.campaignProfession || (window.titanDeriveCampaignProfession ? window.titanDeriveCampaignProfession(radar) : null);
+            const guildRole = user.guildRole || (window.titanDeriveGuildRole ? window.titanDeriveGuildRole(radar) : null);
+            const axes = (radar?.axes || []).slice().sort((a, b) => b.score - a.score).slice(0, user.is_elite ? 8 : 4);
+            target.innerHTML = `
+                <div class="identity-grid">
+                    <div class="identity-card">
+                        <div class="label">Classe hybride</div>
+                        <div class="value"><i class="${profileEscapeText(archetype?.icon || 'ri-shield-line', 40)}"></i> ${profileEscapeText(archetype?.label || 'Recrue Titan', 60)}</div>
+                        <div class="sub">${profileEscapeText(archetype?.reason || 'Le profil se stabilise avec tes seances.', 160)}</div>
+                    </div>
+                    <div class="identity-card">
+                        <div class="label">Reputation</div>
+                        <div class="value">${profileEscapeText(reputation?.primary || 'En rodage', 60)}</div>
+                        <div class="sub">${profileEscapeText((reputation?.traits || []).join(' / ') || 'Traits secondaires a construire.', 120)}</div>
+                    </div>
+                    <div class="identity-card">
+                        <div class="label">Metier de campagne</div>
+                        <div class="value"><i class="${profileSafeIcon(profession?.icon || 'ri-book-read-line')}"></i> ${profileEscapeText(profession?.label || 'A definir', 60)}</div>
+                        <div class="sub">${profileEscapeText(profession?.clue || 'Role narratif derive de tes tendances sportives.', 140)}</div>
+                    </div>
+                    <div class="identity-card">
+                        <div class="label">Role de guilde</div>
+                        <div class="value"><i class="${profileSafeIcon(guildRole?.icon || 'ri-team-line')}"></i> ${profileEscapeText(guildRole?.label || 'A definir', 60)}</div>
+                        <div class="sub">${profileEscapeText(guildRole?.hint || 'Role collectif calcule depuis ton radar.', 120)}</div>
                     </div>
                 </div>
+                <div class="profile-quality-list">
+                    ${axes.map(axis => `
+                        <div class="profile-quality-row">
+                            <span>${profileEscapeText(axis.label, 40)}</span>
+                            <span class="profile-quality-track"><span class="profile-quality-fill" style="--quality-score:${axis.score}%"></span></span>
+                            <strong>${axis.score}</strong>
+                        </div>
+                    `).join('') || '<div class="profile-help-text">Radar en rodage.</div>'}
+                </div>
             `;
+        }
 
-            // 2. Zone de Danger et Déconnexion
-            let actionsHtml = `
-                <button class="btn" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:100%; font-size:0.8rem; margin-bottom:15px;" onclick="logout()">
-                    <i class="ri-logout-box-r-line"></i> DÉCONNEXION
-                </button>
+        function profileSafeToken(value) {
+            return String(value ?? '').trim().replace(/[^a-z0-9_-]/gi, '').slice(0, 80);
+        }
+
+        function profileSafeIcon(value, fallback = 'ri-sparkling-line') {
+            const icon = String(value ?? '').trim();
+            return /^ri-[a-z0-9-]+$/i.test(icon) ? icon : fallback;
+        }
+
+        function renderCosmeticControls() {
+            if(!window.TITAN_PREMIUM_VISUALS || !window.state || !window.state.user) return;
+            renderCosmeticGrid('frame-grid', window.TITAN_PREMIUM_VISUALS.frames, 'avatarFrame');
+            renderCosmeticGrid('grenade-skin-grid', window.TITAN_PREMIUM_VISUALS.grenadeSkins, 'grenadeSkin');
+            renderCosmeticGrid('victory-effect-grid', window.TITAN_PREMIUM_VISUALS.victoryEffects, 'victoryEffect');
+        }
+
+        function renderCosmeticGrid(targetId, items, slot) {
+            const target = document.getElementById(targetId);
+            if(!target) return;
+            const active = window.state.user.cosmetics?.active?.[slot];
+            target.innerHTML = items.map(item => {
+                const unlocked = window.titanIsCosmeticUnlocked ? window.titanIsCosmeticUnlocked(item.id) : !item.elite;
+                const isActive = active === item.id || (!active && !item.elite);
+                const stateLabel = isActive ? 'Actif' : (unlocked ? 'Disponible' : 'Elite');
+                const safeSlot = profileSafeToken(slot);
+                const safeId = profileSafeToken(item.id);
+                const safeIcon = profileSafeIcon(item.icon);
+                const safeLabel = profileEscapeText(item.label || 'Cosmetique', 80);
+                return `
+                    <button type="button" class="cosmetic-chip ${isActive ? 'active' : ''} ${unlocked ? '' : 'locked'}" onclick="selectCosmetic('${safeSlot}', '${safeId}')">
+                        <i class="${safeIcon}"></i>
+                        <span><strong>${safeLabel}</strong><span>${profileEscapeText(stateLabel, 30)}</span></span>
+                    </button>`;
+            }).join('');
+        }
+
+        function selectCosmetic(slot, id) {
+            if(!(window.titanIsCosmeticUnlocked && window.titanIsCosmeticUnlocked(id))) {
+                if(window.showNotification) window.showNotification('warning', 'ACCES ELITE', 'Cosmetique reserve aux membres Elite.');
+                return;
+            }
+            if(window.titanActivateCosmetic && window.titanActivateCosmetic(slot, id)) {
+                if(window.showNotification) window.showNotification('success', 'PERSONNALISATION ACTIVE', 'Apparence appliquée.');
+                renderProfile();
+                if(window.injectSidebar) window.injectSidebar();
+                if(window.injectMobileHeader) window.injectMobileHeader();
+            }
+        }
+        function selectAvatar(fileName) {
+            if(!window.state) return;
+            if(!/^avatar_\d+\.png$/i.test(fileName)) return;
+            window.state.user.avatar = fileName;
+            
+            if(window.saveState) window.saveState({ forceCloud: true });
+            else localStorage.setItem('titan_os_v12_save', JSON.stringify(window.state));
+            renderProfile();
+            if(window.injectSidebar) window.injectSidebar();
+            if(window.injectMobileHeader) window.injectMobileHeader();
+        }
+
+        function saveName() {
+            const rawName = document.getElementById('name-input').value;
+            const newName = window.titanCleanProfileName
+                ? window.titanCleanProfileName(rawName)
+                : rawName.trim().replace(/[<>]/g, '').slice(0, 24).trim();
+            if(newName.length < 2) {
+                if(window.showNotification) window.showNotification('warning', 'ERREUR', 'Nom trop court.');
+                return;
+            }
+            window.state.user.name = newName;
+            
+            if(window.saveState) window.saveState({ forceCloud: true });
+            else localStorage.setItem('titan_os_v12_save', JSON.stringify(window.state));
+            renderProfile();
+            if(window.injectSidebar) window.injectSidebar(); 
+            if(window.injectMobileHeader) { const old = document.querySelector('.mobile-user-bar'); if(old) old.remove(); window.injectMobileHeader(); }
+            if(window.showNotification) window.showNotification('success', 'IDENTITE', `Pseudo defini : ${newName}`);
+        }
+
+        function savePrivacySettings() {
+            if(!window.state || !window.state.user) return;
+            window.state.user.privacy = {
+                publicProfile: document.getElementById('privacy-public-profile')?.checked !== false,
+                showStats: document.getElementById('privacy-show-stats')?.checked !== false,
+                socialPresence: document.getElementById('privacy-social-presence')?.checked !== false,
+                friendRankings: document.getElementById('privacy-friend-rankings')?.checked === true
+            };
+            syncPrivacyToggleVisuals();
+            if(window.saveState) window.saveState({ forceCloud: true });
+            else localStorage.setItem('titan_os_v12_save', JSON.stringify(window.state));
+            if(window.showNotification) window.showNotification('success', 'CONFIDENTIALITE', 'Reglages sauvegardes.');
+        }
+
+        function handleAuthAction() {
+            const isGuest = window.state.user.id.startsWith('guest_');
+            if(isGuest) {
+                window.location.href = "login.html";
+            } else {
+                if(window.showNotification) window.showNotification('info', 'DECONNEXION', 'Nettoyage securise...');
                 
-                <div style="border-top:1px dashed rgba(239,68,68,0.3); padding-top:20px; margin-top:10px;">
-                    <div style="font-size:0.7rem; color:var(--danger); font-weight:800; margin-bottom:10px; text-transform:uppercase;">ZONE DE DANGER</div>
+                // --- SEQUENCE DE PURGE COMPLETE ---
+                setTimeout(async () => {
+                    // 1. D?connexion Serveur
+                    if(window.titanClient) await window.titanClient.auth.signOut();
                     
-                    <button class="btn" style="background:rgba(239,68,68,0.1); color:var(--danger); border:1px solid var(--danger); width:100%; font-size:0.75rem; margin-bottom:10px;" onclick="hardResetSystem()">
-                        <i class="ri-alarm-warning-line"></i> RESET LOCAL (CACHE)
-                    </button>
+                    // 2. Nettoyage Local Total
+                    localStorage.clear();
+                    sessionStorage.clear();
                     
-                    <button class="btn" style="background:transparent; color:#ef4444; border:1px solid #7f1d1d; width:100%; font-size:0.75rem; opacity:0.7;" onclick="deleteAccountDefinitively()">
-                        <i class="ri-skull-line"></i> SUPPRIMER MON COMPTE
-                    </button>
-                </div>
-            `;
-
-            if(state.user.isGuest) {
-                div.innerHTML = `
-                    <div style="background:rgba(234,179,8,0.1); border:1px solid var(--gold); padding:15px; border-radius:12px; color:var(--gold); font-size:0.8rem; text-align:center; margin-bottom:20px;">
-                        <i class="ri-alert-line"></i> COMPTE INVITÉ
-                    </div>
-                    <button class="btn btn-action" onclick="window.location.href='login.html'" style="width:100%; font-size:0.9rem; margin-bottom:15px;">CRÉER UN COMPTE</button>
-                    <button class="btn" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:100%; font-size:0.8rem;" onclick="logout()">
-                        <i class="ri-logout-box-r-line"></i> QUITTER
-                    </button>
-                `;
-            } else {
-                div.innerHTML = passwordHtml + actionsHtml;
+                    // 3. Retour Login
+                    window.location.href = "login.html";
+                }, 500);
             }
         }
 
-        async function deleteAccountDefinitively() {
-            // 1. Avertissement
-            if(!confirm("⚠️ ATTENTION : ACTION IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement votre compte Titan OS ?\n\nToutes vos données (XP, Inventaire, Historique) seront effacées de la base de données.")) return;
+        async function exportData() {
+            if(!window.state) return;
 
-            // 2. Double sécurité
-            const confirmation = prompt("Pour confirmer la suppression, tapez 'DELETE' en majuscules ci-dessous :");
-            if(confirmation !== 'DELETE') {
-                return alert("Suppression annulée. Le code de confirmation est incorrect.");
-            }
+            let exportPayload = {
+                exportedAt: new Date().toISOString(),
+                source: 'local',
+                localState: window.state
+            };
 
-            // 3. Appel Supabase
-            if(supabase) {
+            if(window.titanClient && window.state.user && !window.state.user.id.startsWith('guest_')) {
                 try {
-                    const { error } = await supabase.rpc('delete_own_account');
-                    if(error) throw error;
-                    
-                    alert("Compte supprimé avec succès. Fin de mission, Soldat.");
-                    localStorage.removeItem('titan_os_v5_final'); // Nettoyage local
-                    window.location.href = 'login.html';
-                } catch (err) {
-                    console.error(err);
-                    alert("Erreur lors de la suppression : " + err.message);
-                }
-            } else {
-                alert("Impossible de joindre le serveur.");
-            }
-        }
-
-        async function updateUserPassword() {
-            const newPassword = document.getElementById('new-password').value;
-            if (!newPassword || newPassword.length < 6) return alert("Le mot de passe doit faire au moins 6 caractères.");
-            try {
-                const { error } = await supabase.auth.updateUser({ password: newPassword });
-                if (error) throw error;
-                alert("✅ Mot de passe mis à jour !");
-                document.getElementById('new-password').value = "";
-            } catch (err) { alert("Erreur : " + err.message); }
-        }
-
-        function hardResetSystem() {
-            if(confirm("Effacer les données locales et redémarrer ?")) {
-                localStorage.clear();
-                window.location.reload();
-            }
-        }
-
-        // --- FONCTIONS UTILITAIRES ---
-        function copyFriendCode() {
-            const code = state.user.friendCode;
-            if(code) {
-                navigator.clipboard.writeText(code).then(() => alert("Matricule copié !"));
-            }
-        }
-
-        function saveBio() {
-            state.user.bio.weight = parseFloat(document.getElementById('in-weight').value) || 0;
-            state.user.bio.height = parseFloat(document.getElementById('in-height').value) || 0;
-            state.user.bio.age = parseFloat(document.getElementById('in-age').value) || 0;
-            saveState();
-            alert("Données biométriques enregistrées.");
-        }
-
-        // --- LOGIQUE D'AFFICHAGE (Doll, Radar, Inventaire) ---
-        function calculateTotalStats() {
-            let b = { strength: state.stats.strength || 0, agility: state.stats.agility || 0, mind: state.stats.mind || 0, endurance: state.stats.endurance || 0 };
-            Object.values(state.equipped).forEach(id => { if(id) { const item = ITEM_DB.find(i => i.id === id); if(item && b[item.stat] !== undefined) b[item.stat] += item.val; } });
-            document.getElementById('tot-str').innerText = b.strength; document.getElementById('tot-agi').innerText = b.agility; document.getElementById('tot-end').innerText = b.endurance; document.getElementById('tot-mind').innerText = b.mind;
-            return b;
-        }
-
-        function renderRadar(stats) {
-            if(radarChart) radarChart.destroy();
-            const ctx = document.getElementById('statsRadar').getContext('2d');
-            const norm = { str: stats.strength/10, agi: stats.agility/10, mind: stats.mind/10, end: stats.endurance/10 }; // Scale arbitraire pour affichage
-            
-            radarChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['FORCE', 'AGILITÉ', 'MENTAL', 'DÉFENSE'],
-                    datasets: [{
-                        label: 'Stats',
-                        data: [norm.str, norm.agi, norm.mind, norm.end],
-                        backgroundColor: 'rgba(56, 189, 248, 0.4)',
-                        borderColor: '#38bdf8',
-                        pointBackgroundColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        r: {
-                            min: 0, max: 100, // Ajuster selon ta courbe de progression
-                            ticks: { display: false },
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: '#fff', font: { family: 'Russo One' } }
-                        }
+                    const { data, error } = await window.titanClient.rpc('export_own_data');
+                    if (!error && data) {
+                        exportPayload = {
+                            exportedAt: new Date().toISOString(),
+                            source: 'supabase',
+                            cloud: data,
+                            localState: window.state
+                        };
+                    } else if (error && error.code !== 'PGRST202') {
+                        console.warn("Export cloud indisponible:", error);
                     }
+                } catch (err) {
+                    console.warn("Export cloud indisponible:", err);
                 }
-            });
+            }
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "titan_os_backup_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            if(window.showNotification) window.showNotification('success', 'TÉLÉCHARGEMENT PRÊT', 'Tes données ont été téléchargées.');
+        }
+        let cacheConfirm = false;
+        function clearCacheAction() {
+            const btn = document.getElementById('btn-cache');
+            if (!cacheConfirm) {
+                cacheConfirm = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="ri-alert-line"></i> CONFIRMER ?';
+                btn.classList.add('confirm-state');
+                setTimeout(() => {
+                    cacheConfirm = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('confirm-state');
+                }, 3000);
+                return;
+            }
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
         }
 
-        function filterInv(type, btn) { currentFilter = type; document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderInventory(); }
-        function toggleRecycleMode() { isRecycleMode = !isRecycleMode; const btn = document.getElementById('recycle-btn'); const panel = document.getElementById('inv-panel'); if(isRecycleMode) { btn.classList.add('active'); panel.classList.add('recycle-mode'); } else { btn.classList.remove('active'); panel.classList.remove('recycle-mode'); } }
-        
-        function renderInventory() {
-            const container = document.getElementById('inventory-container'); container.innerHTML = "";
-            if(state.inventory.length === 0) { container.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px; font-size:0.8rem;'>Inventaire vide.</div>"; return; }
-            state.inventory.forEach(id => {
-                const item = ITEM_DB.find(i => i.id === id); if(!item) return;
-                if(Object.values(state.equipped).includes(id)) return;
-                if(currentFilter === 'equip' && item.rare < 2) return; if(currentFilter === 'rare' && item.rare < 2) return;
-                const el = document.createElement('div'); el.className = `inv-item rare-${item.rare}`; el.innerHTML = `<i class="${item.icon}"></i>`; 
-                el.onclick = () => { if(isRecycleMode) sellItem(id); else equipItem(id); };
-                container.appendChild(el);
-            });
-        }
-        
-        function renderDoll() { for(const[slot,id] of Object.entries(state.equipped)) { const el = document.getElementById(`slot-${slot}`); if(el) { if(id) { const item = ITEM_DB.find(i => i.id === id); if(item) { el.innerHTML = `<i class="${item.icon}"></i>`; el.className = `gear-slot pos-${slot} rare-${item.rare}`; el.style.borderColor = item.rare===3?"var(--gold)":(item.rare===2?"var(--accent)":"#fff"); el.style.background = "rgba(255,255,255,0.1)"; el.style.color = "#fff"; } } else { el.className = `gear-slot pos-${slot}`; el.innerHTML = `<i class="ri-add-line" style="opacity:0.2"></i>`; el.style = ""; } } } }
-        
-        function buyLootBox() {
-             // Redirection vers main.js via global
-             if(typeof window.buyLootBox === 'function') window.buyLootBox();
-             else alert("Fonction lootbox introuvable.");
+        // --- SUPPRESSION TOTALE ---
+        let deleteConfirm = false;
+        async function deleteAccountAction() {
+            const btn = document.getElementById('btn-delete');
+            
+            if (!deleteConfirm) {
+                deleteConfirm = true;
+                btn.innerHTML = '<i class="ri-error-warning-line"></i> CLIQUER POUR CONFIRMER LA DESTRUCTION';
+                btn.classList.add('confirm-state');
+                
+                setTimeout(() => {
+                    deleteConfirm = false;
+                    btn.innerHTML = '<i class="ri-skull-line"></i> SUPPRIMER MON COMPTE';
+                    btn.classList.remove('confirm-state');
+                }, 3000);
+                return;
+            }
+
+            if(window.showNotification) window.showNotification('warning', 'SUPPRESSION', 'Destruction des donnees en cours...');
+            
+            try {
+                if(window.titanClient && !window.state.user.id.startsWith('guest_')) {
+                    
+                    // APPEL DE LA FONCTION SQL BAZOOKA
+                    const { error } = await window.titanClient.rpc('delete_own_account');
+                    
+                    if (error) {
+                        console.error("Erreur RPC:", error);
+                        if(window.showNotification) window.showNotification('error', 'SUPPRESSION', error.message || error.details || 'Erreur base de donnees.'); else console.error('[SUPPRESSION]', error);
+                        throw error;
+                    }
+                    
+                    // D?connexion propre
+                    await window.titanClient.auth.signOut();
+                }
+
+                // Nettoyage local
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                if(window.showNotification) window.showNotification('success', 'COMPTE SUPPRIME', 'Compte supprime definitivement.'); else console.warn('[COMPTE] Supprime definitivement.');
+                window.location.href = "login.html";
+
+            } catch (err) {
+                console.error("Echec suppression:", err);
+                if(window.showNotification) window.showNotification('error', 'ERREUR CRITIQUE', 'La suppression a echoue.');
+            }
         }
     </script>
 </body>
 </html>
+
+

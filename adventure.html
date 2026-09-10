@@ -1,278 +1,973 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: MISSION</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    <link rel="stylesheet" href="./css/style.css?v=6">
+    <title>Aventure sportive - TITAN OS</title>
+    
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
 
     <style>
-        /* --- STYLES AVENTURE --- */
+        /* --- FOND & AMBIANCE (COCKPIT) --- */
+        body { background-color: #050505; overflow-x: hidden; color: #fff; transition: background 0.5s ease; }
+        .tactical-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; background-position: center center; opacity: 0.5; transition: all 0.5s ease; }
+        .vignette-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: radial-gradient(circle at center, transparent 0%, #000 120%); pointer-events: none; }
         
-        /* Bouton Retour de secours */
-        .back-btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.05); color: var(--text-muted);
-            padding: 10px 16px; border-radius: 8px; text-decoration: none;
-            font-size: 0.8rem; font-weight: 700; margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
-            margin-top: 10px;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: var(--accent); }
+        /* MODE BOSS ACTIF (Rouge) */
+        body.boss-active .tactical-bg { background-image: linear-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(220, 38, 38, 0.1) 1px, transparent 1px); }
 
-        /* Carte de Campagne */
-        .campaign-tracker {
-            display: flex; align-items: center; gap: 10px; overflow-x: auto;
-            padding: 20px 0; margin-bottom: 20px;
-            scrollbar-width: none;
-            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        }
-        .campaign-tracker::-webkit-scrollbar { display: none; }
+        /* HEADER HUD */
+        .hud-header { display: flex; justify-content: space-between; align-items: flex-end; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); position: relative; z-index: 10; transition: border-color 0.5s ease; }
+        .hud-header::before { content:''; position:absolute; bottom:-1px; left:0; width:30%; height:2px; background:var(--accent); transition: all 0.5s ease; }
         
-        .zone-node {
-            min-width: 100px; height: 60px;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: var(--text-muted); position: relative; transition: 0.3s;
-        }
-        .zone-node.active {
-            border-color: var(--accent); background: rgba(56, 189, 248, 0.1);
-            color: #fff; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1.05);
-        }
-        .zone-node.locked { opacity: 0.4; filter: grayscale(1); }
-        .zone-line { min-width: 30px; height: 2px; background: rgba(255,255,255,0.1); }
-        .zone-line.active { background: var(--accent); }
+        body.boss-active .hud-header::before { background: var(--danger); width: 100%; }
+        
+        .zone-info h1 { font-family: 'Russo One'; font-size: 1rem; margin: 0; letter-spacing: 1px; }
+        .zone-info span { font-size: 0.7rem; color: var(--text-muted); font-family: 'Courier New', monospace; }
+        
+        .threat-indicator { font-family: 'Russo One'; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; background: rgba(56, 189, 248, 0.1); color: var(--accent); border: 1px solid var(--accent); transition: all 0.5s ease; }
+        body.boss-active .threat-indicator { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: var(--danger); animation: blink 1s infinite; }
+        .phase-strip { position: relative; z-index: 11; background: rgba(8, 13, 22, 0.9); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 10px 15px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+        .phase-title { display:flex; align-items:center; gap:8px; font-family:'Russo One'; color:#fff; font-size:0.82rem; text-transform:uppercase; }
+        .phase-title i { color: var(--accent); }
+        .phase-copy { color:#94a3b8; font-size:0.7rem; margin-top:3px; }
+        .phase-meter { width: 130px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow:hidden; border:1px solid rgba(255,255,255,0.08); }
+        .phase-meter-fill { height:100%; width:0%; background: var(--accent); transition: width 0.35s ease, background-color 0.35s ease; }
+        body.boss-active .phase-strip { border-bottom-color: rgba(239,68,68,0.32); background: rgba(28, 12, 16, 0.92); }
+        body.boss-active .phase-title i, body.boss-active .phase-title { color: #fecaca; }
+        body.boss-active .phase-meter-fill { background: var(--danger); }
 
-        /* Arène Boss */
-        .arena-container {
-            position: relative; background: radial-gradient(circle at center, #1e2538 0%, #0b0e14 100%);
-            border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
-            overflow: hidden; padding: 30px 20px; text-align: center;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.8); margin-bottom: 25px;
+        /* --- VIEWPORT --- */
+        .viewport { 
+            position: relative; height: 45vh; width: 100%; 
+            display: flex; align-items: center !important; justify-content: center !important; 
+            overflow: hidden; border-bottom: 1px solid rgba(56, 189, 248, 0.2); 
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+            transition: border-color 0.5s ease;
         }
-        .arena-container::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(56, 189, 248, 0.03) 3px);
-            pointer-events: none; z-index: 1;
-        }
-        .boss-avatar-box { width: 180px; height: 180px; margin: 0 auto 20px auto; position: relative; z-index: 2; }
-        .boss-img {
-            width: 100%; height: 100%; object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(234, 88, 12, 0.4));
-            animation: floatBoss 4s ease-in-out infinite;
-        }
-        @keyframes floatBoss { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-        .boss-info { position: relative; z-index: 2; }
-        .boss-name { font-family: 'Russo One'; font-size: 1.8rem; color: #fff; margin-bottom: 5px; letter-spacing: 1px; }
-        .boss-meta { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .boss-badge { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
-        .hp-wrapper { max-width: 400px; margin: 0 auto; position: relative; z-index: 2; }
-        .hp-bar-bg { height: 20px; background: #131824; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); overflow: hidden; position: relative; }
-        .hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #ef4444, #f87171); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
-        .hp-text { font-family: 'Russo One'; font-size: 0.9rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); position: absolute; width: 100%; text-align: center; top: -25px; left: 0; }
+        .viewport::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 340px; height: 340px; border: 1px dashed rgba(56, 189, 248, 0.15); border-radius: 50%; z-index: 1; pointer-events: none; transition: border-color 0.5s ease; }
+        .viewport::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.2; pointer-events: none; z-index: 0; }
 
-        /* Condensateur */
-        .weapon-system { background: #1e2538; border: 1px solid var(--accent); border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); overflow: hidden; }
-        .weapon-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-family: 'Russo One'; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px; }
-        .capacitor-visual { height: 12px; background: rgba(0,0,0,0.4); border-radius: 6px; margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.3); }
-        .capacitor-fill { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 15px var(--accent); transition: width 0.3s; position: relative; }
-        .capacitor-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem; animation: moveStripes 1s linear infinite; }
-        @keyframes moveStripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
-        .fire-btn { width: 100%; background: transparent; color: var(--text-muted); border: 2px dashed rgba(255,255,255,0.1); padding: 15px; font-family: 'Russo One'; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; border-radius: 12px; cursor: not-allowed; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .fire-btn.ready { background: var(--accent); border-style: solid; border-color: var(--accent); color: #0f172a; cursor: pointer; box-shadow: 0 0 30px rgba(56, 189, 248, 0.4); animation: pulseBtn 2s infinite; }
-        .fire-btn.overcharge { background: var(--gold); border-color: var(--gold); color: #000; box-shadow: 0 0 40px rgba(250, 204, 21, 0.5); animation: shakeBtn 0.5s infinite; }
-        @keyframes pulseBtn { 0%{transform:scale(1);} 50%{transform:scale(1.02);} 100%{transform:scale(1);} }
-        @keyframes shakeBtn { 0%{transform:translate(1px, 1px);} 50%{transform:translate(-1px, -1px);} 100%{transform:translate(1px, -1px);} }
-        .combat-log { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
-        .log-entry { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-family: 'Courier New', monospace; }
-        .log-entry span { color: #fff; font-weight: bold; }
-        .log-dmg { color: var(--danger); }
+        .enemy-visual { 
+            height: auto !important; width: auto !important; max-width: 95% !important; max-height: 95% !important;
+            object-fit: contain; object-position: center center !important; z-index: 10; 
+            animation: none !important; transform: scale(1.05) !important; transition: none !important;
+            -webkit-mask-image: radial-gradient(circle at center, black 60%, transparent 85%);
+            mask-image: radial-gradient(circle at center, black 60%, transparent 85%);
+            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3));
+            transition: filter 0.5s ease;
+        } 
+        
+        body.boss-active .viewport::before { border-color: rgba(239, 68, 68, 0.2); }
+        body.boss-active .enemy-visual { filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.4)); }
+
+        .hud-overlay { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+        .reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; height: 90%; border: 1px solid rgba(255,255,255,0.03); }
+        .reticle::after, .reticle::before { content:''; position:absolute; width:15px; height:15px; border:2px solid var(--accent); opacity:0.5; transition: border-color 0.5s ease; }
+        .reticle::before { top:0; left:0; border-right:0; border-bottom:0; }
+        .reticle::after { bottom:0; right:0; border-left:0; border-top:0; }
+        
+        body.boss-active .reticle::after, body.boss-active .reticle::before { border-color: var(--danger); }
+
+        /* CONTROL PANEL */
+        .control-panel { padding: 20px; position: relative; z-index: 10; background: linear-gradient(to bottom, rgba(15,23,42,0.95), #06070A); border-top: 1px solid rgba(255,255,255,0.1); min-height: 400px; }
+        .target-data { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .target-name { font-family: 'Russo One'; font-size: 1.5rem; line-height: 1; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .target-class { font-size: 0.7rem; color: var(--text-muted); font-family: 'Courier New'; border: 1px solid rgba(255,255,255,0.2); padding: 2px 6px; }
+        
+        /* BARRES DE VIE */
+        .hp-segment-bar { height: 12px; background: #1e293b; border: 1px solid #334155; display: flex; gap: 2px; margin-bottom: 5px; padding: 2px; }
+        .hp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease-out, background-color 0.5s ease; box-shadow: 0 0 10px var(--accent); }
+        body.boss-active .hp-fill { background: var(--danger); box-shadow: 0 0 15px var(--danger); }
+        .hp-num { text-align: right; font-family: 'Russo One'; font-size: 0.9rem; color: #fff; margin-bottom: 15px; }
+
+        /* DASHBOARD TACTIQUE */
+        .tactical-dashboard { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: flex-start; gap: 15px; min-height: 70px; }
+        .dash-section { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .dash-label { font-family: 'Courier New'; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; margin-bottom: 5px; }
+        .dash-content { display: flex; flex-wrap: wrap; gap: 8px; }
+        .dash-separator { width: 1px; background: rgba(255,255,255,0.1); height: 50px; align-self: center; }
+
+        /* BUFFS */
+        .buff-icon { width: 32px; height: 32px; border-radius: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; position: relative; }
+        .buff-icon.active { border-color: var(--accent); box-shadow: 0 0 8px rgba(56, 189, 248, 0.3); animation: pulseBuff 2s infinite; }
+        @keyframes pulseBuff { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+
+        /* GRENADES */
+        .grenade-btn { position: relative; width: 32px; height: 32px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.1s; }
+        .grenade-btn:active { transform: scale(0.95); background: #fff; color: #000; }
+        .grenade-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: #fff; font-size: 0.6rem; font-family: 'Russo One'; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #000; }
+
+        /* WEAPON CARD */
+        .weapon-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; position: relative; overflow: hidden; }
+        .charge-meter { height: 6px; background: rgba(0,0,0,0.5); margin: 15px 0; border-radius: 3px; overflow: hidden; }
+        .charge-val { height: 100%; width: 0%; background: #fb923c; transition: width 0.5s ease; box-shadow: 0 0 10px #fb923c; }
+        .btn-fire { width: 100%; padding: 18px; border: none; font-family: 'Russo One'; font-size: 1.1rem; background: #334155; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); cursor: not-allowed; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-fire.ready { background: var(--accent); color: #000; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); cursor: pointer; animation: glowBlue 2s infinite; }
+        .btn-fire.overcharge { background: var(--gold); color: #000; box-shadow: 0 0 30px rgba(126, 220, 255, 0.5); animation: glowGold 1s infinite; }
+
+        /* DAMAGE POPUP */
+        .dmg-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-family: 'Russo One'; font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px var(--danger), 2px 2px 0px #000; pointer-events: none; z-index: 100; animation: floatDamage 0.8s ease-out forwards; }
+        @keyframes floatDamage { 0% { opacity:1; transform:translate(-50%, -50%) scale(0.5); } 100% { opacity:0; transform:translate(-50%, -150%) scale(1.2); } }
+        
+        /* CORRECTION ANIMATION HIT (ROUGE) */
+        .hit-anim { 
+            animation: impact-shake 0.3s cubic-bezier(.36,.07,.19,.97) both; 
+            filter: sepia(1) hue-rotate(-50deg) saturate(5) brightness(1.5); /* Rouge Intense */
+        }
+        @keyframes impact-shake { 
+            10%, 90% { transform: translate3d(-3px, 0, 0) scale(1.05); } 
+            20%, 80% { transform: translate3d(6px, 0, 0) scale(1.05); } 
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0) scale(1.05); } 
+            40%, 60% { transform: translate3d(8px, 0, 0) scale(1.05); } 
+        }
+
+        /* VICTOIRE */
+        .victory-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 10, 0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .victory-box { background: linear-gradient(to bottom, #1e293b, #06070A); border: 1px solid var(--accent); padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 0 50px rgba(56, 189, 248, 0.2); position: relative; }
+        .victory-box::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--accent); box-shadow:0 0 10px var(--accent); }
+
+        @media (max-width: 480px) { .viewport { height: 40vh; } .enemy-visual { max-width: 100%; max-height: 90%; } .phase-strip { grid-template-columns:1fr; } .phase-meter { width:100%; } }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Mode aventure TITAN OS reserve aux utilisateurs: boss, combats, campagne et recompenses liees aux efforts sportifs reels.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/adventure">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/adventure">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/adventure">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Aventure sportive - TITAN OS">
+    <meta property="og:description" content="Mode aventure TITAN OS reserve aux utilisateurs: boss, combats, campagne et recompenses liees aux efforts sportifs reels.">
+    <meta property="og:url" content="https://titan-app.fr/adventure">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Aventure sportive - TITAN OS">
+    <meta name="twitter:description" content="Mode aventure TITAN OS reserve aux utilisateurs: boss, combats, campagne et recompenses liees aux efforts sportifs reels.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/adventure#webpage",
+          "url": "https://titan-app.fr/adventure",
+          "name": "Aventure sportive - TITAN OS",
+          "headline": "Aventure sportive - TITAN OS",
+          "description": "Mode aventure TITAN OS reserve aux utilisateurs: boss, combats, campagne et recompenses liees aux efforts sportifs reels.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/adventure#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/adventure#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Aventure sportive",
+              "item": "https://titan-app.fr/adventure"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="adventure">
+    <div class="tactical-bg"></div>
+    <div class="vignette-overlay"></div>
+
     <div class="layout">
         <nav class="sidebar"></nav>
 
-        <main class="main-content">
+        <main class="main-content adventure-main">
+            <div class="mobile-user-bar"></div>
+
+            <div class="hud-header">
+                <div class="zone-info">
+                    <h1 id="zone-name">SECTEUR 01</h1>
+                    <span>COORDS: <span id="zone-id">45.22.1</span></span>
+                </div>
+                <div class="threat-indicator" id="threat-lvl">SCANNING...</div>
+            </div>
+
+            <div class="phase-strip">
+                <div>
+                    <div class="phase-title" id="phase-title"><i class="ri-route-line"></i> Progression terrain</div>
+                    <div class="phase-copy" id="phase-copy">Nettoie le secteur avec tes efforts sportifs.</div>
+                </div>
+                <div>
+                    <div class="phase-copy" id="phase-count" style="text-align:right; margin-bottom:4px;">0 / 5</div>
+                    <div class="phase-meter"><div class="phase-meter-fill" id="phase-meter-fill"></div></div>
+                </div>
+            </div>
+
+            <div class="viewport" id="viewport-container">
+                <div class="hud-overlay">
+                    <div style="position:absolute; top:10px; left:10px; font-size:0.6rem; color:rgba(255,255,255,0.5); font-family:'Courier New';">REC</div>
+                    <div style="position:absolute; bottom:10px; right:10px; font-size:0.6rem; color:rgba(255,255,255,0.5); font-family:'Courier New';">ZM-X4</div>
+                    <div class="reticle"></div>
+                </div>
+                <img src="./image/logo.png" class="enemy-visual" id="boss-visual" alt="Ennemi" width="512" height="512" decoding="async" onerror="this.onerror=null; this.src='./image/logo.png';">
+            </div>
+
+            <div class="control-panel">
+                
+                <div class="target-data">
+                    <div>
+                        <div class="target-name" id="boss-name-disp">CIBLE</div>
+                        <div style="font-size:0.75rem; color:#cbd5e1; margin-top:5px;" id="boss-desc">Analyse...</div>
+                    </div>
+                    <div class="target-class">CLASSE <span id="boss-lvl-disp">1</span></div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div class="hp-segment-bar">
+                        <div class="hp-fill" id="boss-fill"></div>
+                    </div>
+                    <div class="hp-num"><span id="boss-hp">0</span> / <span id="boss-max-hp">0</span> PV</div>
+                </div>
+
+                <div class="tactical-dashboard">
+                    <div class="dash-section" style="flex:0.6;">
+                        <div class="dash-label">SYSTEMES</div>
+                        <div class="dash-content" id="buff-container">
+                            <div class="buff-icon"><i class="ri-subtract-line"></i></div>
+                        </div>
+                    </div>
+                    <div class="dash-separator"></div>
+                    <div class="dash-section">
+                        <div class="dash-label">ARSENAL</div>
+                        <div class="dash-content" id="grenade-container">
+                            <span style="font-size:0.7rem; color:rgba(255,255,255,0.3);">VIDE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="weapon-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div style="font-family:'Russo One'; color:#fff; font-size:0.9rem;"><i class="ri-flashlight-fill"></i> CAPACITOR</div>
+                        <div style="font-family:'Courier New'; font-size:0.8rem; color:var(--text-muted);">CHARGE: <span id="stored-dmg-text" style="color:#fff; font-weight:bold;">0</span> PTS</div>
+                    </div>
+                    <div class="charge-meter">
+                        <div class="charge-val" id="stored-bar"></div>
+                    </div>
+                    <button id="btn-unleash" class="btn-fire" onclick="fireMainWeapon()" disabled>
+                        <i class="ri-loader-3-line"></i> CHARGE INSUFFISANTE
+                    </button>
+                </div>
+
+                <div style="margin-top: 20px; font-size: 0.75rem; color: var(--text-muted); text-align: center; border: 1px dashed rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                    <i class="ri-search-eye-line"></i> POINT FAIBLE DETECTE : <span id="boss-weak-val" style="color:#fff; font-weight:bold;">--</span>
+                </div>
+            </div>
             
-            <div class="mobile-user-bar">
-                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:rgba(255,255,255,0.05); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); margin-bottom:20px;">
-                    <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
-                        <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
-                        <div>
-                            <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
-                        </div>
+            <div id="victory-modal" class="victory-overlay">
+                <div class="victory-box">
+                    <i class="ri-medal-fill" style="font-size:3rem; color:var(--gold); margin-bottom:10px;"></i>
+                    <div class="target-name" style="color:#fff; font-size:1.2rem;">CIBLE ELIMINEE</div>
+                    <div style="width:100%; height:1px; background:rgba(255,255,255,0.2); margin:15px 0;"></div>
+                    <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px;">
+                        <span style="color:var(--text-muted); font-size:0.8rem;">PRIME DE BASE</span>
+                        <span id="vic-base" style="font-family:'Russo One';">--</span>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
-                        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+                    <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:15px;">
+                        <span style="color:var(--success); font-size:0.8rem;">BONUS SERIE HEBDO</span>
+                        <span id="vic-bonus" style="font-family:'Russo One'; color:var(--success);">+0%</span>
                     </div>
-                </div>
-            </div>
-
-            <a href="index.html" class="back-btn"><i class="ri-arrow-left-line"></i> RETOUR Q.G.</a>
-
-            <header style="margin-bottom: 30px; margin-top: 10px;">
-                <h1 class="titular">CAMPAGNE OPÉRATIONNELLE</h1>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">PROTOCOLE D'ÉLIMINATION DES CIBLES</div>
-            </header>
-
-            <div class="campaign-tracker">
-                <div class="zone-node active"><div style="font-size:0.7rem; font-weight:800;">ZONE 1</div><i class="ri-map-pin-user-fill"></i></div>
-                <div class="zone-line active"></div>
-                <div class="zone-node locked"><div style="font-size:0.7rem; font-weight:800;">ZONE 2</div><i class="ri-lock-2-line"></i></div>
-                <div class="zone-line"></div>
-                <div class="zone-node locked"><div style="font-size:0.7rem; font-weight:800;">FINAL</div><i class="ri-skull-fill"></i></div>
-            </div>
-
-            <div class="arena-container">
-                <div class="boss-avatar-box">
-                    <img src="./images/logo.png" class="boss-img" id="boss-visual" alt="Boss">
-                </div>
-                
-                <div class="boss-info">
-                    <div class="boss-name" id="boss-name-disp">GOLIATH ALPHA</div>
-                    <div class="boss-meta">
-                        <span class="boss-badge" style="color:var(--danger)">NIV. <span id="boss-lvl-disp">1</span></span>
-                        <span class="boss-badge" style="color:var(--text-muted)" id="boss-type-disp">TYPE: INCONNU</span>
+                    <div style="background:rgba(126, 220, 255, 0.1); border:1px solid var(--gold); padding:10px; width:100%; text-align:center; border-radius:8px; margin-bottom:15px;">
+                        <div style="font-size:0.7rem; color:var(--gold); letter-spacing:1px;">CREDITS TRANSFERES</div>
+                        <div id="vic-total" style="font-size:1.8rem; font-family:'Russo One'; color:#fff;">--</div>
                     </div>
-
-                    <div class="hp-wrapper">
-                        <div class="hp-text"><span id="boss-hp">0</span> / <span id="boss-max-hp">0</span> PV</div>
-                        <div class="hp-bar-bg">
-                            <div class="hp-fill" id="boss-fill" style="width: 100%;"></div>
-                        </div>
-                    </div>
+                    <button onclick="closeVictory()" class="btn-fire ready" style="width:100%; font-size:1rem; padding:15px; animation:none; cursor:pointer;">
+                        CONFIRMER RAPPORT
+                    </button>
                 </div>
             </div>
-
-            <div class="weapon-system">
-                <div class="weapon-header">
-                    <div><i class="ri-battery-charge-line"></i> CONDENSATEUR D'ÉNERGIE</div>
-                    <div id="stored-dmg" style="color:#fff; font-weight:800;">0 PTS</div>
-                </div>
-
-                <div class="capacitor-visual">
-                    <div class="capacitor-fill" id="stored-bar"></div>
-                </div>
-
-                <button id="btn-unleash" class="fire-btn" onclick="unleashEnergy()" disabled>
-                    <i class="ri-shut-down-line"></i> EN ATTENTE D'ÉNERGIE
-                </button>
-                
-                <div style="text-align:center; font-size:0.7rem; color:var(--text-muted); margin-top:15px; opacity:0.7;">
-                    Convertissez vos efforts physiques en dégâts bruts. <br>
-                    <span style="color:var(--gold);">500+ PTS = SURCHARGE CRITIQUE (x1.5 Dégâts)</span>
-                </div>
-            </div>
-
-            <div class="combat-log">
-                <div style="font-family:'Russo One'; font-size:0.8rem; margin-bottom:10px; color:var(--text-muted);">HISTORIQUE DE COMBAT</div>
-                <div id="battle-log-feed">
-                    <div class="log-entry">> Initialisation du système de visée...</div>
-                    <div class="log-entry">> En attente de données sportives...</div>
-                </div>
-            </div>
-
         </main>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                if(window.state) {
-                    // Update mobile header values
-                    if(document.getElementById('mobileName')) {
-                        document.getElementById('mobileName').innerText = state.user.name;
-                        document.getElementById('mobileLvl').innerText = state.user.level;
-                        document.getElementById('mobileCredits').innerText = state.user.credits;
-                    }
+        // --- CONFIGURATION ---
+        const GRENADE_CONFIG = { 'g_rusty': { dmg: 100, icon: 'ri-checkbox-blank-circle-line', color: '#6d8799' }, 'g_frag': { dmg: 250, icon: 'ri-apps-2-line', color: '#94a3b8' }, 'g_tac': { dmg: 500, icon: 'ri-focus-3-line', color: '#60a5fa' }, 'g_plasma': { dmg: 1000, icon: 'ri-blur-off-line', color: '#a78bfa' }, 'g_gold': { dmg: 2000, icon: 'ri-vip-diamond-line', color: '#9ee7ff' } };
+        const BUFF_CONFIG = { 'dmg': { icon: 'ri-sword-fill', color: '#ef4444' }, 'xp': { icon: 'ri-graduation-cap-fill', color: '#38bdf8' }, 'charge': { icon: 'ri-flashlight-fill', color: '#a78bfa' } };
+        
+        // --- PARAMETRES DE PACING ---
+        const BASE_MOBS_TO_KILL_BEFORE_BOSS = 5;
+        const MOBS_WAVE_STEP = 5;
+        const MOBS_WAVE_INTERVAL = 10;
+        const MAX_MOBS_TO_KILL_BEFORE_BOSS = 30;
 
-                    if(window.state.game) {
-                        renderAdventureUI();
-                        updateCapacitorUI(); 
-                    }
-                }
-            }, 500);
-        });
+        function getMobsRequiredBeforeBoss(level = 1) {
+            const safeLevel = Math.max(1, parseInt(level, 10) || 1);
+            const wave = Math.floor(safeLevel / MOBS_WAVE_INTERVAL);
+            return Math.min(MAX_MOBS_TO_KILL_BEFORE_BOSS, BASE_MOBS_TO_KILL_BEFORE_BOSS + (wave * MOBS_WAVE_STEP));
+        }
 
-        function renderAdventureUI() {
-            if(!state || !state.game) return;
-            
-            const boss = state.game.boss;
-            const bossDb = (typeof BOSS_DB !== 'undefined') ? BOSS_DB : [];
-            
-            const skinId = (boss.lvl - 1) % bossDb.length;
-            const bossData = bossDb[skinId] || { name: "Entité Inconnue", img: "boss_1.png", weak: "Aucune" };
+        function normalizeAdventureCombatState(game) {
+            if (!game) return BASE_MOBS_TO_KILL_BEFORE_BOSS;
+            game.bossLevel = Math.max(1, parseInt(game.bossLevel, 10) || 1);
+            const required = getMobsRequiredBeforeBoss(game.bossLevel);
+            game.mobsDefeated = Math.max(0, Math.min(parseInt(game.mobsDefeated, 10) || 0, required));
+            return required;
+        }
 
-            document.getElementById('boss-name-disp').innerText = bossData.name.toUpperCase();
-            document.getElementById('boss-lvl-disp').innerText = boss.lvl;
-            document.getElementById('boss-type-disp').innerHTML = `FAIBLESSE: <span style="color:#fff">${bossData.weak.toUpperCase()}</span>`;
+        // --- FONCTIONS CHEMINS D'IMAGES ---
+        const MOB_IMAGE_EXTENSIONS = { 1: 'jpg' };
+        const BOSS_IMAGE_EXTENSIONS = { 8: 'jpg', 12: 'jpg', 13: 'jpg', 21: 'jpeg' };
 
-            // Gestion Image
-            const imgFileName = bossData.img || `boss_${skinId + 1}.png`; 
-            const visualEl = document.getElementById('boss-visual');
-            visualEl.src = `./images/boss/${imgFileName}`;
-            visualEl.onerror = function() { 
-                console.log("Image Boss manquante, fallback logo.");
-                this.src = './images/logo.png'; 
-            };
+        function getEnemyImageId(source, prefix) {
+            const match = String(source || '').match(new RegExp(`${prefix}_(\\d+)`, 'i'));
+            return match ? parseInt(match[1], 10) : null;
+        }
 
-            // HP
-            const pct = Math.max(0, (boss.hp / boss.maxHp) * 100);
-            document.getElementById('boss-hp').innerText = Math.ceil(boss.hp);
-            document.getElementById('boss-max-hp').innerText = Math.ceil(boss.maxHp);
-            document.getElementById('boss-fill').style.width = pct + "%";
+        function getLocalEnemyImage(prefix, id) {
+            const num = parseInt(id, 10);
+            if (!Number.isFinite(num) || num <= 0) return "./image/logo.png";
+            const extensions = prefix === 'boss' ? BOSS_IMAGE_EXTENSIONS : MOB_IMAGE_EXTENSIONS;
+            const ext = extensions[num] || 'png';
+            return `./image/${prefix}/${prefix}_${num}.${ext}`;
+        }
 
-            // Logs
-            const logFeed = document.getElementById('battle-log-feed');
-            if(state.history.length > 0) {
-                logFeed.innerHTML = "";
-                state.history.slice(0, 3).forEach(act => {
-                    logFeed.innerHTML += `<div class="log-entry">> <span>${act.date}</span> : Charge accumulée <span class="log-dmg">+${act.xp}</span> via ${act.sport}</div>`;
-                });
-            }
+        function getMobImage(randomId) {
+            return getLocalEnemyImage('mob', randomId);
         }
         
-        window.updateCapacitorUI = function() {
-            const valEl = document.getElementById('stored-dmg');
-            const barEl = document.getElementById('stored-bar');
-            const btn = document.getElementById('btn-unleash');
-            
-            if(!valEl || !state) return;
+        function getBossImage(bossImgPath, fallbackId) {
+            return getLocalEnemyImage('boss', getEnemyImageId(bossImgPath, 'boss') || fallbackId);
+        }
 
-            const rawDmg = state.game.storedDmg || 0;
-            let statusText = "";
-            let barColor = "var(--accent)";
-            let btnClass = "fire-btn";
-            
-            let visualPct = Math.min((rawDmg / 500) * 100, 100);
+        function getMobImageFromData(mobData, fallbackId) {
+            return getMobImage(getEnemyImageId(mobData?.img, 'mob') || mobData?.imageId || fallbackId);
+        }
 
-            if(rawDmg >= 500) {
-                statusText = "SURCHARGE"; barColor = "var(--gold)"; btnClass = "fire-btn overcharge";
-                btn.innerHTML = `<i class="ri-error-warning-fill"></i> TIR DE SURCHARGE (${Math.floor(rawDmg*1.5)})`; btn.disabled = false;
-            } else if (rawDmg > 0) {
-                statusText = "PRÊT"; btnClass = "fire-btn ready";
-                btn.innerHTML = `<i class="ri-crosshair-2-fill"></i> FAIRE FEU (${rawDmg})`; btn.disabled = false;
+        // --- INITIALISATION SECURISEE ---
+        function updatePhaseIndicators(isBossPhase, mobsCount, mobsRequired, level, enemyName) {
+            const title = document.getElementById('phase-title');
+            const copy = document.getElementById('phase-copy');
+            const count = document.getElementById('phase-count');
+            const fill = document.getElementById('phase-meter-fill');
+            if(!title || !copy || !count || !fill) return;
+
+            if(isBossPhase) {
+                title.innerHTML = `<i class="ri-vip-diamond-line"></i> Boss alpha`;
+                copy.innerText = `${enemyName || 'Cible prioritaire'} bloque le secteur. Les prochains degats viennent de tes seances.`;
+                count.innerText = `Niveau ${level}`;
+                fill.style.width = '100%';
             } else {
-                statusText = "VIDE"; btn.innerHTML = `<i class="ri-shut-down-line"></i> CHARGE INSUFFISANTE`; btn.disabled = true;
+                const nextBoss = Math.max(0, mobsRequired - mobsCount);
+                title.innerHTML = `<i class="ri-route-line"></i> Progression terrain`;
+                copy.innerText = `${nextBoss} cible${nextBoss > 1 ? 's' : ''} avant le boss. Chaque seance recharge ton arsenal.`;
+                count.innerText = `${mobsCount} / ${mobsRequired}`;
+                fill.style.width = `${Math.max(0, Math.min(100, (mobsCount / mobsRequired) * 100))}%`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkSystemReady = setInterval(() => { 
+                if (window.state && window.state.game && window.MOBS_DB && window.MOBS_DB.length > 0) { 
+                    clearInterval(checkSystemReady); 
+                    
+                    normalizeAdventureCombatState(window.state.game);
+                    
+                    renderAdventurePage(); 
+                } 
+            }, 500);
+            
+            setTimeout(() => { clearInterval(checkSystemReady); renderAdventurePage(); }, 3000);
+        });
+
+        // --- MOTEUR DE RENDU (CYCLE MOBS -> 1 BOSS) ---
+        function renderAdventurePage() {
+            if(!window.state || !window.state.game) return;
+            
+            const game = window.state.game;
+            const body = document.body;
+            const mobsRequired = normalizeAdventureCombatState(game);
+
+            if (game.currentEnemy && Number(game.currentEnemy.hp) <= 0 && !window.victoryPending) {
+                setTimeout(() => handleLocalVictory(), 0);
+                return;
+            }
+            
+            const mobsCount = game.mobsDefeated || 0;
+            const isBossPhase = (mobsCount >= mobsRequired);
+            const lvl = game.bossLevel || 1;
+
+            let name, hp, maxHp, desc, weak, finalImgPath, type;
+
+            if (isBossPhase) {
+                // --- C'EST UN BOSS ---
+                type = 'BOSS';
+                body.classList.add('boss-active'); 
+                
+                const db = window.BOSS_DB || [];
+                const bossIdx = (db.length > 0) ? (lvl - 1) % db.length : 0;
+                const bossData = db[bossIdx] || { name: "Titan Alpha", baseHp: 5000, img: null, desc: "Cible prioritaire.", weak: "Inconnu", id: 1 };
+                
+                name = bossData.name;
+                const bossImageId = getEnemyImageId(bossData.img, 'boss') || bossData.level || lvl;
+                finalImgPath = getBossImage(bossData.img, bossImageId);
+                desc = bossData.desc;
+                weak = bossData.weak;
+                
+                if(game.currentEnemy && game.currentEnemy.type === 'BOSS') { 
+                    hp = game.currentEnemy.hp; 
+                    maxHp = game.currentEnemy.maxHp; 
+                } else { 
+                    maxHp = (bossData.baseHp || 2000) + ((lvl-1)*1000); 
+                    hp = maxHp; 
+                    game.currentEnemy = { type: 'BOSS', id: bossData.id, imageId: bossImageId, hp: hp, maxHp: maxHp, name: name, imgOverride: finalImgPath, desc: desc }; 
+                    if(window.titanHydrateEnemyMeta) window.titanHydrateEnemyMeta(game.currentEnemy, bossData, bossImageId, 'BOSS');
+                    if(typeof window.saveState === 'function') window.saveState();
+                }
+                if(window.titanHydrateEnemyMeta) window.titanHydrateEnemyMeta(game.currentEnemy, bossData, bossImageId, 'BOSS');
+                
+                weak = window.titanWeaknessLabel ? window.titanWeaknessLabel(game.currentEnemy.weakness) : weak;
+                document.getElementById('threat-lvl').innerText = "MENACE : ALPHA";
+                document.getElementById('threat-lvl').style.color = "var(--danger)";
+            } 
+            else {
+                // --- C'EST UN MOB ---
+                type = 'MOB';
+                body.classList.remove('boss-active'); 
+                
+                if (!game.currentEnemy || game.currentEnemy.type === 'BOSS') {
+                     const mobPool = Array.isArray(window.MOBS_DB) ? window.MOBS_DB.filter(Boolean) : [];
+                     const randomMobId = Math.floor(Math.random() * Math.max(mobPool.length, 13)) + 1;
+                     let imageId = randomMobId;
+                     finalImgPath = getMobImage(randomMobId);
+                     
+                     maxHp = 300 + (lvl * 50); 
+                     hp = maxHp;
+                     name = "Entite Hostile"; 
+                     
+                     let mobId = randomMobId;
+                     let mobSourceData = null;
+                     
+                     if(mobPool.length > 0) {
+                         const m = mobPool[Math.floor(Math.random() * mobPool.length)];
+                         if(m) { 
+                             mobSourceData = m;
+                             name = m.name; 
+                             desc = m.desc; 
+                             mobId = m.id; 
+                             imageId = getEnemyImageId(m.img, 'mob') || getEnemyImageId(m.id, 'mob') || randomMobId;
+                             finalImgPath = getMobImageFromData(m, imageId);
+                         } else { 
+                             desc = "Creature standard."; 
+                         }
+                     } else {
+                         desc = "Analyse en cours...";
+                     }
+
+                     game.currentEnemy = { type: 'MOB', id: mobId, imageId: imageId, hp: hp, maxHp: maxHp, name: name, imgOverride: finalImgPath, desc: desc };
+                     if(window.titanHydrateEnemyMeta) {
+                         window.titanHydrateEnemyMeta(game.currentEnemy, mobSourceData || (window.MOBS_DB || []).find(x => x.id == mobId), imageId, 'MOB');
+                         const hpMult = game.currentEnemy.rarity?.hpMult || 1;
+                         game.currentEnemy.maxHp = Math.round(maxHp * hpMult);
+                         game.currentEnemy.hp = game.currentEnemy.maxHp;
+                         hp = game.currentEnemy.hp;
+                         maxHp = game.currentEnemy.maxHp;
+                     }
+                     if(typeof window.saveState === 'function') window.saveState();
+                } else {
+                    // MOB EXISTANT - AUTO-GUERISON DE LA BASE DE DONNEES
+                    hp = game.currentEnemy.hp;
+                    maxHp = game.currentEnemy.maxHp;
+                    let mobId = game.currentEnemy.id || 1; 
+                    let numericMobId = parseInt(mobId, 10);
+                    let imageId = game.currentEnemy.imageId || getEnemyImageId(game.currentEnemy.imgOverride, 'mob') || (Number.isFinite(numericMobId) ? numericMobId : 1);
+
+                    if (window.MOBS_DB && window.MOBS_DB.length > 0) {
+                        const m = window.MOBS_DB.find(x => x.id == mobId) || (Number.isFinite(numericMobId) ? window.MOBS_DB[(numericMobId - 1) % window.MOBS_DB.length] : null);
+                        if (m) {
+                            name = m.name;
+                            desc = m.desc || "Entite hostile.";
+                            imageId = getEnemyImageId(m.img, 'mob') || imageId;
+                            finalImgPath = getMobImageFromData(m, imageId);
+                        } else {
+                            name = "Entite Hostile";
+                            desc = "Cible identifiee.";
+                            finalImgPath = getMobImage(imageId);
+                        }
+                    } else {
+                        name = game.currentEnemy.name || "Entite Hostile";
+                        desc = game.currentEnemy.desc || "Analyse en cours...";
+                        finalImgPath = getMobImage(getEnemyImageId(game.currentEnemy.imgOverride, 'mob') || imageId);
+                    }
+
+                    // On FORCE la reinjection des donnees visuelles dans la sauvegarde
+                    // Ainsi, ta version originale recevra bien l'image et arretera de crasher !
+                    game.currentEnemy.name = name;
+                    game.currentEnemy.desc = desc;
+                    game.currentEnemy.imageId = imageId;
+                    game.currentEnemy.imgOverride = finalImgPath;
+                    if(window.titanHydrateEnemyMeta) window.titanHydrateEnemyMeta(game.currentEnemy, (window.MOBS_DB || []).find(x => x.id == mobId), imageId, 'MOB');
+                }
+
+                weak = window.titanWeaknessLabel ? window.titanWeaknessLabel(game.currentEnemy.weakness) : "Aucune";
+                document.getElementById('threat-lvl').innerText = `CIBLE ${Math.min(mobsCount + 1, mobsRequired)}/${mobsRequired}`;
+                document.getElementById('threat-lvl').style.color = "var(--accent)";
             }
 
-            valEl.innerHTML = `${rawDmg} <span style="font-size:0.7rem; opacity:0.7;">${statusText}</span>`;
-            barEl.style.width = visualPct + "%";
-            barEl.style.background = barColor;
-            barEl.style.boxShadow = `0 0 15px ${barColor}`;
-            btn.className = btnClass;
+            updatePhaseIndicators(isBossPhase, mobsCount, mobsRequired, lvl, name);
+
+            // Affiche Image avec protection contre la boucle infinie de rechargement
+            const imgEl = document.getElementById('boss-visual');
+            if(imgEl && finalImgPath) {
+                // On verifie qu'on n'a pas DEJA assign? cette image
+                if (imgEl.getAttribute('data-active-src') !== finalImgPath) {
+                    imgEl.setAttribute('data-active-src', finalImgPath);
+                    imgEl.src = finalImgPath;
+                }
+            }
+
+            // Affiche Textes
+            const currentZone = window.titanGetCampaignZone ? window.titanGetCampaignZone(lvl) : { name: `SECTEUR ${lvl.toString().padStart(2,'0')}` };
+            document.getElementById('zone-name').innerText = currentZone.name;
+            document.getElementById('zone-id').innerText = `SEC-${lvl.toString().padStart(3,'0')}`;
+            document.getElementById('boss-name-disp').innerText = name;
+            const mechanic = window.state.game.currentEnemy?.mechanic || null;
+            const prep = mechanic && window.titanGetBossPrepStatus ? window.titanGetBossPrepStatus(window.state.game.currentEnemy) : null;
+            const phase = window.titanGetCurrentBossPhase ? window.titanGetCurrentBossPhase(window.state.game.currentEnemy) : null;
+            const selfDuel = window.state.game.currentEnemy?.selfDuel || null;
+            const prepText = prep ? ` Preparation ${prep.count}/${prep.required === 'recovery' ? 1 : 2} ${prep.label}.` : '';
+            const phaseText = phase && type === 'BOSS' ? ` Phase ${phase.index}: ${phase.label}.` : '';
+            const duelText = selfDuel ? ` ${selfDuel.label}: ${selfDuel.rule}` : '';
+            document.getElementById('boss-desc').innerText = mechanic ? `${desc} // ${mechanic.label}: ${mechanic.brief}${prepText}${phaseText}${duelText}` : desc;
+            document.getElementById('boss-lvl-disp').innerText = `${lvl} // ${game.currentEnemy?.rarity?.label || type}`;
+            document.getElementById('boss-weak-val').innerText = weak;
+            
+            // Barre de Vie
+            document.getElementById('boss-hp').innerText = Math.max(0, Math.ceil(hp));
+            document.getElementById('boss-max-hp').innerText = Math.ceil(maxHp);
+            document.getElementById('boss-fill').style.width = Math.max(0, (hp / maxHp) * 100) + "%";
+
+            updateCapacitorInternal();
+            renderTacticalDashboard();
         }
+
+        // --- UI SPECIFIQUE (Capacitor) ---
+        function updateCapacitorInternal() {
+            if(!window.state) return;
+            const stored = window.state.game.storedDmg || 0;
+            const max = (window.state.user.upgrades && window.state.user.upgrades.battery) ? (500 + (window.state.user.upgrades.battery * 250)) : 500;
+            const pct = Math.min((stored / max) * 100, 100);
+            
+            document.getElementById('stored-dmg-text').innerText = Math.floor(stored);
+            document.getElementById('stored-bar').style.width = pct + "%";
+            
+            const btn = document.getElementById('btn-unleash');
+            if(btn) {
+                if(stored > 0) { 
+                    btn.disabled = false; 
+                    btn.classList.add('ready'); 
+                    btn.innerHTML = (stored >= max) ? `<i class="ri-flashlight-fill"></i> TIR SURCHARGE` : `<i class="ri-crosshair-2-fill"></i> FAIRE FEU`; 
+                    btn.classList.toggle('overcharge', stored >= max); 
+                } 
+                else { 
+                    btn.disabled = true; 
+                    btn.className = 'btn-fire'; 
+                    btn.innerHTML = `<i class="ri-loader-3-line"></i> CHARGE INSUFFISANTE`; 
+                }
+            }
+        }
+
+        // --- UI SPECIFIQUE (Dashboard) ---
+        function renderTacticalDashboard() {
+            const buffs = window.state.user.buffs || {};
+            let buffHtml = "";
+            Object.keys(BUFF_CONFIG).forEach(key => { if(buffs[key] && buffs[key] > Date.now()) buffHtml += `<div class="buff-icon active" style="color:${BUFF_CONFIG[key].color}; border-color:${BUFF_CONFIG[key].color};"><i class="${BUFF_CONFIG[key].icon}"></i></div>`; });
+            document.getElementById('buff-container').innerHTML = buffHtml || `<div class="buff-icon" style="opacity:0.3;"><i class="ri-subtract-line"></i></div>`;
+
+            const inv = window.state.user.inventory || {};
+            let grenHtml = "";
+            const visualSkin = (typeof window.titanGetGrenadeSkin === 'function') ? window.titanGetGrenadeSkin() : null;
+            Object.keys(GRENADE_CONFIG).forEach(key => { 
+                const gColor = visualSkin && visualSkin.color ? visualSkin.color : GRENADE_CONFIG[key].color;
+                const gIcon = visualSkin && visualSkin.icon && visualSkin.id !== 'grenade-default' ? visualSkin.icon : GRENADE_CONFIG[key].icon;
+                const gClass = visualSkin ? visualSkin.className : '';
+                if(inv[key] > 0) grenHtml += `<div class="grenade-btn ${gClass}" onclick="activateTactical('${key}')" style="border-color:${gColor}aa;"><i class="${gIcon}" style="color:${gColor};"></i><div class="grenade-badge">${inv[key]}</div></div>`; 
+            });
+            document.getElementById('grenade-container').innerHTML = grenHtml || `<span style="font-size:0.7rem; color:rgba(255,255,255,0.3); align-self:center;">VIDE</span>`;
+        }
+
+        function applyImpactEffect() { 
+            const v = document.getElementById('boss-visual'); 
+            if(v) { 
+                v.classList.remove('hit-anim'); 
+                void v.offsetWidth; 
+                v.classList.add('hit-anim'); 
+                setTimeout(() => { v.classList.remove('hit-anim'); }, 300);
+            } 
+        }
+
+        // --- ACTIONS DE COMBAT ---
+        window.fireMainWeapon = function() {
+            const game = window.state.game;
+            const enemy = game.currentEnemy;
+            
+            if(!enemy || window.victoryPending) return;
+            if(enemy.hp <= 0) { handleLocalVictory(); return; }
+            
+            let damage = game.storedDmg || 0;
+            if(damage <= 0) return;
+            const baseDamage = damage;
+            const combat = window.titanCombatDamage ? window.titanCombatDamage(damage, enemy) : { damage, weakHit: false };
+            damage = combat.damage;
+
+            enemy.hp -= damage;
+            game.storedDmg = 0; 
+            if (enemy.hp < 0) enemy.hp = 0;
+
+            applyImpactEffect(); 
+            renderAdventurePage();
+            if(combat.weakHit && window.showNotification) window.showNotification('combat', 'POINT FAIBLE', `Bonus sportif applique: +20% degats.`);
+            if(combat.prep && !combat.prep.ready && window.showNotification) window.showNotification('warning', 'PREPARATION BOSS', `Fenetre incomplete: ${combat.prep.count}/${combat.prep.required === 'recovery' ? 1 : 2} ${combat.prep.label}.`);
+            if(combat.selfDuel && combat.damage <= Math.max(1, Math.floor(baseDamage * 0.15)) && window.showNotification) window.showNotification('warning', 'MIROIR', 'Ce boss resiste a ton point fort. Varie le type de sport.');
+            
+            if(typeof window.saveState === 'function') window.saveState({ forceCloud: true });
+            if(enemy.hp <= 0) handleLocalVictory();
+        };
+
+        window.activateTactical = function(id) {
+            const inv = window.state.user.inventory;
+            const enemy = window.state.game.currentEnemy;
+            
+            if(!inv || !inv[id] || inv[id] <= 0) return;
+            if(!enemy || window.victoryPending) return;
+            if(enemy.hp <= 0) { handleLocalVictory(); return; }
+            
+            let damage = GRENADE_CONFIG[id].dmg;
+            if(window.state.user.buffs && window.state.user.buffs.dmg > Date.now()) damage *= 1.25;
+            const combat = window.titanCombatDamage ? window.titanCombatDamage(damage, enemy) : { damage: Math.floor(damage) };
+            damage = combat.damage;
+            
+            enemy.hp -= Math.floor(damage);
+            inv[id]--; 
+            
+            if (enemy.hp < 0) enemy.hp = 0;
+            
+            applyImpactEffect(); 
+            renderAdventurePage();
+            
+            if(typeof window.saveState === 'function') window.saveState({ forceCloud: true });
+            if(enemy.hp <= 0) handleLocalVictory();
+        };
+
+        async function submitCombatVictoryToCloud(enemy, isBoss, level, localReward) {
+            const userId = window.state?.user?.id || '';
+            if(!window.titanClient || !userId || userId.startsWith('guest_')) return null;
+            if(typeof window.titanClient.rpc !== 'function') return { serverRequired: true };
+
+            const enemyType = isBoss ? 'BOSS' : 'MOB';
+            const enemyKey = `${enemyType}:${enemy.id || enemy.imageId || enemy.name || 'unknown'}`;
+            const payload = {
+                p_enemy_key: enemyKey,
+                p_enemy_type: enemyType,
+                p_enemy_id: enemy.id ? String(enemy.id) : null,
+                p_name: enemy.name || enemyType,
+                p_level: level || 1,
+                p_reward_mult: enemy.rewardMult || 1,
+                p_damage: Math.max(0, Math.floor(enemy.maxHp || 0)),
+                p_details: {
+                    maxHp: enemy.maxHp || 0,
+                    imageId: enemy.imageId || null,
+                    weakness: enemy.weakness || null,
+                    rarity: enemy.rarity || null,
+                    mechanic: enemy.mechanic || null,
+                    phases: enemy.phases || [],
+                    selfDuel: enemy.selfDuel || null,
+                    localReward: localReward || null
+                }
+            };
+
+            const { data, error } = await window.titanClient.rpc('titan_submit_combat_victory', payload);
+            if(error) {
+                if(error.code !== 'PGRST202') console.warn('[ADVENTURE] Combat RPC indisponible:', error.message || error);
+                return { serverRequired: true };
+            }
+            return Array.isArray(data) ? (data[0] || null) : data;
+        }
+
+        // --- VICTOIRE & PROGRESSION DU CYCLE ---
+        async function handleLocalVictory() {
+            if(window.victoryPending) return; 
+            window.victoryPending = true;
+
+            const game = window.state.game;
+            const defeatedEnemy = Object.assign({}, game.currentEnemy);
+            const isBoss = (game.currentEnemy.type === 'BOSS');
+            const lvl = game.bossLevel || 1;
+            defeatedEnemy.campaignLevel = lvl;
+            
+            // 1. RECOMPENSES
+            const baseGain = Math.floor((isBoss ? (500 * lvl) : 50) * (game.currentEnemy.rewardMult || 1));
+            
+            // Utilisation de la logique globale (main.js) pour les bonus
+            let finalReward = { total: baseGain, base: baseGain, bonus: 0, percent: 0 };
+            if(typeof window.calculateRewardsWithBonus === 'function') {
+                finalReward = window.calculateRewardsWithBonus(baseGain);
+            }
+
+            const serverReward = await submitCombatVictoryToCloud(defeatedEnemy, isBoss, lvl, finalReward);
+
+            // Application
+            let combatXp = isBoss ? Math.min(900, Math.floor(baseGain * 0.22)) : 18;
+            if(serverReward && !serverReward.serverRequired) {
+                combatXp = Number(serverReward.reward_xp || combatXp);
+                finalReward = {
+                    total: Number(serverReward.reward_credits || finalReward.total),
+                    base: Number(serverReward.reward_credits || finalReward.base),
+                    bonus: 0,
+                    percent: 0,
+                    server: true
+                };
+                if(Number.isFinite(Number(serverReward.credits_after))) window.state.user.credits = Number(serverReward.credits_after);
+                else window.state.user.credits += finalReward.total;
+                if(Number.isFinite(Number(serverReward.xp_after))) window.state.user.xp = Number(serverReward.xp_after);
+                else window.state.user.xp += combatXp;
+                if(Number.isFinite(Number(serverReward.level_after))) window.state.user.level = Number(serverReward.level_after);
+                if(Number(serverReward.reward_xp) <= 0 && typeof window.showNotification === 'function') {
+                    window.showNotification('warning', 'PLAFOND HEBDO', 'Victoire archivee, recompense plafonnee cette semaine.');
+                }
+            } else if(window.titanClient && window.state?.user?.id && !window.state.user.id.startsWith('guest_')) {
+                combatXp = 0;
+                finalReward = { total: 0, base: 0, bonus: 0, percent: 0, server: false };
+                if(typeof window.showNotification === 'function') {
+                    window.showNotification('warning', 'RECOMPENSE EN ATTENTE', 'Validation serveur requise avant credits ou XP combat.');
+                }
+            } else {
+                window.state.user.credits += finalReward.total;
+                window.state.user.xp += combatXp;
+                if(typeof window.checkLevelUp === 'function') window.checkLevelUp();
+            }
+
+            // 2. LOGIQUE DE CYCLE (MOBS -> 1 BOSS)
+            if(isBoss) {
+                game.bossLevel++;
+                game.mobsDefeated = 0; 
+                game.currentEnemy = null; 
+            } else {
+                game.mobsDefeated = (game.mobsDefeated || 0) + 1;
+                game.currentEnemy = null; 
+            }
+
+            // 3. AFFICHAGE
+            document.getElementById('vic-base').innerText = finalReward.base;
+            document.getElementById('vic-bonus').innerText = `+${finalReward.percent}%`;
+            document.getElementById('vic-total').innerText = finalReward.total;
+            
+            document.getElementById('victory-modal').style.display = 'flex';
+            if(typeof window.triggerTitanVictoryEffect === 'function') window.triggerTitanVictoryEffect(isBoss ? 'boss' : 'target');
+            if(typeof window.titanRegisterCombatVictory === 'function') window.titanRegisterCombatVictory(defeatedEnemy, isBoss, finalReward);
+            
+            // Sauvegarde Cloud & Local
+            if(typeof window.saveState === 'function') window.saveState({ forceCloud: true });
+        }
+
+        // --- FONCTION DE FERMETURE VICTOIRE ---
+        window.closeVictory = function() {
+            const modal = document.getElementById('victory-modal');
+            if(modal) modal.style.display = 'none';
+            
+            window.victoryPending = false;
+            
+            window.renderAdventurePage();
+            
+            if(typeof window.saveState === 'function') window.saveState();
+        };
+
+        window.renderAdventureUI = renderAdventurePage;
+        window.updateCapacitorUI = updateCapacitorInternal;
     </script>
 </body>
 </html>
+

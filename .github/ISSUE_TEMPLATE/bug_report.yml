@@ -1,0 +1,45 @@
+name: Signaler un bug
+description: Documenter un comportement reproductible dans TITAN OS Sport.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Merci de ne jamais joindre de mot de passe, token, clé Supabase secrète ou donnée personnelle.
+  - type: input
+    id: page
+    attributes:
+      label: Page ou module
+      placeholder: Ex. training.html / Enregistrer une séance
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Comportement observé
+      description: Décrire précisément ce qui se passe.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes de reproduction
+      placeholder: "1. Ouvrir…\n2. Cliquer…\n3. Constater…"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environnement
+      placeholder: Windows 11, Chrome 140, PWA installée
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexte non sensible
+      description: Logs expurgés, capture ou détails utiles. Retirer toute donnée privée.

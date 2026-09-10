@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Changelog - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        .release-list { display: grid; gap: 14px; }
+        .release-card {
+            border: 1px solid rgba(148,163,184,0.14); border-radius: 8px;
+            background: rgba(30,41,59,0.42); padding: 18px;
+        }
+        .release-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+        .release-version { font-family: 'Russo One'; color: #fff; font-size: 1rem; }
+        .release-date { color: #94a3b8; font-size: 0.75rem; font-weight: 800; white-space: nowrap; }
+        .release-card ul { margin: 0; padding-left: 18px; color: #cbd5e1; line-height: 1.55; font-size: 0.92rem; }
+        .release-card li + li { margin-top: 6px; }
+        .release-tag {
+            display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px;
+            color: #38bdf8; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        @media (max-width: 720px) {
+            .release-head { align-items: flex-start; flex-direction: column; gap: 4px; }
+            .release-card { padding: 15px; }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Suis les evolutions publiques de TITAN OS: stabilite, entrainement, statistiques, aventure, securite et ameliorations.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/changelog">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/changelog">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/changelog">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Changelog - TITAN OS">
+    <meta property="og:description" content="Suis les evolutions publiques de TITAN OS: stabilite, entrainement, statistiques, aventure, securite et ameliorations.">
+    <meta property="og:url" content="https://titan-app.fr/changelog">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Changelog - TITAN OS">
+    <meta name="twitter:description" content="Suis les evolutions publiques de TITAN OS: stabilite, entrainement, statistiques, aventure, securite et ameliorations.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://acscdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//acscdn.com">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "https://titan-app.fr/changelog#webpage",
+          "url": "https://titan-app.fr/changelog",
+          "name": "Changelog - TITAN OS",
+          "headline": "Changelog - TITAN OS",
+          "description": "Suis les evolutions publiques de TITAN OS: stabilite, entrainement, statistiques, aventure, securite et ameliorations.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/changelog#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/changelog#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Changelog",
+              "item": "https://titan-app.fr/changelog"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="changelog">
+    <div class="layout">
+        <nav class="sidebar"></nav>
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            <header style="margin-bottom: 24px;">
+                <div style="font-size:0.7rem; color:var(--accent); font-weight:900; letter-spacing:2px;">TRANSMISSIONS</div>
+                <h1 class="titular" style="font-size:2rem;">Nouveautés</h1>
+                <p style="color:#94a3b8; max-width:720px; line-height:1.55;">Les évolutions importantes de TITAN OS, expliquées simplement.</p>
+            </header>
+
+            <section class="release-list">
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-run-line"></i> Sport-first</div>
+                    <div class="release-head">
+                        <div class="release-version">v90 — Le sport redevient le cœur</div>
+                        <div class="release-date">31/07/2026</div>
+                    </div>
+                    <ul>
+                        <li>Navigation principale stabilisée : Aujourd’hui, Enregistrer, Journal, Progrès et Profil.</li>
+                        <li>Saisie recentrée sur le sport, avec date et heure, détails repliables, GPX secondaire et confirmation claire.</li>
+                        <li>Constructeur musculation par séries : charge, répétitions, RIR, duplication, ordre, historique et routines.</li>
+                        <li>Journal unifié avec liste, calendrier, filtres sans paywall et redirection de l’ancien historique.</li>
+                        <li>Progression sportive avant XP et crédits ; graphiques filtrables par période et mesure.</li>
+                        <li>Catalogue paginé, cibles tactiles agrandies et métadonnées olympiques retirées de la navigation principale.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-sparkling-2-line"></i> Expérience unifiée</div>
+                    <div class="release-head">
+                        <div class="release-version">v89 — Plus claire, plus juste, plus fiable</div>
+                        <div class="release-date">31/07/2026</div>
+                    </div>
+                    <ul>
+                        <li>Nouvelle identité visuelle cohérente sur l’accueil, les outils sportifs, le profil, la boutique et les pages d’information.</li>
+                        <li>Navigation mobile recentrée et simplifiée autour de cinq destinations essentielles.</li>
+                        <li>Boutique entièrement équitable : aucun achat n’améliore les récompenses, la puissance ou les limites de progression.</li>
+                        <li>TITAN+ recentré sur l’accompagnement, les analyses avancées et la personnalisation visuelle.</li>
+                        <li>Recherche sportive enrichie, images sécurisées et affichage plus robuste sur les connexions instables.</li>
+                        <li>Textes, référencement, confidentialité et conditions d’utilisation actualisés.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-radar-line"></i> Multisport release</div>
+                    <div class="release-head">
+                        <div class="release-version">v88 - Catalogue opérationnel</div>
+                        <div class="release-date">30/07/2026</div>
+                    </div>
+                    <ul>
+                        <li>Catalogue public de plus de 260 sports avec recherche par nom, alias, famille et métrique.</li>
+                        <li>Saisie d’entraînement plus sûre : autocomplétion au clavier, sports récents et sélection invalide automatiquement neutralisée.</li>
+                        <li>Données propres aux familles d’effort complétées pour proposer des fiches plus adaptées.</li>
+                        <li>Compatibilité WebP étendue aux anciennes adresses d’avatars, boss et mobs pour supprimer les images intermittentes.</li>
+                        <li>SEO renforcé avec pages publiques, FAQ structurées, sitemap et contenus multisport indexables.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-shield-star-line"></i> Release finale</div>
+                    <div class="release-head">
+                        <div class="release-version">v87 - Public-ready</div>
+                        <div class="release-date">30/07/2026</div>
+                    </div>
+                    <ul>
+                        <li>Audit visuel ordinateur/mobile des pages publiques et correction des chargements réservés aux membres.</li>
+                        <li>Images optimisées sans changement de direction artistique et fonctionnement hors ligne unifié.</li>
+                        <li>Accès aux données renforcés et paiements protégés contre les événements reçus dans le désordre.</li>
+                        <li>Adresses, page introuvable et mise à jour du contenu renforcées.</li>
+                        <li>Publicite desactivee tant que la declaration Adcash n'est pas finalisee.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-rocket-line"></i> Public release work</div>
+                    <div class="release-head">
+                        <div class="release-version">v54 - Stabilite publique</div>
+                        <div class="release-date">05/05/2026</div>
+                    </div>
+                    <ul>
+                        <li>Mise à jour unifiée et bouton de rechargement lorsqu’une nouvelle version est disponible.</li>
+                        <li>Indicateur global de sauvegarde : appareil, compte, hors ligne ou erreur.</li>
+                        <li>Fallback reseau dedie si une page ne peut pas etre chargee.</li>
+                        <li>Réglages et liens externes regroupés afin d’éviter les incohérences.</li>
+                        <li>Contrôles automatiques ajoutés avant chaque publication.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-run-line"></i> Sport et immersion</div>
+                    <div class="release-head">
+                        <div class="release-version">Training + Adventure</div>
+                        <div class="release-date">05/05/2026</div>
+                    </div>
+                    <ul>
+                        <li>Formulaire de seance plus lisible sur mobile avec validation plus accessible.</li>
+                        <li>Panneau effort 7 jours pour remettre le sport au centre de l'app.</li>
+                        <li>Adventure clarifie les phases terrain et boss.</li>
+                        <li>Cycle combat corrige: mobs aleatoires, ordre des boss conserve, progression par vagues.</li>
+                    </ul>
+                </article>
+
+                <article class="release-card">
+                    <div class="release-tag"><i class="ri-shield-check-line"></i> Securite</div>
+                    <div class="release-head">
+                    <div class="release-version">Protection des comptes et des données</div>
+                        <div class="release-date">30/04/2026 - 05/05/2026</div>
+                    </div>
+                    <ul>
+                        <li>Scripts anti-triche, moderation chat, billing et confidentialite profils ajoutes.</li>
+                        <li>Export et suppression de compte reliés directement au profil.</li>
+                        <li>Espace d’administration protégé par des contrôles d’accès renforcés.</li>
+                        <li>Consentement publicite ajoute avant chargement Adcash.</li>
+                    </ul>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+</body>
+</html>
+

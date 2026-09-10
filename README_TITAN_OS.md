@@ -1,4 +1,8 @@
-# Titan OS – Plateforme Gamifiée de Suivi Sportif
+# Titan OS – documentation historique
+
+> Ce document conserve du contexte produit ancien (versions v39 à v54). Pour reprendre ou déployer le projet actuel, utiliser d'abord [`README.md`](README.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) et [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). Les chemins, versions de cache et procédures ci-dessous peuvent être obsolètes.
+
+## Archive : plateforme gamifiée de suivi sportif
 
 Titan OS est une application web front-end reliée à Supabase, qui transforme le suivi sportif
 en expérience de jeu : boss, inventaire, quêtes, guildes, chat et progression joueur.
@@ -89,3 +93,38 @@ Pour présenter Titan OS :
 
 Ce document sert à cadrer le projet et le rendre lisible pour un jury, un recruteur
 ou un collaborateur futur.
+
+## Notes operationnelles v39
+
+- Le noyau commun doit etre charge dans cet ordre sur les pages applicatives :
+  `config.js`, `data.js`, `ui.js`, `state.js`, `main.js`, puis le module de page.
+- Le chargement Supabase passe en mode secours si une table est absente ou bloquee par RLS.
+  Les erreurs sont listees dans `window.TITAN_DB_STATUS.issues` dans la console.
+- Le webhook Paddle exige `PADDLE_WEBHOOK_SECRET` et verifie l'en-tete
+  `Paddle-Signature`. Le checkout doit remplir `window.TITAN_PADDLE.clientToken`
+  et `window.TITAN_PADDLE.elitePriceId`; Netlify doit aussi recevoir
+  `PADDLE_ELITE_PRODUCT_IDS` ou `PADDLE_ELITE_PRICE_IDS`.
+- Alias Netlify disponible : `/functions/webhook` redirige vers `/.netlify/functions/webhook`.
+- Tables/buckets/RPC attendus par le front :
+  `profiles`, `training_logs`, `mobs`, `bosses`, `talents`, `sports`,
+  `achievements_config`, `global_config`, `fun_stats`, `user_achievements`,
+  `shop_items`, `shop_history`, `social_challenges`, `friendships`, `messages`,
+  `news_updates`, bucket `avatars`, RPC `delete_own_account`.
+
+## Ordre de chargement public v54
+
+Pages applicatives connectees:
+
+1. CSS `css/style.css`.
+2. CDN requis par la page, par exemple Supabase, Leaflet, Chart.js ou Remixicon.
+3. `js/consent.js` en `defer` pour bloquer la publicite tant que le consentement n'est pas donne.
+4. Noyau commun: `js/config.js`, `js/data.js`, `js/ui.js`, `js/state.js`, `js/titan_features.js`, `js/main.js`.
+5. Module de page: `js/social.js`, `js/chat.js` ou script inline de la page.
+
+Contraintes:
+
+- `config.js` doit preceder tout acces a Supabase, aux versions et aux cles de stockage.
+- `ui.js` doit preceder les notifications, le boot mask, la navigation et l'indicateur de sync.
+- `state.js` doit preceder les rendus qui lisent `window.state`.
+- `main.js` doit rester apres `state.js`, car il depend de `saveState`, `syncWithSupabase` et des donnees hydratees.
+- `sw.js` est enregistre par `js/pwa.js` sur la page publique principale.

@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.pnpm-store/
+dist/
+.netlify/
+.netlify-upload/
+.codex-local-bin/
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+Thumbs.db
+qa-*.png
+backups/
+*.log

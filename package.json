@@ -1,0 +1,25 @@
+{
+  "name": "titan-os-sport",
+  "version": "0.5.0",
+  "description": "Application web multisport, PWA et progression gamifiee de TITAN OS Sport.",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node tools/local-static-server.mjs",
+    "relaunch": "node tools/relaunch-v100.mjs && node tools/apply-seo.mjs",
+    "build": "node tools/build-public.mjs",
+    "preview": "node tools/serve-public.mjs 4173",
+    "audit": "node tools/audit-public.mjs",
+    "check": "node tools/check-inline-scripts.mjs",
+    "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/webhook.test.mjs tests/sport-discovery.test.mjs tests/sport-first.test.mjs",
+    "smoke": "node tools/check-inline-scripts.mjs",
+    "lint": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs",
+    "verify": "pnpm test && pnpm run build && pnpm run audit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.111.0"
+  }
+}

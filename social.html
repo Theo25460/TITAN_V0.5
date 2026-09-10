@@ -1,155 +1,819 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: SOCIAL</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Social TITAN OS - Guildes, allies et defis</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
     <style>
-        /* STYLE SPÉCIFIQUE AU MODULE SOCIAL */
-
-        /* Bloc "À venir" pour les Guildes */
-        .coming-soon-card {
-            background: repeating-linear-gradient(
-                45deg,
-                rgba(0, 0, 0, 0.2),
-                rgba(0, 0, 0, 0.2) 10px,
-                rgba(234, 179, 8, 0.05) 10px,
-                rgba(234, 179, 8, 0.05) 20px
-            );
-            border: 2px dashed var(--gold);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .lock-icon { 
-            font-size: 3rem; 
-            color: var(--gold); 
-            margin-bottom: 15px; 
-            display: block; 
-            opacity: 0.8;
-        }
-        .cs-title { 
-            font-family: 'Russo One'; 
-            color: #fff; 
-            font-size: 1.5rem; 
-            margin-bottom: 10px; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        body { background-color: #06070A; }
         
-        /* Section Amis */
-        .friends-panel {
-            background: var(--bg-panel); 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .friend-card {
-            background: #1e2538; 
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 15px; 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            margin-bottom: 10px;
-            transition: 0.2s;
-        }
-        .friend-card:hover {
-            border-color: rgba(255,255,255,0.2);
-            background: #232b42;
-        }
-
-        .add-friend-box { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 25px; 
-        }
-        .input-friend { 
-            flex: 1; 
-            background: #131824; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            color: #fff; 
-            padding: 15px; 
-            border-radius: 12px;
-            font-family: 'Outfit', sans-serif;
-        }
-        .input-friend:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(255,255,255,0.02); padding: 5px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); font-family: 'Russo One'; font-size: 0.9rem; border-radius: 8px; cursor: pointer; transition: 0.3s; text-align: center; }
+        .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
-        .section-title {
-            font-family:'Russo One'; 
-            margin-bottom:15px; 
-            color:#fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        .add-friend-box { background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; gap: 10px; align-items: center; }
+        .input-code { flex: 1; background: #06070A; border: 1px solid #10b981; color: #fff; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-weight: bold; text-transform: uppercase; outline: none; }
+        .btn-add { background: #10b981; color: #000; border: none; padding: 0 20px; height: 42px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-add:active { transform: scale(0.95); }
+
+        .friend-card { display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; transition: 0.2s; }
+        .friend-card.ally { border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.05); }
+        .f-info { display: flex; align-items: center; gap: 12px; }
+        .f-avatar { width: 45px; height: 45px; border-radius: 50%; background: #1e293b; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 1.2rem; color: #64748b; }
+        .f-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .f-name { font-family: 'Russo One'; font-size: 0.95rem; color: #fff; line-height: 1.2; }
+        .f-id { font-size: 0.7rem; color: var(--text-muted); font-family: 'Courier New'; }
+        .f-actions { display: flex; gap: 8px; }
+        
+        .btn-mini { width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; transition: 0.2s; }
+        .btn-mini:hover { background: #fff; color: #000; }
+        .btn-mini.danger:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .btn-mini.vs { border-color: #9ee7ff; color: #9ee7ff; }
+        .btn-mini.vs:hover { background: #9ee7ff; color: #000; box-shadow: 0 0 10px rgba(126, 220, 255, 0.4); }
+        .btn-mini.wager { border-color: #ef4444; color: #ef4444; }
+        .btn-mini.wager:hover { background: #ef4444; color: #fff; }
+        .btn-mini.ghost { border-color: #a78bfa; color: #a78bfa; }
+        .btn-mini.ghost:hover { background: #a78bfa; color: #fff; }
+
+        /* STYLE LISTE DEFIS */
+        .active-challenges-box { margin: 30px 0; display: none; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .challenge-item { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            padding: 12px; border-radius: 8px; margin-bottom: 8px; 
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;
         }
+        .c-tag { font-family: 'Russo One'; font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; margin-right: 8px; }
+        .c-tag.duel { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .c-tag.ghost { background: rgba(167, 139, 250, 0.2); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .vs-card { width: 90%; max-width: 380px; background: #06070A; border: 1px solid #334155; border-radius: 20px; overflow: hidden; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.open .vs-card { transform: scale(1); }
+        .vs-header { background: linear-gradient(135deg, #1e293b, #06070A); padding: 30px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; position: relative; }
+        .vs-badge { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #9ee7ff; color: #000; font-family: 'Russo One'; padding: 8px 12px; border-radius: 8px; font-size: 1.4rem; box-shadow: 0 0 20px rgba(126, 220, 255, 0.6); z-index: 2; border: 2px solid #fff; transform: translate(-50%, -50%) rotate(-5deg); }
+        .player-col { text-align: center; width: 42%; position: relative; z-index: 1; }
+        .p-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #334155; margin: 0 auto 10px; overflow: hidden; background: #000; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .p-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .p-name { font-family: 'Russo One'; font-size: 0.9rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px;}
+        .p-lvl { font-size: 0.7rem; color: #94a3b8; font-weight: bold; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 10px; display: inline-block;}
+        .p-lvl.win { color: #10b981; border: 1px solid #10b981; }
+        .vs-body { padding: 25px 20px; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stat-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .stat-val { font-family: 'Russo One'; font-size: 1.1rem; color: #fff; width: 30%; text-align: center; }
+        .stat-val.win { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+        .fun-fact { background: rgba(126, 220, 255, 0.05); border: 1px dashed #9ee7ff; padding: 15px; border-radius: 12px; text-align: center; margin-top: 20px; }
+        .fun-title { color: #9ee7ff; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .fun-text { color: #fff; font-size: 0.85rem; line-height: 1.4; font-style: italic; }
+        .close-btn { display: block; width: 100%; padding: 18px; background: #1e293b; border: none; color: #94a3b8; font-family: 'Russo One'; cursor: pointer; text-transform: uppercase; border-top: 1px solid #334155; transition: 0.2s; }
+        .close-btn:hover { background: #334155; color: #fff; }
+        .guild-lock { text-align: center; padding: 50px 20px; border: 2px dashed rgba(255,255,255,0.1); border-radius: 16px; }
+        .lock-icon { font-size: 3rem; color: #334155; margin-bottom: 15px; }
+        .guild-grid { display:grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr); gap:16px; align-items:start; }
+        .guild-panel { background:rgba(30,41,59,0.55); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:18px; }
+        .guild-title { display:flex; align-items:center; gap:10px; font-family:'Russo One'; color:#fff; font-size:1rem; margin-bottom:10px; }
+        .guild-title i { color:var(--accent); }
+        .guild-hero { background:linear-gradient(135deg, rgba(56,189,248,0.12), rgba(16,185,129,0.06)); border:1px solid rgba(56,189,248,0.18); border-radius:18px; padding:22px; margin-bottom:16px; }
+        .guild-name { font-family:'Russo One'; color:#fff; font-size:1.45rem; overflow-wrap:anywhere; }
+        .guild-code { margin-top:8px; color:var(--accent); font-family:'Courier New'; font-weight:800; cursor:pointer; }
+        .guild-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+        .guild-btn { min-height:44px; border:0; border-radius:8px; background:var(--accent); color:#000; font-family:'Russo One'; cursor:pointer; }
+        .guild-btn.secondary { background:rgba(255,255,255,0.06); color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); }
+        .guild-form { display:grid; gap:10px; }
+        .guild-form input { width:100%; background:#06070A; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:12px; border-radius:8px; outline:none; }
+        .guild-member { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:rgba(255,255,255,0.035); margin-bottom:8px; }
+        .guild-member i { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(56,189,248,0.12); color:var(--accent); }
+        .guild-progress { height:10px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden; margin:12px 0; }
+        .guild-progress span { display:block; height:100%; width:var(--guild-progress, 0%); background:linear-gradient(90deg, var(--accent), #10b981); }
+        .guild-log { display:grid; gap:8px; }
+        .guild-log-item { font-size:0.8rem; color:#cbd5e1; padding:10px; border:1px solid rgba(255,255,255,0.07); border-radius:10px; background:rgba(0,0,0,0.18); }
+        .friend-ranking-card { background:rgba(30,41,59,0.48); border:1px solid rgba(56,189,248,0.14); border-radius:12px; padding:14px; margin-bottom:18px; }
+        .friend-ranking-head { display:flex; justify-content:space-between; align-items:center; gap:12px; color:#fff; font-family:'Russo One'; font-size:0.82rem; }
+        .friend-ranking-head label { display:flex; align-items:center; gap:8px; color:#cbd5e1; font-family:'Outfit', sans-serif; font-size:0.78rem; font-weight:800; }
+        .friend-ranking-head input { width:20px; height:20px; accent-color:#38bdf8; }
+        .friend-ranking-list { display:grid; gap:8px; margin-top:12px; }
+        .friend-ranking-row { display:grid; grid-template-columns:34px minmax(0, 1fr) auto; gap:10px; align-items:center; padding:9px 10px; border-radius:8px; background:rgba(255,255,255,0.035); color:#cbd5e1; font-size:0.82rem; }
+        .friend-ranking-row.me { border:1px solid rgba(16,185,129,0.28); color:#d1fae5; }
+        .friend-ranking-rank { color:#38bdf8; font-family:'Russo One'; }
+        .friend-ranking-score { color:#fff; font-weight:900; white-space:nowrap; }
+        @media (max-width: 820px) {
+            .tabs-container { position:sticky; top:0; z-index:6; }
+            .add-friend-box { flex-direction:column; align-items:stretch; }
+            .btn-add { width:100%; }
+            .friend-card { align-items:flex-start; gap:12px; flex-direction:column; }
+            .f-actions { width:100%; display:grid; grid-template-columns:repeat(5, 1fr); }
+            .btn-mini { width:100%; }
+            .guild-grid { grid-template-columns:1fr; }
+            .guild-actions { grid-template-columns:1fr; }
+        }
+        .loader { width: 24px; height: 24px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .modal-body-action { padding: 25px; text-align: center; }
+        .modal-input { width: 100%; background: #06070A; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; outline: none; font-family: 'Outfit', sans-serif; }
+        .modal-action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-family: 'Russo One'; cursor: pointer; margin-bottom: 10px; color: #fff; }
+        .btn-duel-confirm { background: #ef4444; }
+        .btn-ghost-confirm { background: #a78bfa; }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Espace social TITAN OS reserve aux comptes connectes: guildes, allies, defis, codes amis et interactions synchronisees.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/social">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/social">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/social">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Social TITAN OS - Guildes, allies et defis">
+    <meta property="og:description" content="Espace social TITAN OS reserve aux comptes connectes: guildes, allies, defis, codes amis et interactions synchronisees.">
+    <meta property="og:url" content="https://titan-app.fr/social">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Social TITAN OS - Guildes, allies et defis">
+    <meta name="twitter:description" content="Espace social TITAN OS reserve aux comptes connectes: guildes, allies, defis, codes amis et interactions synchronisees.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/social#webpage",
+          "url": "https://titan-app.fr/social",
+          "name": "Social TITAN OS - Guildes, allies et defis",
+          "headline": "Social TITAN OS - Guildes, allies et defis",
+          "description": "Espace social TITAN OS reserve aux comptes connectes: guildes, allies, defis, codes amis et interactions synchronisees.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/social#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/social#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Social TITAN OS - Guildes, allies et defis",
+              "item": "https://titan-app.fr/social"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="social">
     <div class="layout">
         <nav class="sidebar"></nav>
-
         <main class="main-content">
-            <h1 class="titular" style="margin-bottom:20px; font-size: 2rem;">RÉSEAU TITAN</h1>
+            <div class="mobile-user-bar"></div>
+            
+            <header style="margin-bottom: 25px;">
+                <h1 class="titular">
+                    SOCIAL 
+                    <i class="ri-question-line" onclick="openHelpModal()" style="font-size:1rem; color:var(--accent); cursor:pointer; vertical-align:middle; margin-left:10px;"></i>
+                </h1>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Reseau tactique Titan</p>
+            </header>
 
-            <div class="coming-soon-card">
-                <i class="ri-lock-2-fill lock-icon"></i>
-                <div class="cs-title">MODULE GUILDE & CHAT</div>
-                <p style="font-size: 0.9rem; line-height: 1.5; max-width: 500px; margin: 0 auto;">
-                    La connexion au réseau neuronal des guildes est actuellement en cours de maintenance pour mise à niveau.
-                    Revenez dans la version 0.6 pour créer votre escouade.
-                </p>
-                <div style="margin-top: 20px; font-weight: 800; color: var(--gold); border: 1px solid var(--gold); display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem;">
-                    STATUT : À VENIR
-                </div>
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="switchTab('friends')"><i class="ri-team-line"></i> ALLIES</button>
+                <button class="tab-btn" onclick="switchTab('guild')"><i class="ri-shield-user-line"></i> GUILDE</button>
             </div>
 
-            <div class="friends-panel">
-                <h3 class="section-title"><i class="ri-user-add-line" style="color:var(--accent);"></i> AJOUTER UN ALLIÉ</h3>
+            <div id="view-friends" class="view-section active">
                 
-                <div class="add-friend-box">
-                    <input type="text" id="friend-code-input" class="input-friend" placeholder="Entrer Matricule (ex: TN-F71E)">
-                    <button class="btn btn-action" onclick="addFriendAction()" style="padding: 0 25px;">
-                        <i class="ri-user-follow-fill"></i>
-                    </button>
-                </div>
-
-                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
-
-                <h3 class="section-title" style="font-size:0.9rem; color:var(--text-muted);">
-                    LISTE D'ALLIÉS <span id="friend-count" style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:10px; font-size:0.7rem;">0</span>
-                </h3>
-                
-                <div id="friends-list-container">
-                    <div style="text-align:center; color:var(--text-muted); font-style:italic; padding:30px;">
-                        <i class="ri-ghost-line" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
-                        Aucun allié connecté sur le réseau.
+                <a href="https://discord.gg/tbgQAAAxrU" target="_blank" rel="noopener noreferrer" class="discord-box" data-discord-link>
+                    <div class="d-icon"><i class="ri-discord-fill"></i></div>
+                    <div class="d-info">
+                        <div class="d-title">QG TACTIQUE</div>
+                        <div class="d-sub">Rejoindre le canal securise Discord</div>
                     </div>
+                    <div style="color:rgba(255,255,255,0.5);"><i class="ri-external-link-line"></i></div>
+                </a>
+
+                <div class="add-friend-box">
+                    <input type="text" id="friend-code-input" class="input-code" placeholder="MATRICULE AMI (ex: TN-AB12CD)" inputmode="latin" autocomplete="off">
+                    <button class="btn-add" onclick="addFriendAction()" aria-label="Ajouter un ami par matricule" title="Ajouter un ami"><i class="ri-user-add-line"></i></button>
                 </div>
+
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div style="font-size:0.7rem; color:var(--text-muted);">MON MATRICULE</div>
+                    <div id="my-matricule" style="font-family:'Courier New'; color:var(--accent); font-weight:bold; cursor:pointer;" onclick="copyMatricule()">CHARGEMENT...</div>
+                </div>
+
+                <div class="section-header" style="font-family:'Russo One'; color:var(--text-muted); font-size:0.8rem; margin-bottom:15px; display:flex; gap:10px; align-items:center;">
+                    <i class="ri-star-fill" style="color:#10b981"></i> MES ALLIES (<span id="friend-count">0</span>)
+                </div>
+
+                <div class="friend-ranking-card">
+                    <div class="friend-ranking-head">
+                        <span><i class="ri-bar-chart-grouped-line"></i> Classement amis</span>
+                        <label><input type="checkbox" id="friend-ranking-toggle" onchange="toggleFriendRankings(this.checked)"> Participer</label>
+                    </div>
+                    <div id="friend-ranking-list" class="friend-ranking-list"></div>
+                </div>
+
+                <div id="my-friends-list">
+                    <div style="text-align:center; padding:20px; color:var(--text-muted);"><span class="loader"></span></div>
+                </div>
+
+                <div id="active-challenges-list" class="active-challenges-box">
+                    <div style="font-family:'Russo One'; color:var(--accent); font-size:0.75rem; margin-bottom:10px; letter-spacing:1px;">OPERATIONS EN COURS</div>
+                    <div id="challenges-container"></div>
+                </div>
+
             </div>
 
+            <div id="view-guild" class="view-section">
+                <div id="guild-root"></div>
+            </div>
         </main>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
-    <script src="./js/social.js"></script>
+    <div class="modal-overlay" id="help-modal">
+        <div class="vs-card">
+            <div class="vs-header" style="justify-content:center; border-bottom:none; padding-bottom:10px;">
+                <h3 style="font-family:'Russo One'; font-size:1.2rem; color:#fff;">RÈGLES DU DÉFI</h3>
+            </div>
+            <div style="padding:20px; text-align:left; color:#cbd5e1; font-size:0.85rem; line-height:1.6;">
+                <p><strong style="color:#ef4444;"><i class="ri-sword-fill"></i> DUEL (MISE)</strong><br>
+                Mise fixe de 50 crédits par joueur. Le premier qui termine le défi remporte le pot (100 crédits).</p>
+                <p style="margin-top:15px;"><strong style="color:#a78bfa;"><i class="ri-ghost-fill"></i> MODE FANTOME</strong><br>
+                Selectionnez un objectif standard ? battre pour gagner de l'XP.</p>
+                <button class="close-btn" style="margin-top:20px; border-radius:8px;" onclick="closeHelpModal()">COMPRIS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="vs-modal">
+        <div class="vs-card">
+            <div class="vs-header">
+                <div class="player-col">
+                    <div class="p-avatar" id="vs-my-avatar"></div>
+                    <div class="p-name" id="vs-my-name">Moi</div>
+                    <div class="p-lvl" id="vs-my-lvl">NIV 1</div>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="player-col">
+                    <div class="p-avatar" id="vs-op-avatar"></div>
+                    <div class="p-name" id="vs-op-name">Adversaire</div>
+                    <div class="p-lvl" id="vs-op-lvl">NIV ?</div>
+                </div>
+            </div>
+            <div class="vs-body">
+                <div class="stat-row">
+                    <div class="stat-val" id="vs-my-sessions">0</div>
+                    <div class="stat-label">SEANCES</div>
+                    <div class="stat-val" id="vs-op-sessions">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-val" id="vs-my-sport">?</div>
+                    <div class="stat-label">FAVORI</div>
+                    <div class="stat-val" id="vs-op-sport">?</div>
+                </div>
+                <div class="fun-fact">
+                    <div class="fun-title"><i class="ri-lightbulb-flash-line"></i> ANALYSE TACTIQUE</div>
+                    <div class="fun-text" id="vs-fun-text">Analyse en cours...</div>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeVsModal()">FERMER L'ANALYSE</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="duel-modal">
+        <div class="vs-card">
+            <div class="vs-header" style="justify-content:center; border-bottom:none; padding-bottom:10px;">
+                <h3 style="font-family:'Russo One'; font-size:1.2rem; color:#ef4444;"><i class="ri-sword-fill"></i> DUEL (50 CREDITS)</h3>
+            </div>
+            <div class="modal-body-action">
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:15px;">Choisis un défi standard.</p>
+                <select id="duel-preset" class="modal-input">
+                    <option value="pompes_100">Course: 100 Pompes</option>
+                    <option value="squats_200">Course: 200 Squats</option>
+                    <option value="run_10">Distance: 10km Run</option>
+                </select>
+                <button class="modal-action-btn btn-duel-confirm" onclick="confirmDuel()">LANCER (COUT: 50)</button>
+                <button class="modal-action-btn" style="background:#334155; color:#94a3b8;" onclick="closeModal('duel-modal')">ANNULER</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="ghost-modal">
+        <div class="vs-card">
+            <div class="vs-header" style="justify-content:center; border-bottom:none; padding-bottom:10px;">
+                <h3 style="font-family:'Russo One'; font-size:1.2rem; color:#a78bfa;"><i class="ri-ghost-fill"></i> CIBLE FANTOME</h3>
+            </div>
+            <div class="modal-body-action">
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:15px;">Objectif de performance.</p>
+                <select id="ghost-preset" class="modal-input">
+                    <option value="pompes_50">50 Pompes (Serie)</option>
+                    <option value="squats_100">100 Squats (Serie)</option>
+                    <option value="run_5">5km Run</option>
+                </select>
+                <button class="modal-action-btn btn-ghost-confirm" onclick="confirmGhost()">VERROUILLER CIBLE</button>
+                <button class="modal-action-btn" style="background:#334155; color:#94a3b8;" onclick="closeModal('ghost-modal')">ANNULER</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    <script src="./js/social.js?v=100.0"></script>
+
+    <script>
+        // --- INITIALISATION SECURISEE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const discordLink = document.querySelector('[data-discord-link]');
+            if (discordLink && window.TITAN_EXTERNAL_URLS?.discord) discordLink.href = window.TITAN_EXTERNAL_URLS.discord;
+
+            const check = setInterval(() => {
+                // On attend que le systeme Titan soit pret (state.js + main.js)
+                if(window.state && window.titanClient && window.state.user) {
+                    clearInterval(check);
+                    
+                    // Chargement du matricule perso (si connect?)
+                    loadMyMatricule();
+                    
+                    // L'UI mobile est injectee automatiquement par main.js
+                    if(window.injectMobileHeader) window.injectMobileHeader();
+                    renderGuild();
+                }
+            }, 100);
+            
+            // Timeout de securite
+            setTimeout(() => { clearInterval(check); }, 5000);
+            setTimeout(() => { if(window.state && window.state.user) renderGuild(); }, 700);
+        });
+
+        async function loadMyMatricule() {
+            const userId = window.state?.user?.id || '';
+            const matricule = document.getElementById('my-matricule');
+            if (!userId || userId.startsWith('guest_')) {
+                if (matricule) matricule.innerText = 'COMPTE REQUIS';
+                return;
+            }
+            if(!window.titanClient) return;
+            try {
+                // Recuperation securisee du matricule depuis Supabase
+                const { data, error } = await window.titanClient.from('profiles').select('friend_code').eq('id', userId).maybeSingle();
+                if (error) throw error;
+                if(data && data.friend_code) {
+                    if (matricule) matricule.innerText = data.friend_code;
+                    window.state.user.friend_code = data.friend_code;
+                } else if (window.titanClient.rpc) {
+                    const { data: assignedCode, error: assignError } = await window.titanClient.rpc('titan_assign_friend_code');
+                    if (assignError) throw assignError;
+                    if (assignedCode) {
+                        if (matricule) matricule.innerText = assignedCode;
+                        window.state.user.friend_code = assignedCode;
+                        if(window.saveState) window.saveState();
+                    }
+                }
+            } catch (error) {
+                if (matricule) matricule.innerText = 'INDISPONIBLE';
+                console.warn('[SOCIAL] Matricule indisponible:', error?.message || error);
+            }
+        }
+
+        function copyMatricule() {
+            const txt = document.getElementById('my-matricule').innerText;
+            if(txt && !['CHARGEMENT...', 'COMPTE REQUIS', 'INDISPONIBLE'].includes(txt)) {
+                navigator.clipboard.writeText(txt);
+                if(window.showNotification) window.showNotification('success', 'COPIE', 'Matricule copie dans le presse-papier.');
+                else console.warn('[SOCIAL] Matricule copie.');
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            if(tab === 'friends') { 
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active'); 
+                document.getElementById('view-friends').classList.add('active'); 
+            } else { 
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active'); 
+                document.getElementById('view-guild').classList.add('active'); 
+                renderGuild();
+            }
+        }
+
+        let currentGuild = null;
+
+        function getGuild() {
+            return currentGuild;
+        }
+
+        async function loadGuildFromCloud() {
+            if(!window.titanClient?.rpc || !window.state?.user || window.state.user.id.startsWith('guest_')) {
+                currentGuild = null;
+                return null;
+            }
+            const { data, error } = await window.titanClient.rpc('titan_get_my_guild');
+            if(error) {
+                console.warn('[SOCIAL] Guilde cloud indisponible:', error);
+                currentGuild = null;
+                return null;
+            }
+            currentGuild = data || null;
+            if(currentGuild && window.state?.user) {
+                window.state.user.guild_id = currentGuild.id;
+                if(window.saveState) window.saveState({ forceCloud: true });
+            }
+            return currentGuild;
+        }
+
+        async function updateGuildFromRpc(task, successTitle) {
+            if(!window.titanClient?.rpc || !window.state?.user || window.state.user.id.startsWith('guest_')) {
+                if(window.showNotification) window.showNotification('warning', 'CONNEXION', 'Connecte-toi pour synchroniser une guilde.');
+                return null;
+            }
+            try {
+                const guild = await task();
+                if(guild?.economy?.credits_after !== undefined && window.state?.user) {
+                    window.state.user.credits = Number(guild.economy.credits_after || 0);
+                    if(window.saveState) window.saveState({ forceCloud: true });
+                    if(window.updateGlobalUI) window.updateGlobalUI();
+                }
+                currentGuild = guild || null;
+                if(window.showNotification && successTitle) window.showNotification('success', successTitle, currentGuild?.code || 'Synchronisation terminee.');
+                renderGuild();
+                return currentGuild;
+            } catch(error) {
+                console.error('[SOCIAL] Action guilde:', error);
+                if(window.titanIsSuspendedError?.(error) && window.titanNotifySuspended) window.titanNotifySuspended();
+                else if(window.showNotification) window.showNotification('error', 'GUILDE', economySocialError(error));
+                return null;
+            }
+        }
+
+        function getGuildCreateCost() {
+            return window.TITAN_ECONOMY?.guildCreateCost || 3000;
+        }
+
+        function economySocialError(error) {
+            const msg = String(error?.message || error || '');
+            if(msg.includes('INSUFFICIENT_CREDITS')) return `Credits insuffisants. Fondation requise: ${getGuildCreateCost()} credits.`;
+            if(msg.includes('ACCOUNT_SUSPENDED')) return 'Compte suspendu: action bloquee.';
+            if(msg.includes('GUILD_OWNER_REQUIRED')) return 'Action reservee au fondateur de la guilde.';
+            return msg || 'Action impossible.';
+        }
+
+        function cleanGuildText(value, fallback, maxLength) {
+            const safe = typeof window.titanSafeText === 'function'
+                ? window.titanSafeText(value, maxLength)
+                : String(value || '').replace(/[\u0000-\u001F\u007F<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+            return safe || fallback;
+        }
+
+        function cleanGuildCode(value) {
+            const code = String(value || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16);
+            return /^G-[A-Z0-9]{4,10}$/.test(code) ? code : '';
+        }
+
+        async function renderGuild() {
+            const root = document.getElementById('guild-root');
+            if(!root || !window.state || !window.state.user) return;
+            if(!window.state.user.id || window.state.user.id.startsWith('guest_')) {
+                root.innerHTML = `<div class="guild-lock"><i class="ri-lock-2-line" style="font-size:2rem; color:var(--accent);"></i><h3>Connexion requise</h3><p style="color:#94a3b8;">Connecte-toi pour retrouver ton équipe et ses échanges sur tes appareils.</p><a class="guild-btn" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:14px;" href="login.html">SE CONNECTER</a></div>`;
+                return;
+            }
+            if(currentGuild === null && window.titanClient?.rpc) await loadGuildFromCloud();
+            const guild = getGuild();
+            if(!guild) {
+                root.innerHTML = `
+                    <div class="guild-grid">
+                        <div class="guild-panel">
+                            <div class="guild-title"><i class="ri-shield-star-line"></i> CREER UNE GUILDE</div>
+                            <p style="color:#94a3b8; font-size:0.82rem; line-height:1.45; margin-top:0;">Fondation serveur: <strong style="color:#f4c95d;">${getGuildCreateCost()} credits</strong>. Une guilde doit etre un vrai engagement, pas un spam.</p>
+                            <div class="guild-form">
+                                <input id="guild-name-input" maxlength="28" placeholder="Nom de guilde">
+                                <input id="guild-motto-input" maxlength="64" placeholder="Devise / objectif">
+                                <button class="guild-btn" onclick="createGuild()">FONDER - ${getGuildCreateCost()} C</button>
+                            </div>
+                        </div>
+                        <div class="guild-panel">
+                            <div class="guild-title"><i class="ri-login-circle-line"></i> REJOINDRE</div>
+                            <div class="guild-form">
+                                <input id="guild-code-input" maxlength="16" placeholder="CODE GUILDE">
+                                <button class="guild-btn secondary" onclick="joinGuild()">REJOINDRE</button>
+                            </div>
+                            <p style="color:#94a3b8; font-size:0.8rem; line-height:1.5; margin-top:12px;">Les membres, l’objectif et les messages de l’équipe restent disponibles sur tes appareils.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+            const weeklyTarget = guild.weeklyTarget || 5;
+            const progress = Math.max(0, Math.min(100, parseInt(guild.progress, 10) || 0));
+            const weekSessions = Math.max(0, parseInt(guild.weekSessions, 10) || 0);
+            const members = guild.members || [];
+            const logs = guild.logs || [];
+            root.innerHTML = `
+                <div class="guild-hero">
+                    <div style="color:#94a3b8; font-size:0.72rem; text-transform:uppercase; font-weight:800;">GUILDE ACTIVE</div>
+                    <div class="guild-name">${escapeHtml(guild.name)}</div>
+                    <div style="color:#cbd5e1; margin-top:6px;">${escapeHtml(guild.motto || 'Aucune devise')}</div>
+                    <div class="guild-code" onclick="copyGuildCode()">${escapeHtml(guild.code)}</div>
+                    <div class="guild-actions">
+                        <button class="guild-btn" onclick="window.location.href='chat.html'"><i class="ri-message-3-line"></i> CANAL GUILDE</button>
+                        <button class="guild-btn secondary" onclick="leaveGuild()"><i class="ri-logout-box-r-line"></i> QUITTER</button>
+                    </div>
+                </div>
+                <div class="guild-grid">
+                    <div class="guild-panel">
+                        <div class="guild-title"><i class="ri-flag-line"></i> OBJECTIF HEBDO</div>
+                        <div style="color:#94a3b8; font-size:0.82rem;">${weekSessions}/${weeklyTarget} seances collectives cette semaine</div>
+                        <div class="guild-progress" style="--guild-progress:${progress}%"><span></span></div>
+                        <div style="color:#fff; font-family:'Russo One';">${progress}% STABILISE</div>
+                        <div class="guild-actions">
+                            <button class="guild-btn secondary" onclick="setGuildTarget(3)">3 SEANCES</button>
+                            <button class="guild-btn secondary" onclick="setGuildTarget(5)">5 SEANCES</button>
+                        </div>
+                    </div>
+                    <div class="guild-panel">
+                        <div class="guild-title"><i class="ri-team-line"></i> MEMBRES</div>
+                        ${members.map(member => `
+                            <div class="guild-member">
+                                <i class="ri-user-3-fill"></i>
+                                <div><strong style="color:#fff;">${escapeHtml(member.name)}</strong><br><span style="color:#94a3b8; font-size:0.74rem;">${escapeHtml(member.role)}</span></div>
+                            </div>`).join('')}
+                    </div>
+                    <div class="guild-panel" style="grid-column:1 / -1;">
+                        <div class="guild-title"><i class="ri-file-list-3-line"></i> JOURNAL GUILDE</div>
+                        <div class="guild-log">${logs.map(log => `<div class="guild-log-item">${escapeHtml(log)}</div>`).join('') || '<div class="guild-log-item">Aucune activite pour le moment.</div>'}</div>
+                    </div>
+                </div>`;
+        }
+
+        async function createGuild() {
+            const name = cleanGuildText(document.getElementById('guild-name-input')?.value, 'Escouade Titan', 28);
+            const motto = cleanGuildText(document.getElementById('guild-motto-input')?.value, 'Tenir la ligne.', 64);
+            await updateGuildFromRpc(async () => {
+                const { data, error } = await window.titanClient.rpc('titan_create_guild', { p_name: name, p_motto: motto });
+                if(error) throw error;
+                return data;
+            }, 'GUILDE CREEE');
+        }
+
+        async function joinGuild() {
+            const code = cleanGuildCode(document.getElementById('guild-code-input')?.value);
+            if(!code) {
+                if(window.showNotification) window.showNotification('warning', 'CODE GUILDE', 'Format attendu: G-ABCDE.');
+                return;
+            }
+            await updateGuildFromRpc(async () => {
+                const { data, error } = await window.titanClient.rpc('titan_join_guild', { p_code: code });
+                if(error) throw error;
+                return data;
+            }, 'GUILDE REJOINTE');
+        }
+
+        async function copyGuildCode() {
+            const guild = getGuild();
+            if(!guild) return;
+            await navigator.clipboard.writeText(cleanGuildCode(guild.code) || guild.code);
+            if(window.showNotification) window.showNotification('success', 'COPIE', 'Code guilde copie.');
+        }
+
+        async function leaveGuild() {
+            const now = Date.now();
+            if(!window.__titanPendingGuildLeaveAt || now - window.__titanPendingGuildLeaveAt > 5000) {
+                window.__titanPendingGuildLeaveAt = now;
+                if(window.showNotification) window.showNotification('warning', 'CONFIRMATION', 'Clique encore une fois pour quitter la guilde.');
+                return;
+            }
+            window.__titanPendingGuildLeaveAt = 0;
+            await updateGuildFromRpc(async () => {
+                const { error } = await window.titanClient.rpc('titan_leave_guild');
+                if(error) throw error;
+                return null;
+            }, null);
+            currentGuild = null;
+            if(window.state?.user) {
+                window.state.user.guild_id = null;
+                if(window.saveState) window.saveState({ forceCloud: true });
+            }
+            renderGuild();
+        }
+
+        async function setGuildTarget(value) {
+            await updateGuildFromRpc(async () => {
+                const { data, error } = await window.titanClient.rpc('titan_set_guild_target', { p_target: value });
+                if(error) throw error;
+                return data;
+            });
+        }
+
+        /* ACTIONS MODALES */
+        let selectedFriendId = null;
+
+        window.openHelpModal = () => document.getElementById('help-modal').classList.add('open');
+        window.closeHelpModal = () => document.getElementById('help-modal').classList.remove('open');
+        window.closeVsModal = () => document.getElementById('vs-modal').classList.remove('open');
+
+        window.openDuelModal = (fid) => { selectedFriendId = fid; document.getElementById('duel-modal').classList.add('open'); }
+        window.openGhostModal = (fid) => { selectedFriendId = fid; document.getElementById('ghost-modal').classList.add('open'); }
+        window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); selectedFriendId = null; }
+
+        window.confirmDuel = function() {
+            const preset = document.getElementById('duel-preset').value;
+            // Appel ? la fonction globale de main.js
+            if(window.createWager) window.createWager(selectedFriendId, preset, 50);
+            window.closeModal('duel-modal');
+        }
+
+        window.confirmGhost = function() {
+            const preset = document.getElementById('ghost-preset').value;
+            // Appel ? la fonction globale de main.js
+            if(window.createGhost) window.createGhost(selectedFriendId, preset, 0);
+            window.closeModal('ghost-modal');
+        }
+    </script>
 </body>
 </html>
+

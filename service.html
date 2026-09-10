@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Aide, compte et confidentialité | TITAN OS Sport</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        .service-shell { display:grid; gap:18px; }
+        .service-hero {
+            border:1px solid rgba(56,189,248,0.18);
+            border-radius:12px;
+            background:linear-gradient(135deg, rgba(56,189,248,0.10), rgba(16,185,129,0.045));
+            padding:20px;
+        }
+        .service-kicker { color:var(--accent); font-size:0.72rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
+        .service-title { color:#fff; font-family:'Russo One'; font-size:1.35rem; margin:6px 0; }
+        .service-copy { color:#94a3b8; font-size:0.86rem; line-height:1.55; max-width:760px; }
+        .service-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
+        .service-card {
+            min-height:132px;
+            border:1px solid rgba(148,163,184,0.14);
+            border-radius:8px;
+            background:rgba(30,41,59,0.48);
+            color:#cbd5e1;
+            display:grid;
+            gap:10px;
+            align-content:start;
+            padding:16px;
+            text-decoration:none;
+        }
+        .service-card:hover { border-color:rgba(56,189,248,0.38); background:rgba(56,189,248,0.075); }
+        .service-icon { width:38px; height:38px; display:grid; place-items:center; border-radius:8px; background:rgba(56,189,248,0.12); color:var(--accent); font-size:1.2rem; }
+        .service-card strong { color:#fff; font-family:'Russo One'; font-size:0.82rem; letter-spacing:0.06em; }
+        .service-card span { color:#94a3b8; font-size:0.78rem; line-height:1.4; }
+        .service-status { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+        .service-chip { border:1px solid rgba(148,163,184,0.14); border-radius:8px; background:rgba(255,255,255,0.035); padding:12px; }
+        .service-chip b { color:#fff; display:block; font-size:0.78rem; margin-bottom:4px; }
+        .service-chip span { color:#94a3b8; font-size:0.76rem; }
+        .feature-map { margin-top:24px; display:grid; gap:12px; }
+        .feature-map-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:20px; }
+        .feature-map-head h2 { margin:0; color:#fff; font-family:'Russo One'; font-size:1rem; text-transform:uppercase; }
+        .feature-map-head p { margin:4px 0 0; color:#94a3b8; font-size:0.82rem; line-height:1.45; }
+        .feature-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .feature-card { border:1px solid rgba(148,163,184,0.14); border-radius:8px; background:rgba(255,255,255,0.035); padding:12px; text-decoration:none; min-height:118px; display:grid; gap:8px; }
+        .feature-card strong { color:#fff; font-family:'Russo One'; font-size:0.78rem; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+        .feature-card span { color:#cbd5e1; font-size:0.72rem; line-height:1.35; }
+        .feature-status { justify-self:start; border:1px solid rgba(76,201,176,0.24); border-radius:999px; color:#4cc9b0; padding:4px 7px; font-size:0.58rem; text-transform:uppercase; font-weight:900; }
+        .feature-status.elite { border-color:rgba(126, 220, 255,0.28); color:#d7e8f2; }
+        .feature-status.soon { border-color:rgba(148,163,184,0.18); color:#94a3b8; }
+        @media (max-width: 820px) {
+            .service-grid { grid-template-columns:1fr 1fr; }
+            .service-status { grid-template-columns:1fr; }
+            .feature-grid { grid-template-columns:1fr 1fr; }
+        }
+        @media (max-width: 520px) {
+            .service-grid { grid-template-columns:1fr; }
+            .service-card { min-height:112px; }
+            .feature-grid { grid-template-columns:1fr; }
+            .feature-map-head { align-items:flex-start; flex-direction:column; }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Retrouve les réponses utiles pour utiliser TITAN OS Sport, protéger ton compte, comprendre tes données et contacter l’équipe d’assistance.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/service">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/service">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/service">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Aide, compte et confidentialité | TITAN OS Sport">
+    <meta property="og:description" content="Retrouve les réponses utiles pour utiliser TITAN OS Sport, protéger ton compte, comprendre tes données et contacter l’équipe d’assistance.">
+    <meta property="og:url" content="https://titan-app.fr/service">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Aide, compte et confidentialité | TITAN OS Sport">
+    <meta name="twitter:description" content="Retrouve les réponses utiles pour utiliser TITAN OS Sport, protéger ton compte, comprendre tes données et contacter l’équipe d’assistance.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://acscdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//acscdn.com">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/service#webpage",
+          "url": "https://titan-app.fr/service",
+          "name": "Aide, compte et confidentialité | TITAN OS Sport",
+          "headline": "Aide, compte et confidentialité | TITAN OS Sport",
+          "description": "Retrouve les réponses utiles pour utiliser TITAN OS Sport, protéger ton compte, comprendre tes données et contacter l’équipe d’assistance.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/service#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/service#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Aide, compte et confidentialité",
+              "item": "https://titan-app.fr/service"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="service">
+    <div class="layout">
+        <nav class="sidebar"></nav>
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            <section class="service-shell">
+                <header class="service-hero">
+                    <div class="service-kicker">Aide et confiance</div>
+                    <h1 class="service-title">Centre d’aide</h1>
+                    <p class="service-copy">Aide, confiance, securite, donnees et support sont regroupes ici pour garder le coeur de TITAN OS concentre sur la progression.</p>
+                </header>
+
+                <div class="service-status">
+                    <div class="service-chip"><b>Sync</b><span id="service-sync">Lecture locale...</span></div>
+                    <div class="service-chip"><b>Compte</b><span id="service-account">Verification...</span></div>
+                    <div class="service-chip"><b>Version</b><span id="service-version">v87</span></div>
+                </div>
+
+                <nav id="service-grid" class="service-grid" aria-label="Liens service TITAN OS"></nav>
+
+                <section class="feature-map" aria-labelledby="feature-map-title">
+                    <div class="feature-map-head">
+                        <div>
+                            <h2 id="feature-map-title">Tout ce que tu peux faire</h2>
+                            <p>Retrouve les fonctions disponibles, les options TITAN+ et les nouveautés prévues dans un langage simple.</p>
+                        </div>
+                    </div>
+                    <div id="feature-map-grid" class="feature-grid"></div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(hydrateServiceHub, 350);
+        });
+
+        async function hydrateServiceHub() {
+            renderServiceHub();
+            if (typeof window.titanRefreshProgressionSnapshot === 'function') {
+                await window.titanRefreshProgressionSnapshot({ silent: true });
+            }
+            renderServiceHub();
+        }
+
+        function renderServiceHub() {
+            const grid = document.getElementById('service-grid');
+            if (!grid) return;
+            const links = window.TITAN_UTILITY_LINKS || [];
+            grid.innerHTML = links.map(link => `
+                <a class="service-card" href="${link.href}">
+                    <span class="service-icon"><i class="${link.icon}"></i></span>
+                    <strong>${window.titanEscapeText(link.label)}</strong>
+                    <span>${window.titanEscapeText(link.desc || '')}</span>
+                </a>
+            `).join('');
+
+            const sync = document.getElementById('service-sync');
+            const account = document.getElementById('service-account');
+            const version = document.getElementById('service-version');
+            const pending = typeof window.titanGetPendingTrainingLogs === 'function' ? window.titanGetPendingTrainingLogs().length : 0;
+            const readiness = typeof window.titanBuildCloudReadiness === 'function' ? window.titanBuildCloudReadiness() : null;
+            if (sync) {
+                sync.textContent = pending
+                    ? `${pending} séance(s) en attente de sauvegarde`
+                    : (readiness?.snapshot ? 'Sauvegarde du compte active' : 'Tout est à jour sur cet appareil');
+            }
+            if (account) account.textContent = window.state?.user?.id?.startsWith('guest_') ? 'Mode invité sur cet appareil' : 'Compte sauvegardé';
+            if (version) version.textContent = `v${window.GAME_SETTINGS?.version || '63.0'}`;
+            renderFeatureMap();
+        }
+
+        function renderFeatureMap() {
+            const grid = document.getElementById('feature-map-grid');
+            if (!grid) return;
+            const features = [
+                { icon: 'ri-home-4-line', title: 'QG', text: 'Coach du jour, fraicheur, retour apres absence, economie et prochaine action.', href: 'index.html', status: 'actif' },
+                { icon: 'ri-run-line', title: 'Sport OS', text: 'Seances, objectifs par discipline, radar physique, debrief et signaux corporels.', href: 'training.html', status: 'actif' },
+                { icon: 'ri-sword-line', title: 'Aventure', text: 'Boss, faiblesses credibles, phases a partir du boss 5 et duel miroir au boss 10.', href: 'adventure.html', status: 'actif' },
+                { icon: 'ri-radar-line', title: 'Progression', text: 'Stats, classes hybrides, reputation, titres evolutifs et journal automatique.', href: 'stats.html', status: 'actif' },
+                { icon: 'ri-sparkling-2-line', title: 'Conseil du jour', text: 'Une lecture courte de ta progression : point fort, priorité actuelle et prochaine action utile.', href: 'stats.html', status: 'actif' },
+                { icon: 'ri-save-3-line', title: 'Sauvegarde du compte', text: 'Tes séances, ton profil et tes récompenses restent cohérents entre tes appareils.', href: 'notifications.html', status: 'actif' },
+                { icon: 'ri-group-line', title: 'Social et guildes', text: 'Amis, guilde, roles sportifs, chat payant et retention courte des messages.', href: 'social.html', status: 'actif' },
+                { icon: 'ri-store-3-line', title: 'Boutique équitable', text: 'Cadres, effets et thèmes visuels débloqués sans avantage de puissance ni récompense supplémentaire.', href: 'boutique.html', status: 'actif' },
+                { icon: 'ri-vip-crown-2-line', title: 'TITAN+', text: 'Plans adaptés, analyses approfondies, bilans, archives longues et collections saisonnières.', href: 'boutique.html', status: 'plus' },
+                { icon: 'ri-book-open-line', title: 'Bestiaire', text: 'Mobs statistiques, boss uniques, cartes souvenir et reliques visuelles.', href: 'trophies.html', status: 'actif' },
+                { icon: 'ri-database-2-line', title: 'Dictionnaire des donnees', text: 'XP, crédits, charge, fraîcheur, radar, catalogue multisport et spécificités sportives expliqués.', href: 'guide.html#donnees', status: 'actif' },
+                { icon: 'ri-shield-check-line', title: 'Expérience fiable', text: 'Pages rapides, protections renforcées, fonctionnement mobile vérifié et reprise après une coupure réseau.', href: 'guide.html', status: 'actif' }
+            ];
+            grid.innerHTML = features.map(feature => {
+                const statusClass = feature.status === 'plus' ? 'elite' : (feature.status === 'bientot' ? 'soon' : '');
+                return `
+                    <a class="feature-card" href="${feature.href}">
+                        <span class="feature-status ${statusClass}">${window.titanEscapeText(feature.status)}</span>
+                        <strong><i class="${feature.icon}"></i>${window.titanEscapeText(feature.title)}</strong>
+                        <span>${window.titanEscapeText(feature.text)}</span>
+                    </a>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
+

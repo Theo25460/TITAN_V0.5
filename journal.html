@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Journal sportif - TITAN OS</title>
+
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+<style>
+        body.journal-page {
+            background:
+                radial-gradient(circle at 70% 0%, rgba(126, 220, 255, 0.12), transparent 26rem),
+                linear-gradient(145deg, #05080d 0%, #08111a 54%, #05080d 100%) !important;
+            color: #eaf8ff !important;
+            font-family: var(--font-ui) !important;
+        }
+
+        body.journal-page::after {
+            opacity: 0.16;
+            background:
+                linear-gradient(rgba(126, 220, 255, 0.045) 50%, rgba(0, 0, 0, 0.08) 50%),
+                linear-gradient(90deg, rgba(126, 220, 255, 0.035), transparent, rgba(215, 232, 242, 0.025));
+        }
+
+        body.journal-page .layout {
+            background:
+                linear-gradient(rgba(126, 220, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(126, 220, 255, 0.035) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+
+        body.journal-page {
+            height: auto;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: #dbe7ef;
+            font-family: var(--font-ui);
+        }
+
+        body.journal-page .layout {
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+        }
+
+        body.journal-page .main-content {
+            max-width: none !important;
+            padding: 18px !important;
+            gap: 14px;
+            height: auto;
+            min-height: 100vh;
+            overflow: visible;
+            background:
+                radial-gradient(circle at 88% 12%, rgba(126, 220, 255, 0.10), transparent 30rem),
+                rgba(5, 8, 13, 0.22) !important;
+        }
+
+        .journal-command-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            min-height: 112px;
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            padding: 18px 20px;
+            background:
+                linear-gradient(135deg, rgba(126, 220, 255, 0.10), transparent 34%),
+                linear-gradient(180deg, rgba(13, 23, 34, 0.92), rgba(5, 8, 13, 0.9));
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+        }
+
+        .journal-kicker {
+            display: block;
+            color: #9ee7ff;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .journal-command-strip h1 {
+            margin: 0;
+            color: #ffffff !important;
+            font-family: var(--font-display) !important;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            font-style: italic;
+            line-height: 0.9;
+            text-transform: uppercase;
+        }
+
+        .journal-command-strip p {
+            margin: 8px 0 0;
+            max-width: 720px;
+            color: #9eafbf !important;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .journal-strip-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .activity-ledger {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 0.52fr);
+            gap: 14px;
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(126, 220, 255, 0.08), transparent 38%),
+                linear-gradient(180deg, rgba(13, 23, 34, 0.88), rgba(5, 8, 13, 0.9));
+            padding: 16px;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
+        }
+
+        .activity-ledger-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+            grid-column: 1 / -1;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(126, 220, 255, 0.12);
+        }
+
+        .activity-ledger-head h2 {
+            margin: 0;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-style: italic;
+            line-height: 0.95;
+            text-transform: uppercase;
+        }
+
+        .activity-ledger-head p {
+            max-width: 680px;
+            margin: 8px 0 0;
+            color: #9eafbf;
+            font-size: 0.88rem;
+            line-height: 1.48;
+        }
+
+        .activity-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            min-width: 92px;
+            border: 1px solid rgba(126, 220, 255, 0.22);
+            border-radius: 8px;
+            background: rgba(126, 220, 255, 0.07);
+            color: #eaf8ff;
+            font-weight: 900;
+        }
+
+        .activity-panel {
+            min-width: 0;
+        }
+
+        .activity-filters {
+            display: grid;
+            grid-template-columns: 1fr 150px 150px minmax(180px, 0.9fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .activity-filters select,
+        .activity-filters input {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid rgba(126, 220, 255, 0.18);
+            border-radius: 8px;
+            background: rgba(2, 6, 12, 0.78);
+            color: #eaf8ff;
+            padding: 0 10px;
+            font: 800 0.78rem var(--font-ui);
+            outline: 0;
+        }
+
+        .activity-filters input::placeholder {
+            color: #7691a0;
+        }
+
+        .activity-feed {
+            display: grid;
+            gap: 10px;
+            max-height: 480px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .activity-card {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            border: 1px solid rgba(126, 220, 255, 0.12);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.035);
+            color: inherit;
+            cursor: pointer;
+            padding: 13px;
+            text-align: left;
+            transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+        }
+
+        .activity-card:hover,
+        .activity-card.active {
+            border-color: rgba(126, 220, 255, 0.34);
+            background: rgba(126, 220, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .activity-card-top,
+        .activity-card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .activity-title {
+            min-width: 0;
+        }
+
+        .activity-title strong {
+            display: block;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-style: italic;
+            text-transform: uppercase;
+        }
+
+        .activity-title span,
+        .activity-card-bottom {
+            color: #8fa8b8;
+            font-size: 0.78rem;
+        }
+
+        .activity-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .activity-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(126, 220, 255, 0.055);
+            color: #dff7ff;
+            padding: 0 8px;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        .activity-chip.reward {
+            border-color: rgba(76, 201, 176, 0.28);
+            background: rgba(76, 201, 176, 0.07);
+            color: #c9fff2;
+        }
+
+        .activity-detail {
+            position: sticky;
+            top: 88px;
+            align-self: start;
+            min-height: 360px;
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(126, 220, 255, 0.06), transparent 46%),
+                rgba(2, 6, 12, 0.78);
+            padding: 16px;
+        }
+
+        .activity-detail h3 {
+            margin: 0;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-style: italic;
+            text-transform: uppercase;
+        }
+
+        .activity-detail p {
+            color: #9eafbf;
+            line-height: 1.5;
+            margin: 8px 0 14px;
+        }
+
+        .activity-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .activity-detail-metric {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.035);
+            padding: 10px;
+        }
+
+        .activity-detail-metric span {
+            display: block;
+            color: #7892a2;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .activity-detail-metric strong {
+            display: block;
+            margin-top: 4px;
+            color: #eaf8ff;
+            font-family: var(--font-display);
+            font-size: 1rem;
+        }
+
+        .activity-detail-section {
+            margin-top: 12px;
+            border: 1px solid rgba(126, 220, 255, 0.14);
+            border-radius: 8px;
+            background: rgba(126, 220, 255, 0.045);
+            padding: 12px;
+        }
+
+        .activity-detail-section h4 {
+            margin: 0 0 8px;
+            color: #dff7ff;
+            font: 900 0.72rem var(--font-ui);
+            text-transform: uppercase;
+        }
+
+        .activity-advice-title {
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 1rem;
+        }
+
+        .activity-advice-list {
+            display: grid;
+            gap: 6px;
+            margin-top: 8px;
+            color: #a9c2d2;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .activity-trend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .activity-trend {
+            min-width: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            background: rgba(2, 6, 12, 0.55);
+            padding: 9px;
+        }
+
+        .activity-trend span,
+        .activity-trend small {
+            display: block;
+            color: #7892a2;
+            font-size: 0.66rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .activity-trend strong {
+            display: block;
+            margin: 4px 0;
+            color: #eaf8ff;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+        }
+
+        .activity-trend.up small {
+            color: #9ee7ff;
+        }
+
+        .activity-trend.down small {
+            color: #fda4af;
+        }
+
+        .activity-empty {
+            border: 1px dashed rgba(126, 220, 255, 0.22);
+            border-radius: 8px;
+            padding: 18px;
+            color: #9eafbf;
+            text-align: center;
+        }
+
+        .activity-elite-note {
+            margin-top: 12px;
+            border: 1px solid rgba(126, 220, 255, 0.18);
+            border-radius: 8px;
+            background: rgba(126, 220, 255, 0.055);
+            color: #dff7ff;
+            padding: 10px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        body.journal-page .reader-btn {
+            min-height: 44px;
+            padding: 0 14px;
+            border: 1px solid rgba(126, 220, 255, 0.22);
+            background: rgba(255, 255, 255, 0.045);
+            color: #eaf8ff;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            text-decoration: none;
+        }
+
+        body.journal-page .reader-btn:hover,
+        body.journal-page .reader-btn:focus-visible {
+            background: rgba(126, 220, 255, 0.12);
+            color: #ffffff;
+        }
+
+
+        body.journal-page ::-webkit-scrollbar-track {
+            background: rgba(5, 8, 13, 0.92) !important;
+            border-left-color: rgba(126, 220, 255, 0.12) !important;
+        }
+
+        body.journal-page ::-webkit-scrollbar-thumb {
+            background: rgba(126, 220, 255, 0.72) !important;
+        }
+
+        @media (max-width: 900px) {
+            body.journal-page {
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
+            }
+
+            body.journal-page .layout,
+            body.journal-page .main-content {
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+
+            body.journal-page .main-content {
+                padding: 12px 10px calc(86px + var(--safe-area-bottom)) !important;
+            }
+
+            .journal-command-strip {
+                align-items: flex-start;
+                flex-direction: column;
+                min-height: 0;
+                padding: 16px;
+            }
+
+            .journal-strip-actions {
+                width: 100%;
+            }
+
+            .journal-strip-actions .reader-btn {
+                flex: 1;
+            }
+
+            .activity-ledger {
+                grid-template-columns: 1fr;
+                padding: 12px;
+            }
+
+            .activity-ledger-head {
+                display: grid;
+            }
+
+            .activity-count {
+                width: fit-content;
+            }
+
+            .activity-filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .activity-feed {
+                max-height: none;
+                overflow: visible;
+                padding-right: 0;
+            }
+
+            .activity-detail {
+                position: static;
+                min-height: 0;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .activity-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-card-top,
+            .activity-card-bottom {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .activity-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/journal">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/journal">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/journal">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Journal sportif - TITAN OS">
+    <meta property="og:description" content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes.">
+    <meta property="og:url" content="https://titan-app.fr/journal">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Journal sportif - TITAN OS">
+    <meta name="twitter:description" content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/journal#webpage",
+          "url": "https://titan-app.fr/journal",
+          "name": "Journal sportif - TITAN OS",
+          "headline": "Journal sportif - TITAN OS",
+          "description": "Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/journal#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/journal#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Journal sportif",
+              "item": "https://titan-app.fr/journal"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body class="journal-page" data-page="journal">
+
+    <div class="layout">
+        <nav class="sidebar"></nav>
+
+        <main class="main-content">
+            <section class="journal-command-strip" aria-label="Synthèse du journal sportif">
+                <div>
+                    <span class="journal-kicker">Historique sportif</span>
+                    <h1>Journal</h1>
+                    <p>Retrouve chaque séance, filtre ton historique et ouvre les mesures qui comptent pour ta pratique.</p>
+                </div>
+                <div class="journal-strip-actions" aria-label="Actions journal">
+                    <a class="reader-btn journal-primary-action" href="./training.html"><i class="ri-add-line"></i><span>Ajouter</span></a>
+                    <a class="reader-btn" href="./stats.html" title="Ouvrir la progression"><i class="ri-line-chart-line"></i><span>Progrès</span></a>
+                    <a class="reader-btn" href="./adventure.html" title="Ouvrir l'aventure optionnelle"><i class="ri-compass-3-line"></i><span>Aventure</span></a>
+                </div>
+            </section>
+            <section class="activity-ledger" aria-labelledby="activity-ledger-title">
+                <div class="activity-ledger-head">
+                    <div>
+                        <span class="journal-kicker">Activité sportive</span>
+                        <h2 id="activity-ledger-title">Séances enregistrées</h2>
+                        <p>La liste montre l’essentiel. Le calendrier aide à lire la régularité sur le mois.</p>
+                    </div>
+                    <span class="activity-count" id="activity-count">0 seance</span>
+                </div>
+                <div class="activity-panel">
+                    <div class="activity-filters" aria-label="Filtres du journal sportif">
+                        <select id="activity-sport-filter" aria-label="Filtrer par sport">
+                            <option value="all">Tous les sports</option>
+                        </select>
+                        <input id="activity-month-filter" type="month" aria-label="Filtrer par mois">
+                        <select id="activity-intensity-filter" aria-label="Filtrer par intensite">
+                            <option value="all">Toutes intensites</option>
+                            <option value="light">Legere</option>
+                            <option value="moderate">Moderee</option>
+                            <option value="hard">Intense</option>
+                        </select>
+                        <input id="activity-search" type="search" placeholder="Rechercher une seance..." aria-label="Rechercher une seance">
+                        <button id="activity-reset-filters" class="activity-filter-action" type="button"><i class="ri-refresh-line"></i> Réinitialiser</button>
+                    </div>
+                    <div class="activity-view-switch" aria-label="Mode d'affichage">
+                        <button type="button" class="active" data-activity-view="list" aria-pressed="true"><i class="ri-list-check-2"></i> Liste</button>
+                        <button type="button" data-activity-view="calendar" aria-pressed="false"><i class="ri-calendar-line"></i> Calendrier</button>
+                    </div>
+                    <div class="activity-feed" id="activity-feed"></div>
+                    <div class="activity-calendar" id="activity-calendar" hidden></div>
+                    <div class="activity-elite-note" id="activity-elite-note" hidden></div>
+                </div>
+                <aside class="activity-detail" id="activity-detail" aria-live="polite">
+                    <h3>Selectionne une seance</h3>
+                    <p>Le detail apparait ici avec les mesures importantes selon le sport.</p>
+                    <div class="activity-detail-grid">
+                        <div class="activity-detail-metric"><span>Sport</span><strong>-</strong></div>
+                        <div class="activity-detail-metric"><span>Effort</span><strong>-</strong></div>
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+
+    <script>
+        let selectedActivityId = null;
+        let lastActivitySignature = '';
+        let activityViewMode = 'list';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bindActivityControls();
+
+            const checkState = setInterval(() => {
+                if (window.state && window.state.game) {
+                    clearInterval(checkState);
+                    userLevel = window.state.game.bossLevel || 1;
+                    bootActivityJournal();
+                    watchActivityJournal();
+                    if (window.injectMobileHeader) window.injectMobileHeader();
+                }
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(checkState);
+                bootActivityJournal();
+                watchActivityJournal();
+            }, 3000);
+        });
+
+
+        function bindActivityControls() {
+            ['activity-sport-filter', 'activity-month-filter', 'activity-intensity-filter', 'activity-search'].forEach(id => {
+                const node = document.getElementById(id);
+                if (node) node.addEventListener('input', renderActivityJournal);
+                if (node && node.tagName === 'SELECT') node.addEventListener('change', renderActivityJournal);
+            });
+            document.querySelectorAll('[data-activity-view]').forEach(button => {
+                button.addEventListener('click', () => {
+                    activityViewMode = button.dataset.activityView === 'calendar' ? 'calendar' : 'list';
+                    document.querySelectorAll('[data-activity-view]').forEach(item => {
+                        const active = item.dataset.activityView === activityViewMode;
+                        item.classList.toggle('active', active);
+                        item.setAttribute('aria-pressed', active ? 'true' : 'false');
+                    });
+                    renderActivityJournal();
+                });
+            });
+            document.getElementById('activity-reset-filters')?.addEventListener('click', () => {
+                const sport = document.getElementById('activity-sport-filter');
+                const month = document.getElementById('activity-month-filter');
+                const intensity = document.getElementById('activity-intensity-filter');
+                const search = document.getElementById('activity-search');
+                if(sport) sport.value = 'all';
+                if(month) month.value = '';
+                if(intensity) intensity.value = 'all';
+                if(search) search.value = '';
+                renderActivityJournal();
+            });
+        }
+
+        function watchActivityJournal() {
+            if (window.__titanJournalActivityWatch) return;
+            window.__titanJournalActivityWatch = true;
+            let ticks = 0;
+            const timer = setInterval(() => {
+                ticks += 1;
+                const signature = buildActivitySignature();
+                if (signature !== lastActivitySignature) {
+                    bootActivityJournal();
+                }
+                if (ticks > 10) clearInterval(timer);
+            }, 1500);
+        }
+
+        function bootActivityJournal() {
+            renderActivityFilters();
+            renderActivityJournal();
+        }
+
+        function buildActivitySignature() {
+            const history = Array.isArray(window.state?.history) ? window.state.history : [];
+            const latest = history.length ? history[history.length - 1] : null;
+            return `${history.length}:${latest?.id || latest?.date || ''}:${window.state?.user?.is_elite ? 'elite' : 'free'}`;
+        }
+
+        function getActivityLogs() {
+            const history = Array.isArray(window.state?.history) ? window.state.history.slice() : [];
+            return history.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        }
+
+        function renderActivityFilters() {
+            const select = document.getElementById('activity-sport-filter');
+            if (!select) return;
+            const current = select.value || 'all';
+            const logs = getActivityLogs();
+            const sports = Array.from(new Set(logs.map(log => log.sport).filter(Boolean))).sort((a, b) => sportName(a).localeCompare(sportName(b)));
+            select.innerHTML = '<option value="all">Tous les sports</option>' + sports.map(sport => `<option value="${escapeText(sport)}">${escapeText(sportName(sport))}</option>`).join('');
+            select.value = sports.includes(current) ? current : 'all';
+
+            const note = document.getElementById('activity-elite-note');
+            if (note) {
+                note.hidden = true;
+                note.textContent = '';
+            }
+        }
+
+        function renderActivityJournal() {
+            const feed = document.getElementById('activity-feed');
+            const calendar = document.getElementById('activity-calendar');
+            const count = document.getElementById('activity-count');
+            if (!feed) return;
+
+            const filters = getActivityFilters();
+            let logs = getActivityLogs().filter(log => activityMatchesFilters(log, filters));
+            lastActivitySignature = buildActivitySignature();
+            if (count) count.textContent = `${logs.length} ${logs.length > 1 ? 'seances' : 'seance'}`;
+
+            if (!logs.length) {
+                feed.hidden = false;
+                if(calendar) calendar.hidden = true;
+                feed.innerHTML = '<div class="activity-empty"><strong>Aucune séance trouvée.</strong><span>Ajuste les filtres ou ajoute un premier effort.</span><a href="./training.html">Enregistrer une séance</a></div>';
+                renderActivityDetail(null);
+                return;
+            }
+
+            if (!logs.some(log => getActivityId(log) === selectedActivityId)) {
+                selectedActivityId = getActivityId(logs[0]);
+            }
+
+            if(activityViewMode === 'calendar') {
+                feed.hidden = true;
+                if(calendar) {
+                    calendar.hidden = false;
+                    calendar.innerHTML = renderActivityCalendar(logs, filters.month);
+                }
+            } else {
+                feed.hidden = false;
+                if(calendar) calendar.hidden = true;
+                let previousDay = '';
+                feed.innerHTML = logs.map(log => {
+                    const day = new Date(log.date || 0).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                    const heading = day !== previousDay ? `<h3 class="activity-day-heading">${escapeText(day)}</h3>` : '';
+                    previousDay = day;
+                    return heading + renderActivityCard(log, getActivityId(log) === selectedActivityId);
+                }).join('');
+            }
+            feed.querySelectorAll('.activity-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    selectedActivityId = card.dataset.activityId || null;
+                    renderActivityJournal();
+                });
+            });
+
+            renderActivityDetail(logs.find(log => getActivityId(log) === selectedActivityId) || logs[0]);
+        }
+
+        function renderActivityCalendar(logs, requestedMonth) {
+            const fallback = logs[0]?.date ? new Date(logs[0].date) : new Date();
+            const parts = requestedMonth ? requestedMonth.split('-').map(Number) : [fallback.getFullYear(), fallback.getMonth() + 1];
+            const year = parts[0];
+            const monthIndex = Math.max(0, Math.min(11, (parts[1] || 1) - 1));
+            const firstDay = new Date(year, monthIndex, 1);
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const offset = (firstDay.getDay() + 6) % 7;
+            const byDay = new Map();
+            logs.forEach(log => {
+                const date = new Date(log.date || 0);
+                if(date.getFullYear() !== year || date.getMonth() !== monthIndex) return;
+                const day = date.getDate();
+                if(!byDay.has(day)) byDay.set(day, []);
+                byDay.get(day).push(log);
+            });
+            const blanks = Array.from({ length: offset }, () => '<div class="activity-calendar-day empty" aria-hidden="true"></div>').join('');
+            const days = Array.from({ length: daysInMonth }, (_, index) => {
+                const day = index + 1;
+                const entries = byDay.get(day) || [];
+                const sessions = entries.slice(0, 3).map(log => `<button type="button" data-calendar-activity="${escapeText(getActivityId(log))}" title="${escapeText(sportName(log.sport))}"><span>${escapeText(sportName(log.sport))}</span></button>`).join('');
+                return `<div class="activity-calendar-day ${entries.length ? 'has-session' : ''}"><strong>${day}</strong>${sessions}${entries.length > 3 ? `<small>+${entries.length - 3}</small>` : ''}</div>`;
+            }).join('');
+            setTimeout(() => {
+                document.querySelectorAll('[data-calendar-activity]').forEach(button => button.addEventListener('click', () => {
+                    selectedActivityId = button.dataset.calendarActivity;
+                    renderActivityDetail(logs.find(log => getActivityId(log) === selectedActivityId));
+                }));
+            }, 0);
+            return `<div class="activity-calendar-title">${escapeText(firstDay.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))}</div><div class="activity-calendar-weekdays"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span></div><div class="activity-calendar-grid">${blanks}${days}</div>`;
+        }
+
+        function normalizeActivitySearch(value) {
+            return String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function getActivityFilters() {
+            return {
+                sport: document.getElementById('activity-sport-filter')?.value || 'all',
+                month: document.getElementById('activity-month-filter')?.value || '',
+                intensity: document.getElementById('activity-intensity-filter')?.value || 'all',
+                search: normalizeActivitySearch(document.getElementById('activity-search')?.value || '')
+            };
+        }
+
+        function activityMatchesFilters(log, filters) {
+            if (filters.sport !== 'all' && log.sport !== filters.sport) return false;
+            if (filters.month && activityMonth(log) !== filters.month) return false;
+            if (filters.intensity !== 'all' && activityIntensity(log).key !== filters.intensity) return false;
+            if (filters.search) {
+                const details = log.details || {};
+                const text = normalizeActivitySearch(`${sportName(log.sport)} ${log.cat || ''} ${details.summary || ''} ${details.note || ''} ${(details.tags || []).join(' ')} ${Object.values(details.extras || {}).join(' ')}`);
+                if (!text.includes(filters.search)) return false;
+            }
+            return true;
+        }
+
+        function renderActivityCard(log, active) {
+            const metrics = activityMetrics(log).slice(0, 3);
+            const intensity = activityIntensity(log);
+            return `
+                <button type="button" class="activity-card ${active ? 'active' : ''}" data-activity-id="${escapeText(getActivityId(log))}">
+                    <div class="activity-card-top">
+                        <div class="activity-title">
+                            <strong>${escapeText(sportName(log.sport))}</strong>
+                            <span>${escapeText(activityDate(log))}</span>
+                        </div>
+                        <span class="activity-chip">${escapeText(intensity.label)}</span>
+                    </div>
+                    <div class="activity-chips">
+                        ${metrics.map(metric => `<span class="activity-chip">${escapeText(metric.label)}: ${escapeText(metric.value)}</span>`).join('')}
+                    </div>
+                    <div class="activity-card-bottom">
+                        <span>${escapeText(log.details?.summary || activitySummary(log))}</span>
+                        <span class="activity-chip reward">+${escapeText(Math.round(Number(log.xp || 0)))} XP</span>
+                    </div>
+                </button>`;
+        }
+
+        function renderActivityDetail(log) {
+            const panel = document.getElementById('activity-detail');
+            if (!panel) return;
+            if (!log) {
+                panel.innerHTML = `
+                    <h3>Selectionne une seance</h3>
+                    <p>Le detail apparait ici avec les mesures importantes selon le sport.</p>
+                    <div class="activity-detail-grid">
+                        <div class="activity-detail-metric"><span>Sport</span><strong>-</strong></div>
+                        <div class="activity-detail-metric"><span>Effort</span><strong>-</strong></div>
+                    </div>`;
+                return;
+            }
+
+            const metrics = activityMetrics(log, true).slice(0, 8);
+            const details = log.details || {};
+            const note = details.note ? `<p>${escapeText(details.note)}</p>` : `<p>${escapeText(details.summary || activitySummary(log))}</p>`;
+            panel.innerHTML = `
+                <h3>${escapeText(sportName(log.sport))}</h3>
+                ${note}
+                <div class="activity-detail-grid">
+                    <div class="activity-detail-metric"><span>Date</span><strong>${escapeText(activityDate(log, true))}</strong></div>
+                    <div class="activity-detail-metric"><span>Intensite</span><strong>${escapeText(activityIntensity(log).label)}</strong></div>
+                    ${metrics.map(metric => `<div class="activity-detail-metric"><span>${escapeText(metric.label)}</span><strong>${escapeText(metric.value)}</strong></div>`).join('')}
+                    <div class="activity-detail-metric activity-reward-discrete"><span>Progression TITAN</span><strong>+${escapeText(Math.round(Number(log.xp || 0)))} XP</strong></div>
+                </div>
+                <div class="activity-detail-actions"><a href="./training.html?sport=${encodeURIComponent(log.sport || '')}"><i class="ri-restart-line"></i> Reprendre ce sport</a><small>La modification et la suppression seront proposées après ajout d’un recalcul serveur sécurisé.</small></div>
+                ${renderActivityReadout(log)}`;
+        }
+
+        function renderActivityReadout(log) {
+            if (!window.titanGetSessionCoachingReadout) return '';
+            const readout = window.titanGetSessionCoachingReadout(log, window.state?.history || []);
+            const advice = Array.isArray(readout?.bullets) ? readout.bullets : [];
+            const trends = Array.isArray(readout?.trends) ? readout.trends : [];
+            const adviceHtml = advice.length
+                ? advice.map(item => `<div>${escapeText(item)}</div>`).join('')
+                : '<div>Ajoute des metriques specifiques pour densifier la lecture coach.</div>';
+            const trendHtml = trends.length
+                ? trends.map(item => {
+                    const unit = item.definition?.unit ? ` ${item.definition.unit}` : '';
+                    const avg = Number(item.average || 0).toLocaleString('fr-FR', { maximumFractionDigits: item.definition?.id === 'pace' ? 2 : 1 });
+                    return `
+                        <div class="activity-trend ${escapeText(item.status || 'flat')}">
+                            <span>${escapeText(item.definition?.label || 'Metrice')}</span>
+                            <strong>${escapeText(item.display || '--')}</strong>
+                            <small>Moyenne ${escapeText(avg + unit)} sur ${escapeText(item.count || 0)} trace(s)</small>
+                        </div>`;
+                }).join('')
+                : '<div class="activity-empty">Les reperes de progression apparaissent apres plusieurs traces comparables.</div>';
+            return `
+                <div class="activity-detail-section">
+                    <h4>Lecture coach</h4>
+                    <div class="activity-advice-title">${escapeText(readout?.headline || 'Trace exploitable')}</div>
+                    <div class="activity-advice-list">${adviceHtml}</div>
+                </div>
+                <div class="activity-detail-section">
+                    <h4>Reperes graphables</h4>
+                    <div class="activity-trend-grid">${trendHtml}</div>
+                </div>`;
+        }
+
+        function activityMetrics(log, detailed = false) {
+            const details = log.details || {};
+            const extras = details.extras || {};
+            const metrics = [];
+            const exercises = Array.isArray(details.exercises) ? details.exercises : [];
+            const unit = log.unit || '';
+            const value = Number(log.val || 0);
+            const val1 = Number(details.val1 || (unit === 'km' ? value : 0));
+            const val2 = Number(details.gpxStats?.movingMinutes || details.val2 || (unit === 'min' ? value : 0));
+            const ascent = Number(details.gpxStats?.ascent || details.elevation || 0);
+
+            if (exercises.length) {
+                const volume = exercises.reduce((acc, ex) => acc + (Number(ex.volume || 0) || Number(ex.weight || 0) * Number(ex.sets || 0) * Number(ex.reps || 0)), 0);
+                const sets = exercises.reduce((acc, ex) => acc + Number(ex.sets || 0), 0);
+                const reps = exercises.reduce((acc, ex) => acc + (Number(ex.totalReps || 0) || Number(ex.sets || 0) * Number(ex.reps || 0)), 0);
+                metrics.push({ label: 'Exercices', value: exercises.length });
+                metrics.push({ label: 'Series', value: sets });
+                metrics.push({ label: 'Reps', value: reps });
+                if (volume) metrics.push({ label: 'Volume', value: `${Math.round(volume).toLocaleString('fr-FR')} kg` });
+                if (extras.muscle_group || extras.muscles || extras.zone) metrics.push({ label: 'Zone', value: extras.muscle_group || extras.muscles || extras.zone });
+            } else if (unit === 'km' || val1 > 0 || details.gpxStats) {
+                if (val1) metrics.push({ label: 'Distance', value: `${formatNumber(val1, 2)} km` });
+                if (val2) metrics.push({ label: 'Duree', value: `${Math.round(val2)} min` });
+                if (details.gpxStats?.pace) metrics.push({ label: 'Allure', value: details.gpxStats.pace });
+                else if (val1 && val2) metrics.push({ label: 'Vitesse', value: `${formatNumber(val1 / (val2 / 60), 1)} km/h` });
+                if (ascent) metrics.push({ label: 'D+', value: `+${Math.round(ascent)} m` });
+            } else {
+                metrics.push({ label: unit === 'min' ? 'Duree' : 'Effort', value: `${formatNumber(value, 1)} ${unit || 'pts'}` });
+                if (val2) metrics.push({ label: 'Duree', value: `${Math.round(val2)} min` });
+            }
+
+            const climbAttempt = extras.level_attempted || extras.niveau_tente || extras.max_attempted;
+            const climbDone = extras.level_done || extras.niveau_reussi || extras.max_done;
+            if (climbAttempt) metrics.push({ label: 'Tente', value: climbAttempt });
+            if (climbDone) metrics.push({ label: 'Reussi', value: climbDone });
+            if (extras.session_type || extras.type || log.cat) metrics.push({ label: 'Type', value: extras.session_type || extras.type || log.cat });
+            if (extras.style) metrics.push({ label: 'Style', value: extras.style });
+            if (details.bio?.rpe) metrics.push({ label: 'RPE', value: `${details.bio.rpe}/10` });
+            if (window.titanCollectSessionMetrics) {
+                window.titanCollectSessionMetrics(log)
+                    .filter(metric => metric.definition?.source === 'extra')
+                    .forEach(metric => {
+                        if (!metrics.some(item => item.label === metric.definition.label)) {
+                            metrics.push({ label: metric.definition.label, value: metric.display });
+                        }
+                    });
+            }
+            if (detailed && Array.isArray(details.tags) && details.tags.length) metrics.push({ label: 'Tags', value: details.tags.join(', ') });
+            return metrics;
+        }
+
+        function activityIntensity(log) {
+            const details = log.details || {};
+            const rpe = Number(details.bio?.rpe || 0);
+            const load = Number(details.load || 0);
+            const value = rpe || (load >= 70 ? 8 : load >= 35 ? 6 : load > 0 ? 3 : 0);
+            if (value >= 8) return { key: 'hard', label: 'Intense' };
+            if (value >= 5) return { key: 'moderate', label: 'Moderee' };
+            return { key: 'light', label: 'Legere' };
+        }
+
+        function activityReward(log) {
+            const reward = log.details?.serverReward || log.details?.rewardMeta || {};
+            return { credits: Math.round(Number(reward.credits || reward.awardedCredits || 0)) };
+        }
+
+        function activitySummary(log) {
+            const metrics = activityMetrics(log).slice(0, 2);
+            return metrics.length ? metrics.map(metric => `${metric.label} ${metric.value}`).join(' - ') : 'Seance enregistree dans TITAN OS.';
+        }
+
+        function sportName(sport) {
+            if (window.SPORTS_CONFIG && window.SPORTS_CONFIG[sport]?.label) return window.SPORTS_CONFIG[sport].label;
+            return sport || 'Sport libre';
+        }
+
+        function getActivityId(log) {
+            return String(log.id || `${log.date || ''}_${log.sport || ''}_${log.xp || 0}`);
+        }
+
+        function activityMonth(log) {
+            const date = new Date(log.date || Date.now());
+            if (Number.isNaN(date.getTime())) return '';
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function activityDate(log, withTime = false) {
+            const date = new Date(log.date || Date.now());
+            if (Number.isNaN(date.getTime())) return 'Date inconnue';
+            return date.toLocaleDateString('fr-FR', withTime ? { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' } : { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatNumber(value, digits = 1) {
+            const number = Number(value || 0);
+            if (!Number.isFinite(number)) return '0';
+            return number.toLocaleString('fr-FR', { maximumFractionDigits: digits });
+        }
+
+
+        function escapeText(value) {
+            if (window.titanEscapeText) return window.titanEscapeText(value);
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function escapeAttr(value) {
+            return escapeText(value);
+        }
+
+        function setText(id, value) {
+            const node = document.getElementById(id);
+            if (node) node.textContent = value;
+        }
+    </script>
+</body>
+</html>
+

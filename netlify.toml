@@ -1,0 +1,748 @@
+[build]
+  command = "node tools/build-public.mjs"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/sql/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/tools/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.sql"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.toml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/README*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/PUBLIC_RELEASE_*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/TITAN_REPRISE_CONTEXTE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/qa-*.png"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.git/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/sys_core_override_99.html"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/sports.html"
+  to = "/sports"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/sports"
+  to = "/sports.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/dynamic-page.html"
+  to = "/dynamic-page"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/dynamic-page"
+  to = "/dynamic-page.html"
+  status = 200
+
+[[redirects]]
+from = "/training.html"
+to = "/training"
+status = 301
+force = true
+
+[[redirects]]
+from = "/training"
+to = "/training.html"
+status = 200
+
+[[redirects]]
+from = "/algorithme.html"
+to = "/algorithme"
+status = 301
+force = true
+
+[[redirects]]
+from = "/algorithme"
+to = "/algorithme.html"
+status = 200
+
+[[redirects]]
+from = "/guide.html"
+to = "/guide"
+status = 301
+force = true
+
+[[redirects]]
+from = "/guide"
+to = "/guide.html"
+status = 200
+
+[[redirects]]
+from = "/service.html"
+to = "/service"
+status = 301
+force = true
+
+[[redirects]]
+from = "/service"
+to = "/service.html"
+status = 200
+
+[[redirects]]
+from = "/stats.html"
+to = "/stats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/stats"
+to = "/stats.html"
+status = 200
+
+[[redirects]]
+from = "/adventure.html"
+to = "/adventure"
+status = 301
+force = true
+
+[[redirects]]
+from = "/adventure"
+to = "/adventure.html"
+status = 200
+
+[[redirects]]
+from = "/disciplines.html"
+to = "/disciplines"
+status = 301
+force = true
+
+[[redirects]]
+from = "/disciplines"
+to = "/disciplines.html"
+status = 200
+
+[[redirects]]
+from = "/health.html"
+to = "/health"
+status = 301
+force = true
+
+[[redirects]]
+from = "/health"
+to = "/health.html"
+status = 200
+
+[[redirects]]
+from = "/journal.html"
+to = "/journal"
+status = 301
+force = true
+
+[[redirects]]
+from = "/journal"
+to = "/journal.html"
+status = 200
+
+[[redirects]]
+from = "/talents.html"
+to = "/talents"
+status = 301
+force = true
+
+[[redirects]]
+from = "/talents"
+to = "/talents.html"
+status = 200
+
+[[redirects]]
+from = "/trophies.html"
+to = "/trophies"
+status = 301
+force = true
+
+[[redirects]]
+from = "/trophies"
+to = "/trophies.html"
+status = 200
+
+[[redirects]]
+from = "/boutique.html"
+to = "/boutique"
+status = 301
+force = true
+
+[[redirects]]
+from = "/boutique"
+to = "/boutique.html"
+status = 200
+
+[[redirects]]
+from = "/sport_details.html"
+to = "/sport_details"
+status = 301
+force = true
+
+[[redirects]]
+from = "/sport_details"
+to = "/sport_details.html"
+status = 200
+
+[[redirects]]
+from = "/onboarding.html"
+to = "/onboarding"
+status = 301
+force = true
+
+[[redirects]]
+from = "/onboarding"
+to = "/onboarding.html"
+status = 200
+
+[[redirects]]
+from = "/changelog.html"
+to = "/changelog"
+status = 301
+force = true
+
+[[redirects]]
+from = "/changelog"
+to = "/changelog.html"
+status = 200
+
+[[redirects]]
+from = "/partenariats.html"
+to = "/partenariats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/partenariats"
+to = "/partenariats.html"
+status = 200
+
+[[redirects]]
+from = "/legal_hub.html"
+to = "/legal_hub"
+status = 301
+force = true
+
+[[redirects]]
+from = "/legal_hub"
+to = "/legal_hub.html"
+status = 200
+
+[[redirects]]
+from = "/legal_mentions.html"
+to = "/legal_mentions"
+status = 301
+force = true
+
+[[redirects]]
+from = "/legal_mentions"
+to = "/legal_mentions.html"
+status = 200
+
+[[redirects]]
+from = "/legal_privacy.html"
+to = "/legal_privacy"
+status = 301
+force = true
+
+[[redirects]]
+from = "/legal_privacy"
+to = "/legal_privacy.html"
+status = 200
+
+[[redirects]]
+from = "/legal_cgu.html"
+to = "/legal_cgu"
+status = 301
+force = true
+
+[[redirects]]
+from = "/legal_cgu"
+to = "/legal_cgu.html"
+status = 200
+
+[[redirects]]
+from = "/activities.html"
+to = "/journal"
+status = 301
+force = true
+
+[[redirects]]
+from = "/activities"
+to = "/journal"
+status = 301
+force = true
+
+[[redirects]]
+from = "/notifications.html"
+to = "/notifications"
+status = 301
+force = true
+
+[[redirects]]
+from = "/notifications"
+to = "/notifications.html"
+status = 200
+
+[[redirects]]
+from = "/login.html"
+to = "/login"
+status = 301
+force = true
+
+[[redirects]]
+from = "/login"
+to = "/login.html"
+status = 200
+
+[[redirects]]
+from = "/profile.html"
+to = "/profile"
+status = 301
+force = true
+
+[[redirects]]
+from = "/profile"
+to = "/profile.html"
+status = 200
+
+[[redirects]]
+from = "/social.html"
+to = "/social"
+status = 301
+force = true
+
+[[redirects]]
+from = "/social"
+to = "/social.html"
+status = 200
+
+[[redirects]]
+from = "/chat.html"
+to = "/chat"
+status = 301
+force = true
+
+[[redirects]]
+from = "/chat"
+to = "/chat.html"
+status = 200
+
+[[redirects]]
+from = "/update-password.html"
+to = "/update-password"
+status = 301
+force = true
+
+[[redirects]]
+from = "/update-password"
+to = "/update-password.html"
+status = 200
+
+[[redirects]]
+from = "/fonctionnalites.html"
+to = "/fonctionnalites"
+status = 301
+force = true
+
+[[redirects]]
+from = "/fonctionnalites"
+to = "/fonctionnalites.html"
+status = 200
+
+[[redirects]]
+from = "/suivi-sportif.html"
+to = "/suivi-sportif"
+status = 301
+force = true
+
+[[redirects]]
+from = "/suivi-sportif"
+to = "/suivi-sportif.html"
+status = 200
+
+[[redirects]]
+from = "/journal-entrainement.html"
+to = "/journal-entrainement"
+status = 301
+force = true
+
+[[redirects]]
+from = "/journal-entrainement"
+to = "/journal-entrainement.html"
+status = 200
+
+[[redirects]]
+from = "/progression-sportive.html"
+to = "/progression-sportive"
+status = 301
+force = true
+
+[[redirects]]
+from = "/progression-sportive"
+to = "/progression-sportive.html"
+status = 200
+
+[[redirects]]
+from = "/motivation-sport.html"
+to = "/motivation-sport"
+status = 301
+force = true
+
+[[redirects]]
+from = "/motivation-sport"
+to = "/motivation-sport.html"
+status = 200
+
+[[redirects]]
+from = "/functions/*"
+to = "/.netlify/functions/:splat"
+status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "0"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self), payment=(self)"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.paddle.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.paddle.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://oubmftfufwwzwpgvrcag.supabase.co wss://oubmftfufwwzwpgvrcag.supabase.co https://*.paddle.com; frame-src 'self' https://*.paddle.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/image/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, max-age=0"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/profile.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/admin"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/profile"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/social.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/social"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/chat.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/chat"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/activities.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/activities"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/training.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/training"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/adventure.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/adventure"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/stats.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/stats"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/boutique.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/boutique"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/journal.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/journal"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/onboarding.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/onboarding"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/disciplines.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/disciplines"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/health.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/health"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/trophies.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/trophies"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/talents.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/talents"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/sport_details.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/sport_details"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/notifications.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/notifications"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/login.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/login"
+  [headers.values]
+    X-Robots-Tag = "noindex, follow"
+
+[[headers]]
+  for = "/update-password.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/update-password"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/sys_core_override_99.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/sys_core_override_99"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

@@ -1,79 +1,360 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: TROPHÉES</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Trophees - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="./images/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
     <style>
-        /* NAVIGATION INTERNE */
+        /* NAVIGATION */
         .trophy-nav { display: flex; gap: 10px; margin-bottom: 25px; }
-        .nav-tab { flex: 1; text-align: center; padding: 15px; background: var(--bg-panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; color: var(--text-muted); font-family: 'Russo One'; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s; }
-        .nav-tab.active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .nav-tab { 
+            flex: 1; text-align: center; padding: 15px; 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 12px; cursor: pointer; color: var(--text-muted); 
+            font-family: 'Russo One'; text-transform: uppercase; font-size: 0.9rem; transition: 0.2s; 
+        }
+        .nav-tab.active { background: var(--bg-panel); color: #fff; border-color: var(--accent); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
 
-        /* GRILLE SUCCÈS */
-        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .ach-card { background: #131824; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; opacity: 0.5; filter: grayscale(1); transition: 0.3s; position: relative; overflow: hidden; }
-        .ach-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--gold); background: linear-gradient(to right, #1e2538, #131824); box-shadow: 0 4px 20px rgba(250, 204, 21, 0.1); }
-        .ach-icon { width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); flex-shrink: 0; }
-        .ach-card.unlocked .ach-icon { background: var(--gold); color: #000; }
-        .ach-info h3 { font-size: 1rem; color: #fff; margin-bottom: 5px; }
-        .ach-info p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3; margin: 0; }
-        .ach-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--gold); width: 0%; transition: width 1s; }
+        /* GRILLE SUCCES */
+        .achievements-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
 
-        /* BESTIAIRE (POKEDEX) */
-        .bestiary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .monster-card { background: #131824; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; text-align: center; cursor: pointer; transition: 0.3s; position: relative; aspect-ratio: 3/4; display: flex; flex-direction: column; }
-        .monster-card:hover { transform: translateY(-5px); border-color: var(--danger); }
-        .m-img { flex: 1; background-size: cover; background-position: center; position: relative; filter: grayscale(1) brightness(0.5); }
-        .monster-card.defeated .m-img { filter: none; }
-        .monster-card.unknown .m-img { filter: brightness(0); background-color: #000; }
-        .m-content { padding: 10px; background: #1e2538; border-top: 1px solid rgba(255,255,255,0.05); }
-        .m-name { font-family: 'Russo One'; font-size: 0.8rem; color: #fff; margin-bottom: 2px; }
-        .m-status { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .status-killed { color: var(--success); }
-        .status-alive { color: var(--danger); }
-        .status-locked { color: var(--text-muted); }
+        .ach-card { 
+            border-radius: 16px; padding: 15px; 
+            display: flex; align-items: center; gap: 20px; 
+            position: relative; overflow: hidden; transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #1e293b;
+        }
 
-        /* MODAL LORE */
-        .lore-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 20px; }
-        .lore-card { background: #1e2538; width: 100%; max-width: 500px; border-radius: 24px; border: 2px solid var(--danger); overflow: hidden; position: relative; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .lore-header { height: 200px; background-size: cover; background-position: center; position: relative; }
-        .lore-header::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, #1e2538); }
-        .lore-body { padding: 30px; text-align: center; }
-        .lore-badge { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 8px; color: var(--danger); font-weight: 800; border: 1px solid var(--danger); font-size: 0.8rem; }
+        /* ETAT DEBLOQUE */
+        .ach-card.unlocked { 
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.1), #06070A); 
+            border-color: var(--success); 
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+        }
+        .ach-card.unlocked .ach-main-icon {
+            color: var(--success); filter: drop-shadow(0 0 5px var(--success)); transform: scale(1.1);
+        }
+        .ach-card.unlocked .lock-badge { display: none; }
+
+        /* ICONE */
+        .ach-icon-wrapper {
+            width: 55px; height: 55px; flex-shrink: 0; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ach-main-icon { font-size: 1.8rem; color: #64748b; transition: 0.3s; }
+        .lock-badge {
+            position: absolute; top: -5px; left: -5px; 
+            background: #06070A; border: 1px solid #334155;
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; color: #94a3b8; font-size: 0.7rem; z-index: 2;
+        }
+
+        /* TEXTE */
+        .ach-info { flex: 1; z-index: 2; }
+        .ach-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .ach-title { font-size: 0.95rem; font-family: 'Russo One'; color: #fff; }
         
-        @keyframes popUp { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+        /* Note: Style ach-reward conserv? au cas o?, mais non utilis? dans le HTML g?n?r? */
+        .ach-reward { font-size: 0.7rem; color: var(--gold); font-weight: 800; background: rgba(126, 220, 255, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(126, 220, 255, 0.2); }
+        
+        .ach-desc { font-size: 0.75rem; color: #94a3b8; line-height: 1.3; margin-bottom: 8px; }
+        
+        /* BARRE PROGRESSION */
+        .ach-footer { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; color: #64748b; font-family: 'Courier New'; font-weight: bold; }
+        .ach-prog-bg { flex: 1; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; }
+        .ach-prog-fill { height: 100%; background: #38bdf8; width: 0%; transition: width 0.5s; }
+        .ach-card.unlocked .ach-prog-fill { background: var(--success); }
+
+        /* BOUTON D'ACTION (SOCIAL) */
+        .btn-claim {
+            background: var(--accent); color: #000; border: none; padding: 5px 12px; 
+            border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; 
+            text-transform: uppercase; margin-top: 5px; display: inline-block;
+        }
+        .btn-claim:hover { filter: brightness(1.1); }
+
+        /* BESTIAIRE */
+        .bestiary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .monster-card { background: #06070A; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; cursor: pointer; transition: 0.3s; position: relative; aspect-ratio: 1/1.2; display: flex; flex-direction: column; }
+        .m-img-box { flex: 1; background-size: cover; background-position: top center; position: relative; filter: grayscale(1) contrast(1.2); }
+        .monster-card.defeated .m-img-box { filter: none; }
+        .monster-card.unknown .m-img-box { filter: brightness(0); background-color: #000; }
+        .monster-card.unknown::after { content: "NO SIGNAL"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Courier New'; color: rgba(255,255,255,0.1); font-weight: bold; font-size: 0.8rem; letter-spacing: 2px; background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.2) 5px, rgba(0,0,0,0.2) 10px); }
+        .m-content { padding: 10px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .m-name { font-family: 'Russo One'; font-size: 0.8rem; color: #fff; margin-bottom: 2px; text-transform: uppercase; }
+        .m-status { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .status-killed { color: #000; background: var(--success); } .status-alive { color: #000; background: var(--danger); animation: pulse 2s infinite; } .status-locked { color: var(--text-muted); border: 1px solid var(--text-muted); }
+
+        /* MODAL */
+        .lore-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; }
+        .lore-card { background: #1e2538; width: 100%; max-width: 400px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popUp 0.3s ease-out; }
+        .lore-header { height: 250px; position: relative; }
+        .lore-full-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+        .lore-grad { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, #1e2538); }
+        .lore-body { padding: 20px; text-align: center; margin-top: -20px; position: relative; z-index: 2; }
+        .lore-badge { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 4px; color: #fff; font-weight: 800; font-family: 'Courier New'; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.2); }
+        @keyframes popUp { from{transform:translateY(20px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+        @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.6;} 100%{opacity:1;} }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Trophees TITAN OS: succes personnels, records, recompenses et collection de progression lies aux seances sportives.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/trophies">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/trophies">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/trophies">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Trophees - TITAN OS">
+    <meta property="og:description" content="Trophees TITAN OS: succes personnels, records, recompenses et collection de progression lies aux seances sportives.">
+    <meta property="og:url" content="https://titan-app.fr/trophies">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Trophees - TITAN OS">
+    <meta name="twitter:description" content="Trophees TITAN OS: succes personnels, records, recompenses et collection de progression lies aux seances sportives.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/trophies#webpage",
+          "url": "https://titan-app.fr/trophies",
+          "name": "Trophees - TITAN OS",
+          "headline": "Trophees - TITAN OS",
+          "description": "Trophees TITAN OS: succes personnels, records, recompenses et collection de progression lies aux seances sportives.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/trophies#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/trophies#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Trophees",
+              "item": "https://titan-app.fr/trophies"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="trophies">
     <div class="layout">
         <nav class="sidebar"></nav> 
         <main class="main-content">
             <div class="mobile-user-bar"></div>
             
             <header style="margin-bottom:30px;">
-                <h1 class="titular">Salle des Trophées</h1>
-                <div style="color:var(--text-muted)">Registre des exploits et données xénobiologiques.</div>
+                <div style="font-size: 0.7rem; color: var(--gold); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">ARCHIVES</div>
+                <h1 class="titular">Trophées</h1>
             </header>
 
             <div class="trophy-nav">
-                <div class="nav-tab active" onclick="switchTab('achievements', this)"><i class="ri-medal-fill"></i> SUCCÈS</div>
-                <div class="nav-tab" onclick="switchTab('bestiary', this)"><i class="ri-book-dead-fill"></i> BESTIAIRE</div>
+                <div class="nav-tab active" onclick="switchTab('achievements', this)"><i class="ri-medal-fill"></i> SUCCES</div>
+                <div class="nav-tab" onclick="switchTab('bestiary', this)"><i class="ri-folder-shield-2-fill"></i> CLASSIFIE</div>
             </div>
 
             <div id="view-achievements">
-                <div class="card" style="margin-bottom:20px; text-align:center;">
-                    <div style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:5px;">PROGRESSION TOTALE</div>
-                    <div style="font-family:'Russo One'; font-size:2rem; color:var(--gold);" id="total-completion">0%</div>
-                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:10px; overflow:hidden;">
-                        <div id="total-bar" style="height:100%; width:0%; background:var(--gold);"></div>
+                <div class="card" style="margin-bottom:20px; text-align:center; padding:15px; background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 1) 100%);">
+                    <div style="font-size:0.7rem; font-weight:800; color:#94a3b8; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px;">Progression Globale</div>
+                    <div style="display:flex; justify-content:center; align-items:baseline; gap:10px; margin-bottom:10px;">
+                        <div style="font-family:'Russo One'; font-size:2.5rem; color:#fff;" id="total-completion">0%</div>
+                        <div style="font-size:1rem; color:#64748b;" id="total-count">0/--</div>
+                    </div>
+                    <div style="height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+                        <div id="total-bar" style="height:100%; width:0%; background:var(--gold); box-shadow: 0 0 15px var(--gold);"></div>
                     </div>
                 </div>
-                <div class="achievements-grid" id="ach-container"></div>
+
+                <div class="achievements-grid" id="ach-container">
+                    <div style="text-align:center; padding:30px; color:#64748b;">
+                        Chargement du registre...
+                    </div>
+                </div>
             </div>
 
             <div id="view-bestiary" style="display:none;">
@@ -82,36 +363,102 @@
 
             <div id="lore-modal" class="lore-modal" onclick="closeLore()">
                 <div class="lore-card" onclick="event.stopPropagation()">
-                    <div class="lore-header" id="lore-img">
-                        <div class="lore-badge" id="lore-status">VAINCU</div>
+                    <div class="lore-header">
+                        <img src="./image/logo.png" id="lore-img-src" class="lore-full-img" width="400" height="250" loading="lazy" decoding="async" alt="Illustration du boss">
+                        <div class="lore-grad"></div>
+                        <div class="lore-badge" id="lore-status">DOSSIER #01</div>
                     </div>
                     <div class="lore-body">
-                        <div style="font-size:3rem; color:var(--danger); margin-top:-60px; margin-bottom:10px; position:relative; z-index:2;"><i id="lore-icon"></i></div>
-                        <h2 class="titular" id="lore-name">NOM DU MONSTRE</h2>
-                        <div style="color:var(--text-muted); font-weight:bold; margin-bottom:20px;">BOSS DE NIVEAU <span id="lore-lvl">1</span></div>
-                        <p style="color:#fff; line-height:1.6; font-size:0.95rem; font-style:italic;" id="lore-desc">Description...</p>
-                        <div style="margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-around;">
-                            <div><div style="font-size:0.7rem; color:var(--text-muted);">PV MAX</div><div style="font-weight:800; color:var(--success);" id="lore-hp">0</div></div>
-                            <div><div style="font-size:0.7rem; color:var(--text-muted);">FAIBLESSE</div><div style="font-weight:800; color:var(--accent);" id="lore-weak">--</div></div>
+                        <h2 class="titular" id="lore-name" style="font-size:1.8rem; margin-bottom:5px;">NOM</h2>
+                        <div style="color:var(--text-muted); font-size:0.8rem; margin-bottom:15px;">CLASSE DE MENACE : <span id="lore-lvl">1</span></div>
+                        <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; text-align:left; margin-bottom:15px;">
+                            <p style="color:#cbd5e1; font-size:0.85rem;" id="lore-desc">...</p>
                         </div>
-                        <button class="btn" style="background:rgba(255,255,255,0.1); margin-top:20px; width:100%;" onclick="closeLore()">FERMER</button>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div style="background:#06070A; padding:10px; border-radius:8px;">
+                                <div style="font-size:0.65rem; color:var(--text-muted);">PV MAX</div>
+                                <div style="font-weight:800; color:var(--success);" id="lore-hp">0</div>
+                            </div>
+                            <div style="background:#06070A; padding:10px; border-radius:8px;">
+                                <div style="font-size:0.65rem; color:var(--text-muted);">FAIBLESSE</div>
+                                <div style="font-weight:800; color:var(--danger);" id="lore-weak">--</div>
+                            </div>
+                        </div>
+                        <button class="btn" style="background:rgba(255,255,255,0.1); margin-top:20px; width:100%; border:none; color:#fff;" onclick="closeLore()">FERMER</button>
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    
     <script>
+        // CONFIGURATION DES LIENS SOCIAUX
+        const SOCIAL_LINKS = {
+            'social_discord': 'https://discord.gg/exemple',
+            'social_insta': 'https://instagram.com/titan_os',
+            'social_tiktok': 'https://tiktok.com/@titan_os',
+            'share_app': 'https://titan-os.netlify.app'
+        };
+
+        function trophySafeText(value, maxLength = 180) {
+            const cleaned = window.titanSafeText
+                ? window.titanSafeText(value, maxLength)
+                : String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, '').slice(0, maxLength);
+            return window.titanEscapeText
+                ? window.titanEscapeText(cleaned)
+                : String(cleaned).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function trophySafeImagePath(value, fallback = './image/logo.png') {
+            const path = String(value || '');
+            return /^\.\/image\/(boss|mob)\/[A-Za-z0-9_.-]+$/.test(path) || path === './image/logo.png'
+                ? path
+                : fallback;
+        }
+
+        function trophyLocalEnemyImage(prefix, value, fallbackId = null) {
+            const match = String(value || '').match(new RegExp(`${prefix}_(\\d+)`, 'i'));
+            const imageId = match ? Number(match[1]) : Number(fallbackId);
+            if (!Number.isInteger(imageId) || imageId < 1) return './image/logo.png';
+            return trophySafeImagePath(`./image/${prefix}/${prefix}_${imageId}.webp`);
+        }
+
+        function trophySafeCount(value) {
+            const count = parseInt(value, 10);
+            return Number.isFinite(count) ? Math.max(1, Math.min(count, 9999)) : 1;
+        }
+
+        function trophySafeIcon(value, fallback = 'ri-medal-line') {
+            const icon = String(value || '').trim();
+            return /^ri-[a-z0-9-]+$/i.test(icon) ? icon : fallback;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            if(!state) return;
-            initSystem(); 
-            
-            const stats = calculatePlayerStats();
-            renderAchievements(stats);
-            renderBestiary();
+            // FIX: Attente active des donnees (Robustesse V34)
+            const initCheck = setInterval(() => {
+                // On verifie que le STATE, le USER et la DB SUCCES sont l?
+                if (window.state && window.state.user && typeof ACHIEVEMENTS_DB !== 'undefined') {
+                    clearInterval(initCheck);
+                    
+                    // Mise ? jour header (Niveau/Credits)
+                    if(typeof updateGlobalUI === 'function') updateGlobalUI();
+
+                    // Calcul et affichage
+                    const stats = calculateAdvancedStats();
+                    renderAchievements(stats);
+                    renderBestiary();
+                }
+            }, 100);
+
+            // Securite : arret si rien apr?s 5s
+            setTimeout(() => clearInterval(initCheck), 5000);
         });
 
         function switchTab(view, btn) {
@@ -122,134 +469,225 @@
             btn.classList.add('active');
         }
 
-        // --- SUCCÈS ---
-        function calculatePlayerStats() {
-            let totalDist = 0, totalTons = 0, totalSessions = state.history.length, totalMindMin = 0;
-            let streaks = 0, currentStreak = 0, maxStreak = 0;
-            let forceSess=0, cardioSess=0, mentalSess=0;
-            let lootOpened = 0; // Il faudrait stocker ça dans state.user.stats, ici on approxime à 0 si pas tracké
-
-            state.history.forEach(log => {
-                if(log.cat === 'cardio' && log.unit === 'km') totalDist += log.value;
-                if(log.extended && log.extended.gps_dist) totalDist += log.extended.gps_dist;
-                if(log.cat === 'force' && log.unit === 'kg') totalTons += log.value;
-                if(log.cat === 'mental' && log.unit === 'min') totalMindMin += log.value;
-                if(log.cat === 'mental' && log.unit === 'h') totalMindMin += (log.value * 60);
-                if(log.cat === 'force') forceSess++;
-                if(log.cat === 'cardio') cardioSess++;
-                if(log.cat === 'mental') mentalSess++;
-            });
-
-            // Calcul Streak simple (approximatif)
-            // Pour faire propre, il faudrait le calculer dans main.js à chaque login
-            // Ici on va utiliser le nombre de sessions comme proxy pour les succès 'session'
+        // --- CALCUL INTELLIGENT DES STATS ---
+        function calculateAdvancedStats() {
+            // Securite si l'user ou l'historique n'est pas pr?t
+            const u = window.state.user || {};
+            const h = window.state.history || [];
             
-            return {
-                sessions: totalSessions,
-                boss_lvl: state.game.boss.lvl, 
-                credits: state.user.credits,
-                tonnage: totalTons,
-                distance: totalDist,
-                level: state.user.level,
-                inventory_count: state.inventory.length + Object.keys(state.equipped).length,
-                mind_min: totalMindMin,
-                friends: state.social && state.social.friends ? state.social.friends.length : 0,
-                has_guild: state.myGuild ? 1 : 0,
-                equipped_count: Object.keys(state.equipped).filter(k => state.equipped[k]).length,
-                cat_force: forceSess,
-                cat_cardio: cardioSess,
-                cat_mental: mentalSess,
-                zone_reached: state.game.campaign.stage,
-                health_score: state.user.dailyHealth ? state.user.dailyHealth.score : 0,
-                streak: 1 // Placeholder, nécessite tracking dans state
+            let s = {
+                boss_kill: (window.state.game ? (window.state.game.bossLevel || 1) - 1 : 0),
+                level: u.level || 1,
+                credits: u.credits || 0, 
+                
+                sessions: h.length,
+                xp: u.xp || 0,
+                
+                dist: 0,
+                night: 0,
+                morning: 0,
+                sunday: 0,
+                uniqueSports: new Set(),
+                maxCal: 0,
+                streak: u.streak_count || 0
             };
+
+            h.forEach(log => {
+                if(log.unit === 'km') s.dist += (parseFloat(log.val) || 0);
+                
+                const d = new Date(log.date);
+                const hour = d.getHours();
+                const day = d.getDay();
+                
+                if(hour >= 23 || hour < 4) s.night++;
+                if(hour >= 5 && hour < 8) s.morning++;
+                if(day === 0) s.sunday++;
+                
+                s.uniqueSports.add(log.sport);
+                
+                let cal = (log.xp || 0) * 0.8;
+                if(cal > s.maxCal) s.maxCal = cal;
+            });
+            
+            s.uniqueSportsCount = s.uniqueSports.size;
+            return s;
+        }
+
+        // --- MAPPING DES SUCCES ---
+        function getAchievementProgress(achId, stats) {
+            if(achId.startsWith('kill_')) return stats.boss_kill;
+            if(achId.startsWith('lvl_')) return stats.level;
+            if(achId.startsWith('rich_')) return stats.credits;
+            
+            if(achId.startsWith('run_')) return stats.dist;
+            if(achId.startsWith('sessions_')) return stats.sessions;
+            if(achId.startsWith('xp_')) return stats.xp;
+            
+            if(achId === 'night_owl') return stats.night;
+            if(achId === 'early_bird') return stats.morning;
+            if(achId === 'weekend_warrior') return stats.sunday;
+            if(achId.startsWith('streak_')) return stats.streak;
+            if(achId.startsWith('multi_sport_')) return stats.uniqueSportsCount;
+            if(achId.startsWith('burn_')) return stats.maxCal;
+            
+            if(achId.startsWith('social_') || achId === 'share_app') {
+                return localStorage.getItem('ach_done_' + achId) ? 1 : 0;
+            }
+            if(achId === 'support_elite') {
+                return window.state.user && window.state.user.is_elite ? 1 : 0;
+            }
+            
+            return 0; 
         }
 
         function renderAchievements(stats) {
             const container = document.getElementById('ach-container');
+            if (typeof ACHIEVEMENTS_DB === 'undefined' || ACHIEVEMENTS_DB.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px;">Aucun succes charge.</div>`;
+                return;
+            }
+            
             container.innerHTML = "";
             let unlockedCount = 0;
-
+            
             ACHIEVEMENTS_DB.forEach(ach => {
-                let currentVal = stats[ach.type] || 0;
-                let isUnlocked = currentVal >= ach.target;
-                if(state.user.achievements && state.user.achievements.includes(ach.id)) isUnlocked = true; // Déjà validé
-                
-                // Si nouveau déblocage, on pourrait le save, mais ici c'est visuel
+                const current = getAchievementProgress(ach.id, stats);
+                const target = Math.max(1, Number(ach.target) || 1);
+                const isUnlocked = current >= target;
                 if(isUnlocked) unlockedCount++;
 
-                const pct = Math.min((currentVal / ach.target) * 100, 100);
+                const pct = Math.min((current / target) * 100, 100);
+                const safeId = String(ach.id || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 80);
+                const safeTitle = trophySafeText(ach.title || 'Succes', 80);
+                const safeDesc = trophySafeText(ach.desc || 'Objectif sportif.', 180);
+                const safeIcon = trophySafeIcon(ach.icon);
                 
+                let actionBtn = '';
+                if(safeId && !isUnlocked && (safeId.startsWith('social_') || safeId === 'share_app')) {
+                    actionBtn = `<button class="btn-claim" onclick="triggerSocial('${safeId}')"><i class="ri-external-link-line"></i> ACTION</button>`;
+                }
+
+                // NOTE: Suppression de la div "ach-reward" ici comme demand?
                 container.innerHTML += `
-                <div class="ach-card ${isUnlocked ? 'unlocked' : ''}">
-                    <div class="ach-progress" style="width:${pct}%"></div>
-                    <div class="ach-icon"><i class="${ach.icon}"></i></div>
+                <div class="ach-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                    <div class="ach-icon-wrapper">
+                        <div class="lock-badge"><i class="ri-lock-fill"></i></div>
+                        <i class="${safeIcon} ach-main-icon"></i>
+                    </div>
                     <div class="ach-info">
-                        <h3>${ach.title}</h3>
-                        <p>${ach.desc}</p>
-                        ${!isUnlocked ? `<div style="font-size:0.65rem; color:var(--accent); margin-top:5px;">${Math.floor(currentVal)} / ${ach.target}</div>` : '<div style="font-size:0.65rem; color:var(--gold); margin-top:5px; font-weight:bold;">ACCOMPLI</div>'}
+                        <div class="ach-header">
+                            <div class="ach-title">${safeTitle}</div>
+                        </div>
+                        <div class="ach-desc">${safeDesc}</div>
+                        ${actionBtn}
+                        <div class="ach-footer">
+                            <div style="width:70px;">${isUnlocked ? 'VALIDE' : Math.floor(current) + ' / ' + target}</div>
+                            <div class="ach-prog-bg">
+                                <div class="ach-prog-fill" style="width:${pct}%"></div>
+                            </div>
+                            <div style="width:35px; text-align:right;">${Math.floor(pct)}%</div>
+                        </div>
                     </div>
                 </div>`;
             });
 
             const totalPct = Math.floor((unlockedCount / ACHIEVEMENTS_DB.length) * 100);
             document.getElementById('total-completion').innerText = totalPct + "%";
+            document.getElementById('total-count').innerText = `${unlockedCount} / ${ACHIEVEMENTS_DB.length}`;
             document.getElementById('total-bar').style.width = totalPct + "%";
+        }
+
+        function triggerSocial(id) {
+            const url = SOCIAL_LINKS[id];
+            if(url) window.open(url, '_blank');
+            localStorage.setItem('ach_done_' + id, 'true');
+            setTimeout(() => {
+                const stats = calculateAdvancedStats();
+                renderAchievements(stats);
+                if(window.showNotification) window.showNotification('success', 'SUCCES', 'Succes valide !'); else console.warn('[SUCCES] Valide.');
+            }, 1000);
         }
 
         // --- BESTIAIRE ---
         function renderBestiary() {
             const container = document.getElementById('monster-container');
             container.innerHTML = "";
-            const currentBossLvl = state.game.boss.lvl;
+            // Protection si game n'est pas charge
+            const currentBossLvl = (window.state.game && window.state.game.bossLevel) ? window.state.game.bossLevel : 1;
+            
+            if (typeof BOSS_DB !== 'undefined') {
+                BOSS_DB.forEach((boss, index) => {
+                    const bossLvl = index + 1; 
+                    let statusClass = "unknown";
+                    let statusText = "VERROUILLE";
+                    if (bossLvl < currentBossLvl) { statusClass = "defeated"; statusText = "ELIMINE"; } 
+                    else if (bossLvl === currentBossLvl) { statusClass = "alive"; statusText = "CIBLE ACTIVE"; } 
+                    const imgPath = trophyLocalEnemyImage('boss', boss.img, bossLvl);
+                    const bossName = statusClass === 'unknown' ? '???' : trophySafeText(boss.name, 80);
+                    container.innerHTML += `<div class="monster-card ${statusClass}" onclick="openLore(${index}, '${statusClass}')"><div class="m-img-box" style="background-image:url('${imgPath}')"></div><div class="m-content"><div class="m-name">${bossName}</div><div class="m-status status-${statusClass === 'defeated' ? 'killed' : (statusClass === 'alive' ? 'alive' : 'locked')}">${statusText}</div></div></div>`;
+                });
+            }
+            const localBestiary = window.state.game?.bestiary || {};
+            Object.values(localBestiary)
+                .filter(entry => entry.type === 'BOSS')
+                .sort((a, b) => (a.campaignLevel || 0) - (b.campaignLevel || 0))
+                .forEach(entry => {
+                    const imgPath = trophyLocalEnemyImage('boss', entry.imgOverride, entry.imageId);
+                    const bossName = trophySafeText(entry.name || 'Boss archive', 80);
+                    const cardTitle = trophySafeText(entry.card?.title || entry.title || 'Carte unique', 80);
+                    const weak = trophySafeText(window.titanWeaknessLabel ? window.titanWeaknessLabel(entry.weakness) : (entry.weakness || 'N/A'), 60);
+                    const mechanic = trophySafeText(entry.mechanic?.label || 'Mecanique archivee', 80);
+                    const sport = trophySafeText(window.SPORTS_CONFIG?.[entry.decidingSport]?.label || entry.decidingSport || 'Sport inconnu', 80);
+                    container.innerHTML += `<div class="monster-card defeated titan-boss-card" data-name="${bossName}" data-card="${cardTitle}" data-weak="${weak}" data-mechanic="${mechanic}" data-sport="${sport}"><div class="m-img-box" style="background-image:url('${imgPath}')"></div><div class="m-content"><div class="m-name">${bossName}</div><div class="m-status status-killed">${cardTitle}</div></div></div>`;
+                });
+            Object.values(localBestiary)
+                .filter(entry => entry.type === 'MOB')
+                .sort((a, b) => (b.defeats || 0) - (a.defeats || 0))
+                .forEach(entry => {
+                    const imgPath = trophyLocalEnemyImage('mob', entry.imgOverride, entry.imageId);
+                    const rarity = trophySafeText(entry.rarity?.label || 'STANDARD', 40);
+                    const weak = trophySafeText(window.titanWeaknessLabel ? window.titanWeaknessLabel(entry.weakness) : (entry.weakness || 'N/A'), 60);
+                    const defeats = trophySafeCount(entry.defeats);
+                    const mobName = trophySafeText(entry.name || 'Entite inconnue', 80);
+                    container.innerHTML += `<div class="monster-card defeated titan-mob-card" data-rarity="${rarity}" data-weak="${weak}" data-defeats="${defeats}"><div class="m-img-box" style="background-image:url('${imgPath}')"></div><div class="m-content"><div class="m-name">${mobName}</div><div class="m-status status-killed">${rarity} // x${defeats}</div></div></div>`;
+                });
 
-            BOSS_DB.forEach((boss, index) => {
-                const bossLvl = index + 1; 
-                let statusClass = "unknown";
-                let statusText = "???";
-                
-                if (bossLvl < currentBossLvl) { statusClass = "defeated"; statusText = "ÉLIMINÉ"; } 
-                else if (bossLvl === currentBossLvl) { statusClass = "alive"; statusText = "CIBLE ACTUELLE"; } 
-                else { statusClass = "unknown"; statusText = "VERROUILLÉ"; }
+            container.querySelectorAll('.titan-mob-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const summary = `TYPE: ${card.dataset.rarity || 'STANDARD'} | FAIBLESSE: ${card.dataset.weak || 'N/A'} | NEUTRALISATIONS: ${card.dataset.defeats || '1'}`;
+                    if(window.showNotification) window.showNotification('info', 'BESTIAIRE', summary);
+                    else console.warn('[BESTIAIRE]', summary);
+                });
+            });
 
-                let bgStyle = `background: linear-gradient(to bottom, #1e2538, #000);`;
-                
-                container.innerHTML += `
-                <div class="monster-card ${statusClass}" onclick="openLore(${index}, '${statusClass}')">
-                    <div class="m-img" style="${bgStyle}">
-                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; color:rgba(255,255,255,0.2);">
-                            <i class="${boss.icon}"></i>
-                        </div>
-                    </div>
-                    <div class="m-content">
-                        <div class="m-name">${statusClass === 'unknown' ? '???' : boss.name}</div>
-                        <div class="m-status status-${statusClass === 'defeated' ? 'killed' : (statusClass === 'alive' ? 'alive' : 'locked')}">${statusText}</div>
-                    </div>
-                </div>`;
+            container.querySelectorAll('.titan-boss-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const summary = `${card.dataset.card || 'Carte unique'} | FAIBLESSE: ${card.dataset.weak || 'N/A'} | MECANIQUE: ${card.dataset.mechanic || 'N/A'} | SPORT DECISIF: ${card.dataset.sport || 'N/A'}`;
+                    if(window.showNotification) window.showNotification('info', card.dataset.name || 'BOSS ARCHIVE', summary);
+                    else console.warn('[BESTIAIRE]', summary);
+                });
             });
         }
 
         function openLore(index, status) {
-            if(status === 'unknown') return alert("Données cryptées. Atteignez le niveau requis.");
+            if(status === 'unknown') return window.showNotification ? window.showNotification('warning', 'ACCES REFUSE', 'Donnees cryptees.') : console.warn('[BESTIAIRE] Acces refuse.');
             const boss = BOSS_DB[index];
-            document.getElementById('lore-modal').style.display = 'flex';
+            const modal = document.getElementById('lore-modal');
             document.getElementById('lore-name').innerText = boss.name;
             document.getElementById('lore-lvl').innerText = index + 1;
-            document.getElementById('lore-desc').innerText = boss.desc;
-            document.getElementById('lore-hp').innerText = boss.baseHp.toLocaleString();
-            document.getElementById('lore-weak').innerText = boss.weak;
-            document.getElementById('lore-icon').className = boss.icon;
-            
+            document.getElementById('lore-desc').innerText = boss.desc || "Pas de description.";
+            document.getElementById('lore-hp').innerText = (boss.baseHp + (index*1000)).toLocaleString();
+            document.getElementById('lore-weak').innerText = boss.weak || "N/A";
+            const loreImage = document.getElementById('lore-img-src');
+            loreImage.src = trophyLocalEnemyImage('boss', boss.img, index + 1);
+            loreImage.alt = `Dossier du boss ${boss.name}`;
             const statusBadge = document.getElementById('lore-status');
-            if(status === 'defeated') {
-                statusBadge.innerText = "CLASSIFIÉ : ÉLIMINÉ";
-                statusBadge.style.color = "var(--success)"; statusBadge.style.borderColor = "var(--success)";
-            } else {
-                statusBadge.innerText = "CIBLE ACTIVE";
-                statusBadge.style.color = "var(--danger)"; statusBadge.style.borderColor = "var(--danger)";
-            }
+            if(status === 'defeated') { statusBadge.innerText = "NEUTRALISE"; statusBadge.style.color = "var(--success)"; statusBadge.style.borderColor = "var(--success)"; } 
+            else { statusBadge.innerText = "CIBLE PRIORITAIRE"; statusBadge.style.color = "var(--danger)"; statusBadge.style.borderColor = "var(--danger)"; }
+            modal.style.display = 'flex';
         }
         function closeLore() { document.getElementById('lore-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
+

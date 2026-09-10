@@ -1,286 +1,700 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>TITAN: MAÎTRISE</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Talents - TITAN OS</title>
     
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
     <style>
-        /* HEADER */
-        .header-panel {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
+        /* --- STYLE SPECIFIQUE Parcours (V34) --- */
+        
+        /* Layout specifique pour l'arbre */
+        .neural-container {
+            position: relative;
+            padding: 20px 10px 100px 10px;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        /* SECTION ARBRE */
-        .skill-section { 
-            margin-bottom: 40px; 
-            background: rgba(255,255,255,0.02); 
-            border-radius: 16px; 
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
+        /* La ligne centrale (Le flux de donnees) */
+        .neural-line {
+            position: absolute; top: 0; bottom: 0; left: 50%; width: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(-50%);
+            z-index: 0;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        /* Effet de remplissage de la ligne selon la progression */
+        .neural-line::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: var(--progression, 0%);
+            background: var(--active-color, #38bdf8);
+            box-shadow: 0 0 15px var(--active-color);
+            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Onglets de categories (Puces) */
+        .chip-tabs {
+            display: flex; gap: 10px; overflow-x: auto; padding: 10px 5px 20px 5px;
+            margin-bottom: 20px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .chip-tabs::-webkit-scrollbar { display: none; }
+
+        .chip-btn {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 18px; border-radius: 50px;
+            color: #94a3b8; font-family: 'Russo One'; font-size: 0.75rem;
+            white-space: nowrap; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .chip-btn.active {
+            background: rgba(15, 23, 42, 1);
+            border-color: var(--chip-color);
+            color: var(--chip-color);
+            box-shadow: 0 0 15px var(--chip-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Les Modules (Nodes) */
+        .module-card {
+            position: relative; z-index: 2;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 15px; margin-bottom: 30px;
+            display: flex; align-items: center; gap: 15px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        .skill-header { 
-            display: flex; align-items: center; gap: 15px; 
-            margin-bottom: 20px; 
-        }
+        /* Etat : Verrouille */
+        .module-card.locked { opacity: 0.6; filter: grayscale(1); transform: scale(0.98); }
         
-        .skill-track { 
-            display: flex; gap: 30px; overflow-x: auto; 
-            padding: 10px; position: relative; 
-            min-height: 120px; align-items: center;
+        /* Etat : Disponible (Pulsation) */
+        .module-card.available { 
+            border-color: rgba(255,255,255,0.4); 
+            cursor: pointer;
+            box-shadow: 0 0 0 rgba(255,255,255,0.1);
+            animation: pulse-ready 2s infinite;
         }
-        .skill-track::before { 
-            content: ''; position: absolute; left: 40px; right: 40px; top: 40px; height: 4px; 
-            background: rgba(255,255,255,0.1); z-index: 0; 
+        .module-card.available:active { transform: scale(0.95); }
+
+        /* Etat : D?bloqu? (Activ?) */
+        .module-card.unlocked {
+            border-color: var(--active-color);
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.8) 100%);
+            box-shadow: 0 0 20px var(--active-glow);
+            transform: scale(1.02);
         }
 
-        /* BULLE TALENT */
-        .node-wrapper { 
-            position: relative; z-index: 1; 
-            display: flex; flex-direction: column; align-items: center; 
-            min-width: 90px;
+        .module-icon {
+            width: 50px; height: 50px; border-radius: 12px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #64748b; flex-shrink: 0;
         }
+        .module-card.unlocked .module-icon {
+            background: var(--active-bg); border-color: var(--active-color); color: #fff;
+            box-shadow: inset 0 0 15px var(--active-glow);
+        }
+        .module-card.available .module-icon { color: #fff; border-color: #fff; }
+
+        .module-info h3 { margin: 0; font-size: 0.9rem; color: #fff; margin-bottom: 4px; }
+        .module-info p { margin: 0; font-size: 0.75rem; color: #94a3b8; line-height: 1.3; }
         
-        .node { 
-            width: 70px; height: 70px; background: #131824; 
-            border: 3px solid #2d364f; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.8rem; color: #475569; 
-            cursor: pointer; transition: 0.2s; 
-            margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .module-cost {
+            position: absolute; top: -10px; right: 10px;
+            background: #020617; border: 1px solid var(--gold); color: var(--gold);
+            font-family: 'Russo One'; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        
-        .node-name { font-family: 'Russo One'; font-size: 0.75rem; color: #fff; text-transform: uppercase; margin-bottom: 2px; }
-        .node-desc { font-size: 0.65rem; color: var(--text-muted); max-width: 120px; text-align: center; display: none; }
-        .node-cost { font-size: 0.7rem; color: var(--gold); font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px; margin-top: 5px;}
 
-        .node:hover { transform: scale(1.1); }
-        .node:hover + .node-info .node-desc { display: block; position: absolute; background: #000; padding: 5px; z-index: 10; border-radius: 4px; border: 1px solid #333; }
+        @keyframes pulse-ready {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); border-color: rgba(255,255,255,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); border-color: rgba(255,255,255,0.8); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); border-color: rgba(255,255,255,0.4); }
+        }
 
-        .node.unlocked { color: #fff !important; background: #1e2538; box-shadow: 0 0 15px currentColor; }
-        .node.available { border-color: #fff !important; color: rgba(255,255,255,0.5); animation: pulseAvailable 2s infinite; }
-        .node.locked { opacity: 0.6; filter: grayscale(1); }
+        /* HUD FLOTTANT (POINTS) */
+        .points-floater {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(2, 6, 23, 0.95); border: 1px solid var(--gold);
+            padding: 12px 25px; border-radius: 50px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(126, 220, 255, 0.2);
+            z-index: 900; width: max-content;
+        }
+        .points-val { font-family: 'Russo One'; font-size: 1.2rem; color: var(--gold); }
+        .points-label { font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .constellation-panel { max-width:760px; margin:0 auto 18px; border:1px solid rgba(56,189,248,0.16); background:rgba(30,41,59,0.42); border-radius:12px; padding:14px; }
+        .constellation-head { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#fff; font-family:'Russo One'; font-size:0.82rem; margin-bottom:12px; }
+        .constellation-grid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; }
+        .constellation-card { border:1px solid color-mix(in srgb, var(--c) 44%, transparent); background:rgba(255,255,255,0.035); border-radius:8px; padding:10px; min-width:0; }
+        .constellation-card i { color:var(--c); font-size:1.2rem; }
+        .constellation-card strong { display:block; color:#fff; font-size:0.74rem; margin-top:6px; }
+        .constellation-card span { display:block; color:#94a3b8; font-size:0.66rem; line-height:1.35; margin-top:4px; }
+        @media (max-width: 760px) { .constellation-grid { grid-template-columns:1fr; } }
 
-        @keyframes pulseAvailable { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
-
-        /* MODAL */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .modal-card { background: #131824; border: 2px solid #fff; padding: 30px; border-radius: 20px; max-width: 350px; text-align: center; }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Talents TITAN OS: arbre de progression personnel, choix d'orientation, bonus et specialisations debloques par la pratique.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/talents">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/talents">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/talents">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Talents - TITAN OS">
+    <meta property="og:description" content="Talents TITAN OS: arbre de progression personnel, choix d'orientation, bonus et specialisations debloques par la pratique.">
+    <meta property="og:url" content="https://titan-app.fr/talents">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Talents - TITAN OS">
+    <meta name="twitter:description" content="Talents TITAN OS: arbre de progression personnel, choix d'orientation, bonus et specialisations debloques par la pratique.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/talents#webpage",
+          "url": "https://titan-app.fr/talents",
+          "name": "Talents - TITAN OS",
+          "headline": "Talents - TITAN OS",
+          "description": "Talents TITAN OS: arbre de progression personnel, choix d'orientation, bonus et specialisations debloques par la pratique.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/talents#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/talents#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Talents",
+              "item": "https://titan-app.fr/talents"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="talents">
+
     <div class="layout">
-        <nav class="sidebar"></nav>
-
-        <main class="main-content">
-            <div id="mobile-header-placeholder"></div>
-
-            <div class="header-panel">
+        <nav class="sidebar"></nav> <main class="main-content">
+            <div class="mobile-user-bar"></div> <header style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <h1 class="titular">MATRICE NEURALE</h1>
-                    <div style="font-size:0.8rem; color:var(--text-muted);">ARBRE DE COMPÉTENCES</div>
+                    <div style="font-size: 0.7rem; color: var(--accent); letter-spacing: 2px; font-weight: 800; margin-bottom: 5px;">SYSTEME</div>
+                    <h1 class="titular" style="font-size: 1.8rem;">Parcours</h1>
                 </div>
-                <div style="text-align:right;">
-                    <div style="font-size:0.7rem; color:var(--text-muted);">POINTS DISPO</div>
-                    <div style="font-family:'Russo One'; font-size:1.8rem; color:var(--accent);" id="talent-pts">--</div>
+                <div onclick="openRules()" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent);">
+                    <i class="ri-information-fill" style="font-size: 1.2rem;"></i>
+                </div>
+            </header>
+
+            <div class="chip-tabs" id="nav-tabs">
+                </div>
+
+            <div class="constellation-panel" id="constellation-panel"></div>
+
+            <div class="neural-container">
+                <div class="neural-line" id="neural-line"></div>
+                <div id="tree-render">
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="ri-loader-4-line ri-spin" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        SYNCHRONISATION Parcours...
+                    </div>
                 </div>
             </div>
 
-            <div id="tree-container">
-                <div style="text-align:center; padding:50px; color:rgba(255,255,255,0.3);">Initialisation des systèmes...</div>
-            </div>
-            
-            <div id="confirm-modal" class="modal-overlay">
-                <div class="modal-card" id="modal-content"></div>
+            <div class="points-floater">
+                <i class="ri-database-2-fill" style="color: var(--gold);"></i>
+                <div>
+                    <div class="points-val" id="points-display">--</div>
+                    <div class="points-label">Points Tech</div>
+                </div>
             </div>
 
         </main>
+        
+        <nav class="mobile-nav"></nav> </div>
+
+    <div id="talent-modal" class="modal-overlay">
+        <div class="modal-content info-block" style="max-width: 350px; text-align: center; border: 1px solid var(--accent);">
+            <div id="m-icon-box" style="width: 80px; height: 80px; margin: 0 auto 20px auto; background: rgba(56, 189, 248, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--accent); color: var(--accent); font-size: 2rem;">
+                <i id="m-icon" class="ri-cpu-line"></i>
+            </div>
+            
+            <h2 id="m-title" style="margin-bottom: 10px; color: #fff;">MODULE</h2>
+            <p id="m-desc" style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;"></p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.8rem; color: #94a3b8;">COUT REQUIS</span>
+                <span style="font-family: 'Russo One'; color: var(--gold);" id="m-cost">0 PTS</span>
+            </div>
+
+            <button id="m-btn" class="btn-action" onclick="confirmUnlock()" style="width: 100%;">Débloquer cette étape</button>
+            <button onclick="closeModal('talent-modal')" style="margin-top: 15px; background: none; border: none; color: #64748b; font-size: 0.8rem; text-decoration: underline;">ANNULER</button>
+        </div>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
-    
+    <div id="rules-modal" class="modal-overlay">
+        <div class="modal-content info-block" style="max-width: 400px;">
+            <h2 style="color: var(--gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">Comment ça marche</h2>
+            <ul style="padding-left: 0; font-size: 0.9rem; color: #cbd5e1; line-height: 1.8;">
+                <li><i class="ri-checkbox-circle-fill" style="color: var(--success);"></i> <b>1 NIVEAU = 1 POINT TECH.</b></li>
+                <li><i class="ri-link" style="color: var(--accent);"></i> Les modules doivent etre debloques dans l'ordre (chainage).</li>
+                <li><i class="ri-cpu-line" style="color: #a78bfa;"></i> Chaque branche ameliore une caracteristique specifique (Force, Agilit?...).</li>
+            </ul>
+            <button onclick="closeModal('rules-modal')" class="btn-primary" style="width: 100%; margin-top: 15px;">COMPRIS</button>
+        </div>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+
     <script>
+        // CONFIGURATION LOCALE
+        const PATHS = [
+            { id: 'force', name: 'FORCE', color: '#ef4444', icon: 'ri-hammer-fill' },     // Rouge
+            { id: 'agility', name: 'AGILITE', color: '#38bdf8', icon: 'ri-windy-line' },  // Bleu Cyan
+            { id: 'tech', name: 'TACTIQUE', color: '#a78bfa', icon: 'ri-cpu-line' },      // Violet
+            { id: 'endurance', name: 'VITALITE', color: '#22c55e', icon: 'ri-heart-pulse-fill' } // Vert
+        ];
+
+        // Mapping Data.js -> Vue
+        const PATH_MAPPING = { 
+            'titan': 'force', 
+            'spectre': 'agility', 
+            'operator': 'tech',
+            'juggernaut': 'endurance' 
+        };
+
+        let currentPath = 'force';
+        let availablePoints = 0;
+        let selectedTalentId = null;
+
+        // 1. INITIALISATION SECURISEE
         document.addEventListener('DOMContentLoaded', () => {
-            renderTreeStructure();
-            waitForState();
+            // On attend que state.js et data.js aient fait leur travail
+            const initCheck = setInterval(() => {
+                if(window.state && window.state.user && window.TALENT_TREE && Object.keys(window.TALENT_TREE).length > 0) {
+                    clearInterval(initCheck);
+                    renderTabs();
+                    renderConstellationPanel();
+                    refreshView();
+                } else if (!window.TALENT_TREE) {
+                    // Si data.js n'a pas encore charge les talents, on force un load si n?cessaire
+                    if(window.loadServerData) window.loadServerData();
+                }
+            }, 200);
+
+            // Timeout de securite (5s) pour afficher un message si ca bug
+            setTimeout(() => {
+                clearInterval(initCheck);
+                if(!window.TALENT_TREE || Object.keys(window.TALENT_TREE).length === 0) {
+                    document.getElementById('tree-render').innerHTML = `
+                        <div style="color: var(--danger); text-align:center; padding:20px;">
+                            <i class="ri-error-warning-fill" style="font-size:2rem;"></i><br>
+                            ECHEC CONNECTION BASE DE DONNEES<br>
+                            <span style="font-size:0.7rem; color:#94a3b8;">Verifie ta connexion internet et recharge.</span>
+                        </div>
+                    `;
+                }
+            }, 5000);
         });
 
-        // FONCTION SÉCURISÉE POUR RÉCUPÉRER LE STATE
-        function getGlobalState() {
-            // Essaie de trouver la variable 'state' déclarée dans main.js
-            try { return state; } catch(e) {}
-            // Fallback sur window.state
-            if(window.state) return window.state;
-            return null;
+        // 2. RENDU DES ONGLETS (CHIPS)
+        function renderTabs() {
+            const container = document.getElementById('nav-tabs');
+            container.innerHTML = PATHS.map(p => `
+                <button class="chip-btn ${p.id === currentPath ? 'active' : ''}" 
+                    style="--chip-color: ${p.color}; --chip-glow: ${p.color}66;"
+                    onclick="switchPath('${p.id}')">
+                    <i class="${p.icon}"></i> ${p.name}
+                </button>
+            `).join('');
         }
 
-        // ATTENTE ACTIVE DU CHARGEMENT DE LA SAUVEGARDE
-        function waitForState() {
-            const s = getGlobalState();
-            if (s && s.user && s.user.level) {
-                console.log("TITAN TALENTS : Profil chargé. Niveau " + s.user.level);
-                updateTreeState();
-            } else {
-                // Pas encore prêt, on réessaie dans 100ms
-                setTimeout(waitForState, 100);
+        function renderConstellationPanel() {
+            const target = document.getElementById('constellation-panel');
+            if(!target) return;
+            const list = window.TITAN_TALENT_CONSTELLATIONS || [];
+            target.innerHTML = `
+                <div class="constellation-head">
+                    <span><i class="ri-node-tree"></i> CONSTELLATIONS V2</span>
+                    <span style="color:#94a3b8; font-size:0.68rem;">Effets critiques bornes cote serveur</span>
+                </div>
+                <div class="constellation-grid">
+                    ${list.map(item => `
+                        <div class="constellation-card" style="--c:${item.theme}">
+                            <i class="${item.icon}"></i>
+                            <strong>${escapeTalentText(item.label)}</strong>
+                            <span>${escapeTalentText((item.examples || []).slice(0, 2).join(' / '))}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function escapeTalentText(value) {
+            if (window.titanEscapeText) return window.titanEscapeText(value);
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function switchPath(id) {
+            currentPath = id;
+            renderTabs();
+            refreshView();
+        }
+
+        // 3. LOGIQUE PRINCIPALE DE RENDU
+        function refreshView() {
+            const u = window.state.user;
+            const container = document.getElementById('tree-render');
+            
+            // Calcul des points
+            // Note: On assume niveau 1 = 0 pts, niveau 2 = 1 pt.
+            const totalPointsEarned = Math.max(0, (u.level || 1) - 1);
+            
+            // Calcul des points depenses
+            let spentPoints = 0;
+            if (u.unlockedTalents && Array.isArray(u.unlockedTalents)) {
+                u.unlockedTalents.forEach(tId => {
+                    if (window.TALENT_TREE[tId]) spentPoints += window.TALENT_TREE[tId].cost;
+                });
             }
-        }
+            
+            availablePoints = totalPointsEarned - spentPoints;
+            document.getElementById('points-display').innerText = availablePoints;
 
-        // 1. DESSINER LA STRUCTURE
-        function renderTreeStructure() {
-            const container = document.getElementById('tree-container');
-            if (typeof TALENT_PATHS === 'undefined' || typeof TALENT_TREE === 'undefined') {
-                container.innerHTML = "<div style='color:red; padding:20px;'>ERREUR CRITIQUE : data.js non détecté.</div>";
+            // Filtrage des talents de la voie actuelle
+            const talents = Object.values(window.TALENT_TREE)
+                .filter(t => (t.path && PATH_MAPPING[t.path] === currentPath) || t.path === currentPath)
+                .sort((a,b) => a.cost - b.cost); // On trie par cout (progression logique)
+
+            if (talents.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">Aucun module detecte sur ce canal.</div>`;
                 return;
             }
 
-            let html = '';
-            TALENT_PATHS.forEach(path => {
-                const talentsInPath = Object.values(TALENT_TREE).filter(t => t.path === path.id);
+            // Configuration de la couleur active
+            const pathInfo = PATHS.find(p => p.id === currentPath);
+            const activeColor = pathInfo ? pathInfo.color : '#38bdf8';
+            document.documentElement.style.setProperty('--active-color', activeColor);
+            
+            // Rendu de la liste
+            let unlockedCount = 0;
+
+            container.innerHTML = talents.map((t, index) => {
+                const isUnlocked = (u.unlockedTalents || []).includes(t.id);
+                // Est disponible si : Pas debloque ET (Pas de prerequis OU prerequis debloque)
+                const isAvailable = !isUnlocked && (!t.prev || (u.unlockedTalents || []).includes(t.prev));
                 
-                html += `
-                <div class="skill-section">
-                    <div class="skill-header">
-                        <div style="width:40px; height:40px; background:${path.color}; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#000; font-size:1.4rem;"><i class="${path.icon}"></i></div>
-                        <div>
-                            <div style="font-family:'Russo One'; font-size:1rem; color:#fff;">${path.name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${path.subtitle}</div>
-                        </div>
-                    </div>
-                    <div class="skill-track">
-                `;
+                if (isUnlocked) unlockedCount++;
 
-                talentsInPath.forEach(t => {
-                    html += `
-                        <div class="node-wrapper">
-                            <div class="node locked" id="node-${t.id}" onclick="clickTalent('${t.id}')" style="border-color:${path.color};">
-                                <i class="${t.icon}"></i>
-                            </div>
-                            <div class="node-info">
-                                <div class="node-name">${t.name}</div>
-                                <div class="node-cost">${t.cost} PTS</div>
-                                <div class="node-desc">${t.desc}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += `</div></div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        // 2. METTRE À JOUR L'ÉTAT
-        function updateTreeState() {
-            const s = getGlobalState();
-            if(!s) return;
-            const user = s.user;
-            
-            // Calcul Points : Niveau - 1 (ex: Niv 2 = 1 pt)
-            const totalPointsGagnes = Math.max(0, user.level - 1);
-            let pointsDepenses = 0;
-            const unlocked = user.unlockedTalents || [];
-
-            unlocked.forEach(id => {
-                if(TALENT_TREE[id]) pointsDepenses += TALENT_TREE[id].cost;
-            });
-
-            const pointsRestants = totalPointsGagnes - pointsDepenses;
-            user.talentPoints = pointsRestants; // Sync
-            
-            document.getElementById('talent-pts').innerText = pointsRestants;
-
-            // Mise à jour visuelle
-            Object.values(TALENT_TREE).forEach(t => {
-                const el = document.getElementById(`node-${t.id}`);
-                if(!el) return;
-
-                const isUnlocked = unlocked.includes(t.id);
-                const parentUnlocked = t.prev ? unlocked.includes(t.prev) : true;
-                const canBuy = !isUnlocked && parentUnlocked && pointsRestants >= t.cost;
-                const pathInfo = TALENT_PATHS.find(p => p.id === t.path);
-                const color = pathInfo ? pathInfo.color : '#fff';
-
-                el.className = "node";
-                el.style.color = "#475569";
-                el.style.borderColor = "#2d364f";
-                el.style.boxShadow = "none";
-                el.style.animation = "none";
-
+                let cssClass = 'locked';
+                let clickAction = '';
+                
                 if (isUnlocked) {
-                    el.classList.add('unlocked');
-                    el.style.color = color;
-                    el.style.borderColor = color;
-                    el.style.boxShadow = `0 0 15px ${color}`;
-                } else if (canBuy) {
-                    el.classList.add('available');
-                    el.style.borderColor = "#fff";
-                    el.style.color = "#fff";
-                } else {
-                    el.classList.add('locked');
+                    cssClass = 'unlocked';
+                } else if (isAvailable) {
+                    cssClass = 'available';
+                    clickAction = `onclick="openPurchaseModal('${t.id}')"`;
                 }
-            });
+
+                return `
+                    <div class="module-card ${cssClass}" ${clickAction}
+                         style="--active-color: ${activeColor}; --active-glow: ${activeColor}44; --active-bg: ${activeColor}22;">
+                        
+                        <div class="module-icon">
+                            <i class="${isUnlocked ? 'ri-checkbox-circle-fill' : t.icon}"></i>
+                        </div>
+                        
+                        <div class="module-info">
+                            <h3>${t.name}</h3>
+                            <p>${t.desc}</p>
+                            ${t.bonus ? `<div style="color:${activeColor}; font-size:0.7rem; font-weight:bold; margin-top:4px;">+${t.bonus} ${t.stat || 'STAT'}</div>` : ''}
+                        </div>
+
+                        ${!isUnlocked ? `<div class="module-cost">${t.cost} PT</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Mise ? jour de la ligne de progression (visuel)
+            const progressPercent = (unlockedCount / talents.length) * 100;
+            const line = document.getElementById('neural-line');
+            line.style.setProperty('--progression', `${progressPercent}%`);
+            line.style.setProperty('--active-color', activeColor);
         }
 
-        // 3. GESTION DU CLIC
-        let selectedId = null;
-
-        function clickTalent(id) {
-            const s = getGlobalState();
-            if(!s) return alert("Chargement...");
+        // 4. GESTION DES MODALES
+        function openPurchaseModal(tId) {
+            selectedTalentId = tId;
+            const t = window.TALENT_TREE[tId];
+            const pathInfo = PATHS.find(p => p.id === currentPath);
             
-            const t = TALENT_TREE[id];
-            const user = s.user;
-            const unlocked = user.unlockedTalents || [];
+            document.getElementById('m-title').innerText = t.name;
+            document.getElementById('m-desc').innerText = t.desc;
+            document.getElementById('m-cost').innerText = t.cost + " PTS";
+            document.getElementById('m-icon').className = t.icon;
             
-            if(unlocked.includes(id)) return;
-            if(t.prev && !unlocked.includes(t.prev)) return alert("⛔ DÉBLOQUEZ LE TALENT PRÉCÉDENT.");
-
-            selectedId = id;
-            const pathInfo = TALENT_PATHS.find(p => p.id === t.path);
-            const canAfford = user.talentPoints >= t.cost;
-
-            const modal = document.getElementById('confirm-modal');
-            const content = document.getElementById('modal-content');
+            // Styling contextuel
+            const iconBox = document.getElementById('m-icon-box');
+            iconBox.style.color = pathInfo.color;
+            iconBox.style.borderColor = pathInfo.color;
+            iconBox.style.background = pathInfo.color + "22"; // Hex opacity
             
-            content.style.borderColor = pathInfo.color;
-            content.innerHTML = `
-                <div style="font-size:3rem; color:${pathInfo.color}; margin-bottom:10px;"><i class="${t.icon}"></i></div>
-                <h2 style="font-family:'Russo One'; margin-bottom:10px; text-transform:uppercase;">${t.name}</h2>
-                <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem;">${t.desc}</p>
-                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:20px;">
-                    COÛT : <span style="color:${canAfford ? '#fff' : 'var(--danger)'}; font-weight:bold;">${t.cost} PTS</span>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button class="btn" onclick="closeModal()" style="background:transparent; border:1px solid rgba(255,255,255,0.2);">ANNULER</button>
-                    ${canAfford ? `<button class="btn btn-action" onclick="confirmUnlock()" style="background:${pathInfo.color}; color:#000;">DÉBLOQUER</button>` : `<button class="btn" disabled style="opacity:0.5;">MANQUE PTS</button>`}
-                </div>
-            `;
-            modal.style.display = 'flex';
+            const btn = document.getElementById('m-btn');
+            btn.style.background = pathInfo.color;
+            btn.innerText = "Débloquer cette étape";
+            
+            if (availablePoints < t.cost) {
+                btn.disabled = true;
+                btn.style.background = "#334155";
+                btn.style.color = "#94a3b8";
+                btn.innerText = `POINTS INSUFFISANTS (Manque ${t.cost - availablePoints})`;
+            } else {
+                btn.disabled = false;
+                btn.style.color = "#000";
+            }
+
+            document.getElementById('talent-modal').classList.add('active');
         }
 
-        function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
-
-        function confirmUnlock() {
-            if(!selectedId) return;
-            const s = getGlobalState();
-            if(!s) return;
-
-            if(!s.user.unlockedTalents) s.user.unlockedTalents = [];
-            s.user.unlockedTalents.push(selectedId);
-            
-            saveState(); // Update main.js
-            closeModal();
-            updateTreeState();
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
         }
+        function openRules() { document.getElementById('rules-modal').classList.add('active'); }
+
+        // 5. ACTION DE DEBLOCAGE
+        async function confirmUnlock() {
+            if (!selectedTalentId) return;
+
+            const t = window.TALENT_TREE[selectedTalentId];
+            if (availablePoints < t.cost) return; // Securite double
+
+            const btn = document.getElementById('m-btn');
+            btn.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> INSTALLATION...`;
+            
+            try {
+                // 1. Update LOCAL (Immediat pour l'UX)
+                if (!window.state.user.unlockedTalents) window.state.user.unlockedTalents = [];
+                window.state.user.unlockedTalents.push(selectedTalentId);
+                
+                // Sauvegarde State Local
+                window.saveState(); 
+
+                // 2. Sync CLOUD (Si connect?)
+                if (window.titanClient && window.state.user.id && !window.state.user.id.startsWith('guest_')) {
+                    const updater = window.safeProfileUpdate || ((payload, id) => window.titanClient.from('profiles').update(payload).eq('id', id).then(({ error }) => error));
+                    const error = await updater({
+                        unlocked_talents: window.state.user.unlockedTalents,
+                        game_state: window.state
+                    }, window.state.user.id);
+                    if(error) console.error("Erreur Sync Talent:", error);
+                }
+
+                // 3. Feedback Visuel
+                closeModal('talent-modal');
+                refreshView();
+                
+                // Petit effet de vibration si support?
+                if (navigator.vibrate) navigator.vibrate(50);
+
+            } catch (e) {
+                console.error(e);
+                if(window.showNotification) window.showNotification('error', 'TALENTS', 'Erreur systeme lors de l installation du module.'); else console.error('[TALENTS]', e);
+                refreshView(); // Rollback visuel si crash
+            }
+        }
+
     </script>
 </body>
 </html>
+

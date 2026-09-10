@@ -1,138 +1,705 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: PROTOCOLE LÉGAL</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Centre legal et confidentialite - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        /* --- LAYOUT SPÉCIFIQUE LEGAL --- */
-        .legal-layout { display: flex; min-height: 100vh; }
-        
+        body {
+            background: #06070A;
+            color: #cbd5e1;
+            font-family: var(--font-ui, 'Outfit', system-ui, sans-serif);
+        }
+
+        .legal-layout {
+            display: flex;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 78% 6%, rgba(56, 189, 248, 0.1), transparent 22rem),
+                radial-gradient(circle at 12% 88%, rgba(251, 146, 60, 0.08), transparent 22rem),
+                #06070A;
+        }
+
         .legal-sidebar {
-            width: 260px;
-            background-color: #161b29;
-            padding: 30px 20px;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            width: 270px;
+            background: rgba(15, 23, 42, 0.94);
+            border-right: 1px solid rgba(148, 163, 184, 0.14);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            gap: 8px;
+            height: 100vh;
+            padding: 28px 18px;
+            position: sticky;
+            top: 0;
         }
-        
+
         .sidebar-title {
-            color: var(--primary); font-family: 'Russo One'; font-size: 1.2rem;
-            text-transform: uppercase; margin-bottom: 30px; padding-left: 10px;
-            border-left: 3px solid var(--primary);
+            border-left: 3px solid #38bdf8;
+            color: #fff;
+            font-family: var(--font-display, 'Russo One', sans-serif);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            margin: 0 0 18px;
+            padding-left: 12px;
+            text-transform: uppercase;
         }
-        
+
         .legal-link {
-            color: var(--text-muted); text-decoration: none; padding: 12px 15px;
-            margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
-            display: flex; align-items: center; gap: 10px; transition: 0.2s;
+            align-items: center;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #94a3b8;
+            display: flex;
+            gap: 10px;
+            min-height: 42px;
+            padding: 10px 12px;
+            text-decoration: none;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
         }
-        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
-        .legal-link.active { background-color: rgba(251,146,60,0.1); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
-        .back-link { margin-top: auto; color: #fff; background: var(--danger); justify-content: center; }
-        .back-link:hover { background: #b91c1c; }
 
-        .legal-content-area { flex-grow: 1; padding: 40px; overflow-y: auto; background: var(--bg-app); }
+        .legal-link:hover,
+        .legal-link.active {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: rgba(56, 189, 248, 0.2);
+            color: #e0f2fe;
+        }
 
-        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
-        
+        .back-link {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.24);
+            color: #fecaca;
+            margin-top: auto;
+        }
+
+        .legal-content-area {
+            flex: 1;
+            max-width: 1180px;
+            padding: clamp(24px, 4vw, 58px);
+        }
+
+        .doc-header {
+            margin-bottom: 28px;
+        }
+
+        .doc-meta {
+            color: #38bdf8;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .titular {
+            color: #fff;
+            font-family: var(--font-display, 'Russo One', sans-serif);
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 1.02;
+            margin: 0;
+        }
+
+        .legal-lead {
+            color: #a8b5c7;
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 820px;
+        }
+
+        .status-bar {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin: 24px 0 28px;
+        }
+
+        .status-item {
+            background: rgba(15, 23, 42, 0.66);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 8px;
+            min-height: 76px;
+            padding: 14px;
+        }
+
+        .status-item i {
+            color: #38bdf8;
+            font-size: 1.25rem;
+        }
+
+        .status-item strong {
+            color: #fff;
+            display: block;
+            font-size: 0.78rem;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .status-item span {
+            color: #94a3b8;
+            display: block;
+            font-size: 0.78rem;
+            margin-top: 3px;
+        }
+
+        .hub-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 28px 0;
+        }
+
+        .legal-card,
+        .legal-panel {
+            background: rgba(30, 41, 59, 0.68);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+        }
+
         .legal-card {
-            background: #1e2538; border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px; padding: 30px; position: relative; overflow: hidden;
-            transition: 0.3s; text-decoration: none; display: flex; flex-direction: column;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            min-height: 230px;
+            padding: 22px;
+            text-decoration: none;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
         }
-        .legal-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #232b42; }
-        .card-icon { font-size: 2.5rem; margin-bottom: 15px; color: var(--text-muted); }
-        .card-title { font-family: 'Russo One'; font-size: 1.2rem; color: #fff; margin-bottom: 10px; }
-        .card-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px; flex-grow: 1; }
-        .card-arrow { color: var(--accent); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
 
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 768px) {
-            .legal-layout { flex-direction: column; }
-            
+        .legal-card:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: var(--accent-color, #38bdf8);
+            transform: translateY(-3px);
+        }
+
+        .card-icon {
+            color: var(--accent-color, #38bdf8);
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            color: #fff;
+            font-family: var(--font-display, 'Russo One', sans-serif);
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card-desc {
+            color: #94a3b8;
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .card-arrow {
+            align-items: center;
+            color: var(--accent-color, #38bdf8);
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 900;
+            gap: 6px;
+            margin-top: 18px;
+            text-transform: uppercase;
+        }
+
+        .panel-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 16px;
+        }
+
+        .legal-panel {
+            padding: 20px;
+        }
+
+        .panel-kicker {
+            color: #38bdf8;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .legal-panel h2,
+        .legal-panel h3 {
+            color: #fff;
+            font-family: var(--font-display, 'Russo One', sans-serif);
+            font-size: 1rem;
+            margin: 0 0 10px;
+            text-transform: uppercase;
+        }
+
+        .legal-panel p,
+        .legal-panel li {
+            color: #a8b5c7;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        .legal-panel ul {
+            list-style: disc;
+            margin: 10px 0 0 18px;
+            padding: 0;
+        }
+
+        .legal-panel a {
+            color: #7dd3fc;
+        }
+
+        .legal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .legal-action {
+            align-items: center;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 8px;
+            color: #e0f2fe;
+            display: inline-flex;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 13px;
+            text-decoration: none;
+        }
+
+        .legal-note {
+            background: rgba(251, 146, 60, 0.08);
+            border: 1px solid rgba(251, 146, 60, 0.2);
+            border-radius: 8px;
+            color: #fed7aa;
+            margin-top: 22px;
+            padding: 16px;
+        }
+
+        .legal-footer {
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            margin-top: 42px;
+            padding-top: 22px;
+            text-align: center;
+        }
+
+        @media (max-width: 920px) {
+            .legal-layout {
+                display: block;
+            }
+
             .legal-sidebar {
-                width: 100%; height: auto; padding: 15px;
-                flex-direction: row; overflow-x: auto;
-                border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1);
-                white-space: nowrap; gap: 10px;
-                background: #131824;
-                position: sticky; top: 0; z-index: 50;
+                align-items: center;
+                flex-direction: row;
+                gap: 8px;
+                height: auto;
+                overflow-x: auto;
+                padding: 12px;
+                position: sticky;
+                top: 0;
+                width: 100%;
+                z-index: 50;
             }
-            
-            .sidebar-title { display: none; } /* On cache le titre pour gagner de la place */
-            
-            .legal-link { 
-                padding: 8px 15px; margin: 0; font-size: 0.8rem; 
-                background: rgba(255,255,255,0.05); flex-shrink: 0;
+
+            .sidebar-title {
+                display: none;
             }
-            
-            .back-link { margin-top: 0; width: auto; background: rgba(239,68,68,0.2); border: 1px solid var(--danger); color: var(--danger); }
-            
-            .legal-content-area { padding: 20px; }
-            .mobile-user-bar { display: none !important; } /* On cache la barre user ici pour focus lecture */
+
+            .legal-link {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .back-link {
+                margin-top: 0;
+            }
+
+            .status-bar,
+            .hub-grid,
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
+    <link rel="stylesheet" href="./css/legal.css?v=100.0">
+
+    <meta name="theme-color" content="#0f172a">
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Accede aux documents legaux de TITAN OS: CGU, confidentialite, mentions legales, donnees, publicite, paiement, securite et contact.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/legal_hub">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/legal_hub">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/legal_hub">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Centre legal et confidentialite - TITAN OS">
+    <meta property="og:description" content="Accede aux documents legaux de TITAN OS: CGU, confidentialite, mentions legales, donnees, publicite, paiement, securite et contact.">
+    <meta property="og:url" content="https://titan-app.fr/legal_hub">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Centre legal et confidentialite - TITAN OS">
+    <meta name="twitter:description" content="Accede aux documents legaux de TITAN OS: CGU, confidentialite, mentions legales, donnees, publicite, paiement, securite et contact.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/legal_hub#webpage",
+          "url": "https://titan-app.fr/legal_hub",
+          "name": "Centre legal et confidentialite - TITAN OS",
+          "headline": "Centre legal et confidentialite - TITAN OS",
+          "description": "Accede aux documents legaux de TITAN OS: CGU, confidentialite, mentions legales, donnees, publicite, paiement, securite et contact.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/legal_hub#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/legal_hub#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Centre legal et confidentialite",
+              "item": "https://titan-app.fr/legal_hub"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body class="legal-page legal-hub" data-page="legal_hub">
     <div class="legal-layout">
-        
-        <nav class="legal-sidebar">
-            <div class="sidebar-title">SECTION JURIDIQUE</div>
-            <a href="legal_hub.html" class="legal-link active"><i class="ri-dashboard-line"></i> VUE GLOBALE</a>
-            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU (Règlement)</a>
-            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> CONFIDENTIALITÉ</a>
-            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> MENTIONS LÉGALES</a>
-            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> RETOUR APP</a>
+        <nav class="legal-sidebar" aria-label="Navigation legale">
+            <div class="sidebar-title">Vos droits</div>
+            <a href="legal_hub.html" class="legal-link active"><i class="ri-dashboard-line"></i> Vue globale</a>
+            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU</a>
+            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
+            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> Mentions</a>
+            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
         </nav>
 
         <main class="legal-content-area">
-            <header style="max-width: 800px; margin-bottom: 40px;">
-                <div style="display:inline-block; background:rgba(239,68,68,0.1); color:var(--danger); font-weight:800; padding:5px 12px; border-radius:20px; font-size:0.75rem; margin-bottom:15px; border:1px solid rgba(239,68,68,0.3);">
-                    <i class="ri-alarm-warning-line"></i> ZONE DE CONFORMITÉ
-                </div>
-                <h1 class="titular" style="font-size: 2.5rem; margin-bottom: 10px;">PROTOCOLES DE DÉFENSE</h1>
-                <p style="color:var(--text-muted); font-size:1rem; line-height:1.6;">
-                    L'accès et l'utilisation du système TITAN OS impliquent l'adhésion totale aux protocoles ci-dessous. 
-                    Ces documents définissent vos droits, mais surtout vos devoirs stricts au sein de l'infrastructure.
+            <header class="doc-header">
+                <div class="doc-meta"><i class="ri-shield-check-fill"></i> Centre de confiance TITAN OS</div>
+                <h1 class="titular">Confiance & confidentialité</h1>
+                <p class="legal-lead">
+                    Retrouve ici les règles d’utilisation, la manière dont tes données sont protégées,
+                    tes droits, les informations de paiement et le moyen de nous contacter. TITAN OS est
+                    un projet indépendant porté par deux amis d’université. Dernière mise à jour : 31 juillet 2026.
                 </p>
             </header>
 
-            <div class="hub-grid">
-                
-                <a href="legal_cgu.html" class="legal-card">
-                    <i class="ri-scales-3-line card-icon" style="color:var(--primary);"></i>
-                    <div class="card-title">CONDITIONS GÉNÉRALES</div>
-                    <div class="card-desc">Le contrat inflexible entre vous et le Système. Règles de conduite, sanctions pénales en cas d'abus, et décharge de responsabilité médicale.</div>
-                    <div class="card-arrow" style="color:var(--primary);">CONSULTER LE RÈGLEMENT <i class="ri-arrow-right-line"></i></div>
+            <section class="status-bar" aria-label="Statut legal">
+                <div class="status-item">
+                    <i class="ri-shield-check-line"></i>
+                    <strong>Compte protege</strong>
+                    <span>Accès personnel et données séparées</span>
+                </div>
+                <div class="status-item">
+                    <i class="ri-database-2-line"></i>
+                    <strong>Droits RGPD</strong>
+                    <span>Export et suppression depuis le profil</span>
+                </div>
+                <div class="status-item">
+                    <i class="ri-advertisement-line"></i>
+                    <strong>Pub desactivee</strong>
+                    <span>Aucun script publicitaire charge</span>
+                </div>
+                <div class="status-item">
+                    <i class="ri-bank-card-line"></i>
+                    <strong>Paiement externe</strong>
+                    <span>Notre partenaire gère le paiement et la facture</span>
+                </div>
+            </section>
+
+            <section class="hub-grid" aria-label="Documents principaux">
+                <a href="legal_cgu.html" class="legal-card" style="--accent-color:#fb923c;">
+                    <i class="ri-scales-3-line card-icon"></i>
+                    <div class="card-title">Conditions d'utilisation</div>
+                    <div class="card-desc">
+                        Regles du service, comportement attendu, interdiction de triche, moderation,
+                        responsabilité sportive et abonnement TITAN+.
+                    </div>
+                    <div class="card-arrow">Lire les CGU <i class="ri-arrow-right-line"></i></div>
                 </a>
 
-                <a href="legal_privacy.html" class="legal-card">
-                    <i class="ri-lock-password-line card-icon" style="color:var(--accent);"></i>
-                    <div class="card-title">DONNÉES & VIE PRIVÉE</div>
-                    <div class="card-desc">Transparence totale sur l'usage de vos données biométriques. Conformité RGPD, cryptage et droit à l'oubli numérique.</div>
-                    <div class="card-arrow" style="color:var(--accent);">VOIR LA POLITIQUE <i class="ri-arrow-right-line"></i></div>
+                <a href="legal_privacy.html" class="legal-card" style="--accent-color:#38bdf8;">
+                    <i class="ri-lock-password-line card-icon"></i>
+                    <div class="card-title">Confidentialite</div>
+                    <div class="card-desc">
+                        Donnees collectees, finalites, conservation, cookies, publicite, droits d'acces,
+                        export et suppression du compte.
+                    </div>
+                    <div class="card-arrow">Voir les donnees <i class="ri-arrow-right-line"></i></div>
                 </a>
 
-                <a href="legal_mentions.html" class="legal-card">
-                    <i class="ri-government-line card-icon" style="color:var(--gold);"></i>
-                    <div class="card-title">MENTIONS LÉGALES</div>
-                    <div class="card-desc">Identification de l'éditeur, hébergement sécurisé et propriété intellectuelle exclusive des actifs TITAN.</div>
-                    <div class="card-arrow" style="color:var(--gold);">IDENTIFICATION <i class="ri-arrow-right-line"></i></div>
+                <a href="legal_mentions.html" class="legal-card" style="--accent-color:#9ee7ff;">
+                    <i class="ri-government-line card-icon"></i>
+                    <div class="card-title">Mentions legales</div>
+                    <div class="card-desc">
+                        Editeur, contact, hebergeurs techniques, propriete intellectuelle et limitations
+                        de responsabilite, avec les informations a completer avant exploitation commerciale large.
+                    </div>
+                    <div class="card-arrow">Identifier le service <i class="ri-arrow-right-line"></i></div>
                 </a>
+            </section>
 
-            </div>
-            
-            <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color:var(--text-muted); font-size:0.8rem;">
-                <p>&copy; 2025 TITAN OS. Tous droits réservés. Système sous surveillance.</p>
+            <section class="panel-grid" aria-label="Informations rapides">
+                <article class="legal-panel">
+                    <div class="panel-kicker">Donnees personnelles</div>
+                    <h2>Ce que TITAN OS traite</h2>
+                    <p>
+                        Le service utilise principalement l'email de compte, le pseudo, l'avatar, la progression,
+                        l'historique sportif, le statut TITAN+ et les données sociales nécessaires aux amis et équipes.
+                        Les donnees sportives privees ne sont pas publiees par defaut. Les outils d'IA utilises
+                        pour developper le projet ne recoivent pas automatiquement vos donnees de compte.
+                    </p>
+                    <ul>
+                        <li>Progression: XP, niveau, credits, inventaire, succes.</li>
+                        <li>Sport: seances, discipline, duree, distance, notes et indicateurs saisis.</li>
+                        <li>Social: code ami, amis, messages et signalements si utilises.</li>
+                    </ul>
+                </article>
+
+                <article class="legal-panel">
+                    <div class="panel-kicker">Vos droits</div>
+                    <h2>Exporter ou supprimer</h2>
+                    <p>
+                        Depuis la page Profil, tu peux télécharger une copie de tes données ou demander la suppression
+                        de ton compte. Une demande par email reste possible si tu ne peux plus te connecter.
+                    </p>
+                    <div class="legal-actions">
+                        <a class="legal-action" href="profile.html"><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
+                        <a class="legal-action" href="mailto:titanteam.app@gmail.com"><i class="ri-mail-send-line"></i> Demande RGPD</a>
+                    </div>
+                </article>
+
+                <article class="legal-panel">
+                    <div class="panel-kicker">Publicité</div>
+                    <h2>Publicité actuellement désactivée</h2>
+                    <p>
+                        Aucune publicité n’est actuellement chargée et la boutique ne propose plus de prime liée
+                        au visionnage d’une annonce.
+                    </p>
+                    <p>
+                        Si la publicité est activée ultérieurement, ton accord sera demandé lorsque la loi l’exige.
+                        Les pages privées, la connexion et l’enregistrement d’une séance resteront sans publicité.
+                    </p>
+                </article>
+
+                <article class="legal-panel">
+                    <div class="panel-kicker">Paiement</div>
+                    <h2>TITAN+ et facturation</h2>
+                    <p>
+                        Les paiements TITAN+ sont traités par Paddle, notre partenaire de paiement et vendeur officiel.
+                        TITAN OS ne stocke pas les numéros de carte. Nous recevons uniquement les informations
+                        nécessaires pour activer, renouveler ou arrêter l’abonnement.
+                    </p>
+                    <ul>
+                        <li>Chaque changement d’abonnement est enregistré.</li>
+                        <li>Les doubles traitements sont bloqués.</li>
+                        <li>Le statut TITAN+ reste lié au compte concerné.</li>
+                    </ul>
+                </article>
+
+                <article class="legal-panel">
+                    <div class="panel-kicker">Securite</div>
+                    <h2>Protection du service</h2>
+                    <p>
+                        Les outils internes ne sont pas accessibles depuis le site public. Les actions sensibles sont
+                        contrôlées côté serveur et chaque compte ne peut accéder qu’aux données qui lui sont autorisées.
+                    </p>
+                    <ul>
+                        <li>Espace d’administration protégé.</li>
+                        <li>Contrôles anti-triche et outils de modération.</li>
+                        <li>Règles de sécurité appliquées au site et aux données.</li>
+                    </ul>
+                </article>
+
+                <article class="legal-panel">
+                    <div class="panel-kicker">Contact</div>
+                    <h2>Support legal</h2>
+                    <p>
+                        Pour une question de compte, de confidentialite, de suppression, de paiement ou de contenu,
+                        le point de contact central est:
+                    </p>
+                    <div class="legal-actions">
+                        <a class="legal-action" href="mailto:titanteam.app@gmail.com"><i class="ri-mail-send-line"></i> titanteam.app@gmail.com</a>
+                    </div>
+                    <p>
+                        Avant une exploitation commerciale reguliere, les informations d'identification de l'editeur
+                        devront etre completees selon le statut retenu: particuliers editeurs non professionnels,
+                        association, micro-entreprise ou societe.
+                    </p>
+                </article>
+            </section>
+
+            <aside class="legal-note">
+                <strong>Note importante:</strong> cette page centralise les informations legales du site. Elle a ete
+                renforcee pour la beta publique, mais ne remplace pas la validation d'un professionnel du droit,
+                notamment tant que l'identite juridique exacte des deux editeurs n'est pas renseignee.
+            </aside>
+
+            <footer class="legal-footer">
+                Contact legal, support et demandes RGPD:
+                <a href="mailto:titanteam.app@gmail.com" style="color:#94a3b8;">titanteam.app@gmail.com</a><br>
+                TITAN OS Project - Systeme de progression physique - Loi francaise et droit europeen.
             </footer>
         </main>
     </div>
 </body>
 </html>
+

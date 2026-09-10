@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /image/
+Allow: /favicon.ico
+Disallow: /sys_core_override_99.html
+Disallow: /sys_core_override_99
+Disallow: /sql/
+Disallow: /tools/
+Disallow: /functions/
+Disallow: /*.sql$
+Disallow: /*.md$
+Disallow: /*.toml$
+Disallow: /package.json
+Disallow: /package-lock.json
+
+Sitemap: https://titan-app.fr/sitemap.xml

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Guide du suivi sportif et de la progression | TITAN OS Sport</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: #06070A;
+            color: #e2e8f0;
+            font-family: 'Outfit', system-ui, sans-serif;
+            background-image:
+                linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 42px 42px;
+        }
+
+        .guide-shell {
+            width: min(1080px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 64px;
+        }
+
+        .guide-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 12px 0 28px;
+        }
+
+        .guide-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Russo One', system-ui, sans-serif;
+            letter-spacing: 1px;
+        }
+
+        .guide-brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
+        }
+
+        .guide-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .guide-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 8px;
+            color: #e2e8f0;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+
+        .guide-link.primary {
+            background: #38bdf8;
+            color: #06070A;
+            border-color: #38bdf8;
+        }
+
+        .guide-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+            gap: 32px;
+            align-items: center;
+            padding: 36px 0 42px;
+        }
+
+        .guide-kicker {
+            color: #38bdf8;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.78rem;
+            margin-bottom: 12px;
+        }
+
+        .guide-title {
+            color: #fff;
+            font-family: 'Russo One', system-ui, sans-serif;
+            font-size: clamp(2.15rem, 5vw, 4.7rem);
+            line-height: 0.95;
+            margin: 0 0 18px;
+            max-width: 860px;
+        }
+
+        .guide-lead {
+            color: #cbd5e1;
+            font-size: 1.08rem;
+            line-height: 1.75;
+            max-width: 760px;
+        }
+
+        .guide-emblem {
+            display: grid;
+            place-items: center;
+            aspect-ratio: 1;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.72);
+        }
+
+        .guide-emblem img {
+            width: min(64%, 260px);
+            filter: drop-shadow(0 0 28px rgba(56, 189, 248, 0.55));
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 16px 0 34px;
+        }
+
+        .guide-card {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.58);
+            padding: 18px;
+        }
+
+        .guide-card i {
+            color: #38bdf8;
+            font-size: 1.5rem;
+        }
+
+        .guide-card h2,
+        .guide-section h2 {
+            color: #fff;
+            font-family: 'Russo One', system-ui, sans-serif;
+            font-size: 1rem;
+            line-height: 1.35;
+            margin: 12px 0 8px;
+            text-transform: uppercase;
+        }
+
+        .guide-card p,
+        .guide-section p,
+        .guide-section li {
+            color: #cbd5e1;
+            line-height: 1.7;
+            font-size: 0.98rem;
+        }
+
+        .guide-section {
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            padding: 28px 0;
+        }
+
+        .guide-section h2 {
+            font-size: 1.45rem;
+            margin-top: 0;
+        }
+
+        .guide-section ul {
+            padding-left: 20px;
+        }
+
+        .guide-onboarding-path {
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(12, 22, 32, 0.86), rgba(4, 7, 12, 0.92)),
+                radial-gradient(circle at 88% 8%, rgba(126, 220, 255, 0.12), transparent 24rem);
+            padding: 22px;
+        }
+
+        .guide-step-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0 0;
+            padding: 0;
+            list-style: none;
+            counter-reset: titan-guide;
+        }
+
+        .guide-step-list li {
+            position: relative;
+            min-height: 92px;
+            padding: 14px 14px 14px 58px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .guide-step-list li::before {
+            counter-increment: titan-guide;
+            content: counter(titan-guide, decimal-leading-zero);
+            position: absolute;
+            left: 14px;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(126, 220, 255, 0.36);
+            border-radius: 8px;
+            color: #9ee7ff;
+            font-family: 'Rajdhani', system-ui, sans-serif;
+            font-weight: 900;
+            background: rgba(126, 220, 255, 0.08);
+        }
+
+        .guide-step-list strong {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .guide-inline-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .guide-flow {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .guide-flow-step,
+        .guide-data-card,
+        .guide-specific-card {
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+            padding: 14px;
+            min-width: 0;
+        }
+
+        .guide-flow-step strong,
+        .guide-data-card strong,
+        .guide-specific-card strong {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #ffffff;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .guide-flow-step i,
+        .guide-data-card i,
+        .guide-specific-card i {
+            color: #9ee7ff;
+        }
+
+        .guide-flow-step span,
+        .guide-data-card span,
+        .guide-specific-card span {
+            display: block;
+            margin-top: 8px;
+            color: #cbd5e1;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+
+        .guide-data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .guide-data-card small {
+            display: block;
+            margin-top: 8px;
+            color: #7edcff;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .guide-specific-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .guide-program-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .guide-program-card {
+            border: 1px solid rgba(126, 220, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(9, 17, 28, 0.72);
+            padding: 16px;
+        }
+
+        .guide-program-card h3 {
+            margin: 0 0 8px;
+            color: #fff;
+            font-family: 'Russo One', system-ui, sans-serif;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+        }
+
+        .guide-program-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            list-style: none;
+            margin: 14px 0 0;
+            padding: 0;
+        }
+
+        .guide-program-list li {
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.035);
+            color: #d7e8f2;
+            font-size: 0.74rem;
+            font-weight: 800;
+            line-height: 1.2;
+            padding: 6px 9px;
+        }
+
+        .guide-faq {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .guide-faq article {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 8px;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.62);
+        }
+
+        .guide-faq h3 {
+            color: #fff;
+            font-size: 1rem;
+            margin: 0 0 8px;
+        }
+
+        @media (max-width: 780px) {
+            .guide-nav,
+            .guide-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .guide-nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .guide-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .guide-grid,
+            .guide-faq,
+            .guide-step-list,
+            .guide-flow,
+            .guide-data-grid,
+            .guide-specific-grid,
+            .guide-program-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Apprends à utiliser le journal sportif, les statistiques, l’XP, les objectifs et la récupération dans TITAN OS Sport, sur mobile comme sur ordinateur.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/guide">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/guide">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/guide">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Guide du suivi sportif et de la progression | TITAN OS Sport">
+    <meta property="og:description" content="Apprends à utiliser le journal sportif, les statistiques, l’XP, les objectifs et la récupération dans TITAN OS Sport, sur mobile comme sur ordinateur.">
+    <meta property="og:url" content="https://titan-app.fr/guide">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Guide du suivi sportif et de la progression | TITAN OS Sport">
+    <meta name="twitter:description" content="Apprends à utiliser le journal sportif, les statistiques, l’XP, les objectifs et la récupération dans TITAN OS Sport, sur mobile comme sur ordinateur.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://acscdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//acscdn.com">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "Article",
+          "@id": "https://titan-app.fr/guide#webpage",
+          "url": "https://titan-app.fr/guide",
+          "name": "Guide du suivi sportif et de la progression | TITAN OS Sport",
+          "headline": "Guide du suivi sportif et de la progression | TITAN OS Sport",
+          "description": "Apprends à utiliser le journal sportif, les statistiques, l’XP, les objectifs et la récupération dans TITAN OS Sport, sur mobile comme sur ordinateur.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/guide#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/guide#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Guide du suivi sportif et de la progression",
+              "item": "https://titan-app.fr/guide"
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://titan-app.fr/guide#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "TITAN OS est-il un coach sportif ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. TITAN OS aide a suivre et motiver la progression, mais ne remplace pas un professionnel de sante ou un coach certifie."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Faut-il etre sportif confirme ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. L'application valorise la regularite et peut servir pour une reprise, une routine fitness, du cardio, de la musculation ou une pratique mixte."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Pourquoi utiliser de l'XP ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "L'XP rend les efforts visibles. Elle aide a transformer des actions parfois discretes en progression mesurable et motivante."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Est-ce gratuit ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "TITAN OS est accessible gratuitement dans le navigateur, avec des options de personnalisation et de soutien possibles."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Est-ce utilisable sur mobile ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Oui. TITAN OS s'adapte au mobile et peut etre ajoute a l'ecran d'accueil depuis un navigateur compatible."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="guide">
+    <main class="guide-shell">
+        <nav class="guide-nav" aria-label="Navigation guide">
+            <a class="guide-brand" href="./index.html">
+                <img src="./image/logo.png" alt="Logo TITAN OS" width="44" height="44" decoding="async">
+                <span>TITAN OS</span>
+            </a>
+            <div class="guide-actions">
+                <a class="guide-link" href="./login.html"><i class="ri-fingerprint-line"></i> Connexion</a>
+                <a class="guide-link primary" href="./index.html"><i class="ri-dashboard-3-line"></i> Ouvrir le systeme</a>
+            </div>
+        </nav>
+
+        <header class="guide-hero">
+            <div>
+                <div class="guide-kicker">Doctrine de progression TITAN</div>
+                <h1 class="guide-title">Transforme ton entrainement en progression</h1>
+                <p class="guide-lead">
+                    TITAN OS n'ajoute pas une couche de jeu au hasard. Il transforme l'effort reel en trace: missions, XP, charge, records, campagne et identite d'agent. L'objectif est simple: rendre la discipline visible et la progression ressentie.
+                </p>
+            </div>
+            <div class="guide-emblem" aria-hidden="true">
+                <img src="./image/logo.png" alt="" width="260" height="260" loading="lazy" decoding="async">
+            </div>
+        </header>
+
+        <section class="guide-grid" aria-label="Piliers TITAN OS">
+            <article class="guide-card">
+                <i class="ri-flashlight-fill"></i>
+                <h2>Ton journal</h2>
+                <p>Enregistre seances, duree, intensite, discipline et notes utiles pour construire une trace exploitable.</p>
+            </article>
+            <article class="guide-card">
+                <i class="ri-bar-chart-2-line"></i>
+                <h2>Défis et aventure</h2>
+                <p>Observe volume, regularite, charge et signaux de fatigue pour ajuster les prochaines operations.</p>
+            </article>
+            <article class="guide-card">
+                <i class="ri-sword-line"></i>
+                <h2>XP et régularité</h2>
+                <p>XP, niveaux, trophees, talents et campagne transforment la discipline en progression lisible.</p>
+            </article>
+        </section>
+
+        <section class="guide-section guide-onboarding-path" id="guide-demarrage">
+            <h2>Bien démarrer</h2>
+            <p>
+                Ce parcours reprend le guide de premiere connexion. Il sert a savoir quoi ouvrir, dans quel ordre, et ce qui peut attendre sans perdre de progression.
+            </p>
+            <ol class="guide-step-list">
+                <li><strong>QG</strong>Commence par la priorite du jour, le coach, tes plafonds XP/credits et les modules signales comme utiles.</li>
+                <li><strong>Sport</strong>Ajoute une séance simple. Une fois connecté, ton compte sauvegarde et vérifie automatiquement ta progression.</li>
+                <li><strong>Economie</strong>Regarde tes credits avant la boutique, le chat ou la creation de guilde. Le systeme est volontairement lent.</li>
+                <li><strong>Aventure</strong>Ouvre la campagne quand tu veux donner une forme RPG a tes efforts. Les boss uniques ne sont pas des mobs repetables.</li>
+                <li><strong>Progres</strong>Utilise les statistiques pour comprendre charge, radar physique, regularite, records et disciplines dominantes.</li>
+                <li><strong>Modules</strong>Social, sante, journal, talents, boutique et succes restent ranges dans le menu Service ou les modules secondaires.</li>
+                <li><strong>Mobile</strong>Sur telephone, suis la barre principale: QG, Sport, Zone, Reseau, Profil. Le reste attend dans les menus.</li>
+                <li><strong>Aide</strong>Reviens ici depuis Doctrine si l'app devient dense ou si tu veux relancer le guide d'ouverture.</li>
+            </ol>
+            <div class="guide-inline-actions">
+                <a class="guide-link primary" href="./index.html" onclick="try{localStorage.setItem('titan_force_first_run_guide','1');localStorage.removeItem('titan_first_run_guide_v2');localStorage.removeItem('titan_first_run_guide_v1');}catch(_){ }"><i class="ri-restart-line"></i> Relancer le guide</a>
+                <a class="guide-link" href="./service.html"><i class="ri-lifebuoy-line"></i> Ouvrir Service</a>
+            </div>
+        </section>
+
+        <section class="guide-section">
+            <h2>Pourquoi transformer l'effort en systeme ?</h2>
+            <p>
+                La difficulte n'est pas seulement de faire une bonne seance. Le vrai enjeu est de rester constant assez longtemps pour progresser. Un systeme aide parce qu'il rend visibles les petites victoires: une marche active, une seance courte, un retour apres une pause, une semaine plus reguliere que la precedente.
+            </p>
+            <p>
+                TITAN OS utilise cette logique pour transformer les efforts reels en progression numerique. Le but n'est pas de courir apres des points au hasard, mais de creer une boucle claire: agir, enregistrer, analyser, ajuster, recommencer.
+            </p>
+            <div class="guide-flow" aria-label="Boucle post-seance TITAN OS">
+                <div class="guide-flow-step"><strong><i class="ri-run-line"></i> 1. Trace</strong><span>Tu notes le sport, la valeur principale, la duree, l'intensite, les tags et les details specifiques.</span></div>
+                <div class="guide-flow-step"><strong><i class="ri-flashlight-line"></i> 2. Recompense</strong><span>Le serveur valide XP, credits et plafonds pour les comptes connectes. Le mode invite reste local/demo.</span></div>
+                <div class="guide-flow-step"><strong><i class="ri-radar-line"></i> 3. Lecture</strong><span>La seance modifie charge, fraicheur, radar, classe, reputation, records et objectif de discipline.</span></div>
+                <div class="guide-flow-step"><strong><i class="ri-sword-line"></i> 4. Aventure</strong><span>La charge combat avance la campagne. Les boss lisent faiblesse, phase, preparation et variation sportive.</span></div>
+                <div class="guide-flow-step"><strong><i class="ri-compass-3-line"></i> 5. Prochain cap</strong><span>Le coach propose quoi faire, quoi eviter, et quand privilegier recovery, variation ou retour progressif.</span></div>
+            </div>
+        </section>
+
+        <section class="guide-section" id="donnees">
+            <h2>Dictionnaire des donnees</h2>
+            <p>
+                Chaque nombre doit avoir une source, une utilite et une limite. Si une donnee ne t'aide pas a agir, elle reste secondaire.
+            </p>
+            <div class="guide-data-grid">
+                <article class="guide-data-card"><strong><i class="ri-edit-box-line"></i> Trace sportive</strong><span>Une seance enregistree: discipline, valeur principale, duree, RPE, notes, tags et champs propres au sport.</span><small>Alimente tout le reste: XP, radar, coach, journal, boss et stats.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-flashlight-line"></i> XP</strong><span>Score de progression encadre. Il depend de l'effort, du sport, de l'intensite, des details et des plafonds hebdomadaires.</span><small>Connecte = validation serveur. Invite = progression locale.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-coin-line"></i> Credits</strong><span>Monnaie interne lente pour boutique, social, guilde et actions volontaires. Elle n'est pas la mesure principale du niveau sportif.</span><small>Les limites evitent le spam et le pay-to-win.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-save-3-line"></i> Sauvegarde du compte</strong><span>Niveau, XP, crédits, séances récentes, limites hebdomadaires et dernière activité sont conservés avec ton profil.</span><small>Ta progression reste cohérente entre tes appareils.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-shield-check-line"></i> Progression vérifiée</strong><span>Les séances, récompenses, limites et informations du profil sont contrôlées avant d’être enregistrées.</span><small>Le solde et le niveau ne peuvent pas être modifiés arbitrairement.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-pulse-line"></i> Charge</strong><span>Estimation simple: duree x intensite ressentie, ajustee par les tags comme recuperation, force ou competition.</span><small>Elle sert a detecter surcharge, fraicheur basse et besoin de retour au calme.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-heart-pulse-line"></i> Fraicheur</strong><span>Indice du jour base sur la charge recente et les signaux declares comme sommeil ou nutrition.</span><small>Bas = prudence. Haut = fenetre plus propre, sans promesse medicale.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-radar-line"></i> Radar physique</strong><span>Lecture 90 jours: endurance, force, mobilite, technique, regularite, recuperation, explosivite, polyvalence.</span><small>Fait evoluer classe, reputation, metier de campagne et roles de guilde.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-focus-3-line"></i> Parcours discipline</strong><span>Chaque sport a son chemin: nombre de traces, meilleur pic, prochain seuil et action suivante.</span><small>Une discipline devient un parcours, pas juste une ligne d'historique.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-speed-up-line"></i> Plateau</strong><span>Signal quand les dernieres seances comparables stagnent malgre assez de donnees.</span><small>Reponse conseillee: varier, deload, technique ou recuperation, pas forcer aveuglement.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-trophy-line"></i> Records contextualises</strong><span>Meilleur effort 30 jours, meilleure seance courte, meilleure reprise, semaine la plus reguliere.</span><small>Ils valorisent les progres que le record brut ignore.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-mirror-line"></i> Duel contre soi</strong><span>Compare une trace recente a une ancienne trace proche: meme sport, format ou duree comparable.</span><small>Competition personnelle sans classement public obligatoire.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-sword-line"></i> Boss et phases</strong><span>Les boss ont faiblesse, preparation, phase et parfois miroir de tes points forts.</span><small>Le RPG lit le sport reel au lieu d'ajouter une barre de PV abstraite.</small></article>
+                <article class="guide-data-card"><strong><i class="ri-vip-crown-2-line"></i> TITAN+</strong><span>Ajoute plans sur plusieurs jours, analyses approfondies, comparaisons, bilans et cosmétiques.</span><small>Le suivi gratuit reste complet et TITAN+ ne donne aucun avantage de puissance.</small></article>
+            </div>
+        </section>
+
+        <section class="guide-section" id="positionnement">
+            <h2>Notre approche</h2>
+            <p>
+                TITAN OS reprend les bons reflexes des meilleures apps sport, mais refuse leurs exces: comparaison permanente, device obligatoire, tableurs intimidants ou graphes sans prochaine action.
+            </p>
+            <div class="guide-specific-grid">
+                <article class="guide-specific-card"><strong><i class="ri-route-line"></i> Inspiration Strava</strong><span>Segments, routes et dynamique sociale. TITAN garde les segments personnels, mais prive par defaut et centre sur le duel contre soi.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-line-chart-line"></i> Inspiration TrainingPeaks</strong><span>Charge, plans et structure. TITAN simplifie en micro-decisions: quoi faire, quoi eviter, quel cap suivre.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-heart-pulse-line"></i> Inspiration WHOOP</strong><span>Recovery, sommeil, strain. TITAN reste utile sans bracelet obligatoire, avec signaux declares et charge recente.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-watch-line"></i> Inspiration Garmin</strong><span>Metriques riches, badges, plans. TITAN garde une interface web plus lisible, multisport et branchee a l'aventure.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-shield-line"></i> Gratuit complet</strong><span>Sports, journal, XP, sauvegarde, objectifs, records, récupération, segments et statistiques essentielles restent accessibles.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-vip-crown-2-line"></i> TITAN+</strong><span>Plan adaptatif, cycle personnalisé, analyse de charge, bilans, itinéraires détaillés, archives longues et confort visuel.</span></article>
+            </div>
+        </section>
+
+        <section class="guide-section">
+            <h2>Des données adaptées à chaque sport</h2>
+            <p>
+                TITAN OS ne lit pas tous les sports de la meme maniere. Une course, une seance de force, un sport collectif ou un bloc recovery ne racontent pas la meme chose.
+            </p>
+            <div class="guide-specific-grid">
+                <article class="guide-specific-card"><strong><i class="ri-road-map-line"></i> Distance</strong><span>Course, velo, marche, trail ou GPX utilisent distance, duree, denivele, allure et terrain quand disponibles.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-boxing-line"></i> Force</strong><span>Musculation et mouvements au poids du corps lisent volume, series, repetitions, charge, RPE et regularite.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-team-line"></i> Sports collectifs</strong><span>Le temps, le poste, la qualite technique et les actions decisives comptent plus que la distance brute.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-compass-3-line"></i> Technique</strong><span>Combat, racket, escalade ou precision enrichissent surtout technique, explosivite, mobilite et decisions.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-heart-pulse-line"></i> Recovery</strong><span>Mobilite, yoga, marche douce ou retour au calme peuvent moins rapporter, mais stabilisent le cycle.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-map-pin-range-line"></i> GPX</strong><span>Une trace GPX peut creer segments personnels, heatmap privee, allure et comparaison de parcours.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-refresh-line"></i> Sauvegarde différée</strong><span>Si la connexion coupe, la séance reste sur ton appareil puis est envoyée automatiquement au retour du réseau.</span></article>
+                <article class="guide-specific-card"><strong><i class="ri-lock-line"></i> Sécurité</strong><span>Les informations sensibles du profil sont vérifiées et protégées avant chaque modification.</span></article>
+            </div>
+        </section>
+
+        <section class="guide-section" id="catalogue-jo">
+            <h2>Catalogue multisport</h2>
+            <p>
+                Le catalogue couvre plus de 260 pratiques avec une fiche adaptée à leurs mesures utiles. Les programmes officiels restent des métadonnées de recherche secondaires : ils ne remplacent pas les familles sportives concrètes comme endurance, force, combat, eau ou équipe.
+            </p>
+            <div class="guide-program-grid">
+                <article class="guide-program-card">
+                    <h3><i class="ri-sun-line"></i> JO ete - LA28</h3>
+                    <p>Plus de 260 sports sont disponibles, avec une recherche par nom français, nom officiel et alias.</p>
+                    <ul class="guide-program-list">
+                        <li>3x3 Basketball</li><li>Archery</li><li>Artistic Gymnastics</li><li>Artistic Swimming</li><li>Athletics</li><li>Badminton</li><li>Baseball</li><li>Basketball</li><li>Beach Volleyball</li><li>BMX Freestyle</li><li>BMX Racing</li><li>Boxing</li><li>Canoe Slalom</li><li>Canoe Sprint</li><li>Climbing</li><li>Cricket</li><li>Cycling Road</li><li>Cycling Track</li><li>Diving</li><li>Equestrian</li><li>Fencing</li><li>Flag Football</li><li>Football</li><li>Golf</li><li>Handball</li><li>Hockey</li><li>Judo</li><li>Lacrosse</li><li>Modern Pentathlon</li><li>Mountain Bike</li><li>Open Water Swimming</li><li>Rhythmic Gymnastics</li><li>Rowing</li><li>Rowing Coastal Beach Sprints</li><li>Rugby Sevens</li><li>Sailing</li><li>Shooting</li><li>Skateboarding</li><li>Softball</li><li>Squash</li><li>Surfing</li><li>Swimming</li><li>Table Tennis</li><li>Taekwondo</li><li>Tennis</li><li>Trampoline Gymnastics</li><li>Triathlon</li><li>Volleyball</li><li>Water Polo</li><li>Weightlifting</li><li>Wrestling</li>
+                    </ul>
+                </article>
+                <article class="guide-program-card">
+                    <h3><i class="ri-snowy-line"></i> JO d'hiver - Milano Cortina 2026</h3>
+                    <p>16 disciplines hiver chargees, avec profils glide, outdoor, precision ou team selon la realite de suivi.</p>
+                    <ul class="guide-program-list">
+                        <li>Alpine Skiing</li><li>Biathlon</li><li>Bobsleigh</li><li>Cross-Country Skiing</li><li>Curling</li><li>Figure Skating</li><li>Freestyle Skiing</li><li>Ice Hockey</li><li>Luge</li><li>Nordic Combined</li><li>Short Track Speed Skating</li><li>Skeleton</li><li>Ski Jumping</li><li>Ski Mountaineering</li><li>Snowboard</li><li>Speed Skating</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section class="guide-section">
+            <h2>Une methode simple pour progresser</h2>
+            <p>
+                Commence avec un objectif realiste: trois actions sportives par semaine valent mieux qu'un plan parfait impossible a tenir. Ensuite, note chaque seance dans le journal. Apres quelques jours, les statistiques deviennent utiles: elles montrent si la charge monte trop vite, si certaines disciplines dominent, ou si la recuperation manque.
+            </p>
+            <p>
+                La campagne et les recompenses servent de carburant mental. Elles donnent une raison de revenir, mais la vraie victoire reste la construction d'un historique fiable et d'une routine durable.
+            </p>
+        </section>
+
+        <section class="guide-section">
+            <h2>Questions frequentes</h2>
+            <div class="guide-faq">
+                <article>
+                    <h3>TITAN OS est-il un coach sportif ?</h3>
+                    <p>Non. TITAN OS rend la progression visible, mais ne remplace pas un professionnel de sante ou un coach certifie.</p>
+                </article>
+                <article>
+                    <h3>Faut-il etre sportif confirme ?</h3>
+                    <p>Non. Le systeme valorise la regularite et peut servir pour une reprise, du cardio, de la force, de la mobilite ou une pratique mixte.</p>
+                </article>
+                <article>
+                    <h3>Pourquoi utiliser de l'XP ?</h3>
+                    <p>L'XP rend les efforts visibles. Elle aide a transformer des actions parfois discretes en progression mesurable et motivante.</p>
+                </article>
+                <article>
+                    <h3>Pourquoi certains scores changent lentement ?</h3>
+                    <p>Le radar, la fraicheur, les plateaux et les objectifs lisent plusieurs seances. Une seule trace donne un signal; l'historique donne une tendance.</p>
+                </article>
+                <article>
+                    <h3>Que veut dire plateau ?</h3>
+                    <p>Un plateau est un signal de stagnation sur des traces comparables. Il sert a proposer variation, technique ou recovery, pas a juger ton niveau.</p>
+                </article>
+                <article>
+                    <h3>TITAN+ rend-il plus fort ?</h3>
+                    <p>Non. TITAN+ ajoute des analyses, des plans, des archives et des cosmétiques. Les récompenses restent exactement les mêmes pour tout le monde.</p>
+                </article>
+                <article>
+                    <h3>Est-ce utilisable sur mobile ?</h3>
+                    <p>Oui. TITAN OS s’adapte au téléphone, à la tablette et à l’ordinateur, et peut être ajouté à l’écran d’accueil depuis un navigateur compatible.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>
+

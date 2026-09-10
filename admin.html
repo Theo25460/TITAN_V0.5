@@ -2,525 +2,299 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TITAN GOD MODE: ULTIMATE</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>Centre de controle TITAN OS</title>
+    <link rel="stylesheet" href="./css/admin.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <script src="./js/config.js?v=100.0"></script>
 
-    <style>
-        :root { --bg: #09090b; --panel: #18181b; --border: #27272a; --primary: #fb923c; --primary-dim: rgba(251,146,60,0.1); --text: #e4e4e7; --muted: #a1a1aa; --danger: #ef4444; --success: #4ade80; --accent: #8b5cf6; }
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--primary) var(--bg); outline: none; }
-        
-        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); margin: 0; overflow: hidden; height: 100vh; display: flex; }
-        h1, h2, h3, .titular { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        /* SIDEBAR */
-        .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 25px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .brand img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
-        .nav { flex: 1; overflow-y: auto; padding: 20px 10px; display: flex; flex-direction: column; gap: 5px; }
-        .nav-cat { font-size: 0.7rem; color: var(--muted); font-weight: 700; margin: 15px 10px 5px; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .nav-btn { padding: 10px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--muted); transition: 0.2s; font-weight: 500; }
-        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .nav-btn.active { background: var(--primary-dim); color: var(--primary); border: 1px solid rgba(251,146,60,0.2); }
-        .nav-btn i { font-size: 1.1rem; }
-
-        /* MAIN AREA */
-        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .topbar { height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: rgba(24,24,27,0.8); backdrop-filter: blur(10px); }
-        .content { flex: 1; overflow-y: auto; padding: 30px; background: radial-gradient(circle at top right, #1a1a1a 0%, #09090b 40%); }
-
-        /* VIEWS */
-        .view { display: none; animation: fadeIn 0.2s ease-out; }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* COMPONENTS */
-        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; position: relative; overflow: hidden; }
-        
-        .kpi-val { font-size: 2.2rem; font-family: 'Rajdhani'; font-weight: 700; color: #fff; line-height: 1; }
-        .kpi-lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: 600; margin-top: 5px; }
-
-        .btn { border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; background: var(--border); color: #fff; font-family: 'Inter'; }
-        .btn-primary { background: var(--primary); color: #000; }
-        .btn-danger { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-
-        input, select, textarea { background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%; font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 10px; }
-        input:focus { border-color: var(--primary); }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { text-align: left; padding: 12px; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-
-        .tag { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; background: var(--border); color: var(--muted); display: inline-block; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
-        /* SPECIFIC: Matrix */
-        .matrix-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .matrix-input { width: 120px; text-align: right; border-color: #333; color: var(--primary); margin: 0; }
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
     </style>
-</head>
-<body>
-
-    <div id="loader" style="position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <i class="ri-loader-2-line" style="font-size:3rem; color:var(--primary); animation:spin 1s linear infinite;"></i>
-        <h2 style="margin-top:20px;">CONNEXION NOYAU...</h2>
-        <style>@keyframes spin { 100% {transform:rotate(360deg);} }</style>
-    </div>
-
-    <nav class="sidebar">
-        <div class="brand">
-            <img src="./images/logo.png" alt="Logo">
-            <div>
-                <h2 style="margin:0; font-size:1.2rem;">TITAN OS</h2>
-                <div class="tag" style="background:var(--primary); color:#000;">GOD MODE</div>
-            </div>
-        </div>
-        <div class="nav">
-            <div class="nav-cat">Supervision</div>
-            <div class="nav-btn active" onclick="nav('dashboard', this)"><i class="ri-dashboard-line"></i> Dashboard</div>
-            <div class="nav-btn" onclick="nav('matrix', this)"><i class="ri-settings-6-line"></i> La Matrice (Config)</div>
-            
-            <div class="nav-cat">Gestion Agents</div>
-            <div class="nav-btn" onclick="nav('users', this)"><i class="ri-user-search-line"></i> Joueurs & Inventaire</div>
-            <div class="nav-btn" onclick="nav('admins', this)"><i class="ri-shield-user-line"></i> Admin Squad</div>
-            <div class="nav-btn" onclick="nav('guilds', this)"><i class="ri-team-line"></i> Guildes</div>
-
-            <div class="nav-cat">Contenu (Factory)</div>
-            <div class="nav-btn" onclick="nav('items', this)"><i class="ri-sword-line"></i> Items & Shop</div>
-            <div class="nav-btn" onclick="nav('bosses', this)"><i class="ri-skull-2-line"></i> Bosses</div>
-            <div class="nav-btn" onclick="nav('quests', this)"><i class="ri-task-line"></i> Quêtes Dynamiques</div>
-            <div class="nav-btn" onclick="nav('zones', this)"><i class="ri-map-2-line"></i> Zones & Map</div>
-            <div class="nav-btn" onclick="nav('sports', this)"><i class="ri-run-line"></i> Sports DB</div>
-
-            <div class="nav-cat">Événements</div>
-            <div class="nav-btn" onclick="nav('news', this)"><i class="ri-broadcast-line"></i> News & Alertes</div>
-            <div class="nav-btn" onclick="nav('coupons', this)"><i class="ri-ticket-line"></i> Codes Cadeaux</div>
-            <div class="nav-btn" onclick="nav('airdrop', this)"><i class="ri-gift-2-line"></i> Global Airdrop</div>
-
-            <div class="nav-cat">Tech</div>
-            <div class="nav-btn" onclick="nav('sql', this)"><i class="ri-database-2-line"></i> SQL Runner</div>
-        </div>
-        <div style="padding:20px;">
-            <button class="btn btn-danger" style="width:100%; justify-content:center;" onclick="location.href='index.html'">QUITTER</button>
-        </div>
-    </nav>
-
-    <div class="main">
-        <header class="topbar">
-            <h2 id="page-title" style="margin:0;">VUE D'ENSEMBLE</h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="location.reload()"><i class="ri-refresh-line"></i> SYNC</button>
-            </div>
-        </header>
-
-        <div class="content">
-
-            <div id="view-dashboard" class="view active">
-                <div class="grid-4">
-                    <div class="card"><div class="kpi-val" id="kpi-users">-</div><div class="kpi-lbl">Agents Inscrits</div></div>
-                    <div class="card"><div class="kpi-val" style="color:var(--success);" id="kpi-eco">-</div><div class="kpi-lbl">Masse Monétaire ($)</div></div>
-                    <div class="card"><div class="kpi-val" style="color:var(--accent);" id="kpi-guilds">-</div><div class="kpi-lbl">Guildes Actives</div></div>
-                    <div class="card"><div class="kpi-val" style="color:var(--primary);" id="kpi-admins">-</div><div class="kpi-lbl">Admins</div></div>
-                </div>
-
-                <div class="form-row">
-                    <div class="card">
-                        <h3><i class="ri-pulse-line"></i> FLUX D'ACTIVITÉ (LIVE)</h3>
-                        <div id="live-feed" style="height:300px; overflow-y:auto; font-size:0.85rem;"></div>
-                    </div>
-                    <div class="card">
-                        <h3><i class="ri-file-list-line"></i> LOGS SYSTÈME</h3>
-                        <div id="logs-list" style="height:300px; overflow-y:auto; font-family:'monospace'; font-size:0.8rem; color:var(--muted);"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-matrix" class="view">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3>PARAMÈTRES GLOBAUX DU JEU</h3>
-                    <button class="btn btn-primary" onclick="saveMatrix()">APPLIQUER LA CONFIGURATION</button>
-                </div>
-                <div class="card" id="matrix-container">Chargement des 50+ paramètres...</div>
-            </div>
-
-            <div id="view-users" class="view">
-                <div class="card" style="margin-bottom:20px;">
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="user-search" placeholder="ID, Nom, Email..." style="margin:0;">
-                        <button class="btn btn-primary" onclick="searchUser()">SCANNER</button>
-                    </div>
-                </div>
-
-                <div id="user-panel" style="display:none;">
-                    <div class="form-row">
-                        <div class="card">
-                            <h2 id="u-name" style="color:#fff; margin:0;">User</h2>
-                            <small id="u-id" style="color:var(--muted);">ID</small>
-                            <hr style="border-color:var(--border); margin:15px 0;">
-                            <div class="form-row">
-                                <div><label>Niveau</label><input type="number" id="u-lvl"></div>
-                                <div><label>Crédits</label><input type="number" id="u-creds"></div>
-                            </div>
-                            <button class="btn btn-primary" style="width:100%; margin-bottom:10px;" onclick="updateUserStats()">FORCER STATS</button>
-                            
-                            <h4 style="color:var(--danger); margin-top:20px;">SANCTIONS</h4>
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn btn-danger" onclick="userAction('ban')">BANNIR</button>
-                                <button class="btn" onclick="userAction('reset')">RESET XP</button>
-                            </div>
-                        </div>
-                        
-                        <div class="card">
-                            <h3>INVENTAIRE</h3>
-                            <div id="u-inv-list" style="height:200px; overflow-y:auto; margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;"></div>
-                            <h4>AJOUTER UN OBJET (GIFT)</h4>
-                            <div style="display:flex; gap:10px;">
-                                <select id="u-gift-select" style="margin:0;"></select>
-                                <button class="btn btn-success" onclick="giveItem()">DONNER</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-items" class="view">
-                <div class="form-row">
-                    <div class="card">
-                        <h3>BASE DE DONNÉES ITEMS</h3>
-                        <div id="items-list" style="height:400px; overflow-y:auto;"></div>
-                    </div>
-                    <div class="card">
-                        <h3>CRÉER / MODIFIER</h3>
-                        <input type="hidden" id="it-id">
-                        <input type="text" id="it-name" placeholder="Nom de l'objet">
-                        <div class="form-row">
-                            <input type="text" id="it-type" placeholder="Type (head, chest...)">
-                            <input type="text" id="it-icon" placeholder="Icone (ri-sword-line)">
-                        </div>
-                        <div class="form-row">
-                            <input type="text" id="it-stat" placeholder="Stat (strength)">
-                            <input type="number" id="it-val" placeholder="Valeur">
-                        </div>
-                        <div class="form-row">
-                            <input type="number" id="it-price" placeholder="Prix Standard">
-                            <input type="number" id="it-sale" placeholder="Prix Promo (Optionnel)">
-                        </div>
-                        <button class="btn btn-primary" style="width:100%;" onclick="saveItem()">ENREGISTRER</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-bosses" class="view">
-                <div class="form-row">
-                    <div class="card">
-                        <h3>BOSS ACTIFS</h3>
-                        <div id="boss-list" style="height:300px; overflow-y:auto;"></div>
-                    </div>
-                    <div class="card">
-                        <h3>AJOUTER UN BOSS</h3>
-                        <input type="text" id="b-name" placeholder="Nom">
-                        <div class="form-row">
-                            <input type="number" id="b-hp" placeholder="PV Max">
-                            <input type="number" id="b-lvl" placeholder="Niveau">
-                        </div>
-                        <input type="text" id="b-weak" placeholder="Faiblesse (Force, Agility...)">
-                        <button class="btn btn-primary" onclick="saveBoss()">CRÉER BOSS</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-quests" class="view">
-                <div class="card">
-                    <h3>CRÉATEUR DE QUÊTE (QUEST FACTORY)</h3>
-                    <div class="form-row">
-                        <input type="text" id="q-title" placeholder="Titre (ex: Marathonien)">
-                        <input type="text" id="q-type" placeholder="Type (distance, session...)">
-                    </div>
-                    <div class="form-row">
-                        <input type="number" id="q-target" placeholder="Objectif (ex: 42)">
-                        <input type="number" id="q-xp" placeholder="Récompense XP">
-                    </div>
-                    <button class="btn btn-success" onclick="createQuest()">PUBLIER LA QUÊTE</button>
-                </div>
-                <div class="card" style="margin-top:20px;">
-                    <h3>QUÊTES ACTIVES</h3>
-                    <div id="quests-list"></div>
-                </div>
-            </div>
-
-            <div id="view-news" class="view">
-                <div class="form-row">
-                    <div class="card">
-                        <h3>PUBLIER UNE ANNONCE</h3>
-                        <input type="text" id="news-title" placeholder="Titre">
-                        <textarea id="news-content" style="height:100px; resize:none;" placeholder="Message..."></textarea>
-                        <select id="news-type">
-                            <option value="info">Info (Bleu)</option>
-                            <option value="alert">Alerte (Rouge)</option>
-                            <option value="patch">Patch (Vert)</option>
-                            <option value="event">Or (Event)</option>
-                        </select>
-                        <button class="btn btn-primary" onclick="publishNews()">ENVOYER À TOUS</button>
-                    </div>
-                    <div class="card">
-                        <h3>GÉNÉRATEUR DE CODES (COUPONS)</h3>
-                        <input type="text" id="cp-code" placeholder="Code (ex: TITAN2025)">
-                        <div class="form-row">
-                            <input type="number" id="cp-reward" placeholder="Montant Crédits">
-                            <input type="number" id="cp-uses" placeholder="Max Utilisations">
-                        </div>
-                        <button class="btn btn-accent" style="background:var(--accent); color:#fff;" onclick="createCoupon()">ACTIVER LE CODE</button>
-                        <div id="coupons-list" style="margin-top:10px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-admins" class="view">
-                <div class="card">
-                    <h3>AJOUTER UN ADMIN</h3>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="adm-id" placeholder="UUID du joueur" style="margin:0;">
-                        <button class="btn btn-primary" onclick="promoteAdmin()">PROMOUVOIR</button>
-                    </div>
-                </div>
-                <div class="card" style="margin-top:20px;">
-                    <h3>ÉQUIPE ACTUELLE</h3>
-                    <div id="admin-list"></div>
-                </div>
-            </div>
-
-            <div id="view-guilds" class="view"><div class="card"><h3>GUILDES</h3><div id="guilds-list"></div></div></div>
-            <div id="view-zones" class="view"><div class="card"><h3>ZONES</h3><input id="z-name" placeholder="Nom"><button class="btn btn-primary" onclick="addZone()">Ajouter</button><div id="zones-list"></div></div></div>
-            <div id="view-sports" class="view"><div class="card"><h3>SPORTS DB</h3><div id="sports-list"></div></div></div>
-            <div id="view-airdrop" class="view"><div class="card"><h3>GLOBAL AIRDROP</h3><input type="number" id="air-amount" placeholder="Montant"><button class="btn btn-danger" onclick="launchAirdrop()">LANCER</button></div></div>
-            <div id="view-sql" class="view"><div class="card"><h3>SQL RUNNER</h3><textarea id="sql-in" style="height:100px;"></textarea><button class="btn btn-danger" onclick="runSQL()">EXEC (Simulé)</button></div></div>
-
-        </div>
-    </div>
-
-    <script>
-        // CONFIG
-        const SUPABASE_URL = 'https://oubmftfufwwzwpgvrcag.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91Ym1mdGZ1Znd3endwZ3ZyY2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxOTMyODAsImV4cCI6MjA3OTc2OTI4MH0.sjv09LUsG2ALY7AsJbA-0f8SB6YCDYLIQEiqcQxdfrU';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // --- TON UUID INTÉGRÉ ---
-        const MY_ADMIN_ID = "080d9fef-bf59-4396-99e7-c048157635b7";
-
-        let currentTargetUser = null;
-
-        // INIT
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            // Bypass Auth pour admin hardcodé
-            let isAllowed = false;
-            if (session && session.user.id === MY_ADMIN_ID) isAllowed = true;
-            else if (session) {
-                const { data: p } = await supabase.from('profiles').select('is_admin').eq('id', session.user.id).single();
-                if(p && p.is_admin) isAllowed = true;
-            }
-
-            if (!isAllowed) {
-                alert("ACCÈS REFUSÉ.");
-                window.location.href = 'index.html';
-                return;
-            }
-
-            document.getElementById('loader').style.display = 'none';
-            loadDashboard();
-        });
-
-        function nav(view, el) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-' + view).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('page-title').innerText = el.innerText.trim();
-            
-            if(view === 'matrix') loadMatrix();
-            if(view === 'items') loadItems();
-            if(view === 'bosses') loadBosses();
-            if(view === 'guilds') loadGuilds();
-            if(view === 'quests') loadQuests();
-            if(view === 'sports') loadSports();
-            if(view === 'zones') loadZones();
-            if(view === 'admins') loadAdmins();
-        }
-
-        // --- DASHBOARD ---
-        async function loadDashboard() {
-            const { count: u } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-            document.getElementById('kpi-users').innerText = u || 0;
-            const { count: g } = await supabase.from('guilds').select('*', { count: 'exact', head: true });
-            document.getElementById('kpi-guilds').innerText = g || 0;
-            const { count: a } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_admin', true);
-            document.getElementById('kpi-admins').innerText = a || 0;
-
-            const { data: p } = await supabase.from('profiles').select('credits');
-            const total = p ? p.reduce((acc, curr) => acc + (curr.credits||0), 0) : 0;
-            document.getElementById('kpi-eco').innerText = total.toLocaleString();
-
-            const { data: feed } = await supabase.from('activities').select('*, profiles(username)').order('created_at', {ascending:false}).limit(20);
-            document.getElementById('live-feed').innerHTML = feed ? feed.map(f => `<div style="border-bottom:1px solid #333; padding:5px;"><span style="color:var(--primary)">${f.profiles?.username}</span>: ${f.sport_key} (+${f.xp_earned}xp)</div>`).join('') : '';
-        }
-
-        // --- MATRIX ---
-        async function loadMatrix() {
-            const { data: settings } = await supabase.from('game_settings').select('*').order('category');
-            if(!settings || !settings.length) { document.getElementById('matrix-container').innerText = "Table vide. Exécute le SQL V4."; return; }
-            
-            const cats = {};
-            settings.forEach(s => { if(!cats[s.category]) cats[s.category]=[]; cats[s.category].push(s); });
-            
-            let html = '';
-            for(const [cat, items] of Object.entries(cats)) {
-                html += `<h4 style="color:var(--primary); margin-top:20px; border-bottom:1px solid var(--border);">${cat.toUpperCase()}</h4>`;
-                items.forEach(s => {
-                    html += `<div class="matrix-row"><div><b>${s.key}</b><br><small style="color:var(--muted)">${s.description}</small></div><input class="matrix-input" id="conf-${s.key}" value="${s.value}"></div>`;
-                });
-            }
-            document.getElementById('matrix-container').innerHTML = html;
-        }
-
-        async function saveMatrix() {
-            const inputs = document.querySelectorAll('.matrix-input');
-            for(const inp of inputs) {
-                const key = inp.id.replace('conf-', '');
-                await supabase.from('game_settings').update({ value: inp.value }).eq('key', key);
-            }
-            alert("Matrice mise à jour !");
-        }
-
-        // --- USERS ---
-        async function searchUser() {
-            const q = document.getElementById('user-search').value;
-            const { data: users } = await supabase.from('profiles').select('*').or(`username.ilike.%${q}%,id.eq.${q}`);
-            if(users && users.length) {
-                currentTargetUser = users[0];
-                document.getElementById('user-panel').style.display = 'block';
-                document.getElementById('u-name').innerText = currentTargetUser.username;
-                document.getElementById('u-id').innerText = currentTargetUser.id;
-                document.getElementById('u-creds').value = currentTargetUser.credits;
-                document.getElementById('u-lvl').value = currentTargetUser.level;
-                loadInventory(currentTargetUser.id);
-            } else alert("Introuvable");
-        }
-        async function updateUserStats() {
-            await supabase.from('profiles').update({ credits: document.getElementById('u-creds').value, level: document.getElementById('u-lvl').value }).eq('id', currentTargetUser.id);
-            alert("Sauvegardé");
-        }
-        async function userAction(type) {
-            if(type==='ban' && confirm("Bannir ?")) await supabase.from('profiles').delete().eq('id', currentTargetUser.id);
-            if(type==='reset') await supabase.from('profiles').update({ xp: 0, level: 1 }).eq('id', currentTargetUser.id);
-            alert("Action effectuée.");
-        }
-        async function loadInventory(uid) {
-            const { data: inv } = await supabase.from('inventory').select('id, items(name)').eq('user_id', uid);
-            document.getElementById('u-inv-list').innerHTML = inv ? inv.map(i => `<span class="tag">${i.items?.name} <span style="cursor:pointer; color:red;" onclick="delInv(${i.id})">x</span></span>`).join(' ') : '';
-            
-            const { data: all } = await supabase.from('items').select('*');
-            document.getElementById('u-gift-select').innerHTML = all.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-        }
-        async function giveItem() { await supabase.from('inventory').insert({ user_id: currentTargetUser.id, item_id: document.getElementById('u-gift-select').value }); loadInventory(currentTargetUser.id); }
-        async function delInv(id) { await supabase.from('inventory').delete().eq('id', id); loadInventory(currentTargetUser.id); }
-
-        // --- ITEMS ---
-        async function loadItems() {
-            const { data: items } = await supabase.from('items').select('*').order('id');
-            document.getElementById('items-list').innerHTML = items.map(i => `<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;"><span><b>${i.name}</b> (${i.val})</span> <span style="color:var(--gold)">${i.price}$</span> <button class="btn" style="padding:2px 5px;" onclick='editItem(${JSON.stringify(i).replace(/'/g,"&#39;")})'>Edit</button></div>`).join('');
-        }
-        function editItem(i) {
-            document.getElementById('it-id').value = i.id;
-            document.getElementById('it-name').value = i.name;
-            document.getElementById('it-type').value = i.type;
-            document.getElementById('it-val').value = i.val;
-            document.getElementById('it-price').value = i.price;
-        }
-        async function saveItem() {
-            const item = {
-                id: document.getElementById('it-id').value || Date.now(),
-                name: document.getElementById('it-name').value,
-                type: document.getElementById('it-type').value,
-                val: document.getElementById('it-val').value,
-                price: document.getElementById('it-price').value
-            };
-            await supabase.from('items').upsert(item);
-            alert("Item sauvegardé"); loadItems();
-        }
-
-        // --- BOSSES ---
-        async function loadBosses() {
-            const { data: bosses } = await supabase.from('bosses').select('*');
-            document.getElementById('boss-list').innerHTML = bosses ? bosses.map(b => `<div>${b.name} (PV: ${b.hp_max}) <button onclick="delBoss(${b.id})">X</button></div>`).join('') : 'Aucun';
-        }
-        async function saveBoss() {
-            await supabase.from('bosses').insert({ name: document.getElementById('b-name').value, hp_max: document.getElementById('b-hp').value, level: document.getElementById('b-lvl').value });
-            alert("Boss créé"); loadBosses();
-        }
-        async function delBoss(id) { await supabase.from('bosses').delete().eq('id', id); loadBosses(); }
-
-        // --- QUESTS ---
-        async function loadQuests() {
-            const { data: q } = await supabase.from('dynamic_quests').select('*');
-            document.getElementById('quests-list').innerHTML = q ? q.map(i => `<div>${i.title} (${i.target_value} ${i.type})</div>`).join('') : '';
-        }
-        async function createQuest() {
-            await supabase.from('dynamic_quests').insert({ title: document.getElementById('q-title').value, type: document.getElementById('q-type').value, target_value: document.getElementById('q-target').value, reward_xp: document.getElementById('q-xp').value });
-            alert("Quête publiée"); loadQuests();
-        }
-
-        // --- NEWS/COUPONS ---
-        async function publishNews() {
-            await supabase.from('system_news').insert({ title: document.getElementById('news-title').value, content: document.getElementById('news-content').value, type: document.getElementById('news-type').value });
-            alert("News publiée");
-        }
-        async function createCoupon() {
-            await supabase.from('coupons').insert({ code: document.getElementById('cp-code').value, reward_credits: document.getElementById('cp-reward').value, max_uses: document.getElementById('cp-uses').value });
-            alert("Code créé");
-        }
-
-        // --- ADMINS ---
-        async function loadAdmins() {
-            const { data: a } = await supabase.from('profiles').select('*').eq('is_admin', true);
-            document.getElementById('admin-list').innerHTML = a.map(i => `<div>${i.username} (${i.id})</div>`).join('');
-        }
-        async function promoteAdmin() {
-            await supabase.from('profiles').update({ is_admin: true }).eq('id', document.getElementById('adm-id').value);
-            alert("Promu !"); loadAdmins();
-        }
-
-        // --- OTHER LISTS (SIMPLIFIED) ---
-        async function loadGuilds() {
-            const { data } = await supabase.from('guilds').select('*');
-            document.getElementById('guilds-list').innerHTML = data.map(g => `<div>${g.name} (Lvl ${g.level})</div>`).join('');
-        }
-        async function loadSports() {
-            const { data } = await supabase.from('sports_db').select('*');
-            document.getElementById('sports-list').innerHTML = data ? data.map(s => `<div>${s.label}</div>`).join('') : 'Vide';
-        }
-        async function loadZones() {
-            const { data } = await supabase.from('zones').select('*');
-            document.getElementById('zones-list').innerHTML = data ? data.map(z => `<div>${z.name}</div>`).join('') : 'Vide';
-        }
-        async function addZone() { await supabase.from('zones').insert({ name: document.getElementById('z-name').value }); loadZones(); }
-        async function launchAirdrop() {
-            const amount = document.getElementById('air-amount').value;
-            if(confirm(`Envoyer ${amount}$ à tous ?`)) {
-                 // Simulation sur 50 users pour pas crash le browser
-                 const {data} = await supabase.from('profiles').select('id, credits').limit(50);
-                 for(const u of data) await supabase.from('profiles').update({credits: (u.credits||0)+parseInt(amount)}).eq('id',u.id);
-                 alert("Airdrop terminé (sur échantillon)");
-            }
-        }
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
     </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Interface d'administration TITAN OS reservee aux responsables autorises pour piloter contenu, moderation et signaux operationnels.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/admin">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/admin">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/admin">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Centre de controle TITAN OS">
+    <meta property="og:description" content="Interface d'administration TITAN OS reservee aux responsables autorises pour piloter contenu, moderation et signaux operationnels.">
+    <meta property="og:url" content="https://titan-app.fr/admin">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Centre de controle TITAN OS">
+    <meta name="twitter:description" content="Interface d'administration TITAN OS reservee aux responsables autorises pour piloter contenu, moderation et signaux operationnels.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/admin#webpage",
+          "url": "https://titan-app.fr/admin",
+          "name": "Centre de controle TITAN OS",
+          "headline": "Centre de controle TITAN OS",
+          "description": "Interface d'administration TITAN OS reservee aux responsables autorises pour piloter contenu, moderation et signaux operationnels.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/admin#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/admin#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Centre de controle TITAN OS",
+              "item": "https://titan-app.fr/admin"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body class="admin-body" data-page="admin">
+    <div id="admin-gate" class="admin-gate" role="status" aria-live="polite">
+        <div class="gate-panel">
+            <img src="./image/logo.png" alt="" class="gate-logo">
+            <div>
+                <p class="gate-kicker">TITAN OS</p>
+                <p class="gate-title">Centre de controle</p>
+                <p id="gate-message">Verification de l'acces administrateur...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-app" class="admin-app" hidden>
+        <aside class="admin-sidebar" aria-label="Navigation admin">
+            <a class="admin-brand" href="./index.html" aria-label="Retour accueil TITAN OS">
+                <img src="./image/logo.png" alt="">
+                <span>
+                    <strong>TITAN OS</strong>
+                    <small>Control Center</small>
+                </span>
+            </a>
+            <nav id="admin-nav" class="admin-nav"></nav>
+            <div class="admin-sidebar-foot">
+                <span id="admin-role-badge" class="status-badge badge-premium">admin</span>
+                <button id="admin-signout" class="icon-button" type="button" title="Deconnexion">
+                    <i class="ri-logout-box-r-line" aria-hidden="true"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <button id="admin-menu-toggle" class="icon-button menu-toggle" type="button" title="Menu">
+                    <i class="ri-menu-2-line" aria-hidden="true"></i>
+                </button>
+                <div class="admin-title-block">
+                    <span id="admin-current-path">/admin/dashboard</span>
+                    <h1 id="admin-page-title">Dashboard</h1>
+                </div>
+                <div class="admin-top-actions">
+                    <span id="admin-sync-state" class="sync-pill">connecte</span>
+                    <button id="admin-refresh" class="admin-btn secondary" type="button">
+                        <i class="ri-refresh-line" aria-hidden="true"></i>
+                        <span>Rafraichir</span>
+                    </button>
+                </div>
+            </header>
+
+            <section id="admin-alerts" class="admin-alerts" aria-live="polite"></section>
+            <section id="admin-view" class="admin-view"></section>
+        </main>
+    </div>
+
+    <div id="admin-modal" class="admin-modal" hidden>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-head">
+                <div>
+                    <span id="modal-kicker">TITAN OS</span>
+                    <h2 id="modal-title">Action</h2>
+                </div>
+                <button id="modal-close" class="icon-button" type="button" title="Fermer">
+                    <i class="ri-close-line" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+            <div id="modal-actions" class="modal-actions"></div>
+        </div>
+    </div>
+
+    <div id="admin-toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <script src="./js/admin.js?v=100.0"></script>
 </body>
 </html>

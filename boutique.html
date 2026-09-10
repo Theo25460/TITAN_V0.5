@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta charset="UTF-8">
+    <title>Boutique et TITAN+ - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
+    <style>
+        /* HEADER CREDITS & ELITE */
+        .wallet-section {
+            background: linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,0.98) 100%);
+            border: 1px solid rgba(126, 220, 255,0.16); border-radius: 12px;
+            padding: 20px; margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .wallet-info .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .wallet-info .val { font-family: 'Russo One'; font-size: 1.8rem; color: #9ee7ff; text-shadow: 0 0 10px rgba(126, 220, 255, 0.2); }
+        
+        /* STATUS ELITE */
+        .elite-widget { text-align: right; }
+        .elite-badge-active {
+            background: rgba(126, 220, 255, 0.1); border: 1px solid #9ee7ff; color: #9ee7ff;
+            padding: 10px 15px; border-radius: 8px; font-family: 'Russo One'; font-size: 0.8rem;
+            display: inline-flex; align-items: center; gap: 8px; cursor: default;
+        }
+        .btn-elite-buy {
+            background: #9ee7ff; color: #000; text-decoration: none;
+            padding: 12px 20px; border-radius: 8px; font-family: 'Russo One'; font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 20px rgba(126, 220, 255, 0.4);
+            transition: 0.2s; border: 0; cursor: pointer; min-height: 44px; font-weight: 900;
+        }
+        .btn-elite-buy:hover { transform: translateY(-1px); filter: brightness(1.04); }
+
+        /* SHOP GRID */
+        .shop-category { font-family: 'Russo One'; font-size: 1rem; color: #fff; margin: 30px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; letter-spacing:0; }
+        
+        .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+        
+        .item-card { 
+            background: linear-gradient(180deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98)); border: 1px solid rgba(148,163,184,0.12); 
+            border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; 
+            position: relative; transition: 0.2s; height: 100%; min-width:0;
+        }
+        .item-card:hover { border-color: rgba(56,189,248,0.3); transform: translateY(-1px); }
+        
+        /* HEADER IMAGE/ICON */
+        .item-header { 
+            height: 90px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+            position: relative; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .item-icon { font-size: 3rem; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); transition: 0.3s; }
+        
+        /* TAGS */
+        .tag-limit { 
+            position: absolute; top: 8px; right: 8px; 
+            background: rgba(0,0,0,0.8); color: #fff; 
+            font-size: 0.6rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .item-info-btn {
+            position: absolute; top: 8px; left: 8px;
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(15, 23, 42, 0.88); color: #fff;
+            font-family: 'Russo One'; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 3; transition: 0.2s;
+        }
+        .item-info-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        /* BODY */
+        .item-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        .item-name { font-family: 'Russo One'; font-size: 0.95rem; color: #fff; margin-bottom: 5px; line-height: 1.25; overflow-wrap:anywhere; }
+        .item-desc { font-size: 0.75rem; color: #94a3b8; margin-bottom: 15px; flex: 1; line-height: 1.45; overflow-wrap:anywhere; }
+        .item-meta-row { display:flex; flex-wrap:wrap; gap:6px; margin: 4px 0 12px; }
+        .item-meta-pill { font-size:0.62rem; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:800; }
+        
+        /* FOOTER & ACTION */
+        .item-footer { margin-top: auto; }
+        .price-tag { font-family: 'Russo One'; color: #9ee7ff; font-size: 1.1rem; margin-bottom: 8px; display: block; }
+        
+        .btn-shop { 
+            width: 100%; border: none; padding: 12px; border-radius: 8px; 
+            font-family: 'Russo One'; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+            min-height: 44px; line-height: 1.1; text-align:center;
+        }
+        
+        /* STATES */
+        .btn-shop.buy { background: var(--accent); color: #000; }
+        .btn-shop.buy:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+        
+        .btn-shop.ad { background: #10b981; color: #000; }
+        
+        .item-card.disabled { opacity: 0.7; border-color: rgba(255,255,255,0.05); }
+        .item-card.disabled .item-icon { filter: grayscale(1); opacity: 0.5; }
+        .btn-shop.disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+        .item-card.disabled .item-info-btn { pointer-events: auto; opacity: 1; }
+
+        .shop-detail-modal {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(2, 6, 23, 0.82); backdrop-filter: blur(12px);
+            display: none; align-items: center; justify-content: center; padding: 18px;
+        }
+        .shop-detail-modal.open { display: flex; }
+        .shop-detail-card {
+            width: min(460px, 100%); background: #06070A; border: 1px solid rgba(56,189,248,0.28);
+            border-radius: 12px; padding: 22px; box-shadow: 0 28px 80px rgba(0,0,0,0.55);
+        }
+        .shop-detail-head { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+        .shop-detail-icon { width:58px; height:58px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:rgba(255,255,255,0.05); font-size:2rem; flex-shrink:0; }
+        .shop-detail-title { font-family:'Russo One'; color:#fff; font-size:1.1rem; line-height:1.2; }
+        .shop-detail-type { color:#94a3b8; font-size:0.72rem; text-transform:uppercase; margin-top:4px; }
+        .shop-detail-body { color:#cbd5e1; line-height:1.65; font-size:0.92rem; }
+        .shop-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0; }
+        .shop-detail-stat { border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; background:rgba(255,255,255,0.03); }
+        .shop-detail-stat span { display:block; color:#64748b; font-size:0.64rem; text-transform:uppercase; }
+        .shop-detail-stat strong { color:#fff; font-family:'Russo One'; font-size:0.84rem; }
+        .shop-detail-close { width:100%; min-height:44px; border:0; border-radius:8px; background:var(--accent); color:#000; font-family:'Russo One'; cursor:pointer; }
+        .elite-clarity {
+            display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 0 24px;
+            border:1px solid rgba(126, 220, 255,0.18); border-radius:10px; padding:14px;
+            background:rgba(126, 220, 255,0.045);
+        }
+        .elite-clarity-col { background:rgba(15,23,42,0.58); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:14px; }
+        .elite-clarity-title { font-family:'Russo One'; color:#fff; font-size:0.86rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+        .elite-clarity-title i { color:#9ee7ff; }
+        .elite-price-pill { display:inline-flex; align-items:center; gap:6px; margin:0 0 10px; border:1px solid rgba(158,231,255,0.25); border-radius:8px; padding:6px 8px; color:#020617; background:#9ee7ff; font-size:0.68rem; font-weight:900; text-transform:uppercase; }
+        .elite-clarity ul { margin:0; padding-left:18px; color:#cbd5e1; font-size:0.8rem; line-height:1.5; }
+        .elite-clarity-note { grid-column:1/-1; color:#94a3b8; font-size:0.72rem; line-height:1.45; }
+        .shop-economy-board {
+            display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 18px;
+        }
+        .shop-economy-cell {
+            border:1px solid rgba(76,201,176,0.16); background:rgba(76,201,176,0.055);
+            border-radius:8px; padding:12px; min-width:0;
+        }
+        .shop-economy-cell strong { display:block; color:#fff; font-family:'Russo One'; font-size:0.76rem; text-transform:uppercase; }
+        .shop-economy-cell span { display:block; color:#cbd5e1; font-size:0.68rem; line-height:1.35; margin-top:5px; }
+
+        @media (max-width: 720px) {
+            .wallet-section { align-items:stretch; gap:14px; flex-direction:column; }
+            .elite-widget { text-align:left; }
+            .shop-economy-board { grid-template-columns:1fr 1fr; }
+            .elite-clarity { grid-template-columns:1fr; }
+            .elite-clarity-note { grid-column:auto; }
+            .shop-category { position:sticky; top:0; z-index:4; background:#06070A; margin:22px -4px 12px; padding:12px 4px; }
+            .shop-grid { grid-template-columns: 1fr; gap: 10px; }
+            .item-card { display:grid; grid-template-columns: 82px minmax(0, 1fr); min-height: 136px; }
+            .item-header { height:100%; min-height:132px; border-bottom:0; border-right:1px solid rgba(255,255,255,0.05); }
+            .item-icon { font-size:2.2rem; }
+            .item-body { padding:12px; min-width:0; }
+            .item-name { font-size:0.86rem; padding-right:2px; }
+            .item-desc { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:10px; }
+            .item-footer { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; }
+            .price-tag { margin-bottom:0; font-size:0.94rem; white-space:nowrap; }
+            .btn-shop { min-height:40px; padding:10px; font-size:0.72rem; }
+            .tag-limit { top:6px; right:6px; font-size:0.55rem; padding:3px 6px; }
+            .item-info-btn { width:28px; height:28px; top:6px; left:6px; }
+            .shop-detail-grid { grid-template-columns:1fr; }
+        }
+
+        @media (max-width: 380px) {
+            .item-card { grid-template-columns: 70px minmax(0, 1fr); }
+            .shop-economy-board { grid-template-columns:1fr; }
+            .item-footer { grid-template-columns: 1fr; gap:8px; }
+            .price-tag { white-space:normal; }
+        }
+
+    </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Personnalise TITAN OS avec tes credits sportifs et decouvre TITAN+: analyses, plans adaptes et collections visuelles sans avantage de puissance.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/boutique">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/boutique">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/boutique">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Boutique et TITAN+ - TITAN OS">
+    <meta property="og:description" content="Personnalise TITAN OS avec tes credits sportifs et decouvre TITAN+: analyses, plans adaptes et collections visuelles sans avantage de puissance.">
+    <meta property="og:url" content="https://titan-app.fr/boutique">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Boutique et TITAN+ - TITAN OS">
+    <meta name="twitter:description" content="Personnalise TITAN OS avec tes credits sportifs et decouvre TITAN+: analyses, plans adaptes et collections visuelles sans avantage de puissance.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/boutique#webpage",
+          "url": "https://titan-app.fr/boutique",
+          "name": "Boutique et TITAN+ - TITAN OS",
+          "headline": "Boutique et TITAN+ - TITAN OS",
+          "description": "Personnalise TITAN OS avec tes credits sportifs et decouvre TITAN+: analyses, plans adaptes et collections visuelles sans avantage de puissance.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/boutique#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/boutique#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Boutique et TITAN+",
+              "item": "https://titan-app.fr/boutique"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="boutique">
+    <div class="layout">
+        <nav class="sidebar"></nav> 
+        <main class="main-content">
+            <div class="mobile-user-bar"></div>
+            
+            <header class="page-heading">
+                <div class="page-eyebrow">Personnalisation & abonnement</div>
+                <h1 class="titular">Boutique</h1>
+                <p class="page-context">Utilise les crédits gagnés par le sport pour personnaliser ton expérience. TITAN+ ajoute de la profondeur, jamais de la puissance.</p>
+            </header>
+
+            <section class="shop-v89-hero" aria-labelledby="shop-hero-title">
+                <div class="shop-v89-copy">
+                    <div class="shop-v89-kicker"><i class="ri-sparkling-2-line"></i> Collection Orbitale · Saison 01</div>
+                    <h2 id="shop-hero-title">Ton effort se voit. Il ne s’achète pas.</h2>
+                    <p>Débloque des cadres, effets et thèmes avec les crédits gagnés pendant tes séances. Passe à TITAN+ pour mieux comprendre ta progression et accéder aux collections saisonnières.</p>
+                    <div class="shop-v89-actions">
+                        <a class="primary" href="#catalogue"><i class="ri-palette-line"></i> Voir les cosmétiques</a>
+                        <a href="#titan-plus"><i class="ri-vip-crown-2-line"></i> Découvrir TITAN+</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="shop-v89-guarantee" aria-label="Nos garanties">
+                <article><i class="ri-equalizer-2-line"></i><strong>Mêmes récompenses pour tous</strong><span>XP, crédits et plafonds restent identiques, avec ou sans abonnement.</span></article>
+                <article><i class="ri-palette-line"></i><strong>Une boutique visuelle</strong><span>Les achats modifient le style du profil et de l’aventure, jamais les performances.</span></article>
+                <article><i class="ri-shield-check-line"></i><strong>Contrôle simple</strong><span>Prix annoncé avant paiement et abonnement résiliable selon les conditions affichées.</span></article>
+            </section>
+
+            <div class="wallet-section">
+                <div class="wallet-info">
+                    <div class="label"><i class="ri-wallet-3-line"></i> CRÉDITS GAGNÉS</div>
+                    <div class="val"><span id="shop-credits">0</span> CR</div>
+                </div>
+                <div class="elite-widget" id="elite-btn-container">
+                    </div>
+            </div>
+
+            <section id="shop-economy-board" class="shop-economy-board" aria-label="Règles de la boutique"></section>
+
+            <section id="titan-plus" class="elite-clarity" aria-label="Comparatif gratuit et TITAN+">
+                <div class="elite-clarity-col">
+                    <div class="elite-clarity-title"><i class="ri-shield-line"></i> Gratuit</div>
+                    <ul>
+                        <li>Plus de 260 sports et enregistrement illimité des séances.</li>
+                        <li>Historique complet, XP, crédits, aventure, objectifs et trophées.</li>
+                        <li>Tendances essentielles, records et repères de récupération.</li>
+                        <li>Cosmétiques à débloquer avec les crédits gagnés.</li>
+                    </ul>
+                </div>
+                <div class="elite-clarity-col">
+                    <div class="elite-clarity-title"><i class="ri-vip-crown-2-line"></i> TITAN+</div>
+                    <div class="elite-price-pill"><i class="ri-price-tag-3-line"></i> 5 € / mois</div>
+                    <ul>
+                        <li>Plan court et adaptatif selon tes sports, ton rythme et ta récupération.</li>
+                        <li>Analyses longues, comparaisons, rapports mensuels et lecture avancée des parcours.</li>
+                        <li>Tableaux de bord personnalisables, notes enrichies et historique mieux comparé.</li>
+                        <li>Collections saisonnières, thèmes exclusifs et navigation sans promotion facultative.</li>
+                    </ul>
+                </div>
+                <div class="elite-clarity-note"><strong>La règle est simple :</strong> l’abonnement aide à décider et à personnaliser. Il n’augmente jamais les XP, les crédits, les dégâts, les plafonds ou les chances de réussite. Le prix final, les taxes, le renouvellement et l’annulation sont présentés avant validation par notre partenaire de paiement.</div>
+            </section>
+
+            <div id="catalogue" class="shop-filter-bar" role="group" aria-label="Filtrer les cosmétiques">
+                <button type="button" class="shop-filter active" data-shop-filter="all" onclick="setShopFilter('all', this)">Tout</button>
+                <button type="button" class="shop-filter" data-shop-filter="credits" onclick="setShopFilter('credits', this)">Avec mes crédits</button>
+                <button type="button" class="shop-filter" data-shop-filter="plus" onclick="setShopFilter('plus', this)">Collection TITAN+</button>
+                <button type="button" class="shop-filter" data-shop-filter="owned" onclick="setShopFilter('owned', this)">Ma collection</button>
+            </div>
+
+            <div id="shop-content" aria-live="polite">
+                <div style="text-align:center; padding:50px; color:#64748b;">
+                    <i class="ri-loader-4-line ri-spin" style="font-size:2rem;"></i><br>Chargement de la collection…
+                </div>
+            </div>
+
+            <div id="shop-detail-modal" class="shop-detail-modal" onclick="if(event.target === this) closeShopDetails()">
+                <div class="shop-detail-card">
+                    <div class="shop-detail-head">
+                        <div class="shop-detail-icon" id="detail-icon"></div>
+                        <div>
+                            <div class="shop-detail-title" id="detail-title">Objet</div>
+                            <div class="shop-detail-type" id="detail-type">Catalogue</div>
+                        </div>
+                    </div>
+                    <div class="shop-detail-body" id="detail-desc"></div>
+                    <div class="shop-detail-grid">
+                        <div class="shop-detail-stat"><span>prix</span><strong id="detail-price">--</strong></div>
+                        <div class="shop-detail-stat"><span>acces</span><strong id="detail-access">--</strong></div>
+                        <div class="shop-detail-stat"><span>limite</span><strong id="detail-limit">--</strong></div>
+                        <div class="shop-detail-stat"><span>statut</span><strong id="detail-state">--</strong></div>
+                    </div>
+                    <button class="shop-detail-close" type="button" onclick="closeShopDetails()">FERMER</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    
+    <script>
+        function shopEscapeText(value, maxLength = 180) {
+            const safe = window.titanSafeText
+                ? window.titanSafeText(value, maxLength)
+                : String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+            return window.titanEscapeText
+                ? window.titanEscapeText(safe)
+                : safe.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function shopPlainText(value, maxLength = 180) {
+            return window.titanSafeText
+                ? window.titanSafeText(value, maxLength)
+                : String(value ?? '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+        }
+
+        function shopSafeIcon(value, fallback = 'ri-store-3-line') {
+            const icon = shopPlainText(value, 80);
+            return /^ri-[a-z0-9-]+$/i.test(icon) ? icon : fallback;
+        }
+
+        function shopSafeToken(value, fallback = 'item') {
+            const token = shopPlainText(value, 100).toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            return token || fallback;
+        }
+
+        function shopRegisterItem(item, index) {
+            if (!window.__TITAN_SHOP_ITEM_MAP__) window.__TITAN_SHOP_ITEM_MAP__ = {};
+            const token = `shop-${index}-${shopSafeToken(item?.id || item?.name || index)}`;
+            window.__TITAN_SHOP_ITEM_MAP__[token] = String(item?.id ?? '');
+            return token;
+        }
+
+        function shopResolveItem(token) {
+            const rawId = window.__TITAN_SHOP_ITEM_MAP__?.[String(token)] ?? String(token ?? '');
+            const catalog = (typeof window.titanGetShopCatalog === 'function') ? window.titanGetShopCatalog() : (window.SHOP_DB || []);
+            return catalog.find(i => String(i.id) === rawId) || null;
+        }
+
+        function shopBuyFromToken(token, button = null) {
+            const item = shopResolveItem(token);
+            if (item && window.buyItem) window.buyItem(item.id, { button });
+        }
+
+        function getShopEconomy() {
+            return window.titanGetShopEconomy ? window.titanGetShopEconomy() : (window.TITAN_ECONOMY?.shop || {});
+        }
+
+        function renderShopEconomyBoard() {
+            const board = document.getElementById('shop-economy-board');
+            if (!board) return;
+            const economy = window.TITAN_ECONOMY || {};
+            const weeklyXp = economy.weeklyXpCap || 9600;
+            const weeklyCredits = economy.weeklyCreditCap || 4800;
+            board.innerHTML = `
+                <div class="shop-economy-cell"><strong>Équité garantie</strong><span>${weeklyXp.toLocaleString()} XP et ${weeklyCredits.toLocaleString()} crédits maximum par semaine pour tout le monde.</span></div>
+                <div class="shop-economy-cell"><strong>Crédits mérités</strong><span>Ils se gagnent avec les séances et servent uniquement à personnaliser l’expérience.</span></div>
+                <div class="shop-economy-cell"><strong>Aucune puissance vendue</strong><span>La boutique ne propose ni bonus d’XP, ni énergie, ni amélioration de combat.</span></div>
+                <div class="shop-economy-cell"><strong>Collection durable</strong><span>Un cosmétique débloqué reste dans ta collection et peut être activé à tout moment.</span></div>
+            `;
+        }
+
+        window.__shopFilter = 'all';
+        window.setShopFilter = function(filter, button) {
+            window.__shopFilter = ['all', 'credits', 'plus', 'owned'].includes(filter) ? filter : 'all';
+            document.querySelectorAll('.shop-filter').forEach(node => {
+                const active = node === button || node.dataset.shopFilter === window.__shopFilter;
+                node.classList.toggle('active', active);
+                node.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            window.renderShop();
+        };
+
+        window.renderShop = function() {
+            if(!window.state || !window.state.user) return;
+
+            const creds = window.state.user.credits || 0;
+            document.getElementById('shop-credits').innerText = Math.floor(creds).toLocaleString();
+            renderShopEconomyBoard();
+
+            const eliteContainer = document.getElementById('elite-btn-container');
+            const isElite = (window.state.user.is_elite === true);
+
+            if (isElite) {
+                eliteContainer.innerHTML = `
+                    <div class="elite-badge-active">
+                        <i class="ri-vip-crown-2-fill"></i> TITAN+ ACTIF
+                    </div>`;
+            } else {
+                eliteContainer.innerHTML = `
+                    <button type="button" id="buy-elite-btn" class="btn-elite-buy" onclick="if(window.openEliteCheckout) window.openEliteCheckout({ button: this });">
+                        <i class="ri-vip-diamond-line"></i> DÉCOUVRIR TITAN+
+                    </button>`;
+            }
+
+            const container = document.getElementById('shop-content');
+            const fullCatalog = (typeof window.titanGetShopCatalog === 'function') ? window.titanGetShopCatalog() : (window.SHOP_DB || []);
+
+            if (!fullCatalog || fullCatalog.length === 0) {
+                if(!window.shopRetry) window.shopRetry = 0;
+                if(window.shopRetry < 3) {
+                    window.shopRetry++;
+                    setTimeout(window.renderShop, 500);
+                    return;
+                }
+                container.innerHTML = `<div class="empty-state"><i class="ri-refresh-line"></i><strong>La collection met un peu plus de temps à arriver</strong><span>Vérifie ta connexion puis recharge la page. Tes crédits ne sont pas affectés.</span><button type="button" onclick="location.reload()">Réessayer</button></div>`;
+                return;
+            }
+
+            const cosmetics = fullCatalog
+                .filter(item => item.type === 'cosmetic' || item.category === 'cosmetic')
+                .filter(item => {
+                    const unlocked = item.cosmeticId && window.titanIsCosmeticUnlocked?.(item.cosmeticId);
+                    if (window.__shopFilter === 'credits') return !item.requiresElite;
+                    if (window.__shopFilter === 'plus') return item.requiresElite;
+                    if (window.__shopFilter === 'owned') return unlocked;
+                    return true;
+                });
+
+            window.__TITAN_SHOP_ITEM_MAP__ = {};
+            if (cosmetics.length === 0) {
+                const message = window.__shopFilter === 'owned'
+                    ? 'Ta collection est encore vide. Enregistre des séances, gagne des crédits et choisis ton premier style.'
+                    : 'Aucun cosmétique ne correspond à ce filtre.';
+                container.innerHTML = `<div class="empty-state"><i class="ri-palette-line"></i><strong>Rien à afficher pour le moment</strong><span>${message}</span><button type="button" onclick="setShopFilter('all', document.querySelector('[data-shop-filter=all]'))">Voir toute la collection</button></div>`;
+                return;
+            }
+
+            const groups = [
+                { title: 'À débloquer avec tes efforts', icon: 'ri-medal-2-line', items: cosmetics.filter(item => !item.requiresElite) },
+                { title: 'Collection TITAN+', icon: 'ri-vip-crown-2-line', items: cosmetics.filter(item => item.requiresElite) }
+            ].filter(group => group.items.length);
+
+            let renderIndex = 0;
+            container.innerHTML = groups.map(group => {
+                const cards = group.items.map(item => {
+                    const slot = getCosmeticSlot(item.cosmeticId);
+                    const unlocked = !!(item.cosmeticId && window.titanIsCosmeticUnlocked?.(item.cosmeticId));
+                    const active = !!(slot && window.state.user.cosmetics?.active?.[slot] === item.cosmeticId);
+                    const canAfford = Number(window.state.user.credits || 0) >= Number(item.price || 0);
+                    const plusLocked = item.requiresElite && !isElite;
+                    const token = shopRegisterItem(item, renderIndex++);
+                    let action = 'DÉBLOQUER';
+                    let disabled = false;
+                    if (active) {
+                        action = 'ACTIF';
+                        disabled = true;
+                    } else if (unlocked) {
+                        action = 'ACTIVER';
+                    } else if (plusLocked) {
+                        action = 'DÉCOUVRIR TITAN+';
+                    } else if (!canAfford) {
+                        action = 'CRÉDITS INSUFFISANTS';
+                        disabled = true;
+                    }
+                    const status = active ? 'Actif' : (unlocked ? 'Dans ta collection' : (plusLocked ? 'TITAN+ requis' : 'À débloquer'));
+                    const price = item.requiresElite ? 'INCLUS TITAN+' : `${Math.floor(Number(item.price || 0)).toLocaleString()} CR`;
+                    const badge = item.requiresElite ? 'Collection TITAN+' : 'Gagné par le sport';
+                    return `
+                        <article class="item-card ${disabled ? 'disabled' : ''}">
+                            <div class="item-header">
+                                <button type="button" class="item-info-btn" data-status="${shopEscapeText(status, 60)}" onclick="event.stopPropagation(); openShopDetails('${token}', this.dataset.status)" title="Voir les détails" aria-label="Voir les détails de ${shopEscapeText(item.name || 'ce cosmétique', 80)}">i</button>
+                                <i class="${shopSafeIcon(item.icon, 'ri-palette-line')} item-icon" style="color:${item.requiresElite ? '#a78bfa' : '#74f0ff'}"></i>
+                            </div>
+                            <div class="item-body">
+                                <div class="item-name">${shopEscapeText(item.name || 'Cosmétique', 80)}</div>
+                                <div class="item-meta-row"><span class="item-meta-pill">${badge}</span><span class="item-meta-pill">Visuel uniquement</span></div>
+                                <div class="item-desc">${shopEscapeText(item.desc || 'Personnalise ton expérience sans modifier tes performances.', 220)}</div>
+                                <div class="item-footer">
+                                    <span class="price-tag">${price}</span>
+                                    <button type="button" class="btn-shop ${disabled ? 'disabled' : 'buy'}" ${disabled ? 'disabled' : ''} onclick="handleCosmeticShopAction('${token}', this)">${action}</button>
+                                </div>
+                            </div>
+                        </article>`;
+                }).join('');
+                return `<h2 class="shop-category"><i class="${group.icon}"></i> ${group.title}</h2><div class="shop-grid">${cards}</div>`;
+            }).join('');
+        };
+
+        function openShopDetails(itemId, statusLabel = 'DISPONIBLE') {
+            const item = shopResolveItem(itemId);
+            if(!item) return;
+
+            const modal = document.getElementById('shop-detail-modal');
+            const typeLabel = item.requiresElite ? 'Collection TITAN+' : 'Cosmétique à débloquer';
+            const limit = 'Un déblocage';
+
+            document.getElementById('detail-icon').innerHTML = `<i class="${shopSafeIcon(item.icon)}" style="color:${getColor(item.type)}"></i>`;
+            document.getElementById('detail-title').textContent = item.name || 'Objet';
+            document.getElementById('detail-type').textContent = typeLabel;
+            document.getElementById('detail-desc').textContent = `${item.desc || 'Personnalise ton expérience.'} Aucun bonus d’XP, de crédits ou de puissance n’est associé à cet objet.`;
+            document.getElementById('detail-price').textContent = item.requiresElite ? 'Inclus TITAN+' : `${Number(item.price || 0).toLocaleString()} crédits`;
+            document.getElementById('detail-access').textContent = item.requiresElite ? 'Membre TITAN+' : 'Tous les membres';
+            document.getElementById('detail-limit').textContent = limit;
+            document.getElementById('detail-state').textContent = statusLabel;
+            modal.classList.add('open');
+        }
+
+        function closeShopDetails() {
+            const modal = document.getElementById('shop-detail-modal');
+            if(modal) modal.classList.remove('open');
+        }
+
+        function getColor(type) {
+            if(type === 'charge') return '#ef4444'; // Rouge
+            if(type === 'upgrade') return '#a855f7'; // Violet
+            if(type === 'cosmetic') return '#9ee7ff'; // Or
+            if(type === 'ad') return '#10b981'; // Vert
+            return '#38bdf8'; // Bleu
+        }
+
+        function getCosmeticSlot(cosmeticId) {
+            if(!cosmeticId) return null;
+            if(cosmeticId.startsWith('frame-')) return 'avatarFrame';
+            if(cosmeticId.startsWith('grenade-')) return 'grenadeSkin';
+            if(cosmeticId.startsWith('victory-')) return 'victoryEffect';
+            return null;
+        }
+
+        async function handleCosmeticShopAction(itemId, button = null) {
+            const item = shopResolveItem(itemId);
+            if(!item || !item.cosmeticId) return;
+            if(item.requiresElite && !window.state.user.is_elite) {
+                if (window.openEliteCheckout) window.openEliteCheckout({ button });
+                return;
+            }
+            const slot = getCosmeticSlot(item.cosmeticId);
+            const isUnlocked = typeof window.titanIsCosmeticUnlocked === 'function' && window.titanIsCosmeticUnlocked(item.cosmeticId);
+            if (!isUnlocked && window.buyItem) {
+                await window.buyItem(item.id, { button });
+                return;
+            }
+            if (button && button.disabled) return;
+            if (button) button.disabled = true;
+            if(window.titanUnlockCosmetic) window.titanUnlockCosmetic(item.cosmeticId);
+            if(slot && window.titanActivateCosmetic) window.titanActivateCosmetic(slot, item.cosmeticId);
+            if(window.showNotification) window.showNotification('success', 'STYLE ACTIF', item.name);
+            window.renderShop();
+        }
+
+        // --- INIT SECURISE ---
+        // On attend que le DOM soit charge, puis on lance le rendu avec un petit delai 
+        // pour laisser le temps ? Main.js de charger les donnees.
+        document.addEventListener('DOMContentLoaded', () => { 
+            setTimeout(() => {
+                if(window.renderShop) window.renderShop();
+            }, 500); 
+        });
+    </script>
+</body>
+</html>
+

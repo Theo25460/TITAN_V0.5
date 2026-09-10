@@ -1,0 +1,42 @@
+name: Qualite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Tests et build public
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Installer pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Installer les dependances verrouillees
+        run: pnpm install --frozen-lockfile
+
+      - name: Verifier, tester et construire
+        run: pnpm run verify

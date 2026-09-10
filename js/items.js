@@ -1,43 +1,46 @@
+/* =========================================
+   TITAN OS - ARMURERIE & LOOT (V8.0 - LORE)
+   ========================================= */
+
 const ITEM_DB = [
-    // --- TÊTE (Head) ---
-    { id: 101, name: "Visière Tactique", type: "head", stat: "mind", val: 2, rare: 1, price: 50, icon: "ri-eye-2-line", desc: "Analyse basique." },
-    { id: 102, name: "Casque Lourd", type: "head", stat: "endurance", val: 5, rare: 2, price: 150, icon: "ri-hard-hat-line", desc: "Protection certifiée." },
-    { id: 103, name: "Couronne Royale", type: "head", stat: "strength", val: 10, rare: 3, price: 500, icon: "ri-vip-crown-line", desc: "Pour les rois de la fonte." },
-    { id: 104, name: "Capuche d'Ombre", type: "head", stat: "agility", val: 4, rare: 2, price: 120, icon: "ri-ghost-line", desc: "Discrétion maximale." },
-    { id: 105, name: "Neuro-Casque", type: "head", stat: "mind", val: 12, rare: 3, price: 600, icon: "ri-brain-line", desc: "Interface neuronale directe." },
+    // --- ARMES (PROTOTYPES ISAAC) ---
+    { id: 'w1', type: 'mainhand', name: "Marteau-Piqueur Mk.I", icon: "ri-hammer-line", rare: 1, stat: 'strength', val: 5, price: 100, desc: "Outil minier standard reconverti." },
+    { id: 'w2', type: 'mainhand', name: "Lame Thermique", icon: "ri-fire-line", rare: 2, stat: 'strength', val: 12, price: 450, desc: "Tranche la glace et la chair." },
+    { id: 'w3', type: 'mainhand', name: "Gantelets Hydrauliques", icon: "ri-hand-sanitizer-fill", rare: 2, stat: 'strength', val: 15, price: 600, desc: "Pour broyer les carapaces." },
+    { id: 'w4', type: 'mainhand', name: "Fusil Harpon 'Viper'", icon: "ri-anchor-line", rare: 3, stat: 'agility', val: 25, price: 1200, desc: "Idéal contre les cibles rapides." },
+    { id: 'w5', type: 'mainhand', name: "Broyeur Tectonique", icon: "ri-earthquake-fill", rare: 4, stat: 'strength', val: 40, price: 3000, desc: "Fait trembler le sol à l'impact." },
+    { id: 'w6', type: 'mainhand', name: "LANCE DU CRÉATEUR", icon: "ri-sword-fill", rare: 5, stat: 'strength', val: 100, price: 9999, desc: "Arme mythique forgée dans le Noyau." },
 
-    // --- TORSE (Chest) ---
-    { id: 201, name: "T-shirt Coton", type: "chest", stat: "agility", val: 1, rare: 1, price: 20, icon: "ri-t-shirt-line", desc: "Confortable." },
-    { id: 202, name: "Veste Lestée", type: "chest", stat: "strength", val: 8, rare: 2, price: 200, icon: "ri-shield-user-line", desc: "+10kg permanent." },
-    { id: 203, name: "Armure Nano", type: "chest", stat: "endurance", val: 15, rare: 3, price: 800, icon: "ri-shield-star-line", desc: "Technologie militaire." },
-    { id: 204, name: "Débardeur Gym", type: "chest", stat: "strength", val: 3, rare: 1, price: 40, icon: "ri-t-shirt-2-line", desc: "Pour les guns." },
-    { id: 205, name: "Veste Cyberpunk", type: "chest", stat: "agility", val: 14, rare: 3, price: 750, icon: "ri-contrast-drop-line", desc: "Style néon." },
+    // --- BOUCLIERS & MODULES ---
+    { id: 'o1', type: 'offhand', name: "Plaque d'Acier", icon: "ri-shield-line", rare: 1, stat: 'endurance', val: 5, price: 80, desc: "Une simple tôle de bunker." },
+    { id: 'o2', type: 'offhand', name: "Générateur de Champ", icon: "ri-wireless-charging-line", rare: 2, stat: 'endurance', val: 10, price: 400, desc: "Dévie les petits projectiles." },
+    { id: 'o3', type: 'offhand', name: "Module de Piratage", icon: "ri-qr-code-line", rare: 3, stat: 'mind', val: 15, price: 900, desc: "Pour interférer avec les Titans Méca." },
+    { id: 'o4', type: 'offhand', name: "Noyau d'Aerus", icon: "ri-windy-line", rare: 4, stat: 'agility', val: 30, price: 2500, desc: "Cristal vibrant arraché au Boss." },
 
-    // --- MAINS (Hands) ---
-    { id: 301, name: "Gants de Boxe", type: "hands", stat: "agility", val: 3, rare: 1, price: 60, icon: "ri-boxing-line", desc: "Frappe sec." },
-    { id: 302, name: "Sangles Tirage", type: "hands", stat: "strength", val: 5, rare: 2, price: 150, icon: "ri-hand-coin-line", desc: "Grip infini." },
-    { id: 303, name: "Gantelet Infini", type: "hands", stat: "mind", val: 20, rare: 3, price: 2000, icon: "ri-magic-line", desc: "Claquement de doigts." },
-    { id: 304, name: "Mitaines Tactiques", type: "hands", stat: "endurance", val: 4, rare: 1, price: 50, icon: "ri-hand-heart-line", desc: "Anti-ampoules." },
+    // --- CASQUES (HUD & VISIÈRES) ---
+    { id: 'h1', type: 'head', name: "Masque Respiratoire", icon: "ri-user-voice-line", rare: 1, stat: 'endurance', val: 3, price: 50, desc: "Indispensable hors du Bunker." },
+    { id: 'h2', type: 'head', name: "Visière Tactique", icon: "ri-eye-2-line", rare: 2, stat: 'mind', val: 8, price: 300, desc: "Affiche les points faibles." },
+    { id: 'h3', type: 'head', name: "Casque 'Krampus'", icon: "ri-mickey-line", rare: 3, stat: 'strength', val: 18, price: 1500, desc: "Cornes trophées du roi exilé." },
 
-    // --- JAMBES (Legs) ---
-    { id: 401, name: "Short Running", type: "legs", stat: "agility", val: 2, rare: 1, price: 40, icon: "ri-run-line", desc: "Aérodynamique." },
-    { id: 402, name: "Legging Comp.", type: "legs", stat: "endurance", val: 6, rare: 2, price: 180, icon: "ri-layout-column-line", desc: "Circulation sanguine." },
-    { id: 403, name: "Exosquelette", type: "legs", stat: "strength", val: 15, rare: 3, price: 1000, icon: "ri-robot-line", desc: "Jambes bioniques." },
+    // --- PLASTRONS (EXOSQUELETTES) ---
+    { id: 'c1', type: 'chest', name: "Gilet Pare-Froid", icon: "ri-t-shirt-line", rare: 1, stat: 'endurance', val: 5, price: 100, desc: "Rembourré mais fragile." },
+    { id: 'c2', type: 'chest', name: "Exo-Châssis Léger", icon: "ri-run-line", rare: 2, stat: 'agility', val: 12, price: 500, desc: "Servomoteurs de base." },
+    { id: 'c3', type: 'chest', name: "Armure 'M.I.T.' Lourde", icon: "ri-robot-line", rare: 3, stat: 'endurance', val: 25, price: 2000, desc: "Le standard de l'Escadron Jupiter." },
+    { id: 'c4', type: 'chest', name: "Cœur de Magma", icon: "ri-fire-fill", rare: 4, stat: 'strength', val: 40, price: 5000, desc: "Forgé dans la strate magmatique." },
 
-    // --- PIEDS (Feet) ---
-    { id: 501, name: "Baskets Usées", type: "feet", stat: "agility", val: 1, rare: 1, price: 10, icon: "ri-footprint-line", desc: "Ont vu du pays." },
-    { id: 502, name: "Bottes Rando", type: "feet", stat: "endurance", val: 5, rare: 2, price: 140, icon: "ri-guide-line", desc: "Tout terrain." },
-    { id: 503, name: "Air Propulseurs", type: "feet", stat: "agility", val: 12, rare: 3, price: 900, icon: "ri-rocket-line", desc: "Ça vole presque." },
+    // --- JAMBIÈRES ---
+    { id: 'l1', type: 'legs', name: "Pantalon Cargo", icon: "ri-menu-line", rare: 1, stat: 'agility', val: 2, price: 40, desc: "Poches pleines de boulons." },
+    { id: 'l2', type: 'legs', name: "Vérins Hydrauliques", icon: "ri-rocket-2-line", rare: 2, stat: 'strength', val: 10, price: 400, desc: "Pour soulever des charges lourdes." },
+    { id: 'l3', type: 'legs', name: "Plates en Chitine", icon: "ri-bug-line", rare: 3, stat: 'endurance', val: 20, price: 1200, desc: "Prélevées sur la Matriarche." },
 
-    // --- ARME (Main Hand) ---
-    { id: 601, name: "Haltère 10kg", type: "mainhand", stat: "strength", val: 5, rare: 1, price: 80, icon: "ri-weight-line", desc: "Classique." },
-    { id: 602, name: "Kettlebell", type: "mainhand", stat: "endurance", val: 8, rare: 2, price: 200, icon: "ri-notification-badge-line", desc: "Dynamique." },
-    { id: 603, name: "Épée d'Obsidienne", type: "mainhand", stat: "strength", val: 15, rare: 3, price: 1200, icon: "ri-sword-fill", desc: "Tranchant absolu." },
-    { id: 604, name: "Sabre Laser", type: "mainhand", stat: "mind", val: 12, rare: 3, price: 1100, icon: "ri-flashlight-line", desc: "Arme noble." },
-
-    // --- OFFHAND ---
-    { id: 701, name: "Montre Connectée", type: "offhand", stat: "mind", val: 3, rare: 1, price: 100, icon: "ri-watch-line", desc: "Bip Bip." },
-    { id: 702, name: "Gourde Protéine", type: "offhand", stat: "strength", val: 4, rare: 1, price: 60, icon: "ri-cup-line", desc: "Shaker." },
-    { id: 703, name: "Bouclier Énergétique", type: "offhand", stat: "endurance", val: 10, rare: 3, price: 850, icon: "ri-shield-flash-line", desc: "Impénétrable." },
-    { id: 704, name: "Tablette de Savoir", type: "offhand", stat: "mind", val: 8, rare: 2, price: 300, icon: "ri-book-read-line", desc: "Connaissance infinie." }
+    // --- BOTTES ---
+    { id: 'f1', type: 'feet', name: "Bottes Magnétiques", icon: "ri-footprint-line", rare: 1, stat: 'endurance', val: 2, price: 60, desc: "Adhérence sur le métal." },
+    { id: 'f2', type: 'feet', name: "Propulseurs de Saut", icon: "ri-flight-takeoff-line", rare: 2, stat: 'agility', val: 8, price: 350, desc: "Pour esquiver les ondes de choc." },
+    
+    // --- LOOT DE BOSS (Matériaux & Trophées) ---
+    { id: 'mat1', type: 'material', name: "Poussière de Cristal", icon: "ri-blur-off-line", rare: 1, price: 50, desc: "Résidu d'Aerus." },
+    { id: 'mat2', type: 'material', name: "Acier Corrompu", icon: "ri-contrast-drop-2-line", rare: 1, price: 75, desc: "Métal tordu par le Nouveau Monde." },
+    { id: 'mat3', type: 'material', name: "Glande Bioluminescente", icon: "ri-lightbulb-flash-line", rare: 2, price: 150, desc: "Organe de Mob des profondeurs." },
+    { id: 'mat4', type: 'material', name: "Processeur Neural", icon: "ri-cpu-line", rare: 3, price: 500, desc: "IA intacte d'un Titan Méca." },
+    { id: 'mat5', type: 'material', name: "Sang de Titan", icon: "ri-drop-fill", rare: 4, price: 1000, desc: "Carburant ultra-puissant." }
 ];

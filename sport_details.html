@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: DÉTAILS</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Analyse par sport - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="./images/logo.png">
     <style>
         .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .metric-card { background: var(--bg-panel); border: 2px solid rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; position: relative; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
@@ -26,8 +28,224 @@
         .section-title { font-size:0.9rem; margin-bottom:15px; display:flex; align-items:center; gap:10px; margin-top:30px; }
         .extra-highlight { color: var(--gold); }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Analyse TITAN OS par sport: tendances, derniere seance, metriques dominantes, progression et details propres a chaque discipline.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/sport_details">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/sport_details">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/sport_details">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Analyse par sport - TITAN OS">
+    <meta property="og:description" content="Analyse TITAN OS par sport: tendances, derniere seance, metriques dominantes, progression et details propres a chaque discipline.">
+    <meta property="og:url" content="https://titan-app.fr/sport_details">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Analyse par sport - TITAN OS">
+    <meta name="twitter:description" content="Analyse TITAN OS par sport: tendances, derniere seance, metriques dominantes, progression et details propres a chaque discipline.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/sport_details#webpage",
+          "url": "https://titan-app.fr/sport_details",
+          "name": "Analyse par sport - TITAN OS",
+          "headline": "Analyse par sport - TITAN OS",
+          "description": "Analyse TITAN OS par sport: tendances, derniere seance, metriques dominantes, progression et details propres a chaque discipline.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/sport_details#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/sport_details#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Analyse par sport",
+              "item": "https://titan-app.fr/sport_details"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="sport_details">
     <div class="layout">
         <nav class="sidebar">
            
@@ -66,7 +284,7 @@
                 </div>
 
                 <div id="extra-section" style="display:none;">
-                    <h3 class="section-title" style="color:var(--gold);"><i class="ri-database-2-line"></i> DONNÉES SPÉCIFIQUES</h3>
+                    <h3 class="section-title" style="color:var(--gold);"><i class="ri-bar-chart-grouped-line"></i> MESURES SPÉCIFIQUES</h3>
                     <div class="detail-grid" id="extra-grid">
                         </div>
                 </div>
@@ -75,8 +293,10 @@
                 <div class="detail-grid">
                     <div class="metric-card"><i class="ri-speed-line metric-icon"></i><span class="metric-label">Moyenne / Séance</span><span class="metric-val"><span id="d-avg-val">0</span> <span class="metric-unit" id="d-unit-avg">km</span></span></div>
                     <div class="metric-card"><i class="ri-heart-pulse-fill metric-icon" style="color:#f87171;"></i><span class="metric-label">FC Moyenne</span><span class="metric-val"><span id="d-hr">--</span> <span class="metric-unit">BPM</span></span></div>
-                    <div class="metric-card"><i class="ri-fire-fill metric-icon" style="color:#fb923c;"></i><span class="metric-label">Ressenti (RPE)</span><span class="metric-val"><span id="d-rpe">--</span> <span class="metric-unit">/ 10</span></span></div>
+                    <div class="metric-card"><i class="ri-fire-fill metric-icon" style="color:#7edcff;"></i><span class="metric-label">Ressenti (RPE)</span><span class="metric-val"><span id="d-rpe">--</span> <span class="metric-unit">/ 10</span></span></div>
                     <div class="metric-card" id="card-elev"><i class="ri-mountain-line metric-icon"></i><span class="metric-label">Dénivelé Total</span><span class="metric-val"><span id="d-elev">0</span> <span class="metric-unit">m</span></span></div>
+                    <div class="metric-card" id="card-pace"><i class="ri-speed-up-line metric-icon"></i><span class="metric-label">Allure / Vitesse</span><span class="metric-val"><span id="d-pace">--</span></span></div>
+                    <div class="metric-card" id="card-credits"><i class="ri-coins-line metric-icon"></i><span class="metric-label">Credits Sport</span><span class="metric-val"><span id="d-credits">0</span></span></div>
                 </div>
 
                 <div class="card" style="margin-top:30px; display:flex; align-items:center; justify-content:space-between;">
@@ -93,22 +313,70 @@
         </main>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/titan_features.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
     <script>
+        function escapeUi(value) {
+            const escaper = window.titanEscapeHtml || window.titanEscapeHTML;
+            return escaper ? escaper(value) : String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function numberFrom(value, fallback = 0) {
+            const n = parseFloat(String(value ?? '').replace(',', '.'));
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function paceMinutes(value) {
+            const match = String(value || '').match(/(\d+):(\d+)/);
+            return match ? Number(match[1]) + Number(match[2]) / 60 : 0;
+        }
+
+        function formatPaceMinutes(value) {
+            if(!value) return '--';
+            const min = Math.floor(value);
+            const sec = Math.round((value - min) * 60).toString().padStart(2, '0');
+            return `${min}:${sec}/km`;
+        }
+
+        function rewardCredits(details) {
+            return numberFrom(details?.serverReward?.credits, numberFrom(details?.rewardMeta?.credits, 0));
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            // FORCE REFRESH DU STATE (Solution Synchro)
-            if(localStorage.getItem(STATE_KEY)) {
-                state = JSON.parse(localStorage.getItem(STATE_KEY));
-            }
-            if(!state) return;
+            refreshSportDetailsSelect();
+            let previousSignature = sportDetailHistorySignature();
+            let checks = 0;
+            const cloudRefresh = setInterval(() => {
+                checks += 1;
+                const nextSignature = sportDetailHistorySignature();
+                if(nextSignature !== previousSignature) {
+                    previousSignature = nextSignature;
+                    refreshSportDetailsSelect();
+                }
+                if(checks >= 10) clearInterval(cloudRefresh);
+            }, 1200);
+        });
+
+        function sportDetailHistorySignature() {
+            const history = Array.isArray(window.state?.history) ? window.state.history : [];
+            const latest = history[history.length - 1];
+            return `${history.length}:${latest?.id || latest?.date || ''}`;
+        }
+
+        function refreshSportDetailsSelect() {
+            const currentState = window.state;
+            if(!currentState || !Array.isArray(currentState.history)) return;
 
             const select = document.getElementById('detailSportSelect'); 
             const content = document.getElementById('dashboard-content'); 
             const empty = document.getElementById('empty-state');
             
-            // Récupère les sports pratiqués
-            const activeSports = [...new Set(state.history.map(log => log.sport))].sort();
+            // Recupere les sports pratiques
+            const activeSports = [...new Set(currentState.history.map(log => log.sport))].sort();
             
             if (activeSports.length === 0) { 
                 select.disabled = true; 
@@ -119,51 +387,68 @@
             }
             
             // Reset et remplissage du select
+            select.disabled = false;
             select.innerHTML = "";
             activeSports.forEach(sportLabel => { 
                 const opt = document.createElement('option'); 
                 opt.value = sportLabel; 
-                opt.innerText = sportLabel; 
+                opt.innerText = SPORTS_CONFIG[sportLabel]?.label || sportLabel; 
                 select.appendChild(opt); 
             });
+            const requestedSport = new URLSearchParams(window.location.search).get('sport');
+            if(requestedSport && activeSports.includes(requestedSport)) select.value = requestedSport;
             
             content.style.display = 'block'; 
             empty.style.display = 'none'; 
             calculateDetails();
-        });
+        }
 
         function calculateDetails() {
-            // 1. RE-SYNC pour être sûr
-            state = JSON.parse(localStorage.getItem(STATE_KEY));
+            // 1. RE-SYNC pour etre sur
+            const currentState = window.state;
+            if(!currentState || !Array.isArray(currentState.history)) return;
 
             const selectedLabel = document.getElementById('detailSportSelect').value; 
-            const sportKey = Object.keys(SPORTS_CONFIG).find(k => SPORTS_CONFIG[k].label === selectedLabel); 
-            const conf = SPORTS_CONFIG[sportKey]; 
-            const logs = state.history.filter(log => log.sport === selectedLabel);
+            const sportKey = SPORTS_CONFIG[selectedLabel] ? selectedLabel : Object.keys(SPORTS_CONFIG).find(k => SPORTS_CONFIG[k].label === selectedLabel); 
+            const conf = SPORTS_CONFIG[sportKey] || { label: selectedLabel, unit: '', cat: '', extraFields: [] }; 
+            const logs = currentState.history.filter(log => log.sport === selectedLabel || log.sport === sportKey);
             
             if(logs.length === 0) return;
 
             // --- CALCULS STANDARDS ---
-            let totalVal=0, totalTime=0, totalElev=0, maxVal=0, sumRPE=0, countRPE=0, sumHR=0, countHR=0, weatherCounts={};
+            let totalVal=0, totalTime=0, totalElev=0, maxVal=0, sumRPE=0, countRPE=0, totalCredits=0, paceSum=0, paceCount=0, speedSum=0, speedCount=0, weatherCounts={};
             
             logs.forEach(log => {
-                totalVal += log.value; 
-                if(log.value > maxVal) maxVal = log.value;
+                const val = parseFloat(log.val ?? log.value ?? 0) || 0;
+                const details = (log.details && typeof log.details === 'object') ? log.details : (log.extended || {});
+                log.value = val;
+                if (!log.extended) log.extended = details;
+                totalVal += val; 
+                if(val > maxVal) maxVal = val;
                 
                 let st = 0; 
                 // Gestion temps intelligent
-                if(log.details && log.details.includes('min')) {
+                if(typeof log.details === 'string' && log.details.includes('min')) {
                     const match = log.details.match(/(\d+) min/);
                     if(match) st = parseInt(match[1]);
-                } else if(log.extended && log.extended.val2 > 0) {
-                     st = log.extended.val2; // Si GPS ou champ durée
+                } else if(details.gpxStats?.movingMinutes > 0) {
+                     st = numberFrom(details.gpxStats.movingMinutes);
+                } else if(details.val2 > 0) {
+                     st = log.extended.val2; // Si GPS ou champ duree
                 } else if(conf.cat === 'cardio' && conf.unit === 'km') {
                      st = log.value * 6; // Estimation si pas de temps
                 }
                 totalTime += st;
+                totalCredits += rewardCredits(details);
+
+                const pace = paceMinutes(details.gpxStats?.pace);
+                if(pace > 0) { paceSum += pace; paceCount++; }
+                const speed = numberFrom(String(details.gpxStats?.speed || '').replace('km/h', ''), 0);
+                if(speed > 0) { speedSum += speed; speedCount++; }
 
                 if(log.extended){ 
-                    if(log.extended.elevation) totalElev += log.extended.elevation; 
+                    if(log.extended.gpxStats?.ascent) totalElev += numberFrom(log.extended.gpxStats.ascent);
+                    else if(log.extended.elevation) totalElev += log.extended.elevation; 
                     if(log.elevation) totalElev += log.elevation; // Support ancien format
                     if(log.extended.bio && log.extended.bio.rpe > 0){ sumRPE += parseInt(log.extended.bio.rpe); countRPE++; }
                     // Weather
@@ -188,19 +473,30 @@
             
             const ec = document.getElementById('card-elev'); 
             if(totalElev > 0){ ec.style.display = 'flex'; document.getElementById('d-elev').innerText = totalElev; } else { ec.style.display = 'none'; }
+            const paceCard = document.getElementById('card-pace');
+            if(paceCount > 0 || speedCount > 0) {
+                paceCard.style.display = 'flex';
+                document.getElementById('d-pace').innerText = paceCount > 0 ? formatPaceMinutes(paceSum / paceCount) : `${(speedSum / speedCount).toFixed(1)} km/h`;
+            } else { paceCard.style.display = 'none'; }
+            const creditCard = document.getElementById('card-credits');
+            if(totalCredits > 0) {
+                creditCard.style.display = 'flex';
+                document.getElementById('d-credits').innerText = Math.round(totalCredits).toLocaleString('fr-FR');
+            } else { creditCard.style.display = 'none'; }
 
-            let bw = "N/A", mw = 0, wN = {'sun':'Ensoleillé ☀️','cloud':'Nuageux ☁️','rain':'Pluvieux 🌧️','snow':'Neige ❄️','indoor':'Intérieur 🏠'};
+            let bw = "N/A", mw = 0, wN = {'sun':'Ensoleille','cloud':'Nuageux','rain':'Pluvieux','snow':'Neige','indoor':'Interieur'};
             for(const[w,c] of Object.entries(weatherCounts)){ if(c > mw){ mw = c; bw = wN[w]||w; } }
             document.getElementById('d-weather').innerHTML = mw > 0 ? `<span class="weather-badge">${bw}</span>` : "--"; 
-            document.getElementById('d-last').innerText = logs[0].date;
+            const latest = logs.slice().sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+            document.getElementById('d-last').innerText = latest ? new Date(latest.date).toLocaleDateString('fr-FR') : '--/--/----';
 
-            // --- CALCULS EXTRAS SPÉCIFIQUES (Nouveauté !) ---
+            // --- CALCULS EXTRAS SPECIFIQUES ---
             const extraSection = document.getElementById('extra-section');
             const extraGrid = document.getElementById('extra-grid');
             extraGrid.innerHTML = "";
 
-            // On vérifie s'il y a des champs 'extraFields' pour ce sport
-            if(conf.extraFields && conf.extraFields.length > 0) {
+            // On verifie s'il y a des champs 'extraFields' pour ce sport
+            if(Array.isArray(conf.extraFields) && conf.extraFields.length > 0) {
                 extraSection.style.display = 'block';
                 
                 conf.extraFields.forEach(field => {
@@ -210,8 +506,9 @@
                     let valCounts = {}; // Pour les selects (texte)
 
                     logs.forEach(l => {
-                        if(l.extended && l.extended.extras && l.extended.extras[field.id]) {
-                            const val = l.extended.extras[field.id];
+                        const details = l.details || l.extended || {};
+                        if(details.extras && details.extras[field.id]) {
+                            const val = details.extras[field.id];
                             
                             if(field.type === 'number') {
                                 const num = parseFloat(val);
@@ -229,7 +526,7 @@
                     });
 
                     if(fieldCount > 0) {
-                        // Création de la carte
+                        // Creation de la carte
                         const card = document.createElement('div');
                         card.className = 'metric-card';
                         
@@ -258,15 +555,15 @@
                         }
 
                         card.innerHTML = `
-                            <div class="metric-label extra-highlight">${displayLabel}</div>
-                            <div class="metric-val" style="font-size:1.4rem;">${displayVal}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:5px;">${subInfo}</div>
+                            <div class="metric-label extra-highlight">${escapeUi(displayLabel)}</div>
+                            <div class="metric-val" style="font-size:1.4rem;">${escapeUi(displayVal)}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:5px;">${escapeUi(subInfo)}</div>
                         `;
                         extraGrid.appendChild(card);
                     }
                 });
 
-                // Check si grille vide (cas où champs existent mais pas encore remplis)
+                // Check si grille vide (cas ou champs existent mais pas encore remplis)
                 if(extraGrid.children.length === 0) {
                     extraGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); font-size:0.8rem; font-style:italic;">Pas encore de données spécifiques enregistrées.</div>`;
                 }
@@ -278,3 +575,4 @@
     </script>
 </body>
 </html>
+

@@ -2,255 +2,590 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TITAN: ACCÈS</title>
-    <link rel="icon" type="image/png" href="./images/logo.png">
-    <link rel="stylesheet" href="./css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Connexion - TITAN OS</title>
+    
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <script src="./js/config.js?v=100.0"></script>
+
     <style>
-        body { 
-            margin: 0; padding: 0; 
-            background-color: #10141e; 
-            font-family: 'Outfit', sans-serif; 
-            overflow-x: hidden; 
-            overflow-y: auto;   
+        /* STYLES SPECIFIQUES LOGIN */
+        body {
+            background-color: #06070A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Outfit', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
         }
-        .login-container { 
-            width: 100%; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            background: radial-gradient(circle at center, #1e2538 0%, #10141e 100%); 
-            padding: 40px 20px; 
-            box-sizing: border-box; 
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            backdrop-filter: blur(12px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
         }
-        .login-card { 
-            background: #1e2538; 
-            border: 2px solid rgba(255, 255, 255, 0.05); 
-            border-radius: 24px; 
-            padding: 40px 30px; 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); 
-            width: 100%; 
-            max-width: 420px; 
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            position: relative; 
-            margin: auto; 
+
+        /* Effet Scan Laser */
+        .login-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: #38bdf8;
+            box-shadow: 0 0 15px #38bdf8;
+            animation: scan 3s infinite linear;
+            opacity: 0.7;
         }
-        .auth-tabs { display: flex; background: #131824; padding: 5px; border-radius: 12px; margin-bottom: 25px; }
-        .auth-tab { flex: 1; text-align: center; padding: 12px; font-family: 'Russo One', sans-serif; font-size: 0.9rem; color: #94a3b8; cursor: pointer; border-radius: 8px; transition: 0.3s; }
-        .auth-tab.active { background: #1e2538; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .auth-form { display: none; animation: fadeIn 0.3s ease; }
-        .auth-form.active { display: block; }
-        .input-tech { width: 100%; background: #131824; border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; margin-bottom: 15px; transition: 0.3s; }
-        .input-tech:focus { border-color: #fb923c; outline: none; box-shadow: 0 0 15px rgba(251, 146, 60, 0.1); }
-        .btn-action { width: 100%; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(to bottom, #fb923c, #ea580c); color: #fff; font-family: 'Russo One', sans-serif; font-size: 1.1rem; text-transform: uppercase; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 0 #c2410c; margin-top: 10px; }
-        .btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 #c2410c; }
+        @keyframes scan { 0% {top:0;} 50% {top:100%; opacity:0;} 100% {top:0;} }
+
+        .logo-area { margin-bottom: 25px; }
+        .logo-img { width: 80px; height: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6)); }
+        .app-title { font-family: 'Russo One', sans-serif; font-size: 2rem; color: #fff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); margin: 0; }
+        .app-subtitle { color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 3px; margin-top: 5px; }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .input-label { display: block; font-size: 0.7rem; color: #38bdf8; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         
-        .hp-field { opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; }
-        .forgot-link { text-align: right; margin-bottom: 20px; font-size: 0.85rem; }
-        .forgot-link a { color: #94a3b8; text-decoration: none; transition: 0.2s; }
-        .forgot-link a:hover { color: #fb923c; text-decoration: underline; }
+        .input-field {
+            width: 100%; padding: 14px; 
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem;
+            transition: 0.3s; box-sizing: border-box;
+        }
+        .input-field:focus { outline: none; border-color: #38bdf8; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
 
-        /* Modal Reset */
-        #reset-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(5px); }
+        .btn-main {
+            width: 100%; padding: 15px;
+            background: #38bdf8; color: #06070A;
+            border: none; border-radius: 8px;
+            font-family: 'Russo One', sans-serif; font-size: 1rem;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.2s; margin-top: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-main:hover { background: #fff; box-shadow: 0 0 25px rgba(56, 189, 248, 0.6); transform: translateY(-2px); }
 
-        @keyframes popIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .btn-guest {
+            width: 100%; padding: 12px;
+            background: transparent; color: #64748b;
+            border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
+            font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; margin-top: 25px; transition: 0.2s;
+        }
+        .btn-guest:hover { color: #fff; border-color: #fff; }
+
+        .divider { margin: 25px 0; display: flex; align-items: center; gap: 15px; color: #475569; font-size: 0.7rem; text-transform: uppercase; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+
+        .switch-mode { margin-top: 20px; color: #94a3b8; font-size: 0.9rem; cursor: pointer; text-decoration: underline; }
+        .switch-mode:hover { color: #38bdf8; }
+
+        .forgot-pass { text-align: right; margin-top: -10px; margin-bottom: 20px; font-size: 0.8rem; color: #64748b; cursor: pointer; }
+        .forgot-pass:hover { color: #fff; text-decoration: underline; }
+
+        #error-msg, #success-msg {
+            font-size: 0.85rem; margin-top: 15px; padding: 10px; border-radius: 8px; display: none; text-align: left;
+        }
+        #error-msg { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        #success-msg { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.2); }
     </style>
+
+    <meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Connecte-toi a TITAN OS pour retrouver ta progression, ton historique et tes preferences sur tes appareils.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="bingbot" content="noindex, follow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/login">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/login">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/login">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Connexion - TITAN OS">
+    <meta property="og:description" content="Connecte-toi a TITAN OS pour retrouver ta progression, ton historique et tes preferences sur tes appareils.">
+    <meta property="og:url" content="https://titan-app.fr/login">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Connexion - TITAN OS">
+    <meta name="twitter:description" content="Connecte-toi a TITAN OS pour retrouver ta progression, ton historique et tes preferences sur tes appareils.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/login#webpage",
+          "url": "https://titan-app.fr/login",
+          "name": "Connexion - TITAN OS",
+          "headline": "Connexion - TITAN OS",
+          "description": "Connecte-toi a TITAN OS pour retrouver ta progression, ton historique et tes preferences sur tes appareils.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/login#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/login#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Connexion",
+              "item": "https://titan-app.fr/login"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="margin-bottom: 10px;">
-                    <img src="./images/logo.png" style="height: 100px; width: 100px; border-radius: 50%; border: 3px solid #fb923c; box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);" alt="Titan Logo">
-                </div>
-                <h1 style="font-family: 'Russo One'; text-transform: uppercase; margin: 0; color: #fff; letter-spacing: 2px;">TITAN OS</h1>
-                <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">Identification Requise</div>
-            </div>
+<body data-page="login">
 
-            <div class="auth-tabs">
-                <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">CONNEXION</div>
-                <div class="auth-tab" id="tab-register" onclick="switchTab('register')">CRÉER COMPTE</div>
-            </div>
-
-            <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
-                <input type="email" id="login-email" class="input-tech" placeholder="Email" required>
-                <input type="password" id="login-pass" class="input-tech" placeholder="Mot de passe" required>
-                
-                <div class="forgot-link">
-                    <a href="#" onclick="openResetModal()">Mot de passe oublié ?</a>
-                </div>
-
-                <button type="submit" class="btn-action">ACCÉDER <i class="ri-arrow-right-line"></i></button>
-            </form>
-
-            <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
-                <input type="text" id="confirm_robot" class="hp-field" tabindex="-1" autocomplete="off">
-                
-                <input type="text" id="reg-name" class="input-tech" placeholder="Pseudo Athlète" required>
-                <input type="email" id="reg-email" class="input-tech" placeholder="Email (ex: titan@gmail.com)" required onpaste="return false;">
-                <input type="email" id="reg-email-confirm" class="input-tech" placeholder="Confirmez l'Email" required onpaste="return false;">
-                <input type="password" id="reg-pass" class="input-tech" placeholder="Mot de passe (6 car. min)" required>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="number" id="reg-age" class="input-tech" placeholder="Âge">
-                    <select id="reg-gender" class="input-tech" style="appearance: none;">
-                        <option value="M">Homme</option>
-                        <option value="F">Femme</option>
-                    </select>
-                </div>
-
-                <div style="display:flex; align-items:flex-start; gap:10px; margin:15px 0; font-size:0.8rem; color:#94a3b8; text-align:left;">
-                    <input type="checkbox" id="reg-terms" style="margin-top:3px; accent-color:#fb923c; cursor:pointer;" required>
-                    <label for="reg-terms" style="cursor:pointer;">
-                        Je reconnais avoir lu et accepté les <a href="legal_cgu.html" target="_blank" style="color:#fb923c; text-decoration:none; font-weight:bold;">Conditions Générales</a> et la <a href="legal_privacy.html" target="_blank" style="color:#38bdf8; text-decoration:none; font-weight:bold;">Politique de Confidentialité</a>.
-                    </label>
-                </div>
-
-                <button type="submit" class="btn-action">S'ENRÔLER</button>
-            </form>
+    <main class="login-card">
+        <div class="logo-area">
+            <img src="./image/logo.png" class="logo-img" alt="Logo Titan" width="80" height="80" decoding="async">
+            <h1 class="app-title">TITAN OS</h1>
+            <div class="app-subtitle">Connexion securisee</div>
         </div>
-    </div>
 
-    <div id="reset-modal">
-        <div class="login-card" style="border-color: var(--accent);">
-            <div style="text-align:center; margin-bottom:20px;">
-                <i class="ri-lock-unlock-line" style="font-size:3rem; color:var(--accent);"></i>
-                <h2 style="font-family:'Russo One'; color:#fff; text-transform:uppercase;">RÉCUPÉRATION</h2>
-                <p style="color:#94a3b8; font-size:0.9rem;">Entrez votre email pour recevoir un lien de connexion d'urgence.</p>
+        <form id="auth-form" onsubmit="handleAuth(event)">
+            <div class="form-group">
+                <label class="input-label" for="email">Identifiant (Email)</label>
+                <input type="email" id="email" class="input-field" placeholder="agent@titan-os.com" required>
+            </div>
+
+            <div class="form-group" id="confirm-email-group" style="display:none;">
+                <label class="input-label" for="confirm-email">Confirmation Identifiant</label>
+                <input type="email" id="confirm-email" class="input-field" placeholder="Repetez l'email">
             </div>
             
-            <input type="email" id="reset-email" class="input-tech" placeholder="Votre Email">
-            
-            <button onclick="handleReset()" class="btn-action" style="background:var(--accent); color:#000; box-shadow:0 4px 0 #0284c7;">ENVOYER LE LIEN</button>
-            <button onclick="closeResetModal()" class="btn-action" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:#fff; box-shadow:none; margin-top:10px;">ANNULER</button>
-        </div>
-    </div>
+            <div class="form-group" id="pseudo-group" style="display:none;">
+                <label class="input-label" for="pseudo">Pseudo public</label>
+                <input type="text" id="pseudo" class="input-field" minlength="2" maxlength="24" placeholder="Ex: TitanRunner" aria-label="Pseudo public">
+            </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
+            <div class="form-group">
+                <label class="input-label" for="password">Code d'acces</label>
+                <input type="password" id="password" class="input-field" placeholder="Mot de passe" required>
+            </div>
+
+            <div class="forgot-pass" id="forgot-link" onclick="resetPassword()">Mot de passe oublie ?</div>
+
+            <button type="submit" class="btn-main" id="submit-btn">
+                <i class="ri-fingerprint-line"></i> CONNEXION
+            </button>
+            
+            <div id="error-msg"></div>
+            <div id="success-msg"></div>
+        </form>
+
+        <div class="switch-mode" onclick="toggleMode()" id="toggle-text">
+            Pas de dossier ? Creer un profil
+        </div>
+
+        <div class="divider">OU ACCES RESTREINT</div>
+
+        <button class="btn-guest" onclick="enterGuestMode()">
+            <i class="ri-eye-line"></i> MODE OBSERVATEUR (INVITE)
+        </button>
+    </main>
+
     <script>
-        let formLoadTime = Date.now();
-        const TRASH_DOMAINS = [
-            'yopmail.com', 'yopmail.fr', 'yopmail.net', 'cool.fr.nf', 'jetable.org', 'courriel.com.br', 
-            'nospam.ze.tc', 'nomail.xl.cx', 'mega.zik.dj', 'speed.1s.fr', 'courriel.fr.nf', 'moncourrier.fr.nf', 
-            'monemail.fr.nf', 'monmail.fr.nf', 'temp-mail.org', 'tempmail.com', '10minutemail.com', 
-            'guerrillamail.com', 'sharklasers.com', 'mailinator.com'
-        ];
-
-        function switchTab(mode) {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            document.getElementById('tab-' + mode).classList.add('active');
-            document.getElementById('form-' + mode).classList.add('active');
-            formLoadTime = Date.now();
-        }
-
-        // --- GESTION MOT DE PASSE OUBLIÉ ---
-        function openResetModal() { document.getElementById('reset-modal').style.display = 'flex'; }
-        function closeResetModal() { document.getElementById('reset-modal').style.display = 'none'; }
+        // --- 1. CONFIGURATION DU SYSTEME ---
+        const LOGIN_SUPABASE_URL = window.TITAN_SUPABASE_URL;
+        const LOGIN_SUPABASE_KEY = window.TITAN_SUPABASE_ANON_KEY;
         
-        async function handleReset() {
-            const email = document.getElementById('reset-email').value.trim();
-            if (!email) return alert("Veuillez entrer une adresse email.");
+        // IMPORTANT : On force l'URL du vrai site pour les liens emails
+        const SITE_URL = 'https://titan-app.fr'; 
 
-            const btn = document.querySelector('#reset-modal button');
-            const originalText = btn.innerText;
-            btn.innerText = "ENVOI EN COURS...";
-            btn.disabled = true;
+        let client = null;
+        let isLoginMode = true;
 
-            try {
-                const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/profile.html' 
-                });
-                if (error) throw error;
-                alert("📨 TRANSMISSION RÉUSSIE !\n\nSi cette adresse existe, vous allez recevoir un email.\nCliquez sur le lien pour vous connecter et changer votre mot de passe.");
-                closeResetModal();
-            } catch (err) {
-                if(err.status === 429) alert("Trop de tentatives. Attendez un peu.");
-                else alert("Demande envoyée (Vérifiez vos spams)."); 
-                console.error(err);
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
+        function getSupabaseClient() {
+            if (client) return client;
+            if (typeof window.initTitanSupabaseClient === 'function') {
+                client = window.initTitanSupabaseClient();
+                if (client) return client;
             }
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+            client = window.supabase.createClient(LOGIN_SUPABASE_URL, LOGIN_SUPABASE_KEY, window.TITAN_SUPABASE_CLIENT_OPTIONS);
+            return client;
         }
 
-        // --- CONNEXION ---
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-pass').value;
-            const btn = e.target.querySelector('button[type="submit"]');
+        window.addEventListener('load', getSupabaseClient);
 
-            try {
-                btn.innerText = "CONNEXION...";
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                window.location.href = 'index.html';
-            } catch (err) {
-                if (err.message.includes("Email not confirmed")) alert("⚠️ COMPTE NON ACTIVÉ !\nVeuillez cliquer sur le lien reçu par email.");
-                else if (err.message.includes("Invalid login credentials")) alert("⛔ ERREUR D'IDENTIFICATION\nEmail ou mot de passe incorrect.");
-                else alert("ERREUR : " + err.message);
-                btn.innerHTML = 'ACCÉDER <i class="ri-arrow-right-line"></i>';
-            }
-        }
-
-        // --- INSCRIPTION ---
-        async function handleRegister(e) {
+        // --- 2. GESTION CONNEXION / INSCRIPTION ---
+        async function handleAuth(e) {
             e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmEmail = document.getElementById('confirm-email').value.trim();
+            const pseudo = sanitizePseudo(document.getElementById('pseudo').value);
+            const btn = document.getElementById('submit-btn');
+            const errorBox = document.getElementById('error-msg');
+            const successBox = document.getElementById('success-msg');
             
-            // 1. Validation Légale (Check JS supplémentaire)
-            const termsAccepted = document.getElementById('reg-terms').checked;
-            if(!termsAccepted) return alert("⛔ ACCÈS REFUSÉ : Vous devez accepter les conditions légales.");
-
-            // Sécurité Bot
-            const robotTrap = document.getElementById('confirm_robot').value;
-            if (robotTrap !== "") { console.warn("Bot détecté."); return; }
-            if (Date.now() - formLoadTime < 2000) { alert("Veuillez remplir le formulaire plus lentement."); return; }
-
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value.trim().toLowerCase();
-            const emailConfirm = document.getElementById('reg-email-confirm').value.trim().toLowerCase();
-            const password = document.getElementById('reg-pass').value;
-            const btn = e.target.querySelector('button[type="submit"]');
-
-            // Validations
-            if (email !== emailConfirm) return alert("⚠️ ERREUR : Les adresses email ne correspondent pas.");
-            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            if (!emailRegex.test(email)) return alert("⚠️ Format d'email invalide.");
-            const numbersInEmail = email.split('@')[0].replace(/[^0-9]/g, "").length;
-            if (numbersInEmail > 4) return alert("⛔ Sécurité : Adresse email suspecte (trop de chiffres).");
-            const domain = email.split('@')[1];
-            if (TRASH_DOMAINS.includes(domain)) return alert("⛔ Domaine email non autorisé.");
-            if(password.length < 6) return alert("Le mot de passe doit faire 6 caractères min.");
+            // Animation chargement
+            btn.innerHTML = `<i class="ri-loader-4-line"></i> TRAITEMENT...`;
+            btn.style.opacity = "0.7";
+            errorBox.style.display = "none";
+            successBox.style.display = "none";
 
             try {
-                btn.innerText = "VÉRIFICATION...";
-                const { data, error } = await supabase.auth.signUp({
-                    email, password,
-                    options: { data: { full_name: name }, emailRedirectTo: window.location.origin + '/index.html' }
-                });
+                if (isLoginMode) {
+                    // --- MODE LOGIN ---
+                    const authClient = getSupabaseClient();
+                    if (!authClient) throw new Error("Serveur d'authentification indisponible. Verifiez votre connexion puis reessayez.");
 
-                if (error) throw error;
+                    const { data, error } = await authClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    
+                    window.location.href = getSafeNextUrl();
+                } else {
+                    // --- MODE INSCRIPTION ---
+                    if (email !== confirmEmail) throw new Error("Les emails ne correspondent pas.");
+                    if (pseudo.length < 2) throw new Error("Choisissez un pseudo public de 2 caracteres minimum.");
+                    
+                    const authClient = getSupabaseClient();
+                    if (!authClient) throw new Error("Serveur d'authentification indisponible. Verifiez votre connexion puis reessayez.");
 
-                if (data.user && !data.session) {
-                    alert("✅ VALIDE !\n\nUn lien de confirmation a été envoyé à " + email + ".\nCliquez dessus pour activer l'accès.");
-                    switchTab('login');
+                    const { data, error } = await authClient.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            // On force la redirection vers le site EN LIGNE apres clic mail
+                            emailRedirectTo: SITE_URL + '/index.html',
+                            data: { full_name: pseudo, username: pseudo }
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    if (data && data.session && data.user) {
+                        await ensureSignupProfile(authClient, data.user.id, pseudo);
+                    }
+                    successBox.innerHTML = `Dossier cree !<br><strong>Verifiez vos emails</strong> pour activer l'acces.`;
+                    successBox.style.display = "block";
+                }
+            } catch (err) {
+                console.error(err);
+                let msg = err.message;
+                if(msg.includes("Invalid login")) msg = "Identifiants inconnus.";
+                if(msg.includes("already registered")) msg = "Cet agent existe deja.";
+                errorBox.innerText = "Erreur : " + msg;
+                errorBox.style.display = "block";
+            } finally {
+                btn.innerHTML = isLoginMode ? `<i class="ri-fingerprint-line"></i> CONNEXION` : `<i class="ri-user-add-line"></i> Créer mon compte`;
+                btn.style.opacity = "1";
+            }
+        }
+
+        function sanitizePseudo(value) {
+            return String(value || '')
+                .replace(/[<>]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 24);
+        }
+
+        function getSafeNextUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const requested = params.get('next');
+            if (!requested) return 'index.html';
+
+            try {
+                const target = new URL(requested, window.location.href);
+                if (target.origin !== window.location.origin) return 'index.html';
+                if (target.pathname.endsWith('/admin')) target.pathname = target.pathname + '.html';
+                return target.href;
+            } catch (error) {
+                return 'index.html';
+            }
+        }
+
+        async function ensureSignupProfile(authClient, userId, pseudo) {
+            try {
+                await authClient.from('profiles').upsert({
+                    id: userId,
+                    username: pseudo,
+                    game_state: {},
+                    credits: 200,
+                    level: 1,
+                    is_elite: false,
+                    is_tester: false,
+                    streak_count: 0,
+                    friend_code: null,
+                    inventory: { g_rusty: 3 }
+                }, { onConflict: 'id' });
+                if (typeof authClient.rpc === 'function') await authClient.rpc('titan_assign_friend_code');
+            } catch (error) {
+                console.warn("Creation profil differee:", error);
+            }
+        }
+
+        // --- 3. GESTION MOT DE PASSE OUBLIE (C'EST ICI LE CORRECTIF) ---
+        async function resetPassword() {
+            const email = document.getElementById('email').value.trim();
+            const errorBox = document.getElementById('error-msg');
+            const successBox = document.getElementById('success-msg');
+            
+            if (!email) {
+                errorBox.innerText = "Saisissez votre email dans le champ Identifiant d'abord.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if(confirm(`Envoyer le lien de secours ? : ${email} ?`)) {
+                try {
+                    // ON ENVOIE LE MAIL AVEC LE BON LIEN DE REDIRECTION
+                    const authClient = getSupabaseClient();
+                    if (!authClient) throw new Error("Serveur d'authentification indisponible. Verifiez votre connexion puis reessayez.");
+
+                    const { error } = await authClient.auth.resetPasswordForEmail(email, {
+                        // C'est cette ligne qui fait que ca marche
+                        redirectTo: SITE_URL + '/update-password.html' 
+                    });
+                    
+                    if (error) throw error;
+                    
+                    successBox.innerText = "Lien envoye ! Verifiez votre boite mail (et les spams).";
+                    successBox.style.display = "block";
+                    errorBox.style.display = "none";
+                } catch (err) {
+                    errorBox.innerText = "Erreur systeme : " + err.message;
+                    errorBox.style.display = "block";
+                }
+            }
+        }
+
+        // --- 4. UI: BASCULE LOGIN <-> INSCRIPTION ---
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            const title = document.querySelector('.app-subtitle');
+            const btn = document.getElementById('submit-btn');
+            const toggleText = document.getElementById('toggle-text');
+            const confirmGroup = document.getElementById('confirm-email-group');
+            const pseudoInput = document.getElementById('pseudo');
+            const pseudoGroup = document.getElementById('pseudo-group');
+            const forgotLink = document.getElementById('forgot-link');
+            
+            document.getElementById('error-msg').style.display = "none";
+            document.getElementById('success-msg').style.display = "none";
+
+            if (isLoginMode) {
+                title.innerText = "Connexion securisee";
+                btn.innerHTML = `<i class="ri-fingerprint-line"></i> CONNEXION`;
+                toggleText.innerText = "Pas de dossier ? Creer un profil";
+                confirmGroup.style.display = "none";
+                pseudoGroup.style.display = "none";
+                pseudoInput.required = false;
+                forgotLink.style.display = "block";
+            } else {
+                title.innerText = "Créer mon profil";
+                btn.innerHTML = `<i class="ri-user-add-line"></i> Créer mon compte`;
+                toggleText.innerText = "Deja un compte ? Se connecter";
+                confirmGroup.style.display = "block";
+                pseudoGroup.style.display = "block";
+                pseudoInput.required = true;
+                forgotLink.style.display = "none";
+            }
+        }
+
+        function enterGuestMode() {
+            if(confirm("Attention : votre progression ne sera pas sauvegardee en ligne. Continuer ?")) {
+                localStorage.removeItem('titan_os_v12_save');
+                const authClient = getSupabaseClient();
+                if (authClient) {
+                    authClient.auth.signOut().finally(() => window.location.href = 'index.html');
                 } else {
                     window.location.href = 'index.html';
                 }
-            } catch (err) {
-                if (err.status === 429) alert("Trop de tentatives. Veuillez attendre quelques minutes.");
-                else alert("ERREUR : " + err.message);
-            } finally {
-                btn.innerText = "S'ENRÔLER";
             }
         }
     </script>
 </body>
 </html>
+

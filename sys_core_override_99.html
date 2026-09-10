@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Admin Console - TITAN OS</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #020617;
+            --panel: rgba(15, 23, 42, 0.82);
+            --panel-strong: rgba(30, 41, 59, 0.92);
+            --line: rgba(148, 163, 184, 0.18);
+            --line-hot: rgba(56, 189, 248, 0.42);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --good: #22c55e;
+            --warn: #9ee7ff;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+                radial-gradient(circle at 15% 0%, rgba(56, 189, 248, 0.14), transparent 32%),
+                radial-gradient(circle at 90% 12%, rgba(239, 68, 68, 0.11), transparent 30%),
+                var(--bg);
+            background-size: 44px 44px, 44px 44px, 100% 100%, 100% 100%, auto;
+            color: var(--text);
+            font-family: Inter, Outfit, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .shell {
+            width: min(1480px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 18px 0 48px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 0 22px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand img {
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.45));
+        }
+
+        .brand small {
+            display: block;
+            color: var(--accent);
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+        }
+
+        .brand strong {
+            display: block;
+            color: #fff;
+            font-size: 1.25rem;
+            letter-spacing: 0;
+        }
+
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 14px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: rgba(15, 23, 42, 0.74);
+            color: var(--text);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: var(--line-hot);
+            color: #fff;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #020617;
+        }
+
+        .btn.good {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(34, 197, 94, 0.42);
+            color: #86efac;
+        }
+
+        .btn.warn {
+            background: rgba(126, 220, 255, 0.13);
+            border-color: rgba(126, 220, 255, 0.42);
+            color: #fde68a;
+        }
+
+        .btn.danger {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+        }
+
+        .gate {
+            display: none;
+            width: min(760px, 100%);
+            margin: 70px auto;
+            border: 1px solid var(--line-hot);
+            border-radius: 8px;
+            background: var(--panel);
+            padding: 24px;
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+        }
+
+        .gate.active { display: block; }
+
+        .gate h1 {
+            margin: 0 0 10px;
+            color: #fff;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            line-height: 0.96;
+            letter-spacing: 0;
+        }
+
+        .gate p {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .notice {
+            border: 1px solid rgba(126, 220, 255, 0.34);
+            background: rgba(126, 220, 255, 0.08);
+            color: #fde68a;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        .app {
+            display: none;
+        }
+
+        .app.active { display: block; }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric,
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .metric {
+            padding: 14px;
+            min-height: 94px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .metric strong {
+            display: block;
+            color: #fff;
+            font-size: 2rem;
+            line-height: 1.1;
+            margin-top: 9px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(420px, 0.85fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            overflow: hidden;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            color: #fff;
+            font-size: 0.96rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body {
+            padding: 14px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 8px;
+            background: rgba(2, 6, 23, 0.7);
+            color: #fff;
+            padding: 11px 12px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 118px;
+            resize: vertical;
+            line-height: 1.55;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .table-wrap {
+            overflow: auto;
+            max-height: 570px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        th, td {
+            padding: 11px 10px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 0.88rem;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            color: var(--muted);
+            background: #06070A;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+        }
+
+        tr:hover td {
+            background: rgba(56, 189, 248, 0.04);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-height: 24px;
+            padding: 0 8px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .pill.good { color: #86efac; border-color: rgba(34, 197, 94, 0.38); background: rgba(34, 197, 94, 0.08); }
+        .pill.warn { color: #fde68a; border-color: rgba(126, 220, 255, 0.38); background: rgba(126, 220, 255, 0.08); }
+        .pill.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.38); background: rgba(239, 68, 68, 0.08); }
+        .pill.accent { color: #7dd3fc; border-color: rgba(56, 189, 248, 0.38); background: rgba(56, 189, 248, 0.08); }
+
+        .stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .switches {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .check-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+            color: #fff;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+        }
+
+        .check-card input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .empty {
+            padding: 18px;
+            color: var(--muted);
+            border: 1px dashed rgba(148, 163, 184, 0.24);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .item {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            background: rgba(2, 6, 23, 0.34);
+        }
+
+        .item-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 7px;
+        }
+
+        .item strong {
+            color: #fff;
+        }
+
+        .item p {
+            color: var(--muted);
+            white-space: pre-line;
+            line-height: 1.55;
+            margin: 8px 0 0;
+        }
+
+        .console {
+            position: fixed;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            display: none;
+            max-height: 180px;
+            overflow: auto;
+            border: 1px solid rgba(56, 189, 248, 0.34);
+            border-radius: 8px;
+            background: rgba(2, 6, 23, 0.95);
+            padding: 10px;
+            color: #7dd3fc;
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+            z-index: 20;
+        }
+
+        .console.active { display: block; }
+
+        .muted { color: var(--muted); }
+        .mono { font-family: "Courier New", monospace; }
+        .span-2 { grid-column: span 2; }
+
+        @media (max-width: 1180px) {
+            .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 720px) {
+            .shell { width: min(100% - 18px, 1480px); }
+            .topbar { align-items: flex-start; flex-direction: column; }
+            .top-actions { justify-content: flex-start; }
+            .metrics, .field-grid, .switches { grid-template-columns: 1fr; }
+            .span-2 { grid-column: span 1; }
+            .search-row { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Interface technique interne TITAN OS.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/sys_core_override_99.html">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/sys_core_override_99.html">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/sys_core_override_99.html">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Admin Console - TITAN OS">
+    <meta property="og:description" content="Interface technique interne TITAN OS.">
+    <meta property="og:url" content="https://titan-app.fr/sys_core_override_99.html">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Admin Console - TITAN OS">
+    <meta name="twitter:description" content="Interface technique interne TITAN OS.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/sys_core_override_99.html#webpage",
+          "url": "https://titan-app.fr/sys_core_override_99.html",
+          "name": "Admin Console - TITAN OS",
+          "headline": "Admin Console - TITAN OS",
+          "description": "Interface technique interne TITAN OS.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/sys_core_override_99.html#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/sys_core_override_99.html#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Admin Console",
+              "item": "https://titan-app.fr/sys_core_override_99.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="sys_core_override_99">
+    <div class="shell">
+        <header class="topbar">
+            <div class="brand">
+                <img src="./image/logo.png" alt="TITAN OS">
+                <div>
+                    <small>Plateforme command</small>
+                    <strong>Admin Console</strong>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="btn" type="button" onclick="toggleConsole()"><i class="ri-terminal-box-line"></i> Console</button>
+                <button class="btn" type="button" onclick="refreshAll()"><i class="ri-refresh-line"></i> Refresh</button>
+                <a class="btn" href="./index.html"><i class="ri-dashboard-3-line"></i> App</a>
+                <button class="btn danger" type="button" onclick="adminSignOut()"><i class="ri-logout-box-line"></i> Logout</button>
+            </div>
+        </header>
+
+        <section id="gate" class="gate active">
+            <h1>Verrou admin</h1>
+            <p id="gate-text">Verification de la session et des droits Supabase...</p>
+            <div id="gate-actions"></div>
+        </section>
+
+        <main id="app" class="app">
+            <section class="metrics" aria-label="Indicateurs plateforme">
+                <div class="metric"><span>Utilisateurs</span><strong id="m-profiles">-</strong></div>
+                <div class="metric"><span>Suspendus</span><strong id="m-suspended">-</strong></div>
+                <div class="metric"><span>Elite</span><strong id="m-elite">-</strong></div>
+                <div class="metric"><span>Testeurs</span><strong id="m-testers">-</strong></div>
+                <div class="metric"><span>Sessions</span><strong id="m-logs">-</strong></div>
+                <div class="metric"><span>Reports</span><strong id="m-reports">-</strong></div>
+                <div class="metric"><span>Messages</span><strong id="m-messages">-</strong></div>
+                <div class="metric"><span>Contenu</span><strong id="m-content">-</strong></div>
+            </section>
+
+            <section class="layout">
+                <div class="stack">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-user-search-line"></i> Moderation utilisateurs</h2>
+                            <span id="admin-role" class="pill accent">role</span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="search-row">
+                                <input id="profile-search" placeholder="Pseudo, friend code ou UUID">
+                                <button class="btn primary" type="button" onclick="loadProfiles()"><i class="ri-search-line"></i> Search</button>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Agent</th>
+                                            <th>Niv.</th>
+                                            <th>Credits</th>
+                                            <th>Flags</th>
+                                            <th>Maj</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="profiles-body">
+                                        <tr><td colspan="6" class="muted">Chargement...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-database-2-line"></i> Contenu site</h2>
+                            <span id="content-count" class="pill accent">DB</span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="field-grid">
+                                <div>
+                                    <label for="content-table">Module</label>
+                                    <select id="content-table" onchange="loadContentRows()"></select>
+                                </div>
+                                <div style="display:flex; align-items:flex-end; gap:10px;">
+                                    <button class="btn primary" type="button" onclick="newContentRow()"><i class="ri-add-line"></i> Nouveau</button>
+                                    <button class="btn" type="button" onclick="loadContentRows()"><i class="ri-refresh-line"></i> Sync</button>
+                                </div>
+                            </div>
+                            <div id="content-description" class="notice"></div>
+                            <div class="table-wrap" style="max-height:320px;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Cle</th>
+                                            <th>Apercu</th>
+                                            <th>Statut</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="content-body">
+                                        <tr><td colspan="4" class="muted">Chargement...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top:12px;">
+                                <label for="content-json">Edition JSON</label>
+                                <textarea id="content-json" spellcheck="false" style="min-height:260px; font-family:'Courier New', monospace;" placeholder="Selectionne une ligne ou cree un nouvel item."></textarea>
+                            </div>
+                            <div class="top-actions" style="justify-content:flex-start; margin-top:10px;">
+                                <button class="btn primary" type="button" onclick="saveContentRow()"><i class="ri-save-3-line"></i> Sauvegarder contenu</button>
+                                <button class="btn danger" type="button" onclick="deleteContentRow()"><i class="ri-delete-bin-line"></i> Supprimer</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-alarm-warning-line"></i> Rapports</h2>
+                            <button class="btn" type="button" onclick="loadReports()"><i class="ri-refresh-line"></i> Sync</button>
+                        </div>
+                        <div class="panel-body">
+                            <div id="reports-list" class="list"></div>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-message-3-line"></i> Messages globaux</h2>
+                            <button class="btn" type="button" onclick="loadMessages()"><i class="ri-refresh-line"></i> Sync</button>
+                        </div>
+                        <div class="panel-body">
+                            <div id="messages-list" class="list"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="stack">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-shield-user-line"></i> Fiche moderation</h2>
+                            <span id="selected-id" class="pill">aucun agent</span>
+                        </div>
+                        <div class="panel-body">
+                            <div id="editor-empty" class="empty">Selectionne un utilisateur dans la table pour agir.</div>
+                            <form id="profile-editor" style="display:none;" onsubmit="saveProfilePatch(event)">
+                                <div class="field-grid">
+                                    <div>
+                                        <label for="edit-username">Pseudo</label>
+                                        <input id="edit-username" maxlength="60">
+                                    </div>
+                                    <div>
+                                        <label for="edit-level">Niveau</label>
+                                        <input id="edit-level" type="number" min="1" max="999">
+                                    </div>
+                                    <div>
+                                        <label for="edit-credits">Credits</label>
+                                        <input id="edit-credits" type="number" min="0" max="999999999">
+                                    </div>
+                                    <div>
+                                        <label>Friend code</label>
+                                        <input id="edit-friend-code" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="switches">
+                                    <label class="check-card">Elite <input id="edit-elite" type="checkbox"></label>
+                                    <label class="check-card">Testeur <input id="edit-tester" type="checkbox"></label>
+                                    <label class="check-card">Suspendu <input id="edit-suspended" type="checkbox"></label>
+                                </div>
+
+                                <div class="field-grid">
+                                    <div class="span-2">
+                                        <label for="edit-reason">Raison suspension</label>
+                                        <textarea id="edit-reason" placeholder="Visible par l'utilisateur suspendu"></textarea>
+                                    </div>
+                                    <div class="span-2">
+                                        <label for="edit-notes">Notes admin</label>
+                                        <textarea id="edit-notes" placeholder="Notes internes moderation"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="notice">
+                                    <label class="check-card" style="margin:0;">
+                                        Supprimer tout l'historique sportif de cet utilisateur
+                                        <input id="edit-delete-logs" type="checkbox">
+                                    </label>
+                                </div>
+
+                                <div class="top-actions" style="justify-content:flex-start;">
+                                    <button class="btn primary" type="submit"><i class="ri-save-3-line"></i> Sauvegarder</button>
+                                    <button class="btn warn" type="button" onclick="quickSuspend()"><i class="ri-forbid-2-line"></i> Suspendre</button>
+                                    <button class="btn good" type="button" onclick="quickUnsuspend()"><i class="ri-shield-check-line"></i> Reactiver</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-broadcast-line"></i> Mises a jour</h2>
+                            <span class="pill accent">news_updates</span>
+                        </div>
+                        <div class="panel-body">
+                            <form onsubmit="publishNews(event)">
+                                <div class="field-grid">
+                                    <div>
+                                        <label for="news-version">Version ID</label>
+                                        <input id="news-version" placeholder="v0.5.1">
+                                    </div>
+                                    <div>
+                                        <label for="news-kind">Type</label>
+                                        <select id="news-kind">
+                                            <option value="update">Update</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="event">Event</option>
+                                            <option value="warning">Warning</option>
+                                        </select>
+                                    </div>
+                                    <div class="span-2">
+                                        <label for="news-title">Titre</label>
+                                        <input id="news-title" placeholder="Nouvelle transmission TITAN">
+                                    </div>
+                                    <div class="span-2">
+                                        <label for="news-message">Message</label>
+                                        <textarea id="news-message" placeholder="Patch notes, evenement, maintenance..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="top-actions" style="justify-content:flex-start; margin-top:10px;">
+                                    <button class="btn primary" type="submit"><i class="ri-send-plane-fill"></i> Publier active</button>
+                                    <button class="btn" type="button" onclick="clearNewsForm()"><i class="ri-eraser-line"></i> Vider</button>
+                                </div>
+                            </form>
+                            <div id="news-list" class="list" style="margin-top:14px;"></div>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <h2><i class="ri-file-history-line"></i> Audit</h2>
+                            <button class="btn" type="button" onclick="loadAudit()"><i class="ri-refresh-line"></i> Sync</button>
+                        </div>
+                        <div class="panel-body">
+                            <div id="audit-list" class="list"></div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="console" class="console"></div>
+
+    <script>
+        let client = null;
+        let currentSession = null;
+        let selectedProfile = null;
+        let profileCache = [];
+        let newsCache = [];
+        let contentCatalog = [];
+        let contentRows = [];
+        let selectedContentKey = null;
+        let adminSqlReady = false;
+        let adminCompatMode = false;
+
+        document.addEventListener('DOMContentLoaded', bootAdmin);
+        document.getElementById('profile-search').addEventListener('keydown', event => {
+            if (event.key === 'Enter') loadProfiles();
+        });
+
+        async function bootAdmin() {
+            client = window.initTitanSupabaseClient ? window.initTitanSupabaseClient() : null;
+            if (!client) {
+                showGate('Supabase indisponible. Impossible de charger la console admin.', authButtons());
+                return;
+            }
+
+            try {
+                const { data: { session }, error } = await client.auth.getSession();
+                if (error) throw error;
+                currentSession = session;
+
+                if (!session) {
+                    showGate('Connecte-toi avec le compte owner/admin avant d ouvrir cette console.', authButtons());
+                    return;
+                }
+
+                const access = await resolveAdminAccess(session);
+                adminSqlReady = access.sqlReady;
+                adminCompatMode = access.compatMode;
+
+                if (!access.allowed) {
+                    showGate(
+                        'Session connectee, mais ce compte n est pas encore admin. Si c est le premier compte admin, reclame le role owner ci-dessous.',
+                        claimAndHelpButtons(session.user.email)
+                    );
+                    return;
+                }
+
+                document.getElementById('gate').classList.remove('active');
+                document.getElementById('app').classList.add('active');
+                if (adminCompatMode) {
+                    document.getElementById('admin-role').textContent = 'compat testeur';
+                    log('Mode compatibilite: acces autorise via is_tester. Execute le SQL admin pour activer toutes les actions.', 'info');
+                }
+                await refreshAll();
+            } catch (error) {
+                showGate('Erreur admin: ' + error.message, authButtons());
+                log(error.message, 'error');
+            }
+        }
+
+        async function resolveAdminAccess(session) {
+            let sqlReady = false;
+            let isAdmin = false;
+
+            try {
+                let result = await client.rpc('titan_is_admin', { p_user_id: session.user.id });
+                if (result.error && result.error.code === 'PGRST202') {
+                    result = await client.rpc('titan_is_admin');
+                }
+                if (result.error) throw result.error;
+                sqlReady = true;
+                isAdmin = result.data === true;
+            } catch (error) {
+                log('RPC admin indisponible: ' + error.message, 'error');
+            }
+
+            if (isAdmin) return { allowed: true, sqlReady: true, compatMode: false };
+
+            const { data: profile, error: profileError } = await client
+                .from('profiles')
+                .select('id, username, is_tester, is_elite')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            if (profileError) {
+                log('Lecture profil admin impossible: ' + profileError.message, 'error');
+            }
+
+            if (profile && profile.is_tester === true) {
+                return { allowed: true, sqlReady, compatMode: true };
+            }
+
+            return { allowed: false, sqlReady, compatMode: false };
+        }
+
+        function authButtons() {
+            return `
+                <div class="top-actions" style="justify-content:flex-start;">
+                    <a class="btn primary" href="./login.html"><i class="ri-fingerprint-line"></i> Connexion</a>
+                    <a class="btn" href="./index.html"><i class="ri-dashboard-line"></i> Retour app</a>
+                </div>`;
+        }
+
+        function claimAndHelpButtons(email = '') {
+            return `
+                <div class="notice">
+                    Pour initialiser le premier admin: connecte-toi avec le compte owner, execute le SQL, puis saisis le meme email ici.
+                </div>
+                <div class="field-grid">
+                    <div>
+                        <label>Email owner</label>
+                        <input id="claim-email" value="${escapeHtml(email || '')}" placeholder="owner@domaine.fr">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button class="btn primary" type="button" onclick="claimFirstAdmin()"><i class="ri-key-2-line"></i> Claim owner</button>
+                    </div>
+                </div>`;
+        }
+
+        function showGate(text, actions = '') {
+            document.getElementById('gate').classList.add('active');
+            document.getElementById('app').classList.remove('active');
+            document.getElementById('gate-text').textContent = text;
+            document.getElementById('gate-actions').innerHTML = actions;
+        }
+
+        async function claimFirstAdmin() {
+            const email = document.getElementById('claim-email')?.value.trim();
+            if (!email) return alert('Email requis.');
+
+            const { error } = await client.rpc('titan_admin_claim_first', { p_expected_email: email });
+            if (error) {
+                log(error.message, 'error');
+                alert('Claim refuse: ' + error.message);
+                return;
+            }
+            log('Premier admin cree.', 'success');
+            await bootAdmin();
+        }
+
+        async function refreshAll() {
+            if (!adminSqlReady || adminCompatMode) {
+                await refreshCompat();
+                return;
+            }
+            await Promise.all([
+                loadDashboard(),
+                loadProfiles(),
+                loadContentCatalog(),
+                loadNews(),
+                loadReports(),
+                loadMessages(),
+                loadAudit()
+            ]);
+        }
+
+        async function refreshCompat() {
+            await Promise.all([
+                loadDashboard(),
+                loadProfiles()
+            ]);
+            document.getElementById('content-count').textContent = 'SQL requis';
+            document.getElementById('content-table').innerHTML = '<option>SQL admin requis</option>';
+            document.getElementById('content-body').innerHTML = '<tr><td colspan="4" class="muted">Execute titan_admin_moderation_console.sql pour gerer le contenu.</td></tr>';
+            document.getElementById('news-list').innerHTML = '<div class="empty">SQL admin requis pour publier les mises a jour.</div>';
+            document.getElementById('reports-list').innerHTML = '<div class="empty">SQL admin requis pour la moderation complete.</div>';
+            document.getElementById('messages-list').innerHTML = '<div class="empty">SQL admin requis pour moderer les messages.</div>';
+            document.getElementById('audit-list').innerHTML = '<div class="empty">Audit disponible apres installation SQL admin.</div>';
+        }
+
+        async function loadDashboard() {
+            if (!adminSqlReady || adminCompatMode) {
+                const { data: profiles } = await client
+                    .from('profiles')
+                    .select('id, is_elite, is_tester');
+                const list = profiles || [];
+                document.getElementById('admin-role').textContent = 'compat testeur';
+                document.getElementById('m-profiles').textContent = list.length;
+                document.getElementById('m-suspended').textContent = '-';
+                document.getElementById('m-elite').textContent = list.filter(p => p.is_elite).length;
+                document.getElementById('m-testers').textContent = list.filter(p => p.is_tester).length;
+                document.getElementById('m-logs').textContent = '-';
+                document.getElementById('m-reports').textContent = '-';
+                document.getElementById('m-messages').textContent = '-';
+                document.getElementById('m-content').textContent = 'SQL';
+                return;
+            }
+            const { data, error } = await client.rpc('titan_admin_dashboard');
+            if (error) return log(error.message, 'error');
+
+            document.getElementById('admin-role').textContent = data.role || 'admin';
+            document.getElementById('m-profiles').textContent = data.profilesTotal ?? 0;
+            document.getElementById('m-suspended').textContent = data.profilesSuspended ?? 0;
+            document.getElementById('m-elite').textContent = data.eliteTotal ?? 0;
+            document.getElementById('m-testers').textContent = data.testerTotal ?? 0;
+            document.getElementById('m-logs').textContent = data.trainingLogsTotal ?? 0;
+            document.getElementById('m-reports').textContent = data.openReports ?? 0;
+            document.getElementById('m-messages').textContent = data.messagesTotal ?? 0;
+            document.getElementById('m-content').textContent = data.contentTables ?? '-';
+        }
+
+        async function loadContentCatalog() {
+            const select = document.getElementById('content-table');
+            if (!select) return;
+
+            const { data, error } = await client.rpc('titan_admin_content_catalog');
+            if (error) {
+                log(error.message, 'error');
+                select.innerHTML = '<option value="">SQL requis</option>';
+                return;
+            }
+
+            contentCatalog = data || [];
+            document.getElementById('content-count').textContent = `${contentCatalog.length} tables`;
+            select.innerHTML = contentCatalog.map(item => `<option value="${escapeHtml(item.table)}">${escapeHtml(item.label)}</option>`).join('');
+            if (contentCatalog.length) await loadContentRows();
+        }
+
+        function currentContentMeta() {
+            const table = document.getElementById('content-table')?.value;
+            return contentCatalog.find(item => item.table === table) || null;
+        }
+
+        function contentKeyColumn(meta = currentContentMeta()) {
+            return meta && meta.table === 'global_config' ? 'key' : 'id';
+        }
+
+        async function loadContentRows() {
+            const meta = currentContentMeta();
+            const tbody = document.getElementById('content-body');
+            const desc = document.getElementById('content-description');
+            if (!meta) {
+                tbody.innerHTML = '<tr><td colspan="4" class="muted">Aucune table disponible.</td></tr>';
+                return;
+            }
+
+            desc.textContent = meta.description || '';
+            tbody.innerHTML = '<tr><td colspan="4" class="muted">Chargement contenu...</td></tr>';
+            selectedContentKey = null;
+            document.getElementById('content-json').value = '';
+
+            const { data, error } = await client.rpc('titan_admin_list_content', {
+                p_table: meta.table,
+                p_limit: 150
+            });
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="muted">${escapeHtml(error.message)}</td></tr>`;
+                return log(error.message, 'error');
+            }
+
+            contentRows = data || [];
+            if (!contentRows.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="muted">Aucune ligne. Cree un premier item JSON.</td></tr>';
+                return;
+            }
+
+            const keyCol = contentKeyColumn(meta);
+            tbody.innerHTML = contentRows.map((row, index) => {
+                const key = row[keyCol] ?? row.id ?? row.key;
+                const label = row.name || row.label || row.title || row.description || row.value || '-';
+                const active = row.is_active === false || row.active === false ? false : true;
+                return `
+                    <tr>
+                        <td><span class="mono">${escapeHtml(key)}</span></td>
+                        <td>${escapeHtml(String(label).slice(0, 80))}</td>
+                        <td><span class="pill ${active ? 'good' : 'danger'}">${active ? 'actif' : 'off'}</span></td>
+                        <td><button class="btn" type="button" onclick="editContentRow(${index})"><i class="ri-edit-line"></i> Edit</button></td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function editContentRow(index) {
+            const row = contentRows[index];
+            if (!row) return;
+            const meta = currentContentMeta();
+            const keyCol = contentKeyColumn(meta);
+            selectedContentKey = row[keyCol] ?? row.id ?? row.key;
+            document.getElementById('content-json').value = JSON.stringify(row, null, 2);
+        }
+
+        function newContentRow() {
+            const meta = currentContentMeta();
+            if (!meta) return;
+            selectedContentKey = null;
+            const keyCol = contentKeyColumn(meta);
+            const skeleton = {};
+            (meta.columns || []).forEach(col => {
+                if (['created_at', 'updated_at', 'created_by'].includes(col.name)) return;
+                if (col.name === keyCol) skeleton[col.name] = keyCol === 'id' ? 'nouvel_id' : 'nouvelle_cle';
+                else if (col.type === 'boolean') skeleton[col.name] = true;
+                else if (['integer', 'numeric', 'bigint', 'real', 'double precision'].includes(col.type)) skeleton[col.name] = 0;
+                else if (col.type === 'jsonb' || col.type === 'json') skeleton[col.name] = col.name.endsWith('s') || col.name.includes('fields') ? [] : {};
+                else skeleton[col.name] = '';
+            });
+            document.getElementById('content-json').value = JSON.stringify(skeleton, null, 2);
+        }
+
+        async function saveContentRow() {
+            const meta = currentContentMeta();
+            if (!meta) return;
+            let row;
+            try {
+                row = JSON.parse(document.getElementById('content-json').value);
+            } catch (error) {
+                alert('JSON invalide: ' + error.message);
+                return;
+            }
+
+            const { error } = await client.rpc('titan_admin_upsert_content', {
+                p_table: meta.table,
+                p_row: row
+            });
+            if (error) {
+                log(error.message, 'error');
+                alert('Sauvegarde contenu refusee: ' + error.message);
+                return;
+            }
+            log(`Contenu sauvegarde dans ${meta.table}`, 'success');
+            localStorage.removeItem(window.CACHE_KEY || 'titan_data_cache_v1');
+            await Promise.all([loadContentRows(), loadAudit()]);
+        }
+
+        async function deleteContentRow() {
+            const meta = currentContentMeta();
+            if (!meta) return;
+            let row;
+            try { row = JSON.parse(document.getElementById('content-json').value); }
+            catch { return alert('Selectionne une ligne valide avant suppression.'); }
+            const keyCol = contentKeyColumn(meta);
+            const key = row[keyCol] ?? row.id ?? row.key;
+            if (!key) return alert('Cle introuvable.');
+            if (!confirm(`Supprimer ${meta.table}/${key} ?`)) return;
+
+            const { error } = await client.rpc('titan_admin_delete_content', {
+                p_table: meta.table,
+                p_key: String(key)
+            });
+            if (error) {
+                log(error.message, 'error');
+                alert('Suppression refusee: ' + error.message);
+                return;
+            }
+            log(`Contenu supprime dans ${meta.table}: ${key}`, 'success');
+            localStorage.removeItem(window.CACHE_KEY || 'titan_data_cache_v1');
+            await Promise.all([loadContentRows(), loadAudit()]);
+        }
+
+        async function loadProfiles() {
+            const search = document.getElementById('profile-search').value.trim();
+            const tbody = document.getElementById('profiles-body');
+            tbody.innerHTML = `<tr><td colspan="6" class="muted">Chargement...</td></tr>`;
+
+            let data = null;
+            let error = null;
+            if (adminSqlReady && !adminCompatMode) {
+                ({ data, error } = await client.rpc('titan_admin_list_profiles', {
+                    p_search: search,
+                    p_limit: 75,
+                    p_offset: 0
+                }));
+            } else {
+                let query = client
+                    .from('profiles')
+                    .select('id, username, level, credits, is_elite, is_tester, friend_code, streak_count, last_seen_news_version, created_at, updated_at')
+                    .order('updated_at', { ascending: false })
+                    .limit(75);
+                if (search) {
+                    const escaped = search.replaceAll(',', '').replaceAll('%', '');
+                    const filters = [`username.ilike.%${escaped}%`, `friend_code.ilike.%${escaped}%`];
+                    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(escaped)) {
+                        filters.push(`id.eq.${escaped}`);
+                    }
+                    query = query.or(filters.join(','));
+                }
+                ({ data, error } = await query);
+            }
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6" class="muted">${escapeHtml(error.message)}</td></tr>`;
+                return log(error.message, 'error');
+            }
+
+            profileCache = data || [];
+            if (!profileCache.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="muted">Aucun profil trouve.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = profileCache.map(profile => `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(profile.username || 'Agent')}</strong><br>
+                        <span class="muted mono">${escapeHtml(profile.friend_code || profile.id)}</span>
+                    </td>
+                    <td>${profile.level || 1}</td>
+                    <td>${Number(profile.credits || 0).toLocaleString('fr-FR')}</td>
+                    <td>${renderFlags(profile)}</td>
+                    <td>${formatDate(profile.updated_at)}</td>
+                    <td><button class="btn" type="button" onclick="selectProfile('${profile.id}')"><i class="ri-edit-line"></i> Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderFlags(profile) {
+            const flags = [];
+            if (profile.is_suspended) flags.push('<span class="pill danger">suspendu</span>');
+            if (profile.is_elite) flags.push('<span class="pill warn">elite</span>');
+            if (profile.is_tester) flags.push('<span class="pill accent">testeur</span>');
+            return flags.length ? flags.join(' ') : '<span class="pill">standard</span>';
+        }
+
+        function selectProfile(id) {
+            selectedProfile = profileCache.find(profile => profile.id === id);
+            if (!selectedProfile) return;
+
+            document.getElementById('editor-empty').style.display = 'none';
+            document.getElementById('profile-editor').style.display = 'block';
+            document.getElementById('selected-id').textContent = selectedProfile.id.slice(0, 8) + '...';
+            document.getElementById('edit-username').value = selectedProfile.username || '';
+            document.getElementById('edit-level').value = selectedProfile.level || 1;
+            document.getElementById('edit-credits').value = selectedProfile.credits || 0;
+            document.getElementById('edit-friend-code').value = selectedProfile.friend_code || '';
+            document.getElementById('edit-elite').checked = selectedProfile.is_elite === true;
+            document.getElementById('edit-tester').checked = selectedProfile.is_tester === true;
+            document.getElementById('edit-suspended').checked = selectedProfile.is_suspended === true;
+            document.getElementById('edit-reason').value = selectedProfile.suspension_reason || '';
+            document.getElementById('edit-notes').value = selectedProfile.admin_notes || '';
+            document.getElementById('edit-delete-logs').checked = false;
+        }
+
+        async function saveProfilePatch(event) {
+            event.preventDefault();
+            if (!selectedProfile) return;
+
+            if (!adminSqlReady || adminCompatMode) {
+                alert('Mode compatibilite: lecture seulement. Execute sql/titan_admin_moderation_console.sql dans Supabase pour activer la moderation complete.');
+                return;
+            }
+
+            const deleteLogs = document.getElementById('edit-delete-logs').checked;
+            if (deleteLogs && !confirm('Supprimer definitivement les logs sportifs de cet utilisateur ?')) return;
+
+            const patch = {
+                username: document.getElementById('edit-username').value.trim(),
+                level: Number(document.getElementById('edit-level').value || 1),
+                credits: Number(document.getElementById('edit-credits').value || 0),
+                is_elite: document.getElementById('edit-elite').checked,
+                is_tester: document.getElementById('edit-tester').checked,
+                is_suspended: document.getElementById('edit-suspended').checked,
+                suspension_reason: document.getElementById('edit-reason').value.trim(),
+                admin_notes: document.getElementById('edit-notes').value.trim(),
+                delete_training_logs: deleteLogs
+            };
+
+            const { data, error } = await client.rpc('titan_admin_update_profile', {
+                p_user_id: selectedProfile.id,
+                p_patch: patch
+            });
+            if (error) {
+                log(error.message, 'error');
+                alert('Sauvegarde refusee: ' + error.message);
+                return;
+            }
+            log('Profil mis a jour: ' + (data.username || selectedProfile.id), 'success');
+            await Promise.all([loadProfiles(), loadDashboard(), loadAudit()]);
+            selectedProfile = data;
+            selectProfile(data.id);
+        }
+
+        function quickSuspend() {
+            if (!selectedProfile) return;
+            document.getElementById('edit-suspended').checked = true;
+            if (!document.getElementById('edit-reason').value.trim()) {
+                document.getElementById('edit-reason').value = 'Compte suspendu par la moderation TITAN OS.';
+            }
+        }
+
+        function quickUnsuspend() {
+            if (!selectedProfile) return;
+            document.getElementById('edit-suspended').checked = false;
+            document.getElementById('edit-reason').value = '';
+        }
+
+        async function publishNews(event) {
+            event.preventDefault();
+            const version = document.getElementById('news-version').value.trim();
+            const title = document.getElementById('news-title').value.trim();
+            const message = document.getElementById('news-message').value.trim();
+            const kind = document.getElementById('news-kind').value;
+
+            if (!version || !title || !message) return alert('Version, titre et message sont requis.');
+
+            const { error } = await client.rpc('titan_admin_publish_news', {
+                p_version_id: version,
+                p_title: title,
+                p_message: message,
+                p_kind: kind,
+                p_active: true
+            });
+
+            if (error) {
+                log(error.message, 'error');
+                alert('Publication refusee: ' + error.message);
+                return;
+            }
+
+            log('News publiee: ' + version, 'success');
+            clearNewsForm();
+            await Promise.all([loadNews(), loadDashboard(), loadAudit()]);
+        }
+
+        async function loadNews() {
+            const list = document.getElementById('news-list');
+            list.innerHTML = '<div class="empty">Chargement news...</div>';
+            const { data, error } = await client.rpc('titan_admin_list_news', { p_limit: 12 });
+            if (error) {
+                list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                return log(error.message, 'error');
+            }
+            newsCache = data || [];
+            if (!newsCache.length) {
+                list.innerHTML = '<div class="empty">Aucune news publiee.</div>';
+                return;
+            }
+            list.innerHTML = newsCache.map(news => `
+                <article class="item">
+                    <div class="item-top">
+                        <div>
+                            <strong>${escapeHtml(news.title)}</strong><br>
+                            <span class="muted mono">${escapeHtml(news.version_id)} - ${formatDate(news.created_at)}</span>
+                        </div>
+                        <span class="pill ${news.active ? 'good' : ''}">${news.active ? 'active' : 'inactive'}</span>
+                    </div>
+                    <span class="pill accent">${escapeHtml(news.kind || 'update')}</span>
+                    <p>${escapeHtml(news.message || '')}</p>
+                    <div class="top-actions" style="justify-content:flex-start; margin-top:10px;">
+                        <button class="btn ${news.active ? 'danger' : 'good'}" type="button" onclick="setNewsActive('${news.id}', ${news.active ? 'false' : 'true'})">
+                            <i class="${news.active ? 'ri-pause-circle-line' : 'ri-play-circle-line'}"></i> ${news.active ? 'Desactiver' : 'Activer'}
+                        </button>
+                        <button class="btn" type="button" onclick="editNewsDraftById('${news.id}')"><i class="ri-draft-line"></i> Charger</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function setNewsActive(id, active) {
+            const { error } = await client.rpc('titan_admin_set_news_active', {
+                p_news_id: id,
+                p_active: active
+            });
+            if (error) {
+                log(error.message, 'error');
+                return alert(error.message);
+            }
+            await Promise.all([loadNews(), loadDashboard(), loadAudit()]);
+        }
+
+        function editNewsDraftById(id) {
+            const news = newsCache.find(item => item.id === id);
+            if (!news) return;
+            document.getElementById('news-version').value = news.version_id || '';
+            document.getElementById('news-title').value = news.title || '';
+            document.getElementById('news-kind').value = news.kind || 'update';
+            document.getElementById('news-message').value = news.message || '';
+        }
+
+        function clearNewsForm() {
+            const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+            document.getElementById('news-version').value = 'v-' + stamp;
+            document.getElementById('news-title').value = '';
+            document.getElementById('news-kind').value = 'update';
+            document.getElementById('news-message').value = '';
+        }
+
+        async function loadReports() {
+            const list = document.getElementById('reports-list');
+            list.innerHTML = '<div class="empty">Chargement rapports...</div>';
+            const { data, error } = await client.rpc('titan_admin_list_reports', { p_status: null, p_limit: 20 });
+            if (error) {
+                list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                return log(error.message, 'error');
+            }
+            if (!data || !data.length) {
+                list.innerHTML = '<div class="empty">Aucun rapport pour le moment.</div>';
+                return;
+            }
+            list.innerHTML = data.map(report => `
+                <article class="item">
+                    <div class="item-top">
+                        <div>
+                            <strong>${escapeHtml(report.reason)}</strong><br>
+                            <span class="muted mono">target ${escapeHtml(report.target_user_id || 'n/a')}</span>
+                        </div>
+                        <span class="pill ${report.status === 'open' ? 'danger' : report.status === 'reviewing' ? 'warn' : 'good'}">${escapeHtml(report.status)}</span>
+                    </div>
+                    <p>${escapeHtml(report.details || 'Aucun detail.')}</p>
+                    <div class="top-actions" style="justify-content:flex-start; margin-top:10px;">
+                        <button class="btn warn" type="button" onclick="resolveReport('${report.id}', 'reviewing')"><i class="ri-eye-line"></i> Reviewing</button>
+                        <button class="btn good" type="button" onclick="resolveReport('${report.id}', 'resolved')"><i class="ri-check-line"></i> Resolve</button>
+                        <button class="btn" type="button" onclick="resolveReport('${report.id}', 'dismissed')"><i class="ri-close-line"></i> Dismiss</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function loadMessages() {
+            const list = document.getElementById('messages-list');
+            if (!list) return;
+            list.innerHTML = '<div class="empty">Chargement messages...</div>';
+            const { data, error } = await client.rpc('titan_admin_list_messages', { p_limit: 35 });
+            if (error) {
+                list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                return log(error.message, 'error');
+            }
+            if (!data || !data.length) {
+                list.innerHTML = '<div class="empty">Aucun message global ou table absente.</div>';
+                return;
+            }
+            list.innerHTML = data.map(msg => `
+                <article class="item">
+                    <div class="item-top">
+                        <div>
+                            <strong>${escapeHtml(msg.sender_name || 'Agent')}</strong><br>
+                            <span class="muted mono">${escapeHtml(msg.sender_id || msg.id || '')}</span>
+                        </div>
+                        <span class="muted">${formatDate(msg.created_at)}</span>
+                    </div>
+                    <p>${escapeHtml(msg.content || '')}</p>
+                    <div class="top-actions" style="justify-content:flex-start; margin-top:10px;">
+                        <button class="btn danger" type="button" onclick="deleteMessage('${escapeHtml(String(msg.id))}')"><i class="ri-delete-bin-line"></i> Supprimer</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function deleteMessage(id) {
+            if (!confirm('Supprimer ce message global ?')) return;
+            const { error } = await client.rpc('titan_admin_delete_message', { p_message_id: id });
+            if (error) {
+                log(error.message, 'error');
+                return alert(error.message);
+            }
+            await Promise.all([loadMessages(), loadDashboard(), loadAudit()]);
+        }
+
+        async function resolveReport(id, status) {
+            const note = status === 'reviewing' ? 'Pris en charge.' : (prompt('Note de resolution') || '');
+            const { error } = await client.rpc('titan_admin_resolve_report', {
+                p_report_id: id,
+                p_status: status,
+                p_note: note
+            });
+            if (error) {
+                log(error.message, 'error');
+                return alert(error.message);
+            }
+            await Promise.all([loadReports(), loadDashboard(), loadAudit()]);
+        }
+
+        async function loadAudit() {
+            const list = document.getElementById('audit-list');
+            list.innerHTML = '<div class="empty">Chargement audit...</div>';
+            const { data, error } = await client
+                .from('titan_admin_audit')
+                .select('id, admin_id, action, target_user_id, payload, created_at')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (error) {
+                list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                return log(error.message, 'error');
+            }
+            if (!data || !data.length) {
+                list.innerHTML = '<div class="empty">Aucune action admin loggee.</div>';
+                return;
+            }
+            list.innerHTML = data.map(row => `
+                <article class="item">
+                    <div class="item-top">
+                        <strong>${escapeHtml(row.action)}</strong>
+                        <span class="muted">${formatDate(row.created_at)}</span>
+                    </div>
+                    <div class="muted mono">${escapeHtml(row.target_user_id || row.admin_id || '')}</div>
+                </article>
+            `).join('');
+        }
+
+        async function adminSignOut() {
+            if (client) await client.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        function toggleConsole() {
+            document.getElementById('console').classList.toggle('active');
+        }
+
+        function log(message, type = 'info') {
+            const consoleEl = document.getElementById('console');
+            const color = type === 'error' ? '#fca5a5' : type === 'success' ? '#86efac' : '#7dd3fc';
+            const time = new Date().toLocaleTimeString('fr-FR');
+            consoleEl.innerHTML += `<div style="color:${color}">[${time}] ${escapeHtml(message)}</div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '-';
+            return date.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+    </script>
+</body>
+</html>
+
+

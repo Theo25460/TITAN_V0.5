@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Liste de 260+ sports et suivi adapté | TITAN OS Sport</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <style>
+        :root {
+            --catalog-bg:#050810;
+            --catalog-panel:rgba(10,20,32,.84);
+            --catalog-line:rgba(126,220,255,.17);
+            --catalog-line-strong:rgba(126,220,255,.36);
+            --catalog-cyan:#7edcff;
+            --catalog-green:#4cc9b0;
+            --catalog-muted:#91a4b7;
+        }
+        body {
+            margin:0;
+            background:
+                radial-gradient(circle at 52% -8%, rgba(56,189,248,.16), transparent 30rem),
+                linear-gradient(rgba(126,220,255,.032) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(126,220,255,.032) 1px, transparent 1px),
+                var(--catalog-bg);
+            background-size:auto,42px 42px,42px 42px,auto;
+            color:#f4f8fb;
+        }
+        .catalog-shell { width:min(1180px, calc(100% - 28px)); margin:0 auto; padding-bottom:70px; }
+        .catalog-nav {
+            position:sticky; top:0; z-index:80; min-height:72px; display:flex; align-items:center;
+            justify-content:space-between; gap:16px; background:rgba(5,8,16,.92); backdrop-filter:blur(18px);
+            border-bottom:1px solid rgba(126,220,255,.08);
+        }
+        .catalog-brand { display:flex; align-items:center; gap:10px; color:#fff; text-decoration:none; }
+        .catalog-brand img { width:36px; height:36px; border:1px solid var(--catalog-line-strong); border-radius:8px; padding:4px; }
+        .catalog-brand strong { display:block; font-family:var(--font-display); font-size:1rem; }
+        .catalog-brand span { display:block; color:var(--catalog-muted); font-size:.65rem; font-weight:900; text-transform:uppercase; }
+        .catalog-nav-actions { display:flex; gap:8px; align-items:center; }
+        .catalog-nav-actions a { min-height:42px; display:inline-flex; align-items:center; padding:0 13px; border:1px solid rgba(255,255,255,.09); border-radius:8px; font-weight:900; }
+        .catalog-nav-actions .catalog-primary { background:linear-gradient(135deg,var(--catalog-cyan),#b7f0ff); color:#031019; }
+        .catalog-hero { padding:clamp(54px,8vw,96px) 0 42px; display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.65fr); gap:42px; align-items:end; }
+        .catalog-kicker { color:var(--catalog-cyan); font-size:.72rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+        .catalog-hero h1 { margin:10px 0 0; font-size:clamp(2.7rem,7.6vw,6.2rem); line-height:.93; max-width:850px; }
+        .catalog-hero p { max-width:700px; color:#c7d7e4; font-size:clamp(1rem,2vw,1.14rem); line-height:1.6; margin:20px 0 0; }
+        .catalog-status-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        .catalog-status { border:1px solid var(--catalog-line); border-radius:8px; background:var(--catalog-panel); padding:15px; }
+        .catalog-status strong { display:block; color:#fff; font-family:var(--font-display); font-size:1.5rem; }
+        .catalog-status span { color:var(--catalog-muted); font-size:.7rem; text-transform:uppercase; font-weight:900; }
+        .catalog-command {
+            position:sticky; top:72px; z-index:70; padding:14px; border:1px solid var(--catalog-line-strong);
+            border-radius:10px; background:rgba(5,10,18,.94); backdrop-filter:blur(18px); box-shadow:0 18px 50px rgba(0,0,0,.24);
+        }
+        .catalog-search-wrap { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; }
+        .catalog-search { position:relative; }
+        .catalog-search i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--catalog-cyan); font-size:1.2rem; }
+        .catalog-search input { min-height:54px; padding-left:47px!important; background:rgba(255,255,255,.045)!important; border-color:rgba(126,220,255,.2)!important; }
+        .catalog-clear { min-width:112px; border:1px solid rgba(255,255,255,.1); border-radius:8px; color:#d9e8f2; background:rgba(255,255,255,.04); font-weight:900; }
+        .catalog-filters { display:flex; flex-wrap:wrap; gap:7px; margin-top:11px; }
+        .catalog-filter { min-height:38px; border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:0 11px; color:#9eb0c0; background:rgba(255,255,255,.035); font-weight:900; font-size:.7rem; }
+        .catalog-filter[aria-pressed="true"] { color:#031019; background:var(--catalog-cyan); border-color:var(--catalog-cyan); }
+        .catalog-suggestions { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:12px; color:#74899a; font-size:.72rem; }
+        .catalog-suggestions button { border:0; padding:5px 0; color:#b9c7d2; background:transparent; font:inherit; font-weight:850; text-decoration:underline; text-decoration-color:rgba(126,220,255,.3); text-underline-offset:4px; cursor:pointer; }
+        .catalog-results-head { display:flex; justify-content:space-between; gap:16px; align-items:end; margin:34px 0 15px; }
+        .catalog-results-head h2 { margin:0; font-size:clamp(1.4rem,3vw,2.1rem); }
+        .catalog-results-head p { margin:5px 0 0; color:var(--catalog-muted); }
+        .catalog-count { color:var(--catalog-cyan); font-family:var(--font-display); white-space:nowrap; }
+        .catalog-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:13px; }
+        .catalog-card {
+            min-height:245px; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,.08);
+            border-radius:10px; padding:17px; background:linear-gradient(145deg,rgba(126,220,255,.055),rgba(255,255,255,.025));
+            transition:transform .2s ease,border-color .2s ease,background .2s ease;
+        }
+        .catalog-card:hover { transform:translateY(-3px); border-color:var(--catalog-line-strong); background:linear-gradient(145deg,rgba(126,220,255,.09),rgba(255,255,255,.035)); }
+        .catalog-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .catalog-card-icon { width:42px; height:42px; flex:0 0 42px; display:grid; place-items:center; border:1px solid var(--catalog-line); border-radius:8px; color:var(--catalog-cyan); background:rgba(126,220,255,.06); font-size:1.35rem; }
+        .catalog-card-tag { color:var(--catalog-green); font-size:.62rem; font-weight:900; text-transform:uppercase; }
+        .catalog-card h3 { margin:15px 0 0; font-size:1rem; }
+        .catalog-card p { margin:8px 0 0; color:#9fb0bf; font-size:.78rem; line-height:1.45; }
+        .catalog-metrics { display:flex; flex-wrap:wrap; gap:5px; margin:13px 0 16px; }
+        .catalog-metric { border:1px solid rgba(255,255,255,.08); border-radius:999px; padding:4px 7px; color:#bac9d5; background:rgba(255,255,255,.03); font-size:.62rem; font-weight:800; }
+        .catalog-card-footer { margin-top:auto; display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:13px; border-top:1px solid rgba(255,255,255,.07); }
+        .catalog-card-footer span { color:#718496; font-size:.66rem; font-weight:900; }
+        .catalog-card-footer a { color:#dff8ff; font-weight:900; font-size:.72rem; }
+        .catalog-empty { grid-column:1/-1; border:1px dashed var(--catalog-line); border-radius:10px; padding:44px 20px; color:var(--catalog-muted); text-align:center; }
+        .catalog-explainer { margin-top:70px; display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); gap:26px; align-items:start; }
+        .catalog-explainer h2 { margin:0; font-size:clamp(1.8rem,4vw,3.1rem); }
+        .catalog-explainer > div > p { color:#aebdca; line-height:1.65; }
+        .catalog-points { display:grid; gap:10px; }
+        .catalog-point { display:grid; grid-template-columns:42px 1fr; gap:12px; padding:15px; border:1px solid rgba(255,255,255,.08); border-radius:9px; background:rgba(255,255,255,.025); }
+        .catalog-point i { width:42px; height:42px; display:grid; place-items:center; color:var(--catalog-cyan); border:1px solid var(--catalog-line); border-radius:8px; }
+        .catalog-point strong { display:block; color:#fff; }
+        .catalog-point span { display:block; color:var(--catalog-muted); font-size:.78rem; line-height:1.4; margin-top:3px; }
+        .catalog-faq { margin-top:70px; }
+        .catalog-faq h2 { font-size:clamp(1.7rem,4vw,2.8rem); }
+        .catalog-faq details { border-top:1px solid rgba(255,255,255,.1); padding:17px 0; }
+        .catalog-faq summary { list-style:none; display:flex; justify-content:space-between; gap:15px; font-size:.95rem; }
+        .catalog-faq summary::after { content:"+"; color:var(--catalog-cyan); }
+        .catalog-faq details[open] summary::after { content:"−"; }
+        .catalog-faq p { max-width:850px; color:var(--catalog-muted); line-height:1.6; }
+        .catalog-footer { margin-top:70px; padding:24px 0; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; gap:18px; color:var(--catalog-muted); font-size:.75rem; }
+        .catalog-footer nav { display:flex; flex-wrap:wrap; gap:14px; }
+        @media (max-width:840px) {
+            .catalog-hero,.catalog-explainer { grid-template-columns:1fr; }
+            .catalog-hero { padding-top:42px; }
+            .catalog-command { position:relative; top:auto; }
+            .catalog-nav-actions a:not(.catalog-primary) { display:none; }
+        }
+        @media (max-width:560px) {
+            .catalog-shell { width:min(100% - 20px,1180px); }
+            .catalog-brand span,.catalog-clear { display:none; }
+            .catalog-search-wrap { grid-template-columns:1fr; }
+            .catalog-results-head,.catalog-footer { align-items:flex-start; flex-direction:column; }
+            .catalog-grid { grid-template-columns:1fr; }
+        }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="./js/consent.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Explore plus de 260 sports et trouve les mesures utiles à ta pratique : endurance, force, combat, eau, glisse, équipe, raquette et mobilité.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/sports">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/sports">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/sports">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Liste de 260+ sports et suivi adapté | TITAN OS Sport">
+    <meta property="og:description" content="Explore plus de 260 sports et trouve les mesures utiles à ta pratique : endurance, force, combat, eau, glisse, équipe, raquette et mobilité.">
+    <meta property="og:url" content="https://titan-app.fr/sports">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Liste de 260+ sports et suivi adapté | TITAN OS Sport">
+    <meta name="twitter:description" content="Explore plus de 260 sports et trouve les mesures utiles à ta pratique : endurance, force, combat, eau, glisse, équipe, raquette et mobilité.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://acscdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//acscdn.com">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "https://titan-app.fr/sports#webpage",
+          "url": "https://titan-app.fr/sports",
+          "name": "Liste de 260+ sports et suivi adapté | TITAN OS Sport",
+          "headline": "Liste de 260+ sports et suivi adapté | TITAN OS Sport",
+          "description": "Explore plus de 260 sports et trouve les mesures utiles à ta pratique : endurance, force, combat, eau, glisse, équipe, raquette et mobilité.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/sports#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/sports#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Liste de 260+ sports et suivi adapté",
+              "item": "https://titan-app.fr/sports"
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://titan-app.fr/sports#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Quels sports peut-on suivre dans TITAN OS ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Le catalogue couvre les grandes familles d'endurance, de force, de combat, de precision, de glisse, d'eau, de mobilite et de sports collectifs, avec des pratiques de niche en complement."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Faut-il renseigner toutes les metriques ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. Une valeur principale suffit pour commencer. Les metriques specifiques sont proposees pour ameliorer la lecture de progression, mais restent optionnelles lorsqu'elles ne sont pas pertinentes pour ta seance."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "TITAN OS remplace-t-il un coach ou un outil medical ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Non. TITAN OS est un journal de progression et de motivation. Il ne pose aucun diagnostic et ne remplace ni un professionnel de sante ni un encadrement sportif qualifie."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="sports">
+    <main class="catalog-shell">
+        <header class="catalog-nav" aria-label="Navigation principale">
+            <a class="catalog-brand" href="/" aria-label="Accueil TITAN OS">
+                <img src="./image/logo.png" alt="" aria-hidden="true">
+                <span><strong>TITAN OS</strong><span>Progression physique</span></span>
+            </a>
+            <nav class="catalog-nav-actions" aria-label="Actions">
+                <a href="/guide">Méthode</a>
+                <a href="/login">Connexion</a>
+                <a class="catalog-primary" href="/training">Enregistrer</a>
+            </nav>
+        </header>
+
+        <section class="catalog-hero" aria-labelledby="catalog-title">
+            <div>
+                <div class="catalog-kicker">Catalogue multisport</div>
+                <h1 id="catalog-title">Trouve ton sport. Suis ce qui compte.</h1>
+                <p>Course, force, combat, glisse, sports collectifs ou pratiques de niche : TITAN OS adapte la saisie aux mesures réellement utiles à chaque effort.</p>
+            </div>
+            <div class="catalog-status-grid" aria-label="Couverture du catalogue">
+                <div class="catalog-status"><strong id="catalog-total">260</strong><span>sports actifs</span></div>
+                <div class="catalog-status"><strong id="catalog-categories">13</strong><span>familles</span></div>
+                <div class="catalog-status"><strong id="catalog-metrics">—</strong><span>fiches adaptées</span></div>
+                <div class="catalog-status"><strong>1</strong><span>journal unifié</span></div>
+            </div>
+        </section>
+
+        <section class="catalog-command" aria-label="Recherche dans les sports">
+            <div class="catalog-search-wrap">
+                <label class="catalog-search" for="catalog-search">
+                    <span class="sr-only">Rechercher un sport</span>
+                    <i class="ri-search-line" aria-hidden="true"></i>
+                    <input id="catalog-search" type="search" placeholder="Ex : trail, padel, poids, eau, précision…" autocomplete="off" enterkeyhint="search">
+                </label>
+                <button id="catalog-clear" class="catalog-clear" type="button">Effacer</button>
+            </div>
+            <div id="catalog-filters" class="catalog-filters" aria-label="Filtrer par famille"></div>
+            <div class="catalog-suggestions" aria-label="Recherches suggérées">
+                <span>Essayer :</span>
+                <button type="button" data-sport-query="course">courir</button>
+                <button type="button" data-sport-query="musculation">se renforcer</button>
+                <button type="button" data-sport-query="collectif">sport d’équipe</button>
+                <button type="button" data-sport-query="eau">dans l’eau</button>
+                <button type="button" data-sport-query="mobilité">récupérer</button>
+            </div>
+        </section>
+
+        <section aria-labelledby="catalog-results-title">
+            <div class="catalog-results-head">
+                <div>
+                    <h2 id="catalog-results-title">Tous les sports</h2>
+                    <p id="catalog-live" aria-live="polite">Chargement des sports…</p>
+                </div>
+                <div id="catalog-count" class="catalog-count">—</div>
+            </div>
+            <div id="catalog-grid" class="catalog-grid">
+                <article class="catalog-card"><div class="catalog-card-head"><i class="catalog-card-icon ri-run-line"></i><span class="catalog-card-tag">Cardio</span></div><h3>Course à pied</h3><p>Allure, distance, durée, cadence et fréquence cardiaque.</p><div class="catalog-card-footer"><span>Base km</span><a href="/training?sport=running">Enregistrer →</a></div></article>
+                <article class="catalog-card"><div class="catalog-card-head"><i class="catalog-card-icon ri-boxing-line"></i><span class="catalog-card-tag">Force</span></div><h3>Musculation</h3><p>Séries, répétitions, charge, volume et records personnels.</p><div class="catalog-card-footer"><span>Base kg</span><a href="/training?sport=muscu_builder">Enregistrer →</a></div></article>
+                <article class="catalog-card"><div class="catalog-card-head"><i class="catalog-card-icon ri-riding-line"></i><span class="catalog-card-tag">Endurance</span></div><h3>Cyclisme</h3><p>Distance, dénivelé, cadence, vitesse et puissance.</p><div class="catalog-card-footer"><span>Base km</span><a href="/training?sport=cycling_road">Enregistrer →</a></div></article>
+                <article class="catalog-card"><div class="catalog-card-head"><i class="catalog-card-icon ri-drop-line"></i><span class="catalog-card-tag">Eau</span></div><h3>Natation</h3><p>Distance, nage, allure, longueur de bassin et technique.</p><div class="catalog-card-footer"><span>Base m</span><a href="/training?sport=swimming">Enregistrer →</a></div></article>
+            </div>
+            <button id="catalog-load-more" class="catalog-load-more" type="button" hidden>Afficher plus de sports</button>
+        </section>
+
+        <section class="catalog-explainer" aria-labelledby="catalog-method-title">
+            <div>
+                <div class="catalog-kicker">Conçu pour enregistrer vite</div>
+                <h2 id="catalog-method-title">Un même système. Des données qui changent avec le sport.</h2>
+                <p>Une séance de course n’a pas les mêmes signaux qu’un combat, une session de force ou un sport de précision. Le formulaire TITAN garde un noyau simple puis révèle les métriques propres à la discipline choisie.</p>
+            </div>
+            <div class="catalog-points">
+                <div class="catalog-point"><i class="ri-flashlight-line"></i><div><strong>Saisie rapide</strong><span>Recherche tolérante aux accents, alias, familles et noms internationaux.</span></div></div>
+                <div class="catalog-point"><i class="ri-line-chart-line"></i><div><strong>Progression comparable</strong><span>Records personnels, répétition des formats et tendances par discipline.</span></div></div>
+                <div class="catalog-point"><i class="ri-shield-check-line"></i><div><strong>Récompenses bornées</strong><span>Les valeurs extrêmes restent encadrées côté serveur avant d’influencer l’XP.</span></div></div>
+                <div class="catalog-point"><i class="ri-medal-line"></i><div><strong>Identité multisport</strong><span>Chaque pratique nourrit ton profil sans effacer les particularités de ton sport principal.</span></div></div>
+            </div>
+        </section>
+
+        <section class="catalog-faq" aria-labelledby="catalog-faq-title">
+            <div class="catalog-kicker">Questions utiles</div>
+            <h2 id="catalog-faq-title">Avant ta première trace</h2>
+            <details><summary>Quels sports peut-on suivre dans TITAN OS ?</summary><p>Le catalogue couvre les grandes familles d’endurance, de force, de combat, de précision, de glisse, d’eau, de mobilité et de sports collectifs, avec des pratiques de niche en complément.</p></details>
+            <details><summary>Faut-il renseigner toutes les métriques ?</summary><p>Non. Une valeur principale suffit pour commencer. Les métriques spécifiques sont proposées pour améliorer la lecture de progression, mais restent optionnelles lorsqu’elles ne sont pas pertinentes pour ta séance.</p></details>
+            <details><summary>TITAN OS remplace-t-il un coach ou un outil médical ?</summary><p>Non. TITAN OS est un journal de progression et de motivation. Il ne pose aucun diagnostic et ne remplace ni un professionnel de santé ni un encadrement sportif qualifié.</p></details>
+            <details><summary>Peut-on utiliser TITAN OS gratuitement ?</summary><p>Oui. Le journal sportif, la progression de base et le catalogue multisport sont accessibles gratuitement depuis un navigateur compatible.</p></details>
+        </section>
+
+        <footer class="catalog-footer">
+            <span>TITAN OS // chaque effort laisse une trace.</span>
+            <nav aria-label="Liens secondaires"><a href="/">Accueil</a><a href="/guide">Guide</a><a href="/service">Aide</a><a href="/legal_privacy">Confidentialité</a></nav>
+        </footer>
+    </main>
+
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/sport-discovery.js?v=100.0"></script>
+    <script src="./js/pwa.js?v=100.0" defer></script>
+    <script>
+        (function initPublicSportCatalog() {
+            const grid = document.getElementById('catalog-grid');
+            const input = document.getElementById('catalog-search');
+            const clearButton = document.getElementById('catalog-clear');
+            const filters = document.getElementById('catalog-filters');
+            const live = document.getElementById('catalog-live');
+            const count = document.getElementById('catalog-count');
+            const loadMore = document.getElementById('catalog-load-more');
+            let entries = window.TITAN_FEATURED_SPORTS || [];
+            let activeFamily = 'all';
+            let networkReady = false;
+            let visibleLimit = 24;
+
+            function setStats(list) {
+                const stats = window.titanSportCatalogStats(list);
+                document.getElementById('catalog-total').textContent = stats.total || '—';
+                document.getElementById('catalog-categories').textContent = stats.categories || '—';
+                document.getElementById('catalog-metrics').textContent = stats.withMetrics || '—';
+            }
+
+            function renderFilters() {
+                filters.replaceChildren();
+                (window.TITAN_SPORT_FAMILIES || []).forEach(family => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'catalog-filter';
+                    button.setAttribute('aria-pressed', family.id === activeFamily ? 'true' : 'false');
+                    button.dataset.family = family.id;
+                    button.textContent = family.label;
+                    button.addEventListener('click', () => {
+                        activeFamily = family.id;
+                        visibleLimit = 24;
+                        renderFilters();
+                        render();
+                    });
+                    filters.appendChild(button);
+                });
+            }
+
+            function createCard(entry) {
+                const conf = entry.conf || {};
+                const article = document.createElement('article');
+                article.className = 'catalog-card';
+
+                const head = document.createElement('div');
+                head.className = 'catalog-card-head';
+                const icon = document.createElement('i');
+                icon.className = `catalog-card-icon ${window.titanSafeSportIcon(conf.icon)}`;
+                icon.setAttribute('aria-hidden', 'true');
+                const tag = document.createElement('span');
+                tag.className = 'catalog-card-tag';
+                tag.textContent = window.titanSportCategoryLabel(conf);
+                head.append(icon, tag);
+
+                const title = document.createElement('h3');
+                title.textContent = conf.label || entry.key;
+                const description = document.createElement('p');
+                description.textContent = conf.description || conf.trackingSummary?.headline || 'Durée, intensité et mesures propres à la discipline.';
+
+                const metrics = document.createElement('div');
+                metrics.className = 'catalog-metrics';
+                const labels = window.titanSportMetricLabels(conf, 3);
+                (labels.length ? labels : ['Durée', 'Intensité', 'Notes']).forEach(label => {
+                    const chip = document.createElement('span');
+                    chip.className = 'catalog-metric';
+                    chip.textContent = label;
+                    metrics.appendChild(chip);
+                });
+
+                const footer = document.createElement('div');
+                footer.className = 'catalog-card-footer';
+                const base = document.createElement('span');
+                base.textContent = conf.unit ? `Base ${conf.unit}` : 'Base libre';
+                const link = document.createElement('a');
+                link.href = `/training?sport=${encodeURIComponent(entry.key)}`;
+                link.textContent = 'Enregistrer →';
+                link.setAttribute('aria-label', `Enregistrer une séance de ${conf.label || entry.key}`);
+                footer.append(base, link);
+                article.append(head, title, description, metrics, footer);
+                return article;
+            }
+
+            function render() {
+                const query = input.value;
+                const ranked = entries
+                    .filter(entry => window.titanSportFamilyMatches(entry, activeFamily))
+                    .map(entry => ({ ...entry, rank: window.titanSportSearchScore(entry, query) }))
+                    .filter(entry => !query.trim() || entry.rank > 0)
+                    .sort((a, b) => {
+                        if (query.trim() && b.rank !== a.rank) return b.rank - a.rank;
+                        const orderA = Number(a.conf?.sortOrder || 0);
+                        const orderB = Number(b.conf?.sortOrder || 0);
+                        return orderA - orderB || String(a.conf?.label || '').localeCompare(String(b.conf?.label || ''), 'fr');
+                    });
+
+                grid.replaceChildren();
+                if (!ranked.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'catalog-empty';
+                    empty.textContent = 'Aucun résultat. Essaie un synonyme, une famille ou un nom international.';
+                    grid.appendChild(empty);
+                } else {
+                    ranked.slice(0, visibleLimit).forEach(entry => grid.appendChild(createCard(entry)));
+                }
+                count.textContent = `${ranked.length} résultat${ranked.length > 1 ? 's' : ''}`;
+                live.textContent = `${ranked.length} discipline${ranked.length > 1 ? 's' : ''} trouvée${ranked.length > 1 ? 's' : ''}${networkReady ? '.' : ' dans la sélection essentielle.'}`;
+                if(loadMore) {
+                    loadMore.hidden = ranked.length <= visibleLimit;
+                    loadMore.textContent = `Afficher plus (${ranked.length - visibleLimit} restantes)`;
+                }
+            }
+
+            async function loadCatalog() {
+                renderFilters();
+                setStats(entries);
+                render();
+                try {
+                    const client = await window.waitForTitanSupabase(3500);
+                    if (!client) throw new Error('CATALOG_CLIENT_UNAVAILABLE');
+                    const { data, error } = await client
+                        .from('sports')
+                        .select('id,label,slug,name,description,category,icon,unit,form_type,balance_profile,tracking_summary,extra_fields,sort_order,is_active')
+                        .eq('is_active', true)
+                        .order('sort_order', { ascending: true })
+                        .limit(500);
+                    if (error) throw error;
+                    const loaded = window.titanSportEntriesFromRows(data);
+                    if (!loaded.length) throw new Error('CATALOG_EMPTY');
+                    entries = loaded;
+                    networkReady = true;
+                    setStats(entries);
+                    render();
+                } catch (error) {
+                    console.warn('[TITAN CATALOG] Mode de secours local actif.');
+                }
+            }
+
+            input.addEventListener('input', () => { visibleLimit = 24; render(); });
+            document.querySelectorAll('[data-sport-query]').forEach(button => {
+                button.addEventListener('click', () => {
+                    input.value = button.dataset.sportQuery || '';
+                    activeFamily = 'all';
+                    visibleLimit = 24;
+                    renderFilters();
+                    render();
+                    input.focus();
+                });
+            });
+            clearButton.addEventListener('click', () => {
+                input.value = '';
+                activeFamily = 'all';
+                visibleLimit = 24;
+                renderFilters();
+                render();
+                input.focus();
+            });
+            loadMore?.addEventListener('click', () => { visibleLimit += 24; render(); });
+            document.addEventListener('keydown', event => {
+                if (event.key === '/' && document.activeElement !== input) {
+                    event.preventDefault();
+                    input.focus();
+                }
+                if (event.key === 'Escape' && document.activeElement === input) {
+                    input.value = '';
+                    render();
+                }
+            });
+            const initialQuery = new URLSearchParams(window.location.search).get('q');
+            if (initialQuery) input.value = initialQuery.slice(0, 80);
+            loadCatalog();
+        })();
+    </script>
+</body>
+</html>

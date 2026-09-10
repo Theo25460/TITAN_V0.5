@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Connexion indisponible - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        body {
+            min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 22px;
+            background:
+                radial-gradient(circle at 50% 24%, rgba(56,189,248,0.14), transparent 22rem),
+                linear-gradient(180deg, #06070A, #050914);
+            color: #e2e8f0; font-family: 'Outfit', system-ui, sans-serif;
+        }
+        .network-shell {
+            width: min(460px, 100%); border: 1px solid rgba(56,189,248,0.22);
+            background: rgba(15, 23, 42, 0.84); border-radius: 10px; padding: 28px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.42); text-align: center;
+        }
+        .network-mark {
+            width: 74px; height: 74px; margin: 0 auto 18px; border-radius: 18px;
+            display: grid; place-items: center; background: rgba(56,189,248,0.1);
+            border: 1px solid rgba(56,189,248,0.28); color: #38bdf8; font-size: 2.2rem;
+        }
+        .network-eyebrow {
+            color: #38bdf8; font-size: 0.72rem; font-weight: 900;
+            letter-spacing: 0.16em; text-transform: uppercase;
+        }
+        h1 {
+            font-family: 'Russo One', system-ui, sans-serif; font-size: clamp(1.35rem, 6vw, 2rem);
+            margin: 8px 0 12px; letter-spacing: 0; color: #fff;
+        }
+        p { color: #94a3b8; line-height: 1.55; margin: 0 0 20px; }
+        .network-actions { display: grid; gap: 10px; }
+        .network-actions a,
+        .network-actions button {
+            min-height: 46px; border: 0; border-radius: 8px; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none; font-family: inherit;
+        }
+        .network-actions button { background: #38bdf8; color: #020617; }
+        .network-actions a { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
+        .network-note { margin-top: 18px; font-size: 0.8rem; color: #64748b; }
+    </style>
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="TITAN OS ne peut pas charger cette page pour le moment. Retrouve les options disponibles hors connexion.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/network-error.html">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/network-error.html">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/network-error.html">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Connexion indisponible - TITAN OS">
+    <meta property="og:description" content="TITAN OS ne peut pas charger cette page pour le moment. Retrouve les options disponibles hors connexion.">
+    <meta property="og:url" content="https://titan-app.fr/network-error.html">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Connexion indisponible - TITAN OS">
+    <meta name="twitter:description" content="TITAN OS ne peut pas charger cette page pour le moment. Retrouve les options disponibles hors connexion.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/network-error.html#webpage",
+          "url": "https://titan-app.fr/network-error.html",
+          "name": "Connexion indisponible - TITAN OS",
+          "headline": "Connexion indisponible - TITAN OS",
+          "description": "TITAN OS ne peut pas charger cette page pour le moment. Retrouve les options disponibles hors connexion.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/network-error.html#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/network-error.html#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Connexion indisponible",
+              "item": "https://titan-app.fr/network-error.html"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body data-page="network-error">
+    <main class="network-shell">
+        <div class="network-mark"><i class="ri-wifi-off-line"></i></div>
+        <div class="network-eyebrow">Mode secours</div>
+        <h1>Connexion indisponible</h1>
+        <p>Le reseau ne repond pas pour le moment. Les donnees deja chargees peuvent rester disponibles en local; reessaie quand la connexion revient.</p>
+        <div class="network-actions">
+            <button type="button" onclick="window.location.reload()"><i class="ri-refresh-line"></i> Reessayer</button>
+            <a href="./index.html"><i class="ri-dashboard-3-line"></i> Retour au tableau</a>
+        </div>
+        <div class="network-note">TITAN OS garde le cap même quand la connexion fait une pause.</div>
+    </main>
+</body>
+</html>
+

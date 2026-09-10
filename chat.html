@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>TITAN: COMMS</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Messagerie - TITAN OS</title>
+    <link rel="stylesheet" href="./css/style.css?v=100.0">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="./images/logo.png">
     <style>
-        /* --- CSS SPÉCIFIQUE CHAT AVANCÉ --- */
+        /* --- CSS SPECIFIQUE CHAT AVANCE --- */
         .chat-interface { display: grid; grid-template-columns: 320px 1fr; gap: 20px; height: calc(100vh - 140px); min-height: 650px; }
         .contact-panel { background: rgba(30, 37, 56, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; }
         .cp-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
         .search-bar { position: relative; }
         .search-bar input { width: 100%; padding: 12px 15px 12px 40px; background: #131824; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-family: 'Outfit'; transition: 0.3s; }
+        .friend-code-add { display:flex; gap:8px; padding:0 15px 15px; }
+        .friend-code-add input { min-width:0; flex:1; padding:10px; border-radius:8px; border:1px solid rgba(56,189,248,0.28); background:#06070A; color:#fff; font-family:'Courier New', monospace; text-transform:uppercase; }
+        .friend-code-add button { width:42px; border-radius:8px; border:0; background:var(--accent); color:#020617; cursor:pointer; }
+        .msg-report-btn { margin-left:8px; border:0; background:transparent; color:#64748b; cursor:pointer; padding:2px; line-height:1; }
+        .msg-report-btn:hover { color:#ef4444; }
         .search-bar input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(251, 146, 60, 0.1); }
         .search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .contact-list { flex: 1; overflow-y: auto; padding: 10px; }
         .contact-card { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; margin-bottom: 5px; }
+        .contact-card { width: 100%; text-align: left; background: transparent; }
         .contact-card:hover { background: rgba(255,255,255,0.03); }
         .contact-card.active { background: linear-gradient(90deg, rgba(251, 146, 60, 0.1), transparent); border-left: 3px solid var(--primary); }
+        .contact-card.locked { opacity: 0.62; }
         .c-avatar { position: relative; width: 50px; height: 50px; }
         .c-img { width: 100%; height: 100%; border-radius: 14px; background: #131824; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
         .c-status { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #1e2538; }
@@ -47,17 +56,253 @@
         .mine .msg-bubble { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #000; font-weight: 600; border-radius: 18px 18px 4px 18px; }
         .theirs .msg-bubble { background: #2d364f; color: #e2e8f0; border-radius: 18px 18px 18px 4px; border: 1px solid rgba(255,255,255,0.05); }
         .msg-meta { font-size: 0.65rem; opacity: 0.6; margin-top: 4px; display: flex; gap: 5px; align-items: center; }
-        .chat-input-zone { padding: 20px; background: #131824; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; align-items: flex-end; }
+        .msg-author { font-size:0.62rem; color:var(--primary); font-weight:800; margin-bottom:3px; text-transform:uppercase; }
+        .mine .msg-author { color:#06070A; }
+        .msg-chip { display:inline-flex; margin-left:6px; padding:2px 5px; border-radius:999px; background:rgba(255,255,255,0.16); font-size:0.55rem; }
+        .chat-input-zone { padding: 20px; background: #131824; border-top: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 15px; align-items: end; }
+        .chat-economy-hint { grid-column:1 / -1; color:#9fb0c7; font-size:0.72rem; font-weight:800; display:flex; align-items:center; gap:6px; }
         .c-input-wrapper { flex: 1; background: rgba(30, 37, 56, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px; display: flex; align-items: center; }
         .c-input { width: 100%; background: transparent; border: none; color: #fff; font-family: 'Outfit'; font-size: 0.95rem; resize: none; height: 24px; max-height: 100px; padding: 0 10px; }
         .c-btn-send { width: 50px; height: 50px; border-radius: 14px; border: none; background: var(--primary); color: #000; font-size: 1.5rem; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(251, 146, 60, 0.2); }
         .c-btn-send:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(251, 146, 60, 0.4); }
         .empty-chat { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; }
         .empty-icon { font-size: 5rem; opacity: 0.1; margin-bottom: 20px; }
+        .briefing-card { max-width:640px; margin:auto; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.035); border-radius:16px; padding:26px; color:#cbd5e1; line-height:1.65; }
+        .briefing-card i { font-size:2rem; color:var(--accent); }
+        .briefing-card h2 { color:#fff; font-family:'Russo One'; margin:10px 0; }
         .chat-feed::-webkit-scrollbar { width: 4px; } .chat-feed::-webkit-scrollbar-track { background: transparent; } .chat-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        @media (max-width: 860px) {
+            .chat-interface { grid-template-columns: 1fr; height: auto; min-height: 0; gap: 12px; }
+            .contact-panel { max-height: 230px; border-radius: 12px; }
+            .contact-list { display: grid; grid-template-columns: 1fr; max-height: 158px; }
+            .contact-card { padding: 10px; gap: 10px; }
+            .c-avatar { width: 42px; height: 42px; }
+            .chat-area { min-height: 62vh; border-radius: 12px; }
+            .chat-header { padding: 12px; }
+            .chat-feed { padding: 14px; }
+            .msg-group { max-width: 88%; }
+            .chat-input-zone { padding: 12px; gap: 8px 10px; }
+            .c-btn-send { width: 46px; height: 46px; border-radius: 10px; }
+        }
     </style>
+<meta name="theme-color" content="#0f172a">
+
+
+    <meta name="application-name" content="TITAN OS">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="TITAN OS">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
+    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <style data-titan-critical-boot>
+      html { background:#0f172a; color-scheme:dark; }
+      body { margin:0; background:#0f172a; color:#f8fafc; }
+      html.titan-booting::before {
+        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
+        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
+      }
+      html.titan-booting::after {
+        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
+        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
+        letter-spacing:.22em; text-transform:uppercase;
+      }
+      html.titan-booting .layout,
+      html.titan-booting .legal-layout { opacity:0; }
+      html.titan-ready .layout,
+      html.titan-ready .legal-layout { opacity:1; }
+    </style>
+    <script data-titan-critical-boot>
+      document.documentElement.classList.add('titan-booting');
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (typeof window.titanHideBoot === 'function') return;
+          document.documentElement.classList.remove('titan-booting');
+          document.documentElement.classList.add('titan-ready');
+        }, 160);
+      });
+      setTimeout(function () {
+        if (typeof window.titanHideBoot === 'function') return;
+        document.documentElement.classList.remove('titan-booting');
+        document.documentElement.classList.add('titan-ready');
+      }, 1400);
+    </script>
+    <!-- SEO: TITAN OS -->
+    <meta name="description" content="Messagerie TITAN OS reservee aux utilisateurs connectes: canal global, canal guilde, moderation et messages temporaires.">
+    <meta name="author" content="TITAN OS Sport">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="bingbot" content="noindex, nofollow">
+    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
+    <link rel="canonical" href="https://titan-app.fr/chat">
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/chat">
+    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/chat">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
+    <link rel="apple-touch-icon" href="/image/logo-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:site_name" content="TITAN OS Sport">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Messagerie - TITAN OS">
+    <meta property="og:description" content="Messagerie TITAN OS reservee aux utilisateurs connectes: canal global, canal guilde, moderation et messages temporaires.">
+    <meta property="og:url" content="https://titan-app.fr/chat">
+    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Messagerie - TITAN OS">
+    <meta name="twitter:description" content="Messagerie TITAN OS reservee aux utilisateurs connectes: canal global, canal guilde, moderation et messages temporaires.">
+    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
+    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preload" href="/image/logo.png" as="image">
+    <!-- /SEO: TITAN OS -->
+    <script type="application/ld+json" data-seo-schema>
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://titan-app.fr/#organization",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
+          "url": "https://titan-app.fr/",
+          "email": "titanteam.app@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "titanteam.app@gmail.com",
+            "contactType": "customer support",
+            "availableLanguage": [
+              "fr"
+            ]
+          },
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/logo-192.png",
+            "width": 192,
+            "height": 192
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://titan-app.fr/#website",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "inLanguage": "fr-FR",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": [
+            "WebApplication",
+            "SoftwareApplication"
+          ],
+          "@id": "https://titan-app.fr/#app",
+          "name": "TITAN OS Sport",
+          "alternateName": [
+            "TITAN Sport",
+            "TITAN OS Sport"
+          ],
+          "url": "https://titan-app.fr/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
+          "inLanguage": "fr-FR",
+          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
+          "softwareVersion": "100.0",
+          "image": "https://titan-app.fr/image/og-titan-os.png",
+          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
+          "installUrl": "https://titan-app.fr/",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          "featureList": [
+            "Journal d'entrainement",
+            "Catalogue de plus de 260 sports",
+            "Recherche par nom, alias, famille et metrique",
+            "Saisie adaptee a chaque discipline",
+            "Statistiques sportives",
+            "Progression par XP",
+            "Objectifs hebdomadaires",
+            "Motivation sportive gamifiee",
+            "Suivi de recuperation",
+            "Aventure et boss",
+            "PWA gratuite"
+          ],
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://titan-app.fr/chat#webpage",
+          "url": "https://titan-app.fr/chat",
+          "name": "Messagerie - TITAN OS",
+          "headline": "Messagerie - TITAN OS",
+          "description": "Messagerie TITAN OS reservee aux utilisateurs connectes: canal global, canal guilde, moderation et messages temporaires.",
+          "inLanguage": "fr-FR",
+          "isPartOf": {
+            "@id": "https://titan-app.fr/#website"
+          },
+          "about": {
+            "@id": "https://titan-app.fr/#app"
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://titan-app.fr/image/og-titan-os.png",
+            "width": 1200,
+            "height": 630
+          },
+          "breadcrumb": {
+            "@id": "https://titan-app.fr/chat#breadcrumb"
+          },
+          "dateModified": "2026-08-10",
+          "publisher": {
+            "@id": "https://titan-app.fr/#organization"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://titan-app.fr/chat#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "TITAN OS",
+              "item": "https://titan-app.fr/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Messagerie",
+              "item": "https://titan-app.fr/chat"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 </head>
-<body>
+<body data-page="chat">
     <div class="layout">
         <nav class="sidebar"></nav> 
         <main class="main-content">
@@ -66,25 +311,29 @@
         <div style="display:flex; align-items:center; gap:12px;" onclick="window.location.href='profile.html'">
             <div style="width:40px; height:40px; background:var(--bg-panel); border-radius:50%; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent);"><i class="ri-user-3-fill"></i></div>
             <div>
-                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlète</div>
+                <div style="font-weight:800; font-size:1rem; color:#fff;" id="mobileName">Athlete</div>
                 <div style="font-size:0.75rem; color:var(--text-muted);">Niv. <span id="mobileLvl">1</span></div>
             </div>
         </div>
         <div style="text-align:right;">
             <div style="font-weight:800; color:var(--gold); font-size:1rem;"><span id="mobileCredits">0</span> $</div>
-            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Crédits</div>
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Credits</div>
         </div>
     </div>
 </div>
             
             <header style="margin-bottom:30px; display:flex; justify-content:space-between; align-items:center;">
-                <div><h1 class="titular">Canal Sécurisé</h1><div style="color:var(--text-muted)">Cryptage End-to-End actif.</div></div>
+                <div><h1 class="titular">Messages</h1><div style="color:var(--text-muted)">Accès réservé aux membres connectés. Ne partage pas de données sensibles.</div></div>
                 <div class="nav-badge" style="background:var(--success); color:#000; font-weight:800; padding:5px 15px; border-radius:20px;"><i class="ri-wifi-line"></i> ONLINE</div>
             </header>
 
             <div class="chat-interface">
                 <div class="contact-panel">
-                    <div class="cp-header"><div class="search-bar"><i class="ri-search-line"></i><input type="text" id="contact-search" placeholder="Rechercher un agent..."></div></div>
+                    <div class="cp-header"><div class="search-bar"><i class="ri-search-line"></i><input type="text" id="contact-search" placeholder="Filtrer les canaux..."></div></div>
+                    <div class="friend-code-add">
+                        <input type="text" id="chat-friend-code" placeholder="TN-AB12CD" autocomplete="off">
+                        <button type="button" onclick="addFriendByCodeFromChat()" title="Ajouter par matricule"><i class="ri-user-add-line"></i></button>
+                    </div>
                     <div class="contact-list" id="contact-list"></div>
                 </div>
 
@@ -102,8 +351,8 @@
                     <div class="chat-feed" id="chat-feed">
                         <div class="empty-chat">
                             <i class="ri-message-3-line empty-icon"></i>
-                            <h2 style="font-family:'Russo One'; color:#fff;">TRANSMISSION EN ATTENTE</h2>
-                            <p>Sélectionnez un canal pour commencer l'échange.</p>
+                            <h2 style="font-family:'Russo One'; color:#fff;">Aucun message pour le moment</h2>
+                            <p>Selectionnez un canal pour commencer l'echange.</p>
                         </div>
                     </div>
 
@@ -111,7 +360,7 @@
                         <div class="c-input-wrapper">
                             <textarea id="msg-input" class="c-input" placeholder="Entrez votre message..." rows="1"></textarea>
                         </div>
-                        <button class="c-btn-send" onclick="sendMessage()"><i class="ri-send-plane-2-fill"></i></button>
+                        <button class="c-btn-send" onclick="sendMessage()" aria-label="Envoyer le message" title="Envoyer"><i class="ri-send-plane-2-fill"></i></button>
                     </div>
                 </div>
             </div>
@@ -119,7 +368,7 @@
             <div id="report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
                 <div class="card" style="max-width:350px; width:90%; text-align:center; border-color:var(--danger);">
                     <div style="font-size:3rem; color:var(--danger); margin-bottom:10px;"><i class="ri-alarm-warning-line"></i></div>
-                    <h2 class="titular" style="margin-bottom:10px;">ZONE DANGER</h2>
+                    <h2 class="titular" style="margin-bottom:10px;">Gérer la conversation</h2>
                     <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:25px;">Que souhaitez-vous faire avec cet agent ?</p>
                     
                     <div style="display:flex; flex-direction:column; gap:10px;">
@@ -137,8 +386,12 @@
         </main>
     </div>
 
-    <script src="./js/data.js"></script>
-    <script src="./js/main.js"></script>
-    <script src="./js/chat.js"></script>
+    <script src="./js/config.js?v=100.0"></script>
+    <script src="./js/data.js?v=100.0"></script>
+    <script src="./js/ui.js?v=100.0"></script>
+    <script src="./js/state.js?v=100.0"></script>
+    <script src="./js/main.js?v=100.0"></script>
+    <script src="./js/chat.js?v=100.0"></script>
 </body>
 </html>
+
