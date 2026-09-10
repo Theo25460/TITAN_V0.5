@@ -74,7 +74,7 @@ La sécurité ne repose jamais sur le JavaScript client : les données privées,
 | Commande | Résultat |
 | --- | --- |
 | `pnpm dev` | Sert les sources sur le port 8080. |
-| `pnpm test` | Vérifie 66 scripts, les assets et les tests métier. |
+| `pnpm test` | Vérifie 65 scripts, les assets et les tests métier. |
 | `pnpm run build` | Recrée le dossier public `dist/`. |
 | `pnpm run preview` | Sert le dernier build sur le port 4173. |
 | `pnpm run audit` | Contrôle le contenu du build ; ce n'est pas `pnpm audit`. |
