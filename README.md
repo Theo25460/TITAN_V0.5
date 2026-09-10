@@ -18,6 +18,8 @@ Application web multisport qui réunit journal d'entraînement, statistiques, pr
 
 Le dépôt porte le nom historique `TITAN_V0.5`. La version cohérente des assets applicatifs est actuellement `100.0` dans `js/config.js` et `sw.js`.
 
+> **Déploiement actuel :** au moment de cette migration, le site Netlify `titano-app` est publié par CLI et n'expose aucun `commit_ref` GitHub. Un push sur `main` ne met donc pas automatiquement `titan-app.fr` en production. Voir [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Démarrer en cinq minutes
 
 Prérequis : Node.js 22+ et pnpm 11.19.0.
@@ -113,6 +115,8 @@ Dernière validation locale : **11 septembre 2026**.
 - build public : réussi ;
 - audit public : aucun constat ;
 - application publique : accessible sur `titan-app.fr` ;
+- CI GitHub du commit final : réussie ;
+- production Netlify : prête, mais encore sur le déploiement CLI du 10 août 2026 ;
 - limites : pas encore d'E2E complet sur Supabase/Netlify/Paddle réels et historique SQL non structuré en migrations automatiques.
 
 Commencer toute reprise par ce README, puis lire `docs/ARCHITECTURE.md` et `docs/DEPLOYMENT.md`. Les documents `TITAN_REPRISE_CONTEXTE.md` et `README_TITAN_OS.md` conservent du contexte historique, mais ne remplacent pas ces trois sources actuelles.

@@ -15,6 +15,17 @@
 
 L'application publique est [https://titan-app.fr](https://titan-app.fr). L'ouverture de cette URL ne garantit pas à elle seule que GitHub, Netlify et Supabase utilisent le même état ; comparer le commit déployé avant une intervention.
 
+## État de liaison vérifié le 11 septembre 2026
+
+- projet Netlify : `titano-app` (`0a553bc3-458a-415d-9173-538faa0ac1e6`) ;
+- URL principale : `https://titan-app.fr` ;
+- état du déploiement : `ready` ;
+- titre : `TITAN v100 grand public` ;
+- publication actuelle : 10 août 2026 ;
+- source : déploiement CLI, avec `commit_ref` et `commit_url` absents.
+
+La migration GitHub ne redéploie donc pas automatiquement la production dans cet état. Il faut soit connecter explicitement le dépôt à Netlify, soit conserver un déploiement CLI contrôlé. Dans les deux cas, vérifier le SHA ou l'archive réellement publié et ne jamais déduire la version live du seul état de `main`.
+
 ## Configuration Netlify
 
 Netlify doit utiliser :
@@ -39,7 +50,7 @@ Copier uniquement les noms depuis `.env.example`. Les vraies valeurs restent dan
 2. Exécuter `pnpm run verify` localement et attendre la CI GitHub verte.
 3. Faire relire les changements sensibles : `js/state.js`, `js/main.js`, `sw.js`, `functions/`, `netlify.toml` et `sql/`.
 4. Fusionner dans `main`.
-5. Vérifier que Netlify construit le SHA fusionné et que le déploiement termine sans erreur.
+5. Déclencher le flux Netlify approuvé (connexion Git ou déploiement CLI) et vérifier qu'il utilise exactement le SHA fusionné.
 6. Exécuter les smoke tests de `PUBLIC_RELEASE_QA_CHECKLIST.md` sur `titan-app.fr`.
 7. Pour une modification PWA, tester une installation neuve puis une mise à jour depuis l'ancienne version.
 
