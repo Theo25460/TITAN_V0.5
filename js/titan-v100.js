@@ -50,6 +50,12 @@
     }
 
     function improveControls(root = document) {
+        root.querySelectorAll('i[class*="ri-"]').forEach(icon=>icon.setAttribute('aria-hidden','true'));
+        root.querySelectorAll('input[id],select[id],textarea[id]').forEach(field=>{
+            if(field.labels?.length||field.getAttribute('aria-label'))return;
+            const group=field.closest('.form-group,.sport-metric-field,.extra-field');
+            const label=group?.querySelector('label');if(label&&!label.htmlFor)label.htmlFor=field.id;
+        });
         root.querySelectorAll('button, [role="button"]').forEach(control => {
             if (control.getAttribute('aria-label')) return;
             const visibleText = String(control.textContent || '').replace(/\s+/g, ' ').trim();

@@ -1,91 +1,5 @@
-const CACHE_NAME = 'titan-os-v100-grand-public';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './dynamic-page',
-  './dynamic-page.html',
-  './sports',
-  './sports.html',
-  './training',
-  './guide',
-  './stats',
-  './adventure',
-  './disciplines',
-  './health',
-  './journal',
-  './talents',
-  './trophies',
-  './boutique',
-  './sport_details',
-  './onboarding',
-  './changelog',
-  './partenariats',
-  './legal_hub',
-  './legal_mentions',
-  './legal_privacy',
-  './legal_cgu',
-  './activities',
-  './notifications',
-  './login',
-  './profile',
-  './social',
-  './chat',
-  './service',
-  './404.html',
-  './network-error.html',
-  './guide.html',
-  './onboarding.html',
-  './service.html',
-  './activities.html',
-  './notifications.html',
-  './login.html',
-  './profile.html',
-  './social.html',
-  './chat.html',
-  './changelog.html',
-  './partenariats.html',
-  './training.html',
-  './adventure.html',
-  './boutique.html',
-  './stats.html',
-  './disciplines.html',
-  './health.html',
-  './journal.html',
-  './talents.html',
-  './trophies.html',
-  './sport_details.html',
-  './legal_hub.html',
-  './legal_mentions.html',
-  './legal_privacy.html',
-  './legal_cgu.html',
-  './css/style.css',
-  './css/dynamic-page.css',
-  './css/titan-v100.css',
-  './js/config.js',
-  './js/content.js',
-  './js/data.js',
-  './js/sport-discovery.js',
-  './js/state.js',
-  './js/homepage-dynamic.js',
-  './js/dynamic-page.js',
-  './js/titan_features.js',
-  './js/ui.js',
-  './js/main.js',
-  './js/social.js',
-  './js/chat.js',
-  './js/consent.js',
-  './js/pwa.js',
-  './js/titan-v100.js',
-  './manifest.json',
-  './favicon.ico',
-  './robots.txt',
-  './sitemap.xml',
-  './image/logo.png',
-  './image/logo-192.png',
-  './image/logo-512.png',
-  './image/og-titan-os.png',
-  './image/shop/titan-plus-v89.webp',
-];
+const CACHE_NAME = 'titan-os-v102-experience-final1';
+const ASSETS_TO_CACHE = ["./css/training.css?v=102.0", "./css/journal.css?v=102.0", "./js/training-page.js?v=102.0", "./js/journal-page.js?v=102.0", "./js/vendor/supabase-2.111.0.js", "./css/icons.css?v=102.0", "./css/fonts/remixicon.woff2", "./css/fonts/manrope-latin-0.woff2","./css/fonts/manrope-latin-1.woff2", "./aujourdhui", "./bilan", "./css/home.css?v=102.0", "./css/today.css?v=102.0", "./css/report.css?v=102.0", "./css/fonts.css", "./js/home.js?v=102.0", "./js/today-page.js?v=102.0", "./js/weekly-plan.js?v=102.0", "./js/session-tools.js?v=102.0", "./js/session-export.js?v=102.0", "./js/routine-library.js?v=102.0", "./js/report-page.js?v=102.0", "./", "./training", "./journal", "./stats", "./profile", "./network-error.html", "./css/style.css?v=102.0", "./css/design-system.css?v=102.0", "./css/tracking.css?v=102.0", "./js/config.js?v=102.0", "./js/data.js?v=102.0", "./js/ui.js?v=102.0", "./js/state.js?v=102.0", "./js/main.js?v=102.0", "./js/titan_features.js?v=102.0", "./js/training-store.js?v=102.0", "./js/titan-v100.js?v=102.0", "./js/sport-discovery.js?v=102.0", "./js/progress-page.js?v=102.0", "./js/journal-actions.js?v=102.0", "./js/pending-ui.js?v=102.0", "./js/pwa.js?v=102.0", "./js/training-draft.js?v=102.0", "./image/logo-192.png", "./manifest.json"];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -94,7 +8,7 @@ self.addEventListener('install', (event) => {
         ASSETS_TO_CACHE.map((asset) => cache.add(asset))
       );
       const failures = results.filter((result) => result.status === 'rejected').length;
-      if (failures > 0) console.warn(`[TITAN SW] Precache partiel: ${failures} ressource(s) indisponible(s).`);
+      if (failures > 0) { const pages=await self.clients.matchAll();pages.forEach(page=>page.postMessage({type:'OFFLINE_CACHE_PARTIAL',failures})); }
     })
   );
 });
@@ -109,13 +23,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
   event.waitUntil(
     caches.keys().then((cacheNames) => Promise.all(
-      cacheNames.map((cache) => cache !== CACHE_NAME ? caches.delete(cache) : null)
+      cacheNames.map((cache) => cache.startsWith('titan-os-') && cache !== CACHE_NAME ? caches.delete(cache) : null)
     ))
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+  if (new URL(event.request.url).pathname.startsWith('/.netlify/functions/') || event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
@@ -163,7 +77,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match('./network-error.html') || caches.match('./404.html')))
+        .catch(async () => { const cached=await caches.match(request);if(cached)return cached;const url=new URL(request.url);const normalized=url.pathname.replace(/\.html$/,'');const route=await caches.match(normalized);return route || await caches.match('./network-error.html') || await caches.match('./404.html'); })
     );
     return;
   }
@@ -182,4 +96,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-

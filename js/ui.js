@@ -1,75 +1,6 @@
-/* --- TITAN BOOT / PAGE TRANSITIONS --- */
-(function titanBootLayer() {
-    if (window.__titanBootLayerReady) return;
-    window.__titanBootLayerReady = true;
-
-    let bootStarted = performance.now();
-    let bootHideTimer = null;
-    document.documentElement.classList.add('titan-booting');
-
-    function ensureBootScreen() {
-        if (document.getElementById('titan-boot-screen') || !document.body) return;
-        const screen = document.createElement('div');
-        screen.id = 'titan-boot-screen';
-        screen.setAttribute('aria-hidden', 'true');
-        screen.innerHTML = `
-            <div class="titan-boot-panel" role="presentation">
-                <div class="titan-boot-mark">
-                    <img src="./image/logo.png" alt="">
-                </div>
-                <div class="titan-boot-copy">
-                    <strong>TITAN OS</strong>
-                    <span>Ouverture de TITAN</span>
-                </div>
-                <div class="titan-boot-meter"><i></i></div>
-            </div>`;
-        document.body.appendChild(screen);
-    }
-
-    window.titanShowBoot = function(label = 'Ouverture de TITAN') {
-        bootStarted = performance.now();
-        if (bootHideTimer) clearTimeout(bootHideTimer);
-        ensureBootScreen();
-        document.documentElement.classList.remove('titan-ready');
-        document.documentElement.classList.add('titan-booting');
-        const screen = document.getElementById('titan-boot-screen');
-        if (screen) {
-            screen.classList.remove('is-done');
-            const text = screen.querySelector('.titan-boot-copy span');
-            if (text) text.textContent = label;
-        }
-    };
-
-    window.titanHideBoot = function(force = false) {
-        const elapsed = performance.now() - bootStarted;
-        const delay = force ? 0 : Math.max(0, 360 - elapsed);
-        if (bootHideTimer) clearTimeout(bootHideTimer);
-        bootHideTimer = setTimeout(() => {
-            document.documentElement.classList.remove('titan-booting');
-            document.documentElement.classList.add('titan-ready');
-            const screen = document.getElementById('titan-boot-screen');
-            if (screen) screen.classList.add('is-done');
-            setTimeout(() => screen && screen.remove(), 320);
-        }, delay);
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', ensureBootScreen, { once: true });
-    } else {
-        ensureBootScreen();
-    }
-
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            if (document.documentElement.classList.contains('titan-booting')) window.titanHideBoot();
-        }, 1200);
-    });
-
-    setTimeout(() => {
-        if (document.documentElement.classList.contains('titan-booting')) window.titanHideBoot(true);
-    }, 1800);
-})();
-
+/* Native page navigation remains immediate. */
+window.titanShowBoot=function(){};
+window.titanHideBoot=function(){document.documentElement.classList.remove('titan-booting');document.documentElement.classList.add('titan-ready');document.getElementById('titan-boot-screen')?.remove();};
 window.titanEscapeText = function(value) {
     return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 };
@@ -584,8 +515,8 @@ window.injectSidebar = function() {
             : `<span class="db-status-dot" title="DB online"></span>`);
 
     sb.innerHTML = `
-    <div class="brand"><img src="./image/logo.png" class="brand-logo" alt="TITAN OS"><div class="brand-meta"><span class="brand-title">TITAN OS</span><span class="brand-version">v${window.GAME_SETTINGS.version}</span></div></div>
-    <div class="profile-widget" onclick="window.location.href='profile.html'">
+    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">↗</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Tous tes sports. Ton histoire.</span></div></a>
+    <a class="profile-widget" href="/profile">
         <div style="width:45px; height:45px; border-radius:50%; overflow:hidden; border:2px solid var(--accent); background:#1e2538; display:flex; align-items:center; justify-content:center;">${avatarHTML}</div>
         <div class="profile-info"><div class="profile-name">${window.titanEscapeText(u.name)}</div><div style="font-size:0.7rem;color:#94a3b8;">Niveau ${u.level}</div><div class="profile-meta-line">${dbBadge}</div></div>
     </div>
@@ -1034,22 +965,23 @@ if (typeof window.triggerLockout !== 'function') window.triggerLockout = functio
 
 /* --- 6. NAVIGATION IMMERSIVE UNIFIEE --- */
 window.TITAN_NAV_LINKS = [
-    { section: 'ESSENTIEL', href: 'index.html', match: 'index.html', icon: 'ri-home-5-line', label: "AUJOURD'HUI", short: 'ACCUEIL', desc: 'Ta vue du jour', mobile: true },
-    { section: 'ESSENTIEL', href: 'training.html', match: 'training.html', icon: 'ri-add-circle-line', label: 'ENREGISTRER', short: 'AJOUTER', desc: 'Noter une séance', mobile: true },
-    { section: 'ESSENTIEL', href: 'journal.html', match: 'journal.html', icon: 'ri-calendar-check-line', label: 'JOURNAL', short: 'JOURNAL', desc: 'Toutes tes séances', mobile: true },
-    { section: 'ESSENTIEL', href: 'stats.html', match: 'stats.html', icon: 'ri-line-chart-line', label: 'PROGRÈS', short: 'PROGRÈS', desc: 'Tendances sportives', mobile: true },
-    { section: 'ESSENTIEL', href: 'profile.html', match: 'profile.html', icon: 'ri-user-3-line', label: 'PROFIL', short: 'PROFIL', desc: 'Compte et préférences', mobile: true }
+    { section: 'ESSENTIEL', href: 'aujourdhui.html', match: 'aujourdhui.html', icon: 'ri-home-5-line', label: 'Aujourd’hui', short: 'Aujourd’hui', desc: 'Ta vue du jour', mobile: true },
+    { section: 'ESSENTIEL', href: 'training.html', match: 'training.html', icon: 'ri-add-circle-line', label: 'Enregistrer', short: 'Ajouter', desc: 'Noter une séance', mobile: true },
+    { section: 'ESSENTIEL', href: 'journal.html', match: 'journal.html', icon: 'ri-calendar-check-line', label: 'Journal', short: 'Journal', desc: 'Toutes tes séances', mobile: true },
+    { section: 'ESSENTIEL', href: 'stats.html', match: 'stats.html', icon: 'ri-line-chart-line', label: 'Progrès', short: 'Progrès', desc: 'Tendances sportives', mobile: true },
+    { section: 'ESSENTIEL', href: 'profile.html', match: 'profile.html', icon: 'ri-user-3-line', label: 'Profil', short: 'Profil', desc: 'Compte et préférences', mobile: true }
 ];
 
 window.TITAN_SECONDARY_LINKS = [
-    { section: 'ENSEMBLE', href: 'social.html', match: 'social.html', icon: 'ri-team-line', label: 'COMMUNAUTÉ', desc: 'Alliés, équipes et défis' },
-    { section: 'ENSEMBLE', href: 'chat.html', match: 'chat.html', icon: 'ri-message-3-line', label: 'MESSAGES', desc: 'Échanges avec tes alliés' },
-    { section: 'PROGRESSION', href: 'adventure.html', match: 'adventure.html', icon: 'ri-compass-3-line', label: 'AVENTURE', desc: 'Défis et récit optionnels' },
-    { section: 'PROGRESSION', href: 'trophies.html', match: 'trophies.html', icon: 'ri-trophy-line', label: 'TROPHÉES', desc: 'Étapes débloquées' },
-    { section: 'PROGRESSION', href: 'health.html', match: 'health.html', icon: 'ri-heart-pulse-line', label: 'FORME', desc: 'Récupération et équilibre' },
-    { section: 'PERSONNALISER', href: 'disciplines.html', match: 'disciplines.html', icon: 'ri-medal-2-line', label: 'MES SPORTS', desc: 'Disciplines favorites' },
-    { section: 'PERSONNALISER', href: 'talents.html', match: 'talents.html', icon: 'ri-route-line', label: 'PARCOURS', desc: 'Orienter ta progression' },
-    { section: 'PERSONNALISER', href: 'boutique.html', match: 'boutique.html', icon: 'ri-palette-line', label: 'BOUTIQUE', desc: 'Cosmétiques et TITAN+' }
+    {section: 'PROGRESSION',href: 'bilan.html',match: 'bilan.html',icon: 'ri-file-chart-line',label: 'Mon bilan',desc: 'Exports et analyses TITAN+'},
+    { section: 'ENSEMBLE', href: 'social.html', match: 'social.html', icon: 'ri-team-line', label: 'Communauté', desc: 'Alliés, équipes et défis' },
+    { section: 'ENSEMBLE', href: 'chat.html', match: 'chat.html', icon: 'ri-message-3-line', label: 'Messages', desc: 'Échanges avec tes alliés' },
+    { section: 'PROGRESSION', href: 'adventure.html', match: 'adventure.html', icon: 'ri-compass-3-line', label: 'Aventure', desc: 'Défis et récit optionnels' },
+    { section: 'PROGRESSION', href: 'trophies.html', match: 'trophies.html', icon: 'ri-trophy-line', label: 'Trophées', desc: 'Étapes débloquées' },
+    { section: 'PROGRESSION', href: 'health.html', match: 'health.html', icon: 'ri-heart-pulse-line', label: 'Forme', desc: 'Récupération et équilibre' },
+    { section: 'PERSONNALISER', href: 'disciplines.html', match: 'disciplines.html', icon: 'ri-medal-2-line', label: 'Mes sports', desc: 'Disciplines favorites' },
+    { section: 'PERSONNALISER', href: 'talents.html', match: 'talents.html', icon: 'ri-route-line', label: 'Parcours', desc: 'Orienter ta progression' },
+    { section: 'PERSONNALISER', href: 'boutique.html', match: 'boutique.html', icon: 'ri-palette-line', label: 'Boutique', desc: 'Cosmétiques et TITAN+' }
 ];
 
 window.TITAN_UTILITY_LINKS = [
@@ -1068,7 +1000,7 @@ window.TITAN_SERVICE_HUB_LINK = {
     href: 'service.html',
     match: 'service.html',
     icon: 'ri-lifebuoy-line',
-    label: 'AIDE',
+    label: 'Aide',
     desc: 'Guide, confidentialité et support'
 };
 
@@ -1138,9 +1070,13 @@ function titanSetMobileMenu(open) {
     const overlay = document.querySelector('.mobile-menu-overlay');
     const toggle = document.querySelector('.mobile-menu-toggle');
     document.body.classList.toggle('mobile-menu-open', !!open);
-    if (drawer) drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+    document.querySelector('.layout')?.toggleAttribute('inert',!!open);
+    document.querySelector('.mobile-nav')?.toggleAttribute('inert',!!open);
+    if (drawer) {drawer.setAttribute('aria-hidden', open ? 'false' : 'true');drawer.inert=!open;if(open)drawer.querySelector('button,a')?.focus();else if(drawer.contains(document.activeElement))toggle?.focus();}
     if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (overlay) overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+    document.querySelector('.layout')?.toggleAttribute('inert',!!open);
+    document.querySelector('.mobile-nav')?.toggleAttribute('inert',!!open);
 }
 
 function titanToggleMobileMenu() {
@@ -1173,11 +1109,11 @@ window.injectSidebar = function() {
 
     sb.innerHTML = `
     <div class="sidebar-shell">
-    <div class="brand"><img src="./image/logo.png" class="brand-logo" alt="TITAN OS"><div class="brand-meta"><span class="brand-title">TITAN OS</span><span class="brand-version">Sport & progression · v${window.GAME_SETTINGS.version}</span></div></div>
-    <div class="profile-widget" onclick="window.location.href='profile.html'">
+    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">↗</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Tous tes sports. Ton histoire.</span></div></a>
+    <a class="profile-widget" href="/profile">
         <div class="profile-avatar-shell titan-avatar-frame ${avatarFrameClass} ${eliteAvatarClass}">${avatarHTML}</div>
-        <div class="profile-info"><div class="profile-name">${window.titanEscapeText(u.name)}</div><div style="font-size:0.7rem;color:#94a3b8;">Niveau ${u.level}</div><div class="profile-meta-line">${titleBadge}${dbBadge}${eliteBadge}</div></div>
-    </div>
+        <div class="profile-info"><div class="profile-name">${window.titanEscapeText(u.name)}</div><div style="font-size:0.7rem;color:#94a3b8;">Niveau ${u.level}</div><div class="profile-meta-line">${dbBadge}${eliteBadge}</div></div>
+    </a>
     <div class="sidebar-nav">${navHtml}<details class="sidebar-more"><summary><i class="ri-apps-2-line"></i><span>Explorer</span></summary>${secondaryHtml}</details></div>
     <div class="sidebar-footer">${utilityHtml}</div>
     </div>`;
@@ -1241,8 +1177,10 @@ window.injectMobileMenu = function() {
     overlay.setAttribute('onclick', 'titanSetMobileMenu(false)');
 
     const panel = document.createElement('aside');
-    panel.className = 'mobile-menu-panel';
+    panel.className = 'mobile-menu-panel';panel.inert=true;
     panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-label', 'Navigation complete');
     const primaryLinks = titanPrimaryNavLinks();
     const secondary = titanRenderGroupedNav('drawer-link drawer-link-secondary', window.TITAN_SECONDARY_LINKS || []);
@@ -1261,26 +1199,15 @@ window.injectMobileMenu = function() {
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') titanSetMobileMenu(false);
-});
-
-document.addEventListener('click', (event) => {
-    const link = event.target.closest && event.target.closest('a[href]');
-    if (!link || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const href = link.getAttribute('href') || '';
-    if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download')) return;
-
-    const url = new URL(href, window.location.href);
-    if (url.origin !== window.location.origin || url.pathname === window.location.pathname && url.search === window.location.search) return;
-    if (!url.pathname.endsWith('.html') && !url.pathname.endsWith('/') && !titanRouteToFile(url.pathname).endsWith('.html')) return;
-
-    event.preventDefault();
-    if (typeof window.titanShowBoot === 'function') window.titanShowBoot('Ouverture du module');
-    document.body.classList.add('titan-page-leaving');
-    setTimeout(() => { window.location.href = url.href; }, 140);
+    if(event.key==='Tab'&&document.body.classList.contains('mobile-menu-open')){
+        const nodes=[...document.querySelectorAll('.mobile-menu-panel a[href],.mobile-menu-panel button,.mobile-menu-panel summary')].filter(el=>el.getClientRects().length&&!el.disabled);
+        const first=nodes[0],last=nodes.at(-1);
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    }
 });
 
 window.addEventListener('resize', () => {
     if (window.innerWidth > 1024) titanSetMobileMenu(false);
 });
-
 

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Mon bilan sportif et mes analyses — TITAN</title>
+    <meta
+      name="description"
+      content="Prépare ton bilan sportif personnel : résumé de tes séances, export CSV, impression et analyses comparatives TITAN+ pour échanger avec ton coach."
+    />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="canonical" href="https://titan-app.fr/bilan" />
+    <meta name="theme-color" content="#070c10" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/style.css?v=102.0" />
+    <link rel="stylesheet" href="/css/icons.css?v=102.0" />
+    <link rel="stylesheet" href="/css/design-system.css?v=102.0" />
+    <link rel="stylesheet" href="/css/tracking.css?v=102.0" />
+    <link rel="stylesheet" href="/css/report.css?v=102.0" />
+  </head>
+  <body data-page="bilan">
+    <div class="layout">
+      <nav class="sidebar" aria-label="Navigation principale"></nav>
+      <main class="main-content" id="contenu-principal">
+        <div class="mobile-user-bar"></div>
+        <header class="tracking-header">
+          <div>
+            <p class="tracking-eyebrow">Pour toi. Pour avancer ensemble.</p>
+            <h1>Un bilan qui fait le point.</h1>
+            <p>
+              Prends du recul sur tes efforts et prépare ton prochain échange
+              avec un coach.
+            </p>
+          </div>
+        </header>
+        <div class="tracking-toolbar report-controls">
+          <label
+            >Période<select id="report-period">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+              <option value="365">Un an</option>
+            </select></label
+          >
+          <label
+            >Sport<select id="report-sport">
+              <option value="all">Tous les sports</option>
+            </select></label
+          >
+        </div>
+        <div class="report-sheet">
+          <div class="report-sheet-head">
+            <div>
+              <h2 id="report-identity">Mon activité sportive</h2>
+              <p class="tracking-status" id="report-dates"></p>
+            </div>
+            <span class="report-signature">TITAN ↗</span>
+          </div>
+          <div id="report-summary" aria-live="polite"></div>
+          <aside class="report-plus-teaser">
+            <span class="tracking-eyebrow">Aller plus loin avec TITAN+</span>
+            <h2>Des repères pour une conversation utile.</h2>
+            <p>
+              Compare deux périodes de même durée, mesure la régularité par
+              sport et mets en perspective la charge déclarée. Le calcul utilise
+              tes séances synchronisées et signale les données manquantes.
+            </p>
+            <div class="report-actions">
+              <button
+                type="button"
+                class="tracking-action"
+                id="report-generate"
+              >
+                Générer les analyses TITAN+</button
+              ><a class="tracking-secondary" href="/tarifs"
+                >Comparer les offres</a
+              >
+            </div>
+            <p id="report-plus-status" role="status"></p>
+          </aside>
+          <div id="report-plus-result" aria-live="polite"></div>
+          <div id="report-sessions"></div>
+          <label class="report-note" for="report-note"
+            >Un point à partager avec ton coach<textarea
+              id="report-note"
+              maxlength="3000"
+              placeholder="Ce que j’ai apprécié, mes contraintes, mes questions pour la suite…"
+            ></textarea
+            ><small
+              >Cette note reste sur cette page et apparaît dans l’impression.
+              Elle n’est pas envoyée au serveur.</small
+            ></label
+          >
+          <p class="report-note-print" id="report-note-print"></p>
+          <div class="report-actions">
+            <button type="button" class="tracking-action" id="report-print">
+              Imprimer / enregistrer en PDF</button
+            ><button type="button" class="tracking-secondary" id="report-csv">
+              Exporter cette période en CSV
+            </button>
+          </div>
+          <p class="report-privacy">
+            Bilan personnel issu de tes déclarations dans TITAN. Tu choisis si
+            tu le partages et avec qui. Les notes de séance sont incluses dans
+            le CSV ; elles ne figurent pas dans le tableau imprimé. Ce document
+            ne remplace pas un avis professionnel.
+          </p>
+        </div>
+      </main>
+    </div>
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
+    <script src="/js/titan-v100.js?v=102.0" defer></script>
+    <script src="/js/config.js?v=102.0"></script>
+    <script src="/js/data.js?v=102.0"></script>
+    <script src="/js/ui.js?v=102.0"></script>
+    <script src="/js/training-store.js?v=102.0"></script>
+    <script src="/js/state.js?v=102.0"></script>
+    <script src="/js/titan_features.js?v=102.0"></script>
+    <script src="/js/main.js?v=102.0"></script>
+    <script src="/js/session-export.js?v=102.0"></script>
+    <script src="/js/report-page.js?v=102.0"></script>
+    <script src="/js/pwa.js?v=102.0" defer></script>
+  </body>
+</html>

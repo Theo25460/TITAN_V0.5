@@ -11,6 +11,10 @@ importers:
       '@supabase/supabase-js':
         specifier: 2.111.0
         version: 2.111.0
+    devDependencies:
+      fake-indexeddb:
+        specifier: ^6.2.5
+        version: 6.2.5
 
 packages:
 
@@ -40,6 +44,10 @@ packages:
   '@supabase/supabase-js@2.111.0':
     resolution: {integrity: sha512-9q0/AULthQnWeiDh1vGyjoJZbSY04bu6qHcWit70pqEYn5Kv/dkCPY62Ja1123jEnJbB9Vd2pjY7Kvk/lK3peA==}
     engines: {node: '>=22.0.0'}
+
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
 
   iceberg-js@0.8.1:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
@@ -81,6 +89,8 @@ snapshots:
       '@supabase/postgrest-js': 2.111.0
       '@supabase/realtime-js': 2.111.0
       '@supabase/storage-js': 2.111.0
+
+  fake-indexeddb@6.2.5: {}
 
   iceberg-js@0.8.1: {}
 

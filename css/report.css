@@ -1,0 +1,222 @@
+.report-sheet {
+  padding: 32px;
+  border: 1px solid var(--titan-line);
+  border-radius: 16px;
+  background: #0d171e;
+}
+.report-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--titan-line);
+}
+.report-sheet-head h2 {
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+}
+.report-signature {
+  font-weight: 850;
+  font-size: 1.4rem;
+  letter-spacing: -0.07em;
+}
+.report-sheet .tracking-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.report-sheet .tracking-metric {
+  padding: 16px;
+}
+.report-sheet .tracking-metric strong {
+  font-size: 1.9rem !important;
+}
+.report-plus-teaser {
+  padding: 26px;
+  border: 1px solid #c9f27b33;
+  background: #c9f27b06;
+  border-radius: 14px;
+  margin: 28px 0;
+}
+.report-plus-teaser h2 {
+  font-size: 1.25rem;
+  margin: 10px 0;
+}
+.report-plus-teaser p {
+  font-size: 0.85rem;
+  color: var(--titan-muted);
+  line-height: 1.7;
+  max-width: 72ch;
+}
+.report-plus-teaser .tracking-eyebrow {
+  color: var(--titan-accent);
+}
+.report-sheet caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 20px 0 12px;
+}
+.report-note {
+  display: grid;
+  gap: 10px;
+  font-size: 0.85rem;
+  margin: 26px 0;
+}
+.report-note textarea {
+  width: 100%;
+  min-height: 115px;
+  resize: vertical;
+  padding: 16px;
+  border: 1px solid var(--titan-line);
+  background: var(--titan-surface);
+  border-radius: 10px;
+  font: inherit;
+}
+.report-note small {
+  color: var(--titan-muted);
+  font-size: 0.75rem;
+}
+.report-comparison {
+  margin: 24px 0;
+}
+.report-note-print {
+  display: none;
+  white-space: pre-wrap;
+}
+.report-privacy {
+  color: var(--titan-muted);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  margin-top: 28px;
+}
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+@media (max-width: 740px) {
+  .report-sheet {
+    padding: 19px;
+  }
+  .report-sheet .tracking-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-sheet-head {
+    align-items: flex-start;
+  }
+  .report-signature {
+    display: none;
+  }
+  .report-sheet-head h2 {
+    font-size: 1.3rem;
+  }
+  .report-plus-teaser {
+    padding: 20px;
+  }
+  .report-sheet .tracking-table {
+    display: block;
+    overflow: auto;
+    max-width: 100%;
+  }
+  .report-sheet .tracking-table td,
+  .report-sheet .tracking-table th {
+    font-size: 0.72rem;
+    padding: 10px 7px;
+  }
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+  body {
+    background: white !important;
+    color: #111 !important;
+    font-size: 10pt;
+  }
+  body::before,
+  .sidebar,
+  .mobile-user-bar,
+  .mobile-nav,
+  .mobile-menu-panel,
+  .mobile-menu-overlay,
+  .tracking-header,
+  .report-controls,
+  .report-plus-teaser,
+  .report-note,
+  .report-actions,
+  .tracking-status[role],
+  .titan-toast-container,
+  .pwa-update-banner {
+    display: none !important;
+  }
+  .layout {
+    display: block !important;
+    padding: 0 !important;
+  }
+  .main-content {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .report-sheet {
+    border: 0;
+    padding: 0;
+    background: white !important;
+    color: #111 !important;
+  }
+  .report-sheet * {
+    color: #111 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  .report-sheet .tracking-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .report-sheet .tracking-metric {
+    border: 1px solid #bbb !important;
+    padding: 10px !important;
+    break-inside: avoid;
+  }
+  .report-sheet .tracking-metric strong {
+    font-size: 22pt !important;
+  }
+  .report-sheet .tracking-table {
+    display: table;
+    width: 100%;
+    overflow: visible;
+    font-size: 9pt;
+  }
+  .report-sheet .tracking-table tr {
+    break-inside: avoid;
+  }
+  .report-sheet .tracking-table thead {
+    display: table-header-group;
+  }
+  .report-sheet .tracking-table th,
+  .report-sheet .tracking-table td {
+    padding: 8px 4px;
+    border-color: #bbb;
+  }
+  .report-comparison {
+    border: 0;
+    padding: 0;
+    margin: 24px 0;
+    break-inside: auto;
+  }
+  .report-sheet h2,
+  .report-sheet h3 {
+    break-after: avoid;
+  }
+  .report-note-print {
+    display: block;
+    margin: 24px 0;
+  }
+  .report-privacy {
+    border-top: 1px solid #bbb;
+    padding-top: 12px;
+  }
+}

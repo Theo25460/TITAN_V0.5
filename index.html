@@ -1,1332 +1,550 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Application de suivi sportif multisport | TITAN OS Sport</title>
-    <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
-    <style>
-        :root {
-            --landing-bg: #050810;
-            --landing-panel: rgba(9, 17, 28, 0.82);
-            --landing-panel-strong: rgba(12, 24, 38, 0.92);
-            --landing-line: rgba(126, 220, 255, 0.18);
-            --landing-line-strong: rgba(126, 220, 255, 0.34);
-            --landing-cyan: #7edcff;
-            --landing-blue: #38bdf8;
-            --landing-green: #4cc9b0;
-            --landing-text: #f4f8fb;
-            --landing-muted: #91a4b7;
-            --landing-soft: #c7d7e4;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            min-height: 100vh;
-            background:
-                linear-gradient(180deg, rgba(5, 8, 16, 0.36), #050810 560px),
-                radial-gradient(circle at 50% -18%, rgba(56, 189, 248, 0.14), transparent 32rem),
-                linear-gradient(rgba(126, 220, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(126, 220, 255, 0.035) 1px, transparent 1px),
-                var(--landing-bg);
-            background-size: auto, auto, 42px 42px, 42px 42px, auto;
-            color: var(--landing-text);
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background:
-                linear-gradient(90deg, rgba(126, 220, 255, 0.08), transparent 18%, transparent 82%, rgba(126, 220, 255, 0.06)),
-                repeating-linear-gradient(180deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 7px);
-            opacity: 0.46;
-            z-index: 0;
-        }
-
-        .titan-landing {
-            position: relative;
-            z-index: 1;
-            width: min(1180px, calc(100% - 32px));
-            margin: 0 auto;
-        }
-
-        .landing-nav {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            min-height: 74px;
-            padding: 14px 0;
-            background: linear-gradient(180deg, rgba(5, 8, 16, 0.96), rgba(5, 8, 16, 0.78));
-            backdrop-filter: blur(18px);
-        }
-
-        .brand-mark {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .landing-brand-logo {
-            display: grid;
-            place-items: center;
-            width: 34px;
-            height: 34px;
-            border: 1px solid var(--landing-line-strong);
-            border-radius: 8px;
-            background: rgba(126, 220, 255, 0.08);
-            object-fit: contain;
-            padding: 4px;
-            box-shadow: 0 0 24px rgba(126, 220, 255, 0.12);
-        }
-
-        .brand-copy strong {
-            display: block;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 1rem;
-            letter-spacing: 0;
-        }
-
-        .brand-copy span {
-            display: block;
-            margin-top: 2px;
-            color: var(--landing-muted);
-            font-size: 0.72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-link-soft,
-        .landing-cta {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 42px;
-            border-radius: 8px;
-            padding: 0 14px;
-            border: 1px solid transparent;
-            color: var(--landing-soft);
-            text-decoration: none;
-            font-weight: 900;
-            white-space: nowrap;
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-
-        .nav-link-soft {
-            background: rgba(255,255,255,0.035);
-            border-color: rgba(255,255,255,0.08);
-        }
-
-        .nav-link-soft:hover,
-        .landing-cta:hover {
-            transform: translateY(-1px);
-            color: #fff;
-            border-color: var(--landing-line-strong);
-        }
-
-        .landing-cta.primary {
-            background: linear-gradient(135deg, var(--landing-cyan), #b7f0ff);
-            color: #031019;
-            border-color: rgba(255,255,255,0.18);
-            box-shadow: 0 12px 34px rgba(56, 189, 248, 0.18);
-        }
-
-        .landing-cta.secondary {
-            background: rgba(126, 220, 255, 0.08);
-            border-color: var(--landing-line);
-            color: #dff7ff;
-        }
-
-        .landing-hero {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.82fr);
-            gap: clamp(24px, 5vw, 72px);
-            align-items: center;
-            min-height: calc(100vh - 78px);
-            padding: clamp(30px, 6vw, 74px) 0 clamp(42px, 7vw, 86px);
-        }
-
-        .hero-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            width: fit-content;
-            margin-bottom: 16px;
-            padding: 8px 10px;
-            border: 1px solid var(--landing-line);
-            border-radius: 8px;
-            background: rgba(126, 220, 255, 0.065);
-            color: var(--landing-cyan);
-            font-size: 0.74rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .landing-hero h1 {
-            max-width: 760px;
-            margin: 0;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: clamp(2.5rem, 8vw, 6.25rem);
-            line-height: 0.94;
-            letter-spacing: 0;
-            text-transform: uppercase;
-            overflow-wrap: normal;
-            word-break: normal;
-        }
-
-        .landing-hero p {
-            max-width: 610px;
-            margin: 20px 0 0;
-            color: var(--landing-soft);
-            font-size: clamp(1rem, 2.1vw, 1.18rem);
-            line-height: 1.55;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 28px;
-        }
-
-        .hero-proof {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 24px;
-        }
-
-        .hero-proof span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            min-height: 34px;
-            padding: 0 10px;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.035);
-            color: var(--landing-muted);
-            font-size: 0.78rem;
-            font-weight: 800;
-        }
-
-        .hero-preview {
-            position: relative;
-            min-height: 510px;
-            border: 1px solid var(--landing-line);
-            border-radius: 8px;
-            background:
-                linear-gradient(180deg, rgba(126, 220, 255, 0.08), transparent 42%),
-                linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)),
-                var(--landing-panel);
-            box-shadow: 0 28px 70px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.035);
-            overflow: hidden;
-        }
-
-        .hero-preview::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(rgba(126, 220, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(126, 220, 255, 0.04) 1px, transparent 1px);
-            background-size: 28px 28px;
-            mask-image: linear-gradient(180deg, black, transparent 84%);
-            pointer-events: none;
-        }
-
-        .preview-inner {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            gap: 14px;
-            padding: 18px;
-        }
-
-        .preview-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 16px;
-            border: 1px solid rgba(126, 220, 255, 0.16);
-            border-radius: 8px;
-            background: rgba(4, 10, 18, 0.72);
-        }
-
-        .preview-top strong,
-        .preview-card strong,
-        .preview-mission strong {
-            display: block;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 0.92rem;
-            text-transform: uppercase;
-        }
-
-        .preview-top span,
-        .preview-card span,
-        .preview-mission span {
-            display: block;
-            margin-top: 5px;
-            color: var(--landing-muted);
-            font-size: 0.78rem;
-            line-height: 1.35;
-        }
-
-        .preview-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(76, 201, 176, 0.34);
-            border-radius: 8px;
-            padding: 7px 9px;
-            color: #c9fff2;
-            background: rgba(76, 201, 176, 0.08);
-            font-size: 0.72rem;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-
-        .preview-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .preview-card,
-        .preview-mission,
-        .preview-radar {
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.04);
-            padding: 14px;
-        }
-
-        .preview-card b {
-            display: block;
-            margin-top: 12px;
-            color: var(--landing-cyan);
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 1.45rem;
-            font-weight: 400;
-        }
-
-        .preview-radar {
-            min-height: 168px;
-            display: grid;
-            align-content: end;
-            gap: 8px;
-            background:
-                linear-gradient(rgba(126, 220, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(126, 220, 255, 0.035) 1px, transparent 1px),
-                rgba(255,255,255,0.035);
-            background-size: 20px 20px;
-        }
-
-        .radar-bars {
-            display: grid;
-            gap: 8px;
-        }
-
-        .radar-row {
-            display: grid;
-            grid-template-columns: 72px minmax(0, 1fr);
-            gap: 8px;
-            align-items: center;
-            color: var(--landing-muted);
-            font-size: 0.68rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .radar-track {
-            height: 7px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.08);
-            overflow: hidden;
-        }
-
-        .radar-track i {
-            display: block;
-            width: var(--fill);
-            height: 100%;
-            background: linear-gradient(90deg, var(--landing-blue), var(--landing-green));
-        }
-
-        .preview-mission {
-            display: grid;
-            gap: 12px;
-        }
-
-        .mission-line {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            color: var(--landing-soft);
-            font-size: 0.78rem;
-            font-weight: 800;
-        }
-
-        .mission-line i {
-            color: var(--landing-cyan);
-            font-style: normal;
-        }
-
-        .section-block {
-            padding: clamp(34px, 7vw, 78px) 0;
-            border-top: 1px solid rgba(126, 220, 255, 0.1);
-        }
-
-        .section-heading {
-            display: grid;
-            gap: 10px;
-            max-width: 720px;
-            margin-bottom: 22px;
-        }
-
-        .section-heading span {
-            color: var(--landing-cyan);
-            font-size: 0.76rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .section-heading h2 {
-            margin: 0;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: clamp(1.7rem, 4vw, 3.1rem);
-            line-height: 1.02;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .section-heading p {
-            margin: 0;
-            color: var(--landing-muted);
-            line-height: 1.55;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .feature-card,
-        .step-card {
-            min-height: 178px;
-            border: 1px solid rgba(126, 220, 255, 0.14);
-            border-radius: 8px;
-            background: rgba(9, 17, 28, 0.74);
-            padding: 18px;
-        }
-
-        .feature-card i,
-        .step-card i {
-            display: grid;
-            place-items: center;
-            width: 38px;
-            height: 38px;
-            border: 1px solid rgba(126, 220, 255, 0.24);
-            border-radius: 8px;
-            background: rgba(126, 220, 255, 0.075);
-            color: var(--landing-cyan);
-            font-size: 1.2rem;
-        }
-
-        .feature-card h3,
-        .step-card h3 {
-            margin: 16px 0 8px;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 0.98rem;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .feature-card p,
-        .step-card p {
-            margin: 0;
-            color: var(--landing-muted);
-            font-size: 0.88rem;
-            line-height: 1.48;
-        }
-
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .step-card {
-            position: relative;
-            min-height: 162px;
-        }
-
-        .step-number {
-            position: absolute;
-            right: 16px;
-            top: 14px;
-            color: rgba(126, 220, 255, 0.16);
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 2.8rem;
-            line-height: 1;
-        }
-
-        .identity-section {
-            display: grid;
-            grid-template-columns: 0.94fr 1.06fr;
-            gap: 18px;
-            align-items: stretch;
-        }
-
-        .identity-copy,
-        .identity-system {
-            border: 1px solid var(--landing-line);
-            border-radius: 8px;
-            background: var(--landing-panel-strong);
-            padding: clamp(22px, 4vw, 34px);
-        }
-
-        .identity-copy h2 {
-            margin: 0;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: clamp(2rem, 5vw, 4.2rem);
-            line-height: 0.98;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .identity-copy p {
-            margin: 18px 0 0;
-            color: var(--landing-soft);
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .identity-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 22px;
-        }
-
-        .identity-tags span {
-            border: 1px solid rgba(126, 220, 255, 0.2);
-            border-radius: 8px;
-            padding: 8px 10px;
-            color: #e6f9ff;
-            background: rgba(126, 220, 255, 0.06);
-            font-size: 0.72rem;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-
-        .system-row {
-            display: grid;
-            grid-template-columns: 120px minmax(0, 1fr);
-            gap: 14px;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .system-row:last-child {
-            border-bottom: 0;
-        }
-
-        .system-row strong {
-            color: var(--landing-cyan);
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-        }
-
-        .system-row span {
-            color: var(--landing-soft);
-            line-height: 1.45;
-        }
-
-        .final-cta {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 18px;
-            align-items: center;
-            margin-bottom: 36px;
-            padding: clamp(22px, 4vw, 34px);
-            border: 1px solid var(--landing-line-strong);
-            border-radius: 8px;
-            background:
-                linear-gradient(135deg, rgba(126, 220, 255, 0.12), rgba(76, 201, 176, 0.045)),
-                rgba(6, 13, 22, 0.92);
-        }
-
-        .final-cta h2 {
-            margin: 0;
-            color: #fff;
-            font-family: 'Russo One', system-ui, sans-serif;
-            font-size: clamp(1.8rem, 4.6vw, 3.8rem);
-            line-height: 1;
-            letter-spacing: 0;
-            text-transform: uppercase;
-        }
-
-        .final-cta p {
-            margin: 10px 0 0;
-            color: var(--landing-muted);
-        }
-
-        .landing-footer {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 24px 0 36px;
-            border-top: 1px solid rgba(126, 220, 255, 0.1);
-            color: var(--landing-muted);
-            font-size: 0.82rem;
-        }
-
-        .landing-footer nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .landing-footer a {
-            color: var(--landing-soft);
-            text-decoration: none;
-        }
-
-        .is-connected .guest-only,
-        body:not(.is-connected) .connected-only {
-            display: none !important;
-        }
-
-        @media (max-width: 960px) {
-            .titan-landing {
-                width: min(100% - 24px, 720px);
-            }
-
-            .landing-nav {
-                min-height: 64px;
-            }
-
-            .nav-link-soft.guide-link {
-                display: none;
-            }
-
-            .landing-hero {
-                grid-template-columns: 1fr;
-                min-height: auto;
-                padding-top: 34px;
-            }
-
-            .hero-preview {
-                min-height: auto;
-            }
-
-            .feature-grid,
-            .steps-grid,
-            .identity-section,
-            .final-cta {
-                grid-template-columns: 1fr;
-            }
-
-            .feature-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .final-cta .landing-cta {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 560px) {
-            .titan-landing {
-                width: min(100% - 18px, 520px);
-            }
-
-            .landing-nav {
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .brand-copy span {
-                display: none;
-            }
-
-            .nav-actions {
-                gap: 6px;
-            }
-
-            .nav-link-soft,
-            .landing-cta {
-                min-height: 40px;
-                padding: 0 10px;
-                font-size: 0.82rem;
-            }
-
-            .nav-link-soft.help-link {
-                display: none;
-            }
-
-            .landing-hero {
-                gap: 26px;
-                padding-bottom: 42px;
-            }
-
-            .hero-actions .landing-cta,
-            .hero-actions .nav-link-soft {
-                width: 100%;
-            }
-
-            .hero-proof {
-                display: grid;
-                grid-template-columns: 1fr;
-            }
-
-            .preview-inner {
-                padding: 12px;
-            }
-
-            .preview-top,
-            .preview-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .preview-grid {
-                gap: 10px;
-            }
-
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .feature-card,
-            .step-card {
-                min-height: auto;
-            }
-
-            .system-row {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
-
-            .landing-footer {
-                display: grid;
-            }
-
-            .landing-footer nav {
-                justify-content: flex-start;
-            }
-        }
-    </style>
-    <style data-titan-brand-v88>
-        .landing-sport-command {
-            display:grid;
-            grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);
-            gap:clamp(22px,4vw,48px);
-            align-items:center;
-            padding:clamp(22px,4vw,42px);
-            border:1px solid rgba(126,220,255,.2);
-            border-radius:10px;
-            background:
-                linear-gradient(145deg,rgba(126,220,255,.075),rgba(255,255,255,.025)),
-                rgba(5,12,20,.72);
-        }
-        .landing-sport-command h2 { margin:8px 0 0; font-size:clamp(1.8rem,4.6vw,3.6rem); line-height:1; }
-        .landing-sport-command p { color:var(--landing-muted); line-height:1.6; }
-        .sport-command-demo { border:1px solid rgba(126,220,255,.2); border-radius:9px; padding:14px; background:rgba(2,8,15,.7); }
-        .sport-command-input { min-height:50px; display:flex; align-items:center; gap:10px; padding:0 14px; border:1px solid rgba(126,220,255,.18); border-radius:8px; color:#dff8ff; background:rgba(255,255,255,.04); }
-        .sport-command-input i { color:var(--landing-cyan); }
-        .sport-command-input span { color:#8ea2b4; }
-        .sport-command-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-        .sport-command-chips span { border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:6px 9px; color:#aebdca; font-size:.68rem; font-weight:900; }
-        .sport-command-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
-        .sport-command-result { padding:11px; border:1px solid rgba(255,255,255,.07); border-radius:8px; background:rgba(255,255,255,.025); }
-        .sport-command-result strong { display:block; color:#fff; font-family:var(--font-display); font-size:.78rem; }
-        .sport-command-result small { display:block; color:#7890a3; margin-top:3px; }
-        .landing-faq { display:grid; grid-template-columns:minmax(0,.6fr) minmax(0,1.4fr); gap:32px; }
-        .landing-faq h2 { margin:6px 0 0; font-size:clamp(1.8rem,4vw,3rem); }
-        .landing-faq-list details { border-top:1px solid rgba(255,255,255,.1); padding:15px 0; }
-        .landing-faq-list summary { list-style:none; display:flex; justify-content:space-between; gap:14px; font-weight:900; }
-        .landing-faq-list summary::after { content:"+"; color:var(--landing-cyan); }
-        .landing-faq-list details[open] summary::after { content:"−"; }
-        .landing-faq-list p { color:var(--landing-muted); line-height:1.55; }
-        @media (max-width:800px) {
-            .landing-sport-command,.landing-faq { grid-template-columns:1fr; }
-        }
-        @media (max-width:520px) {
-            .sport-command-results { grid-template-columns:1fr; }
-        }
-    </style>
-
-    <meta name="application-name" content="TITAN OS">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <script src="./js/consent.js?v=100.0" defer></script>
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-
-    <!-- SEO: TITAN OS -->
-    <meta name="description" content="Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.">
-    <meta name="author" content="TITAN OS Sport">
-    <meta name="robots" content="index, follow">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
-    <link rel="canonical" href="https://titan-app.fr/">
-    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/">
-    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/">
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
-    <link rel="apple-touch-icon" href="/image/logo-192.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta property="og:site_name" content="TITAN OS Sport">
-    <meta property="og:locale" content="fr_FR">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Application de suivi sportif multisport | TITAN OS Sport">
-    <meta property="og:description" content="Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.">
-    <meta property="og:url" content="https://titan-app.fr/">
-    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Application de suivi sportif multisport | TITAN OS Sport">
-    <meta name="twitter:description" content="Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.">
-    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://acscdn.com" crossorigin>
-    <link rel="dns-prefetch" href="//acscdn.com">
-    <link rel="preload" href="/image/logo.png" as="image">
-    <!-- /SEO: TITAN OS -->
-    <script type="application/ld+json" data-seo-schema>
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://titan-app.fr/#organization",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
-          "url": "https://titan-app.fr/",
-          "email": "titanteam.app@gmail.com",
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "email": "titanteam.app@gmail.com",
-            "contactType": "customer support",
-            "availableLanguage": [
-              "fr"
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>TITAN — Ton journal sportif. Tous tes sports. Tes progrès.</title>
+    <meta
+      name="description"
+      content="Course, musculation, escalade… Enregistre tes séances, retrouve ton historique et suis tes progrès avec TITAN, le journal multisport gratuit. Mobile et ordinateur."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://titan-app.fr/" />
+    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/" />
+    <meta name="theme-color" content="#070c10" />
+    <meta property="og:site_name" content="TITAN" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta
+      property="og:title"
+      content="Chaque effort compte. Chaque progrès reste. — TITAN"
+    />
+    <meta
+      property="og:description"
+      content="Tous tes sports, un seul journal. Une nouvelle façon de voir le chemin parcouru."
+    />
+    <meta property="og:url" content="https://titan-app.fr/" />
+    <meta
+      property="og:image"
+      content="https://titan-app.fr/image/editorial/hero.webp"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="TITAN — Ton journal sportif multisport"
+    />
+    <meta
+      name="twitter:description"
+      content="Enregistre, comprends, recommence. Gratuitement, à ton rythme."
+    />
+    <meta
+      name="twitter:image"
+      content="https://titan-app.fr/image/editorial/hero.webp"
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/image/logo-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="preload"
+      href="/image/editorial/hero.webp"
+      as="image"
+      imagesrcset="/image/editorial/hero-small.webp 840w, /image/editorial/hero.webp 1680w"
+      imagesizes="100vw"
+    />
+    <link rel="stylesheet" href="/css/design-system.css?v=102.0" />
+    <link rel="stylesheet" href="/css/home.css?v=102.0" />
+    <script src="/js/titan-v100.js?v=102.0" defer></script>
+    <script src="/js/home.js?v=102.0" defer></script>
+    <script src="/js/pwa.js?v=102.0" defer></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://titan-app.fr/#organization",
+            "name": "TITAN",
+            "url": "https://titan-app.fr/",
+            "logo": "https://titan-app.fr/image/logo-192.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://titan-app.fr/#website",
+            "name": "TITAN",
+            "url": "https://titan-app.fr/",
+            "inLanguage": "fr-FR"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://titan-app.fr/#app",
+            "name": "TITAN",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Web",
+            "url": "https://titan-app.fr/",
+            "inLanguage": "fr-FR",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "EUR"
+            },
+            "featureList": [
+              "Journal multisport",
+              "Historique personnel",
+              "Saisie de séances",
+              "Statistiques par sport",
+              "Brouillons et enregistrement local",
+              "Progression ludique facultative"
             ]
-          },
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://titan-app.fr/image/logo-192.png",
-            "width": 192,
-            "height": 192
           }
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://titan-app.fr/#website",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "url": "https://titan-app.fr/",
-          "inLanguage": "fr-FR",
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": [
-            "WebApplication",
-            "SoftwareApplication"
-          ],
-          "@id": "https://titan-app.fr/#app",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "url": "https://titan-app.fr/",
-          "applicationCategory": "SportsApplication",
-          "operatingSystem": "Web",
-          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
-          "inLanguage": "fr-FR",
-          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
-          "image": "https://titan-app.fr/image/og-titan-os.png",
-          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
-          "installUrl": "https://titan-app.fr/",
-          "isAccessibleForFree": true,
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "EUR",
-            "availability": "https://schema.org/InStock"
-          },
-          "featureList": [
-            "Journal d'entrainement",
-            "Catalogue de plus de 260 sports",
-            "Recherche par nom, alias, famille et metrique",
-            "Saisie adaptee a chaque discipline",
-            "Statistiques sportives",
-            "Progression par XP",
-            "Objectifs hebdomadaires",
-            "Motivation sportive gamifiee",
-            "Suivi de recuperation",
-            "Aventure et boss",
-            "PWA gratuite"
-          ],
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": [
-            "WebPage",
-            "CollectionPage"
-          ],
-          "@id": "https://titan-app.fr/#webpage",
-          "url": "https://titan-app.fr/",
-          "name": "Application de suivi sportif multisport | TITAN OS Sport",
-          "headline": "Application de suivi sportif multisport | TITAN OS Sport",
-          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "inLanguage": "fr-FR",
-          "isPartOf": {
-            "@id": "https://titan-app.fr/#website"
-          },
-          "about": {
-            "@id": "https://titan-app.fr/#app"
-          },
-          "primaryImageOfPage": {
-            "@type": "ImageObject",
-            "url": "https://titan-app.fr/image/og-titan-os.png",
-            "width": 1200,
-            "height": 630
-          },
-          "breadcrumb": {
-            "@id": "https://titan-app.fr/#breadcrumb"
-          },
-          "dateModified": "2026-08-10",
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": "BreadcrumbList",
-          "@id": "https://titan-app.fr/#breadcrumb",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "TITAN OS",
-              "item": "https://titan-app.fr/"
-            }
-          ]
-        },
-        {
-          "@type": "FAQPage",
-          "@id": "https://titan-app.fr/#faq",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "TITAN OS est-il gratuit ?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Oui. Le journal sportif, la progression de base et le catalogue multisport sont accessibles gratuitement depuis un navigateur compatible."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Quels sports sont disponibles ?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Plus de 260 disciplines couvrent endurance, force, combat, eau, glisse, precision, mobilite, sports collectifs et sports de niche."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Est-ce un coach ou un outil medical ?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Non. TITAN OS aide a suivre et motiver une pratique sportive. Il ne remplace ni un professionnel de sante ni un coach certifie."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Mes seances sont-elles publiques ?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Non par defaut. L'historique personnel reste lie au compte. Les fonctions sociales reposent sur des actions volontaires."
-              }
-            }
-          ]
-        }
-      ]
-    }
+        ]
+      }
     </script>
-</head>
-<body class="landing-page is-guest-home" data-page="index">
-    <main class="titan-landing">
-        <header class="landing-nav" aria-label="Navigation principale">
-            <a class="brand-mark" href="index.html" aria-label="Accueil TITAN OS">
-                <img class="landing-brand-logo" src="./image/logo.png" alt="" aria-hidden="true">
-                <span class="brand-copy">
-                    <strong>TITAN OS</strong>
-                    <span>Sport & progression</span>
-                </span>
-            </a>
-            <nav class="nav-actions" aria-label="Actions">
-                <a class="nav-link-soft guide-link" href="/sports">Sports</a>
-                <a class="nav-link-soft guide-link" href="guide.html">Guide</a>
-                <a class="nav-link-soft help-link guest-only" href="login.html">Connexion</a>
-                <a class="nav-link-soft help-link connected-only" href="stats.html">Mes stats</a>
-                <a class="landing-cta primary guest-only" data-primary-cta href="login.html">Creer mon compte</a>
-                <a class="landing-cta primary connected-only" data-app-cta href="training.html">Ouvrir l'app</a>
-            </nav>
-        </header>
-
-        <div id="homepage-announcements" hidden></div>
-
-        <section class="connected-home connected-only" aria-labelledby="connected-home-title">
-            <div class="connected-home-head">
-                <div><span class="hero-eyebrow"><i class="ri-pulse-line"></i> Aujourd’hui</span><div class="connected-home-title" id="connected-home-title" role="heading" aria-level="1">Bonjour</div><p id="connected-home-brief">Ton prochain effort peut rester simple.</p></div>
-                <a class="landing-cta primary" href="./training.html"><i class="ri-add-line"></i> Enregistrer une séance</a>
+  </head>
+  <body class="titan-public" data-page="index">
+    <a class="skip-link" href="#contenu-principal">Aller au contenu</a>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="TITAN, accueil"
+        ><span class="wordmark-symbol" aria-hidden="true">↗</span>TITAN<span
+          class="wordmark-dot"
+          >.</span
+        ></a
+      >
+      <nav class="site-links" aria-label="Navigation principale">
+        <a href="#experience">L’expérience</a><a href="/sports">Les sports</a
+        ><a href="/tarifs">Gratuit & TITAN+</a
+        ><a href="/pour-les-coachs">Pour les coachs</a>
+      </nav>
+      <div class="header-actions">
+        <a class="login-link" href="/login">Se connecter</a
+        ><a class="button button-small" href="/training"
+          >Commencer <span aria-hidden="true">↗</span></a
+        ><button
+          class="menu-toggle"
+          type="button"
+          aria-label="Ouvrir le menu"
+          aria-controls="public-menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+      <nav id="public-menu" class="public-menu" aria-label="Menu mobile" hidden>
+        <a href="#experience">L’expérience</a><a href="/sports">Les sports</a
+        ><a href="/tarifs">Gratuit & TITAN+</a
+        ><a href="/pour-les-coachs">Pour les coachs</a
+        ><a href="/login">Se connecter</a>
+      </nav>
+    </header>
+    <main id="contenu-principal">
+      <section class="editorial-hero" aria-labelledby="hero-title">
+        <img
+          class="hero-photograph"
+          src="/image/editorial/hero.webp"
+          srcset="
+            /image/editorial/hero-small.webp  840w,
+            /image/editorial/hero.webp       1680w
+          "
+          sizes="100vw"
+          width="1680"
+          height="945"
+          alt=""
+          fetchpriority="high"
+        />
+        <div class="hero-scrim"></div>
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="status-dot"></span> Ton sport. Ton rythme. Ton
+            histoire.
+          </p>
+          <h1 id="hero-title">
+            Chaque effort<br />compte.<br /><span
+              >Chaque progrès<br />reste.</span
+            >
+          </h1>
+          <p class="hero-description">
+            La course du dimanche. Ta dernière série. Cette voie enfin réussie.
+            Tous tes sports, dans un journal qui te ressemble.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="/training"
+              >Essayer gratuitement <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#experience"
+              ><span class="play-symbol" aria-hidden="true">▷</span> Découvrir
+              TITAN</a
+            >
+          </div>
+          <p class="hero-reassurance">
+            Sans carte bancaire <span>·</span> Sur mobile et ordinateur
+          </p>
+        </div>
+        <div class="hero-footnote">
+          <span class="coordinate-mark" aria-hidden="true">+</span> Il n’y a pas
+          de petit départ.<br />Seulement le tien.
+        </div>
+        <div class="hero-session" aria-label="Exemple fictif de séance">
+          <span class="session-symbol" aria-hidden="true">↗</span>
+          <div>
+            <span class="tiny-label">Un aperçu de ton journal</span
+            ><strong>La sortie qui fait du bien.</strong
+            ><span>Trail · 8,4 km · 58 min</span>
+          </div>
+          <span class="demo-label">Démo</span>
+        </div>
+        <a
+          class="scroll-cue"
+          href="#experience"
+          aria-label="Découvrir l’expérience"
+          >↓</a
+        >
+      </section>
+      <div class="sport-ribbon" aria-label="Des sports pour toutes tes envies">
+        <span>Course à pied</span><b aria-hidden="true">✳</b
+        ><span>Musculation</span><b aria-hidden="true">✳</b><span>Escalade</span
+        ><b aria-hidden="true">✳</b><span>Cyclisme</span
+        ><b aria-hidden="true">✳</b><span>Natation</span
+        ><a href="/sports">Et tous les tiens ↗</a>
+      </div>
+      <section
+        id="experience"
+        class="public-section experience-section"
+        aria-labelledby="experience-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">01 / Le plaisir de voir le chemin</p>
+          <h2 id="experience-title">
+            Tu fais le sport.<br />TITAN garde
+            <span class="muted-word">l’histoire.</span>
+          </h2>
+          <p>
+            Une séance à noter. Une semaine à regarder. Une bonne raison de
+            recommencer.
+          </p>
+        </div>
+        <div class="experience-layout">
+          <div
+            class="experience-tabs"
+            role="tablist"
+            aria-label="Découvrir les fonctions"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="experience-preview"
+              id="experience-log"
+              data-preview="log"
+            >
+              <span class="tab-number">01</span
+              ><span
+                ><strong>Note l’essentiel.</strong
+                ><small
+                  >Ton sport, tes mesures, tes sensations. Les détails
+                  attendront si tu préfères.</small
+                ></span
+              ><span aria-hidden="true">↗</span></button
+            ><button
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="experience-preview"
+              id="experience-journal"
+              data-preview="journal"
+              tabindex="-1"
+            >
+              <span class="tab-number">02</span
+              ><span
+                ><strong>Retrouve chaque séance.</strong
+                ><small
+                  >Un journal, des filtres et un calendrier. Même pour les
+                  semaines bien remplies.</small
+                ></span
+              ><span aria-hidden="true">↗</span></button
+            ><button
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="experience-preview"
+              id="experience-progress"
+              data-preview="progress"
+              tabindex="-1"
+            >
+              <span class="tab-number">03</span
+              ><span
+                ><strong>Prends du recul.</strong
+                ><small
+                  >Ta régularité et tes tendances, avec des repères que tu peux
+                  comprendre.</small
+                ></span
+              ><span aria-hidden="true">↗</span></button
+            ><a class="text-link explore-link" href="/training"
+              >Enregistrer ma première séance →</a
+            >
+          </div>
+          <div
+            class="app-preview"
+            id="experience-preview"
+            role="tabpanel"
+            aria-labelledby="experience-log"
+            tabindex="0"
+          >
+            <div class="preview-top">
+              <span class="wordmark mini">TITAN.</span
+              ><span class="demo-label">Données de démonstration</span>
             </div>
-            <div class="connected-home-grid">
-                <a href="./journal.html"><span>Cette semaine</span><strong id="connected-week-sessions">0 séance</strong><small id="connected-week-minutes">0 minute enregistrée</small></a>
-                <a href="./training.html" id="connected-last-sport-link"><span>Dernier sport</span><strong id="connected-last-sport">À choisir</strong><small>Reprendre rapidement</small></a>
-                <a href="./journal.html"><span>Dernière séance</span><strong id="connected-last-session">Aucune</strong><small>Ouvrir le journal</small></a>
-                <a href="./stats.html"><span>Progrès</span><strong>Voir les tendances</strong><small>Minutes, régularité et sport dominant</small></a>
-            </div>
-        </section>
-
-        <section class="landing-hero" aria-labelledby="hero-title">
-            <div>
-                <div class="hero-eyebrow"><i class="ri-pulse-line" aria-hidden="true"></i> <span>Suivi sportif qui motive</span></div>
-                <h1 id="hero-title">Le suivi sportif qui donne envie de continuer.</h1>
-                <p id="hero-subtitle">Plus de 260 sports, un journal clair et des tendances faciles à comprendre — pour rester régulier sans transformer le sport en corvée.</p>
-                <div class="hero-actions">
-                    <a id="hero-primary-cta" class="landing-cta primary guest-only" href="login.html">Commencer gratuitement</a>
-                    <a class="landing-cta primary connected-only" href="training.html">Enregistrer une seance</a>
-                    <a class="landing-cta secondary" href="#experience">Découvrir l’expérience</a>
-                </div>
-                <div class="hero-proof" aria-label="Points forts">
-                    <span><i class="ri-layout-grid-line" aria-hidden="true"></i> 260+ sports</span>
-                    <span><i class="ri-bar-chart-box-line" aria-hidden="true"></i> Stats sportives</span>
-                    <span><i class="ri-shield-check-line" aria-hidden="true"></i> Données privées</span>
-                </div>
-            </div>
-
-            <aside class="hero-preview" aria-label="Apercu visuel de Titan OS">
-                <div class="preview-inner">
-                    <div class="preview-top">
-                        <div>
-                            <strong>Tableau de progression</strong>
-                            <span>Un coup d’œil suffit pour savoir où tu en es et quoi faire ensuite.</span>
-                        </div>
-                        <div class="preview-badge"><i class="ri-lock-2-line" aria-hidden="true"></i> Personnel</div>
-                    </div>
-                    <div class="preview-grid">
-                        <div class="preview-card">
-                            <strong>Seance</strong>
-                            <span>Course, musculation, velo, escalade ou sport libre.</span>
-                            <b>AJOUTER</b>
-                        </div>
-                        <div class="preview-card">
-                            <strong>XP</strong>
-                            <span>Chaque action utile nourrit ton niveau.</span>
-                            <b>+ PROGRES</b>
-                        </div>
-                    </div>
-                    <div class="preview-radar">
-                        <div class="preview-card" style="padding:0;border:0;background:transparent;">
-                            <strong>Radar physique</strong>
-                            <span>Une identite qui evolue avec tes vrais efforts.</span>
-                        </div>
-                        <div class="radar-bars" aria-hidden="true">
-                            <div class="radar-row"><span>Force</span><span class="radar-track"><i style="--fill:74%"></i></span></div>
-                            <div class="radar-row"><span>Endurance</span><span class="radar-track"><i style="--fill:62%"></i></span></div>
-                            <div class="radar-row"><span>Technique</span><span class="radar-track"><i style="--fill:48%"></i></span></div>
-                        </div>
-                    </div>
-                    <div class="preview-mission">
-                        <strong>Mission active</strong>
-                        <div class="mission-line"><span>Valider 3 seances cette semaine</span><i>En cours</i></div>
-                        <div class="mission-line"><span>Construire une trace durable</span><i>TITAN</i></div>
-                    </div>
-                </div>
-            </aside>
-        </section>
-
-        <section id="experience" class="section-block" aria-labelledby="features-title">
-            <div class="section-heading">
-                <span>Experience</span>
-                <h2 id="features-title">Tout ce qu’il faut. Rien qui ralentit.</h2>
-                <p>L’accueil montre ce qui aide aujourd’hui. Le détail reste disponible quand tu en as besoin.</p>
-            </div>
-            <div class="feature-grid">
-                <article class="feature-card">
-                    <i class="ri-add-circle-line" aria-hidden="true"></i>
-                    <h3>Séances</h3>
-                    <p>Choisis ton sport et ne renseigne que les informations vraiment utiles.</p>
-                </article>
-                <article class="feature-card">
-                    <i class="ri-flashlight-line" aria-hidden="true"></i>
-                    <h3>XP</h3>
-                    <p>Ta régularité devient visible sans favoriser ceux qui paient.</p>
-                </article>
-                <article class="feature-card">
-                    <i class="ri-crosshair-2-line" aria-hidden="true"></i>
-                    <h3>Missions</h3>
-                    <p>Avance avec des objectifs courts, lisibles et adaptés à ton rythme.</p>
-                </article>
-                <article class="feature-card">
-                    <i class="ri-user-star-line" aria-hidden="true"></i>
-                    <h3>Profil</h3>
-                    <p>Construis une identité sportive qui reflète tes vrais efforts.</p>
-                </article>
-            </div>
-        </section>
-
-        <section class="section-block" aria-labelledby="sports-command-title">
-            <div class="landing-sport-command">
+            <div id="preview-content">
+              <p class="tiny-label">Aujourd’hui, c’est toi qui choisis.</p>
+              <h3>Une séance de plus.</h3>
+              <div class="preview-sport">
+                <span aria-hidden="true">↗</span>
                 <div>
-                    <div class="section-heading">
-                        <span>Catalogue multisport</span>
-                        <h2 id="sports-command-title">Trouve ton sport en quelques secondes.</h2>
-                    </div>
-                    <p>Écris un nom, une famille ou un terrain. TITAN te propose la bonne discipline et adapte automatiquement les informations à saisir.</p>
-                    <a class="landing-cta secondary" href="/sports"><i class="ri-search-line" aria-hidden="true"></i> Explorer les 260 sports</a>
+                  <strong>Course à pied</strong
+                  ><small>Dehors, à ton rythme</small>
                 </div>
-                <div class="sport-command-demo" aria-label="Aperçu de la recherche de sports">
-                    <div class="sport-command-input"><i class="ri-search-line" aria-hidden="true"></i><span>trail, padel, poids, eau, précision…</span></div>
-                    <div class="sport-command-chips"><span>Endurance</span><span>Force</span><span>Combat</span><span>Équipe</span><span>Outdoor</span></div>
-                    <div class="sport-command-results">
-                        <div class="sport-command-result"><strong>Course à pied</strong><small>Allure · cadence · fréquence cardiaque</small></div>
-                        <div class="sport-command-result"><strong>Musculation</strong><small>Séries · répétitions · charge</small></div>
-                        <div class="sport-command-result"><strong>Padel</strong><small>Sets · breaks · sensations</small></div>
-                        <div class="sport-command-result"><strong>Natation</strong><small>Nage · allure · technique</small></div>
-                    </div>
+                <span aria-hidden="true">⌄</span>
+              </div>
+              <div class="preview-numbers">
+                <div>
+                  <span>Distance</span><strong>5,2 <small>km</small></strong>
                 </div>
-            </div>
-        </section>
-
-        <section class="section-block" aria-labelledby="steps-title">
-            <div class="section-heading">
-                <span>Fonctionnement</span>
-                <h2 id="steps-title">Simple dès la première séance. Utile sur la durée.</h2>
-            </div>
-            <div class="steps-grid">
-                <article class="step-card">
-                    <span class="step-number">01</span>
-                    <i class="ri-edit-box-line" aria-hidden="true"></i>
-                    <h3>Tu enregistres</h3>
-                    <p>Sport, durée, distance, charge ou sensations : seulement ce qui compte.</p>
-                </article>
-                <article class="step-card">
-                    <span class="step-number">02</span>
-                    <i class="ri-scan-2-line" aria-hidden="true"></i>
-                    <h3>Tu vois ta progression</h3>
-                    <p>La séance nourrit ton historique, tes tendances et ton rythme.</p>
-                </article>
-                <article class="step-card">
-                    <span class="step-number">03</span>
-                    <i class="ri-medal-line" aria-hidden="true"></i>
-                    <h3>Tu vois le chemin</h3>
-                    <p>XP, objectifs, records et aventure rendent chaque étape concrète.</p>
-                </article>
-            </div>
-        </section>
-
-        <section class="section-block" aria-label="L’expérience TITAN OS Sport">
-            <div class="identity-section">
-                <div class="identity-copy">
-                    <h2>Discipline. Progression. Identité.</h2>
-                    <p>TITAN OS ne cherche pas à tout montrer d’un coup. Il transforme tes efforts en repères simples, cohérents et durables.</p>
-                    <div class="identity-tags">
-                        <span>Progression</span>
-                        <span>Effort</span>
-                        <span>Regularite</span>
-                        <span>Mission</span>
-                    </div>
+                <div>
+                  <span>Durée</span><strong>32 <small>min</small></strong>
                 </div>
-                <div class="identity-system">
-                    <div class="system-row">
-                        <strong>Sport</strong>
-                        <span>Des donnees adaptees a la pratique: distance, volume, intensite, essais, records.</span>
-                    </div>
-                    <div class="system-row">
-                        <strong>Journal</strong>
-                        <span>Chaque seance reste consultable, filtree, comprensible et exploitable.</span>
-                    </div>
-                    <div class="system-row">
-                        <strong>Stats</strong>
-                        <span>Le tableau de bord met en avant ce qui aide a continuer.</span>
-                    </div>
-                    <div class="system-row">
-                        <strong>TITAN+</strong>
-                        <span>Plus d’analyse, des plans adaptatifs et des collections visuelles — jamais plus de puissance.</span>
-                    </div>
-                </div>
+              </div>
+              <p class="preview-note">
+                « Une sortie tranquille pour finir la journée. »
+              </p>
+              <div class="preview-save">
+                <span aria-hidden="true">✓</span> Une belle séance à retrouver.
+              </div>
             </div>
-        </section>
-
-        <section class="section-block home-plus" aria-labelledby="home-plus-title">
-            <div class="home-plus-copy">
-                <div class="titan-plus-kicker"><i class="ri-vip-crown-2-line"></i> TITAN+</div>
-                <h2 id="home-plus-title">Comprendre davantage. Ne jamais acheter sa progression.</h2>
-                <p>La version gratuite reste une application sportive complète. TITAN+ s’adresse à ceux qui veulent des analyses plus longues, un plan court qui s’adapte, des tableaux personnalisables et des collections saisonnières.</p>
-                <a class="landing-cta secondary" href="boutique.html#titan-plus">Comparer les offres</a>
+            <div class="preview-bottom">
+              <span>Sur ton téléphone comme sur ton ordinateur.</span
+              ><span aria-hidden="true">● ● ●</span>
             </div>
-            <div class="home-plus-grid">
-                <article><i class="ri-calendar-check-line"></i><strong>Plan adaptatif</strong><span>Un micro-cycle lisible selon tes sports et ta disponibilité.</span></article>
-                <article><i class="ri-line-chart-line"></i><strong>Analyses avancées</strong><span>Charge, comparaisons et rapports qui se terminent par une action claire.</span></article>
-                <article><i class="ri-palette-line"></i><strong>Personnalisation</strong><span>Thèmes, tableaux et collections visuelles, sans bonus caché.</span></article>
-                <article><i class="ri-equalizer-2-line"></i><strong>Équité intacte</strong><span>Mêmes XP, crédits, plafonds et chances de réussite pour tous.</span></article>
-            </div>
-        </section>
-
-        <section class="section-block landing-faq" aria-labelledby="home-faq-title">
-            <div>
-                <div class="section-heading"><span>Questions fréquentes</span></div>
-                <h2 id="home-faq-title">Comprendre TITAN en une minute.</h2>
-            </div>
-            <div class="landing-faq-list">
-                <details><summary>TITAN OS est-il gratuit ?</summary><p>Oui. Les sports, les séances, l’historique, la progression, les statistiques essentielles et l’aventure sont accessibles gratuitement.</p></details>
-                <details><summary>TITAN+ rend-il plus fort ?</summary><p>Non. TITAN+ ajoute des analyses, des plans, du confort et des cosmétiques. Les XP, crédits et plafonds restent identiques pour tous.</p></details>
-                <details><summary>Quels sports sont disponibles ?</summary><p>Plus de 260 disciplines couvrent endurance, force, combat, eau, glisse, précision, mobilité, sports collectifs et sports de niche.</p></details>
-                <details><summary>Est-ce un coach ou un outil médical ?</summary><p>Non. TITAN OS aide à suivre et motiver une pratique sportive. Il ne remplace ni un professionnel de santé ni un coach certifié.</p></details>
-                <details><summary>Mes séances sont-elles publiques ?</summary><p>Non par défaut. L’historique personnel reste lié au compte. Les fonctions sociales reposent sur des actions volontaires.</p></details>
-            </div>
-        </section>
-
-        <section class="final-cta" aria-label="Creer un compte TITAN OS">
-            <div>
-                <h2>Chaque effort laisse une trace.</h2>
-                <p>Commence maintenant. Le reste se construit seance apres seance.</p>
-            </div>
-            <a class="landing-cta primary guest-only" href="login.html">Creer mon compte</a>
-            <a class="landing-cta primary connected-only" href="training.html">Reprendre ma progression</a>
-        </section>
-
-        <footer class="landing-footer">
-            <span>TITAN OS - titan-app.fr</span>
-            <nav aria-label="Liens secondaires">
-                <a href="/sports">Sports</a>
-                <a href="guide.html">Guide</a>
-                <a href="service.html">Aide</a>
-                <a href="partenariats.html">Entreprises</a>
-                <a href="legal_privacy.html">Confidentialite</a>
-            </nav>
-        </footer>
+          </div>
+        </div>
+      </section>
+      <section
+        class="public-section sports-section"
+        aria-labelledby="sports-title"
+      >
+        <div class="section-heading inline-heading">
+          <div>
+            <p class="eyebrow">02 / Jamais dans une seule case</p>
+            <h2 id="sports-title">
+              Un jour runner.<br />Le lendemain,
+              <span class="muted-word">autre chose.</span>
+            </h2>
+          </div>
+          <a class="text-link" href="/sports">Explorer les sports ↗</a>
+        </div>
+        <div class="sport-stories">
+          <a class="sport-story running" href="/training?sport=running"
+            ><span class="tiny-label">01 / Endurance</span
+            ><span class="sport-art track-art" aria-hidden="true"
+              ><i></i><i></i><i></i></span
+            ><span class="sport-story-copy"
+              ><strong>Prends le large.</strong
+              ><small>Course, trail, vélo, randonnée</small></span
+            ><span class="story-arrow" aria-hidden="true">↗</span></a
+          ><a class="sport-story strength" href="/training?sport=muscu_builder"
+            ><span class="tiny-label">02 / Force</span
+            ><span class="sport-art weight-art" aria-hidden="true"
+              ><i></i><i></i><i></i></span
+            ><span class="sport-story-copy"
+              ><strong>Construis ta force.</strong
+              ><small>Musculation, séries et répétitions</small></span
+            ><span class="story-arrow" aria-hidden="true">↗</span></a
+          ><a class="sport-story climbing" href="/sports?q=escalade"
+            ><span class="tiny-label">03 / Exploration</span
+            ><span class="sport-art climb-art" aria-hidden="true"
+              ><i></i><i></i><i></i></span
+            ><span class="sport-story-copy"
+              ><strong>Trouve ta voie.</strong
+              ><small>Escalade et nouvelles pratiques</small></span
+            ><span class="story-arrow" aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+      <section class="statement-section">
+        <p class="eyebrow">La différence TITAN</p>
+        <h2>Ta seule comparaison<br />obligatoire ? <span>Toi, hier.</span></h2>
+        <p>
+          Des objectifs personnels. Une aventure si tu en as envie.<br />Et la
+          même valeur pour chaque effort, avec ou sans abonnement.
+        </p>
+        <a href="/progression-sportive" class="text-link"
+          >Découvrir la progression TITAN ↗</a
+        ><span class="statement-orbit" aria-hidden="true"></span>
+      </section>
+      <section
+        class="public-section offer-section"
+        aria-labelledby="offer-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">03 / Le bon espace pour toi</p>
+          <h2 id="offer-title">
+            Commence librement.<br />Va plus loin
+            <span class="muted-word">si tu le veux.</span>
+          </h2>
+        </div>
+        <div class="offer-grid">
+          <article class="offer-card">
+            <span class="eyebrow">TITAN Gratuit</span>
+            <h3>Tout pour prendre<br />un bon départ.</h3>
+            <p class="offer-price">0 € <span>pour suivre tes séances</span></p>
+            <ul>
+              <li>Enregistrement multisport et brouillons</li>
+              <li>Journal complet, filtres et calendrier</li>
+              <li>Statistiques de ta pratique et export</li>
+              <li>Progression ludique facultative</li>
+            </ul>
+            <a class="button button-outline" href="/training">C’est parti ↗</a>
+          </article>
+          <article class="offer-card offer-plus">
+            <span class="eyebrow">TITAN+</span>
+            <h3>Ton expérience.<br />Encore plus personnelle.</h3>
+            <p>
+              Les options de personnalisation et les outils supplémentaires de
+              TITAN, réunis dans un abonnement.
+            </p>
+            <ul>
+              <li>Bilans comparatifs et collections exclusives</li>
+              <li>Options avancées de personnalisation</li>
+              <li>Aucun bonus d’XP acheté</li>
+              <li>Ton journal reste accessible gratuitement</li>
+            </ul>
+            <a class="button" href="/tarifs">Découvrir TITAN+ ↗</a>
+          </article>
+        </div>
+      </section>
+      <section class="public-section faq-section" aria-labelledby="faq-title">
+        <div class="section-heading">
+          <p class="eyebrow">Les réponses, simplement</p>
+          <h2 id="faq-title">Avant de te lancer.</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              Est-ce que je peux essayer sans créer de compte ?<span
+                aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              Oui. Tu peux enregistrer des séances en mode invité sur cet
+              appareil. Crée un compte pour utiliser la synchronisation entre
+              tes appareils. Tes séances invitées restent sur leur appareil
+              d’origine et ne sont pas automatiquement transférées.
+            </p>
+          </details>
+          <details>
+            <summary>
+              TITAN fonctionne-t-il sur iPhone et Android ?<span
+                aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              Oui, directement dans un navigateur récent, sur téléphone,
+              tablette et ordinateur. Tu peux aussi ajouter TITAN à ton écran
+              d’accueil pour l’ouvrir comme une application.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Et si je n’ai pas de connexion ?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              Après une première visite en ligne, les pages essentielles peuvent
+              fonctionner hors ligne. Les séances sont conservées sur l’appareil
+              et les séances de ton compte sont envoyées au retour du réseau. Le
+              journal indique leur état ; tu peux réessayer ou exporter celles
+              en attente.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Mes séances sont-elles visibles par tout le monde ?<span
+                aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              Ton journal personnel est privé. Les options sociales se gèrent
+              séparément dans ton profil. Consulte la
+              <a href="/legal_privacy">politique de confidentialité</a> pour
+              connaître le traitement des données.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Est-ce que TITAN remplace un coach ?<span aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              TITAN t’aide à consigner et à comprendre ta pratique. Les
+              tendances décrivent tes séances enregistrées ; elles ne
+              constituent pas une mesure médicale de ta forme ni un programme
+              individualisé conçu par un professionnel.
+            </p>
+          </details>
+        </div>
+      </section>
+      <section class="public-section reading-section">
+        <div class="section-heading inline-heading">
+          <div>
+            <p class="eyebrow">Un peu de méthode</p>
+            <h2>De bons repères.<br />Dès le départ.</h2>
+          </div>
+          <a href="/guide" class="text-link">Tous les conseils ↗</a>
+        </div>
+        <div class="reading-grid">
+          <a href="/journal-course-a-pied"
+            ><span class="eyebrow">Course à pied / 3 min</span>
+            <h3>Quoi noter après une sortie ?</h3>
+            <span class="text-link">Lire le guide →</span></a
+          ><a href="/carnet-musculation"
+            ><span class="eyebrow">Musculation / 3 min</span>
+            <h3>Un carnet qui suit vraiment tes séries.</h3>
+            <span class="text-link">Lire le guide →</span></a
+          ><a href="/suivi-escalade"
+            ><span class="eyebrow">Escalade / 3 min</span>
+            <h3>Bloc ou voie : garde les bons repères.</h3>
+            <span class="text-link">Lire le guide →</span></a
+          >
+        </div>
+      </section>
+      <section class="closing-section">
+        <p class="eyebrow">La suite commence avec toi.</p>
+        <h2>À ton tour<br />de <span>bouger.</span></h2>
+        <a class="button" href="/training">Enregistrer ma première séance ↗</a>
+        <p>Gratuit. Simple. À ton rythme.</p>
+      </section>
     </main>
-
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/content.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/homepage-dynamic.js?v=100.0"></script>
-    <script src="./js/pwa.js?v=100.0" defer></script>
-    <script>
-        (function initLandingAuthState() {
-            const setConnected = function(isConnected) {
-                document.body.classList.toggle('is-connected', !!isConnected);
-                document.body.classList.toggle('is-guest-home', !isConnected);
-                if(isConnected) renderConnectedHome();
-            };
-
-            const renderConnectedHome = function() {
-                const state = window.state || {};
-                const user = state.user || {};
-                const history = Array.isArray(state.history) ? state.history.slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)) : [];
-                const since = Date.now() - (7 * 86400000);
-                const week = history.filter(log => new Date(log.date || 0).getTime() >= since);
-                const minutes = week.reduce((sum, log) => sum + Math.max(0, Number(log.details?.gpxStats?.movingMinutes || log.details?.val2 || (log.unit === 'min' ? log.val : 0)) || 0), 0);
-                const last = history[0];
-                const sport = last?.sport && window.SPORTS_CONFIG?.[last.sport] ? window.SPORTS_CONFIG[last.sport].label : (last?.sport || 'À choisir');
-                const title = document.getElementById('connected-home-title');
-                if(title) title.textContent = `Bonjour${user.name ? ` ${String(user.name).slice(0, 40)}` : ''}`;
-                const sessions = document.getElementById('connected-week-sessions');
-                if(sessions) sessions.textContent = `${week.length} séance${week.length > 1 ? 's' : ''}`;
-                const duration = document.getElementById('connected-week-minutes');
-                if(duration) duration.textContent = `${Math.round(minutes)} minute${Math.round(minutes) > 1 ? 's' : ''} enregistrée${Math.round(minutes) > 1 ? 's' : ''}`;
-                const lastSport = document.getElementById('connected-last-sport');
-                if(lastSport) lastSport.textContent = sport;
-                const lastLink = document.getElementById('connected-last-sport-link');
-                if(lastLink && last?.sport) lastLink.href = `./training.html?sport=${encodeURIComponent(last.sport)}`;
-                const lastSession = document.getElementById('connected-last-session');
-                if(lastSession) lastSession.textContent = last?.date ? new Date(last.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : 'Aucune';
-                const brief = document.getElementById('connected-home-brief');
-                if(brief) brief.textContent = week.length ? `${week.length} effort${week.length > 1 ? 's' : ''} posé${week.length > 1 ? 's' : ''} sur les 7 derniers jours.` : 'Commence par une séance courte ou reprends ton sport habituel.';
-            };
-
-            const localLooksConnected = function() {
-                try {
-                    if (typeof window.loadState === 'function') window.loadState();
-                    const userId = window.state && window.state.user && window.state.user.id;
-                    return !!(userId && !String(userId).startsWith('guest_'));
-                } catch (error) {
-                    return false;
-                }
-            };
-
-            document.addEventListener('DOMContentLoaded', async function() {
-                setConnected(localLooksConnected());
-                try {
-                    const client = typeof window.waitForTitanSupabase === 'function'
-                        ? await window.waitForTitanSupabase(1800)
-                        : null;
-                    if (!client || !client.auth) return;
-                    const result = await client.auth.getSession();
-                    setConnected(!!(result && result.data && result.data.session && result.data.session.user));
-                } catch (error) {
-                    console.warn('[TITAN] Etat session accueil indisponible:', error);
-                }
-            });
-        })();
-    </script>
-</body>
+    <footer class="site-footer">
+      <div>
+        <a class="wordmark" href="/"
+          >TITAN<span class="wordmark-dot">.</span></a
+        >
+        <p>Tous tes sports. Toute ton histoire.</p>
+      </div>
+      <nav aria-label="Informations">
+        <a href="/pour-les-coachs">Coachs</a><a href="/sports">Sports</a
+        ><a href="/guide">Guide</a><a href="/service">Aide</a
+        ><a href="/tarifs">Gratuit & TITAN+</a
+        ><a href="/legal_privacy">Confidentialité</a
+        ><a href="/legal_mentions">Mentions légales</a
+        ><a href="/legal_cgu">Conditions</a>
+      </nav>
+      <span class="footer-signature"
+        >Pensé pour le mouvement. © 2026 TITAN</span
+      >
+    </footer>
+  </body>
 </html>

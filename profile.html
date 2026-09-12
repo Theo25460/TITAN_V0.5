@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Profil utilisateur - TITAN OS</title>
-    
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
 
     <style>
         /* --- STYLE SPECIFIQUE PROFIL --- */
@@ -41,7 +41,7 @@
             border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); 
             display: flex; align-items: center; gap: 6px; transition: 0.3s;
         }
-        
+
         .selection-area {
             background: #131824; border-radius: 16px; padding: 20px;
             border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
@@ -51,7 +51,7 @@
             margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;
             display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
         }
-        
+
         .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .avatar-option {
             aspect-ratio: 1/1; background: rgba(255,255,255,0.03);
@@ -61,7 +61,7 @@
         .avatar-option img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
         .avatar-option:hover { border-color: #fff; transform: translateY(-2px); }
         .avatar-option.selected { border-color: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
-        
+
         .input-group { display: flex; gap: 10px; }
         .input-field {
             flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
@@ -69,14 +69,14 @@
             outline: none; transition: 0.3s;
         }
         .input-field:focus { border-color: var(--accent); }
-        
+
         .save-btn {
             background: var(--accent); color: #000; padding: 0 20px;
             font-family: 'Russo One'; border: none; border-radius: 12px; cursor: pointer;
             font-size: 1rem; text-transform: uppercase; transition: 0.2s;
         }
         .save-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
-        
+
         .danger-btn {
             background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444;
             padding: 15px; font-family: 'Russo One'; border-radius: 12px; cursor: pointer;
@@ -92,7 +92,7 @@
             width: 100%; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem;
         }
         .data-btn:hover { background: rgba(56, 189, 248, 0.2); }
-        
+
         .legal-footer {
             margin-top: 40px; padding-top: 20px; 
             border-top: 1px solid rgba(255,255,255,0.05); 
@@ -233,42 +233,15 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+
+
+
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Espace personnel TITAN OS pour gerer le profil, les preferences et les cosmetiques.">
     <meta name="author" content="TITAN OS Sport">
@@ -365,7 +338,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -442,13 +415,14 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="profile">
     <div class="layout">
         <nav class="sidebar"></nav> 
         <main class="main-content">
             <div class="mobile-user-bar"></div>
-            
+
             <header style="margin-bottom:30px;">
                 <div style="font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">COMPTE ET PRÉFÉRENCES</div>
                 <h1 class="titular">Profil & préférences</h1>
@@ -462,7 +436,7 @@
                 </div>
 
                 <div class="user-name" id="profile-name">Recrue</div>
-                
+
                 <div class="user-meta">
                     <span class="meta-tag"><i class="ri-shield-star-fill"></i> NIV. <span id="profile-lvl">1</span></span>
                     <span id="elite-tag" class="meta-tag" style="display:none; color:#9ee7ff; border-color:#9ee7ff; background:rgba(126, 220, 255, 0.1);">
@@ -570,7 +544,7 @@
             </div>
 
             <div class="legal-footer">
-                <a href="legal_hub.html" class="legal-link">
+                <a class='legal-link' href='/legal_hub'>
                     <i class="ri-scales-3-line"></i> Mentions legales & confidentialite
                 </a>
                 <div style="font-size: 0.65rem; color: #475569; margin-top: 5px;">TITAN OS beta - TITAN OS v83.0</div>
@@ -578,12 +552,13 @@
         </main>
     </div>
 
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/data.js?v=100.0"></script>
-    <script src="./js/ui.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/titan_features.js?v=100.0"></script>
-    <script src="./js/main.js?v=100.0"></script>
+    <script src="./js/config.js?v=102.0"></script>
+    <script src="./js/data.js?v=102.0"></script>
+    <script src="./js/ui.js?v=102.0"></script>
+    <script src="./js/training-store.js?v=102.0"></script>
+    <script src="./js/state.js?v=102.0"></script>
+    <script src="./js/titan_features.js?v=102.0"></script>
+    <script src="./js/main.js?v=102.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Petite securite pour attendre que state.js soit pret
@@ -596,7 +571,7 @@
                     console.warn("Attente state...");
                 }
             }, 100);
-            
+
             // Timeout de securite
             setTimeout(() => { clearInterval(checkState); }, 5000);
         });
@@ -661,7 +636,7 @@
                 idBox.parentElement.style.color = "#94a3b8";
                 idBox.parentElement.style.background = "transparent";
             }
-            
+
             // --- CORRECTION AVATAR (Simplifi?) ---
             const avatarBox = document.getElementById('current-avatar-display');
             avatarBox.replaceChildren();
@@ -816,7 +791,7 @@
             if(!window.state) return;
             if(!/^avatar_\d+\.png$/i.test(fileName)) return;
             window.state.user.avatar = fileName;
-            
+
             if(window.saveState) window.saveState({ forceCloud: true });
             else localStorage.setItem('titan_os_v12_save', JSON.stringify(window.state));
             renderProfile();
@@ -834,7 +809,7 @@
                 return;
             }
             window.state.user.name = newName;
-            
+
             if(window.saveState) window.saveState({ forceCloud: true });
             else localStorage.setItem('titan_os_v12_save', JSON.stringify(window.state));
             renderProfile();
@@ -863,16 +838,16 @@
                 window.location.href = "login.html";
             } else {
                 if(window.showNotification) window.showNotification('info', 'DECONNEXION', 'Nettoyage securise...');
-                
+
                 // --- SEQUENCE DE PURGE COMPLETE ---
                 setTimeout(async () => {
                     // 1. D?connexion Serveur
                     if(window.titanClient) await window.titanClient.auth.signOut();
-                    
+
                     // 2. Nettoyage Local Total
-                    localStorage.clear();
+                    window.titanSafeClearCache();
                     sessionStorage.clear();
-                    
+
                     // 3. Retour Login
                     window.location.href = "login.html";
                 }, 500);
@@ -885,6 +860,7 @@
             let exportPayload = {
                 exportedAt: new Date().toISOString(),
                 source: 'local',
+                pendingSessions: window.titanGetPendingTrainingLogs?.() || [],
                 localState: window.state
             };
 
@@ -896,7 +872,8 @@
                             exportedAt: new Date().toISOString(),
                             source: 'supabase',
                             cloud: data,
-                            localState: window.state
+                            pendingSessions: window.titanGetPendingTrainingLogs?.() || [],
+                localState: window.state
                         };
                     } else if (error && error.code !== 'PGRST202') {
                         console.warn("Export cloud indisponible:", error);
@@ -930,7 +907,7 @@
                 }, 3000);
                 return;
             }
-            localStorage.clear();
+            window.titanSafeClearCache();
             sessionStorage.clear();
             window.location.reload();
         }
@@ -939,12 +916,12 @@
         let deleteConfirm = false;
         async function deleteAccountAction() {
             const btn = document.getElementById('btn-delete');
-            
+
             if (!deleteConfirm) {
                 deleteConfirm = true;
                 btn.innerHTML = '<i class="ri-error-warning-line"></i> CLIQUER POUR CONFIRMER LA DESTRUCTION';
                 btn.classList.add('confirm-state');
-                
+
                 setTimeout(() => {
                     deleteConfirm = false;
                     btn.innerHTML = '<i class="ri-skull-line"></i> SUPPRIMER MON COMPTE';
@@ -954,27 +931,28 @@
             }
 
             if(window.showNotification) window.showNotification('warning', 'SUPPRESSION', 'Destruction des donnees en cours...');
-            
+
             try {
                 if(window.titanClient && !window.state.user.id.startsWith('guest_')) {
-                    
+
                     // APPEL DE LA FONCTION SQL BAZOOKA
                     const { error } = await window.titanClient.rpc('delete_own_account');
-                    
+
                     if (error) {
                         console.error("Erreur RPC:", error);
                         if(window.showNotification) window.showNotification('error', 'SUPPRESSION', error.message || error.details || 'Erreur base de donnees.'); else console.error('[SUPPRESSION]', error);
                         throw error;
                     }
-                    
+
                     // D?connexion propre
                     await window.titanClient.auth.signOut();
                 }
 
                 // Nettoyage local
-                localStorage.clear();
+                await window.TitanQueue?.deleteOwner(window.state.user.id);
+                window.titanSafeClearCache();
                 sessionStorage.clear();
-                
+
                 if(window.showNotification) window.showNotification('success', 'COMPTE SUPPRIME', 'Compte supprime definitivement.'); else console.warn('[COMPTE] Supprime definitivement.');
                 window.location.href = "login.html";
 
@@ -984,6 +962,7 @@
             }
         }
     </script>
+<script src="./js/pending-ui.js?v=102.0"></script><script src="./js/pwa.js?v=102.0" defer></script>
 </body>
 </html>
 

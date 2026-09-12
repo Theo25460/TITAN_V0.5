@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Premiers pas - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
     <meta name="theme-color" content="#0f172a">
     <style>
         .onboarding-steps { display:grid; gap:14px; counter-reset: step; }
@@ -38,40 +38,10 @@
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Parcours court pour comprendre TITAN OS et enregistrer une premiere seance.">
     <meta name="author" content="TITAN OS Sport">
@@ -168,7 +138,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -245,6 +215,7 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="onboarding">
     <div class="layout">
@@ -263,7 +234,7 @@
                     <div>
                         <div class="step-title">Choisir ton identite</div>
                         <div class="step-text">Definis un pseudo lisible et un avatar. Ce sont les elements visibles dans le social, les defis et les captures de progression.</div>
-                        <a class="step-action" href="./profile.html"><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
+                        <a class='step-action' href='/profile'><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
                     </div>
                 </article>
                 <article class="onboarding-step">
@@ -271,7 +242,7 @@
                     <div>
                         <div class="step-title">Choisir une discipline simple</div>
                         <div class="step-text">Commence par une activite facile a mesurer: marche, course, velo, pompes, gainage ou musculation. L'objectif est de creer une trace propre.</div>
-                        <a class="step-action" href="./training.html"><i class="ri-run-line"></i> Enregistrer une seance</a>
+                        <a class='step-action' href='/training'><i class="ri-run-line"></i> Enregistrer une seance</a>
                     </div>
                 </article>
                 <article class="onboarding-step">
@@ -279,7 +250,7 @@
                     <div>
                         <div class="step-title">Voir l'impact direct</div>
                         <div class="step-text">Apres validation, regarde ce qui change: XP, credits, charge, radar, boss, journal, records contextualises et prochain cap coach.</div>
-                        <a class="step-action" href="./stats.html"><i class="ri-line-chart-line"></i> Voir les progres</a>
+                        <a class='step-action' href='/stats'><i class="ri-line-chart-line"></i> Voir les progres</a>
                     </div>
                 </article>
                 <article class="onboarding-step">
@@ -287,7 +258,7 @@
                     <div>
                         <div class="step-title">Comprendre les donnees</div>
                         <div class="step-text">Si un terme parait flou, ouvre le guide : XP, crédits, fraîcheur, plateau, comparaison personnelle, catalogue multisport et spécificités sportives y sont expliqués.</div>
-                        <a class="step-action" href="./guide.html#donnees"><i class="ri-database-2-line"></i> Lire le dictionnaire</a>
+                        <a class='step-action' href='/guide#donnees'><i class="ri-database-2-line"></i> Lire le dictionnaire</a>
                     </div>
                 </article>
             </section>
@@ -303,11 +274,13 @@
         </main>
     </div>
 
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/data.js?v=100.0"></script>
-    <script src="./js/ui.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/main.js?v=100.0"></script>
+    <script src="./js/config.js?v=102.0"></script>
+    <script src="./js/data.js?v=102.0"></script>
+    <script src="./js/ui.js?v=102.0"></script>
+    <script src="./js/training-store.js?v=102.0"></script>
+    <script src="./js/state.js?v=102.0"></script>
+    <script src="./js/main.js?v=102.0"></script>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

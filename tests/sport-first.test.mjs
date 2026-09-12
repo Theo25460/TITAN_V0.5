@@ -8,20 +8,23 @@ test('the five primary destinations follow the sport workflow', async () => {
   const ui = await read('js/ui.js');
   const primaryBlock = ui.match(/window\.TITAN_NAV_LINKS = \[(.*?)\n\];/s)?.[1] || '';
   const links = [...primaryBlock.matchAll(/href: '([^']+)'/g)].map((match) => match[1]);
-  assert.deepEqual(links, ['index.html', 'training.html', 'journal.html', 'stats.html', 'profile.html']);
+  assert.deepEqual(links, ['aujourdhui.html', 'training.html', 'journal.html', 'stats.html', 'profile.html']);
   assert.doesNotMatch(primaryBlock, /adventure\.html|social\.html/);
 });
 
 test('Olympic metadata is not exposed as a primary catalog family', async () => {
   const discovery = await read('js/sport-discovery.js');
-  const training = await read('training.html');
+  const training = await read('js/training-page.js');
   assert.doesNotMatch(discovery.match(/const FAMILIES = \[(.*?)\n    \];/s)?.[1] || '', /olympique|olympic/i);
-  assert.doesNotMatch(training.match(/const SPORT_FAMILY_FILTERS = \[(.*?)\n        \];/s)?.[1] || '', /olympique|olympic/i);
+  const families=training.match(/const SPORT_FAMILY_FILTERS = \[(.*?)\n\s*\];/s)?.[1];
+  assert.ok(families, 'sport families remain explicitly defined');
+  assert.doesNotMatch(families, /olympique|olympic/i);
 });
 
 test('the journal keeps the full personal history and offers list/calendar views', async () => {
   const journal = await read('journal.html');
-  const logsFunction = journal.match(/function getActivityLogs\(\) \{(.*?)\n        \}/s)?.[1] || '';
+  const logic = await read('js/journal-page.js');
+  const logsFunction = logic.match(/function getActivityLogs\(\) \{(.*?)\n\s*\}/s)?.[1] || '';
   assert.match(logsFunction, /return history\.sort/);
   assert.doesNotMatch(logsFunction, /is_elite|slice\s*\(\s*0\s*,/i);
   assert.match(journal, /data-activity-view="list"/);
@@ -44,13 +47,13 @@ test('strength sessions preserve per-set weight, reps and RIR', async () => {
   assert.match(state, /setRows: Array\.isArray\(ex\?\.setRows\)/);
 });
 
-test('release assets use the same v100 version', async () => {
+test('release assets use the same release version', async () => {
   const config = await read('js/config.js');
   const serviceWorker = await read('sw.js');
-  assert.match(config, /version: "100\.0"/);
-  assert.match(config, /TITAN_ASSET_VERSION = "100\.0"/);
-  assert.match(serviceWorker, /titan-os-v100-grand-public/);
-  assert.match(serviceWorker, /\.\/css\/titan-v100\.css/);
+  assert.match(config, /version: "102\.0"/);
+  assert.match(config, /TITAN_ASSET_VERSION = "102\.0"/);
+  assert.match(serviceWorker, /titan-os-v102-experience/);
+  assert.match(serviceWorker, /\.\/css\/design-system\.css/);
   assert.match(serviceWorker, /\.\/js\/titan-v100\.js/);
   assert.doesNotMatch(serviceWorker, /titan-v89\.(?:css|js)/);
 });
@@ -71,8 +74,8 @@ test('public discovery pages are indexable, canonical and content-rich', async (
     assert.match(html, new RegExp(`<link rel="canonical" href="https://titan-app\\.fr${route}"`));
     assert.equal((html.match(/<h1\b/g) || []).length, 1);
     assert.match(html, /<section[^>]+class="[^"]*public-faq/);
-    assert.match(html, /titan-v100\.css\?v=100\.0/);
-    assert.match(html, /titan-v100\.js\?v=100\.0/);
+    assert.match(html, /design-system\.css\?v=102\.0/);
+    assert.match(html, /titan-v100\.js\?v=102\.0/);
     assert.match(sitemap, new RegExp(`<loc>https://titan-app\\.fr${route}</loc>`));
   }
 });

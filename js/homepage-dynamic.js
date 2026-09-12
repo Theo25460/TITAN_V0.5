@@ -2,16 +2,7 @@
     'use strict';
 
     async function bootHomepageContent() {
-        if (typeof window.titanApplyContentBlock === 'function') {
-            await window.titanApplyContentBlock('homepage_hero', {
-                title: '#hero-title',
-                subtitle: '.hero-eyebrow span',
-                body: '#hero-subtitle',
-                ctaLabel: '#hero-primary-cta',
-                ctaUrl: '#hero-primary-cta'
-            });
-        }
-
+        // The primary product promise is versioned with the page to avoid late hero replacement.
         if (typeof window.titanRenderActiveAnnouncements === 'function') {
             await window.titanRenderActiveAnnouncements('homepage', '#homepage-announcements');
         }

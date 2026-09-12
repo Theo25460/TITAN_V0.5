@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Trophees - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
 
     <style>
         /* NAVIGATION */
@@ -62,12 +62,12 @@
         .ach-info { flex: 1; z-index: 2; }
         .ach-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
         .ach-title { font-size: 0.95rem; font-family: 'Russo One'; color: #fff; }
-        
+
         /* Note: Style ach-reward conserv? au cas o?, mais non utilis? dans le HTML g?n?r? */
         .ach-reward { font-size: 0.7rem; color: var(--gold); font-weight: 800; background: rgba(126, 220, 255, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(126, 220, 255, 0.2); }
-        
+
         .ach-desc { font-size: 0.75rem; color: #94a3b8; line-height: 1.3; margin-bottom: 8px; }
-        
+
         /* BARRE PROGRESSION */
         .ach-footer { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; color: #64748b; font-family: 'Courier New'; font-weight: bold; }
         .ach-prog-bg { flex: 1; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; overflow: hidden; }
@@ -112,42 +112,15 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+
+
+
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Trophees TITAN OS: succes personnels, records, recompenses et collection de progression lies aux seances sportives.">
     <meta name="author" content="TITAN OS Sport">
@@ -244,7 +217,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -321,13 +294,14 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="trophies">
     <div class="layout">
         <nav class="sidebar"></nav> 
         <main class="main-content">
             <div class="mobile-user-bar"></div>
-            
+
             <header style="margin-bottom:30px;">
                 <div style="font-size: 0.7rem; color: var(--gold); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">ARCHIVES</div>
                 <h1 class="titular">Trophées</h1>
@@ -391,13 +365,14 @@
         </main>
     </div>
 
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/ui.js?v=100.0"></script>
-    <script src="./js/data.js?v=100.0"></script>
-    <script src="./js/titan_features.js?v=100.0"></script>
-    <script src="./js/main.js?v=100.0"></script>
-    
+    <script src="./js/config.js?v=102.0"></script>
+    <script src="./js/training-store.js?v=102.0"></script>
+    <script src="./js/state.js?v=102.0"></script>
+    <script src="./js/ui.js?v=102.0"></script>
+    <script src="./js/data.js?v=102.0"></script>
+    <script src="./js/titan_features.js?v=102.0"></script>
+    <script src="./js/main.js?v=102.0"></script>
+
     <script>
         // CONFIGURATION DES LIENS SOCIAUX
         const SOCIAL_LINKS = {
@@ -446,7 +421,7 @@
                 // On verifie que le STATE, le USER et la DB SUCCES sont l?
                 if (window.state && window.state.user && typeof ACHIEVEMENTS_DB !== 'undefined') {
                     clearInterval(initCheck);
-                    
+
                     // Mise ? jour header (Niveau/Credits)
                     if(typeof updateGlobalUI === 'function') updateGlobalUI();
 
@@ -474,15 +449,15 @@
             // Securite si l'user ou l'historique n'est pas pr?t
             const u = window.state.user || {};
             const h = window.state.history || [];
-            
+
             let s = {
                 boss_kill: (window.state.game ? (window.state.game.bossLevel || 1) - 1 : 0),
                 level: u.level || 1,
                 credits: u.credits || 0, 
-                
+
                 sessions: h.length,
                 xp: u.xp || 0,
-                
+
                 dist: 0,
                 night: 0,
                 morning: 0,
@@ -494,21 +469,21 @@
 
             h.forEach(log => {
                 if(log.unit === 'km') s.dist += (parseFloat(log.val) || 0);
-                
+
                 const d = new Date(log.date);
                 const hour = d.getHours();
                 const day = d.getDay();
-                
+
                 if(hour >= 23 || hour < 4) s.night++;
                 if(hour >= 5 && hour < 8) s.morning++;
                 if(day === 0) s.sunday++;
-                
+
                 s.uniqueSports.add(log.sport);
-                
+
                 let cal = (log.xp || 0) * 0.8;
                 if(cal > s.maxCal) s.maxCal = cal;
             });
-            
+
             s.uniqueSportsCount = s.uniqueSports.size;
             return s;
         }
@@ -518,25 +493,25 @@
             if(achId.startsWith('kill_')) return stats.boss_kill;
             if(achId.startsWith('lvl_')) return stats.level;
             if(achId.startsWith('rich_')) return stats.credits;
-            
+
             if(achId.startsWith('run_')) return stats.dist;
             if(achId.startsWith('sessions_')) return stats.sessions;
             if(achId.startsWith('xp_')) return stats.xp;
-            
+
             if(achId === 'night_owl') return stats.night;
             if(achId === 'early_bird') return stats.morning;
             if(achId === 'weekend_warrior') return stats.sunday;
             if(achId.startsWith('streak_')) return stats.streak;
             if(achId.startsWith('multi_sport_')) return stats.uniqueSportsCount;
             if(achId.startsWith('burn_')) return stats.maxCal;
-            
+
             if(achId.startsWith('social_') || achId === 'share_app') {
                 return localStorage.getItem('ach_done_' + achId) ? 1 : 0;
             }
             if(achId === 'support_elite') {
                 return window.state.user && window.state.user.is_elite ? 1 : 0;
             }
-            
+
             return 0; 
         }
 
@@ -546,10 +521,10 @@
                 container.innerHTML = `<div style="text-align:center; padding:30px;">Aucun succes charge.</div>`;
                 return;
             }
-            
+
             container.innerHTML = "";
             let unlockedCount = 0;
-            
+
             ACHIEVEMENTS_DB.forEach(ach => {
                 const current = getAchievementProgress(ach.id, stats);
                 const target = Math.max(1, Number(ach.target) || 1);
@@ -561,7 +536,7 @@
                 const safeTitle = trophySafeText(ach.title || 'Succes', 80);
                 const safeDesc = trophySafeText(ach.desc || 'Objectif sportif.', 180);
                 const safeIcon = trophySafeIcon(ach.icon);
-                
+
                 let actionBtn = '';
                 if(safeId && !isUnlocked && (safeId.startsWith('social_') || safeId === 'share_app')) {
                     actionBtn = `<button class="btn-claim" onclick="triggerSocial('${safeId}')"><i class="ri-external-link-line"></i> ACTION</button>`;
@@ -614,7 +589,7 @@
             container.innerHTML = "";
             // Protection si game n'est pas charge
             const currentBossLvl = (window.state.game && window.state.game.bossLevel) ? window.state.game.bossLevel : 1;
-            
+
             if (typeof BOSS_DB !== 'undefined') {
                 BOSS_DB.forEach((boss, index) => {
                     const bossLvl = index + 1; 
@@ -688,6 +663,7 @@
         }
         function closeLore() { document.getElementById('lore-modal').style.display = 'none'; }
     </script>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

@@ -396,12 +396,8 @@ async function handleLocalVictory() {
     
     const baseGain = isBoss ? (500 * lvl) : 50;
     
-    let finalReward = { total: baseGain, base: baseGain, bonus: 0, percent: 0 };
-    if(typeof window.calculateRewardsWithBonus === 'function') {
-        finalReward = window.calculateRewardsWithBonus(baseGain);
-    }
-
-    let combatXp = isBoss ? Math.min(900, Math.floor(baseGain * 0.22)) : 18;
+    let finalReward = { total: 0, base: 0, bonus: 0, percent: 0 };
+    let combatXp = 0;
     const cloudVictory = await submitCombatVictoryToCloud(defeatedEnemy, isBoss, lvl, baseGain, finalReward);
 
     if (cloudVictory.mode === 'rpc' && cloudVictory.row) {
@@ -419,15 +415,13 @@ async function handleLocalVictory() {
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('cloud', 'Combat synchronise');
     } else {
         if (cloudVictory.error && cloudVictory.mode === 'error') {
-            console.warn('[TITAN COMBAT] Victoire cloud indisponible, recompense locale:', cloudVictory.error);
+            console.warn('[TITAN COMBAT] Victoire cloud indisponible:', cloudVictory.error);
             if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('error', 'Combat local');
             if (typeof window.showNotification === 'function') {
                 window.showNotification('warning', 'COMBAT LOCAL', 'Victoire gardee dans ta sauvegarde locale. RPC combat a verifier.');
             }
         }
-        window.state.user.credits += finalReward.total;
-        window.state.user.xp += combatXp;
-        if (typeof window.checkLevelUp === 'function') window.checkLevelUp();
+        // Unverified combat never grants sports currency.
     }
 
     if (typeof window.titanRegisterCombatVictory === 'function') {

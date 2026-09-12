@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = resolve(root, 'dist');
 
-const publicDirs = ['css', 'js'];
+const publicDirs = ['css', 'js', 'licenses'];
 const publicFiles = [
   '404.html',
   'ads.txt',

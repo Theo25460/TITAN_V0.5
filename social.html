@@ -7,17 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Social TITAN OS - Guildes, allies et defis</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
 
     <style>
         body { background-color: #06070A; }
-        
+
         .tabs-container { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(255,255,255,0.02); padding: 5px; border-radius: 12px; }
         .tab-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-muted); font-family: 'Russo One'; font-size: 0.9rem; border-radius: 8px; cursor: pointer; transition: 0.3s; text-align: center; }
         .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        
+
         .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -35,7 +35,7 @@
         .f-name { font-family: 'Russo One'; font-size: 0.95rem; color: #fff; line-height: 1.2; }
         .f-id { font-size: 0.7rem; color: var(--text-muted); font-family: 'Courier New'; }
         .f-actions { display: flex; gap: 8px; }
-        
+
         .btn-mini { width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; transition: 0.2s; }
         .btn-mini:hover { background: #fff; color: #000; }
         .btn-mini.danger:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
@@ -134,42 +134,15 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+
+
+
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Espace social TITAN OS reserve aux comptes connectes: guildes, allies, defis, codes amis et interactions synchronisees.">
     <meta name="author" content="TITAN OS Sport">
@@ -266,7 +239,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -343,13 +316,14 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="social">
     <div class="layout">
         <nav class="sidebar"></nav>
         <main class="main-content">
             <div class="mobile-user-bar"></div>
-            
+
             <header style="margin-bottom: 25px;">
                 <h1 class="titular">
                     SOCIAL 
@@ -364,7 +338,7 @@
             </div>
 
             <div id="view-friends" class="view-section active">
-                
+
                 <a href="https://discord.gg/tbgQAAAxrU" target="_blank" rel="noopener noreferrer" class="discord-box" data-discord-link>
                     <div class="d-icon"><i class="ri-discord-fill"></i></div>
                     <div class="d-info">
@@ -475,7 +449,7 @@
                     <option value="squats_200">Course: 200 Squats</option>
                     <option value="run_10">Distance: 10km Run</option>
                 </select>
-                <button class="modal-action-btn btn-duel-confirm" onclick="confirmDuel()">LANCER (COUT: 50)</button>
+                <button class="modal-action-btn btn-duel-confirm" disabled>Mises temporairement indisponibles</button>
                 <button class="modal-action-btn" style="background:#334155; color:#94a3b8;" onclick="closeModal('duel-modal')">ANNULER</button>
             </div>
         </div>
@@ -499,12 +473,13 @@
         </div>
     </div>
 
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/data.js?v=100.0"></script>
-    <script src="./js/ui.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/main.js?v=100.0"></script>
-    <script src="./js/social.js?v=100.0"></script>
+    <script src="./js/config.js?v=102.0"></script>
+    <script src="./js/data.js?v=102.0"></script>
+    <script src="./js/ui.js?v=102.0"></script>
+    <script src="./js/training-store.js?v=102.0"></script>
+    <script src="./js/state.js?v=102.0"></script>
+    <script src="./js/main.js?v=102.0"></script>
+    <script src="./js/social.js?v=102.0"></script>
 
     <script>
         // --- INITIALISATION SECURISEE ---
@@ -516,16 +491,16 @@
                 // On attend que le systeme Titan soit pret (state.js + main.js)
                 if(window.state && window.titanClient && window.state.user) {
                     clearInterval(check);
-                    
+
                     // Chargement du matricule perso (si connect?)
                     loadMyMatricule();
-                    
+
                     // L'UI mobile est injectee automatiquement par main.js
                     if(window.injectMobileHeader) window.injectMobileHeader();
                     renderGuild();
                 }
             }, 100);
-            
+
             // Timeout de securite
             setTimeout(() => { clearInterval(check); }, 5000);
             setTimeout(() => { if(window.state && window.state.user) renderGuild(); }, 700);
@@ -810,10 +785,11 @@
         window.confirmGhost = function() {
             const preset = document.getElementById('ghost-preset').value;
             // Appel ? la fonction globale de main.js
-            if(window.createGhost) window.createGhost(selectedFriendId, preset, 0);
+            if(window.createGhost) window.createGhost(selectedFriendId, preset, Number(preset.split("_").pop()) || 1);
             window.closeModal('ghost-modal');
         }
     </script>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

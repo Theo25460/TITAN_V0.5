@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Centre legal et confidentialite - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
 
     <style>
         body {
@@ -334,7 +334,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="./css/legal.css?v=100.0">
+    <link rel="stylesheet" href="./css/legal.css?v=102.0">
 
     <meta name="theme-color" content="#0f172a">
     <meta name="application-name" content="TITAN OS">
@@ -343,8 +343,8 @@
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
 
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Accede aux documents legaux de TITAN OS: CGU, confidentialite, mentions legales, donnees, publicite, paiement, securite et contact.">
@@ -442,7 +442,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -519,16 +519,17 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body class="legal-page legal-hub" data-page="legal_hub">
     <div class="legal-layout">
         <nav class="legal-sidebar" aria-label="Navigation legale">
             <div class="sidebar-title">Vos droits</div>
-            <a href="legal_hub.html" class="legal-link active"><i class="ri-dashboard-line"></i> Vue globale</a>
-            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU</a>
-            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
-            <a href="legal_mentions.html" class="legal-link"><i class="ri-building-line"></i> Mentions</a>
-            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
+            <a class='legal-link active' href='/legal_hub'><i class="ri-dashboard-line"></i> Vue globale</a>
+            <a class='legal-link' href='/legal_cgu'><i class="ri-file-text-line"></i> CGU</a>
+            <a class='legal-link' href='/legal_privacy'><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
+            <a class='legal-link' href='/legal_mentions'><i class="ri-building-line"></i> Mentions</a>
+            <a class='legal-link back-link' href='/'><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
         </nav>
 
         <main class="legal-content-area">
@@ -566,7 +567,7 @@
             </section>
 
             <section class="hub-grid" aria-label="Documents principaux">
-                <a href="legal_cgu.html" class="legal-card" style="--accent-color:#fb923c;">
+                <a class='legal-card' href='/legal_cgu' style='--accent-color:#fb923c;'>
                     <i class="ri-scales-3-line card-icon"></i>
                     <div class="card-title">Conditions d'utilisation</div>
                     <div class="card-desc">
@@ -576,7 +577,7 @@
                     <div class="card-arrow">Lire les CGU <i class="ri-arrow-right-line"></i></div>
                 </a>
 
-                <a href="legal_privacy.html" class="legal-card" style="--accent-color:#38bdf8;">
+                <a class='legal-card' href='/legal_privacy' style='--accent-color:#38bdf8;'>
                     <i class="ri-lock-password-line card-icon"></i>
                     <div class="card-title">Confidentialite</div>
                     <div class="card-desc">
@@ -586,7 +587,7 @@
                     <div class="card-arrow">Voir les donnees <i class="ri-arrow-right-line"></i></div>
                 </a>
 
-                <a href="legal_mentions.html" class="legal-card" style="--accent-color:#9ee7ff;">
+                <a class='legal-card' href='/legal_mentions' style='--accent-color:#9ee7ff;'>
                     <i class="ri-government-line card-icon"></i>
                     <div class="card-title">Mentions legales</div>
                     <div class="card-desc">
@@ -622,7 +623,7 @@
                         de ton compte. Une demande par email reste possible si tu ne peux plus te connecter.
                     </p>
                     <div class="legal-actions">
-                        <a class="legal-action" href="profile.html"><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
+                        <a class='legal-action' href='/profile'><i class="ri-user-settings-line"></i> Ouvrir le profil</a>
                         <a class="legal-action" href="mailto:titanteam.app@gmail.com"><i class="ri-mail-send-line"></i> Demande RGPD</a>
                     </div>
                 </article>
@@ -700,6 +701,7 @@
             </footer>
         </main>
     </div>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

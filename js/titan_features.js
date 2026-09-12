@@ -458,23 +458,8 @@
         return 'general';
     }
 
-    function getDuration(log) {
-        const det = log?.details || {};
-        const fromVal2 = parseFloat(det.val2);
-        if (Number.isFinite(fromVal2) && fromVal2 > 0) return fromVal2;
-        if (log?.unit === 'min') return parseFloat(log.val) || 0;
-        if (log?.unit === 'h') return (parseFloat(log.val) || 0) * 60;
-        return Math.max(12, Math.min(90, (parseFloat(log?.xp) || 80) / 6));
-    }
-
-    function getSessionLoad(log) {
-        const det = log?.details || {};
-        const rpe = parseInt(det.bio?.rpe || 5, 10);
-        const duration = getDuration(log);
-        const tags = Array.isArray(det.tags) ? det.tags : [];
-        const tagMult = tags.reduce((mult, tag) => mult * (TAGS[tag]?.load || 1), 1);
-        return Math.max(1, Math.round(duration * clamp(rpe || 5, 1, 10) * tagMult));
-    }
+    function getDuration(log) { return window.TitanTraining?.duration(log) ?? 0; }
+    function getSessionLoad(log) { return window.TitanTraining?.load(log) ?? 0; }
 
     function notesLimit(user = window.state?.user) {
         return user && user.is_elite === true ? NOTE_LIMIT_ELITE : NOTE_LIMIT_STD;
@@ -759,6 +744,10 @@
         const fields = normalizeExtraFields(conf.extraFields);
         const raw = extras && typeof extras === 'object' ? extras : {};
 
+        if(/climbing|escalade/i.test(`${conf.balanceProfile} ${conf.label}`)) {
+            const selections={climbing_discipline:['Bloc','Voie'],belay:['Tête','Moulinette','Auto-assurage'],location:['Salle','Extérieur'],grade_system:['Français voie','Fontainebleau bloc','V-scale bloc']};
+            for(const [key,options] of Object.entries(selections))if(options.includes(raw[key]))clean[key]=raw[key];
+        }
         fields.forEach(field => {
             if (!Object.prototype.hasOwnProperty.call(raw, field.id)) return;
             if (!fieldIsVisible(field, Object.assign({}, raw, clean))) return;
@@ -1042,6 +1031,7 @@
     }
 
     function recoverySnapshot(history = window.state?.history || []) {
+        if(history.length<3 || history.some(log=>window.TitanTraining?.load(log)===null))return {score:null,status:'Non évaluée',color:'#a9bdc9',desc:'La récupération ne peut pas être déduite de ces séances. Écoute ton ressenti.',load48:0,load7:0,penaltyMultiplier:1,restRecommended:false,available:false};
         const now = new Date();
         const last48 = history.filter(log => now - parseDate(log.date) <= 2 * DAY_MS);
         const last7 = history.filter(log => now - parseDate(log.date) <= 7 * DAY_MS);
@@ -1055,17 +1045,17 @@
         if (nutrition <= 2) score -= 6;
         if (sleep >= 5) score += 5;
         score = clamp(score, 0, 100);
-        let status = 'FRAIS';
+        let status = 'Charge enregistrée faible';
         let color = '#4ade80';
-        let desc = 'Fenetre propre. Tu peux pousser si la technique reste solide.';
+        let desc = 'Estimation basée sur durée et effort déclaré ; ce score ne mesure pas ta récupération.';
         let penaltyMultiplier = 1;
         if (score < 65) {
-            status = 'SOUS TENSION';
+            status = 'Charge enregistrée soutenue';
             color = '#9ee7ff';
             desc = 'Charge elevee. Une seance controlee garde la progression nette.';
         }
         if (score < 42) {
-            status = 'CRITIQUE';
+            status = 'Charge enregistrée élevée';
             color = '#ef4444';
             desc = 'Surcharge detectee. TITAN reduit legerement la recompense pour privilegier la recuperation.';
             penaltyMultiplier = 0.82;
@@ -1644,8 +1634,8 @@
         const recovery = recoverySnapshot(history);
         const load = target ? getSessionLoad(target) : 0;
         const rpe = parseInt(target?.details?.bio?.rpe || 0, 10);
-        const high = load >= 520 || rpe >= 8 || recovery.score < 45;
-        const medium = load >= 260 || rpe >= 6 || recovery.score < 65;
+        const high = load >= 520 || rpe >= 8 || (Number.isFinite(recovery.score) && recovery.score < 45);
+        const medium = load >= 260 || rpe >= 6 || (Number.isFinite(recovery.score) && recovery.score < 65);
         const duration = high ? 10 : (medium ? 7 : 4);
         const steps = [
             high ? 'Respiration calme 2 min puis marche lente.' : 'Redescente progressive 2 min.',
@@ -1871,6 +1861,8 @@
         const inDays = days => history.filter(log => now - parseDate(log.date).getTime() <= days * DAY_MS);
         const load = logs => logs.reduce((sum, log) => sum + getSessionLoad(log), 0);
         const acute = load(inDays(7));
+        const coverageDays=history.length?Math.floor((now-Math.min(...history.map(l=>new Date(l.date).getTime())))/DAY_MS)+1:0;
+        if(coverageDays<42||history.some(l=>window.TitanTraining?.load(l)===null))return {acute,chronic:null,form:null,ratio:null,monotony:null,status:'Historique insuffisant',coverageDays};
         const chronic = Math.round(load(inDays(42)) / 6);
         const form = chronic - acute;
         const monotony = (() => {
@@ -1965,7 +1957,7 @@
         const isElite = user.is_elite === true;
         const preferredSport = fav?.label || 'ton sport principal';
         const lowVariety = variety.score < 48 && history.length >= 6;
-        const loadRisk = load.status === 'Surcharge' || recovery.score < 45;
+        const loadRisk = load.status === 'Surcharge' || (Number.isFinite(recovery.score) && recovery.score < 45);
         const competitor = loadRisk
             ? APP_DIFFERENTIATION.find(item => item.id === 'whoop')
             : (lowVariety ? APP_DIFFERENTIATION.find(item => item.id === 'strava') : APP_DIFFERENTIATION.find(item => item.id === 'trainingpeaks'));
@@ -2084,7 +2076,7 @@
             result.elitePlan = [
                 { day: 'J+1', focus: alerts[0]?.id === 'monotony' ? 'Variete' : today, note: 'Ajuste selon temps disponible.' },
                 { day: 'J+2', focus: radar.weak?.label || 'Technique', note: 'Bloc court, qualite propre.' },
-                { day: 'J+3', focus: recovery.score < 65 ? 'Recuperation' : 'Progression', note: 'Recontrole charge avant intensite.' },
+                { day: 'J+3', focus: (Number.isFinite(recovery.score) && recovery.score < 65) ? 'Recuperation' : 'Progression', note: 'Recontrole charge avant intensite.' },
                 { day: 'J+4', focus: 'Fenetre libre', note: 'Option 10/20/45 min selon energie.' },
                 { day: 'J+5', focus: radar.dominant?.label || 'Point fort', note: 'Consolider sans depasser le plafond hebdo.' }
             ];
@@ -2723,7 +2715,7 @@
             }
             if (prep.required === 'recovery') {
                 const recovery = recoverySnapshot();
-                if (recovery.score < 42) multiplier *= 0.88;
+                if ((Number.isFinite(recovery.score) && recovery.score < 42)) multiplier *= 0.88;
                 if (recovery.score >= 70) multiplier *= 1.08;
             }
         }

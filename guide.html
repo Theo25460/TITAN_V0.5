@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Guide du suivi sportif et de la progression | TITAN OS Sport</title>
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
     <style>
         body {
             min-height: 100vh;
@@ -399,9 +399,9 @@
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <script src="./js/consent.js?v=100.0" defer></script>
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
+    <script src="./js/consent.js?v=102.0" defer></script>
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
 
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Apprends à utiliser le journal sportif, les statistiques, l’XP, les objectifs et la récupération dans TITAN OS Sport, sur mobile comme sur ordinateur.">
@@ -501,7 +501,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -624,17 +624,18 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="guide">
     <main class="guide-shell">
         <nav class="guide-nav" aria-label="Navigation guide">
-            <a class="guide-brand" href="./index.html">
+            <a class='guide-brand' href='/'>
                 <img src="./image/logo.png" alt="Logo TITAN OS" width="44" height="44" decoding="async">
                 <span>TITAN OS</span>
             </a>
             <div class="guide-actions">
-                <a class="guide-link" href="./login.html"><i class="ri-fingerprint-line"></i> Connexion</a>
-                <a class="guide-link primary" href="./index.html"><i class="ri-dashboard-3-line"></i> Ouvrir le systeme</a>
+                <a class='guide-link' href='/login'><i class="ri-fingerprint-line"></i> Connexion</a>
+                <a class='guide-link primary' href='/'><i class="ri-dashboard-3-line"></i> Ouvrir le systeme</a>
             </div>
         </nav>
 
@@ -685,8 +686,8 @@
                 <li><strong>Aide</strong>Reviens ici depuis Doctrine si l'app devient dense ou si tu veux relancer le guide d'ouverture.</li>
             </ol>
             <div class="guide-inline-actions">
-                <a class="guide-link primary" href="./index.html" onclick="try{localStorage.setItem('titan_force_first_run_guide','1');localStorage.removeItem('titan_first_run_guide_v2');localStorage.removeItem('titan_first_run_guide_v1');}catch(_){ }"><i class="ri-restart-line"></i> Relancer le guide</a>
-                <a class="guide-link" href="./service.html"><i class="ri-lifebuoy-line"></i> Ouvrir Service</a>
+                <a class='guide-link primary' href='/' onclick='try{localStorage.setItem(\'titan_force_first_run_guide\','1\');localStorage.removeItem(\'titan_first_run_guide_v2\');localStorage.removeItem(\'titan_first_run_guide_v1\');}catch(_){ }'><i class="ri-restart-line"></i> Relancer le guide</a>
+                <a class='guide-link' href='/service'><i class="ri-lifebuoy-line"></i> Ouvrir Service</a>
             </div>
         </section>
 
@@ -830,6 +831,7 @@
         </section>
     </main>
 
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

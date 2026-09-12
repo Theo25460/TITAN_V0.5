@@ -7,15 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Mentions legales - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+
     <style>
         /* --- DESIGN SYSTÈME (IDENTIQUE) --- */
         body { background-color: #06070A; color: #cbd5e1; font-family: 'Outfit', sans-serif; }
-        
+
         .legal-layout { display: flex; min-height: 100vh; }
-        
+
         .legal-sidebar { 
             width: 260px; background-color: #161b29; padding: 30px 20px; 
             border-right: 1px solid rgba(255, 255, 255, 0.05); 
@@ -41,11 +41,11 @@
         .back-link:hover { background: #dc2626; }
 
         .legal-content-area { flex-grow: 1; padding: 60px; overflow-y: auto; background: #06070A; }
-        
+
         .doc-header { margin-bottom: 50px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
         .doc-meta { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
         .titular { font-family: 'Russo One'; font-size: 2.5rem; color: #fff; margin: 0; }
-        
+
         /* CARTES INFO */
         .info-card { 
             background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); 
@@ -53,7 +53,7 @@
             transition: 0.3s;
         }
         .info-card:hover { border-color: rgba(126, 220, 255, 0.3); background: rgba(30, 41, 59, 0.6); }
-        
+
         .card-label { 
             color: var(--primary, #9ee7ff); font-family: 'Russo One'; font-size: 1rem; 
             text-transform: uppercase; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; 
@@ -88,10 +88,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
+
+
+
+
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
 
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Consulte les mentions legales de TITAN OS, les informations d'edition, d'hebergement et de contact.">
@@ -189,7 +193,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -266,20 +270,21 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body class="legal-page legal-document legal-mentions" data-page="legal_mentions">
     <div class="legal-layout">
         <nav class="legal-sidebar" aria-label="Navigation legale">
             <div class="sidebar-title">Legal</div>
-            <a href="legal_hub.html" class="legal-link"><i class="ri-dashboard-line"></i> Vue globale</a>
-            <a href="legal_cgu.html" class="legal-link"><i class="ri-file-text-line"></i> CGU</a>
-            <a href="legal_privacy.html" class="legal-link"><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
-            <a href="legal_mentions.html" class="legal-link active"><i class="ri-building-line"></i> Mentions</a>
-            <a href="index.html" class="legal-link back-link"><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
+            <a class='legal-link' href='/legal_hub'><i class="ri-dashboard-line"></i> Vue globale</a>
+            <a class='legal-link' href='/legal_cgu'><i class="ri-file-text-line"></i> CGU</a>
+            <a class='legal-link' href='/legal_privacy'><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
+            <a class='legal-link active' href='/legal_mentions'><i class="ri-building-line"></i> Mentions</a>
+            <a class='legal-link back-link' href='/'><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
         </nav>
 
         <main class="legal-content-area">
-            
+
             <header class="doc-header">
                 <div class="doc-meta">DOCUMENT RÉFÉRENCE : LEG-2026-ID</div>
                 <h1 class="titular" style="color:var(--primary, #9ee7ff);">MENTIONS LÉGALES</h1>
@@ -346,7 +351,7 @@
             <div class="info-card">
                 <div class="card-label"><i class="ri-shield-keyhole-line"></i> DONNÉES PERSONNELLES</div>
                 <div class="card-content">
-                    Les traitements de données sont détaillés dans la <a href="legal_privacy.html">Politique de confidentialité</a>.
+                    Les traitements de données sont détaillés dans la <a href='/legal_privacy'>Politique de confidentialité</a>.
                     Le point de contact pour les demandes RGPD est : <a href="mailto:titanteam.app@gmail.com">titanteam.app@gmail.com</a>.
                     Les utilisateurs disposent notamment des droits d'accès, rectification, effacement, limitation, opposition et portabilité selon les conditions prévues par le RGPD.
                 </div>
@@ -383,6 +388,7 @@
 
         </main>
     </div>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

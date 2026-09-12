@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Connexion indisponible - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
     <meta name="theme-color" content="#0f172a">
     <style>
         body {
@@ -52,40 +52,10 @@
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="TITAN OS ne peut pas charger cette page pour le moment. Retrouve les options disponibles hors connexion.">
     <meta name="author" content="TITAN OS Sport">
@@ -182,7 +152,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -259,6 +229,7 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="network-error">
     <main class="network-shell">
@@ -268,10 +239,11 @@
         <p>Le reseau ne repond pas pour le moment. Les donnees deja chargees peuvent rester disponibles en local; reessaie quand la connexion revient.</p>
         <div class="network-actions">
             <button type="button" onclick="window.location.reload()"><i class="ri-refresh-line"></i> Reessayer</button>
-            <a href="./index.html"><i class="ri-dashboard-3-line"></i> Retour au tableau</a>
+            <a href='/'><i class="ri-dashboard-3-line"></i> Retour au tableau</a>
         </div>
         <div class="network-note">TITAN OS garde le cap même quand la connexion fait une pause.</div>
     </main>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
     <title>Boutique et TITAN+ - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
 
     <style>
         /* HEADER CREDITS & ELITE */
@@ -22,7 +22,7 @@
         }
         .wallet-info .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .wallet-info .val { font-family: 'Russo One'; font-size: 1.8rem; color: #9ee7ff; text-shadow: 0 0 10px rgba(126, 220, 255, 0.2); }
-        
+
         /* STATUS ELITE */
         .elite-widget { text-align: right; }
         .elite-badge-active {
@@ -40,23 +40,23 @@
 
         /* SHOP GRID */
         .shop-category { font-family: 'Russo One'; font-size: 1rem; color: #fff; margin: 30px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; letter-spacing:0; }
-        
+
         .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
-        
+
         .item-card { 
             background: linear-gradient(180deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98)); border: 1px solid rgba(148,163,184,0.12); 
             border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; 
             position: relative; transition: 0.2s; height: 100%; min-width:0;
         }
         .item-card:hover { border-color: rgba(56,189,248,0.3); transform: translateY(-1px); }
-        
+
         /* HEADER IMAGE/ICON */
         .item-header { 
             height: 90px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
             position: relative; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .item-icon { font-size: 3rem; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); transition: 0.3s; }
-        
+
         /* TAGS */
         .tag-limit { 
             position: absolute; top: 8px; right: 8px; 
@@ -81,24 +81,24 @@
         .item-desc { font-size: 0.75rem; color: #94a3b8; margin-bottom: 15px; flex: 1; line-height: 1.45; overflow-wrap:anywhere; }
         .item-meta-row { display:flex; flex-wrap:wrap; gap:6px; margin: 4px 0 12px; }
         .item-meta-pill { font-size:0.62rem; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:800; }
-        
+
         /* FOOTER & ACTION */
         .item-footer { margin-top: auto; }
         .price-tag { font-family: 'Russo One'; color: #9ee7ff; font-size: 1.1rem; margin-bottom: 8px; display: block; }
-        
+
         .btn-shop { 
             width: 100%; border: none; padding: 12px; border-radius: 8px; 
             font-family: 'Russo One'; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; 
             display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
             min-height: 44px; line-height: 1.1; text-align:center;
         }
-        
+
         /* STATES */
         .btn-shop.buy { background: var(--accent); color: #000; }
         .btn-shop.buy:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        
+
         .btn-shop.ad { background: #10b981; color: #000; }
-        
+
         .item-card.disabled { opacity: 0.7; border-color: rgba(255,255,255,0.05); }
         .item-card.disabled .item-icon { filter: grayscale(1); opacity: 0.5; }
         .btn-shop.disabled { background: #334155; color: #64748b; cursor: not-allowed; }
@@ -183,43 +183,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <script src="./js/consent.js?v=100.0" defer></script>
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+
+
+
+    <script src="./js/consent.js?v=102.0" defer></script>
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Personnalise TITAN OS avec tes credits sportifs et decouvre TITAN+: analyses, plans adaptes et collections visuelles sans avantage de puissance.">
     <meta name="author" content="TITAN OS Sport">
@@ -316,7 +289,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -393,13 +366,14 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="boutique">
     <div class="layout">
         <nav class="sidebar"></nav> 
         <main class="main-content">
             <div class="mobile-user-bar"></div>
-            
+
             <header class="page-heading">
                 <div class="page-eyebrow">Personnalisation & abonnement</div>
                 <h1 class="titular">Boutique</h1>
@@ -435,7 +409,7 @@
 
             <section id="shop-economy-board" class="shop-economy-board" aria-label="Règles de la boutique"></section>
 
-            <section id="titan-plus" class="elite-clarity" aria-label="Comparatif gratuit et TITAN+">
+            <p class="tracking-status"><a href="/tarifs">Comparer toutes les fonctionnalités Classique et TITAN+ ↗</a> · <a href="/bilan">Ouvrir mon bilan</a></p><section id="titan-plus" class="elite-clarity" aria-label="Comparatif gratuit et TITAN+">
                 <div class="elite-clarity-col">
                     <div class="elite-clarity-title"><i class="ri-shield-line"></i> Gratuit</div>
                     <ul>
@@ -449,9 +423,9 @@
                     <div class="elite-clarity-title"><i class="ri-vip-crown-2-line"></i> TITAN+</div>
                     <div class="elite-price-pill"><i class="ri-price-tag-3-line"></i> 5 € / mois</div>
                     <ul>
-                        <li>Plan court et adaptatif selon tes sports, ton rythme et ta récupération.</li>
-                        <li>Analyses longues, comparaisons, rapports mensuels et lecture avancée des parcours.</li>
-                        <li>Tableaux de bord personnalisables, notes enrichies et historique mieux comparé.</li>
+                        <li>Bilan comparatif de deux périodes et répartition détaillée par sport.</li>
+                        <li>Charge déclarée, durée et ressenti : des indicateurs accompagnés de leur couverture.</li>
+                        <li>Bibliothèque de 20 routines nommées, notes enrichies et bilan imprimable.</li>
                         <li>Collections saisonnières, thèmes exclusifs et navigation sans promotion facultative.</li>
                     </ul>
                 </div>
@@ -494,12 +468,13 @@
         </main>
     </div>
 
-    <script src="./js/config.js?v=100.0"></script>
-    <script src="./js/data.js?v=100.0"></script>
-    <script src="./js/ui.js?v=100.0"></script>
-    <script src="./js/state.js?v=100.0"></script>
-    <script src="./js/main.js?v=100.0"></script>
-    
+    <script src="./js/config.js?v=102.0"></script>
+    <script src="./js/data.js?v=102.0"></script>
+    <script src="./js/ui.js?v=102.0"></script>
+    <script src="./js/training-store.js?v=102.0"></script>
+    <script src="./js/state.js?v=102.0"></script>
+    <script src="./js/main.js?v=102.0"></script>
+
     <script>
         function shopEscapeText(value, maxLength = 180) {
             const safe = window.titanSafeText
@@ -749,6 +724,7 @@
             }, 500); 
         });
     </script>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

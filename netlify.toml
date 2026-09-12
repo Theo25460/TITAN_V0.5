@@ -488,6 +488,83 @@ to = "/.netlify/functions/:splat"
 status = 200
 
 [[redirects]]
+from = "/journal-course-a-pied.html"
+to = "/journal-course-a-pied"
+status = 301
+force = true
+
+[[redirects]]
+from = "/journal-course-a-pied"
+to = "/journal-course-a-pied.html"
+status = 200
+
+[[redirects]]
+from = "/carnet-musculation.html"
+to = "/carnet-musculation"
+status = 301
+force = true
+
+[[redirects]]
+from = "/carnet-musculation"
+to = "/carnet-musculation.html"
+status = 200
+
+[[redirects]]
+from = "/suivi-escalade.html"
+to = "/suivi-escalade"
+status = 301
+force = true
+
+[[redirects]]
+from = "/suivi-escalade"
+to = "/suivi-escalade.html"
+status = 200
+
+[[redirects]]
+from = "/tarifs.html"
+to = "/tarifs"
+status = 301
+force = true
+
+[[redirects]]
+from = "/tarifs"
+to = "/tarifs.html"
+status = 200
+
+[[redirects]]
+from = "/aujourdhui.html"
+to = "/aujourdhui"
+status = 301
+force = true
+
+[[redirects]]
+from = "/aujourdhui"
+to = "/aujourdhui.html"
+status = 200
+
+[[redirects]]
+from = "/bilan.html"
+to = "/bilan"
+status = 301
+force = true
+
+[[redirects]]
+from = "/bilan"
+to = "/bilan.html"
+status = 200
+
+[[redirects]]
+from = "/pour-les-coachs.html"
+to = "/pour-les-coachs"
+status = 301
+force = true
+
+[[redirects]]
+from = "/pour-les-coachs"
+to = "/pour-les-coachs.html"
+status = 200
+
+[[redirects]]
   from = "/*"
   to = "/404.html"
   status = 404
@@ -746,3 +823,13 @@ status = 200
   for = "/sys_core_override_99"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/aujourdhui"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/bilan"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"

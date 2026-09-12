@@ -138,91 +138,57 @@ window.titanBuildCloudReadiness = function() {
     };
 };
 
-function readPendingTrainingLogs() {
-    try { return JSON.parse(localStorage.getItem(TITAN_PENDING_TRAINING_KEY) || '[]'); }
-    catch (_) { return []; }
-}
-
-function writePendingTrainingLogs(queue) {
-    try { localStorage.setItem(TITAN_PENDING_TRAINING_KEY, JSON.stringify(queue.slice(-50))); }
-    catch (_) {}
-}
-
+function readPendingTrainingLogs() { return window.TitanQueue?.list() || []; }
 function queuePendingTrainingLog(payload, reason = '') {
-    const queue = readPendingTrainingLogs();
-    const key = `${payload.date}:${payload.sport}:${payload.val}`;
-    if (!queue.some(item => item.key === key)) {
-        const ownerId = window.state?.user?.id && !window.state.user.id.startsWith('guest_') ? window.state.user.id : null;
-        queue.push({ key, ownerId, payload, reason: String(reason || '').slice(0, 240), queuedAt: new Date().toISOString() });
-        writePendingTrainingLogs(queue);
-    }
-    recordTrainingSyncDiagnostic('queued', { reason: String(reason || '').slice(0, 240), sport: payload.sport, value: payload.val });
-    if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Séance à enregistrer');
+    const ownerId=window.state?.user?.id;
+    return window.TitanQueue.put({key: `${ownerId}:${payload.details.client_event_id}`,ownerId,payload:JSON.parse(JSON.stringify(payload)),reason,status:'pending',queuedAt:new Date().toISOString()});
 }
-
-async function submitTrainingSessionToCloud(payload, sessionUserId) {
-    if (!window.titanClient || !sessionUserId) return { data: null, error: new Error('NO_CLOUD_SESSION'), mode: 'none' };
-
-    if (typeof window.titanClient.rpc === 'function') {
-        const rpcPayload = {
-            p_sport: payload.sport,
-            p_category: payload.category || 'training',
-            p_val: payload.val,
-            p_unit: payload.unit || '',
-            p_details: payload.details || {},
-            p_date: payload.date
-        };
-        const { data, error } = await window.titanClient.rpc('titan_submit_training_session', rpcPayload);
-        if (!error && Array.isArray(data) && data[0]?.log_id) {
-            return { data: { id: data[0].log_id, serverReward: data[0] }, error: null, mode: 'rpc' };
+async function submitTrainingSessionToCloud(payload, session) {
+    if(!session?.access_token||session.user?.id!==window.state?.user?.id)return {error:new Error('NO_CLOUD_SESSION')};
+    // Bind this queued operation to the captured owner's token even if another tab signs in meanwhile.
+    const response=await fetch(`${window.TITAN_SUPABASE_URL}/rest/v1/rpc/titan_submit_training_session`,{
+        method:'POST',headers:{'Content-Type':'application/json',apikey:window.TITAN_SUPABASE_ANON_KEY,Authorization:`Bearer ${session.access_token}`},
+        body:JSON.stringify({p_sport:payload.sport,p_category:payload.category,p_val:payload.val,p_unit:payload.unit,p_details:payload.details,p_date:payload.date}),
+        signal:AbortSignal.timeout(20000)
+    });
+    const body=await response.json();const result=response.ok?{data:body}:{error:body};
+    const row=Array.isArray(result.data)?result.data[0]:result.data;
+    return result.error?{error:result.error}:row?.log_id?{data:{id:row.log_id,serverReward:row}}:{error:new Error('SERVER_AUTHORITY_REQUIRED')};
+}
+let trainingFlush;
+window.flushPendingTrainingLogs = function(options={}) {
+    if(trainingFlush)return trainingFlush;
+    const run=async()=>{
+        await window.TitanQueue.migrate();
+        const session=await window.titanClient?.auth.getSession();const uid=session?.data?.session?.user?.id;
+        if(!uid||uid!==window.state?.user?.id)return {sent:0,remaining:readPendingTrainingLogs().length};
+        const items=await window.TitanQueue.refresh();let sent=0;
+        for(const item of items){
+            if(window.state?.user?.id!==uid)break;
+            if(item.ownerId!==uid||(item.status==='error'&&!options.retry))continue;
+            try {
+                const {data,error}=await submitTrainingSessionToCloud(item.payload,session.data.session);
+                if(error)throw error;
+                const reward=data.serverReward;
+                const local=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
+                if(local){local.id=data.id;local.syncStatus='confirmed';local.xp=reward.xp;local.revision=1;local.details.serverReward=reward;}
+                await window.TitanQueue.remove(item.key);sent++;
+                if(window.state?.user?.id===uid){window.state.user.xp=reward.xp_after;window.state.user.credits=reward.credits_after;window.state.user.level=reward.level_after;await window.TitanQueue.saveHistory(uid,[...window.state.history,...(window.state.archivedHistory||[])]);}
+            } catch(error){
+                const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
+                await window.TitanQueue.put({...item,status:permanent?'error':'pending',reason:error.message||'Connexion indisponible'});
+                if(!permanent)break;
+            }
         }
-        if (error && error.code !== 'PGRST202' && !String(error.message || '').includes('Could not find the function')) {
-            return { data: null, error, mode: 'rpc' };
-        }
-    }
-
-    return {
-        data: null,
-        error: new Error('SERVER_AUTHORITY_REQUIRED'),
-        mode: 'rpc_required'
+        window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
+        const remaining=readPendingTrainingLogs().length;
+        window.titanSetSyncStatus?.(remaining?'pending':'cloud',remaining?`${remaining} séance(s) sur cet appareil`:'Séances synchronisées');
+        return {sent,remaining};
     };
-}
-
-window.flushPendingTrainingLogs = async function() {
-    const queue = readPendingTrainingLogs();
-    if (!queue.length || !window.titanClient) return { sent: 0, remaining: queue.length };
-
-    const { data } = await window.titanClient.auth.getSession();
-    const sessionUserId = data?.session?.user?.id;
-    if (!sessionUserId) return { sent: 0, remaining: queue.length };
-
-    const remaining = [];
-    let sent = 0;
-    for (const item of queue) {
-        if (item.ownerId && item.ownerId !== sessionUserId) {
-            remaining.push(item);
-            continue;
-        }
-        const payload = Object.assign({}, item.payload);
-        const { data: insertedLog, error } = await submitTrainingSessionToCloud(payload, sessionUserId);
-        if (error || !insertedLog) remaining.push(item);
-        else sent++;
-    }
-
-    writePendingTrainingLogs(remaining);
-    if (sent > 0 && typeof window.titanRefreshProgressionSnapshot === 'function') {
-        await window.titanRefreshProgressionSnapshot({ silent: true });
-    }
-    recordTrainingSyncDiagnostic(sent > 0 ? 'flush_synced' : 'flush_checked', { sent, remaining: remaining.length });
-    if (typeof window.titanSetSyncStatus === 'function') {
-        window.titanSetSyncStatus(remaining.length ? 'pending' : 'cloud', remaining.length ? `${remaining.length} séance(s) à enregistrer` : 'Sauvegardé');
-    }
-    return { sent, remaining: remaining.length };
+    trainingFlush=(navigator.locks?navigator.locks.request('titan-training-send',run):run()).finally(()=>{trainingFlush=null;});
+    return trainingFlush;
 };
-
-window.titanGetPendingTrainingLogs = function() {
-    return readPendingTrainingLogs();
-};
+window.addEventListener('online',()=>window.flushPendingTrainingLogs().catch(()=>{}));
 
 function titanBuildPostSessionSummary(log, rewardResult, analysis = {}, titanResult = {}) {
     const history = window.state?.history || [];
@@ -294,7 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if(typeof window.injectFavicon === 'function') window.injectFavicon();
     
     // B. Chargement des données
-    if(typeof window.loadState === 'function') window.loadState(); 
+    if(typeof window.loadState === 'function') window.loadState();
+    const cacheOwner=window.state?.user?.id;
+    window.TitanQueue?.readHistory(cacheOwner).then(async logs=>{await window.TitanQueue.migrate();if(window.state?.user?.id!==cacheOwner||window.titanCloudHistoryLoadedAt)return;const merged=new Map(logs.map(l=>[l.client_event_id||l.id,l]));for(const item of window.TitanQueue.list()){const id=item.payload.details.client_event_id;if(!merged.has(id))merged.set(id,{...item.payload,id,client_event_id:id,cat:item.payload.category,xp:0,syncStatus:item.status});}if(merged.size){const all=[...merged.values()];window.state.history=all.filter(l=>!l.archived_at);window.state.archivedHistory=all.filter(l=>l.archived_at);window.dispatchEvent(new CustomEvent('titan:history-updated'));}}).catch(()=>{});
     
     // C. Construction de l'interface
     if(typeof window.injectSidebar === 'function') window.injectSidebar();
@@ -316,12 +284,14 @@ async function setupTitanAuthListener() {
     if (!window.titanClient || window.__titanAuthListenerBound) return;
 
     window.__titanAuthListenerBound = true;
-    window.titanClient.auth.onAuthStateChange(async (event, session) => {
+    window.titanClient.auth.onAuthStateChange((event, session) => {
+        setTimeout(async()=>{
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();
             if(typeof window.flushPendingTrainingLogs === 'function') await window.flushPendingTrainingLogs();
             if(typeof window.titanRefreshProgressionSnapshot === 'function') await window.titanRefreshProgressionSnapshot({ silent: true });
         }
+        },0);
     });
 }
 
@@ -378,264 +348,31 @@ async function initSystem() {
    LOGIQUE DE JEU (XP, CHARGE, NIVEAUX)
    ========================================= */
 
-window.logActivity = function(sportKey, dataInput) {
-    if (!window.state || !window.SPORTS_CONFIG) return;
-    if (dataInput && typeof dataInput === 'object' && typeof window.titanSanitizeSessionDetails === 'function') {
-        dataInput = window.titanSanitizeSessionDetails(dataInput, window.state.user, sportKey);
-    }
-    
-    // 1. Calcul de la valeur numérique
-    let numericValue = 0;
-    if (typeof dataInput === 'object' && dataInput !== null) {
-        if (dataInput.val1) {
-            let cleanVal = String(dataInput.val1).replace(',', '.');
-            numericValue = parseFloat(cleanVal);
-        } else if (dataInput.exercises) {
-            const weightedVolume = dataInput.exercises.reduce((acc, ex) => acc + (Number(ex.volume || 0) || (Number(ex.weight || 0) * Number(ex.sets || 0) * Number(ex.reps || 0))), 0);
-            const bodyweightVolume = dataInput.exercises.reduce((acc, ex) => acc + (Number(ex.totalReps || 0) || (Number(ex.sets || 0) * Number(ex.reps || 0))), 0);
-            numericValue = weightedVolume > 0 ? weightedVolume : bodyweightVolume;
-        }
-    } else {
-        let cleanVal = String(dataInput).replace(',', '.');
-        numericValue = parseFloat(cleanVal);
-    }
-
-    if (isNaN(numericValue) || numericValue <= 0) {
-        if(typeof window.showNotification === 'function') window.showNotification('error', 'ERREUR', 'Aucune valeur valide détectée.');
-        return;
-    }
-
-    const config = window.SPORTS_CONFIG[sportKey];
-    if (!config) return;
-    const titanAnalysis = (typeof window.titanAnalyzeSession === 'function')
-        ? window.titanAnalyzeSession(sportKey, dataInput, numericValue)
-        : { plannedBoost: dataInput?.isPlanned ? 1.08 : 1, penaltyMultiplier: 1, overloadPenalty: false, sportFamily: config.cat || 'general' };
-    
-    // 2. Calcul des multiplicateurs
-    const xpBase = config.xp || 10;
-    let multiplier = 1;
-    if (dataInput.elevation && dataInput.elevation > 0) { multiplier += (dataInput.elevation / 100) * 0.02; }
-    if (dataInput.bio && dataInput.bio.rpe) { const rpe = parseInt(dataInput.bio.rpe); if(!isNaN(rpe) && rpe > 5) { multiplier += (rpe - 5) * 0.01; } }
-
-    let talentMultiplier = 1;
-    let creditMultiplier = 1;
-    if (window.state.user.unlockedTalents && window.TALENT_TREE) {
-        window.state.user.unlockedTalents.forEach(tId => {
-            const t = window.TALENT_TREE[tId];
-            if (!t) return;
-            if (t.stat === 'strength' && config.cat === 'muscu') talentMultiplier += t.bonus;
-            if (t.stat === 'agility' && config.cat === 'cardio') talentMultiplier += t.bonus;
-            if ((t.stat === 'endurance' || t.stat === 'endurance_xp' || t.stat === 'endurance_boost') && (config.cat === 'cardio' || config.cat === 'crossfit')) talentMultiplier += t.bonus;
-            if (t.stat === 'gold') creditMultiplier += t.bonus;
-        });
-    }
-
-    // 3. Application des gains
-    titanAnalysis.talentMultiplier = talentMultiplier;
-    titanAnalysis.creditMultiplier = creditMultiplier;
-    const legacyXp = Math.max(1, Math.floor((numericValue * xpBase) * multiplier * talentMultiplier * (titanAnalysis.plannedBoost || 1) * (titanAnalysis.penaltyMultiplier || 1)));
-    let rewardResult = { xp: legacyXp, credits: Math.floor(legacyXp * 0.16 * creditMultiplier), requestedXp: legacyXp, requestedCredits: Math.floor(legacyXp * 0.16 * creditMultiplier), baseXp: legacyXp, extrasBonus: 0 };
-    if (typeof window.titanComputeSessionRewards === 'function') {
-        try {
-            rewardResult = window.titanComputeSessionRewards(sportKey, dataInput, numericValue, titanAnalysis);
-            if (!rewardResult || isNaN(rewardResult.xp) || rewardResult.xp < 0) throw new Error('Reward result invalid');
-        } catch (rewardError) {
-            console.warn('[TITAN XP] Calcul v43 indisponible, fallback legacy:', rewardError);
-            rewardResult = { xp: legacyXp, credits: Math.floor(legacyXp * 0.16 * creditMultiplier), requestedXp: legacyXp, requestedCredits: Math.floor(legacyXp * 0.16 * creditMultiplier), baseXp: legacyXp, extrasBonus: 0 };
-        }
-    }
-    const earnedXp = rewardResult.xp;
-    const earnedCredits = Math.max(0, Number.isFinite(Number(rewardResult.credits)) ? Math.floor(Number(rewardResult.credits)) : Math.floor(earnedXp * 0.16 * creditMultiplier)); 
-    const isConnectedCloudUser = !!(window.titanClient && window.state.user.id && !window.state.user.id.startsWith('guest_'));
-    
-    window.state.user.xp = (window.state.user.xp || 0) + earnedXp;
-    window.state.user.credits = (window.state.user.credits || 0) + earnedCredits;
-    window.state.user.dailyXp = (window.state.user.dailyXp || 0) + earnedXp;
-    
-    window.addCharge(earnedXp); // Charge la batterie
-    if (!window.state.game) window.state.game = {};
-    window.state.game.lastTrainingSport = sportKey;
-    window.state.game.lastTrainingFamily = titanAnalysis.sportFamily || (config.cat || 'general');
-    
-    // 4. Enregistrement dans l'historique LOCAL
-    const newLog = {
-        id: Date.now(),
-        date: (dataInput && typeof dataInput === 'object' && Number.isFinite(new Date(dataInput.performedAt).getTime()) && new Date(dataInput.performedAt).getTime() <= Date.now() + 60000)
-            ? new Date(dataInput.performedAt).toISOString()
-            : new Date().toISOString(),
-        sport: sportKey, 
-        cat: config.cat || 'training',
-        val: numericValue,
-        unit: config.unit || '',
-        xp: earnedXp,
-        eliteTrace: window.state.user.is_elite === true,
-        visualRank: window.state.user.is_elite === true ? 'ELITE' : 'STANDARD',
-        details: dataInput 
-    };
-    if (newLog.details && typeof newLog.details === 'object') {
-        newLog.details.rewardMeta = {
-            baseXp: rewardResult.baseXp || earnedXp,
-            extrasBonus: rewardResult.extrasBonus || 0,
-            credits: earnedCredits,
-            requestedXp: rewardResult.requestedXp ?? earnedXp,
-            requestedCredits: rewardResult.requestedCredits ?? earnedCredits,
-            weeklyCapped: rewardResult.weeklyCapped === true,
-            weeklyXpRemaining: rewardResult.weeklyXpRemaining,
-            weeklyCreditsRemaining: rewardResult.weeklyCreditsRemaining,
-            creditRatio: rewardResult.creditRatio || 0.16,
-            balanceProfile: rewardResult.balanceProfile || config.balanceProfile || config.cat || 'generic',
-            rulesVersion: rewardResult.rulesVersion || 'sport-balance-v69-local'
-        };
-    }
-
-    if (!window.state.history) window.state.history = [];
-    window.state.history.push(newLog);
-    const titanResult = (typeof window.titanAfterActivityLogged === 'function')
-        ? window.titanAfterActivityLogged(newLog, titanAnalysis)
-        : { records: [], badges: [], titles: [], summary: '' };
-    
-    if (typeof window.checkActiveChallenges === 'function') window.checkActiveChallenges(sportKey, numericValue);
-    if (typeof window.validateWeeklyActivity === 'function') window.validateWeeklyActivity();
-    window.state.user.lastSessionSummary = titanBuildPostSessionSummary(newLog, rewardResult, titanAnalysis, titanResult);
-
-    const cloudLogPayload = {
-        sport: sportKey,
-        category: config.cat || 'training',
-        val: numericValue,
-        unit: config.unit || '',
-        xp: earnedXp,
-        date: newLog.date,
-        details: newLog.details
-    };
-
-    // 5. Sauvegarde Cloud
-    if (window.titanClient) {
-        window.titanClient.auth.getSession().then(async ({ data }) => {
-            const sessionUserId = data?.session?.user?.id;
-
-            if (!sessionUserId) {
-                console.warn("Session Supabase absente : sauvegarde locale uniquement.");
-                recordTrainingSyncDiagnostic('no_auth_session', { sport: sportKey, value: numericValue });
-                queuePendingTrainingLog(cloudLogPayload, 'session_absente');
-                if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('local', 'Seance locale');
-                if (typeof window.showNotification === 'function') {
-                    window.showNotification('warning', 'SESSION EXPIREE', 'Seance gardee en local. Reconnecte-toi pour synchroniser.');
-                }
-                return;
-            }
-
-            window.state.user.id = sessionUserId;
-            if (typeof window.ensureStateIntegrity === 'function') window.ensureStateIntegrity();
-            if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Enregistrement…');
-
-            const { data: insertedLog, error, mode } = await submitTrainingSessionToCloud(cloudLogPayload, sessionUserId);
-            if(error) {
-                console.error("Log DB Error:", error);
-                recordTrainingSyncDiagnostic('error', {
-                    mode,
-                    sport: sportKey,
-                    value: numericValue,
-                    code: error.code || '',
-                    message: error.message || String(error)
-                });
-                if (error.message === 'SERVER_AUTHORITY_REQUIRED') {
-                    queuePendingTrainingLog(cloudLogPayload, 'validation_serveur_absente');
-                    if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'À enregistrer');
-                    if(typeof window.showNotification === 'function') window.showNotification('warning', 'SÉANCE EN ATTENTE', 'Ta séance est conservée sur cet appareil et sera enregistrée plus tard.');
-                } else if (window.titanIsSuspendedError?.(error)) {
-                    if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('error', 'Compte suspendu');
-                    if (window.titanNotifySuspended) window.titanNotifySuspended();
-                } else {
-                    queuePendingTrainingLog(cloudLogPayload, error.message);
-                    if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('error', 'Séance non enregistrée');
-                    if(typeof window.showNotification === 'function') window.showNotification('error', 'ÉCHEC SAUVEGARDE', 'Erreur Base de Données: ' + error.message);
-                }
-            } else if (!insertedLog) {
-                console.warn("Log DB rejected without error: trigger returned no row.");
-                recordTrainingSyncDiagnostic('rejected_without_error', { mode, sport: sportKey, value: numericValue });
-                if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('error', 'Séance non enregistrée');
-                if(typeof window.showNotification === 'function') window.showNotification('warning', 'SÉANCE NON ENREGISTRÉE', 'Ta séance reste sur cet appareil. Vérifie ton compte puis réessaie.');
-            } else {
-                recordTrainingSyncDiagnostic('synced', { mode, sport: sportKey, value: numericValue, id: insertedLog.id || null });
-                if (insertedLog.serverReward && newLog.details && typeof newLog.details === 'object') {
-                    newLog.details.serverReward = insertedLog.serverReward;
-                    newLog.details.serverRewardMode = mode;
-                    const serverReward = insertedLog.serverReward;
-                    if (Number.isFinite(Number(serverReward.xp))) {
-                        const serverXp = Number(serverReward.xp);
-                        const xpDelta = serverXp - (Number(newLog.xp) || 0);
-                        newLog.xp = serverXp;
-                        window.state.user.dailyXp = Math.max(0, (window.state.user.dailyXp || 0) + xpDelta);
-                    }
-                    if (newLog.details.rewardMeta) {
-                        newLog.details.rewardMeta.credits = Number(serverReward.credits || newLog.details.rewardMeta.credits || 0);
-                        newLog.details.rewardMeta.requestedXp = Number(serverReward.requested_xp || newLog.details.rewardMeta.requestedXp || 0);
-                        newLog.details.rewardMeta.requestedCredits = Number(serverReward.requested_credits || newLog.details.rewardMeta.requestedCredits || 0);
-                        newLog.details.rewardMeta.weeklyCapped = Number(serverReward.xp || 0) < Number(serverReward.requested_xp || serverReward.xp || 0) || Number(serverReward.credits || 0) < Number(serverReward.requested_credits || serverReward.credits || 0);
-                        newLog.details.rewardMeta.weeklyXpRemaining = Number(serverReward.weekly_xp_remaining || 0);
-                        newLog.details.rewardMeta.weeklyCreditsRemaining = Number(serverReward.weekly_credits_remaining || 0);
-                        newLog.details.rewardMeta.rulesVersion = serverReward.server_version || 'sport-balance-v69-server';
-                    }
-                    if (Number.isFinite(Number(serverReward.credits_after))) window.state.user.credits = Number(serverReward.credits_after);
-                    if (Number.isFinite(Number(serverReward.xp_after))) window.state.user.xp = Number(serverReward.xp_after);
-                    if (Number.isFinite(Number(serverReward.level_after))) window.state.user.level = Number(serverReward.level_after);
-                    recordProgressionSnapshot({
-                        server_user_id: sessionUserId,
-                        level: window.state.user.level,
-                        xp: window.state.user.xp,
-                        credits: window.state.user.credits,
-                        weekly_xp_remaining: Number(serverReward.weekly_xp_remaining || 0),
-                        weekly_credits_remaining: Number(serverReward.weekly_credits_remaining || 0),
-                        authority: 'server_reward',
-                        rules_version: serverReward.server_version || 'sport-balance-server',
-                        checked_at: new Date().toISOString()
-                    }, 'reward_rpc');
-                    if (Number(serverReward.xp) <= 0 && typeof window.showNotification === 'function') {
-                        window.showNotification('warning', 'PLAFOND HEBDO', 'Seance enregistree, recompense XP/credits plafonnee cette semaine.');
-                    }
-                }
-                if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('cloud', 'Sauvegardé');
-                if (typeof window.saveState === 'function') window.saveState({ forceCloud: true });
-                if (typeof window.titanRefreshProgressionSnapshot === 'function') window.titanRefreshProgressionSnapshot({ silent: true });
-            }
-        }).catch((authError) => {
-            recordTrainingSyncDiagnostic('auth_session_error', {
-                sport: sportKey,
-                value: numericValue,
-                message: authError?.message || String(authError)
-            });
-            queuePendingTrainingLog(cloudLogPayload, authError?.message || 'auth_session_error');
-            if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('error', 'Compte temporairement indisponible');
-            if (typeof window.showNotification === 'function') window.showNotification('warning', 'SÉANCE EN ATTENTE', 'Ta séance reste sur cet appareil. Reconnecte-toi pour l’enregistrer.');
-        });
-    } else {
-        console.warn("Utilisateur Invité ou Déconnecté : Pas de sauvegarde Cloud.");
-        recordTrainingSyncDiagnostic('no_supabase_client', { sport: sportKey, value: numericValue });
-        if (window.state.user.id && !window.state.user.id.startsWith('guest_')) {
-            queuePendingTrainingLog(cloudLogPayload, 'client_supabase_indisponible');
-        }
-        if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('local', 'Sur cet appareil');
-        if(typeof window.showNotification === 'function' && window.state.user.id.startsWith('guest_')) {
-            window.showNotification('info', 'MODE INVITÉ', 'Sauvegarde locale uniquement.');
-        }
-    }
-
-    if(typeof window.saveState === 'function') window.saveState();
-    if (!isConnectedCloudUser) checkLevelUp();
-    
-    if(typeof window.showNotification === 'function') {
-        const penaltyText = titanAnalysis.overloadPenalty ? ' | Penalite surcharge active' : '';
-        window.showNotification('success', 'SEANCE VALIDEE', `+${earnedXp} XP | +${earnedCredits} Credits | Charge +${earnedXp}${penaltyText}`);
-        if (titanResult.summary) window.showNotification('info', 'RAPPORT SESSION', titanResult.summary);
-        if ((titanResult.qualities || []).length) window.showNotification('info', 'QUALITES', `Signal: ${(titanResult.qualities || []).map(q => q.label).join(' + ')}`);
-        (titanResult.records || []).slice(0, 2).forEach(record => window.showNotification('level', 'NOUVEAU RECORD', `${record.label} : ${record.value.toLocaleString()} ${record.unit}`));
-        (titanResult.badges || []).slice(0, 2).forEach(badge => window.showNotification('success', 'BADGE DISCIPLINE', badge.label));
-        (titanResult.titles || []).slice(0, 1).forEach(title => window.showNotification('level', 'TITRE DEBLOQUE', title.label));
-    }
-    if(typeof window.updateGlobalUI === 'function') window.updateGlobalUI();
-
-    return newLog;
-
+window.logActivity = async function(sportKey, dataInput) {
+    if(!window.state||!window.SPORTS_CONFIG?.[sportKey])throw new Error('Choisis un sport.');
+    if(!window.TitanQueue)throw new Error('Le stockage de cet appareil est indisponible. Exporte tes données avant de continuer.');
+    const config=window.SPORTS_CONFIG[sportKey];
+    const details=window.titanSanitizeSessionDetails?window.titanSanitizeSessionDetails(dataInput,window.state.user,sportKey):dataInput;
+    const weighted=(details.exercises||[]).reduce((n,e)=>n+(Number(e.volume)||0),0);
+    const reps=(details.exercises||[]).reduce((n,e)=>n+(Number(e.totalReps)||0),0);
+    const value=Number(details.val1)||(weighted>0?weighted:reps);
+    if(!Number.isFinite(value)||value<=0)throw new Error('Renseigne une valeur supérieure à zéro.');
+    details.client_event_id=details.client_event_id||crypto.randomUUID();details.schemaVersion=2;
+    details.timezone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const date=details.performedAt||new Date().toISOString();
+    if(details.exercises?.length&&!details.exercises.some(e=>Number(e.volume)>0))details.unitOverride='reps';
+    const payload={sport:sportKey,category:config.cat||'training',val:value,unit:details.unitOverride||config.unit||'',date,details};
+    // The durable write MUST succeed before clearing the form or celebrating a save.
+    const guest=String(window.state.user.id).startsWith('guest_');
+    const log={...payload,id:details.client_event_id,client_event_id:details.client_event_id,cat:payload.category,xp:0,syncStatus:guest?'local':'pending',revision:1};
+    if(guest)await window.TitanQueue.saveGuestSession(window.state.user.id,log);
+    else await queuePendingTrainingLog(payload);
+    window.state.history=window.state.history||[];
+    if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);
+    window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
+    window.flushPendingTrainingLogs().catch(()=>window.titanSetSyncStatus?.('pending','Séance conservée sur cet appareil'));
+    window.showNotification?.('success','Séance conservée',guest?'Enregistrée sur cet appareil. Retrouve-la dans ton journal.':'Enregistrée sur cet appareil. La confirmation cloud apparaît dans le journal.');
+    return log;
 };
 
 window.addCharge = function(amount) {
@@ -994,108 +731,13 @@ async function finalizePurchase(item, cost) {
    SOCIAL (DÉFIS & PARIS)
    ========================================= */
 
-async function createWagerChallengeOnServer(opponentId, sport, stake) {
-    if (!window.titanClient || !window.titanClient.rpc) return null;
-    if (!window.state?.user?.id || window.state.user.id.startsWith('guest_')) return null;
-
-    try {
-        const { data, error } = await window.titanClient.rpc('titan_create_wager_challenge', {
-            p_opponent_id: opponentId,
-            p_sport: sport,
-            p_stake: stake
-        });
-        if (error) {
-            const msg = `${error.code || ''} ${error.message || ''}`.toUpperCase();
-            if (error.code === 'PGRST202' || msg.includes('FUNCTION') || msg.includes('TITAN_CREATE_WAGER_CHALLENGE')) return null;
-            if (msg.includes('NO_FUNDS')) throw new Error('NO_FUNDS');
-            if (window.titanIsSuspendedError?.(error)) throw new Error('ACCOUNT_SUSPENDED');
-            throw error;
-        }
-        return Array.isArray(data) ? (data[0] || null) : (data || null);
-    } catch (err) {
-        if (err && ['NO_FUNDS', 'ACCOUNT_SUSPENDED'].includes(err.message)) throw err;
-        console.warn('[TITAN SOCIAL] Defi serveur indisponible:', err);
-        return null;
-    }
-}
-
-window.createWager = async function(opponentId, sport, stake) {
-    if (!window.titanClient) return;
-    const canTryServerWager = !!(window.titanClient.rpc && window.state?.user?.id && !window.state.user.id.startsWith('guest_'));
-    if (!canTryServerWager && window.state.user.credits < stake) return (typeof window.showNotification === 'function') && window.showNotification('error', 'FONDS INSUFFISANTS', 'Pas assez de crédits.');
-
-    try {
-        const serverChallenge = await createWagerChallengeOnServer(opponentId, sport, stake);
-        if (serverChallenge) {
-            if (typeof serverChallenge.credits_after !== 'undefined') window.state.user.credits = Number(serverChallenge.credits_after || 0);
-            if(typeof window.saveState === 'function') window.saveState();
-            if(typeof window.showNotification === 'function') window.showNotification('success', 'DÉFI LANCÉ', `Mise de ${serverChallenge.stake || stake} crédits verrouillée.`);
-            return;
-        }
-        if (canTryServerWager) {
-            if(typeof window.showNotification === 'function') window.showNotification('warning', 'VALIDATION SERVEUR', 'Defi payant bloque tant que la RPC serveur n est pas disponible.');
-            return;
-        }
-    } catch (err) {
-        if (err.message === 'ACCOUNT_SUSPENDED' && window.titanNotifySuspended) window.titanNotifySuspended();
-        else if(typeof window.showNotification === 'function') window.showNotification('error', 'FONDS INSUFFISANTS', 'Pas assez de crédits.');
-        return;
-    }
-
-    if (window.state.user.credits < stake) return (typeof window.showNotification === 'function') && window.showNotification('error', 'FONDS INSUFFISANTS', 'Pas assez de crédits.');
-    
-    window.state.user.credits -= stake;
-    if(typeof window.saveState === 'function') window.saveState();
-    
-    const { error } = await window.titanClient.from('social_challenges').insert({
-        challenger_id: window.state.user.id,
-        opponent_id: opponentId,
-        type: 'wager',
-        sport: sport,
-        stake: stake,
-        status: 'pending', 
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    });
-
-    if (error) {
-        window.state.user.credits += stake; 
-        if(typeof window.saveState === 'function') window.saveState();
-        if(typeof window.showNotification === 'function') window.showNotification('error', 'ERREUR RÉSEAU', 'Défi annulé.');
-    } else {
-        if(typeof window.showNotification === 'function') window.showNotification('success', 'DÉFI LANCÉ', `Mise de ${stake} crédits verrouillée.`);
-    }
+window.createWager = async function() {window.showNotification?.('info','Défis','Les mises en crédits sont désactivées. Utilise un défi sportif sans mise.');};
+window.createGhost = async function(opponentId,sport,targetVal) {
+    const {error}=await window.titanClient.rpc('titan_create_social_challenge',{p_opponent:opponentId,p_sport:sport,p_target:targetVal});
+    window.showNotification?.(error?'error':'success','Défi sportif',error?'Le défi n’a pas pu être créé.':'Invitation créée, sans mise de crédits.');
 };
-
-window.createGhost = async function(opponentId, sport, targetVal) {
-    if (!window.titanClient) return;
-    await window.titanClient.from('social_challenges').insert({
-        challenger_id: window.state.user.id,
-        opponent_id: opponentId,
-        type: 'ghost',
-        sport: sport,
-        target_val: targetVal,
-        status: 'active'
-    });
-    if(typeof window.showNotification === 'function') window.showNotification('info', 'MODE FANTÔME', 'Objectif verrouillé. À toi de jouer !');
-    if(typeof window.loadServerData === 'function') window.loadServerData(); 
-};
-
-window.checkActiveChallenges = async function(sport, val) {
-    if (!window.ACTIVE_CHALLENGES || window.ACTIVE_CHALLENGES.length === 0) return;
-    const ghosts = window.ACTIVE_CHALLENGES.filter(c => c.type === 'ghost' && c.sport === sport && c.status === 'active' && c.challenger_id === window.state.user.id);
-    for (const g of ghosts) {
-        if (val >= g.target_val) {
-            await window.titanClient.from('social_challenges').update({ status: 'finished', winner_id: window.state.user.id }).eq('id', g.id);
-            if(typeof window.showNotification === 'function') window.showNotification('success', 'FANTÔME BATTU', 'Cible neutralisée !');
-        }
-    }
-};
-
-window.resolveWagers = async function() {
-    if(!window.ACTIVE_CHALLENGES) return;
-    const now = new Date().toISOString();
-    const expired = window.ACTIVE_CHALLENGES.filter(c => c.type === 'wager' && c.status === 'active' && c.expires_at < now);
-};
+window.checkActiveChallenges = async function() {};
+window.resolveWagers = async function() {};
 
 window.getCurrentWeekId = function(d = new Date()) {
     const onejan = new Date(d.getFullYear(), 0, 1);
@@ -1452,5 +1094,3 @@ window.devCaptureState = function() {
     }
     return true;
 };
-
-

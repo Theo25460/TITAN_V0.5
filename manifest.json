@@ -1,16 +1,16 @@
 {
-  "name": "TITAN OS Sport — suivi multisport",
-  "short_name": "TITAN Sport",
+  "name": "TITAN — Tous tes sports. Ton histoire.",
+  "short_name": "TITAN",
   "description": "Journal multisport, statistiques lisibles et progression motivante pour plus de 260 disciplines.",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/aujourdhui",
   "scope": "/",
   "display": "standalone",
   "lang": "fr-FR",
   "dir": "ltr",
-  "background_color": "#03080d",
-  "theme_color": "#071019",
-  "orientation": "portrait",
+  "background_color": "#070c10",
+  "theme_color": "#070c10",
+  "orientation": "any",
   "prefer_related_applications": false,
   "categories": [
     "health",
@@ -29,14 +29,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/image/og-titan-os.png",
-      "sizes": "1200x630",
-      "type": "image/png",
-      "label": "Apercu de TITAN OS"
     }
   ],
   "shortcuts": [

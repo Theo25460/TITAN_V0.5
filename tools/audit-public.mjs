@@ -188,3 +188,5 @@ console.log(JSON.stringify({
   findings: byLevel,
   items: findings,
 }, null, 2));
+
+if(findings.some(item=>item.level==='error'))process.exitCode=1;

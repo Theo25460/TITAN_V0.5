@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Connexion - TITAN OS</title>
-    
-    <link rel="stylesheet" href="./css/style.css?v=100.0">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="./css/style.css?v=102.0">
+    <link href="/css/icons.css?v=102.0" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
-    <script src="./js/config.js?v=100.0"></script>
+
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
+    <script src="./js/config.js?v=102.0"></script>
 
     <style>
         /* STYLES SPECIFIQUES LOGIN */
@@ -61,7 +61,7 @@
 
         .form-group { margin-bottom: 20px; text-align: left; }
         .input-label { display: block; font-size: 0.7rem; color: #38bdf8; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        
+
         .input-field {
             width: 100%; padding: 14px; 
             background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1);
@@ -113,42 +113,15 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="./css/titan-v100.css?v=100.0">
-    <script src="./js/titan-v100.js?v=100.0" defer></script>
-    <style data-titan-critical-boot>
-      html { background:#0f172a; color-scheme:dark; }
-      body { margin:0; background:#0f172a; color:#f8fafc; }
-      html.titan-booting::before {
-        content:""; position:fixed; inset:0; z-index:2147482990; pointer-events:none;
-        background:radial-gradient(circle at 50% 42%, rgba(56,189,248,.13), transparent 18rem), #050914;
-      }
-      html.titan-booting::after {
-        content:"TITAN"; position:fixed; left:50%; top:50%; z-index:2147482991;
-        transform:translate(-50%,-50%); color:#f8fafc; font:800 14px Arial,sans-serif;
-        letter-spacing:.22em; text-transform:uppercase;
-      }
-      html.titan-booting .layout,
-      html.titan-booting .legal-layout { opacity:0; }
-      html.titan-ready .layout,
-      html.titan-ready .legal-layout { opacity:1; }
-    </style>
-    <script data-titan-critical-boot>
-      document.documentElement.classList.add('titan-booting');
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          if (typeof window.titanHideBoot === 'function') return;
-          document.documentElement.classList.remove('titan-booting');
-          document.documentElement.classList.add('titan-ready');
-        }, 160);
-      });
-      setTimeout(function () {
-        if (typeof window.titanHideBoot === 'function') return;
-        document.documentElement.classList.remove('titan-booting');
-        document.documentElement.classList.add('titan-ready');
-      }, 1400);
-    </script>
+
+
+
+    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
+    <script src="./js/titan-v100.js?v=102.0" defer></script>
+
+
     <!-- SEO: TITAN OS -->
     <meta name="description" content="Connecte-toi a TITAN OS pour retrouver ta progression, ton historique et tes preferences sur tes appareils.">
     <meta name="author" content="TITAN OS Sport">
@@ -245,7 +218,7 @@
           "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
           "inLanguage": "fr-FR",
           "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "100.0",
+          "softwareVersion": "102.0",
           "image": "https://titan-app.fr/image/og-titan-os.png",
           "screenshot": "https://titan-app.fr/image/og-titan-os.png",
           "installUrl": "https://titan-app.fr/",
@@ -322,6 +295,7 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
 </head>
 <body data-page="login">
 
@@ -342,7 +316,7 @@
                 <label class="input-label" for="confirm-email">Confirmation Identifiant</label>
                 <input type="email" id="confirm-email" class="input-field" placeholder="Repetez l'email">
             </div>
-            
+
             <div class="form-group" id="pseudo-group" style="display:none;">
                 <label class="input-label" for="pseudo">Pseudo public</label>
                 <input type="text" id="pseudo" class="input-field" minlength="2" maxlength="24" placeholder="Ex: TitanRunner" aria-label="Pseudo public">
@@ -358,7 +332,7 @@
             <button type="submit" class="btn-main" id="submit-btn">
                 <i class="ri-fingerprint-line"></i> CONNEXION
             </button>
-            
+
             <div id="error-msg"></div>
             <div id="success-msg"></div>
         </form>
@@ -378,7 +352,7 @@
         // --- 1. CONFIGURATION DU SYSTEME ---
         const LOGIN_SUPABASE_URL = window.TITAN_SUPABASE_URL;
         const LOGIN_SUPABASE_KEY = window.TITAN_SUPABASE_ANON_KEY;
-        
+
         // IMPORTANT : On force l'URL du vrai site pour les liens emails
         const SITE_URL = 'https://titan-app.fr'; 
 
@@ -408,7 +382,7 @@
             const btn = document.getElementById('submit-btn');
             const errorBox = document.getElementById('error-msg');
             const successBox = document.getElementById('success-msg');
-            
+
             // Animation chargement
             btn.innerHTML = `<i class="ri-loader-4-line"></i> TRAITEMENT...`;
             btn.style.opacity = "0.7";
@@ -423,13 +397,13 @@
 
                     const { data, error } = await authClient.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    
+
                     window.location.href = getSafeNextUrl();
                 } else {
                     // --- MODE INSCRIPTION ---
                     if (email !== confirmEmail) throw new Error("Les emails ne correspondent pas.");
                     if (pseudo.length < 2) throw new Error("Choisissez un pseudo public de 2 caracteres minimum.");
-                    
+
                     const authClient = getSupabaseClient();
                     if (!authClient) throw new Error("Serveur d'authentification indisponible. Verifiez votre connexion puis reessayez.");
 
@@ -442,7 +416,7 @@
                             data: { full_name: pseudo, username: pseudo }
                         }
                     });
-                    
+
                     if (error) throw error;
                     if (data && data.session && data.user) {
                         await ensureSignupProfile(authClient, data.user.id, pseudo);
@@ -474,15 +448,15 @@
         function getSafeNextUrl() {
             const params = new URLSearchParams(window.location.search);
             const requested = params.get('next');
-            if (!requested) return 'index.html';
+            if (!requested) return 'aujourdhui.html';
 
             try {
                 const target = new URL(requested, window.location.href);
-                if (target.origin !== window.location.origin) return 'index.html';
+                if (target.origin !== window.location.origin) return 'aujourdhui.html';
                 if (target.pathname.endsWith('/admin')) target.pathname = target.pathname + '.html';
                 return target.href;
             } catch (error) {
-                return 'index.html';
+                return 'aujourdhui.html';
             }
         }
 
@@ -511,7 +485,7 @@
             const email = document.getElementById('email').value.trim();
             const errorBox = document.getElementById('error-msg');
             const successBox = document.getElementById('success-msg');
-            
+
             if (!email) {
                 errorBox.innerText = "Saisissez votre email dans le champ Identifiant d'abord.";
                 errorBox.style.display = "block";
@@ -528,9 +502,9 @@
                         // C'est cette ligne qui fait que ca marche
                         redirectTo: SITE_URL + '/update-password.html' 
                     });
-                    
+
                     if (error) throw error;
-                    
+
                     successBox.innerText = "Lien envoye ! Verifiez votre boite mail (et les spams).";
                     successBox.style.display = "block";
                     errorBox.style.display = "none";
@@ -551,7 +525,7 @@
             const pseudoInput = document.getElementById('pseudo');
             const pseudoGroup = document.getElementById('pseudo-group');
             const forgotLink = document.getElementById('forgot-link');
-            
+
             document.getElementById('error-msg').style.display = "none";
             document.getElementById('success-msg').style.display = "none";
 
@@ -579,13 +553,14 @@
                 localStorage.removeItem('titan_os_v12_save');
                 const authClient = getSupabaseClient();
                 if (authClient) {
-                    authClient.auth.signOut().finally(() => window.location.href = 'index.html');
+                    authClient.auth.signOut().finally(() => window.location.href = 'aujourdhui.html');
                 } else {
-                    window.location.href = 'index.html';
+                    window.location.href = 'aujourdhui.html';
                 }
             }
         }
     </script>
+<script src="./js/pending-ui.js?v=102.0"></script>
 </body>
 </html>
 

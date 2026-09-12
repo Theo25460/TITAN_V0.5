@@ -6,6 +6,7 @@
     const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
     let deferredPrompt = null;
     let refreshing = false;
+    let updateRequested = false;
 
     function setInstallState(state, message) {
         const button = document.getElementById('pwa-install-button');
@@ -38,11 +39,14 @@
             button.id = 'titan-update-button';
             button.type = 'button';
             button.textContent = 'Nouvelle version - recharger';
-            button.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:100000;border:1px solid rgba(61,214,198,.35);background:rgba(8,13,22,.94);color:#fff;border-radius:999px;padding:9px 14px;font-weight:900;font-size:.74rem;box-shadow:0 12px 34px rgba(0,0,0,.35);';
+            button.style.cssText = 'position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:1000;max-width:calc(100% - 32px);min-height:44px;border:1px solid rgba(61,214,198,.35);background:rgba(8,13,22,.97);color:#fff;border-radius:999px;padding:10px 16px;font-weight:700;font-size:.8rem;box-shadow:0 12px 34px rgba(0,0,0,.35);';
             document.body.appendChild(button);
         }
         button.hidden = false;
         button.onclick = () => {
+            if (window.titanSubmitting) return;
+            document.getElementById("training-form")?.dispatchEvent(new Event("input", {bubbles:true}));
+            updateRequested = true;
             const worker = registration.waiting;
             if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
             else window.location.reload();
@@ -69,8 +73,12 @@
     }
 
     if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data?.type !== 'OFFLINE_CACHE_PARTIAL') return;
+            window.titanSetSyncStatus?.('error', 'Installation hors ligne incomplète : reconnecte-toi pour la terminer.');
+        });
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return;
+            if (refreshing || !updateRequested) return;
             refreshing = true;
             window.location.reload();
         });

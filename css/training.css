@@ -1,0 +1,1212 @@
+/* TES STYLES ORIGINAUX (INTACTS) */
+body {
+  background-color: #06070a;
+  background-image:
+    linear-gradient(rgba(126, 220, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 220, 255, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.ops-nav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.nav-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Russo One";
+  font-size: 0.85rem;
+  color: #94a3b8;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+}
+.nav-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.nav-tab.active {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 15px rgba(126, 220, 255, 0.28);
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 100;
+  margin-bottom: 20px;
+}
+.input-tech {
+  width: 100%;
+  padding: 15px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  transition: 0.2s;
+}
+.input-tech:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(126, 220, 255, 0.12);
+}
+.suggestions-box {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: #06070a;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+}
+.suggestions-box.show {
+  display: block !important;
+}
+.suggestion-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 500;
+  min-width: 0;
+}
+.suggestion-item:hover {
+  background: var(--primary);
+  color: #000;
+  padding-left: 20px;
+  font-weight: bold;
+}
+.suggestion-item[aria-selected="true"] {
+  background: var(--primary);
+  color: #031019;
+  padding-left: 20px;
+  font-weight: 900;
+}
+.suggestion-item[aria-selected="true"] .suggestion-meta {
+  color: #0f172a;
+}
+.suggestion-main {
+  min-width: 0;
+  flex: 1;
+}
+.suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: inherit;
+}
+.suggestion-meta {
+  margin-top: 3px;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.suggestion-item:hover .suggestion-meta {
+  color: #0f172a;
+}
+.sport-search-guides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+.sport-search-chip {
+  border: 1px solid rgba(126, 220, 255, 0.18);
+  background: rgba(126, 220, 255, 0.055);
+  color: #9ee7ff;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.sport-search-chip:hover {
+  background: rgba(126, 220, 255, 0.14);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+}
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.bio-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+.bio-label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  width: 80px;
+  font-weight: bold;
+}
+.bio-val {
+  font-family: "Russo One";
+  color: var(--primary);
+  width: 40px;
+  text-align: right;
+}
+input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+.gym-builder {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.exo-item {
+  background: #06070a;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+details {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+summary {
+  padding: 15px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #e2e8f0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.details-content {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.01);
+  padding: 25px;
+  text-align: center;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.upload-zone:hover {
+  border-color: var(--primary);
+  background: rgba(126, 220, 255, 0.07);
+}
+.gpx-card {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid var(--accent);
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  display: none;
+}
+.gpx-stat {
+  font-family: "Russo One";
+  font-size: 1.1rem;
+  color: #fff;
+}
+.gpx-label {
+  font-size: 0.65rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#map-container {
+  height: 250px;
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: 2px solid #334155;
+  display: none;
+  z-index: 1;
+}
+#map-container.active {
+  display: block;
+}
+#history-map {
+  height: 200px;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-action {
+  width: 100%;
+  padding: 16px;
+  background: var(--primary);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-family: "Russo One";
+  font-size: 1rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.btn-action:hover {
+  filter: brightness(1.1);
+}
+.hist-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.hist-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+.hist-date {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-family: "Courier New";
+}
+.hist-sport {
+  font-family: "Russo One";
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+.hist-val {
+  font-family: "Russo One";
+  color: var(--primary);
+}
+.session-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s;
+}
+.session-modal {
+  background: #06070a;
+  width: 95%;
+  max-width: 500px;
+  max-height: 90vh;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+.modal-body {
+  padding: 20px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
+}
+.detail-label {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.detail-val {
+  color: #fff;
+  font-family: "Courier New";
+  font-weight: bold;
+}
+.bio-bar-wrapper {
+  width: 60px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+.bio-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.terrain-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.terrain-opt {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.terrain-opt:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.terrain-opt.selected {
+  background: rgba(126, 220, 255, 0.16);
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(126, 220, 255, 0.14);
+}
+.terrain-icon {
+  font-size: 1.2rem;
+  color: #94a3b8;
+}
+.terrain-opt.selected .terrain-icon {
+  color: var(--primary);
+}
+.terrain-label {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  line-height: 1.1;
+}
+.quick-sport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.quick-sport-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  text-align: left;
+}
+.quick-sport-btn span {
+  display: block;
+  font-size: 0.64rem;
+  color: #64748b;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.quick-sport-btn:hover {
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.08);
+}
+.intent-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.intent-chip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  border-radius: 20px;
+  padding: 7px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.intent-chip.active {
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.session-note-box textarea {
+  min-height: 74px;
+  resize: vertical;
+  caret-color: #38bdf8 !important;
+}
+.note-counter {
+  font-size: 0.66rem;
+  color: #64748b;
+  text-align: right;
+  margin-top: 5px;
+  font-family: "Courier New";
+}
+.session-meta-line {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.session-tag-mini {
+  font-size: 0.62rem;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+.session-summary {
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+.calendar-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.calendar-cell {
+  min-height: 58px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.calendar-cell.done {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+}
+.calendar-cell.today {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2);
+}
+.calendar-day {
+  font-family: "Russo One";
+  font-size: 0.72rem;
+  color: #fff;
+}
+.calendar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #334155;
+}
+.calendar-cell.done .calendar-dot {
+  background: var(--success);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+.sport-focus-panel {
+  border: 1px solid rgba(61, 214, 198, 0.18);
+  background: rgba(5, 12, 20, 0.72);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.sport-focus-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.sport-focus-kicker {
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.sport-focus-title {
+  color: #fff;
+  font-family: "Russo One";
+  font-size: 1.05rem;
+  margin-top: 3px;
+}
+.sport-focus-sub {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.sport-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.sport-focus-stat {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 10px;
+}
+.sport-focus-value {
+  color: #fff;
+  font-family: "Russo One";
+  font-size: 1.05rem;
+}
+.sport-focus-label {
+  color: #64748b;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-top: 3px;
+}
+.sport-readout-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.sport-readout-chip {
+  border: 1px solid rgba(126, 220, 255, 0.12);
+  background: rgba(126, 220, 255, 0.045);
+  border-radius: 8px;
+  padding: 9px;
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+.sport-readout-chip strong {
+  display: block;
+  color: #fff;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.training-card {
+  overflow: visible;
+  border-color: rgba(61, 214, 198, 0.14);
+}
+.training-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.training-card-title {
+  font-family: "Russo One";
+  color: #fff;
+  font-size: 1rem;
+}
+.training-card-caption {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.session-step-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(61, 214, 198, 0.24);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.sport-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  text-align: left;
+}
+.sport-metric-grid.single {
+  grid-template-columns: 1fr;
+}
+.sport-metric-field {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 10px;
+}
+.sport-metric-field .input-tech {
+  font-size: 1.12rem;
+  font-weight: 800;
+  margin-top: 3px;
+}
+.sport-form-hint {
+  margin-bottom: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(61, 214, 198, 0.08);
+  border: 1px solid rgba(61, 214, 198, 0.16);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left;
+}
+.sport-identity-panel {
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sport-identity-card {
+  border: 1px solid rgba(126, 220, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.sport-identity-card strong {
+  display: block;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+.sport-identity-card span {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+.reward-preview-box {
+  margin-bottom: 14px;
+  border: 1px solid rgba(126, 220, 255, 0.16);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(126, 220, 255, 0.055);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.reward-preview-box div {
+  min-width: 0;
+}
+.reward-preview-box strong {
+  display: block;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+.reward-preview-box span {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.session-metric-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.session-metric-chip {
+  font-size: 0.64rem;
+  color: #d7e8f2;
+  border: 1px solid rgba(126, 220, 255, 0.2);
+  background: rgba(126, 220, 255, 0.06);
+  border-radius: 999px;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+.session-metric-chip.warn {
+  color: #d7e8f2;
+  border-color: rgba(215, 232, 242, 0.28);
+  background: rgba(215, 232, 242, 0.07);
+}
+.sport-submit-zone {
+  margin-top: 8px;
+}
+.sport-submit-zone .btn-action {
+  min-height: 56px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* STYLE AJOUTE POUR LE BLOC ELITE */
+.elite-block {
+  margin-top: 20px;
+  background: rgba(126, 220, 255, 0.05);
+  border: 1px solid rgba(126, 220, 255, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  position: relative;
+}
+.elite-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #9ee7ff;
+  font-family: "Russo One";
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+.elite-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.elite-stat {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+.elite-label {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.elite-value {
+  font-family: "Russo One";
+  color: #fff;
+  font-size: 1.1rem;
+}
+.elite-lock {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  border-radius: 12px;
+}
+
+/* --- STYLES DU PLANNING HEBDOMADAIRE --- */
+.planning-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+.day-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 15px;
+  position: relative;
+  overflow: hidden;
+  transition: 0.3s;
+}
+.day-card.today {
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.05);
+}
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.day-name {
+  font-family: "Russo One";
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+.day-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.badge-today {
+  background: var(--primary);
+  color: #000;
+}
+
+.planned-sport {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: 0.2s;
+}
+.planned-sport:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary);
+}
+.planned-sport-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.planned-sport.set {
+  border-style: solid;
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+}
+.planned-sport.set .planned-sport-content {
+  color: var(--success);
+}
+
+.habits-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.habit-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: 0.2s;
+  user-select: none;
+}
+.habit-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.habit-chip.done {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+.habit-chip.done i {
+  font-weight: bold;
+}
+
+.week-summary {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 1) 0%,
+    rgba(30, 41, 59, 1) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.week-xp-pot {
+  color: var(--gold);
+  font-family: "Russo One";
+  font-size: 1.2rem;
+  text-shadow: 0 0 10px rgba(126, 220, 255, 0.3);
+}
+
+/* MODAL SELECTION SPORT */
+.sport-selector-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.sport-selector-content {
+  width: 92%;
+  max-width: 640px;
+  background: #06070a;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  padding: 20px;
+  max-height: 84vh;
+  overflow-y: auto;
+}
+.sport-selector-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 13px;
+}
+.sport-selector-filter {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.sport-selector-filter.active {
+  color: #06070a;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.sport-opt {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.sport-opt:hover {
+  background: rgba(56, 189, 248, 0.1);
+  padding-left: 15px;
+}
+.sport-opt-main {
+  min-width: 0;
+  flex: 1;
+}
+.sport-opt-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sport-opt-meta {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  margin-top: 3px;
+}
+
+/* --- STYLES RECOVERY MONITOR (ELITE FEATURE 1) --- */
+.recovery-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8),
+    rgba(30, 41, 59, 0.8)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.recovery-panel.elite-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+.recovery-gauge {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+.rec-circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 6;
+}
+.rec-circle-fg {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 6;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+.rec-val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Russo One";
+  color: #fff;
+  font-size: 1rem;
+}
+
+.rec-info {
+  flex: 1;
+  padding-left: 15px;
+}
+.rec-title {
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 1px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.rec-status {
+  font-family: "Russo One";
+  font-size: 1.1rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+.rec-desc {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+
+.alert-overtrain {
+  margin-top: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulse-alert 2s infinite;
+  display: none;
+}
+@keyframes pulse-alert {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (max-width: 640px) {
+  .sport-focus-head,
+  .training-card-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sport-focus-grid,
+  .sport-readout-row,
+  .sport-metric-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .quick-sport-btn {
+    min-height: 56px;
+  }
+  .sport-identity-panel,
+  .reward-preview-box {
+    grid-template-columns: 1fr !important;
+  }
+  .input-tech {
+    min-height: 54px;
+  }
+  .session-note-box {
+    padding: 14px !important;
+  }
+  .bio-slider-row {
+    display: grid;
+    grid-template-columns: 76px 1fr 34px;
+    gap: 10px;
+  }
+  .gym-builder [style*="grid-template-columns: 2fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .sport-submit-zone {
+    position: sticky;
+    bottom: 86px;
+    z-index: 60;
+    padding-top: 8px;
+    background: linear-gradient(
+      to bottom,
+      rgba(15, 23, 42, 0),
+      rgba(15, 23, 42, 0.96) 34%
+    );
+  }
+}

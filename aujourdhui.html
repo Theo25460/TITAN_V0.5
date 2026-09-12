@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Aujourd’hui — Ton espace sportif TITAN</title>
+    <meta
+      name="description"
+      content="Ta semaine sportive, tes dernières séances et ta prochaine envie. Retrouve ton espace personnel TITAN."
+    />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="canonical" href="https://titan-app.fr/aujourdhui" />
+    <meta name="theme-color" content="#070c10" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/style.css?v=102.0" />
+    <link rel="stylesheet" href="/css/icons.css?v=102.0" />
+    <link rel="stylesheet" href="/css/design-system.css?v=102.0" />
+    <link rel="stylesheet" href="/css/tracking.css?v=102.0" />
+    <link rel="stylesheet" href="/css/today.css?v=102.0" />
+  </head>
+  <body data-page="aujourdhui">
+    <div class="layout">
+      <nav class="sidebar" aria-label="Navigation principale"></nav>
+      <main class="main-content" id="contenu-principal">
+        <div class="mobile-user-bar"></div>
+        <header class="tracking-header">
+          <div>
+            <p class="tracking-eyebrow" id="today-date">Une nouvelle journée</p>
+            <h1 id="today-greeting">Du mouvement.<br />À ta façon.</h1>
+            <p>Un peu aujourd’hui. Du chemin sur la durée.</p>
+          </div>
+          <a class="tracking-action" href="/training"
+            ><i class="ri-add-line" aria-hidden="true"></i> Enregistrer une
+            séance</a
+          >
+        </header>
+        <div id="today-content" aria-live="polite"></div>
+        <section
+          class="today-week"
+          id="weekly-plan"
+          style="margin-top: 24px"
+        ></section>
+        <div id="pending-panel"></div>
+      </main>
+    </div>
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
+    <script src="/js/titan-v100.js?v=102.0" defer></script>
+    <script src="/js/config.js?v=102.0"></script>
+    <script src="/js/data.js?v=102.0"></script>
+    <script src="/js/ui.js?v=102.0"></script>
+    <script src="/js/training-store.js?v=102.0"></script>
+    <script src="/js/state.js?v=102.0"></script>
+    <script src="/js/titan_features.js?v=102.0"></script>
+    <script src="/js/main.js?v=102.0"></script>
+    <script src="/js/today-page.js?v=102.0"></script>
+    <script src="/js/weekly-plan.js?v=102.0"></script>
+    <script src="/js/pending-ui.js?v=102.0"></script>
+    <script src="/js/pwa.js?v=102.0" defer></script>
+  </body>
+</html>

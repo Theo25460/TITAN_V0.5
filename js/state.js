@@ -108,6 +108,9 @@ function compactLocalTrainingDetails(details = {}) {
         ascent: Number(details.gpxStats.ascent || 0)
     } : null;
     return {
+        client_event_id: details.client_event_id,
+        schemaVersion: details.schemaVersion,
+        timezone: details.timezone,
         val1: Number(details.val1 || 0),
         val2: Number(details.val2 || 0),
         elevation: Number(details.elevation || 0),
@@ -150,6 +153,10 @@ function compactLocalTrainingDetails(details = {}) {
 function compactLocalTrainingLog(log = {}) {
     return {
         id: log.id || null,
+        client_event_id: log.client_event_id || log.details?.client_event_id || null,
+        syncStatus: log.syncStatus || "confirmed",
+        revision: log.revision || 1,
+        archived_at: log.archived_at || null,
         date: log.date || null,
         sport: log.sport || null,
         cat: log.cat || log.category || 'training',
@@ -164,6 +171,7 @@ function cloneProfileStateForCloud(state) {
     const snapshot = cloneStateForCloud(state);
     if (!snapshot || typeof snapshot !== 'object') return snapshot;
     snapshot.history = [];
+    snapshot.archivedHistory = [];
     if (snapshot.user && Array.isArray(snapshot.user.purchase_history)) snapshot.user.purchase_history = [];
     snapshot.meta = Object.assign({}, snapshot.meta || {}, { historyAuthority: 'training_logs' });
     return snapshot;
@@ -172,16 +180,17 @@ function cloneProfileStateForCloud(state) {
 function cloneStateForLocalStorage(state) {
     const snapshot = cloneStateForCloud(state);
     if (!snapshot || typeof snapshot !== 'object') return snapshot;
+    snapshot.archivedHistory = [];
     const isConnected = !!(snapshot.user?.id && !String(snapshot.user.id).startsWith('guest_'));
     if (!isConnected) return snapshot;
 
     snapshot.history = (Array.isArray(snapshot.history) ? snapshot.history : [])
-        .slice(-12)
+        .sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,50)
         .map(compactLocalTrainingLog);
     if (snapshot.user && Array.isArray(snapshot.user.purchase_history)) snapshot.user.purchase_history = [];
     snapshot.meta = Object.assign({}, snapshot.meta || {}, {
         historyAuthority: 'training_logs',
-        localHistoryWindow: 12
+        localHistoryWindow: 50
     });
     return snapshot;
 }
@@ -465,7 +474,7 @@ async function pushProfileStateToCloud() {
                     userId: window.state.user.id,
                     updatedAt: data?.updated_at || new Date().toISOString()
                 });
-                if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('cloud', 'Sauvegardé');
+                if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
                 if (typeof window.titanRefreshProgressionSnapshot === 'function') {
                     window.titanRefreshProgressionSnapshot({ silent: true }).catch(refreshError => {
                         trackDbSoftIssue('progression.snapshot.after_profile_sync', refreshError);
@@ -507,6 +516,7 @@ async function pushProfileStateToCloud() {
 function applyCloudProfileStateResult(profileResult) {
     const profile = profileResult && typeof profileResult === 'object' ? profileResult : {};
     if (!window.state?.user) return;
+    if (profile.state_version) window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version});
     if (profile.friend_code) window.state.user.friend_code = profile.friend_code;
     if (typeof profile.is_elite !== 'undefined') window.state.user.is_elite = profile.is_elite === true;
     if (typeof profile.is_tester !== 'undefined') window.state.user.is_tester = profile.is_tester === true;
@@ -897,6 +907,10 @@ window.loadServerData = async function() {
             ['social_challenges', isCloudUser() ? window.titanClient.from('social_challenges').select('*').or(`challenger_id.eq.${window.state.user.id},opponent_id.eq.${window.state.user.id}`) : Promise.resolve({ data: [] })]
         ];
 
+        const page=location.pathname.replace(/\.html$/, '');
+        const gamePage=/adventure|talents|boutique|trophies|admin/.test(page);
+        const optional=new Set(['mobs','bosses','creatures','talents','fun_stats','shop_items','shop_history']);
+        if(!gamePage)queries.forEach((entry,index)=>{if(optional.has(entry[0]))queries[index]=[entry[0],Promise.resolve({data:null,error:null})];});
         const DB_QUERY_TIMEOUT_MS = 10000;
         const results = await Promise.all(queries.map(([name, query]) => Promise.race([
             Promise.resolve(query),
@@ -1279,38 +1293,31 @@ window.syncWithSupabase = async function() {
         window.state.user.id = profile.id || session.user.id;
         ensureStateIntegrity();
 
-        const { data: logs, error: logsError } = await withTitanTimeout(window.titanClient
-            .from('training_logs')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('date', { ascending: true }), 4000, 'Historique Supabase');
+        const historyResult = await window.TitanTraining.paginate(window.titanClient,session.user.id);
+        await window.TitanQueue.migrate();
+        const pending=await window.TitanQueue.refresh();
+        const confirmed=historyResult.logs.map(l=>({...l,cat:l.category,syncStatus:'confirmed'}));
+        const ids=new Set(confirmed.map(l=>l.client_event_id));
+        const provisional=pending.filter(i=>i.ownerId===session.user.id&&!ids.has(i.payload.details.client_event_id)).map(i=>({...i.payload,id:i.payload.details.client_event_id,client_event_id:i.payload.details.client_event_id,cat:i.payload.category,xp:0,syncStatus:i.status}));
+        await window.TitanQueue.saveHistory(session.user.id,confirmed);
+        window.titanCloudHistoryLoadedAt=Date.now();
+        window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
+        window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
+        window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.total});
+        window.dispatchEvent(new CustomEvent('titan:history-updated'));
 
-        if (logsError) {
-            trackDbIssue('training_logs.select', logsError);
-        } else if (logs) {
-            window.state.history = logs.map(l => ({
-                id: l.id,
-                date: l.date,
-                sport: l.sport,
-                cat: l.category,
-                val: l.val,
-                unit: l.unit,
-                xp: l.xp,
-                details: l.details
-            }));
-        }
-
-        if (typeof resolveWagers === 'function') resolveWagers();
+        // Legacy wagers are not settled by the browser.
 
         ensureStateIntegrity();
         saveState({ forceCloud: keepLocalGameState });
         if (typeof window.updateGlobalUI === 'function') window.updateGlobalUI();
         if (document.getElementById('history-list') && typeof window.renderHistory === 'function') window.renderHistory();
         if (document.getElementById('sports-grid') && typeof window.renderSports === 'function') window.renderSports();
-        if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('cloud', 'Sauvegardé');
+        if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
     } catch (e) {
         console.error("Erreur Sync:", e);
         trackDbIssue('syncWithSupabase', e);
+        window.dispatchEvent(new CustomEvent('titan:history-error'));
     }
 };
 
