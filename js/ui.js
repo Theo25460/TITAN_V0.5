@@ -502,7 +502,7 @@ window.injectSidebar = function() {
     if (!sb) return;
     const u = (window.state && window.state.user) ? window.state.user : { name: '...', level: 0, avatar: null };
     const userAvatar = u.avatar;
-    const avatarHTML = userAvatar ? `<img src="${window.getAvatarUrl(userAvatar)}" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<div class="avatar-circle"><i class="ri-user-3-fill"></i></div>`;
+    const avatarHTML = userAvatar ? `<img src="${window.getAvatarUrl(userAvatar)}" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<img src="/assets/renaissance/scout.webp" width="640" height="640" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="L’Éclaireuse">`;
     
     // Fonction helper pour class active
     const pg = (n) => window.location.pathname.includes(n) ? 'active' : '';
@@ -515,7 +515,7 @@ window.injectSidebar = function() {
             : `<span class="db-status-dot" title="DB online"></span>`);
 
     sb.innerHTML = `
-    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">↗</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Tous tes sports. Ton histoire.</span></div></a>
+    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">↗</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Ton effort. Ton aventure.</span></div></a>
     <a class="profile-widget" href="/profile">
         <div style="width:45px; height:45px; border-radius:50%; overflow:hidden; border:2px solid var(--accent); background:#1e2538; display:flex; align-items:center; justify-content:center;">${avatarHTML}</div>
         <div class="profile-info"><div class="profile-name">${window.titanEscapeText(u.name)}</div><div style="font-size:0.7rem;color:#94a3b8;">Niveau ${u.level}</div><div class="profile-meta-line">${dbBadge}</div></div>
@@ -741,7 +741,7 @@ window.updateGlobalUI = function() {
         overlay.innerHTML = `
             <div class="titan-guide-panel">
                 <button class="titan-guide-close" type="button" onclick="titanCloseFirstRunGuide()" aria-label="Fermer le guide">
-                    <i class="ri-close-line"></i>
+                    ${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}
                 </button>
                 <div class="titan-guide-kicker">Premiere connexion</div>
                 <h2 id="titan-guide-title">Bienvenue dans TITAN OS.</h2>
@@ -965,18 +965,22 @@ if (typeof window.triggerLockout !== 'function') window.triggerLockout = functio
 
 /* --- 6. NAVIGATION IMMERSIVE UNIFIEE --- */
 window.TITAN_NAV_LINKS = [
-    { section: 'ESSENTIEL', href: 'aujourdhui.html', match: 'aujourdhui.html', icon: 'ri-home-5-line', label: 'Aujourd’hui', short: 'Aujourd’hui', desc: 'Ta vue du jour', mobile: true },
-    { section: 'ESSENTIEL', href: 'training.html', match: 'training.html', icon: 'ri-add-circle-line', label: 'Enregistrer', short: 'Ajouter', desc: 'Noter une séance', mobile: true },
-    { section: 'ESSENTIEL', href: 'journal.html', match: 'journal.html', icon: 'ri-calendar-check-line', label: 'Journal', short: 'Journal', desc: 'Toutes tes séances', mobile: true },
-    { section: 'ESSENTIEL', href: 'stats.html', match: 'stats.html', icon: 'ri-line-chart-line', label: 'Progrès', short: 'Progrès', desc: 'Tendances sportives', mobile: true },
-    { section: 'ESSENTIEL', href: 'profile.html', match: 'profile.html', icon: 'ri-user-3-line', label: 'Profil', short: 'Profil', desc: 'Compte et préférences', mobile: true }
+    { section: 'TON UNIVERS', href: 'aujourdhui.html', match: 'aujourdhui.html', icon: 'ri-home-5-line', label: 'QG', short: 'QG', desc: 'Ton camp de base', mobile: true },
+    { section: 'TON UNIVERS', href: 'adventure.html', match: 'adventure.html', icon: 'ri-compass-3-line', label: 'Aventure', short: 'Aventure', desc: 'Missions et exploration', mobile: true },
+    { section: 'TON UNIVERS', href: 'training.html', match: 'training.html', icon: 'ri-add-circle-line', label: 'Séance', short: 'Séance', desc: 'Ton effort du jour', mobile: true },
+    { section: 'TON UNIVERS', href: 'stats.html', match: 'stats.html', icon: 'ri-line-chart-line', label: 'Progrès', short: 'Progrès', desc: 'Comprendre ton parcours', mobile: true },
+    { section: 'TON UNIVERS', href: 'profile.html', match: 'profile.html', icon: 'ri-user-3-line', label: 'Profil', short: 'Profil', desc: 'Ton identité sportive', mobile: true }
 ];
 
 window.TITAN_SECONDARY_LINKS = [
+    {section:'ENSEMBLE',href:'coaching.html',match:'coaching.html',icon:'ri-team-line',label:'Espace coach',desc:'Suivis privés et séances proposées'},
+    {section:'PROGRESSION',href:'journal.html',match:'journal.html',icon:'ri-calendar-check-line',label:'Journal',desc:'Retrouver et corriger mes séances'},
+    {section:'PROGRESSION',href:'objectifs.html',match:'objectifs.html',icon:'ri-flag-line',label:'Objectifs',desc:'Mes repères personnels'},
+    {section:'PROGRESSION',href:'records.html',match:'records.html',icon:'ri-trophy-line',label:'Records',desc:'Mes performances en contexte'},
+    {section:'PERSONNALISER',href:'personnage.html',match:'personnage.html',icon:'ri-user-3-line',label:'Personnage',desc:'Avatars, rangs et collection'},
     {section: 'PROGRESSION',href: 'bilan.html',match: 'bilan.html',icon: 'ri-file-chart-line',label: 'Mon bilan',desc: 'Exports et analyses TITAN+'},
     { section: 'ENSEMBLE', href: 'social.html', match: 'social.html', icon: 'ri-team-line', label: 'Communauté', desc: 'Alliés, équipes et défis' },
     { section: 'ENSEMBLE', href: 'chat.html', match: 'chat.html', icon: 'ri-message-3-line', label: 'Messages', desc: 'Échanges avec tes alliés' },
-    { section: 'PROGRESSION', href: 'adventure.html', match: 'adventure.html', icon: 'ri-compass-3-line', label: 'Aventure', desc: 'Défis et récit optionnels' },
     { section: 'PROGRESSION', href: 'trophies.html', match: 'trophies.html', icon: 'ri-trophy-line', label: 'Trophées', desc: 'Étapes débloquées' },
     { section: 'PROGRESSION', href: 'health.html', match: 'health.html', icon: 'ri-heart-pulse-line', label: 'Forme', desc: 'Récupération et équilibre' },
     { section: 'PERSONNALISER', href: 'disciplines.html', match: 'disciplines.html', icon: 'ri-medal-2-line', label: 'Mes sports', desc: 'Disciplines favorites' },
@@ -1039,7 +1043,7 @@ function titanGroupLinks(links) {
 function titanRenderLink(link, baseClass) {
     const desc = link.desc ? `<span>${link.desc}</span>` : '';
     return `<a href="${link.href}" class="${titanNavClass(link, baseClass)}" aria-label="${link.label}">
-        <i class="${link.icon}"></i>
+        ${window.titanIcon ? window.titanIcon(link.icon) : `<i class="${link.icon}" aria-hidden="true"></i>`}
         <strong>${link.label}</strong>
         ${desc}
     </a>`;
@@ -1089,8 +1093,8 @@ window.titanToggleMobileMenu = titanToggleMobileMenu;
 window.injectSidebar = function() {
     const sb = document.querySelector('.sidebar');
     if (!sb) return;
-    const u = (window.state && window.state.user) ? window.state.user : { name: '...', level: 0, avatar: null, credits: 0 };
-    const avatarHTML = u.avatar ? `<img src="${window.getAvatarUrl(u.avatar)}" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<div class="avatar-circle"><i class="ri-user-3-fill"></i></div>`;
+    const u = window.titanNavigationUser ? window.titanNavigationUser() : ((window.state && window.state.user) ? window.state.user : { name: '...', level: 0, avatar: null, credits: 0 });
+    const avatarHTML = window.titanNavigationAvatar ? window.titanNavigationAvatar() : window.titanIcon("user");
     const avatarFrameClass = window.titanGetAvatarFrameClass ? window.titanGetAvatarFrameClass(u) : 'frame-standard';
     const eliteAvatarClass = window.titanIsElite && window.titanIsElite(u) ? 'titan-elite-avatar-effect' : '';
     const dbIssues = window.TITAN_DB_STATUS && window.TITAN_DB_STATUS.issues ? window.TITAN_DB_STATUS.issues.length : 0;
@@ -1109,12 +1113,12 @@ window.injectSidebar = function() {
 
     sb.innerHTML = `
     <div class="sidebar-shell">
-    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">↗</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Tous tes sports. Ton histoire.</span></div></a>
+    <a class="brand" href="/aujourdhui"><span class="brand-symbol" aria-hidden="true">${window.titanIcon("compass")}</span><div class="brand-meta"><span class="brand-title">TITAN.</span><span class="brand-version">Ton effort. Ton aventure.</span></div></a>
     <a class="profile-widget" href="/profile">
         <div class="profile-avatar-shell titan-avatar-frame ${avatarFrameClass} ${eliteAvatarClass}">${avatarHTML}</div>
         <div class="profile-info"><div class="profile-name">${window.titanEscapeText(u.name)}</div><div style="font-size:0.7rem;color:#94a3b8;">Niveau ${u.level}</div><div class="profile-meta-line">${dbBadge}${eliteBadge}</div></div>
     </a>
-    <div class="sidebar-nav">${navHtml}<details class="sidebar-more"><summary><i class="ri-apps-2-line"></i><span>Explorer</span></summary>${secondaryHtml}</details></div>
+    <div class="sidebar-nav">${navHtml}<details class="sidebar-more"><summary>${window.titanIcon("layers")}<span>Explorer</span></summary>${secondaryHtml}</details></div>
     <div class="sidebar-footer">${utilityHtml}</div>
     </div>`;
 };
@@ -1122,8 +1126,8 @@ window.injectSidebar = function() {
 window.injectMobileHeader = function() {
     const m = document.querySelector('.main-content');
     if (!m) return;
-    const u = (window.state && window.state.user) ? window.state.user : { name: '...', level: 0, credits: 0, avatar: null };
-    const avatarHTML = u.avatar ? `<img src="${window.getAvatarUrl(u.avatar)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<i class="ri-user-3-fill"></i>`;
+    const u = window.titanNavigationUser ? window.titanNavigationUser() : ((window.state && window.state.user) ? window.state.user : { name: '...', level: 0, credits: 0, avatar: null });
+    const avatarHTML = window.titanNavigationAvatar ? window.titanNavigationAvatar() : window.titanIcon("user");
     const avatarFrameClass = window.titanGetAvatarFrameClass ? window.titanGetAvatarFrameClass(u) : 'frame-standard';
     const eliteAvatarClass = window.titanIsElite && window.titanIsElite(u) ? 'titan-elite-avatar-effect' : '';
     const activeTitle = window.titanGetActiveTitle ? window.titanGetActiveTitle(u) : null;
@@ -1137,7 +1141,7 @@ window.injectMobileHeader = function() {
     bar.innerHTML = `
         <div class="mobile-agent-card">
             <button class="mobile-menu-toggle" type="button" onclick="titanToggleMobileMenu()" aria-label="Ouvrir la navigation" aria-expanded="false">
-                <i class="ri-menu-4-line"></i>
+                ${window.titanIcon ? window.titanIcon('menu') : '<i class="ri-menu-4-line"></i>'}
             </button>
             <div class="mobile-agent-main" onclick="window.location.href='profile.html'">
                 <div class="mobile-avatar titan-avatar-frame ${avatarFrameClass} ${eliteAvatarClass}">${avatarHTML}</div>
@@ -1162,7 +1166,7 @@ window.injectMobileNav = function() {
     nav.innerHTML = links
         .map(link => {
             const label = link.short || link.label;
-            return `<a href="${link.href}" class="${titanNavClass(link, 'mobile-nav-link')}" aria-label="${link.label}"><i class="${link.icon}"></i><span>${label}</span></a>`;
+            return `<a href="${link.href}" class="${titanNavClass(link, 'mobile-nav-link')}" aria-label="${link.label}">${window.titanIcon?window.titanIcon(link.icon):`<i class="${link.icon}" aria-hidden="true"></i>`}<span>${label}</span></a>`;
         })
         .join('');
     if (shouldAppend) document.body.appendChild(nav);
@@ -1188,7 +1192,7 @@ window.injectMobileMenu = function() {
     panel.innerHTML = `
             <div class="drawer-head">
             <div><span class="drawer-kicker">TITAN OS</span><strong>Explorer TITAN</strong></div>
-            <button type="button" class="drawer-close" onclick="titanSetMobileMenu(false)" aria-label="Fermer la navigation"><i class="ri-close-line"></i></button>
+            <button type="button" class="drawer-close" onclick="titanSetMobileMenu(false)" aria-label="Fermer la navigation">${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}</button>
         </div>
         <div class="drawer-nav">${titanRenderGroupedNav('drawer-link', primaryLinks)}${secondary}</div>
         <div class="drawer-utilities">${utilities}</div>`;
@@ -1210,4 +1214,3 @@ document.addEventListener('keydown', (event) => {
 window.addEventListener('resize', () => {
     if (window.innerWidth > 1024) titanSetMobileMenu(false);
 });
-

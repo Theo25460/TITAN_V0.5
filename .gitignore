@@ -15,3 +15,4 @@ Thumbs.db
 qa-*.png
 backups/
 *.log
+supabase/.temp/

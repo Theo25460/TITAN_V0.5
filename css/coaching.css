@@ -1,0 +1,295 @@
+.r-coach-intro {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 30px;
+  align-items: center;
+  overflow: hidden;
+}
+.r-coach-intro > img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+.r-coach-intro h2 {
+  margin: 12px 0;
+}
+.r-coach-intro p {
+  max-width: 720px;
+}
+.r-coach-toolbar {
+  display: flex;
+  gap: 25px;
+  justify-content: space-between;
+  align-items: center;
+}
+.r-coach-toolbar h2 {
+  margin: 8px 0;
+}
+.r-coach-toolbar p {
+  max-width: 690px;
+  font-size: 0.88rem;
+}
+.r-coach-toolbar > .r-button {
+  flex-shrink: 0;
+}
+.r-coach-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 24px;
+}
+.r-coach-people {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.r-coach-people button {
+  text-align: left;
+  color: var(--r-ink);
+  padding: 20px;
+  cursor: pointer;
+}
+.r-coach-people button.selected {
+  border-color: var(--r-mint);
+  background: #203729;
+}
+.r-coach-people button strong,
+.r-coach-people button small {
+  display: block;
+  margin-top: 9px;
+  overflow-wrap: anywhere;
+}
+.r-coach-people button small {
+  color: var(--r-muted);
+  font-size: 0.69rem;
+}
+.r-coach-people button .t-icon {
+  color: var(--r-mint);
+}
+.r-coach-detail {
+  min-width: 0;
+}
+.r-coach-detail h2 {
+  font-size: 1.3rem;
+}
+.r-coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 17px;
+}
+.r-coach-actions .r-button {
+  font-size: 0.76rem;
+  padding: 10px 14px;
+  min-height: 42px;
+}
+.r-coach-tasks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.r-coach-task {
+  padding: 20px;
+  border: 1px solid #c2d2c521;
+  border-radius: 16px;
+  background: #ffffff04;
+}
+.r-coach-task h3 {
+  font-size: 1rem;
+  margin: 10px 0;
+}
+.r-coach-instructions {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+.r-coach-period {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+.r-coach-period label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.72rem;
+  flex: 1;
+  min-width: 140px;
+}
+.r-coach-period input {
+  min-height: 44px;
+  border: 1px solid #aacbb744;
+  border-radius: 10px;
+  background: #0a160e;
+  color: #e8f3ea;
+  padding: 9px 12px;
+  width: 100%;
+}
+.r-coach-invites {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.r-coach-invites > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 0.78rem;
+}
+.r-shared-session {
+  padding: 15px 0;
+  border-top: 1px solid #b8d3c526;
+}
+.r-shared-session summary {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.77rem;
+  min-height: 32px;
+}
+.r-shared-session summary strong {
+  font-size: 0.85rem;
+}
+.r-shared-session summary:after {
+  content: "+";
+  color: #badfc3;
+  font-size: 1.2rem;
+  grid-column: 4;
+}
+.r-shared-session[open] summary:after {
+  content: "−";
+}
+.r-coach-dialog {
+  max-width: 670px;
+}
+.r-coach-dialog form > label:not(.r-checkbox) {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+  font-size: 0.82rem;
+}
+.r-coach-dialog input:not([type="checkbox"]),
+.r-coach-dialog select,
+.r-coach-dialog textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #afc9b545;
+  border-radius: 10px;
+  background: #0a160f;
+  color: #e1eee5;
+  font: inherit;
+  min-height: 44px;
+}
+.r-coach-dialog h2 {
+  margin: 12px 0 22px;
+}
+.r-coach-dialog p {
+  line-height: 1.8;
+}
+.r-coach-dialog .r-form-grid {
+  margin: 22px 0;
+}
+.r-coach-dialog .r-form-grid label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.8rem;
+  min-width: 0;
+}
+.r-checkbox {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 15px 0;
+  font-size: 0.83rem;
+  line-height: 1.7;
+}
+.r-checkbox input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #aedbbb;
+  margin-top: 4px;
+}
+.r-consent {
+  border-top: 1px solid #cee6d847;
+  font-weight: 700;
+}
+.r-coach-dialog input[readonly] {
+  font-family: monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+.r-coach-detail .r-empty {
+  padding: 20px 0;
+}
+.r-coach-detail .r-data-table {
+  font-size: 0.76rem;
+}
+@media (max-width: 1050px) {
+  .r-coach-layout {
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+  .r-coach-tasks {
+    grid-template-columns: 1fr;
+  }
+  .r-coach-toolbar {
+    align-items: start;
+    flex-direction: column;
+  }
+  .r-coach-intro {
+    grid-template-columns: 160px 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .r-coach-layout {
+    grid-template-columns: 1fr;
+  }
+  .r-coach-people {
+    flex-direction: row;
+    overflow: auto;
+    padding-bottom: 8px;
+  }
+  .r-coach-people button {
+    min-width: 165px;
+    max-width: 210px;
+    padding: 16px;
+  }
+  .r-coach-intro {
+    grid-template-columns: 1fr;
+  }
+  .r-coach-intro > img {
+    height: 190px;
+    object-position: center 35%;
+  }
+  .r-coach-intro {
+    gap: 18px;
+  }
+  .r-coach-toolbar > .r-button {
+    width: 100%;
+  }
+  .r-shared-session summary {
+    grid-template-columns: 1fr auto;
+    gap: 9px;
+  }
+  .r-shared-session summary:after {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .r-shared-session summary > span:last-of-type {
+    font-size: 0.7rem;
+  }
+  .r-coach-invites > div {
+    align-items: start;
+  }
+  .r-coach-dialog {
+    width: calc(100% - 24px);
+  }
+  .r-coach-detail .r-panel {
+    padding: 19px;
+  }
+}

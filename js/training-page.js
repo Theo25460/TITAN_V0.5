@@ -1982,13 +1982,20 @@ async function handleSubmit(e) {
     if (scheduledSport && scheduledSport === key) {
       metrics.isPlanned = true; // Flag pour main.js (logActivity)
       if (window.showToast)
-        window.showToast("DISCIPLINE RESPECTEE : BONUS XP !", "success");
+        window.showToast("Séance prévue dans ton planning.", "success");
     }
 
     // Appel ? la fonction centrale de Main.js
     const savedLog = await logActivity(key, metrics);
     if (!savedLog) return;
-    window.dispatchEvent(new CustomEvent("titan:session-stored"));
+    window.dispatchEvent(
+      new CustomEvent("titan:session-stored", {
+        detail: {
+          ownerId: window.state.user.id,
+          logId: savedLog.client_event_id,
+        },
+      }),
+    );
 
     document.getElementById("training-form").reset();
     coreFields.innerHTML = `<div style="text-align:center; color:#94a3b8; font-style:italic; font-size:0.9rem;"><i class="ri-arrow-up-line"></i> Choisis une discipline pour afficher les champs utiles.</div>`;
@@ -2008,6 +2015,7 @@ async function handleSubmit(e) {
     document
       .querySelector(".training-card")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.TitanSessionResult?.open(savedLog);
   } catch (err) {
     if (window.showNotification)
       window.showNotification("error", "Séance non enregistrée", err.message);

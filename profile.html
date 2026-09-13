@@ -8,8 +8,8 @@
     <meta charset="UTF-8">
     <title>Profil utilisateur - TITAN OS</title>
 
-    <link rel="stylesheet" href="./css/style.css?v=102.0">
-    <link href="/css/icons.css?v=102.0" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css?v=200.0">
+    <link href="/css/icons.css?v=200.0" rel="stylesheet">
     <script src="/js/vendor/supabase-2.111.0.js"></script>
 
     <style>
@@ -238,8 +238,8 @@
 
 
 
-    <link rel="stylesheet" href="./css/design-system.css?v=102.0">
-    <script src="./js/titan-v100.js?v=102.0" defer></script>
+    <link rel="stylesheet" href="./css/design-system.css?v=200.0">
+    <script src="./js/titan-v100.js?v=200.0" defer></script>
 
 
     <!-- SEO: TITAN OS -->
@@ -415,20 +415,22 @@
       ]
     }
     </script>
-    <link rel="stylesheet" href="./css/tracking.css?v=102.0">
+    <link rel="stylesheet" href="./css/tracking.css?v=200.0">
+<link rel="stylesheet" href="/css/renaissance.css?v=200.0">
+<link rel="stylesheet" href="/css/sport-insights.css?v=200.0">
 </head>
 <body data-page="profile">
     <div class="layout">
         <nav class="sidebar"></nav> 
-        <main class="main-content">
+        <main class="main-content r-app" id="contenu-principal">
             <div class="mobile-user-bar"></div>
 
             <header style="margin-bottom:30px;">
-                <div style="font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">COMPTE ET PRÉFÉRENCES</div>
-                <h1 class="titular">Profil & préférences</h1>
+                <div style="font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 800; margin-bottom: 2px;">TON PERSONNAGE ET TES PRÉFÉRENCES</div>
+                <h1 class="titular">Ton personnage. Tes choix.</h1>
             </header>
 
-            <div class="profile-header">
+            <div id="renaissance-profile"></div><div class="profile-header">
                 <div class="current-avatar-box">
                     <div id="current-avatar-display" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
                         <i class="ri-user-3-fill"></i>
@@ -440,7 +442,7 @@
                 <div class="user-meta">
                     <span class="meta-tag"><i class="ri-shield-star-fill"></i> NIV. <span id="profile-lvl">1</span></span>
                     <span id="elite-tag" class="meta-tag" style="display:none; color:#9ee7ff; border-color:#9ee7ff; background:rgba(126, 220, 255, 0.1);">
-                        <i class="ri-vip-crown-2-fill"></i> ELITE
+                        <i class="ri-vip-crown-2-fill"></i> TITAN+
                     </span>
                     <span class="meta-tag" style="color:#94a3b8; border-color:#334155;"><i class="ri-fingerprint-line"></i> <span id="profile-id">ID-000</span></span>
                     <span class="meta-tag" style="color:var(--gold); border-color:var(--gold);"><i class="ri-money-dollar-circle-fill"></i> <span id="profile-credits">0</span></span>
@@ -456,7 +458,7 @@
 
             <div class="profile-quick-grid">
                 <button class="profile-quick" type="button" onclick="document.getElementById('name-input').focus()"><i class="ri-edit-2-line"></i><span>Pseudo</span></button>
-                <button class="profile-quick" type="button" onclick="document.getElementById('avatar-section').scrollIntoView({behavior:'smooth', block:'start'})"><i class="ri-image-edit-line"></i><span>Avatars</span></button>
+                <button class="profile-quick" type="button" onclick="window.location.href='/personnage'"><i class="ri-image-edit-line"></i><span>Avatars</span></button>
                 <button class="profile-quick" type="button" onclick="exportData()"><i class="ri-download-cloud-2-line"></i><span>Export</span></button>
                 <button class="profile-quick" type="button" onclick="window.location.href='legal_hub.html'"><i class="ri-scales-3-line"></i><span>Legal</span></button>
             </div>
@@ -464,7 +466,7 @@
             <div class="selection-area">
                 <div class="section-title"><i class="ri-id-card-fill"></i> IDENTITE</div>
                 <div class="input-group">
-                    <input type="text" id="name-input" class="input-field" placeholder="Nom de code..." maxlength="24">
+                    <input type="text" id="name-input" class="input-field" placeholder="Ton pseudo…" maxlength="24">
                     <button class="save-btn" onclick="saveName()">ENREGISTRER</button>
                 </div>
                 <div class="profile-help-text">Ce nom apparait dans le profil, le social et le canal de discussion.</div>
@@ -528,14 +530,14 @@
 
             <div class="selection-area" style="border-color: rgba(239, 68, 68, 0.3);">
                 <div class="section-title" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
-                    <i class="ri-alert-line"></i> ZONE DANGER
+                    <i class="ri-alert-line"></i> GESTION DU COMPTE
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
                     <button id="auth-btn" class="danger-btn" onclick="handleAuthAction()" style="border-color:rgba(255,255,255,0.1); color:#fff;">
-                        <i class="ri-logout-box-r-line"></i> LOGOUT
+                        <i class="ri-logout-box-r-line"></i> Se déconnecter
                     </button>
                     <button id="btn-cache" class="danger-btn" onclick="clearCacheAction()" style="border-color:rgba(255,255,255,0.1); color:#fff; font-size:0.75rem;">
-                        <i class="ri-refresh-line"></i> RESET CACHE
+                        <i class="ri-refresh-line"></i> Actualiser les fichiers
                     </button>
                 </div>
                 <button id="btn-delete" class="danger-btn" onclick="deleteAccountAction()" style="width:100%; background:rgba(239,68,68,0.2);">
@@ -547,18 +549,22 @@
                 <a class='legal-link' href='/legal_hub'>
                     <i class="ri-scales-3-line"></i> Mentions legales & confidentialite
                 </a>
-                <div style="font-size: 0.65rem; color: #475569; margin-top: 5px;">TITAN OS beta - TITAN OS v83.0</div>
+                <div style="font-size: 0.65rem; color: #475569; margin-top: 5px;">TITAN Renaissance · 200.0</div>
             </div>
         </main>
     </div>
 
-    <script src="./js/config.js?v=102.0"></script>
-    <script src="./js/data.js?v=102.0"></script>
-    <script src="./js/ui.js?v=102.0"></script>
-    <script src="./js/training-store.js?v=102.0"></script>
-    <script src="./js/state.js?v=102.0"></script>
-    <script src="./js/titan_features.js?v=102.0"></script>
-    <script src="./js/main.js?v=102.0"></script>
+    <script src="./js/config.js?v=200.0"></script>
+    <script src="./js/data.js?v=200.0"></script>
+    <script src="/js/renaissance-icons.js?v=200.0"></script>
+    <script src="./js/ui.js?v=200.0"></script>
+    <script src="./js/training-store.js?v=200.0"></script>
+    <script src="./js/state.js?v=200.0"></script>
+    <script src="./js/titan_features.js?v=200.0"></script>
+    <script src="./js/main.js?v=200.0"></script>
+<script src="/js/renaissance-catalog.js?v=200.0"></script>
+<script src="/js/renaissance-engine.js?v=200.0"></script>
+<script src="/js/renaissance-ui.js?v=200.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Petite securite pour attendre que state.js soit pret
@@ -616,7 +622,7 @@
                 authBtn.style.borderColor = '#4ade80';
                 authBtn.style.background = 'rgba(74, 222, 128, 0.1)';
             } else {
-                authBtn.innerHTML = '<i class="ri-logout-box-r-line"></i> LOGOUT';
+                authBtn.innerHTML = '<i class="ri-logout-box-r-line"></i> Se déconnecter';
                 authBtn.style.color = '#fff';
                 authBtn.style.borderColor = 'rgba(255,255,255,0.1)';
                 authBtn.style.background = 'rgba(239, 68, 68, 0.1)';
@@ -962,8 +968,8 @@
             }
         }
     </script>
-<script src="./js/pending-ui.js?v=102.0"></script><script src="./js/pwa.js?v=102.0" defer></script>
-</body>
+<script src="./js/pending-ui.js?v=200.0"></script><script src="./js/pwa.js?v=200.0" defer></script>
+<script src="/js/renaissance-profile.js?v=200.0"></script><script src="/js/renaissance-navigation.js?v=200.0"></script></body>
 </html>
 
 

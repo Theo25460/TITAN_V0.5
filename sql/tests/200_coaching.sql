@@ -1,0 +1,88 @@
+begin;
+do $$declare c uuid:=gen_random_uuid();a uuid:=gen_random_uuid();b uuid:=gen_random_uuid();l uuid:=gen_random_uuid();begin
+ perform set_config('titan.qa_coach',c::text,true);perform set_config('titan.qa_athlete',a::text,true);perform set_config('titan.qa_stranger',b::text,true);perform set_config('titan.qa_session',l::text,true);
+ insert into auth.users(id,raw_user_meta_data) values(c,'{}'),(a,'{}'),(b,'{}');
+ perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+ insert into public.training_logs(id,user_id,sport,category,val,unit,date,details) values(l,a,'running','endurance',5,'km',now(),'{"duration":30,"note":"PRIVATE_NOTE","bio":{"sleep":3,"weight":75},"gpxStats":{"movingMinutes":29,"points":[[47,6]]},"extras":{"location":"PRIVATE_VENUE"},"serverReward":true}');
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+do $$declare invitation jsonb;view jsonb;sharing jsonb;task jsonb;denied boolean:=false;begin
+ invitation:=public.titan_coach_portal('invite');perform set_config('titan.qa_invite',invitation->>'token',true);
+ assert length(invitation->>'token')=48,'high entropy invite token';
+ assert not has_table_privilege('authenticated','private.coach_invites','select'),'invite hashes are private';
+ perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_athlete'),'role','authenticated')::text,true);
+ view:=public.titan_coach_portal('preview',jsonb_build_object('token',invitation->>'token'));
+ assert view ? 'coach_name' and not view ? 'coach_id','preview only discloses intended identity';
+ begin perform public.titan_coach_portal('accept',jsonb_build_object('token',invitation->>'token','since_date',current_date));exception when others then denied:=sqlerrm='CONSENT_REQUIRED';end;
+ assert denied,'consent required';denied:=false;
+ sharing:=public.titan_coach_portal('accept',jsonb_build_object('token',invitation->>'token','since_date',current_date,'consent',true));perform set_config('titan.qa_link',sharing->>'id',true);
+ begin perform public.titan_coach_portal('accept',jsonb_build_object('token',invitation->>'token','since_date',current_date,'consent',true));exception when others then denied:=sqlerrm='INVITE_UNAVAILABLE';end;
+ assert denied,'invite cannot be reused';denied:=false;
+ perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+ view:=public.titan_coach_portal('sessions',jsonb_build_object('link_id',sharing->>'id','from_date',current_date,'to_date',current_date));
+ assert (view->>'total')::int=1,'consented measurements readable';assert view#>>'{rows,0,details,duration}'='30','duration measured';
+ assert view#>'{rows,0,details,note}' is null,'notes not shared by default';assert view::text not like '%PRIVATE_VENUE%' and view::text not like '%sleep%' and view::text not like '%points%','health and geolocation never exposed';
+ begin perform public.titan_coach_portal('scope',jsonb_build_object('link_id',sharing->>'id','revision',1,'since_date',current_date,'share_notes',true));exception when others then denied:=sqlerrm='ATHLETE_ONLY';end;
+ assert denied,'coach cannot expand own scope';denied:=false;
+ begin update public.coach_links set share_notes=true where id=(sharing->>'id')::uuid;exception when insufficient_privilege then denied:=true;end;
+ assert denied,'direct scope mutation rejected';denied:=false;
+ task:=public.titan_coach_portal('assign',jsonb_build_object('link_id',sharing->>'id','title','Sortie de reprise','sport','running','planned_date',current_date,'instructions','Au rythme choisi avec le sportif.'));
+ perform set_config('titan.qa_assignment',task->>'id',true);
+ begin perform public.titan_coach_portal('assignment_status',jsonb_build_object('id',task->>'id','revision',1,'status','accepted'));exception when others then denied:=sqlerrm='ATHLETE_ONLY';end;
+ assert denied,'coach cannot accept on athlete behalf';denied:=false;
+ perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_stranger'),'role','authenticated')::text,true);
+ assert (select count(*)=0 from public.coach_links) and (select count(*)=0 from public.coach_assignments),'unrelated account cannot read collaboration';
+ begin perform public.titan_coach_portal('sessions',jsonb_build_object('link_id',sharing->>'id','from_date',current_date,'to_date',current_date));exception when insufficient_privilege then denied:=true;end;
+ assert denied,'unrelated account cannot query shared sessions';denied:=false;
+ perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_athlete'),'role','authenticated')::text,true);
+ perform public.titan_coach_portal('scope',jsonb_build_object('link_id',sharing->>'id','revision',1,'since_date',current_date,'share_notes',true,'share_details',true));
+ view:=public.titan_coach_portal('sessions',jsonb_build_object('link_id',sharing->>'id','from_date',current_date,'to_date',current_date));assert view#>>'{rows,0,details,note}'='PRIVATE_NOTE','explicit notes consent takes effect';
+ begin perform public.titan_coach_portal('scope',jsonb_build_object('link_id',sharing->>'id','revision',1,'since_date',current_date));exception when others then denied:=sqlerrm='COACH_CONFLICT';end;
+ assert denied,'stale scope update rejected';denied:=false;
+ task:=public.titan_coach_portal('assignment_status',jsonb_build_object('id',task->>'id','revision',1,'status','accepted'));
+ task:=public.titan_coach_portal('assignment_status',jsonb_build_object('id',task->>'id','revision',2,'status','completed','session_id',current_setting('titan.qa_session')));
+ assert task->>'status'='completed','accepted proposal can link a personal matching session';
+ begin perform public.titan_coach_portal('assignment_status',jsonb_build_object('id',task->>'id','revision',2,'status','completed','session_id',current_setting('titan.qa_session')));exception when others then denied:=sqlerrm='COACH_CONFLICT';end;
+ assert denied,'stale completion rejected';denied:=false;
+ perform public.titan_coach_portal('revoke',jsonb_build_object('link_id',sharing->>'id','revision',2));
+ perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+ begin perform public.titan_coach_portal('sessions',jsonb_build_object('link_id',sharing->>'id','from_date',current_date,'to_date',current_date));exception when insufficient_privilege then denied:=true;end;
+ assert denied,'revocation immediately prevents another read';assert (select count(*)=0 from public.coach_assignments),'revocation hides proposals';
+ assert not has_function_privilege('anon','public.titan_coach_portal(text,jsonb)','execute'),'anonymous endpoint denied';
+end $$;
+reset role;
+do $$declare i integer;a uuid;begin
+ perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+ for i in 1..3 loop
+  a:=gen_random_uuid();insert into auth.users(id,raw_user_meta_data) values(a,'{}');
+  insert into public.coach_links(coach_id,athlete_id,since_date) values(current_setting('titan.qa_coach')::uuid,a,current_date);
+ end loop;
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+do $$declare denied boolean:=false;begin
+ begin perform public.titan_coach_portal('invite');exception when others then denied:=sqlerrm='COACH_CAPACITY';end;
+ assert denied,'free capacity is enforced server side';
+ assert (public.titan_coach_portal('snapshot')->>'capacity')::int=3,'free limit is visible';
+end $$;
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+update public.profiles set is_elite=true,elite_ends_at=now()+interval '1 day',elite_refunded_at=null where id=current_setting('titan.qa_coach')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+do $$declare result jsonb;begin
+ assert (public.titan_coach_portal('snapshot')->>'capacity')::int=20,'active premium extends capacity';
+ result:=public.titan_coach_portal('invite');assert result ? 'token','active premium can invite beyond free capacity';
+end $$;
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+update public.profiles set elite_ends_at=now()-interval '1 day' where id=current_setting('titan.qa_coach')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_coach'),'role','authenticated')::text,true);
+do $$declare denied boolean:=false;begin
+ begin perform public.titan_coach_portal('invite');exception when others then denied:=sqlerrm='COACH_CAPACITY';end;
+ assert denied,'expired premium cannot open more relationships';
+ assert jsonb_array_length(public.titan_coach_portal('snapshot')->'links')=3,'expiry preserves existing relationships';
+end $$;
+rollback;

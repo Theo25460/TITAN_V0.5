@@ -2,11 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://titan-app.fr/</loc>
-    <lastmod>2026-09-11</lastmod>
-  </url>
-  <url>
-    <loc>https://titan-app.fr/guide</loc>
-    <lastmod>2026-08-10</lastmod>
+    <lastmod>2026-09-13</lastmod>
   </url>
   <url>
     <loc>https://titan-app.fr/changelog</loc>
@@ -37,10 +33,6 @@
     <lastmod>2026-08-10</lastmod>
   </url>
   <url>
-    <loc>https://titan-app.fr/algorithme</loc>
-    <lastmod>2026-08-10</lastmod>
-  </url>
-  <url>
     <loc>https://titan-app.fr/partenariats</loc>
     <lastmod>2026-08-10</lastmod>
   </url>
@@ -64,9 +56,13 @@
     <loc>https://titan-app.fr/motivation-sport</loc>
     <lastmod>2026-08-10</lastmod>
   </url>
-  <url><loc>https://titan-app.fr/journal-course-a-pied</loc><lastmod>2026-09-11</lastmod></url>
-  <url><loc>https://titan-app.fr/carnet-musculation</loc><lastmod>2026-09-11</lastmod></url>
-  <url><loc>https://titan-app.fr/suivi-escalade</loc><lastmod>2026-09-11</lastmod></url>
-  <url><loc>https://titan-app.fr/tarifs</loc><lastmod>2026-09-11</lastmod></url>
-  <url><loc>https://titan-app.fr/pour-les-coachs</loc><lastmod>2026-09-11</lastmod></url>
+  <url><loc>https://titan-app.fr/journal-course-a-pied</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/carnet-musculation</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/suivi-escalade</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/tarifs</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/pour-les-coachs</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/niveaux-et-xp</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/aventures-sportives</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/comprendre-mes-donnees</loc><lastmod>2026-09-13</lastmod></url>
+  <url><loc>https://titan-app.fr/debuter-titan</loc><lastmod>2026-09-13</lastmod></url>
 </urlset>

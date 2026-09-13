@@ -16,16 +16,18 @@
     <meta name="theme-color" content="#070c10" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/css/style.css?v=102.0" />
-    <link rel="stylesheet" href="/css/icons.css?v=102.0" />
-    <link rel="stylesheet" href="/css/design-system.css?v=102.0" />
-    <link rel="stylesheet" href="/css/tracking.css?v=102.0" />
-    <link rel="stylesheet" href="/css/report.css?v=102.0" />
-  </head>
+    <link rel="stylesheet" href="/css/style.css?v=200.0" />
+    <link rel="stylesheet" href="/css/icons.css?v=200.0" />
+    <link rel="stylesheet" href="/css/design-system.css?v=200.0" />
+    <link rel="stylesheet" href="/css/tracking.css?v=200.0" />
+    <link rel="stylesheet" href="/css/report.css?v=200.0" />
+  <link rel="stylesheet" href="/css/renaissance.css?v=200.0">
+<link rel="stylesheet" href="/css/sport-insights.css?v=200.0">
+</head>
   <body data-page="bilan">
     <div class="layout">
       <nav class="sidebar" aria-label="Navigation principale"></nav>
-      <main class="main-content" id="contenu-principal">
+      <main class="main-content r-app" id="contenu-principal">
         <div class="mobile-user-bar"></div>
         <header class="tracking-header">
           <div>
@@ -37,6 +39,7 @@
             </p>
           </div>
         </header>
+<nav class="r-tabs" aria-label="Explorer mes données"><a href="/stats">Analyses</a><a href="/journal">Journal</a><a href="/records">Records</a><a href="/objectifs">Objectifs</a><a href="/bilan" aria-current="page">Bilans</a></nav>
         <div class="tracking-toolbar report-controls">
           <label
             >Période<select id="report-period">
@@ -113,16 +116,20 @@
       </main>
     </div>
     <script src="/js/vendor/supabase-2.111.0.js"></script>
-    <script src="/js/titan-v100.js?v=102.0" defer></script>
-    <script src="/js/config.js?v=102.0"></script>
-    <script src="/js/data.js?v=102.0"></script>
-    <script src="/js/ui.js?v=102.0"></script>
-    <script src="/js/training-store.js?v=102.0"></script>
-    <script src="/js/state.js?v=102.0"></script>
-    <script src="/js/titan_features.js?v=102.0"></script>
-    <script src="/js/main.js?v=102.0"></script>
-    <script src="/js/session-export.js?v=102.0"></script>
-    <script src="/js/report-page.js?v=102.0"></script>
-    <script src="/js/pwa.js?v=102.0" defer></script>
-  </body>
+    <script src="/js/titan-v100.js?v=200.0" defer></script>
+    <script src="/js/config.js?v=200.0"></script>
+    <script src="/js/data.js?v=200.0"></script>
+    <script src="/js/renaissance-icons.js?v=200.0"></script>
+    <script src="/js/ui.js?v=200.0"></script>
+    <script src="/js/training-store.js?v=200.0"></script>
+    <script src="/js/state.js?v=200.0"></script>
+    <script src="/js/titan_features.js?v=200.0"></script>
+    <script src="/js/main.js?v=200.0"></script>
+<script src="/js/renaissance-catalog.js?v=200.0"></script>
+<script src="/js/renaissance-engine.js?v=200.0"></script>
+<script src="/js/renaissance-ui.js?v=200.0"></script>
+    <script src="/js/session-export.js?v=200.0"></script>
+    <script src="/js/report-page.js?v=200.0"></script>
+    <script src="/js/pwa.js?v=200.0" defer></script>
+  <script src="/js/renaissance-navigation.js?v=200.0"></script></body>
 </html>

@@ -7,6 +7,118 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+from = "/algorithme"
+to = "/niveaux-et-xp"
+status = 301
+force = true
+
+[[redirects]]
+from = "/algorithme.html"
+to = "/niveaux-et-xp"
+status = 301
+force = true
+
+[[redirects]]
+from = "/guide"
+to = "/debuter-titan"
+status = 301
+force = true
+
+[[redirects]]
+from = "/guide.html"
+to = "/debuter-titan"
+status = 301
+force = true
+
+[[redirects]]
+from = "/personnage.html"
+to = "/personnage"
+status = 301
+force = true
+
+[[redirects]]
+from = "/personnage"
+to = "/personnage.html"
+status = 200
+
+[[redirects]]
+from = "/objectifs.html"
+to = "/objectifs"
+status = 301
+force = true
+
+[[redirects]]
+from = "/objectifs"
+to = "/objectifs.html"
+status = 200
+
+[[redirects]]
+from = "/records.html"
+to = "/records"
+status = 301
+force = true
+
+[[redirects]]
+from = "/records"
+to = "/records.html"
+status = 200
+
+[[redirects]]
+from = "/coaching.html"
+to = "/coaching"
+status = 301
+force = true
+
+[[redirects]]
+from = "/coaching"
+to = "/coaching.html"
+status = 200
+
+[[redirects]]
+from = "/niveaux-et-xp.html"
+to = "/niveaux-et-xp"
+status = 301
+force = true
+
+[[redirects]]
+from = "/niveaux-et-xp"
+to = "/niveaux-et-xp.html"
+status = 200
+
+[[redirects]]
+from = "/aventures-sportives.html"
+to = "/aventures-sportives"
+status = 301
+force = true
+
+[[redirects]]
+from = "/aventures-sportives"
+to = "/aventures-sportives.html"
+status = 200
+
+[[redirects]]
+from = "/comprendre-mes-donnees.html"
+to = "/comprendre-mes-donnees"
+status = 301
+force = true
+
+[[redirects]]
+from = "/comprendre-mes-donnees"
+to = "/comprendre-mes-donnees.html"
+status = 200
+
+[[redirects]]
+from = "/debuter-titan.html"
+to = "/debuter-titan"
+status = 301
+force = true
+
+[[redirects]]
+from = "/debuter-titan"
+to = "/debuter-titan.html"
+status = 200
+
+[[redirects]]
   from = "/sql/*"
   to = "/404.html"
   status = 404
@@ -138,28 +250,6 @@ force = true
 [[redirects]]
 from = "/training"
 to = "/training.html"
-status = 200
-
-[[redirects]]
-from = "/algorithme.html"
-to = "/algorithme"
-status = 301
-force = true
-
-[[redirects]]
-from = "/algorithme"
-to = "/algorithme.html"
-status = 200
-
-[[redirects]]
-from = "/guide.html"
-to = "/guide"
-status = 301
-force = true
-
-[[redirects]]
-from = "/guide"
-to = "/guide.html"
 status = 200
 
 [[redirects]]
@@ -831,5 +921,45 @@ X-Robots-Tag = "noindex, nofollow"
 
 [[headers]]
 for = "/bilan"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/personnage"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/personnage.html"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/objectifs"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/objectifs.html"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/records"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/records.html"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/coaching"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/coaching.html"
 [headers.values]
 X-Robots-Tag = "noindex, nofollow"

@@ -1,7 +1,7 @@
 {
-  "name": "TITAN — Tous tes sports. Ton histoire.",
+  "name": "TITAN — Ton sport. Ton aventure.",
   "short_name": "TITAN",
-  "description": "Journal multisport, statistiques lisibles et progression motivante pour plus de 260 disciplines.",
+  "description": "Chaque effort devient une aventure : personnage, niveaux, campagnes et données sportives utiles.",
   "id": "/",
   "start_url": "/aujourdhui",
   "scope": "/",

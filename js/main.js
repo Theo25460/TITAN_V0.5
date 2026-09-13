@@ -364,7 +364,7 @@ window.logActivity = async function(sportKey, dataInput) {
     const payload={sport:sportKey,category:config.cat||'training',val:value,unit:details.unitOverride||config.unit||'',date,details};
     // The durable write MUST succeed before clearing the form or celebrating a save.
     const guest=String(window.state.user.id).startsWith('guest_');
-    const log={...payload,id:details.client_event_id,client_event_id:details.client_event_id,cat:payload.category,xp:0,syncStatus:guest?'local':'pending',revision:1};
+    const log={...payload,id:details.client_event_id,client_event_id:details.client_event_id,cat:payload.category,xp:0,syncStatus:guest?'local':'pending',revision:1,created_at:new Date().toISOString()};
     if(guest)await window.TitanQueue.saveGuestSession(window.state.user.id,log);
     else await queuePendingTrainingLog(payload);
     window.state.history=window.state.history||[];

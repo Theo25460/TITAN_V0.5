@@ -1,6 +1,7 @@
 let selectedActivityId = new URLSearchParams(location.search).get("session");
 let lastActivitySignature = "";
 let activityViewMode = "list";
+let requestedActivitySport = new URLSearchParams(location.search).get("sport");
 
 document.addEventListener("DOMContentLoaded", () => {
   bindActivityControls();
@@ -111,6 +112,10 @@ function renderActivityFilters() {
       )
       .join("");
   select.value = sports.includes(current) ? current : "all";
+  if (requestedActivitySport && sports.includes(requestedActivitySport)) {
+    select.value = requestedActivitySport;
+    requestedActivitySport = null;
+  }
 
   const note = document.getElementById("activity-elite-note");
   if (note) {
@@ -321,7 +326,7 @@ function renderActivityDetail(log) {
                     <div class="activity-detail-metric"><span>Date</span><strong>${escapeText(activityDate(log, true))}</strong></div>
                     <div class="activity-detail-metric"><span>Intensité</span><strong>${escapeText(activityIntensity(log).label)}</strong></div>
                     ${metrics.map((metric) => `<div class="activity-detail-metric"><span>${escapeText(metric.label)}</span><strong>${escapeText(metric.value)}</strong></div>`).join("")}
-                    <div class="activity-detail-metric activity-reward-discrete"><span>Progression TITAN</span><strong>+${escapeText(Math.round(Number(log.xp || 0)))} XP</strong></div>
+                    <div class="activity-detail-metric activity-reward-discrete"><span>Progression TITAN</span>${String(window.state?.user?.id||'').startsWith('guest_')?'<a href="/personnage">Voir mon niveau de découverte</a>':log.syncStatus&&log.syncStatus!=='confirmed'?'<strong>Confirmation en attente</strong>':`<strong>+${escapeText(Math.round(Number(log.xp || 0)))} XP</strong>`}</div>
                 </div>
                 <div class="activity-detail-actions"><a href="./training.html?sport=${encodeURIComponent(log.sport || "")}"><i class="ri-restart-line"></i> Reprendre ce sport</a><button type="button" class="tracking-secondary" data-session-action="edit" data-session-id="${escapeText(String(log.id))}">Modifier</button><button type="button" class="tracking-secondary" data-session-action="duplicate" data-session-id="${escapeText(String(log.id))}">Dupliquer</button><button type="button" class="tracking-secondary" data-session-action="${log.archived_at ? "restore" : "archive"}" data-session-id="${escapeText(String(log.id))}">${log.archived_at ? "Restaurer" : "Archiver"}</button></div>
                 ${renderActivityReadout(log)}`;

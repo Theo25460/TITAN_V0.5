@@ -14,6 +14,7 @@ const types = {
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
     '.svg': 'image/svg+xml',
     '.ico': 'image/x-icon',
     '.webmanifest': 'application/manifest+json'
@@ -32,7 +33,7 @@ function resolvePath(requestUrl) {
 
 const server = http.createServer((req, res) => {
     const file = resolvePath(req.url || '/');
-    if (!file.startsWith(root)) {
+    if (file !== root && !file.startsWith(root + path.sep)) {
         res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8' });
         res.end('Forbidden');
         return;
@@ -46,6 +47,7 @@ const server = http.createServer((req, res) => {
         }
 
         res.writeHead(200, {
+            'cache-control': 'no-store',
             'content-type': types[path.extname(file).toLowerCase()] || 'application/octet-stream'
         });
         res.end(data);

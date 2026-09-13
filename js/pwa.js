@@ -55,6 +55,12 @@
 
     async function registerServiceWorker() {
         if (!('serviceWorker' in navigator)) return;
+        // Development previews must never mix a cached release with edited source.
+        if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(registration => registration.unregister()));
+            return;
+        }
         try {
             const registration = await navigator.serviceWorker.register('/sw.js');
             if (registration.waiting) showUpdateButton(registration);
