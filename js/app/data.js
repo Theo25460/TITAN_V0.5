@@ -97,5 +97,61 @@
     return { guest: false, estimated: false, level, xp, next, total: E.totalForLevel(level) + xp, rank: E.rank(level), nextRank: E.nextRank(level) };
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, progression };
+  /* ---------- Discovery → account ----------
+     Sessions saved in discovery mode on this device can join the account once, through the
+     regular sync queue (same client_event_id, so a retry never duplicates them). Sessions older
+     than 30 days become history without rewards, by the server's rules. */
+  const IMPORTED_KEY = "titan_guest_imported_v1";
+  function importedIds() {
+    try {
+      const v = JSON.parse(localStorage.getItem(IMPORTED_KEY) || "{}");
+      return new Set(Array.isArray(v.ids) ? v.ids : []);
+    } catch {
+      return new Set();
+    }
+  }
+  async function guestCandidates() {
+    const id = owner();
+    const guestId = (() => {
+      try {
+        return localStorage.getItem("titan_guest_device_id_v1");
+      } catch {
+        return null;
+      }
+    })();
+    if (isGuest(id) || !guestId || !window.TitanQueue?.readHistory) return [];
+    const done = importedIds();
+    const list = (await window.TitanQueue.readHistory(guestId)) || [];
+    return list.filter((l) => !l.archived_at && !done.has(l.client_event_id || l.id) && Number(l.val) > 0);
+  }
+  async function importGuestSessions() {
+    const id = owner();
+    if (isGuest(id)) throw new Error("ACCOUNT_REQUIRED");
+    const list = await guestCandidates();
+    const done = importedIds();
+    for (const l of list) {
+      const eventId = l.client_event_id || l.details?.client_event_id || l.id;
+      if (!/^[0-9a-f-]{36}$/i.test(eventId)) continue;
+      const details = { ...(l.details || {}), client_event_id: eventId, importedFromDiscovery: true };
+      delete details.serverReward;
+      await window.TitanQueue.put({
+        key: `${id}:${eventId}`,
+        ownerId: id,
+        payload: { sport: l.sport, category: l.category || l.cat || "training", val: Number(l.val), unit: l.unit || "", date: l.date, details },
+        reason: "Import depuis la découverte",
+        status: "pending",
+        queuedAt: new Date().toISOString(),
+      });
+      done.add(eventId);
+    }
+    try {
+      localStorage.setItem(IMPORTED_KEY, JSON.stringify({ account: id, at: new Date().toISOString(), ids: [...done].slice(-2000) }));
+    } catch {}
+    await window.flushPendingTrainingLogs?.({ retry: true }).catch(() => {});
+    await window.syncWithSupabase?.().catch?.(() => {});
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+    return list.length;
+  }
+
+  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, progression, guestCandidates, importGuestSessions };
 })();

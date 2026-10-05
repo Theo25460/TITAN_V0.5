@@ -348,7 +348,7 @@ async function initSystem() {
    LOGIQUE DE JEU (XP, CHARGE, NIVEAUX)
    ========================================= */
 
-window.logActivity = async function(sportKey, dataInput) {
+window.logActivity = async function(sportKey, dataInput, options = {}) {
     if(!window.state||!window.SPORTS_CONFIG?.[sportKey])throw new Error('Choisis un sport.');
     if(!window.TitanQueue)throw new Error('Le stockage de cet appareil est indisponible. Exporte tes données avant de continuer.');
     const config=window.SPORTS_CONFIG[sportKey];
@@ -360,7 +360,7 @@ window.logActivity = async function(sportKey, dataInput) {
     details.client_event_id=details.client_event_id||crypto.randomUUID();details.schemaVersion=2;
     details.timezone=Intl.DateTimeFormat().resolvedOptions().timeZone;
     const date=details.performedAt||new Date().toISOString();
-    if(details.exercises?.length&&!details.exercises.some(e=>Number(e.volume)>0))details.unitOverride='reps';
+    if(!details.unitOverride&&details.exercises?.length&&!details.exercises.some(e=>Number(e.volume)>0))details.unitOverride='reps';
     const payload={sport:sportKey,category:config.cat||'training',val:value,unit:details.unitOverride||config.unit||'',date,details};
     // The durable write MUST succeed before clearing the form or celebrating a save.
     const guest=String(window.state.user.id).startsWith('guest_');
@@ -371,7 +371,7 @@ window.logActivity = async function(sportKey, dataInput) {
     if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);
     window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
     window.flushPendingTrainingLogs().catch(()=>window.titanSetSyncStatus?.('pending','Séance conservée sur cet appareil'));
-    window.showNotification?.('success','Séance conservée',guest?'Enregistrée sur cet appareil. Retrouve-la dans ton journal.':'Enregistrée sur cet appareil. La confirmation cloud apparaît dans le journal.');
+    if(!options.quiet)window.showNotification?.('success','Séance conservée',guest?'Enregistrée sur cet appareil. Retrouve-la dans ton journal.':'Enregistrée sur cet appareil. La confirmation cloud apparaît dans le journal.');
     return log;
 };
 

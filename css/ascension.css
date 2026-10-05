@@ -120,23 +120,20 @@ body.asc {
   text-rendering: optimizeLegibility;
   font-feature-settings: "tnum" 0;
 }
-.asc img,
-.asc svg {
+:where(.asc) :where(img, svg) {
   display: block;
   max-width: 100%;
 }
-.asc a {
+/* Resets carry no specificity so components (.asc-btn-primary…) always win. */
+:where(.asc) a {
   color: inherit;
   text-decoration: none;
 }
-.asc button,
-.asc input,
-.asc select,
-.asc textarea {
+:where(.asc) :where(button, input, select, textarea) {
   font: inherit;
   color: inherit;
 }
-.asc button {
+:where(.asc) button {
   cursor: pointer;
 }
 .asc :focus-visible {
@@ -181,36 +178,34 @@ body.asc {
 }
 
 /* ---------- Typography ---------- */
-.asc h1,
-.asc h2,
-.asc h3,
-.asc h4 {
+:where(.asc) :where(h1, h2, h3, h4) {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: -0.01em;
+  word-spacing: 0.06em;
   line-height: 1.02;
   color: var(--tx);
 }
-.asc h1,
+:where(.asc) h1,
 .asc-h1 {
   font-size: clamp(34px, 7vw, 56px);
   font-stretch: 78%;
   text-transform: none;
 }
-.asc h2,
+:where(.asc) h2,
 .asc-h2 {
   font-size: clamp(22px, 3.6vw, 30px);
   font-stretch: 85%;
 }
-.asc h3,
+:where(.asc) h3,
 .asc-h3 {
   font-size: 18px;
   font-stretch: 92%;
   font-weight: 750;
   line-height: 1.2;
 }
-.asc p {
+:where(.asc) p {
   margin: 0;
 }
 .asc-eyebrow {
@@ -397,6 +392,9 @@ body.asc {
 }
 .asc-tab[aria-current="page"] .t-icon {
   color: var(--cy);
+}
+.asc-tab-record .asc-tab-plus .t-icon {
+  color: var(--cy-ink);
 }
 .asc-tab-record {
   margin-top: -18px;

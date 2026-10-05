@@ -808,9 +808,10 @@
                 name: String(ex?.name || '').replace(/\s+/g, ' ').trim().slice(0, 80),
                 variant: String(ex?.variant || '').replace(/\s+/g, ' ').trim().slice(0, 60),
                 kind,
-                weight: Math.max(0, Math.min(toNumber(ex?.weight, 0), 1000)),
+                // Per-set rows are the source of truth; the summary fields mirror them for older readers.
+                weight: setRows.length ? Math.max(...setRows.map(set => set.weight)) : Math.max(0, Math.min(toNumber(ex?.weight, 0), 1000)),
                 sets,
-                reps: Math.max(0, Math.min(parseInt(ex?.reps || 0, 10) || 0, 500)),
+                reps: setRows.length ? setRows[0].reps : Math.max(0, Math.min(parseInt(ex?.reps || 0, 10) || 0, 500)),
                 rir: optionalInt(ex?.rir, 10),
                 totalReps,
                 volume,

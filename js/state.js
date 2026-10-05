@@ -596,13 +596,28 @@ window.loadState = function() {
     }
 };
 
+// Discovery mode keeps ONE local identity per device, so coming back to discovery never orphans
+// sessions or goals saved earlier on this device.
+window.titanGuestId = function() {
+    const key = 'titan_guest_device_id_v1';
+    try {
+        const existing = localStorage.getItem(key);
+        if (existing && /^guest_[A-Za-z0-9_-]{6,64}$/.test(existing)) return existing;
+        const id = 'guest_' + Date.now();
+        localStorage.setItem(key, id);
+        return id;
+    } catch (_) {
+        return 'guest_' + Date.now();
+    }
+};
+
 // 2. VERIFICATION ET REPARATION DES DONNEES
 window.ensureStateIntegrity = function() {
     if (!window.state) window.state = {};
 
     const previousUser = window.state.user || {};
     window.state.user = Object.assign({
-        id: 'guest_' + Date.now(),
+        id: window.titanGuestId(),
         name: "Recrue",
         level: 1,
         xp: 0,
@@ -755,7 +770,7 @@ window.ensureStateIntegrity = function() {
 window.createDefaultState = function() {
     window.state = {
         user: {
-            id: 'guest_' + Date.now(),
+            id: window.titanGuestId(),
             name: "Recrue",
             level: 1,
             xp: 0,

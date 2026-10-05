@@ -8,6 +8,7 @@
   const D = () => window.TitanData;
   const root = () => document.getElementById("qg");
   let goalsCache = [];
+  let guestToImport = 0;
   let renderQueued = false;
 
   const TONE = {
@@ -182,6 +183,7 @@
     document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     el.innerHTML = `
       ${D().isGuest() ? guestHtml() : ""}
+      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" style="background:none;border:0;padding:0">Les ajouter à mon compte</button><p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p></div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
       <div class="asc-grid-2 qg-grid">
@@ -236,14 +238,27 @@
     return d;
   }
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     if (e.target.closest('[data-action="cadence"]')) cadenceSheet();
+    const imp = e.target.closest('[data-action="import-guest"]');
+    if (imp) {
+      imp.disabled = true;
+      try {
+        const n = await D().importGuestSessions();
+        guestToImport = 0;
+        window.titanShell.toast({ type: "ok", title: "Import lancé", message: `${n} séance${n > 1 ? "s" : ""} rejoignent ton compte. La confirmation arrive dans le journal.` });
+      } catch {
+        window.titanShell.toast({ type: "err", title: "Import impossible", message: "Réessaie quand tu es connecté." });
+      }
+      queue();
+    }
   });
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
   async function boot() {
     queue();
     window.TitanAdventure?.refresh?.().catch(() => {});
     goalsCache = await D().goals();
+    guestToImport = (await D().guestCandidates().catch(() => [])).length;
     queue();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 0));

@@ -68,3 +68,21 @@ test("sessions older than 30 days are history", () => {
   assert.equal(E.isHistorical("2026-09-06T12:00:00Z", now), false);
   assert.equal(E.isHistorical("2026-09-04T12:00:00Z", now), true);
 });
+
+test("GPX: distance, moving time and smoothed ascent, glitches ignored", () => {
+  const G = require("../js/core/gpx.js");
+  // 11 points heading north, ~111 m apart, 30 s each (~13.3 km/h), climbing 5 m per point.
+  let gpx = "<gpx><trk><trkseg>";
+  for (let i = 0; i <= 10; i++) gpx += `<trkpt lat="${45 + i * 0.001}" lon="6.0"><ele>${1000 + i * 5}</ele><time>${new Date(Date.UTC(2026, 9, 5, 7, 0, i * 30)).toISOString()}</time></trkpt>`;
+  gpx += `<trkpt lat="46.5" lon="6.0"><ele>1050</ele><time>${new Date(Date.UTC(2026, 9, 5, 7, 5, 10)).toISOString()}</time></trkpt>`; // teleport glitch
+  gpx += "</trkseg></trk></gpx>";
+  const r = G.analyse(gpx);
+  assert.equal(r.ok, true);
+  assert.equal(r.points, 12);
+  assert.equal(r.ignoredPoints, 1);
+  assert.ok(Math.abs(r.distanceKm - 1.11) < 0.02, `distance ${r.distanceKm}`);
+  assert.equal(r.movingMinutes, 5);
+  assert.equal(r.ascent, 50);
+  assert.equal(r.start, "2026-10-05T07:00:00.000Z");
+  assert.equal(G.analyse("<gpx></gpx>").ok, false);
+});
