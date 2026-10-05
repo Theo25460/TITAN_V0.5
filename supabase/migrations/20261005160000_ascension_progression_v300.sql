@@ -149,9 +149,10 @@ begin
   end if;
   return jsonb_build_object(
     'isElite', coalesce(v_is_elite, false),
+    -- Talking to your team and founding a guild are free: credits buy cosmetics, not belonging.
     'chatGlobalCost', 2,
-    'chatGuildCost', 3,
-    'guildCreateCost', 3000,
+    'chatGuildCost', 0,
+    'guildCreateCost', 0,
     'messageMaxLength', case when coalesce(v_is_elite, false) then 700 else 280 end,
     'freeMessageMaxLength', 280,
     'eliteMessageMaxLength', 700,

@@ -16,7 +16,8 @@
     "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/webhook.test.mjs tests/sport-discovery.test.mjs tests/sport-first.test.mjs tests/training-integrity.test.mjs tests/renaissance.test.mjs tests/ascension-core.test.mjs tests/ascension-progress.test.mjs tests/ascension-questions.test.mjs",
     "smoke": "node tools/check-inline-scripts.mjs",
     "lint": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs",
-    "verify": "pnpm test && pnpm run build && pnpm run audit"
+    "verify": "pnpm test && pnpm run build && pnpm run audit",
+    "test:db": "bash tools/db/test-migrations.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.111.0"

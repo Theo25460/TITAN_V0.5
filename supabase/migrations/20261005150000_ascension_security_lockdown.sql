@@ -10,6 +10,27 @@ drop policy if exists guild_members_insert_self on public.guild_members;
 drop policy if exists guild_members_delete_self_or_owner on public.guild_members;
 revoke insert, update, delete on public.guilds, public.guild_members, public.guild_raid from anon, authenticated;
 
+-- 1b. Guild read policies referenced guild_members from inside guild_members' own policy: any direct
+--     read raised "infinite recursion detected in policy". Membership now comes from a definer helper.
+create or replace function private.titan_my_guild_id()
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select gm.guild_id from public.guild_members gm where gm.user_id = (select auth.uid()) limit 1;
+$$;
+drop policy if exists guild_members_select_same_guild on public.guild_members;
+create policy guild_members_select_same_guild on public.guild_members for select to authenticated
+  using (user_id = (select auth.uid()) or guild_id = (select private.titan_my_guild_id()));
+drop policy if exists guilds_member_select on public.guilds;
+create policy guilds_member_select on public.guilds for select to authenticated
+  using (owner_id = (select auth.uid()) or id = (select private.titan_my_guild_id()));
+drop policy if exists guild_messages_member_select on public.guild_messages;
+create policy guild_messages_member_select on public.guild_messages for select to authenticated
+  using (hidden is false and guild_id = (select private.titan_my_guild_id()));
+
 -- 2. Legacy permissive policies that were only neutralised by missing grants.
 drop policy if exists user_achievements_own_all on public.user_achievements;
 drop policy if exists inventory_own_all on public.inventory;
@@ -57,10 +78,11 @@ alter default privileges for role postgres in schema public revoke truncate, ref
 
 -- 6. Private schema: no implicit PUBLIC execute. Policy helpers stay callable; admin and product
 --    functions stay limited to signed-in users (each admin function asserts the admin role itself).
-revoke execute on all functions in schema private from public;
+revoke execute on all functions in schema private from public, anon;
 alter default privileges for role postgres in schema private revoke execute on functions from public;
 grant execute on function private.titan_is_admin(uuid), private.titan_is_moderator_or_admin(uuid), private.titan_admin_role_for(uuid)
   to anon, authenticated;
+grant execute on function private.titan_my_guild_id() to authenticated;
 grant execute on function
   private.titan_admin_assert(),
   private.titan_admin_dashboard_v1(),
