@@ -26,7 +26,8 @@ function isCloudUser() {
 function trackDbIssue(scope, error) {
     if (!error) return;
     if (typeof window.titanSetSyncStatus === 'function') {
-        window.titanSetSyncStatus(error.code === 'OFFLINE_CACHE' ? 'offline' : 'error', error.message || 'Sync partielle');
+        const conflict = String(error.message || '').includes('PROFILE_VERSION_CONFLICT');
+        window.titanSetSyncStatus(error.code === 'OFFLINE_CACHE' ? 'offline' : 'error', conflict ? 'Modifié sur un autre appareil : recharge la page' : error.message || 'Sync partielle');
     }
     const issue = {
         scope,
@@ -424,7 +425,26 @@ window.titanCleanProfileName = window.titanCleanProfileName || function(value) {
     }
 };
 
-async function pushProfileStateToCloud() {
+// One profile save at a time: a second save waits and leaves with the version returned by the first,
+// instead of racing it into PROFILE_VERSION_CONFLICT.
+let titanProfilePush = null;
+let titanProfilePushAgain = false;
+function pushProfileStateToCloud() {
+    if (titanProfilePush) {
+        titanProfilePushAgain = true;
+        return titanProfilePush;
+    }
+    titanProfilePush = pushProfileStateToCloudOnce().finally(() => {
+        titanProfilePush = null;
+        if (titanProfilePushAgain) {
+            titanProfilePushAgain = false;
+            pushProfileStateToCloud();
+        }
+    });
+    return titanProfilePush;
+}
+
+async function pushProfileStateToCloudOnce() {
     if (!window.titanClient || !isCloudUser()) return null;
 
     if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Sauvegarde…');
@@ -861,7 +881,7 @@ window.saveState = function(options = {}) {
                 clearTimeout(window.cloudSyncTimer);
                 window.cloudSyncTimer = null;
             }
-            pushProfileStateToCloud();
+            return pushProfileStateToCloud();
         } else {
             if (window.cloudSyncTimer) clearTimeout(window.cloudSyncTimer);
             window.cloudSyncTimer = setTimeout(() => {
@@ -1285,7 +1305,14 @@ window.syncWithSupabase = async function() {
         }
 
         if (!window.state) createDefaultState();
-        if (!keepLocalGameState && profile.game_state && profile.game_state.user) window.state = profile.game_state;
+        if (!keepLocalGameState && profile.game_state && profile.game_state.user) {
+            window.state = profile.game_state;
+            // The former server (before the v300 update) drops these preferences: keep this device's value until
+            // the server stores them; once it does, its value is present and wins.
+            if (localBelongsToSession) ['cadencePauses', 'onboardedAt'].forEach((k) => {
+                if (window.state.user[k] === undefined && localStateBeforeSync?.user?.[k] !== undefined) window.state.user[k] = localStateBeforeSync.user[k];
+            });
+        }
         ensureStateIntegrity();
 
         if (!keepLocalGameState && profile.credits !== null && typeof profile.credits !== 'undefined') window.state.user.credits = profile.credits;

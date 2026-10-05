@@ -79,9 +79,11 @@
     u.favoriteSports = picked.slice(0, 5);
     u.weeklyGoalSessions = target;
     u.onboardedAt = new Date().toISOString();
+    u.onboardingComplete = true; // kept by every server version
     window.TitanAnalytics?.setConsent(analytics);
-    window.saveState?.({ forceCloud: true });
+    const saved = window.saveState?.({ forceCloud: true });
     window.TitanAnalytics?.track("onboarding_completed", { count: picked.length });
+    return saved;
   }
 
   function start() {
@@ -89,7 +91,7 @@
     if (!root || !window.state?.user || !window.TitanSports) return;
     if (root.dataset.ready) return;
     // Already set up (e.g. "Commencer" clicked again from the public site): straight to the QG.
-    if (window.state.user.onboardedAt && !new URLSearchParams(location.search).has("again")) return location.replace("/aujourdhui");
+    if ((window.state.user.onboardedAt || window.state.user.onboardingComplete) && !new URLSearchParams(location.search).has("again")) return location.replace("/aujourdhui");
     root.dataset.ready = "1";
     document.querySelectorAll("[data-mark]").forEach((el) => (el.innerHTML = window.titanMark?.() || ""));
     SP().ensure();
@@ -113,9 +115,8 @@
       const fin = e.target.closest("[data-finish]");
       if (fin) {
         e.preventDefault();
-        finish();
-        // Local state is saved synchronously; give the cloud save a moment before leaving.
-        setTimeout(() => (location.href = fin.getAttribute("href")), 350);
+        // Local state is saved synchronously; wait for the cloud save (2.5 s at most) before leaving.
+        Promise.race([Promise.resolve(finish()).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]).finally(() => (location.href = fin.getAttribute("href")));
         return;
       }
       const b = e.target.closest("button");
