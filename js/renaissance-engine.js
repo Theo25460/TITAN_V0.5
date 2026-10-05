@@ -1,8 +1,10 @@
 (function (root) {
   "use strict";
   const C = root.TitanCodex;
+  // v300: same curve as the server (500 × L^1.3); TitanEffort is the single source when loaded.
   const levelRequirement = (level) =>
-    Math.floor(2200 * Math.pow(Math.max(1, Number(level) || 1), 1.18));
+    root.TitanEffort?.levelRequirement(level) ??
+    Math.round(500 * Math.pow(Math.max(1, Number(level) || 1), 1.3));
   const rank = (level) =>
     [...C.ranks].reverse().find((r) => level >= r.level) || C.ranks[0];
   const activeLogs = (logs, now = Date.now()) =>
@@ -75,18 +77,20 @@
       },
     ];
   }
+  /** Discovery estimate with the server rules: effort XP, 1800/day, nothing for history sessions. */
   function simulate(logs) {
     let xp = 0,
       level = 1;
     const daily = new Map();
+    const E = root.TitanEffort;
     for (const l of activeLogs(logs)) {
-      const day = dateKey(l.date),
-        duration = root.TitanTraining?.duration(l);
-      const reward = Math.min(
-        600,
-        Math.max(60, Math.floor((duration || 15) * 10)),
-      );
-      daily.set(day, Math.min(1200, (daily.get(day) || 0) + reward));
+      const created = new Date(l.created_at || Date.now()).getTime();
+      if (E?.isHistorical(l.date, created)) continue;
+      const day = dateKey(l.date);
+      const reward = E
+        ? E.effort({ sport: l.sport, profile: root.SPORTS_CONFIG?.[l.sport]?.balanceProfile, unit: l.unit, val: l.val, details: l.details }).xp
+        : Math.floor((root.TitanTraining?.duration(l) || 15) * 10);
+      daily.set(day, Math.min(E?.DAILY_XP_CAP || 1800, (daily.get(day) || 0) + reward));
     }
     for (const amount of daily.values()) xp += amount;
     while (xp >= levelRequirement(level) && level < 100) {
@@ -154,6 +158,13 @@
       const unique = [
         ...new Map(eligible.map((l) => [dateKey(l.date), l])).values(),
       ];
+      // Guardian trial (chapter 9): 150 effort minutes, at most 90 counted per day.
+      const effortByDay = new Map();
+      for (const l of eligible) {
+        const m = root.TitanProgress?.effortOf(l)?.effortMinutes || 0;
+        effortByDay.set(dateKey(l.date), (effortByDay.get(dateKey(l.date)) || 0) + m);
+      }
+      const effort = Math.round([...effortByDay.values()].reduce((n, m) => n + Math.min(90, m), 0));
       return {
         id: w.id,
         tier: w.tier,
@@ -161,7 +172,8 @@
         route: old?.route || "rhythm",
         started_at: old?.started_at || null,
         target: w.chapters[chapter - 1]?.target || 0,
-        evidence: { days: unique.length, source_ids: unique.map((l) => l.id) },
+        effort_target: chapter === 9 ? 150 : 0,
+        evidence: { days: unique.length, effort, source_ids: unique.map((l) => l.id) },
         completed_at: old?.completed_at || null,
       };
     });
@@ -272,6 +284,8 @@
         if (action === "claim") {
           if (c.chapter !== params.chapter || c.evidence.days < c.target)
             throw new Error("QUEST_INCOMPLETE");
+          if ((c.effort_target || 0) > (c.evidence.effort || 0))
+            throw new Error("GUARDIAN_EFFORT_INCOMPLETE");
           next.rewards.push({
             world: c.id,
             chapter: c.chapter,
@@ -280,7 +294,7 @@
           });
           c.chapter++;
           c.started_at = new Date().toISOString();
-          c.evidence = { days: 0, source_ids: [] };
+          c.evidence = { days: 0, effort: 0, source_ids: [] };
           c.target =
             C.worlds.find((w) => w.id === c.id).chapters[c.chapter - 1]
               ?.target || 0;
@@ -325,6 +339,8 @@
         "Cette campagne fait partie de TITAN+. Les deux premières restent gratuites.",
       AUTH_REQUIRED: "Reconnecte-toi pour retrouver ta progression.",
       QUEST_INCOMPLETE: "La mission n’est pas encore terminée.",
+      GUARDIAN_EFFORT_INCOMPLETE:
+        "Le gardien attend encore de l’effort : 150 minutes depuis le début du chapitre, 90 au plus par jour.",
       AVATAR_LOCKED: "Ce personnage se débloque à un prochain niveau.",
     })[error?.message] ||
     "La progression n’a pas pu être confirmée. Tes séances restent conservées. Réessaie dans un instant.";
