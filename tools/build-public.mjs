@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +18,7 @@ const publicFiles = [
   'sw.js'
 ];
 // Pages replaced by the Ascension app (301 in netlify.toml); kept in the repository for reference only.
+// Retired v200 pages were deleted in v300 (301 redirects in netlify.toml); the list guards against a stray copy.
 const retiredHtml = ['personnage.html', 'trophies.html', 'talents.html', 'bilan.html', 'health.html', 'notifications.html', 'disciplines.html', 'sport_details.html', 'chat.html', 'activities.html', 'guide.html', 'algorithme.html'];
 const excludedHtml = new Set(['sys_core_override_99.html', ...retiredHtml]);
 const blockedDistEntries = [
@@ -95,6 +96,23 @@ for (const entry of readdirSync(root)) {
   copyFileOrDirectory(entry);
 }
 
+// Offline shell: every local asset the app pages load, plus the pages themselves.
+const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login'];
+const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/css/fonts/manrope-latin-0.woff2', '/css/fonts/manrope-latin-1.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
+for (const page of APP_PAGES) {
+  precache.add(`/${page}`);
+  const html = readFileSync(join(dist, `${page}.html`), 'utf8');
+  for (const [, url] of html.matchAll(/(?:src|href)="(\/(?:css|js)\/[^"]+)"/g)) precache.add(url);
+}
+for (const img of ['scout', 'ranger', 'keeper', 'artisan', 'navigator', 'sentinel', 'valley-small', 'archipelago-small', 'forge-small', 'aurora-small']) precache.add(`/assets/renaissance/${img}.webp`);
+for (const url of precache) {
+  const file = join(dist, url.split('?')[0].replace(/^\//, '') || 'index.html');
+  const page = url.startsWith('/') && !url.includes('.') && url !== '/' ? join(dist, `${url.slice(1)}.html`) : file;
+  if (!existsSync(url === '/' ? join(dist, 'index.html') : page)) throw new Error(`Precache entry missing from dist: ${url}`);
+}
+const swPath = join(dist, 'sw.js');
+writeFileSync(swPath, readFileSync(swPath, 'utf8').replace('[/* PRECACHE */]', JSON.stringify([...precache].sort(), null, 2)));
+
 failIfBlocked();
 
-console.log(`TITAN public build ready: ${dist}`);
+console.log(`TITAN public build ready: ${dist} (${precache.size} fichiers hors ligne)`);

@@ -3,8 +3,8 @@
    ========================================= */
 
 // 1. PARAMÈTRES SYSTÈME
-window.GAME_SETTINGS = { version: "200.0" };
-window.TITAN_ASSET_VERSION = "200.0";
+window.GAME_SETTINGS = { version: "300.0" };
+window.TITAN_ASSET_VERSION = "300.0";
 window.STATE_KEY = 'titan_os_v12_save';
 window.CACHE_KEY = 'titan_data_cache_v2';
 window.XP_PER_LEVEL_BASE = 2200;

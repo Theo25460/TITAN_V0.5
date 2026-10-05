@@ -44,6 +44,8 @@
     salle: ["muscu_gym"], foot: ["football"], rando: ["hiking"], nage: ["swimming"], piscine: ["swimming"],
     escalade: ["bouldering", "climbing_route", "sport_climbing"], grimpe: ["bouldering", "climbing_route"],
     bloc: ["bouldering"], marche: ["walking", "nordic_walk", "hiking"],
+    nager: ["swimming"], natation: ["swimming"], paddle: ["paddle", "padel"], padle: ["padel"], vtt: ["mountain_bike"],
+    tennis: ["tennis"], boxe: ["boxing"], muscul: ["muscu_gym"], musculation: ["muscu_gym", "muscu_home"], etirements: ["stretching"],
   };
 
   const norm = (v) =>
