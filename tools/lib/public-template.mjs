@@ -60,11 +60,17 @@ const header = (route) => `<a class="asc-skip" href="#contenu">Aller au contenu<
 </div></header>`;
 const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
   <div><a class="pub-brand" href="/">${mark()}TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
-  <div><h4>Produit</h4><nav><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
-  <div><h4>Comprendre</h4><nav><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
-  <div><h4>Par sport</h4><nav><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
-  <div><h4>Confiance</h4><nav><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Aide et contact</a></nav></div>
+  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
+  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
+  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
+  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Aide et contact</a></nav></div>
 </div><small>© 2026 TITAN · Sans publicité · Paiements TITAN+ opérés par Paddle</small></div></footer>`;
+
+// Each scrollable table is a focusable region with its own name (WCAG: keyboard access, unique landmarks).
+const numberTables = (html) => {
+  let n = 0;
+  return html.replace(/aria-label="Tableau"/g, () => `aria-label="Tableau ${++n}"`);
+};
 
 function page({ route, title, description, image = "valley", body, schema = [], indexable = true }) {
   const url = `${SITE}${route}`;
@@ -92,7 +98,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <script src="/js/pwa.js?v=${V}" defer></script>
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>
-<body class="asc pub">${header(route)}<main id="contenu">${body}</main>${footer}</body>
+<body class="asc pub">${header(route)}<main id="contenu">${numberTables(body)}</main>${footer}</body>
 </html>
 `;
 }

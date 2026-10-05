@@ -39,7 +39,7 @@
     const next = pr.nextRank;
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
-      <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}.webp" alt="" width="128" height="128"></span>
+      <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
         <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2><p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
       <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span><span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span></div>
         <span class="asc-ascent"><span style="--p:${pct}%"></span></span>
@@ -116,7 +116,7 @@
       <div class="pf-avatars" role="radiogroup" aria-label="Personnage">${(C()?.avatars || [])
         .map((a) => {
           const locked = a.level > level;
-          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
+          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}-s.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
         })
         .join("")}</div></section>`;
   }

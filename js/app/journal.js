@@ -127,9 +127,9 @@
 
   function emptyHtml() {
     const any = source().length;
-    if (ui.archived) return `<div class="asc-empty"><h3>Aucune séance archivée</h3><p>Une séance archivée sort de tes statistiques mais reste ici, restaurable à tout moment.</p></div>`;
-    if (!any) return `<div class="asc-empty"><h3>Ton journal commence à ta première séance</h3><p>Course, musculation, escalade, padel : enregistre ce que tu as vraiment fait, en moins d’une minute.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
-    return `<div class="asc-empty"><h3>Aucune séance ne correspond</h3><p>Change la période, la famille ou la recherche.</p><button type="button" class="asc-btn asc-btn-secondary" data-reset>${icon("restore")} Tout afficher</button></div>`;
+    if (ui.archived) return `<div class="asc-empty"><h2>Aucune séance archivée</h2><p>Une séance archivée sort de tes statistiques mais reste ici, restaurable à tout moment.</p></div>`;
+    if (!any) return `<div class="asc-empty"><h2>Ton journal commence à ta première séance</h2><p>Course, musculation, escalade, padel : enregistre ce que tu as vraiment fait, en moins d’une minute.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
+    return `<div class="asc-empty"><h2>Aucune séance ne correspond</h2><p>Change la période, la famille ou la recherche.</p><button type="button" class="asc-btn asc-btn-secondary" data-reset>${icon("restore")} Tout afficher</button></div>`;
   }
 
   function calendarHtml(list) {

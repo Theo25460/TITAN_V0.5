@@ -19,7 +19,7 @@
   const guest = () => String(window.state?.user?.id || "").startsWith("guest_");
 
   function progress() {
-    return `<div class="ob-steps" aria-label="Étape ${step + 1} sur ${STEPS.length}">${STEPS.map((_, i) => `<span${i <= step ? ' data-on="true"' : ""}></span>`).join("")}</div>`;
+    return `<div class="ob-steps" role="progressbar" aria-valuemin="1" aria-valuemax="${STEPS.length}" aria-valuenow="${step + 1}" aria-label="Étape ${step + 1} sur ${STEPS.length}">${STEPS.map((_, i) => `<span${i <= step ? ' data-on="true"' : ""}></span>`).join("")}</div>`;
   }
 
   function sportsStep() {

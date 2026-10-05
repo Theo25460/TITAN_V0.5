@@ -95,7 +95,7 @@
     const list = data?.requests_in || [];
     if (!list.length) return "";
     return `<section class="asc-section"><div class="asc-section-head"><h2>Demandes d’amis</h2></div><div class="asc-list">${list
-      .map((r) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
+      .map((r) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
         <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept="${esc(r.id)}">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-decline="${esc(r.id)}">Refuser</button></span></div>`)
       .join("")}</div></section>`;
   }
@@ -105,7 +105,7 @@
     return `<section class="asc-section" id="moments"><div class="asc-section-head"><h2>Moments</h2><span class="asc-small asc-muted">30 derniers jours</span></div>
       ${list.length ? `<div class="cm-moments">${list
         .map((m) => `<article class="cm-moment" data-kind="${esc(m.kind)}">
-          <span class="cm-avatar"><img src="/assets/renaissance/${esc(m.author?.avatar || "scout")}.webp" alt="" width="40" height="40" loading="lazy"></span>
+          <span class="cm-avatar"><img src="/assets/renaissance/${esc(m.author?.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
           <div class="cm-moment-main"><p class="asc-small asc-muted"><strong>${esc(m.mine ? "Toi" : m.author?.name)}</strong> · ${esc(F().relativeDay(m.created_at))}</p>
             <p class="cm-moment-title">${icon(KIND_ICON[m.kind] || "bolt")}<span>${esc(m.title)}</span></p>
             ${m.detail ? `<p class="cm-moment-detail asc-num">${esc(m.detail)}</p>` : ""}
@@ -127,7 +127,7 @@
       <form class="cm-add" data-add-friend><label class="sr-only" for="cm-code">Code ami</label><input id="cm-code" class="asc-input" name="code" placeholder="Code d’un ami : TN-AB12" autocapitalize="characters" autocomplete="off" maxlength="12"><button type="submit" class="asc-btn asc-btn-primary">${icon("userPlus")} Demander</button></form>
       ${out.length ? `<p class="asc-small asc-muted">${out.length} demande${out.length > 1 ? "s" : ""} en attente de réponse.</p>` : ""}
       ${list.length ? `<div class="asc-list">${list
-        .map((f) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(f.avatar || "scout")}.webp" alt="" width="40" height="40" loading="lazy"></span>
+        .map((f) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(f.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
           <span class="asc-row-main"><span class="asc-row-title">${esc(f.name)}</span><span class="asc-row-sub">${[f.level ? `Niveau ${f.level}` : "", f.week_days !== null && f.week_days !== undefined ? `${f.week_days} jour${f.week_days > 1 ? "s" : ""} actif${f.week_days > 1 ? "s" : ""} cette semaine` : "", f.last_active ? `actif ${F().relativeDay(f.last_active + "T12:00:00")}` : ""].filter(Boolean).join(" · ") || "Statistiques privées"}</span></span>
           <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-friend-menu="${esc(f.id)}" aria-label="Options pour ${esc(f.name)}">${icon("more")}</button></div>`)
         .join("")}</div>` : `<p class="asc-small asc-muted">Échange vos codes : la personne accepte ta demande, puis vous voyez seulement ce que chacun a choisi de partager.</p>`}
@@ -194,7 +194,7 @@
       return;
     }
     if (status === "offline" || status === "error") {
-      root.innerHTML = `<div class="asc-empty"><h3>${status === "offline" ? "Hors ligne" : "Communauté indisponible"}</h3><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p><button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button></div>`;
+      root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p><button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button></div>`;
       return;
     }
     root.innerHTML = `${expeditionHtml()}${requestsHtml()}

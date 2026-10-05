@@ -36,7 +36,7 @@
     document.title = `${c.name} — carte d’athlète TITAN`;
     root.innerHTML = `
       <section class="asc-hero ap-hero">
-        <div class="pf-id"><span class="pf-avatar"${frame ? ` data-frame="${esc(frame)}"` : ""}><img src="/assets/renaissance/${avatar}.webp" alt="" width="128" height="128"></span>
+        <div class="pf-id"><span class="pf-avatar"${frame ? ` data-frame="${esc(frame)}"` : ""}><img src="/assets/renaissance/${avatar}-s.webp" alt="" width="128" height="128"></span>
           <div>${rank ? `<p class="asc-eyebrow cy">${esc(rank.name)} · niveau ${esc(c.level)}</p>` : `<p class="asc-eyebrow cy">Athlète TITAN</p>`}<h1 class="pf-name">${esc(c.name)}</h1>${since ? `<p class="asc-small asc-muted">Sur TITAN depuis ${esc(since)}</p>` : ""}</div></div>
         ${c.totals ? `<dl class="wk-stats ap-totals"><div><dt>Séances</dt><dd class="asc-num">${F().number(c.totals.sessions)}</dd></div><div><dt>Temps</dt><dd class="asc-num">${esc(F().hours(c.totals.minutes))}</dd></div><div><dt>Semaines actives</dt><dd class="asc-num">${F().number(c.totals.weeks)}</dd></div></dl>` : ""}
       </section>

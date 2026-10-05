@@ -44,7 +44,7 @@
   /* Text. */
   --tx: #eef3f7;
   --tx-2: #a8b6c3;
-  --tx-3: #6f7f8e;
+  --tx-3: #7f909f;
   --tx-4: #4c5966;
   /* Brand accent (action, progression). */
   --cy: #3dd9e8;
@@ -1015,7 +1015,7 @@ button.asc-row:hover {
 }
 .asc-input::placeholder,
 .asc textarea::placeholder {
-  color: var(--tx-4);
+  color: var(--tx-3);
 }
 .asc-input[aria-invalid="true"] {
   border-color: var(--err);
@@ -1079,6 +1079,7 @@ button.asc-row:hover {
   padding: var(--s6) 0;
   color: var(--tx-2);
 }
+.asc-empty h2,
 .asc-empty h3 {
   font-size: 17px;
 }

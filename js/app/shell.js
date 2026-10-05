@@ -86,7 +86,7 @@
   }
 
   function avatarImg(u) {
-    return `<span class="asc-avatar"${u.frame ? ` data-frame="${u.frame}"` : ""}><img src="/assets/renaissance/${u.avatar}.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>`;
+    return `<span class="asc-avatar"${u.frame ? ` data-frame="${u.frame}"` : ""}><img src="/assets/renaissance/${u.avatar}-s.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>`;
   }
 
   function computeSync() {
@@ -147,7 +147,7 @@
     const isHome = territory() === "qg";
     top.innerHTML = `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
-      <span style="flex:1"></span>
+      ${isHome ? '<span style="flex:1"></span>' : ""}
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Aide"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
       <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
         <span class="asc-sync" data-state="${syncState.state}"></span>

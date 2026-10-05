@@ -59,7 +59,7 @@
     if (!root) return;
     const list = all();
     if (!list.length) {
-      root.innerHTML = `<div class="asc-empty"><h3>Tes records naîtront de tes séances</h3><p>Distance la plus longue, temps sur 5 ou 10 km, charge la plus lourde, cotation la plus dure : chaque record garde sa séance source et son contexte.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
+      root.innerHTML = `<div class="asc-empty"><h2>Tes records naîtront de tes séances</h2><p>Distance la plus longue, temps sur 5 ou 10 km, charge la plus lourde, cotation la plus dure : chaque record garde sa séance source et son contexte.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
       root.setAttribute("aria-busy", "false");
       return;
     }

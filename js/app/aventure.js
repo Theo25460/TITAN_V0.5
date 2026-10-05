@@ -40,7 +40,7 @@
         const p = s.campaigns.find((c) => c.id === w.id);
         const finished = p?.chapter >= 10;
         return `<button type="button" role="tab" class="av-world" data-world="${w.id}" aria-selected="${w.id === world.id}" style="--world:${w.color}">
-          <img src="/assets/renaissance/${w.image}-small.webp" alt="" width="800" height="450" loading="lazy" decoding="async">
+          <img src="/assets/renaissance/${w.image}-xs.webp" alt="" width="480" height="270" loading="lazy" decoding="async">
           <span class="av-world-copy"><small>${w.tier === "plus" ? "TITAN+" : "Gratuit"} · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
           <span class="av-world-bar"><span style="--p:${Math.round((finished ? 9 : done(p)) / 9 * 100)}%"></span></span>
         </button>`;
@@ -99,7 +99,7 @@
   function guardianHtml(world, p) {
     const finished = p.chapter >= 10;
     return `<section class="av-guardian" style="--world:${world.color}">
-      <img src="/assets/renaissance/guardian-${world.id}.webp" alt="${esc(world.guardian)}" width="640" height="640" loading="lazy" decoding="async">
+      <img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="${esc(world.guardian)}" width="256" height="256" loading="lazy" decoding="async">
       <div><p class="asc-eyebrow">Le gardien de la région</p><h2 class="asc-h2">${esc(world.guardian)}</h2>
         <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend trois jours actifs et 150 minutes d’effort. Pas plus de 90 par jour : il mesure ta constance, pas une journée héroïque.`}</p></div>
     </section>`;
@@ -119,7 +119,7 @@
     if (!root) return;
     const s = A()?.snapshot;
     if (!s) {
-      root.innerHTML = `<div class="asc-empty"><h3>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h3><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
+      root.innerHTML = `<div class="asc-empty"><h2>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h2><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
       return;
     }
     const world = C().worlds.find((w) => w.id === (selected || s.selected_world)) || C().worlds[0];

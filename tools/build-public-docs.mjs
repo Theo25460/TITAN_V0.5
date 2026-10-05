@@ -23,7 +23,7 @@ const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexabl
     }),
   );
 const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a></nav>`;
-const table = (head, rows) => `<div class="pub-table"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+const table = (head, rows) => `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
 /* ---------------------------------------------------------------- Privacy */
 doc({

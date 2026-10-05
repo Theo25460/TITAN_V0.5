@@ -87,7 +87,7 @@
   const avatar = () => window.titanShell?.user?.().avatar || "scout";
   function preview(item) {
     if (item.slot === "frame")
-      return `<span class="at-portrait" data-frame="${esc(item.cosmetic)}"><img src="/assets/renaissance/${esc(avatar())}.webp" alt="" width="96" height="96" loading="lazy"></span>`;
+      return `<span class="at-portrait" data-frame="${esc(item.cosmetic)}"><img src="/assets/renaissance/${esc(avatar())}-s.webp" alt="" width="96" height="96" loading="lazy"></span>`;
     if (item.slot === "map") return `<span class="at-map" data-ambiance="${esc(item.cosmetic)}"><img src="/assets/renaissance/valley-small.webp" alt="" width="160" height="100" loading="lazy"><i></i><i></i><i></i></span>`;
     return `<span class="at-card" data-card="${esc(item.cosmetic)}"><small>Course à pied · record</small><strong>10 km · 47:12</strong><em>TITAN</em></span>`;
   }
