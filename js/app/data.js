@@ -73,6 +73,33 @@
     return next.includes(weekKey);
   }
 
+  /* ---------- Planned week ----------
+     Same storage as before (state.user.schedule[monday…sunday]); the habits field of older
+     versions is kept untouched. A day holds { sport, minutes?, note? }. */
+  const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  function plan() {
+    const raw = window.state?.user?.schedule || {};
+    return DAY_KEYS.map((key, i) => {
+      const d = raw[key] || {};
+      const sport = d.sport && window.SPORTS_CONFIG?.[d.sport] ? d.sport : null;
+      const minutes = Number(d.minutes) > 0 && Number(d.minutes) <= 600 ? Math.round(Number(d.minutes)) : null;
+      return { key, index: i, sport, minutes: sport ? minutes : null, note: sport ? String(d.note || "").slice(0, 80) : "" };
+    });
+  }
+  function planToday(now = new Date()) {
+    const p = plan()[(new Date(now).getDay() + 6) % 7];
+    return p.sport ? p : null;
+  }
+  function setPlanDay(key, value) {
+    if (!window.state?.user || !DAY_KEYS.includes(key)) return;
+    const schedule = { ...(window.state.user.schedule || {}) };
+    const old = schedule[key] || {};
+    schedule[key] = value?.sport
+      ? { ...old, sport: value.sport, minutes: Number(value.minutes) > 0 ? Math.min(600, Math.round(Number(value.minutes))) : null, note: String(value.note || "").trim().slice(0, 80) }
+      : { ...old, sport: null, minutes: null, note: "" };
+    saveSettings({ schedule });
+  }
+
   /** Official progression for accounts, transparent estimate for discovery. */
   function progression() {
     const E = window.TitanEffort;
@@ -153,5 +180,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, progression, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, guestCandidates, importGuestSessions };
 })();

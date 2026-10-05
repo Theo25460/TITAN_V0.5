@@ -173,7 +173,7 @@
     const list = P().activeLogs(D().logs());
     const settings = D().cadenceSettings();
     const now = new Date();
-    const ctx = { logs: D().logs(), goals: goalsCache, now, cadenceTarget: settings.target, pauses: settings.pauses, adventure: window.TitanAdventure?.snapshot, pending: D().pending() };
+    const ctx = { logs: D().logs(), goals: goalsCache, now, cadenceTarget: settings.target, pauses: settings.pauses, adventure: window.TitanAdventure?.snapshot, pending: D().pending(), plan: D().planToday?.(now) };
     const action = P().nextAction(ctx);
     const others = P().insights(ctx).filter((i) => i.id !== action.id).slice(0, 3);
     const cad = P().cadence(D().logs(), { target: settings.target, pauses: settings.pauses, now });

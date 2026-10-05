@@ -1639,3 +1639,112 @@
     font-size: 22px;
   }
 }
+
+/* ---------- Séance · Prévoir ---------- */
+.pv-today {
+  display: grid;
+  gap: var(--s3);
+  margin-bottom: var(--s6);
+}
+.pv-today-title {
+  font-size: clamp(32px, 7vw, 48px);
+  font-stretch: 78%;
+}
+.pv-week {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(118px, 1fr);
+  gap: var(--s2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--s4)) var(--s4);
+  padding: 0 var(--s4) var(--s1);
+  scroll-snap-type: x proximity;
+}
+.pv-week::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 960px) {
+  .pv-week {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(7, 1fr);
+    margin: 0 0 var(--s4);
+    padding: 0;
+    overflow: visible;
+  }
+}
+.pv-day {
+  scroll-snap-align: start;
+  display: grid;
+  gap: var(--s2);
+  align-content: start;
+  min-height: 132px;
+  padding: var(--s3);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--tx);
+  text-align: left;
+}
+.pv-day-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--tx-3);
+}
+.pv-day-head strong {
+  color: var(--tx-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pv-day-plan {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.pv-day-plan .t-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: var(--fam-color, var(--tx-3));
+}
+.pv-day-plan small {
+  display: block;
+  font-weight: 600;
+  color: var(--tx-3);
+}
+.pv-day-status {
+  margin-top: auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--tx-3);
+}
+.pv-day-status .t-icon {
+  width: 14px;
+  height: 14px;
+}
+.pv-day[data-state="done"],
+.pv-day[data-state="other"] {
+  border-color: var(--cy-line);
+}
+.pv-day[data-state="done"] .pv-day-status,
+.pv-day[data-state="other"] .pv-day-status {
+  color: var(--cy);
+  font-weight: 700;
+}
+.pv-day[data-state="today"] {
+  border-color: var(--line-3);
+  background: var(--bg-2);
+}
+.pv-day[data-state="missed"] {
+  opacity: 0.65;
+}
+.pv-foot {
+  margin-top: var(--s4);
+}

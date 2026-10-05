@@ -259,6 +259,7 @@
       if (byFam[s.family] && byFam[s.family].length < 8 && !byFam[s.family].includes(s.id)) byFam[s.family].push(s.id);
     return `
       <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait ?</h1></div></header>
+      <nav class="asc-subnav" data-subnav></nav>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
@@ -448,6 +449,7 @@
     root.innerHTML = S.step === "pick" ? pickHtml() : formHtml();
     if (S.step === "pick") {
       document.getElementById("sport-results").innerHTML = resultsHtml();
+      window.titanShell?.refresh();
     } else {
       updateDerived();
       tick();

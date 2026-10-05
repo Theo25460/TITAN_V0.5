@@ -149,3 +149,14 @@ test("offline catalog: core sports exist without the network and search ranks th
   assert.equal(window.SPORTS_CONFIG.running.extraFields.length, 1, "online entries are never overridden");
   assert.equal(S.label("running"), "Course à pied");
 });
+
+test("a planned session for today becomes a recommendation until something is recorded", () => {
+  const plan = { sport: "running", minutes: 45, note: "" };
+  const ins = P.insights({ logs: [log("2026-10-01T07:00:00")], now: NOW, plan });
+  const p = ins.find((i) => i.id === "plan-today");
+  assert.ok(p, "plan insight present");
+  assert.equal(p.cta.href, "/training?sport=running");
+  assert.match(p.why, /semaine type/);
+  const done = P.insights({ logs: [log("2026-10-07T07:00:00", { sport: "yoga", unit: "min", val: 30 })], now: NOW, plan });
+  assert.equal(done.find((i) => i.id === "plan-today"), undefined);
+});

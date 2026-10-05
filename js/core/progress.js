@@ -343,7 +343,7 @@
   const MILESTONES_SESSIONS = [1, 10, 25, 50, 100, 150, 200, 300, 365, 500, 750, 1000];
   const MILESTONES_HOURS = [10, 25, 50, 100, 200, 300, 500, 1000];
 
-  function insights({ logs = [], goals = [], now = new Date(), cadenceTarget = 3, pauses = [], adventure = null, pending = [] } = {}) {
+  function insights({ logs = [], goals = [], now = new Date(), cadenceTarget = 3, pauses = [], adventure = null, pending = [], plan = null } = {}) {
     const f = F();
     const list = activeLogs(logs, now);
     const out = [];
@@ -398,6 +398,26 @@
         why: `Objectif jusqu’au ${new Date(`${g.end_date}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}, ${f.plural(p.contributors.length, "séance contributrice", "séances contributrices")}.`,
         cta: { label: "Voir l’objectif", href: "/objectifs" },
       });
+    }
+
+    // What the athlete planned for today, until a session of that day exists.
+    if (plan?.sport) {
+      const todayKey = f.dateKey(now);
+      const doneToday = list.filter((l) => f.dateKey(l.date) === todayKey);
+      if (!doneToday.length) {
+        const label = sportMeta(plan.sport).label;
+        const dayName = new Date(now).toLocaleDateString("fr-FR", { weekday: "long" });
+        out.push({
+          id: "plan-today",
+          priority: 72,
+          tone: "cy",
+          eyebrow: "Prévu aujourd’hui",
+          title: label,
+          text: plan.minutes ? `${f.duration(plan.minutes)} prévues${plan.note ? ` · ${plan.note}` : ""}.` : plan.note || "Enregistre-la quand c’est fait, même plus courte que prévu.",
+          why: `Ta semaine type prévoit ${label.toLowerCase()} le ${dayName}. Tu peux la modifier dans Séance › Prévoir.`,
+          cta: { label: "Enregistrer cette séance", href: `/training?sport=${encodeURIComponent(plan.sport)}` },
+        });
+      }
     }
 
     // Recent records (last 7 days).
@@ -558,7 +578,7 @@
         title: "Ta première séance",
         text: "Choisis ton sport, note l’essentiel. TITAN s’occupe du reste : progression, repères et premier chapitre.",
         why: "Aucune séance enregistrée pour l’instant.",
-        cta: { label: "Enregistrer ma première séance", href: "/training" },
+        cta: { label: "Enregistrer ma première séance", href: ctx.plan?.sport ? `/training?sport=${encodeURIComponent(ctx.plan.sport)}` : "/training" },
       };
     if (top && top.priority >= 60) return top;
     const today = list.filter((l) => f.dateKey(l.date) === f.dateKey(now));
