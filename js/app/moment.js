@@ -157,6 +157,8 @@
     const when = F().relativeDay(log.date);
     const body = document.createElement("div");
     body.innerHTML = html(current(log));
+    const broken = records(current(log)).filter((r) => !r.first);
+    if (broken.length) window.TitanAnalytics?.track("record_unlocked", { kind: broken[0].kind, family: S().familyOf(log.sport) });
     const historical = E().isHistorical(log.date);
     const dialog = window.titanShell.sheet({
       title: S().label(log.sport),

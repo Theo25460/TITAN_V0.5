@@ -561,6 +561,8 @@
       clearDraft();
       if (elapsedMs(t)) setTimer({ elapsed: 0, started: null });
       window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: owner(), logId: log.client_event_id } }));
+      const count = P().activeLogs(window.state?.history || []).length;
+      if (count <= 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: S_().familyOf(sport) });
       S = fresh();
       history.replaceState(null, "", "/training");
       render();

@@ -1,95 +1,52 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="asc-root">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    />
-    <meta
-      name="description"
-      content="Ton suivi sportif : séances, durée, régularité et tendances par sport."
-    />
-    <link rel="canonical" href="https://titan-app.fr/stats" />
-    <title>Progrès sportifs — TITAN</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Ta semaine — TITAN</title>
+    <meta name="description" content="Ton récap de la semaine et des statistiques qui répondent à de vraies questions : volume, allure, force, escalade, charge." />
     <meta name="robots" content="noindex,nofollow" />
+    <link rel="canonical" href="https://titan-app.fr/stats" />
+    <meta name="theme-color" content="#05070a" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0b121b" />
-    <link rel="stylesheet" href="./css/style.css?v=200.0" />
-    <link rel="stylesheet" href="/css/icons.css?v=200.0" />
-    <link rel="stylesheet" href="./css/design-system.css?v=200.0" />
-    <link rel="stylesheet" href="./css/tracking.css?v=200.0" />
-  <link rel="stylesheet" href="/css/renaissance.css?v=200.0">
-<link rel="stylesheet" href="/css/sport-insights.css?v=200.0">
-</head>
-  <body data-page="stats">
-    <div class="layout">
-      <nav class="sidebar" aria-label="Navigation principale"></nav>
-      <main class="main-content r-app" id="contenu-principal">
-        <div class="mobile-user-bar"></div>
-        <header class="tracking-header">
-          <div>
-            <div class="tracking-eyebrow">Chaque séance compte</div>
-            <h1>Le jeu avance. Toi aussi.</h1>
-            <p>Retrouve les données qui expliquent ton parcours, sport par sport.</p>
-          </div>
-          <a class="tracking-action" href="/training"
-            ><i class="ri-add-line" aria-hidden="true"></i> Enregistrer</a
-          >
-        </header>
-<nav class="r-tabs" aria-label="Explorer mes données"><a href="/stats" aria-current="page">Analyses</a><a href="/journal">Journal</a><a href="/records">Records</a><a href="/objectifs">Objectifs</a><a href="/bilan">Bilans</a></nav>
-        <div class="tracking-toolbar">
-          <label
-            >Période<select id="progress-period">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-              <option value="365">Un an</option>
-            </select></label
-          ><label
-            >Sport<select id="progress-sport">
-              <option value="all">Tous les sports</option>
-            </select></label
-          >
-        </div>
-        <div class="tracking-toolbar">
-          <button
-            type="button"
-            class="tracking-secondary"
-            id="export-journal-csv"
-          >
-            Exporter le journal CSV</button
-          ><a class="tracking-secondary" href="/bilan"
-            >Mon bilan et les analyses TITAN+ ↗</a
-          >
-        </div>
-        <div id="progress-content" aria-live="polite"></div>
-        <div id="sport-detail-insights"></div>
-        <div id="pending-panel"></div>
-        <p class="tracking-status" id="progress-status">
-          Chargement de tes séances…
-        </p>
-      </main>
-    </div>
+    <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/css/ascension.css?v=300.0" />
+    <link rel="stylesheet" href="/css/ascension-app.css?v=300.0" />
+  </head>
+  <body class="asc" data-territory="progres" data-title="Progrès">
+    <a class="asc-skip" href="#contenu">Aller au contenu</a>
+    <main class="asc-main wk-main" id="contenu">
+      <header class="asc-page-head"><div><p class="asc-eyebrow">Progrès</p><h1>Ta semaine</h1></div></header>
+      <nav class="asc-subnav" data-subnav></nav>
+      <div id="semaine" aria-busy="true">
+        <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
+        <div class="asc-skeleton" style="height: 320px; margin-top: 24px"></div>
+      </div>
+    </main>
     <script src="/js/vendor/supabase-2.111.0.js"></script>
-    <script src="./js/titan-v100.js?v=200.0" defer></script>
-    <script src="./js/config.js?v=200.0"></script>
-    <script src="./js/data.js?v=200.0"></script>
-    <script src="/js/renaissance-icons.js?v=200.0"></script>
-    <script src="./js/ui.js?v=200.0"></script>
-    <script src="./js/training-store.js?v=200.0"></script>
-    <script src="./js/state.js?v=200.0"></script>
-    <script src="./js/titan_features.js?v=200.0"></script>
-    <script src="./js/main.js?v=200.0"></script>
-    <script src="./js/session-export.js?v=200.0"></script>
+    <script src="/js/config.js?v=200.0"></script>
+    <script src="/js/data.js?v=200.0"></script>
+    <script src="/js/app/icons.js?v=300.0"></script>
+    <script src="/js/ui.js?v=200.0"></script>
+    <script src="/js/training-store.js?v=200.0"></script>
+    <script src="/js/state.js?v=200.0"></script>
+    <script src="/js/titan_features.js?v=200.0"></script>
+    <script src="/js/main.js?v=200.0"></script>
     <script src="/js/renaissance-catalog.js?v=200.0"></script>
     <script src="/js/renaissance-engine.js?v=200.0"></script>
-    <script src="/js/renaissance-ui.js?v=200.0"></script>
     <script src="/js/sport-insights.js?v=200.0"></script>
-    <script src="./js/progress-page.js?v=200.0"></script>
-    <script src="/js/progress-detail.js?v=200.0"></script>
-    <script src="./js/pending-ui.js?v=200.0"></script>
-    <script src="./js/pwa.js?v=200.0" defer></script>
-  <script src="/js/renaissance-navigation.js?v=200.0"></script></body>
+    <script src="/js/core/sports-catalog.js?v=300.0"></script>
+    <script src="/js/core/sports.js?v=300.0"></script>
+    <script src="/js/core/format.js?v=300.0"></script>
+    <script src="/js/core/effort.js?v=300.0"></script>
+    <script src="/js/core/progress.js?v=300.0"></script>
+    <script src="/js/app/data.js?v=300.0"></script>
+    <script src="/js/app/shell.js?v=300.0"></script>
+    <script src="/js/app/analytics.js?v=300.0"></script>
+    <script src="/js/core/questions.js?v=300.0"></script>
+    <script src="/js/app/sessions.js?v=300.0"></script>
+    <script src="/js/app/semaine.js?v=300.0"></script>
+    <script src="/js/pwa.js?v=200.0" defer></script>
+  </body>
 </html>
