@@ -22,6 +22,7 @@
 
   let root = null;
   let card = null; // public card settings (server)
+  let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
   const guest = () => D().isGuest();
   const BLOCKS = [
@@ -137,7 +138,7 @@
 
   function publicHtml() {
     if (guest()) return "";
-    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${navigator.onLine ? "Chargement…" : "Disponible avec le réseau."}</p></section>`;
+    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${cardUnavailable ? "La carte d’athlète publique arrive avec la prochaine mise à jour du serveur." : navigator.onLine ? "Chargement…" : "Disponible avec le réseau."}</p></section>`;
     const url = card.slug ? `https://titan-app.fr/u/${card.slug}` : "";
     let qr = "";
     if (card.enabled && url && !window.qrcode) window.TitanCard?.loadQr().then((q) => q && render());
@@ -167,10 +168,11 @@
 
   let bitsLoading = false;
   async function loadServerBits() {
-    if (bitsLoading || card || guest() || !window.titanClient || !navigator.onLine) return;
+    if (bitsLoading || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine) return;
     bitsLoading = true;
     const [c, t] = await Promise.allSettled([window.titanClient.rpc("titan_public_card_settings"), window.titanClient.rpc("titan_expedition_titles")]);
     if (c.status === "fulfilled" && !c.value.error) card = c.value.data;
+    else if (c.status === "fulfilled" && (c.value.error?.code === "PGRST202" || /Could not find/.test(c.value.error?.message || ""))) cardUnavailable = true;
     if (t.status === "fulfilled" && !t.value.error) titles = t.value.data || [];
     bitsLoading = false;
     render();

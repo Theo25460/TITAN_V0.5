@@ -195,6 +195,7 @@
     }
     if (status === "offline" || status === "error") {
       root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p><button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button></div>`;
+      root.setAttribute("aria-busy", "false");
       return;
     }
     root.innerHTML = `${expeditionHtml()}${requestsHtml()}

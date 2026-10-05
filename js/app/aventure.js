@@ -120,6 +120,7 @@
     const s = A()?.snapshot;
     if (!s) {
       root.innerHTML = `<div class="asc-empty"><h2>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h2><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
+      root.setAttribute("aria-busy", A()?.status === "error" ? "false" : "true");
       return;
     }
     const world = C().worlds.find((w) => w.id === (selected || s.selected_world)) || C().worlds[0];
