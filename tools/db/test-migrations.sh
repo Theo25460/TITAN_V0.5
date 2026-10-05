@@ -25,12 +25,19 @@ run() { echo "  · $(basename "$1")"; "${PSQL[@]}" -d "$DB" -f "$1"; }
 echo "Baseline (production structure, no data)"
 run "$ROOT/tools/db/supabase-shim.sql"
 for f in "$ROOT"/tools/db/baseline/*.sql; do run "$f"; done
-echo "Pending migrations from $FROM"
-for f in "$ROOT"/supabase/migrations/*.sql; do
-  v="$(basename "$f" | cut -d_ -f1)"
-  [[ "$v" < "$FROM" ]] && continue
-  run "$f"
-done
+if [[ -n "${RELEASE_SQL:-}" ]]; then
+  echo "One-shot release file $RELEASE_SQL"
+  run "$ROOT/$RELEASE_SQL"
+  echo "  · second run must refuse and change nothing"
+  if "${PSQL[@]}" -d "$DB" -f "$ROOT/$RELEASE_SQL" >/dev/null 2>&1; then echo "release file ran twice"; exit 1; fi
+else
+  echo "Pending migrations from $FROM"
+  for f in "$ROOT"/supabase/migrations/*.sql; do
+    v="$(basename "$f" | cut -d_ -f1)"
+    [[ "$v" < "$FROM" ]] && continue
+    run "$f"
+  done
+fi
 echo "SQL tests"
 for f in "$ROOT"/sql/tests/300_*.sql; do run "$f"; done
 echo "OK: migrations and tests passed on a clean replica."

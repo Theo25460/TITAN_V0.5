@@ -99,7 +99,7 @@ La v300 change à la fois le site et la base. Les migrations sont **additives** 
 | 20261005220000 | `ascension_public_card` | Carte d'athlète publique (désactivée par défaut) |
 | 20261005230000 | `ascension_retention` | Purge des comptes réellement inactifs (3 ans) et des statistiques (13 mois), cron réactivé avec la nouvelle règle |
 
-Appliquer chaque fichier tel quel (Supabase MCP `apply_migration` avec le nom sans horodatage, ou SQL editor), dans l'ordre, sans en sauter. Après chacun : aucune erreur, puis `select version, name from supabase_migrations.schema_migrations order by version desc limit 3;`.
+Appliquer chaque fichier tel quel (Supabase MCP `apply_migration` avec le nom sans horodatage, ou SQL editor), dans l'ordre, sans en sauter. **Variante en un seul geste** : `supabase/release-300.sql` (généré par `node tools/build-release-sql.mjs`) contient les 9 migrations dans une seule transaction et les inscrit dans l'historique ; il se colle tel quel dans l'éditeur SQL et refuse de s'exécuter deux fois. Vérifié sur le banc : `RELEASE_SQL=supabase/release-300.sql bash tools/db/test-migrations.sh`. Après chacun : aucune erreur, puis `select version, name from supabase_migrations.schema_migrations order by version desc limit 3;`.
 
 ### Contrôles après migrations
 

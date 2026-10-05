@@ -61,3 +61,9 @@ $$;
 grant execute on all functions in schema auth to anon, authenticated, service_role;
 -- Table and function grants come from the production snapshot (baseline/05-security.sql), not defaults.
 grant usage on schema public to anon, authenticated, service_role;
+
+-- Migration history table (as created by the Supabase CLI), used by supabase/release-300.sql.
+create schema if not exists supabase_migrations;
+create table if not exists supabase_migrations.schema_migrations (
+  version text primary key, statements text[], name text, created_by text, idempotency_key text, rollback text[]
+);
