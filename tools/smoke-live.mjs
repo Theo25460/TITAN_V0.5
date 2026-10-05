@@ -54,6 +54,24 @@ for (const [from, to] of [["/trophies", "/profile#collection"], ["/bilan", "/sta
   ok(r.status === 301 && (r.headers.get("location") || "").endsWith(to), `${from} → ${to} (${r.status})`);
 }
 
+// Public API as an anonymous visitor, with the anon key the site itself publishes.
+const url = (config.text.match(/TITAN_SUPABASE_URL = '([^']+)'/) || [])[1];
+const key = (config.text.match(/TITAN_SUPABASE_ANON_KEY = '([^']+)'/) || [])[1];
+ok(Boolean(url && key), "URL et clé publique Supabase lisibles dans js/config.js");
+if (url && key) {
+  const api = (path, init = {}) => fetch(url + path, { ...init, headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", ...(init.headers || {}) } });
+  const card = await api("/rest/v1/rpc/titan_public_card", { method: "POST", body: JSON.stringify({ p_slug: "abcdefghij" }) });
+  const cardBody = await card.text();
+  ok(card.status === 200 && (cardBody === "null" || cardBody === ""), `titan_public_card répond à un visiteur (${card.status} ${cardBody.slice(0, 40)})`);
+  const atelier = await api("/rest/v1/rpc/titan_atelier", { method: "POST", body: "{}" });
+  ok(atelier.status !== 404 && atelier.status !== 200, `titan_atelier existe et refuse un visiteur (${atelier.status})`);
+  const write = await api("/rest/v1/shop_history", { method: "POST", body: "{}" });
+  ok(write.status === 401 || write.status === 403, `shop_history fermé en écriture (${write.status})`);
+  const profiles = await api("/rest/v1/profiles?select=id&limit=1");
+  const rows = profiles.status === 200 ? await profiles.json() : [];
+  ok(Array.isArray(rows) && rows.length === 0, `aucun profil lisible par un visiteur (${profiles.status}, ${rows.length} ligne)`);
+}
+
 const hook = await fetch(BASE + "/.netlify/functions/webhook", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
 ok(hook.status !== 404 && hook.status < 500 && hook.status >= 400, `webhook déployé et refuse un appel non signé (${hook.status})`);
 
