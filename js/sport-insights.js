@@ -169,8 +169,8 @@
     }
     return [...map.values()];
   }
-  function records(logs, sport = "all") {
-    const list = active(logs).filter(
+  function records(logs, sport = "all", now = Date.now()) {
+    const list = active(logs, now instanceof Date ? now.getTime() : now).filter(
         (l) => sport === "all" || l.sport === sport,
       ),
       bySport = new Map(),

@@ -1,0 +1,119 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import vm from "node:vm";
+import { readFileSync } from "node:fs";
+
+function load() {
+  const window = { SPORTS_CONFIG: {
+    running: { label: "Course à pied", unit: "km", balanceProfile: "running" },
+    muscu_gym: { label: "Musculation", unit: "kg", balanceProfile: "strength" },
+    bouldering: { label: "Escalade bloc", unit: "min", balanceProfile: "climbing" },
+    yoga: { label: "Yoga", unit: "min", balanceProfile: "mobility" },
+  } };
+  const context = { window, console, Date, Intl, Math, Number, String, Set, Map, JSON, Array, Object, localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, sessionStorage: { clear() {} } };
+  vm.createContext(context);
+  for (const file of ["training-store", "sport-insights", "core/format", "core/effort", "core/progress"])
+    vm.runInContext(readFileSync(new URL(`../js/${file}.js`, import.meta.url), "utf8"), context);
+  return window;
+}
+const W = load();
+const P = W.TitanProgress;
+const NOW = new Date("2026-10-07T18:00:00"); // Wednesday
+let n = 0;
+const log = (date, fields = {}) => ({ id: `l${++n}`, sport: "running", unit: "km", val: 5, date, details: { duration: 30 }, xp: 300, ...fields });
+
+test("cadence holds a week by active days, ignores rest and pause weeks", () => {
+  const logs = [
+    // previous week (Sept 28 – Oct 4): three active days -> held
+    log("2026-09-28T07:00:00"), log("2026-09-30T07:00:00"), log("2026-10-02T07:00:00"), log("2026-10-02T18:00:00"),
+    // two weeks ago: one day -> partial
+    log("2026-09-22T07:00:00"),
+    // current week: two days so far
+    log("2026-10-05T07:00:00"), log("2026-10-06T07:00:00"),
+  ];
+  const c = P.cadence(logs, { target: 3, now: NOW, pauses: ["2026-09-14"] });
+  const byStart = Object.fromEntries(c.weeks.map((w) => [w.start, w]));
+  assert.equal(byStart["2026-09-28"].state, "held");
+  assert.equal(byStart["2026-09-21"].state, "partial");
+  assert.equal(byStart["2026-09-14"].state, "pause");
+  assert.equal(byStart["2026-10-05"].state, "current");
+  assert.equal(c.held, 1);
+  assert.equal(c.window, 7, "the paused week leaves the window");
+  assert.equal(c.remaining, 1);
+  assert.equal(c.reachable, true);
+  assert.equal(c.weeks.length, 8);
+});
+
+test("mastery needs both practice hours and practised weeks", () => {
+  assert.equal(P.masteryLevel(13, 9).name, "Régularité");
+  assert.equal(P.masteryLevel(40, 9).name, "Régularité", "hours alone are not enough");
+  assert.equal(P.masteryLevel(0, 0).name, "Découverte");
+  const logs = Array.from({ length: 12 }, (_, i) => log(new Date(Date.parse("2026-07-06T07:00:00") + i * 7 * 86400000).toISOString(), { details: { duration: 60 } }));
+  const m = P.mastery(logs, NOW).find((x) => x.sport === "running");
+  assert.equal(m.hours, 12);
+  assert.equal(m.weeks, 12);
+  assert.equal(m.level, 4);
+  assert.equal(m.next.name, "Solidité");
+});
+
+test("next action: first session, pending corrections, goals, return after a pause", () => {
+  assert.equal(P.nextAction({ logs: [], now: NOW }).id, "first");
+  const logs = [log("2026-09-20T07:00:00", { val: 8 }), log("2026-09-22T07:00:00", { val: 8 }), log("2026-09-24T07:00:00", { val: 9 })];
+  const goal = { id: "g1", title: "30 km", metric: "distance", target: 30, start_date: "2026-09-01", end_date: "2026-10-31" };
+  const pending = [{ status: "error", payload: {} }];
+  assert.equal(P.nextAction({ logs, goals: [goal], pending, now: NOW }).id, "sync-error");
+  const g = P.nextAction({ logs, goals: [goal], now: NOW });
+  assert.equal(g.id, "goal-g1");
+  assert.match(g.title, /Encore 5 km pour « 30 km »/);
+  assert.ok(g.why.includes("séances contributrices"));
+  const back = P.nextAction({ logs, now: NOW });
+  assert.equal(back.id, "return");
+  assert.ok(back.why.includes("13 jours"));
+});
+
+test("insights explain records with the previous mark and never invent one for a first session", () => {
+  const logs = [log("2026-09-10T07:00:00", { val: 10, details: { duration: 55 } }), log("2026-10-06T07:00:00", { val: 12.4, details: { duration: 70 } })];
+  const records = P.insights({ logs, now: NOW }).filter((i) => i.id.startsWith("record-"));
+  const ids = records.map((r) => r.id).sort();
+  assert.equal(ids.join(","), "record-distance:running,record-duration:running", "longest distance and longest duration both improved");
+  const dist = records.find((r) => r.id === "record-distance:running");
+  assert.match(dist.title, /plus longue distance — 12,4\skm/);
+  assert.match(dist.why, /Précédent repère : 10\skm/);
+  const first = P.insights({ logs: [log("2026-10-06T07:00:00")], now: NOW }).filter((i) => i.id.startsWith("record-"));
+  assert.equal(first.length, 0);
+});
+
+test("weekly recap compares with the four previous weeks and finds the week's records", () => {
+  const logs = [
+    log("2026-09-08T07:00:00", { details: { duration: 30 } }),
+    log("2026-09-15T07:00:00", { details: { duration: 30 } }),
+    log("2026-09-22T07:00:00", { details: { duration: 30 } }),
+    log("2026-09-29T07:00:00", { val: 8, details: { duration: 45 } }),
+    log("2026-10-01T07:00:00", { sport: "yoga", unit: "min", val: 40, details: {} }),
+  ];
+  const r = P.recap(logs, { now: NOW });
+  assert.equal(r.week.sessions, 2);
+  assert.equal(r.week.minutes, 85);
+  assert.equal(r.baseline.minutes, 30);
+  assert.equal(r.deltaMinutes, 55);
+  assert.equal(r.topSport.sport, "running");
+  assert.ok(r.records.some((x) => x.kind === "distance"), "longest distance improved this week");
+  assert.equal(r.bestOfRecentWeeks, true);
+});
+
+test("DNA describes real practice by family, without invented scores", () => {
+  const logs = [
+    log("2026-09-01T07:00:00", { details: { duration: 60 } }),
+    log("2026-09-03T07:00:00", { details: { duration: 60 } }),
+    log("2026-09-05T19:00:00", { sport: "muscu_gym", unit: "kg", val: 3000, details: { duration: 60 } }),
+    log("2026-09-07T19:00:00", { sport: "bouldering", unit: "min", val: 60, details: {} }),
+    log("2026-09-09T07:00:00", { details: { duration: 60 } }),
+  ];
+  const d = P.dna(logs, NOW);
+  assert.equal(d.sessions, 5);
+  assert.equal(d.families[0].id, "endurance");
+  assert.equal(Math.round(d.families[0].share * 100), 60);
+  assert.equal(d.timeOfDay, "matin");
+  assert.equal(d.enough, true);
+  assert.equal(d.topSports[0].sport, "running");
+});
