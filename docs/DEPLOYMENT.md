@@ -76,7 +76,19 @@ Après un rollback, contrôler connexion, enregistrement d'une séance, Journal,
 
 ## Release 300 — mise en production (une seule fois)
 
-La v300 change à la fois le site et la base. Les migrations sont **additives** sauf quelques révocations volontaires (anciennes RPC d'ami par code, défis avec mise) ; l'ancien front v200 les utiliserait encore. L'ordre ci-dessous limite cette fenêtre à quelques minutes.
+La v300 change à la fois le site et la base. Les migrations sont **additives** sauf quelques révocations volontaires (anciennes RPC d'ami par code, défis avec mise) que l'ancien front v200 utiliserait encore.
+
+**Ordre retenu : le site d'abord, la base ensuite.** Le front v300 fonctionne sur la base v200 :
+- une RPC v300 absente répond `PGRST202` : chaque écran l'annonce (« arrive avec la prochaine mise à jour du serveur ») au lieu d'un chargement sans fin ;
+- l'aventure se valide sur les jours, comme le serveur v200 l'exige ;
+- l'XP affichée est celle du serveur, et la règle « 1 min ≈ 10 XP » ne s'affiche qu'avec un instantané serveur en version 2 ;
+- TITAN+ reste souscriptible, et son statut est relu depuis le profil écrit par le webhook.
+
+Les migrations appliquées ensuite allument ces fonctions sans second déploiement. Aucun ancien front ne tourne donc contre une base v300. Simulation : `qa-degraded` (RPC v300 stubées en `PGRST202`).
+
+### Mise en ligne depuis un environnement sans accès à Netlify
+
+Le workflow **Mise en ligne (Netlify)** (`.github/workflows/deploy-netlify.yml`, manuel) prend le lien signé renvoyé par le connecteur Netlify (`deploy-site`). Ce lien est valable 30 minutes et limité à la création d'un build de ce site. Le workflow le masque, vérifie le build, retire les PNG/JPEG hérités qui ont un équivalent WebP (ils ne vont jamais dans `dist/`), puis lance l'envoi. Netlify construit ensuite le site selon `netlify.toml`.
 
 ### Avant
 
@@ -107,10 +119,10 @@ Appliquer chaque fichier tel quel (Supabase MCP `apply_migration` avec le nom sa
 - `select count(*) from cron.job where active;` → 3 (messages expirés, comptes inactifs, statistiques).
 - Avec un compte de test : `select public.titan_atelier();`, `select public.titan_public_card_settings();`, `select public.titan_social_overview();` répondent.
 
-### Site
+### Site (avant les migrations, voir l'ordre retenu)
 
 1. Construire depuis le commit fusionné : `node tools/build-public.mjs` (avec `TWA_SHA256_FINGERPRINTS` si l'application Android est publiée).
-2. Déployer `dist/` en production Netlify (projet `titano-app`), une seule fois.
+2. Déployer en production Netlify (projet `titano-app`), une seule fois : CLI, connecteur, ou workflow « Mise en ligne (Netlify) ».
 3. Smoke tests sur `titan-app.fr` : accueil, connexion, séance (en ligne puis hors ligne), journal, semaine, aventure, profil (export), Communauté, Atelier, `/u/<lien>` d'un compte de test, page de paiement TITAN+ ouverte puis fermée.
 4. Ancienne PWA : ouvrir un appareil qui avait la v200, vérifier le bouton « Nouvelle version » puis le rechargement.
 
