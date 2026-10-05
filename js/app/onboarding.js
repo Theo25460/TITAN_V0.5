@@ -48,7 +48,7 @@
       <h1>Tes données restent à toi.</h1>
       <ul class="ob-promises">
         <li>${icon("lock")}<span><strong>Profil privé par défaut.</strong> Rien n’est visible des autres tant que tu ne le partages pas.</span></li>
-        <li>${icon("shield")}<span><strong>Aucune progression à acheter.</strong> L’XP vient de l’effort réel, au même tarif pour tous les sports. TITAN+ ne donne que du confort et des cosmétiques.</span></li>
+        <li>${icon("shield")}<span><strong>Aucune progression à acheter.</strong> L’XP vient uniquement de tes séances réelles. TITAN+ ne donne que du confort et des cosmétiques.</span></li>
         <li>${icon("download")}<span><strong>Export à tout moment.</strong> Ton journal se télécharge en CSV.</span></li>
       </ul>
       <label class="auth-check"><input type="checkbox" data-analytics ${analytics ? "checked" : ""}><span>J’aide à améliorer TITAN avec des statistiques d’usage. Jamais de santé, de poids, de GPS ni de notes. <small class="asc-faint">Facultatif.</small></span></label>`;

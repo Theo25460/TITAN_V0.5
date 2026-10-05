@@ -251,7 +251,7 @@
       const capped = r && Number(r.requested_xp) > xp;
       return { cls: "cy", text: `+${F().number(xp)} XP officiels${capped ? ` (plafond de fair-play : ${F().number(r.requested_xp)} demandés)` : ""}.` };
     }
-    return { cls: "", text: `≈ ${F().number(P().effortOf(l).xp)} XP, confirmés à la synchronisation.` };
+    return { cls: "", text: window.TitanData?.rulesV300?.() ? `≈ ${F().number(P().effortOf(l).xp)} XP, confirmés à la synchronisation.` : "XP confirmée à la synchronisation." };
   }
 
   function exercisesHtml(l) {

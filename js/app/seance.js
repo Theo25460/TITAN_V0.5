@@ -297,7 +297,7 @@
         ${[["now", "Maintenant"], ["yesterday", "Hier"], ["other", "Autre jour"]].map(([k, l]) => `<button type="button" data-when="${k}" aria-pressed="${S.when === k}">${l}</button>`).join("")}
       </div>
       ${S.when !== "now" ? `<div class="asc-form-grid seance-when-fields">${S.when === "other" ? `<label class="asc-field"><span>Date</span><input class="asc-input" type="date" data-k="date" value="${esc(S.date)}" max="${F().dateKey(new Date())}"></label>` : ""}<label class="asc-field"><span>Heure</span><input class="asc-input" type="time" data-k="time" value="${esc(S.time)}"></label></div>` : ""}
-      ${old ? `<p class="asc-note warn">${icon("info")}<span>Cette séance date de plus de 30 jours : elle rejoindra ton historique, tes statistiques et tes records, sans XP ni progression d’aventure.</span></p>` : ""}
+      ${old ? `<p class="asc-note warn">${icon("info")}<span>${window.TitanData?.rulesV300?.() ? "Cette séance date de plus de 30 jours : elle rejoindra ton historique, tes statistiques et tes records, sans XP ni progression d’aventure." : "Cette séance date de plus de 30 jours : elle reste sur cet appareil, sans XP. Le serveur acceptera ces séances avec sa prochaine mise à jour ; tu pourras alors la renvoyer depuis le journal."}</span></p>` : ""}
     </section>`;
   }
 
@@ -435,7 +435,7 @@
         ${measuresHtml()}
         <section class="seance-block" aria-labelledby="rpe-title"><div class="asc-between"><h2 id="rpe-title" class="seance-label">Ressenti <small class="asc-faint">facultatif</small></h2><span class="asc-small asc-muted" id="rpe-text">${S.rpe ? `${S.rpe}/10 · ${RPE_TEXT[S.rpe]}` : "Non renseigné"}</span></div>
           <div class="asc-scale" role="group" aria-label="Effort ressenti de 1 à 10">${Array.from({ length: 10 }, (_, i) => i + 1).map((n) => `<button type="button" data-rpe="${n}" aria-pressed="${S.rpe === n}" aria-label="${n}, ${RPE_TEXT[n]}">${n}</button>`).join("")}</div>
-          <p class="asc-small asc-faint">L’intensité ajuste ton XP : 1 minute d’effort modéré ≈ 10 XP.</p>
+          <p class="asc-small asc-faint">${window.TitanData?.rulesV300?.() ? "L’intensité ajuste ton XP : 1 minute d’effort modéré ≈ 10 XP." : "L’intensité reste dans ton journal ; l’XP est calculée par le serveur."}</p>
         </section>
         <section class="seance-block"><label class="asc-field"><span>Note <small class="asc-faint">facultatif</small></span><textarea data-k="note" maxlength="2000" placeholder="Un repère pour plus tard : sensations, parcours, partenaire…">${esc(S.note)}</textarea></label></section>
       </div>
@@ -487,7 +487,9 @@
       if (b.at && E().isHistorical(b.at.getTime())) p.innerHTML = `<strong>Historique</strong><span>sans XP</span>`;
       else if (b.val > 0) {
         const e = E().effort({ sport: S.sport, profile: S_().profileOf(S.sport), unit: b.unit, val: b.val, details: b.data });
-        p.innerHTML = `<strong>≈ ${F().number(e.xp)} XP</strong><span>${F().duration(e.minutes)}${e.estimated ? " estimées" : ""}${S.rpe ? ` · RPE ${S.rpe}` : ""}</span>`;
+        p.innerHTML = window.TitanData?.rulesV300?.()
+          ? `<strong>≈ ${F().number(e.xp)} XP</strong><span>${F().duration(e.minutes)}${e.estimated ? " estimées" : ""}${S.rpe ? ` · RPE ${S.rpe}` : ""}</span>`
+          : `<strong>${F().duration(e.minutes)}${e.estimated ? " estimées" : ""}</strong><span>XP calculée par le serveur${S.rpe ? ` · RPE ${S.rpe}` : ""}</span>`;
       } else p.innerHTML = `<strong>Prêt</strong><span>quand tu l’es</span>`;
     }
   }

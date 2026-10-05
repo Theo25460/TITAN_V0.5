@@ -92,7 +92,7 @@
       return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null };
     }
     const offline = !navigator.onLine;
-    return { state: "pending", big: `≈ ${F().number(est.xp)} XP`, sub: offline ? "Hors ligne : la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
+    return { state: "pending", big: window.TitanData?.rulesV300?.() ? `≈ ${F().number(est.xp)} XP` : "Enregistrée", sub: offline ? "Hors ligne : la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
   }
 
   function cadenceHtml(log) {

@@ -100,6 +100,15 @@
     saveSettings({ schedule });
   }
 
+  /** True when XP follows the effort rules (1 min ≈ 10 XP): discovery estimates, or an account whose server
+      snapshot says v300 (version 2). Before the server update, the server computes XP with its former rules. */
+  function rulesV300() {
+    const id = owner();
+    if (isGuest(id)) return true;
+    const s = window.TitanAdventure?.snapshot;
+    return Boolean(s && s.owner === id && !s.local && Number(s.version) >= 2);
+  }
+
   /** Official progression for accounts, transparent estimate for discovery. */
   function progression() {
     const E = window.TitanEffort;
@@ -108,6 +117,7 @@
       const P = window.TitanProgress;
       const perDay = new Map();
       for (const l of P ? P.activeLogs(logs()) : []) {
+        if (E.isHistorical(l.date, new Date(l.created_at || Date.now()).getTime())) continue;
         const day = window.TitanFormat.dateKey(l.date);
         const xp = P.effortOf(l).xp || 0;
         perDay.set(day, Math.min(E.DAILY_XP_CAP, (perDay.get(day) || 0) + xp));
@@ -121,7 +131,8 @@
     const level = Number(fromSnapshot ? s.level : window.state?.user?.level) || 1;
     const xp = Number(fromSnapshot ? s.xp : window.state?.user?.xp) || 0;
     const next = Number(fromSnapshot && s.next_level_xp) || E.levelRequirement(level);
-    return { guest: false, estimated: false, level, xp, next, total: E.totalForLevel(level) + xp, rank: E.rank(level), nextRank: E.nextRank(level) };
+    // `confirmed`: XP and the next threshold both come from the server snapshot, on the server's own curve.
+    return { guest: false, estimated: false, confirmed: Boolean(fromSnapshot), level, xp, next, total: E.totalForLevel(level) + xp, rank: E.rank(level), nextRank: E.nextRank(level) };
   }
 
   /* ---------- Discovery → account ----------
@@ -149,7 +160,9 @@
     if (isGuest(id) || !guestId || !window.TitanQueue?.readHistory) return [];
     const done = importedIds();
     const list = (await window.TitanQueue.readHistory(guestId)) || [];
-    return list.filter((l) => !l.archived_at && !done.has(l.client_event_id || l.id) && Number(l.val) > 0);
+    // Before the server update, sessions older than 30 days are refused: keep them on the device, not imported.
+    const v300 = rulesV300();
+    return list.filter((l) => !l.archived_at && !done.has(l.client_event_id || l.id) && Number(l.val) > 0 && (v300 || !window.TitanEffort.isHistorical(l.date)));
   }
   async function importGuestSessions() {
     const id = owner();
@@ -180,5 +193,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

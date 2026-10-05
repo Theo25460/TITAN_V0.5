@@ -86,9 +86,9 @@
         <div><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
         <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
       </div>
-      <div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
-      <p class="asc-small asc-muted">${f.number(left)} XP avant le niveau ${p.level + 1}. ${nextRank}</p>
-      <p class="asc-small asc-faint">1 minute d’effort modéré ≈ 10 XP, quel que soit ton sport.${p.guest ? " En découverte, le calcul est local et indicatif." : ""}</p>
+      ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
+      <p class="asc-small asc-muted">${f.number(left)} XP avant le niveau ${p.level + 1}. ${nextRank}</p>` : `<p class="asc-small asc-muted">${nextRank} La barre du niveau s’affiche dès que le serveur répond.</p>`}
+      <p class="asc-small asc-faint">${D().rulesV300() ? "1 minute d’effort modéré ≈ 10 XP, quel que soit ton sport." : "L’XP est calculée par le serveur à chaque séance."}${p.guest ? " En découverte, le calcul est local et indicatif." : ""}</p>
     </section>`;
   }
 
@@ -183,7 +183,7 @@
     document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     el.innerHTML = `
       ${D().isGuest() ? guestHtml() : ""}
-      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" style="background:none;border:0;padding:0">Les ajouter à mon compte</button><p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p></div></div>` : ""}
+      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" style="background:none;border:0;padding:0">Les ajouter à mon compte</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
       <div class="asc-grid-2 qg-grid">
@@ -256,7 +256,7 @@
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
   async function boot() {
     queue();
-    window.TitanAdventure?.refresh?.().catch(() => {});
+    await Promise.resolve(window.TitanAdventure?.refresh?.()).catch(() => {});
     goalsCache = await D().goals();
     guestToImport = (await D().guestCandidates().catch(() => [])).length;
     queue();
