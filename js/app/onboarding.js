@@ -88,6 +88,8 @@
     root = document.getElementById("onboarding");
     if (!root || !window.state?.user || !window.TitanSports) return;
     if (root.dataset.ready) return;
+    // Already set up (e.g. "Commencer" clicked again from the public site): straight to the QG.
+    if (window.state.user.onboardedAt && !new URLSearchParams(location.search).has("again")) return location.replace("/aujourdhui");
     root.dataset.ready = "1";
     document.querySelectorAll("[data-mark]").forEach((el) => (el.innerHTML = window.titanMark?.() || ""));
     SP().ensure();

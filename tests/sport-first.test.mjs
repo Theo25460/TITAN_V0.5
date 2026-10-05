@@ -72,9 +72,10 @@ test('public discovery pages are indexable, canonical and content-rich', async (
     assert.match(html, /<meta name="robots" content="index, follow/);
     assert.match(html, new RegExp(`<link rel="canonical" href="https://titan-app\\.fr${route}"`));
     assert.equal((html.match(/<h1\b/g) || []).length, 1);
-    assert.match(html, /<section[^>]+class="[^"]*public-faq/);
-    assert.match(html, /design-system\.css\?v=200\.0/);
-    assert.match(html, /titan-v100\.js\?v=200\.0/);
+    assert.match(html, /class="pub-faq"/);
+    assert.match(html, /"@type":"FAQPage"/);
+    assert.match(html, /ascension\.css\?v=300\.0/);
+    assert.match(html, /public\.css\?v=300\.0/);
     assert.match(sitemap, new RegExp(`<loc>https://titan-app\\.fr${route}</loc>`));
   }
 });
