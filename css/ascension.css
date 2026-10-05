@@ -1284,3 +1284,9 @@ button.asc-row:hover {
 [hidden] {
   display: none !important;
 }
+.asc-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}

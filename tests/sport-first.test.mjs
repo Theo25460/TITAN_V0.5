@@ -23,13 +23,12 @@ test('Olympic metadata is not exposed as a primary catalog family', async () => 
 
 test('the journal keeps the full personal history and offers list/calendar views', async () => {
   const journal = await read('journal.html');
-  const logic = await read('js/journal-page.js');
-  const logsFunction = logic.match(/function getActivityLogs\(\) \{(.*?)\n\s*\}/s)?.[1] || '';
-  assert.match(logsFunction, /return history\.sort/);
-  assert.doesNotMatch(logsFunction, /is_elite|slice\s*\(\s*0\s*,/i);
-  assert.match(journal, /data-activity-view="list"/);
-  assert.match(journal, /data-activity-view="calendar"/);
-  assert.doesNotMatch(journal, /Elite debloque un historique|historique profond/i);
+  const logic = await read('js/app/journal.js');
+  assert.match(journal, /id="journal"/);
+  assert.match(logic, /\["list", "Liste"\], \["calendar", "Calendrier"\]/);
+  // No premium gate and no truncation of the personal history.
+  assert.doesNotMatch(logic, /is_elite|titanIsElite|slice\s*\(\s*0\s*,\s*\d+\s*\)\.map\(\(l\) => rowHtml/);
+  assert.match(logic, /window\.state\?\.archivedHistory/);
 });
 
 test('legacy activities route is fused into the journal', async () => {

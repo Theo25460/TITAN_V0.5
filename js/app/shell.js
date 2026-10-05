@@ -22,6 +22,19 @@
     { id: "atelier", label: "Atelier", href: "/boutique", icon: "sparkle" },
     { id: "aide", label: "Aide", href: "/service", icon: "help" },
   ];
+  /* Pages of a territory; a page opts in with <nav class="asc-subnav" data-subnav></nav>. */
+  const SUBNAV = {
+    progres: [
+      { label: "Semaine", href: "/stats" },
+      { label: "Journal", href: "/journal" },
+      { label: "Records", href: "/records" },
+      { label: "Objectifs", href: "/objectifs" },
+    ],
+    seance: [
+      { label: "Enregistrer", href: "/training" },
+      { label: "Prévoir", href: "/prevoir" },
+    ],
+  };
   const AVATARS = ["scout", "ranger", "keeper", "artisan", "navigator", "sentinel"];
 
   let syncState = { state: navigator.onLine ? "local" : "offline", label: "" };
@@ -128,6 +141,14 @@
       return `<a class="asc-tab" href="${t.href}"${current}>${icon(t.icon)}<span>${t.label}</span></a>`;
     }).join("");
 
+    const sub = document.querySelector("[data-subnav]");
+    const pages = SUBNAV[territory()];
+    if (sub && pages) {
+      const here = location.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
+      sub.setAttribute("aria-label", "Pages de " + (TERRITORIES.find((t) => t.id === territory())?.label || "la section"));
+      sub.innerHTML = pages.map((p) => `<a href="${p.href}"${here === p.href ? ' aria-current="page"' : ""}>${esc(p.label)}</a>`).join("");
+    }
+
     if (!document.querySelector(".asc-toasts")) {
       const t = document.createElement("div");
       t.className = "asc-toasts";
@@ -192,8 +213,35 @@
     return d;
   }
 
+  /** Accessible confirmation; resolves true only on an explicit confirm. `action` may be async and throw. */
+  function confirm({ title = "", message = "", detail = "", confirmLabel = "Confirmer", danger = false, action } = {}) {
+    return new Promise((resolve) => {
+      let done = false;
+      const body = document.createElement("div");
+      body.className = "asc-stack";
+      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small" role="alert" data-error></p>
+        <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="button" class="asc-btn ${danger ? "asc-btn-danger" : "asc-btn-primary"}" data-ok>${esc(confirmLabel)}</button></div>`;
+      const d = sheet({ title, body, onClose: () => !done && resolve(false) });
+      body.querySelector("[data-cancel]").addEventListener("click", () => d.close());
+      const ok = body.querySelector("[data-ok]");
+      ok.addEventListener("click", async () => {
+        ok.disabled = true;
+        try {
+          if (action) await action();
+          done = true;
+          resolve(true);
+          d.close();
+        } catch (error) {
+          body.querySelector("[data-error]").textContent = error?.message || "Action impossible pour le moment.";
+          ok.disabled = false;
+        }
+      });
+      setTimeout(() => ok.focus(), 30);
+    });
+  }
+
   /* ---------- Legacy compatibility ---------- */
-  window.titanShell = { refresh, toast, sheet, user, territories: TERRITORIES, esc };
+  window.titanShell = { refresh, toast, sheet, confirm, user, territories: TERRITORIES, esc };
   window.injectSidebar = refresh;
   window.injectMobileHeader = refresh;
   window.injectMobileNav = refresh;
