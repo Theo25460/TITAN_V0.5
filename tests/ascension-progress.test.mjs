@@ -118,3 +118,34 @@ test("DNA describes real practice by family, without invented scores", () => {
   assert.equal(d.enough, true);
   assert.equal(d.topSports[0].sport, "running");
 });
+
+test("offline catalog: core sports exist without the network and search ranks the obvious answer first", () => {
+  const window = { SPORTS_CONFIG: {} };
+  const context = { window, console, Intl };
+  vm.createContext(context);
+  for (const file of ["core/sports-catalog", "core/sports"])
+    vm.runInContext(readFileSync(new URL(`../js/${file}.js`, import.meta.url), "utf8"), context);
+  const S = window.TitanSports;
+  assert.ok(S.ensure() > 200);
+  for (const id of ["running", "walking", "hiking", "trail", "muscu_gym", "yoga", "swimming", "bouldering"])
+    assert.ok(window.SPORTS_CONFIG[id], `${id} available offline`);
+  assert.equal(S.search("course")[0].id, "running");
+  assert.equal(S.search("course a pied")[0].id, "running");
+  assert.equal(S.search("Course à pied")[0].id, "running");
+  assert.equal(S.search("velo")[0].id, "cycling");
+  assert.equal(S.search("muscu")[0].id, "muscu_gym");
+  assert.equal(S.search("bloc")[0].id, "bouldering");
+  assert.equal(S.label("running"), "Course à pied");
+  assert.equal(S.formOf("running"), "distance");
+  assert.equal(S.formOf("swimming"), "swim");
+  assert.equal(S.formOf("muscu_gym"), "strength");
+  assert.equal(S.formOf("tractions"), "bodyweight");
+  assert.equal(S.formOf("bouldering"), "climbing");
+  assert.equal(S.formOf("football"), "practice");
+  assert.equal(S.paceMode("running"), "pace");
+  assert.equal(S.paceMode("cycling"), "speed");
+  window.SPORTS_CONFIG.running = { label: "Course (Route)", unit: "km", balanceProfile: "running", extraFields: [{ id: "avg_hr" }] };
+  S.ensure();
+  assert.equal(window.SPORTS_CONFIG.running.extraFields.length, 1, "online entries are never overridden");
+  assert.equal(S.label("running"), "Course à pied");
+});

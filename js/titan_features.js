@@ -747,6 +747,8 @@
         if(/climbing|escalade/i.test(`${conf.balanceProfile} ${conf.label}`)) {
             const selections={climbing_discipline:['Bloc','Voie'],belay:['Tête','Moulinette','Auto-assurage'],location:['Salle','Extérieur'],grade_system:['Français voie','Fontainebleau bloc','V-scale bloc']};
             for(const [key,options] of Object.entries(selections))if(options.includes(raw[key]))clean[key]=raw[key];
+            for(const key of ['attempts','successful_routes']){const n=parseInt(raw[key],10);if(Number.isFinite(n))clean[key]=Math.max(0,Math.min(n,500));}
+            for(const key of ['max_done','max_tried']){const g=String(raw[key]||'').trim().slice(0,6);if(/^(V(B|\d{1,2})|[1-9][abc]?\+?)$/i.test(g))clean[key]=g;}
         }
         fields.forEach(field => {
             if (!Object.prototype.hasOwnProperty.call(raw, field.id)) return;
@@ -784,25 +786,39 @@
     function sanitizeExercises(exercises) {
         if (!Array.isArray(exercises)) return [];
         return exercises.slice(0, 80).map(ex => {
-            const setRows = Array.isArray(ex?.setRows) ? ex.setRows.slice(0, 30).map(set => ({
-                weight: Math.max(0, Math.min(toNumber(set?.weight, 0), 1000)),
-                reps: Math.max(1, Math.min(parseInt(set?.reps || 0, 10) || 1, 500)),
-                rir: Math.max(0, Math.min(parseInt(set?.rir || 0, 10) || 0, 10))
-            })) : [];
+            // An empty RIR stays empty: absence of data is never turned into 0.
+            const optionalInt = (value, max) => (value === null || value === undefined || value === '' || !Number.isFinite(parseInt(value, 10)))
+                ? null
+                : Math.max(0, Math.min(parseInt(value, 10), max));
+            const setRows = Array.isArray(ex?.setRows) ? ex.setRows.slice(0, 30).map(set => {
+                const seconds = optionalInt(set?.seconds, 3600);
+                const row = {
+                    weight: Math.max(0, Math.min(toNumber(set?.weight, 0), 1000)),
+                    reps: seconds ? 1 : Math.max(1, Math.min(parseInt(set?.reps || 0, 10) || 1, 500)),
+                    rir: optionalInt(set?.rir, 10)
+                };
+                if (seconds) row.seconds = seconds;
+                return row;
+            }) : [];
             const sets = setRows.length || Math.max(0, Math.min(parseInt(ex?.sets || 0, 10) || 0, 100));
             const totalReps = setRows.length ? setRows.reduce((sum, set) => sum + set.reps, 0) : Math.max(0, Math.min(parseInt(ex?.totalReps || 0, 10) || 0, 50000));
             const volume = setRows.length ? setRows.reduce((sum, set) => sum + (set.weight * set.reps), 0) : Math.max(0, Math.min(toNumber(ex?.volume, 0), 10000000));
-            return {
+            const kind = ['weighted', 'bodyweight', 'hold'].includes(ex?.kind) ? ex.kind : 'weighted';
+            const clean = {
                 name: String(ex?.name || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+                variant: String(ex?.variant || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+                kind,
                 weight: Math.max(0, Math.min(toNumber(ex?.weight, 0), 1000)),
                 sets,
                 reps: Math.max(0, Math.min(parseInt(ex?.reps || 0, 10) || 0, 500)),
-                rir: Math.max(0, Math.min(parseInt(ex?.rir || 0, 10) || 0, 10)),
+                rir: optionalInt(ex?.rir, 10),
                 totalReps,
                 volume,
                 setRows,
                 notes: String(ex?.notes || '').replace(/\s+/g, ' ').trim().slice(0, 180)
             };
+            if (kind === 'hold') clean.holdSeconds = setRows.reduce((sum, set) => sum + (set.seconds || 0), 0);
+            return clean;
         }).filter(ex => ex.name && ex.sets > 0 && ex.reps > 0);
     }
 

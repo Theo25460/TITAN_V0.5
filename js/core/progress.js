@@ -31,6 +31,11 @@
   };
 
   function sportMeta(key) {
+    const S = root.TitanSports;
+    if (S) {
+      const profile = S.profileOf(key);
+      return { key, label: S.label(key), profile, family: S.familyOf(key), unit: S.unitOf(key), icon: "" };
+    }
     const conf = root.SPORTS_CONFIG?.[key] || {};
     const profile = conf.balanceProfile || conf.balance_profile || conf.cat || "";
     return {
