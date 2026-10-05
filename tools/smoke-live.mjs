@@ -62,7 +62,8 @@ if (url && key) {
   const api = (path, init = {}) => fetch(url + path, { ...init, headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", ...(init.headers || {}) } });
   const card = await api("/rest/v1/rpc/titan_public_card", { method: "POST", body: JSON.stringify({ p_slug: "abcdefghij" }) });
   const cardBody = await card.text();
-  ok(card.status === 200 && (cardBody === "null" || cardBody === ""), `titan_public_card répond à un visiteur (${card.status} ${cardBody.slice(0, 40)})`);
+  // An unknown link raises CARD_NOT_FOUND by design (the page then says the card is unavailable); 404 PGRST202 would mean the function is missing.
+  ok(card.status !== 404 && cardBody.includes("CARD_NOT_FOUND"), `titan_public_card existe et refuse un lien inconnu (${card.status} CARD_NOT_FOUND)`);
   const atelier = await api("/rest/v1/rpc/titan_atelier", { method: "POST", body: "{}" });
   ok(atelier.status !== 404 && atelier.status !== 200, `titan_atelier existe et refuse un visiteur (${atelier.status})`);
   const write = await api("/rest/v1/shop_history", { method: "POST", body: "{}" });
