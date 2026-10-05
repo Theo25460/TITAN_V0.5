@@ -69,8 +69,18 @@
 
   function reward(log) {
     const historical = E().isHistorical(log.date);
-    const r = log.details?.serverReward;
-    if (historical) return { state: "history", big: "Historique", sub: "Ajoutée à ton historique, à tes statistiques et à tes records. Sans XP : seules les séances des 30 derniers jours en rapportent." };
+    // After a cloud reload, serverReward can be the stored flag `true` instead of the receipt.
+    const sr = log.details?.serverReward;
+    const r = sr && typeof sr === "object" ? sr : log.syncStatus === "confirmed" ? { xp: log.xp, requested_xp: log.details?.requestedXp ?? log.xp } : null;
+    if (historical)
+      return {
+        state: "history",
+        big: "Historique",
+        sub:
+          isGuest() || log.syncStatus === "confirmed"
+            ? "Ajoutée à ton historique, à tes statistiques et à tes records. Sans XP : seules les séances des 30 derniers jours en rapportent."
+            : "Gardée sur cet appareil, sans XP. Le serveur acceptera les séances de plus de 30 jours avec sa prochaine mise à jour ; tu pourras alors la renvoyer depuis le journal.",
+      };
     const est = P().effortOf(log);
     if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Estimation du mode découverte. Crée ton compte pour rendre ta progression officielle : tes séances te suivent." };
     if (log.syncStatus === "confirmed" && r) {

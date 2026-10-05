@@ -29,6 +29,10 @@
   const badge = (world, index, earned) => `<span class="av-badge${earned ? " is-earned" : ""}" style="--world:${world.color}">${icon(BADGE_ICONS[(index - 1) % 9])}<small>${String(index).padStart(2, "0")}</small></span>`;
   const done = (p) => Math.max(0, Math.min(9, (p?.chapter || 1) - 1));
 
+  /** The guardian effort trial is enforced by the v300 server (and the guest engine), which always send effort_target. */
+  const effortRule = () => (A()?.snapshot?.campaigns || []).some((c) => c.effort_target != null);
+  const SOON = "L’épreuve d’effort du gardien (150 minutes, 90 au plus par jour) arrive avec la prochaine mise à jour du serveur.";
+
   function campaign(world) {
     const s = A().snapshot;
     return s?.campaigns?.find((c) => c.id === world.id) || { id: world.id, chapter: 0, evidence: { days: 0, source_ids: [] }, target: 0 };
@@ -81,7 +85,7 @@
         <p class="asc-small asc-faint">Les séances comptent à partir du départ, une seule fois par jour. Aucune échéance, aucune pénalité.</p></section>`;
     const ch = world.chapters[p.chapter - 1];
     const days = Math.min(p.target, Number(p.evidence?.days || 0));
-    const effortTarget = Number(p.effort_target || (ch.boss ? 150 : 0));
+    const effortTarget = Number(p.effort_target ?? 0);
     const effort = Math.min(effortTarget, Number(p.evidence?.effort || 0));
     const ready = days >= p.target && effort >= effortTarget;
     return `<section class="av-panel${ready ? " is-ready" : ""}">
@@ -89,6 +93,7 @@
       <p>${esc(ch.story)}</p>
       <div class="av-track"><div class="asc-between"><span>${p.route === "journal" ? "Jours avec une séance annotée" : "Jours actifs"}</span><strong class="asc-num">${days} / ${p.target}</strong></div><span class="asc-ascent"><span style="--p:${Math.round((days / Math.max(1, p.target)) * 100)}%"></span></span></div>
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
+      ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
@@ -101,7 +106,7 @@
     return `<section class="av-guardian" style="--world:${world.color}">
       <img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="${esc(world.guardian)}" width="256" height="256" loading="lazy" decoding="async">
       <div><p class="asc-eyebrow">Le gardien de la région</p><h2 class="asc-h2">${esc(world.guardian)}</h2>
-        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend trois jours actifs et 150 minutes d’effort. Pas plus de 90 par jour : il mesure ta constance, pas une journée héroïque.`}</p></div>
+        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend trois jours actifs${effortRule() ? " et 150 minutes d’effort. Pas plus de 90 par jour : il mesure ta constance, pas une journée héroïque" : ""}.`}</p></div>
     </section>`;
   }
 
@@ -126,6 +131,7 @@
     const world = C().worlds.find((w) => w.id === (selected || s.selected_world)) || C().worlds[0];
     selected = world.id;
     const p = campaign(world);
+    root.setAttribute("aria-busy", "false");
     root.innerHTML = `
       ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
@@ -135,7 +141,7 @@
       ${carnetHtml(world, p)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
-        <p>Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour. Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
+        <p>${effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
       <p class="asc-small" role="status" id="av-error"></p>`;
   }
 
@@ -191,7 +197,7 @@
     body.innerHTML = `<div class="av-mission-head">${badge(world, index, earned)}<p class="asc-small asc-muted">${earned ? "Balise allumée" : current ? "Étape en cours" : "À découvrir"}</p></div>
       <p>${esc(ch.story)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
-      <p class="asc-small">Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss ? " et 150 minutes d’effort (90 max par jour)" : ""}. Insigne : <strong>${esc(ch.title)}</strong>.</p>
+      <p class="asc-small">Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss && effortRule() ? " et 150 minutes d’effort (90 max par jour)" : ""}. Insigne : <strong>${esc(ch.title)}</strong>.</p>
       ${ids.length ? `<div class="asc-stack-sm"><p class="asc-eyebrow">Séances qui ont compté</p><div class="asc-list">${ids
         .map((id) => {
           const l = logs.find((x) => String(x.id) === String(id) || x.client_event_id === id);

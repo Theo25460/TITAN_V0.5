@@ -1,0 +1,54 @@
+name: Mise en ligne (Netlify)
+
+# Manual production deploy of titan-app.fr through the Netlify MCP proxy.
+# The proxy path is a short-lived signed link produced by the Netlify connector (deploy-site); it is passed as an
+# input, masked in the logs and never stored in the repository. Netlify then builds the site itself (netlify.toml).
+on:
+  workflow_dispatch:
+    inputs:
+      proxy_path:
+        description: "Lien signé fourni par le connecteur Netlify (deploy-site)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-netlify
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Envoyer et construire sur Netlify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Masquer le lien signé
+        env:
+          PROXY_PATH: ${{ inputs.proxy_path }}
+        run: echo "::add-mask::$PROXY_PATH"
+
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Verifier le build avant envoi
+        run: node tools/build-public.mjs && rm -rf dist
+
+      # Same rule as copyPublicImages(): legacy PNG/JPEG with a WebP sibling never reach dist/.
+      # Removing them here keeps the upload small (~120 Mo de moins) without changing what Netlify publishes.
+      - name: Alleger l'envoi
+        run: |
+          find image/avatar image/boss image/mob -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) | while read -r f; do
+            [ -f "${f%.*}.webp" ] && rm "$f"
+          done
+          du -sh --exclude=.git .
+
+      - name: Envoyer sur Netlify
+        env:
+          PROXY_PATH: ${{ inputs.proxy_path }}
+        run: npx -y @netlify/mcp@latest --site-id 0a553bc3-458a-415d-9173-538faa0ac1e6 --proxy-path "$PROXY_PATH"

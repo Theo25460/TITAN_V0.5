@@ -29,17 +29,20 @@
     }));
   }
 
-  let publicCard = null;
-  async function publicLink() {
-    if (publicCard !== null) return publicCard;
-    publicCard = false;
+  // Only a definitive answer is kept for the page: a timeout or a network error asks again next time.
+  let linkPromise = null;
+  function publicLink() {
     const guest = String(window.state?.user?.id || "guest_").startsWith("guest_");
-    if (guest || !window.titanClient || !navigator.onLine) return publicCard;
-    try {
+    if (guest || !window.titanClient) return Promise.resolve(false);
+    if (!navigator.onLine) return Promise.resolve(false);
+    return (linkPromise ||= (async () => {
       const r = await Promise.race([window.titanClient.rpc("titan_public_card_settings"), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 3000))]);
-      if (r?.data?.enabled && r.data.slug) publicCard = `https://titan-app.fr/u/${r.data.slug}`;
-    } catch {}
-    return publicCard;
+      if (r?.error && r.error.code !== "PGRST202") linkPromise = null;
+      return r?.data?.enabled && r.data.slug ? `https://titan-app.fr/u/${r.data.slug}` : false;
+    })().catch(() => {
+      linkPromise = null;
+      return false;
+    }));
   }
 
   function style() {
@@ -277,7 +280,13 @@
       img.src = canvas.toDataURL("image/png");
       file = null;
     };
-    await paint();
+    try {
+      await paint();
+    } catch {
+      body.querySelector(".cd-preview").textContent = "L’image n’a pas pu être créée sur cet appareil.";
+      body.querySelector(".asc-confirm-actions")?.remove();
+      return sheet;
+    }
     body.querySelector("[data-qr]")?.addEventListener("change", paint);
     const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
     const shareBtn = body.querySelector("[data-share]");
@@ -312,5 +321,5 @@
     return u && !u.guest ? u.name : "";
   };
 
-  window.TitanCard = { draw, open, userName, loadQr, STYLES };
+  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink: () => (linkPromise = null) };
 })();

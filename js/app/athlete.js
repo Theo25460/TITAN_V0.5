@@ -16,9 +16,9 @@
     return (m ? m[1] : new URLSearchParams(location.search).get("c") || "").toLowerCase();
   };
 
-  function missing(root, offline) {
-    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : "Cette carte n’est pas disponible."}</h1>
-      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
+  function missing(root, offline, notYet) {
+    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète arrivent bientôt." : "Cette carte n’est pas disponible."}</h1>
+      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles seront disponibles avec la prochaine mise à jour du serveur." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
       <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></div></section>`;
     root.setAttribute("aria-busy", "false");
   }
@@ -61,7 +61,9 @@
     const s = slug();
     if (!/^[a-z0-9]{10}$/.test(s) || !window.titanClient) return missing(root, !navigator.onLine);
     try {
-      const { data, error } = await window.titanClient.rpc("titan_public_card", { p_slug: s });
+      const call = window.titanClient.rpc("titan_public_card", { p_slug: s });
+      const { data, error } = await (typeof AbortSignal.timeout === "function" && call.abortSignal ? call.abortSignal(AbortSignal.timeout(12000)) : call);
+      if (error?.code === "PGRST202") return missing(root, false, true);
       if (error || !data) return missing(root, !navigator.onLine);
       render(root, data);
     } catch {

@@ -176,7 +176,8 @@ window.flushPendingTrainingLogs = function(options={}) {
                 if(window.state?.user?.id===uid){window.state.user.xp=reward.xp_after;window.state.user.credits=reward.credits_after;window.state.user.level=reward.level_after;await window.TitanQueue.saveHistory(uid,[...window.state.history,...(window.state.archivedHistory||[])]);}
             } catch(error){
                 const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
-                await window.TitanQueue.put({...item,status:permanent?'error':'pending',reason:error.message||'Connexion indisponible'});
+                const tooOld=String(error.message||'').includes('TRAINING_DATE_OUT_OF_RANGE')&&new Date(item.payload.date).getTime()<Date.now()-30*86400000;
+                await window.TitanQueue.put({...item,status:permanent?'error':'pending',reason:tooOld?'Séance de plus de 30 jours : acceptée avec la prochaine mise à jour du serveur':(error.message||'Connexion indisponible')});
                 if(!permanent)break;
             }
         }

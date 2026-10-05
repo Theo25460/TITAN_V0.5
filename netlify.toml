@@ -2,6 +2,10 @@
   command = "node tools/build-public.mjs"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "24"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

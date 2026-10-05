@@ -138,7 +138,7 @@
 
   function publicHtml() {
     if (guest()) return "";
-    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${cardUnavailable ? "La carte d’athlète publique arrive avec la prochaine mise à jour du serveur." : navigator.onLine ? "Chargement…" : "Disponible avec le réseau."}</p></section>`;
+    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${cardUnavailable ? "La carte d’athlète publique arrive avec la prochaine mise à jour du serveur." : !navigator.onLine ? "Disponible avec le réseau." : cardFailed || !window.titanClient ? "Profil public indisponible pour le moment. Réessaie plus tard." : "Chargement…"}</p></section>`;
     const url = card.slug ? `https://titan-app.fr/u/${card.slug}` : "";
     let qr = "";
     if (card.enabled && url && !window.qrcode) window.TitanCard?.loadQr().then((q) => q && render());
@@ -163,19 +163,29 @@
     const { data, error } = await window.titanClient.rpc("titan_public_card_save", { p_enabled: enabled, p_show: show || {}, p_new_link: relink });
     if (error) throw error;
     card = data;
+    window.TitanCard?.resetLink?.();
     render();
   }
 
   let bitsLoading = false;
+  let cardFailed = false;
   async function loadServerBits() {
     if (bitsLoading || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine) return;
     bitsLoading = true;
-    const [c, t] = await Promise.allSettled([window.titanClient.rpc("titan_public_card_settings"), window.titanClient.rpc("titan_expedition_titles")]);
-    if (c.status === "fulfilled" && !c.value.error) card = c.value.data;
-    else if (c.status === "fulfilled" && (c.value.error?.code === "PGRST202" || /Could not find/.test(c.value.error?.message || ""))) cardUnavailable = true;
-    if (t.status === "fulfilled" && !t.value.error) titles = t.value.data || [];
-    bitsLoading = false;
-    render();
+    const within = (p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 8000))]);
+    try {
+      const [c, t] = await Promise.allSettled([within(window.titanClient.rpc("titan_public_card_settings")), within(window.titanClient.rpc("titan_expedition_titles"))]);
+      const err = c.status === "fulfilled" ? c.value.error : c.reason;
+      if (!err && c.value.data) card = c.value.data;
+      else if (err?.code === "PGRST202" || /Could not find/.test(err?.message || "")) cardUnavailable = true;
+      cardFailed = !card && !cardUnavailable;
+      if (t.status === "fulfilled" && !t.value.error && Array.isArray(t.value.data)) titles = t.value.data;
+    } catch {
+      cardFailed = true;
+    } finally {
+      bitsLoading = false;
+      render();
+    }
   }
 
   function dnaCard() {
@@ -189,7 +199,7 @@
       detail: d.topSports.length ? `Mes piliers : ${d.topSports.map((x) => x.label).join(", ")}.` : "",
       name: window.TitanCard.userName(),
       filename: "titan-adn",
-    });
+    }).catch(() => window.titanShell.toast({ type: "warn", message: "L’image n’a pas pu être créée." }));
   }
 
   function accountHtml() {
@@ -298,7 +308,10 @@
     }
     if (b.hasAttribute("data-dna-card")) return dnaCard();
     if (b.hasAttribute("data-card-copy"))
-      return navigator.clipboard?.writeText(`https://titan-app.fr/u/${card.slug}`).then(() => window.titanShell.toast({ type: "ok", title: "Lien copié" }));
+      return (navigator.clipboard?.writeText(`https://titan-app.fr/u/${card.slug}`) || Promise.reject()).then(
+        () => window.titanShell.toast({ type: "ok", title: "Lien copié" }),
+        () => window.titanShell.toast({ type: "warn", message: "Copie impossible : sélectionne le lien pour le copier." }),
+      );
     if (b.hasAttribute("data-card-relink"))
       return window.titanShell.confirm({
         title: "Créer un nouveau lien ?",
