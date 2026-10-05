@@ -113,6 +113,14 @@ for (const url of precache) {
 const swPath = join(dist, 'sw.js');
 writeFileSync(swPath, readFileSync(swPath, 'utf8').replace('[/* PRECACHE */]', JSON.stringify([...precache].sort(), null, 2)));
 
+// Android (Trusted Web Activity): Digital Asset Links, only when the real signing fingerprints are provided
+// (Netlify environment TWA_SHA256_FINGERPRINTS, comma separated: upload key and Play App Signing key).
+const twaFingerprints = String(process.env.TWA_SHA256_FINGERPRINTS || '').split(',').map((f) => f.trim().toUpperCase()).filter((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f));
+if (twaFingerprints.length) {
+  mkdirSync(join(dist, '.well-known'), { recursive: true });
+  writeFileSync(join(dist, '.well-known', 'assetlinks.json'), JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.TWA_PACKAGE_ID || 'fr.titanapp.twa', sha256_cert_fingerprints: twaFingerprints } }], null, 2));
+}
+
 failIfBlocked();
 
 console.log(`TITAN public build ready: ${dist} (${precache.size} fichiers hors ligne)`);

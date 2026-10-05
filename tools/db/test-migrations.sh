@@ -4,7 +4,7 @@
 # Usage: tools/db/test-migrations.sh [first-migration-version]   (default: 20261005150000)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
+PGBIN="${PGBIN:-$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 PORT="${PGPORT_TEST:-54329}"
 DIR="${TITAN_PG_DIR:-/tmp/titan-pg}"
 FROM="${1:-20261005150000}"
@@ -17,7 +17,7 @@ if ! "$PGBIN/pg_isready" -h "$DIR" -p "$PORT" >/dev/null 2>&1; then
   su postgres -c "$PGBIN/initdb -D $DIR/data -A trust -U postgres >/dev/null && $PGBIN/pg_ctl -D $DIR/data -o '-p $PORT -k $DIR' -l $DIR/log.txt start >/dev/null"
   sleep 2
 fi
-PSQL=(psql -h "$DIR" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -q -X)
+PSQL=("$PGBIN/psql" -h "$DIR" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -q -X)
 "${PSQL[@]}" -d postgres -c "create database $DB" >/dev/null
 trap '"${PSQL[@]}" -d postgres -c "drop database if exists $DB" >/dev/null 2>&1 || true' EXIT
 

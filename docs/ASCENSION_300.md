@@ -105,7 +105,7 @@ Portraits, titres, cadres, insignes de chapitre, trophées de jalons (sessions, 
 
 ## 4. Valeur sportive
 
-- **Familles de saisie** : endurance (distance, durée, dénivelé, allure ou vitesse), force (exercices, séries, charge, répétitions, RIR, volume, e1RM), escalade (système de cotation, bloc ou voie, essais, réussites), poids du corps (mouvements, répétitions ou maintien, variantes), pratique (durée, RPE, champs du sport).
+- **Familles de saisie** : endurance (distance, durée, dénivelé, allure ou vitesse), force (exercices, séries, charge, répétitions, RIR, volume ; volontairement **pas de 1RM estimé**), escalade (système de cotation, bloc ou voie, essais, réussites), poids du corps (mouvements, répétitions ou maintien, variantes), pratique (durée, RPE, champs du sport).
 - **Records** : uniquement entre valeurs comparables (même sport, même famille, même distance repère, même exercice et même nombre de répétitions, même système de cotation et contexte), toujours reliés à la séance source.
 - **Repères (insights)** : moteur déterministe, chaque message porte son **pourquoi** et sa source. Pas de « continue champion ».
 - **Récap hebdomadaire** : volume, comparaison avec la moyenne des 4 semaines précédentes, sport dominant, records, objectifs, déblocages, prochaine action. Court, beau, partageable.
@@ -116,26 +116,36 @@ Portraits, titres, cadres, insignes de chapitre, trophées de jalons (sessions, 
 - Pas de framework. Des **modules cœur purs** dans `js/core/` (testables sous Node : effort, sports, cadence, maîtrise, records, repères, récap, DNA) et de l'UI en scripts classiques organisés par page.
 - **Design system Ascension** (`css/ascension.css`) : tokens, typographie, composants. Les nouvelles pages n'utilisent plus `style.css`.
 - Le moteur de synchronisation existant (file IndexedDB, `client_event_id`, reçus serveur) est conservé et durci.
-- Build : copie publique puis **minification** JS et CSS.
+- Build : copie publique, liste hors ligne du service worker générée depuis les pages, `assetlinks.json` Android si les empreintes sont fournies. Pas de minification : Netlify compresse (Brotli/gzip) et le service worker met en cache ; le gain restant ne justifiait pas un outil de build.
 - Supabase : migrations versionnées dans `supabase/migrations/`, testées en transaction annulée avant application, compatibles avec le front déployé jusqu'au déploiement final unique.
 
 ## 6. Langage visuel
 
 Sombre, froid, cinématographique, sportif. Fonds bleu nuit presque noirs, gris acier, **cyan comme accent de marque** (actions et progression uniquement), ambre réservé aux records et aux moments rares. Typographie forte : un caractère étroit et gras pour les titres et les chiffres, Manrope pour le texte. Motif graphique propre à TITAN : **lignes de niveau et profils d'altitude** (l'ascension), plutôt que des halos et des dégradés. Peu de cartes, de vraies zones, de la respiration. Une seule chose domine chaque écran.
 
-## 7. Avancement
+## 7. Avancement (5 octobre 2026)
 
-- [x] Migrations rebasées sur la production (37/37, MD5)
-- [ ] P0 intégrité : guildes, policies, grants, `SECURITY DEFINER`, séances de plus de 30 jours, catalogue hors ligne, mode découverte
-- [ ] XP v300, recalcul des niveaux, maîtrise, cadence, collection serveur
-- [ ] Design system et shell (navigation)
-- [ ] QG, onboarding, login
-- [ ] Séance par famille et moment de résultat
-- [ ] Progrès : semaine, journal, analyses, records, objectifs, repères
-- [ ] Aventure : textes, carte, gardiens, expéditions
-- [ ] Profil : DNA, collection, carte publique et QR
-- [ ] Communauté : amis, défis, guilde, moments
-- [ ] Coaching : workspace
-- [ ] Landing, SEO, cartes partageables, analytics avec consentement
-- [ ] PWA, Android (TWA), accessibilité, performance
-- [ ] Tests E2E, QA 4 largeurs, PR
+- [x] Migrations rebasées sur la production (37/37, MD5) et banc local (`pnpm run test:db`, 6 suites SQL)
+- [x] P0 intégrité : guildes, politiques, droits, `SECURITY DEFINER`, séances de plus de 30 jours, catalogue hors ligne, mode découverte
+- [x] XP v300, recalcul des niveaux sans baisse, maîtrise, cadence, collection
+- [x] Design system Ascension et shell (5 territoires + menu Plus)
+- [x] QG, onboarding (< 2 min), connexion, nouveau mot de passe
+- [x] Séance par famille, durée à la seconde, validation au champ, moment de résultat
+- [x] Progrès : semaine (questions), journal, records sourcés, objectifs, Prévoir, repères expliqués
+- [x] Aventure : carte, balises, gardiens (150 min, 90/jour), expéditions saisonnières
+- [x] Profil : rang, maîtrise, ADN, collection, titres, carte publique + QR, export, suppression
+- [x] Communauté : amis par consentement, Moments, défis sans mise, guilde par effort
+- [x] Coaching : espace à deux, périmètre, propositions
+- [x] Atelier et TITAN+ sans avantage ; possession et apparence côté serveur
+- [x] Site public, légal v300, SEO (sitemap, données structurées, image sociale), identité visuelle
+- [x] Analytics avec consentement : les 12 événements du mandat
+- [x] PWA v300 (hors ligne vérifié serveur coupé), Android TWA (pipeline prêt), accessibilité (axe), poids des images
+- [x] Tests E2E (Chromium) et CI : unitaires, E2E, migrations
+- [ ] Application des 9 migrations et déploiement unique (procédure : `DEPLOYMENT.md`)
+
+## 8. Écarts assumés
+
+- **Pas de minification ni de découpage du moteur hérité** : les pages de l'app chargent ~205 Ko de JS compressé, mis en cache par le service worker. Le découpage de `titan_features.js` (220 Ko) est la prochaine optimisation.
+- **Admin et pages CMS** gardent l'ancien style : usage interne, aucune page CMS publiée.
+- **Android** : Trusted Web Activity plutôt que Capacitor tant qu'aucune API native n'est nécessaire. Le workflow n'a pas pu être exécuté sans clé ni SDK.
+- **Textes légaux** réécrits pour décrire fidèlement le produit ; une relecture juridique reste recommandée avant une exploitation commerciale (statut de l'éditeur à compléter, sans rien inventer).

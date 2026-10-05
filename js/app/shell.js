@@ -9,6 +9,18 @@
     String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   window.titanEsc = esc;
 
+  // Launched from the Android app (Trusted Web Activity): remembered so store rules can be respected.
+  try {
+    if (new URLSearchParams(location.search).get("source") === "twa" || document.referrer.startsWith("android-app://")) localStorage.setItem("titan_twa", "1");
+  } catch {}
+  window.titanInAndroidApp = () => {
+    try {
+      return localStorage.getItem("titan_twa") === "1";
+    } catch {
+      return false;
+    }
+  };
+
   const TERRITORIES = [
     { id: "qg", label: "QG", href: "/aujourdhui", icon: "home" },
     { id: "progres", label: "Progrès", href: "/stats", icon: "chart" },
