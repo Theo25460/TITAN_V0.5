@@ -1,6 +1,6 @@
 {
   "name": "titan-os-sport",
-  "version": "0.7.0",
+  "version": "3.0.0",
   "description": "Application web multisport, PWA et progression gamifiee de TITAN OS Sport.",
   "private": true,
   "packageManager": "pnpm@11.19.0",
@@ -13,15 +13,18 @@
     "preview": "node tools/serve-public.mjs 4173",
     "audit": "node tools/audit-public.mjs",
     "check": "node tools/check-inline-scripts.mjs",
-    "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/webhook.test.mjs tests/sport-discovery.test.mjs tests/sport-first.test.mjs tests/training-integrity.test.mjs tests/renaissance.test.mjs",
+    "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/webhook.test.mjs tests/sport-first.test.mjs tests/training-integrity.test.mjs tests/renaissance.test.mjs tests/ascension-core.test.mjs tests/ascension-progress.test.mjs tests/ascension-questions.test.mjs tests/ascension-parity.test.mjs",
     "smoke": "node tools/check-inline-scripts.mjs",
     "lint": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs",
-    "verify": "pnpm test && pnpm run build && pnpm run audit"
+    "verify": "pnpm test && pnpm run build && pnpm run audit",
+    "test:db": "bash tools/db/test-migrations.sh",
+    "test:e2e": "node tools/build-public.mjs && node --test --test-concurrency=1 tests/e2e/smoke.e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.111.0"
   },
   "devDependencies": {
-    "fake-indexeddb": "^6.2.5"
+    "fake-indexeddb": "^6.2.5",
+    "playwright": "1.56.1"
   }
 }

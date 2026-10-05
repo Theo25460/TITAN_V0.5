@@ -1,81 +1,83 @@
-# Architecture de TITAN OS Sport
+# Architecture de TITAN
 
-Ce document décrit l'état réel du dépôt à la version d'assets `100.0`. Le nom historique du dépôt reste `TITAN_V0.5`.
+État réel du dépôt à la version **300.0 (Ascension)**. Le nom historique du dépôt reste `TITAN_V0.5`. Les règles produit et les chiffres de progression sont dans [`ASCENSION_300.md`](ASCENSION_300.md) ; la mise en production dans [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## Vue d'ensemble
 
 ```mermaid
 flowchart LR
     U[Utilisateur] --> P[Pages HTML multi-pages]
-    P --> C[JS navigateur<br/>config · UI · état · moteur]
-    C <--> L[(localStorage<br/>mode local-first)]
-    C <--> S[(Supabase<br/>Auth · Postgres · Realtime · Storage · RPC)]
-    W[Paddle] --> N[Webhook Netlify]
-    N --> S
-    SW[Service worker] --> K[(Cache PWA)]
+    P --> APP[js/app/* · UI Ascension]
+    APP --> CORE[js/core/* · règles pures testées sous Node]
+    APP --> ENG[Moteur hérité conservé<br/>state.js · main.js · training-store.js]
+    ENG <--> IDB[(IndexedDB · file des séances<br/>localStorage · état local)]
+    APP & ENG <--> S[(Supabase<br/>Auth · Postgres · RPC SECURITY DEFINER)]
+    W[Paddle] --> N[Webhook Netlify signé] --> S
+    SW[Service worker v300] --> K[(Cache hors ligne<br/>généré au build)]
     P --> SW
 ```
 
-Le front est volontairement sans framework ni bundler. Les pages HTML racine chargent des scripts classiques qui exposent des fonctions et états sur `window`. Cette simplicité rend l'ordre de chargement contractuel.
+Pas de framework ni de bundler. Les scripts sont classiques (IIFE/UMD) et exposent leurs API sur `window` ; les modules `js/core/*` exportent aussi pour Node (`module.exports`) afin d'être testés.
 
-## Entrées et parcours
+## Pages
 
-- `index.html` : entrée publique, tableau « Aujourd'hui » si un état utilisateur existe.
-- `training.html` : création d'une séance.
-- `journal.html` : historique personnel, liste et calendrier.
-- `stats.html` : tendances et progression.
-- `profile.html` : compte, préférences et identité sportive.
-- `sports.html` et `disciplines.html` : catalogue et sports suivis.
-- `adventure.html`, `talents.html`, `trophies.html`, `boutique.html` : couche de gamification.
-- `social.html` et `chat.html` : fonctions sociales et temps réel.
-- `admin.html` : console réservée aux autorisations admin côté base.
-- `dynamic-page.html` : contenu public piloté par les données.
+| Espace | Pages | Module |
+| --- | --- | --- |
+| QG | `aujourdhui.html` | `js/app/qg.js` |
+| Progrès | `stats.html` (Semaine), `journal.html`, `records.html`, `objectifs.html` | `semaine.js`, `journal.js`, `records.js`, `objectifs.js` |
+| Séance | `training.html`, `prevoir.html` | `seance.js`, `moment.js`, `prevoir.js` |
+| Aventure | `adventure.html` | `aventure.js` (+ `renaissance-engine.js`, `renaissance-catalog.js`) |
+| Profil | `profile.html` | `profil.js`, `card.js` (images), QR à la demande |
+| Secondaires | `social.html`, `coaching.html`, `boutique.html` (Atelier), `service.html` (Aide) | `communaute.js`, `coaching.js`, `atelier.js` |
+| Accès | `login.html`, `onboarding.html`, `update-password.html` | `auth.js`, `onboarding.js`, `update-password.js` |
+| Public | `index.html`, guides, tarifs, légal, sports, 404 | générés (voir plus bas) |
+| Carte publique | `athlete.html` servie sur `/u/<lien>` | `athlete.js` |
+| Interne | `admin.html`, `dynamic-page.html` | hérités, non indexés |
 
-Le parcours principal est : **Aujourd'hui → Enregistrer → Journal → Progrès → Profil**.
+Le shell (`js/app/shell.js`) dessine la barre du haut, la barre d'onglets mobile, le rail ordinateur, le menu « Plus », les feuilles (`sheet`), confirmations et toasts. Une page sans navigation déclare `data-shell="none"`.
 
-## Ordre des scripts navigateur
+## Ordre des scripts d'une page de l'app
 
-Une page applicative charge généralement :
+`supabase` → `config.js` → `data.js` → `app/icons.js` → `ui.js` → `training-store.js` → `state.js` → `titan_features.js` → `main.js` → `renaissance-catalog.js` → `renaissance-engine.js` → `sport-insights.js` → `core/*` → `app/data.js` → `app/shell.js` → `app/analytics.js` → modules de la page → `pwa.js`.
 
-1. les CDN requis, notamment Supabase ;
-2. `js/titan-v100.js` pour les fondations transverses ;
-3. `js/config.js` ;
-4. `js/data.js` et, si nécessaire, `js/sport-discovery.js` ;
-5. `js/ui.js` ;
-6. `js/state.js` ;
-7. `js/titan_features.js` ;
-8. `js/main.js` ;
-9. le module de page ou le script inline.
+`state.js` et `main.js` (hérités) gardent la synchronisation : file IndexedDB (`TitanQueue`), idempotence par `client_event_id`, reçus serveur. Ils ne sont pas réécrits : c'est le moteur fiable de l'application.
 
-`config.js` doit précéder les accès aux versions, clés et options. `state.js` doit précéder les rendus qui lisent `window.state`. `main.js` dépend de l'état hydraté et de fonctions de sauvegarde. Changer cet ordre sans test multi-pages peut produire des erreurs silencieuses.
+## Règles et données
 
-## État et données
+- `js/core/effort.js` : minutes d'effort, XP v300, plafonds, rangs, niveau. Le serveur applique la même formule (`titan_effort_v300`) et fait foi.
+- `js/core/progress.js` : séances actives, maîtrise, cadence, ADN, repères (`insights`) avec leur raison.
+- `js/core/questions.js` : les questions du récap hebdomadaire.
+- `js/core/sports.js` + `sports-catalog.js` : 260 sports hors ligne, familles, recherche avec synonymes.
+- Les récompenses, achats, apparences, amitiés, partages, défis, expéditions, cartes publiques et suppressions passent par des RPC `SECURITY DEFINER` à `search_path` fixé. Le navigateur n'écrit jamais l'XP, les crédits, les droits ni la possession.
 
-`js/state.js` gère un état local-first dans `localStorage`, puis hydrate et synchronise les données autorisées avec Supabase. Le site peut conserver certaines fonctions en mode invité ou lorsque le réseau est indisponible. Le navigateur n'est jamais la source de vérité pour les droits admin, les entitlements payants ou les récompenses sensibles.
+## Base de données
 
-Les scripts SQL sont actuellement stockés à plat dans `sql/`. Il n'existe pas encore de répertoire `supabase/migrations/` reproductible. [`PUBLIC_RELEASE_SQL_ORDER.md`](../PUBLIC_RELEASE_SQL_ORDER.md) décrit l'ordre opérationnel ; il faut vérifier dans le projet Supabase ce qui a réellement été appliqué.
+- Migrations versionnées dans `supabase/migrations/` ; celles de la v300 commencent à `20261005150000`.
+- **Banc local** : `pnpm run test:db` crée un Postgres vierge, charge la structure de production (`tools/db/baseline`, sans données), rejoue les migrations en attente puis `sql/tests/300_*.sql` (transactions annulées). Procédure de rafraîchissement du snapshot : [`../tools/db/README.md`](../tools/db/README.md).
+- Tâches planifiées (pg_cron) : purge des messages expirés, purge des comptes réellement inactifs (règle v300), purge des statistiques d'usage de plus de 13 mois.
 
-## Paiement et entitlement
+## Site public
 
-`netlify/functions/webhook.mts` réexporte `functions/webhook.mjs`. Le webhook :
+- `tools/build-public-site.mjs` : accueil, tarifs, fonctionnalités, guides (niveaux, aventure, données, démarrage, coachs), sitemap. Les chiffres (XP typique, délais de rang) sont **calculés** depuis `js/core/effort.js`.
+- `tools/build-public-docs.mjs` : confidentialité, CGU, mentions, centre de confiance, aide, nouveautés, catalogue des sports, partenariats, guides par sport, 404.
+- Gabarit commun : `tools/lib/public-template.mjs`, styles `css/public.css` sur les jetons de `css/ascension.css`.
+- Identité : `tools/render-brand-v300.mjs` (icônes, favicon, image sociale) et `tools/make-thumbs.mjs` (portraits, gardiens et mondes allégés).
 
-1. accepte uniquement `POST` et limite la taille du corps ;
-2. vérifie la signature et la fraîcheur Paddle ;
-3. journalise l'événement de façon idempotente ;
-4. identifie explicitement les produits TITAN+ ;
-5. appelle une RPC Supabase ordonnée pour attribuer ou retirer le droit.
+## Build, PWA, Android
 
-Les clés serveur sont injectées par Netlify et ne doivent jamais être copiées dans `js/config.js`.
+- `tools/build-public.mjs` recrée `dist/`, exclut outils, SQL et documents, puis **génère la liste hors ligne du service worker** à partir des ressources réellement chargées par les 14 pages de l'app (le build échoue si une entrée manque). Avec `TWA_SHA256_FINGERPRINTS`, il écrit aussi `/.well-known/assetlinks.json`.
+- `sw.js` : réseau d'abord pour les pages (repli cache puis page hors ligne), cache d'abord avec revalidation pour les ressources. Désactivé sur `localhost` sauf `localStorage.titan_sw_dev = "1"`.
+- Android : Trusted Web Activity, voir [`ANDROID.md`](ANDROID.md).
 
-## Build et PWA
+## Tests
 
-`tools/build-public.mjs` recrée `dist/` à partir des pages racine, de `css/`, de `js/` et des images publiques. Il exclut les outils, SQL, fonctions sources et documents internes. Dans les collections avatar/boss/mob, une image WebP remplace son original PNG/JPEG dans le build lorsqu'un fichier frère existe.
-
-`sw.js` met en cache le shell PWA et applique des stratégies différentes aux navigations et aux assets. Toute nouvelle version doit garder cohérents le nom du cache, `js/config.js`, les query strings des pages et les assets précachés.
+- `pnpm test` : syntaxe des scripts, références d'assets, règles métier (effort, progression, questions, parité avec l'ancien moteur, intégrité des séances, webhook).
+- `pnpm run test:e2e` : Chromium sur le site construit (accueil, séance invité jusqu'au journal et au récap, validation, noindex, 360 px, hors ligne réel).
+- `pnpm run test:db` : migrations et tests SQL sur une réplique vide.
+- CI GitHub : les trois.
 
 ## Limites connues
 
-- Plusieurs gros fichiers reposent sur des globals et des scripts inline ; le risque de couplage inter-pages est réel.
-- Les tests couvrent la syntaxe, les assets et quelques règles métier, mais pas encore un parcours E2E avec Supabase, Netlify et Paddle réels.
-- Le serveur local ne reproduit pas exactement les redirects, headers CSP ni fonctions Netlify.
-- L'état des scripts SQL en production doit être confirmé manuellement.
+- Les pages de l'app chargent encore le moteur hérité (~205 Ko compressés de JS) ; le service worker le met en cache après la première visite.
+- `admin.html` et `dynamic-page.html` gardent l'ancien style.
+- Le serveur local ne reproduit pas les en-têtes CSP ni la fonction Netlify.

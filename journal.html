@@ -1,394 +1,54 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="asc-root">
   <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>Journal sportif - TITAN OS</title>
-
-    <link rel="stylesheet" href="./css/style.css?v=200.0" />
-    <link href="/css/icons.css?v=200.0" rel="stylesheet" />
-    <script src="/js/vendor/supabase-2.111.0.js"></script>
-    <link rel="stylesheet" href="/css/journal.css?v=200.0" />
-
-    <meta name="theme-color" content="#0f172a" />
-
-    <meta name="application-name" content="TITAN OS" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="TITAN OS" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-
-    <link rel="stylesheet" href="./css/design-system.css?v=200.0" />
-    <script src="./js/titan-v100.js?v=200.0" defer></script>
-
-    <!-- SEO: TITAN OS -->
-    <meta
-      name="description"
-      content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes."
-    />
-    <meta name="author" content="TITAN OS Sport" />
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="googlebot" content="noindex, nofollow" />
-    <meta name="bingbot" content="noindex, nofollow" />
-    <meta
-      name="image_src"
-      content="https://titan-app.fr/image/og-titan-os.png"
-    />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Journal — TITAN</title>
+    <meta name="description" content="Toutes tes séances : recherche, calendrier, détails, comparaison et corrections, sans jamais perdre une donnée." />
+    <meta name="robots" content="noindex,nofollow" />
     <link rel="canonical" href="https://titan-app.fr/journal" />
-    <link
-      rel="alternate"
-      hreflang="fr-FR"
-      href="https://titan-app.fr/journal"
-    />
-    <link
-      rel="alternate"
-      hreflang="x-default"
-      href="https://titan-app.fr/journal"
-    />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="192x192"
-      href="/image/logo-192.png"
-    />
-    <link rel="apple-touch-icon" href="/image/logo-192.png" />
+    <meta name="theme-color" content="#05070a" />
+    <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.json" />
-    <meta property="og:site_name" content="TITAN OS Sport" />
-    <meta property="og:locale" content="fr_FR" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Journal sportif - TITAN OS" />
-    <meta
-      property="og:description"
-      content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes."
-    />
-    <meta property="og:url" content="https://titan-app.fr/journal" />
-    <meta
-      property="og:image"
-      content="https://titan-app.fr/image/og-titan-os.png"
-    />
-    <meta
-      property="og:image:secure_url"
-      content="https://titan-app.fr/image/og-titan-os.png"
-    />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="TITAN OS Sport, journal multisport et progression sportive"
-    />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Journal sportif - TITAN OS" />
-    <meta
-      name="twitter:description"
-      content="Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes."
-    />
-    <meta
-      name="twitter:image"
-      content="https://titan-app.fr/image/og-titan-os.png"
-    />
-    <meta
-      name="twitter:image:alt"
-      content="TITAN OS Sport, journal multisport et progression sportive"
-    />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-    <link rel="preload" href="/image/logo.png" as="image" />
-    <!-- /SEO: TITAN OS -->
-    <script type="application/ld+json" data-seo-schema>
-      {
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "Organization",
-            "@id": "https://titan-app.fr/#organization",
-            "name": "TITAN OS Sport",
-            "alternateName": ["TITAN Sport", "TITAN OS Sport"],
-            "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
-            "url": "https://titan-app.fr/",
-            "email": "titanteam.app@gmail.com",
-            "contactPoint": {
-              "@type": "ContactPoint",
-              "email": "titanteam.app@gmail.com",
-              "contactType": "customer support",
-              "availableLanguage": ["fr"]
-            },
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://titan-app.fr/image/logo-192.png",
-              "width": 192,
-              "height": 192
-            }
-          },
-          {
-            "@type": "WebSite",
-            "@id": "https://titan-app.fr/#website",
-            "name": "TITAN OS Sport",
-            "alternateName": ["TITAN Sport", "TITAN OS Sport"],
-            "url": "https://titan-app.fr/",
-            "inLanguage": "fr-FR",
-            "publisher": {
-              "@id": "https://titan-app.fr/#organization"
-            }
-          },
-          {
-            "@type": ["WebApplication", "SoftwareApplication"],
-            "@id": "https://titan-app.fr/#app",
-            "name": "TITAN OS Sport",
-            "alternateName": ["TITAN Sport", "TITAN OS Sport"],
-            "url": "https://titan-app.fr/",
-            "applicationCategory": "SportsApplication",
-            "operatingSystem": "Web",
-            "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
-            "inLanguage": "fr-FR",
-            "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-            "softwareVersion": "102.0",
-            "image": "https://titan-app.fr/image/og-titan-os.png",
-            "screenshot": "https://titan-app.fr/image/og-titan-os.png",
-            "installUrl": "https://titan-app.fr/",
-            "isAccessibleForFree": true,
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "EUR",
-              "availability": "https://schema.org/InStock"
-            },
-            "featureList": [
-              "Journal d'entrainement",
-              "Catalogue de plus de 260 sports",
-              "Recherche par nom, alias, famille et metrique",
-              "Saisie adaptee a chaque discipline",
-              "Statistiques sportives",
-              "Progression par XP",
-              "Objectifs hebdomadaires",
-              "Motivation sportive gamifiee",
-              "Suivi de recuperation",
-              "Aventure et boss",
-              "PWA gratuite"
-            ],
-            "publisher": {
-              "@id": "https://titan-app.fr/#organization"
-            }
-          },
-          {
-            "@type": "WebPage",
-            "@id": "https://titan-app.fr/journal#webpage",
-            "url": "https://titan-app.fr/journal",
-            "name": "Journal sportif - TITAN OS",
-            "headline": "Journal sportif - TITAN OS",
-            "description": "Journal sportif TITAN OS: historique personnel des seances, recompenses, filtres, traces et resume de progression pour les comptes connectes.",
-            "inLanguage": "fr-FR",
-            "isPartOf": {
-              "@id": "https://titan-app.fr/#website"
-            },
-            "about": {
-              "@id": "https://titan-app.fr/#app"
-            },
-            "primaryImageOfPage": {
-              "@type": "ImageObject",
-              "url": "https://titan-app.fr/image/og-titan-os.png",
-              "width": 1200,
-              "height": 630
-            },
-            "breadcrumb": {
-              "@id": "https://titan-app.fr/journal#breadcrumb"
-            },
-            "dateModified": "2026-08-10",
-            "publisher": {
-              "@id": "https://titan-app.fr/#organization"
-            }
-          },
-          {
-            "@type": "BreadcrumbList",
-            "@id": "https://titan-app.fr/journal#breadcrumb",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "TITAN OS",
-                "item": "https://titan-app.fr/"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Journal sportif",
-                "item": "https://titan-app.fr/journal"
-              }
-            ]
-          }
-        ]
-      }
-    </script>
-    <link rel="stylesheet" href="./css/tracking.css?v=200.0" />
-  <link rel="stylesheet" href="/css/renaissance.css?v=200.0">
-<link rel="stylesheet" href="/css/sport-insights.css?v=200.0">
-</head>
-  <body class="journal-page" data-page="journal">
-    <div class="layout">
-      <nav class="sidebar"></nav>
-
-      <main class="main-content r-app">
-        <section
-          class="journal-command-strip"
-          aria-label="Synthèse du journal sportif"
-        >
-          <div>
-            <span class="journal-kicker">Historique sportif</span>
-            <h1>Journal</h1>
-            <p>
-              Retrouve chaque séance, filtre ton historique et ouvre les mesures
-              qui comptent pour ta pratique.
-            </p>
-          </div>
-          <div class="journal-strip-actions" aria-label="Actions journal">
-            <a class="reader-btn journal-primary-action" href="/training"
-              ><i class="ri-add-line"></i><span>Ajouter</span></a
-            >
-            <a class="reader-btn" href="/stats" title="Ouvrir la progression"
-              ><i class="ri-line-chart-line"></i><span>Progrès</span></a
-            >
-            <button type="button" class="reader-btn" id="export-journal-csv">
-              <i class="ri-download-line" aria-hidden="true"></i
-              ><span>Exporter CSV</span></button
-            ><a class="reader-btn" href="/bilan"
-              ><i class="ri-file-chart-line" aria-hidden="true"></i
-              ><span>Mon bilan</span></a
-            >
-          </div>
-        </section>
-        <section
-          class="activity-ledger"
-          aria-labelledby="activity-ledger-title"
-        >
-          <div class="activity-ledger-head">
-            <div>
-              <span class="journal-kicker">Activité sportive</span>
-              <h2 id="activity-ledger-title">Séances enregistrées</h2>
-              <p>
-                La liste montre l’essentiel. Le calendrier aide à lire la
-                régularité sur le mois.
-              </p>
-            </div>
-            <span class="activity-count" id="activity-count">0 seance</span>
-          </div>
-          <div class="activity-panel">
-            <div
-              class="activity-filters"
-              aria-label="Filtres du journal sportif"
-            >
-              <label
-                ><input
-                  type="checkbox"
-                  id="show-archived"
-                  onchange="bootActivityJournal()"
-                />
-                Archives</label
-              ><select
-                id="activity-sport-filter"
-                aria-label="Filtrer par sport"
-              >
-                <option value="all">Tous les sports</option>
-              </select>
-              <input
-                id="activity-month-filter"
-                type="month"
-                aria-label="Filtrer par mois"
-              />
-              <select
-                id="activity-intensity-filter"
-                aria-label="Filtrer par intensité"
-              >
-                <option value="all">Toutes intensités</option>
-                <option value="light">Légère</option>
-                <option value="moderate">Modérée</option>
-                <option value="hard">Intense</option>
-              </select>
-              <input
-                id="activity-search"
-                type="search"
-                placeholder="Rechercher une séance..."
-                aria-label="Rechercher une séance"
-              />
-              <button
-                id="activity-reset-filters"
-                class="activity-filter-action"
-                type="button"
-              >
-                <i class="ri-refresh-line"></i> Réinitialiser
-              </button>
-            </div>
-            <div class="activity-view-switch" aria-label="Mode d'affichage">
-              <button
-                type="button"
-                class="active"
-                data-activity-view="list"
-                aria-pressed="true"
-              >
-                <i class="ri-list-check-2"></i> Liste
-              </button>
-              <button
-                type="button"
-                data-activity-view="calendar"
-                aria-pressed="false"
-              >
-                <i class="ri-calendar-line"></i> Calendrier
-              </button>
-            </div>
-            <div class="activity-feed" id="activity-feed"></div>
-            <div class="activity-calendar" id="activity-calendar" hidden></div>
-            <div
-              class="activity-elite-note"
-              id="activity-elite-note"
-              hidden
-            ></div>
-          </div>
-          <aside
-            class="activity-detail"
-            id="activity-detail"
-            aria-live="polite"
-          >
-            <h3>Sélectionne une séance</h3>
-            <p>
-              Le détail apparaît ici avec les mesures importantes selon le
-              sport.
-            </p>
-            <div class="activity-detail-grid">
-              <div class="activity-detail-metric">
-                <span>Sport</span><strong>-</strong>
-              </div>
-              <div class="activity-detail-metric">
-                <span>Effort</span><strong>-</strong>
-              </div>
-            </div>
-          </aside>
-        </section>
-      </main>
-    </div>
-
-    <script src="./js/config.js?v=200.0"></script>
-    <script src="./js/data.js?v=200.0"></script>
-    <script src="/js/renaissance-icons.js?v=200.0"></script>
-    <script src="./js/ui.js?v=200.0"></script>
-    <script src="./js/training-store.js?v=200.0"></script>
-    <script src="./js/state.js?v=200.0"></script>
-    <script src="./js/titan_features.js?v=200.0"></script>
-    <script src="./js/main.js?v=200.0"></script>
-<script src="/js/renaissance-catalog.js?v=200.0"></script>
-<script src="/js/renaissance-engine.js?v=200.0"></script>
-<script src="/js/renaissance-ui.js?v=200.0"></script>
-
-    <script src="/js/journal-page.js?v=200.0"></script>
-    <script src="./js/session-export.js?v=200.0"></script>
-    <script src="/js/sport-insights.js?v=200.0"></script>
-    <script src="./js/journal-actions.js?v=200.0"></script>
-    <script src="./js/pending-ui.js?v=200.0"></script>
-    <script src="./js/pwa.js?v=200.0" defer></script>
-  <script src="/js/renaissance-navigation.js?v=200.0"></script></body>
+    <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/css/ascension.css?v=300.0" />
+    <link rel="stylesheet" href="/css/ascension-app.css?v=300.0" />
+  </head>
+  <body class="asc" data-territory="progres" data-title="Journal">
+    <a class="asc-skip" href="#contenu">Aller au contenu</a>
+    <main class="asc-main jr-main" id="contenu">
+      <header class="asc-page-head"><div><p class="asc-eyebrow">Progrès</p><h1>Journal</h1></div></header>
+      <nav class="asc-subnav" data-subnav></nav>
+      <div id="journal" aria-busy="true">
+        <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
+        <div class="asc-skeleton" style="height: 320px; margin-top: 24px"></div>
+      </div>
+    </main>
+    <script src="/js/vendor/supabase-2.111.0.js"></script>
+    <script src="/js/config.js?v=300.0"></script>
+    <script src="/js/data.js?v=300.0"></script>
+    <script src="/js/app/icons.js?v=300.0"></script>
+    <script src="/js/ui.js?v=300.0"></script>
+    <script src="/js/training-store.js?v=300.0"></script>
+    <script src="/js/state.js?v=300.0"></script>
+    <script src="/js/titan_features.js?v=300.0"></script>
+    <script src="/js/main.js?v=300.0"></script>
+    <script src="/js/renaissance-catalog.js?v=300.0"></script>
+    <script src="/js/renaissance-engine.js?v=300.0"></script>
+    <script src="/js/sport-insights.js?v=300.0"></script>
+    <script src="/js/core/sports-catalog.js?v=300.0"></script>
+    <script src="/js/core/sports.js?v=300.0"></script>
+    <script src="/js/core/format.js?v=300.0"></script>
+    <script src="/js/core/effort.js?v=300.0"></script>
+    <script src="/js/core/progress.js?v=300.0"></script>
+    <script src="/js/app/data.js?v=300.0"></script>
+    <script src="/js/app/shell.js?v=300.0"></script>
+    <script src="/js/app/analytics.js?v=300.0"></script>
+    <script src="/js/app/share.js?v=300.0"></script>
+    <script src="/js/session-export.js?v=300.0"></script>
+    <script src="/js/app/moment.js?v=300.0"></script>
+    <script src="/js/app/sessions.js?v=300.0"></script>
+    <script src="/js/app/journal.js?v=300.0"></script>
+    <script src="/js/pwa.js?v=300.0" defer></script>
+  </body>
 </html>

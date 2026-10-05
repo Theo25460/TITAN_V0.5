@@ -26,7 +26,8 @@ function isCloudUser() {
 function trackDbIssue(scope, error) {
     if (!error) return;
     if (typeof window.titanSetSyncStatus === 'function') {
-        window.titanSetSyncStatus(error.code === 'OFFLINE_CACHE' ? 'offline' : 'error', error.message || 'Sync partielle');
+        const conflict = String(error.message || '').includes('PROFILE_VERSION_CONFLICT');
+        window.titanSetSyncStatus(error.code === 'OFFLINE_CACHE' ? 'offline' : 'error', conflict ? 'Modifié sur un autre appareil : recharge la page' : error.message || 'Sync partielle');
     }
     const issue = {
         scope,
@@ -424,7 +425,26 @@ window.titanCleanProfileName = window.titanCleanProfileName || function(value) {
     }
 };
 
-async function pushProfileStateToCloud() {
+// One profile save at a time: a second save waits and leaves with the version returned by the first,
+// instead of racing it into PROFILE_VERSION_CONFLICT.
+let titanProfilePush = null;
+let titanProfilePushAgain = false;
+function pushProfileStateToCloud() {
+    if (titanProfilePush) {
+        titanProfilePushAgain = true;
+        return titanProfilePush;
+    }
+    titanProfilePush = pushProfileStateToCloudOnce().finally(() => {
+        titanProfilePush = null;
+        if (titanProfilePushAgain) {
+            titanProfilePushAgain = false;
+            pushProfileStateToCloud();
+        }
+    });
+    return titanProfilePush;
+}
+
+async function pushProfileStateToCloudOnce() {
     if (!window.titanClient || !isCloudUser()) return null;
 
     if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Sauvegarde…');
@@ -440,7 +460,7 @@ async function pushProfileStateToCloud() {
         avatar: safeAvatar,
         inventory: window.state.user.inventory,
         friend_code: window.state.user.friend_code,
-        privacy: window.state.user.privacy || { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+        privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
         streak_count: window.state.user.streak_count,
         last_week_id: window.state.user.last_week_id,
         updated_at: new Date().toISOString()
@@ -596,13 +616,28 @@ window.loadState = function() {
     }
 };
 
+// Discovery mode keeps ONE local identity per device, so coming back to discovery never orphans
+// sessions or goals saved earlier on this device.
+window.titanGuestId = function() {
+    const key = 'titan_guest_device_id_v1';
+    try {
+        const existing = localStorage.getItem(key);
+        if (existing && /^guest_[A-Za-z0-9_-]{6,64}$/.test(existing)) return existing;
+        const id = 'guest_' + Date.now();
+        localStorage.setItem(key, id);
+        return id;
+    } catch (_) {
+        return 'guest_' + Date.now();
+    }
+};
+
 // 2. VERIFICATION ET REPARATION DES DONNEES
 window.ensureStateIntegrity = function() {
     if (!window.state) window.state = {};
 
     const previousUser = window.state.user || {};
     window.state.user = Object.assign({
-        id: 'guest_' + Date.now(),
+        id: window.titanGuestId(),
         name: "Recrue",
         level: 1,
         xp: 0,
@@ -647,7 +682,7 @@ window.ensureStateIntegrity = function() {
         lastSessionSummary: null,
         adventureJournal: [],
         weeklyGoalSessions: 3,
-        privacy: { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+        privacy: { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
         unlockedTitles: ['title-recruit'],
         activeTitle: 'title-recruit',
         purchase_history: [],
@@ -726,7 +761,7 @@ window.ensureStateIntegrity = function() {
     if (!Array.isArray(window.state.user.recoveryCheckIns)) window.state.user.recoveryCheckIns = [];
     if (!Array.isArray(window.state.user.adventureJournal)) window.state.user.adventureJournal = [];
     if (isNaN(window.state.user.weeklyGoalSessions)) window.state.user.weeklyGoalSessions = 3;
-    window.state.user.privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, window.state.user.privacy || {});
+    window.state.user.privacy = Object.assign({ publicProfile: false, showStats: false, socialPresence: false, friendRankings: false }, window.state.user.privacy || {});
     if (!window.state.user.unlockedTitles) window.state.user.unlockedTitles = ['title-recruit'];
     if (!window.state.user.unlockedTitles.includes('title-recruit')) window.state.user.unlockedTitles.unshift('title-recruit');
     if (!window.state.user.activeTitle) window.state.user.activeTitle = 'title-recruit';
@@ -755,7 +790,7 @@ window.ensureStateIntegrity = function() {
 window.createDefaultState = function() {
     window.state = {
         user: {
-            id: 'guest_' + Date.now(),
+            id: window.titanGuestId(),
             name: "Recrue",
             level: 1,
             xp: 0,
@@ -800,7 +835,7 @@ window.createDefaultState = function() {
             lastSessionSummary: null,
             adventureJournal: [],
             weeklyGoalSessions: 3,
-            privacy: { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+            privacy: { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
             unlockedTitles: ['title-recruit'],
             activeTitle: 'title-recruit',
             purchase_history: [],
@@ -846,7 +881,7 @@ window.saveState = function(options = {}) {
                 clearTimeout(window.cloudSyncTimer);
                 window.cloudSyncTimer = null;
             }
-            pushProfileStateToCloud();
+            return pushProfileStateToCloud();
         } else {
             if (window.cloudSyncTimer) clearTimeout(window.cloudSyncTimer);
             window.cloudSyncTimer = setTimeout(() => {
@@ -1206,7 +1241,7 @@ window.syncWithSupabase = async function() {
                     p_username: window.titanCleanProfileName(signupName) || 'Agent',
                     p_avatar: window.state.user.avatar || null,
                     p_inventory: window.state.user.inventory || {},
-                    p_privacy: window.state.user.privacy || { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+                    p_privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
                     p_streak_count: window.state.user.streak_count || 0,
                     p_last_week_id: window.state.user.last_week_id || '',
                     p_last_seen_news_version: window.state.user.last_seen_news_version || null
@@ -1270,7 +1305,14 @@ window.syncWithSupabase = async function() {
         }
 
         if (!window.state) createDefaultState();
-        if (!keepLocalGameState && profile.game_state && profile.game_state.user) window.state = profile.game_state;
+        if (!keepLocalGameState && profile.game_state && profile.game_state.user) {
+            window.state = profile.game_state;
+            // The former server (before the v300 update) drops these preferences: keep this device's value until
+            // the server stores them; once it does, its value is present and wins.
+            if (localBelongsToSession) ['cadencePauses', 'onboardedAt'].forEach((k) => {
+                if (window.state.user[k] === undefined && localStateBeforeSync?.user?.[k] !== undefined) window.state.user[k] = localStateBeforeSync.user[k];
+            });
+        }
         ensureStateIntegrity();
 
         if (!keepLocalGameState && profile.credits !== null && typeof profile.credits !== 'undefined') window.state.user.credits = profile.credits;
@@ -1279,12 +1321,13 @@ window.syncWithSupabase = async function() {
         if (!keepLocalGameState && profile.inventory) window.state.user.inventory = profile.inventory;
         window.state.inventory = window.state.user.inventory;
         window.state.user.is_elite = (profile.is_elite === true);
+        if (profile.appearance && typeof profile.appearance === 'object') window.state.user.appearance = profile.appearance;
         window.state.user.is_tester = (profile.is_tester === true);
         window.state.user.is_suspended = (profile.is_suspended === true);
 
         if (profile.username) window.state.user.name = profile.username;
         if (profile.avatar) window.state.user.avatar = profile.avatar;
-        if (profile.privacy) window.state.user.privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, profile.privacy || {});
+        if (profile.privacy) window.state.user.privacy = Object.assign({ publicProfile: false, showStats: false, socialPresence: false, friendRankings: false }, profile.privacy || {});
         if (profile.streak_count !== undefined) window.state.user.streak_count = profile.streak_count;
         if (profile.last_week_id !== undefined) window.state.user.last_week_id = profile.last_week_id;
         if (profile.friend_code) window.state.user.friend_code = profile.friend_code;

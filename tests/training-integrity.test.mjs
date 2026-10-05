@@ -4,7 +4,6 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {IDBFactory} from 'fake-indexeddb';
 const source=readFileSync(new URL('../js/training-store.js',import.meta.url),'utf8');
-const journalSource=readFileSync(new URL('../js/journal-page.js',import.meta.url),'utf8');
 function environment(factory=new IDBFactory(),storage=new Map()){
  const window={state:{user:{id:'guest_test'}},indexedDB:factory,dispatchEvent(){}};
  const context={window,indexedDB:factory,CustomEvent,crypto,structuredClone,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{clear(){}}};
@@ -19,25 +18,7 @@ test('duration distinguishes missing values and honors measured minutes/hours',(
  assert.equal(t.load({val:30,unit:'min',details:{bio:{rpe:6}}}),180);
 });
 
-test('journal uses corrected distance and duration instead of cached GPX display data',()=>{
- const context={window:environment().window,formatNumber:(v,d)=>Number(v.toFixed(d)).toString()};
- vm.runInNewContext(journalSource.slice(journalSource.indexOf('function activityMetrics('),journalSource.indexOf('function activityReward(')),context);
- const metrics=context.activityMetrics({val:6,unit:'km',details:{val1:5,duration:40,val2:30,gpxStats:{movingMinutes:30,pace:'6:00'}}});
- assert.equal(metrics.find(m=>m.label==='Distance').value,'6 km');
- assert.equal(metrics.find(m=>m.label==='Durée').value,'40 min');
- assert.equal(metrics.find(m=>m.label==='Vitesse').value,'9 km/h');
- assert.ok(!metrics.some(m=>m.label==='Allure'));
-});
 
-test('climbing minutes never become kilometers and absent RPE stays unknown',()=>{
- const context={window:environment().window,formatNumber:(v)=>String(v)};
- vm.runInNewContext(journalSource.slice(journalSource.indexOf('function activityMetrics('),journalSource.indexOf('function activityReward(')),context);
- const metrics=context.activityMetrics({sport:'climbing',val:45,unit:'min',details:{val1:45}});
- assert.equal(metrics.filter(m=>m.label==='Durée').length,1);
- assert.equal(metrics[0].value,'45 min');
- assert.ok(!metrics.some(m=>String(m.value).includes('km')));
- assert.equal(context.activityIntensity({}).key,'unknown');
-});
 
 test('queued cloud submission stays bound to its authenticated owner and requires server acknowledgement',async()=>{
  const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8'), calls=[];

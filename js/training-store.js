@@ -137,7 +137,10 @@
     for (const key of Object.keys(localStorage)) {
       if (
         !key.startsWith("titan_training_draft_") &&
-        key !== "titan_pending_training_logs_v1"
+        !key.startsWith("titan_seance_draft_") &&
+        key !== "titan_pending_training_logs_v1" &&
+        key !== "titan_guest_device_id_v1" &&
+        key !== "titan_guest_imported_v1"
       )
         localStorage.removeItem(key);
     }

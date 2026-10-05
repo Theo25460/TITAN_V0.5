@@ -2,9 +2,138 @@
   command = "node tools/build-public.mjs"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "24"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+[[redirects]]
+from = "/personnage"
+to = "/profile#personnage"
+status = 301
+force = true
+
+[[redirects]]
+from = "/personnage.html"
+to = "/profile#personnage"
+status = 301
+force = true
+
+[[redirects]]
+from = "/trophies"
+to = "/profile#collection"
+status = 301
+force = true
+
+[[redirects]]
+from = "/trophies.html"
+to = "/profile#collection"
+status = 301
+force = true
+
+[[redirects]]
+from = "/talents"
+to = "/profile"
+status = 301
+force = true
+
+[[redirects]]
+from = "/talents.html"
+to = "/profile"
+status = 301
+force = true
+
+[[redirects]]
+from = "/bilan"
+to = "/stats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/bilan.html"
+to = "/stats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/health"
+to = "/stats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/health.html"
+to = "/stats"
+status = 301
+force = true
+
+[[redirects]]
+from = "/notifications"
+to = "/aujourdhui"
+status = 301
+force = true
+
+[[redirects]]
+from = "/notifications.html"
+to = "/aujourdhui"
+status = 301
+force = true
+
+[[redirects]]
+from = "/disciplines"
+to = "/profile#maitrise"
+status = 301
+force = true
+
+[[redirects]]
+from = "/disciplines.html"
+to = "/profile#maitrise"
+status = 301
+force = true
+
+[[redirects]]
+from = "/sport_details"
+to = "/records"
+status = 301
+force = true
+
+[[redirects]]
+from = "/sport_details.html"
+to = "/records"
+status = 301
+force = true
+
+[[redirects]]
+from = "/chat"
+to = "/social"
+status = 301
+force = true
+
+[[redirects]]
+from = "/chat.html"
+to = "/social"
+status = 301
+force = true
+
+[[redirects]]
+from = "/prevoir.html"
+to = "/prevoir"
+status = 301
+force = true
+
+[[redirects]]
+from = "/prevoir"
+to = "/prevoir.html"
+status = 200
+
+# Public athlete cards: an opt-in, unguessable link per athlete (never indexed).
+[[redirects]]
+from = "/u/*"
+to = "/athlete.html"
+status = 200
 
 [[redirects]]
 from = "/algorithme"
@@ -29,17 +158,6 @@ from = "/guide.html"
 to = "/debuter-titan"
 status = 301
 force = true
-
-[[redirects]]
-from = "/personnage.html"
-to = "/personnage"
-status = 301
-force = true
-
-[[redirects]]
-from = "/personnage"
-to = "/personnage.html"
-status = 200
 
 [[redirects]]
 from = "/objectifs.html"
@@ -286,28 +404,6 @@ to = "/adventure.html"
 status = 200
 
 [[redirects]]
-from = "/disciplines.html"
-to = "/disciplines"
-status = 301
-force = true
-
-[[redirects]]
-from = "/disciplines"
-to = "/disciplines.html"
-status = 200
-
-[[redirects]]
-from = "/health.html"
-to = "/health"
-status = 301
-force = true
-
-[[redirects]]
-from = "/health"
-to = "/health.html"
-status = 200
-
-[[redirects]]
 from = "/journal.html"
 to = "/journal"
 status = 301
@@ -319,28 +415,6 @@ to = "/journal.html"
 status = 200
 
 [[redirects]]
-from = "/talents.html"
-to = "/talents"
-status = 301
-force = true
-
-[[redirects]]
-from = "/talents"
-to = "/talents.html"
-status = 200
-
-[[redirects]]
-from = "/trophies.html"
-to = "/trophies"
-status = 301
-force = true
-
-[[redirects]]
-from = "/trophies"
-to = "/trophies.html"
-status = 200
-
-[[redirects]]
 from = "/boutique.html"
 to = "/boutique"
 status = 301
@@ -349,17 +423,6 @@ force = true
 [[redirects]]
 from = "/boutique"
 to = "/boutique.html"
-status = 200
-
-[[redirects]]
-from = "/sport_details.html"
-to = "/sport_details"
-status = 301
-force = true
-
-[[redirects]]
-from = "/sport_details"
-to = "/sport_details.html"
 status = 200
 
 [[redirects]]
@@ -452,17 +515,6 @@ status = 301
 force = true
 
 [[redirects]]
-from = "/notifications.html"
-to = "/notifications"
-status = 301
-force = true
-
-[[redirects]]
-from = "/notifications"
-to = "/notifications.html"
-status = 200
-
-[[redirects]]
 from = "/login.html"
 to = "/login"
 status = 301
@@ -493,17 +545,6 @@ force = true
 [[redirects]]
 from = "/social"
 to = "/social.html"
-status = 200
-
-[[redirects]]
-from = "/chat.html"
-to = "/chat"
-status = 301
-force = true
-
-[[redirects]]
-from = "/chat"
-to = "/chat.html"
 status = 200
 
 [[redirects]]
@@ -630,17 +671,6 @@ force = true
 [[redirects]]
 from = "/aujourdhui"
 to = "/aujourdhui.html"
-status = 200
-
-[[redirects]]
-from = "/bilan.html"
-to = "/bilan"
-status = 301
-force = true
-
-[[redirects]]
-from = "/bilan"
-to = "/bilan.html"
 status = 200
 
 [[redirects]]
@@ -791,6 +821,17 @@ status = 200
 
 [[headers]]
   for = "/stats"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/u/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/athlete.html"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 

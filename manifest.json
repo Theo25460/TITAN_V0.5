@@ -1,62 +1,28 @@
 {
-  "name": "TITAN — Ton sport. Ton aventure.",
+  "name": "TITAN — Ton sport réel, une progression qui dure",
   "short_name": "TITAN",
-  "description": "Chaque effort devient une aventure : personnage, niveaux, campagnes et données sportives utiles.",
+  "description": "Journal multisport, statistiques qui répondent, progression honnête et aventure qui avance avec tes séances.",
   "id": "/",
-  "start_url": "/aujourdhui",
+  "start_url": "/aujourdhui?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "lang": "fr-FR",
   "dir": "ltr",
-  "background_color": "#070c10",
-  "theme_color": "#070c10",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
   "orientation": "any",
   "prefer_related_applications": false,
-  "categories": [
-    "health",
-    "sports",
-    "productivity"
-  ],
+  "categories": ["sports", "health", "lifestyle"],
   "icons": [
-    {
-      "src": "/image/logo-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/image/logo-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/image/logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/image/logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/image/logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/image/logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    {
-      "name": "Enregistrer une seance",
-      "short_name": "Seance",
-      "description": "Ajouter une nouvelle seance sportive.",
-      "url": "/training",
-      "icons": [
-        {
-          "src": "/image/logo-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Voir mes progres",
-      "short_name": "Progres",
-      "description": "Consulter mes progres et mes statistiques.",
-      "url": "/stats",
-      "icons": [
-        {
-          "src": "/image/logo-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    }
+    { "name": "Nouvelle séance", "short_name": "Séance", "description": "Enregistrer une séance.", "url": "/training?source=shortcut", "icons": [{ "src": "/image/logo-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Ma semaine", "short_name": "Semaine", "description": "Le récap de ta semaine.", "url": "/stats?source=shortcut", "icons": [{ "src": "/image/logo-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Journal", "short_name": "Journal", "description": "Toutes tes séances.", "url": "/journal?source=shortcut", "icons": [{ "src": "/image/logo-192.png", "sizes": "192x192", "type": "image/png" }] }
   ]
 }

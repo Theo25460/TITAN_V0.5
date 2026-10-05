@@ -1,81 +1,7 @@
-const CACHE_NAME = 'titan-os-v200-renaissance-2';
-const ASSETS_TO_CACHE = [
-  "./css/training.css?v=200.0",
-  "./css/journal.css?v=200.0",
-  "./js/training-page.js?v=200.0",
-  "./js/journal-page.js?v=200.0",
-  "./js/vendor/supabase-2.111.0.js",
-  "./css/icons.css?v=200.0",
-  "./css/fonts/remixicon.woff2",
-  "./css/fonts/manrope-latin-0.woff2",
-  "./css/fonts/manrope-latin-1.woff2",
-  "./aujourdhui",
-  "./bilan",
-  "./css/home.css?v=200.0",
-  "./css/today.css?v=200.0",
-  "./css/report.css?v=200.0",
-  "./css/fonts.css",
-  "./js/home.js?v=200.0",
-  "./js/weekly-plan.js?v=200.0",
-  "./js/session-tools.js?v=200.0",
-  "./js/session-export.js?v=200.0",
-  "./js/routine-library.js?v=200.0",
-  "./js/report-page.js?v=200.0",
-  "./",
-  "./training",
-  "./journal",
-  "./stats",
-  "./profile",
-  "./network-error.html",
-  "./css/style.css?v=200.0",
-  "./css/design-system.css?v=200.0",
-  "./css/tracking.css?v=200.0",
-  "./js/config.js?v=200.0",
-  "./js/data.js?v=200.0",
-  "./js/ui.js?v=200.0",
-  "./js/state.js?v=200.0",
-  "./js/main.js?v=200.0",
-  "./js/titan_features.js?v=200.0",
-  "./js/training-store.js?v=200.0",
-  "./js/titan-v100.js?v=200.0",
-  "./js/sport-discovery.js?v=200.0",
-  "./js/progress-page.js?v=200.0",
-  "./js/journal-actions.js?v=200.0",
-  "./js/pending-ui.js?v=200.0",
-  "./js/pwa.js?v=200.0",
-  "./js/training-draft.js?v=200.0",
-  "./image/logo-192.png",
-  "./manifest.json",
-  "./adventure",
-  "./personnage",
-  "./objectifs",
-  "./records",
-  "./coaching",
-  "./css/renaissance.css?v=200.0",
-  "./css/adventure-world.css?v=200.0",
-  "./css/sport-insights.css?v=200.0",
-  "./css/session-result.css?v=200.0",
-  "./css/coaching.css?v=200.0",
-  "./css/renaissance-public.css?v=200.0",
-  "./js/renaissance-icons.js?v=200.0",
-  "./js/renaissance-catalog.js?v=200.0",
-  "./js/renaissance-engine.js?v=200.0",
-  "./js/renaissance-ui.js?v=200.0",
-  "./js/renaissance-navigation.js?v=200.0",
-  "./js/renaissance-profile.js?v=200.0",
-  "./js/sport-insights.js?v=200.0",
-  "./js/qg-page.js?v=200.0",
-  "./js/adventure-page.js?v=200.0",
-  "./js/character-page.js?v=200.0",
-  "./js/goals-page.js?v=200.0",
-  "./js/records-page.js?v=200.0",
-  "./js/progress-detail.js?v=200.0",
-  "./js/session-result.js?v=200.0",
-  "./js/coaching-page.js?v=200.0",
-  "./js/renaissance-demo.js?v=200.0",
-  "./assets/renaissance/valley-small.webp",
-  "./assets/renaissance/scout.webp"
-];
+// TITAN 300 — offline shell. The precache list is generated at build time (tools/build-public.mjs) from the
+// assets the app pages really load, so it cannot drift from the HTML.
+const CACHE_NAME = 'titan-os-v300-ascension';
+const ASSETS_TO_CACHE = [/* PRECACHE */];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -105,7 +31,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname)) return;
+  if (['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname) && !new URL(self.location.href).searchParams.has('dev')) return;
   if (new URL(event.request.url).pathname.startsWith('/.netlify/functions/') || event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
     return;
   }

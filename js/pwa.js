@@ -56,13 +56,17 @@
     async function registerServiceWorker() {
         if (!('serviceWorker' in navigator)) return;
         // Development previews must never mix a cached release with edited source.
-        if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
+        // Opt in locally with localStorage.titan_sw_dev = "1" to test the offline shell on a preview build.
+        const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+        let devSw = false;
+        try { devSw = local && localStorage.getItem('titan_sw_dev') === '1'; } catch (_) {}
+        if (local && !devSw) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             await Promise.all(registrations.map(registration => registration.unregister()));
             return;
         }
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const registration = await navigator.serviceWorker.register(devSw ? '/sw.js?dev=1' : '/sw.js');
             if (registration.waiting) showUpdateButton(registration);
             registration.addEventListener('updatefound', () => {
                 const worker = registration.installing;

@@ -1,22 +1,22 @@
-# TITAN OS Sport
+# TITAN
 
-Application web multisport qui réunit journal d'entraînement, statistiques, progression et gamification pour plus de 260 disciplines.
+Ton sport réel, une progression qui dure. Journal multisport (260 sports), statistiques qui répondent, rang et maîtrise honnêtes, aventure qui avance avec tes séances. Version **300 · Ascension**.
 
-[Ouvrir l'application](https://titan-app.fr) · [Architecture](docs/ARCHITECTURE.md) · [Déploiement et reprise](docs/DEPLOYMENT.md) · [Contribuer](CONTRIBUTING.md) · [Sécurité](SECURITY.md)
+[Ouvrir l'application](https://titan-app.fr) · [Conception v300](docs/ASCENSION_300.md) · [Architecture](docs/ARCHITECTURE.md) · [Déploiement et reprise](docs/DEPLOYMENT.md) · [Android](docs/ANDROID.md) · [Contribuer](CONTRIBUTING.md) · [Sécurité](SECURITY.md)
 
-![Aperçu de TITAN OS Sport](image/og-titan-os.png)
+![Aperçu de TITAN](image/og-titan.jpg)
 
 ## Où est l'application ?
 
 - **Production** : [https://titan-app.fr](https://titan-app.fr)
 - **Point d'entrée du code** : [`index.html`](index.html)
-- **Parcours principal** : `index.html` → `training.html` → `journal.html` → `stats.html` → `profile.html`
+- **Application** : QG `aujourdhui.html` · Progrès `stats.html` · Séance `training.html` · Aventure `adventure.html` · Profil `profile.html`
 - **Build publiable** : `dist/`, recréé par `pnpm run build` et volontairement absent de Git
 - **Hébergement** : Netlify, configuré par [`netlify.toml`](netlify.toml)
 - **Backend** : Supabase pour Auth/Postgres/Realtime/Storage/RPC
 - **Paiement** : Paddle → fonction Netlify → RPC Supabase
 
-Le dépôt porte le nom historique `TITAN_V0.5`. La version cohérente des assets applicatifs est actuellement `100.0` dans `js/config.js` et `sw.js`.
+Le dépôt porte le nom historique `TITAN_V0.5`. La version des assets est `300.0` (`js/config.js`, pages, `sw.js` : cache `titan-os-v300-ascension`).
 
 > **Déploiement actuel :** au moment de cette migration, le site Netlify `titano-app` est publié par CLI et n'expose aucun `commit_ref` GitHub. Un push sur `main` ne met donc pas automatiquement `titan-app.fr` en production. Voir [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
@@ -41,6 +41,16 @@ pnpm run preview
 ```
 
 Puis ouvrir `http://127.0.0.1:4173`.
+
+Vérifier avant toute PR :
+
+```bash
+pnpm test            # règles métier, syntaxe, assets
+pnpm run test:e2e    # Chromium sur le site construit (hors ligne compris)
+pnpm run test:db     # migrations en attente + tests SQL sur un Postgres vide
+```
+
+Le site public se régénère avec `node tools/build-public-site.mjs` et `node tools/build-public-docs.mjs`.
 
 ## Comment ça fonctionne ?
 

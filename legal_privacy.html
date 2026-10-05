@@ -1,455 +1,64 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!doctype html>
+<html lang="fr" class="asc-root">
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta charset="UTF-8">
-    <title>Confidentialite - TITAN OS</title>
-    <link rel="stylesheet" href="./css/style.css?v=200.0">
-    <link href="/css/icons.css?v=200.0" rel="stylesheet">
-
-    <style>
-        /* --- DESIGN SYSTÈME (IDENTIQUE AU CGU) --- */
-        body { background-color: #06070A; color: #cbd5e1; font-family: 'Outfit', sans-serif; }
-
-        .legal-layout { display: flex; min-height: 100vh; }
-
-        .legal-sidebar { 
-            width: 260px; background-color: #161b29; padding: 30px 20px; 
-            border-right: 1px solid rgba(255, 255, 255, 0.05); 
-            display: flex; flex-direction: column; flex-shrink: 0; 
-            position: sticky; top: 0; height: 100vh;
-        }
-        .sidebar-title { 
-            color: var(--primary, #38bdf8); font-family: 'Russo One'; font-size: 1.2rem; 
-            text-transform: uppercase; margin-bottom: 30px; padding-left: 10px; 
-            border-left: 3px solid var(--primary, #38bdf8); 
-        }
-        .legal-link { 
-            color: #94a3b8; text-decoration: none; padding: 12px 15px; 
-            margin-bottom: 5px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; 
-            display: flex; align-items: center; gap: 10px; transition: 0.2s; 
-        }
-        .legal-link:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
-        .legal-link.active { 
-            background-color: rgba(56, 189, 248, 0.1); color: var(--primary, #38bdf8); 
-            border: 1px solid rgba(56, 189, 248, 0.2); 
-        }
-        .back-link { margin-top: auto; color: #fff; background: var(--danger, #ef4444); justify-content: center; }
-        .back-link:hover { background: #dc2626; }
-
-        .legal-content-area { flex-grow: 1; padding: 60px; overflow-y: auto; background: #06070A; }
-
-        .doc-header { margin-bottom: 50px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-        .doc-meta { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .titular { font-family: 'Russo One'; font-size: 2.5rem; color: #fff; margin: 0; }
-
-        .article-box { margin-bottom: 40px; }
-        .article-title { 
-            color: #fff; font-family: 'Russo One'; font-size: 1.2rem; 
-            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
-        }
-        .article-number { color: var(--primary, #38bdf8); opacity: 0.6; }
-
-        .article-text { 
-            line-height: 1.8; font-size: 1rem; color: #cbd5e1; text-align: justify; 
-            background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .article-text strong { color: #fff; font-weight: 600; }
-        .article-text ul { margin: 15px 0 15px 20px; padding: 0; }
-        .article-text li { margin-bottom: 8px; }
-
-        /* DATA TABLE */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        .data-table th, .data-table td { border: 1px solid rgba(255,255,255,0.1); padding: 12px; text-align: left; }
-        .data-table th { background: rgba(56, 189, 248, 0.1); color: #38bdf8; font-family: 'Russo One'; }
-        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-        @media (max-width: 768px) {
-            .legal-layout { flex-direction: column; }
-            .legal-sidebar { 
-                width: 100%; height: auto; padding: 15px; position: sticky; top: 0; z-index: 50;
-                flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); 
-                white-space: nowrap; gap: 10px; background: #131824; 
-            }
-            .sidebar-title { display: none; }
-            .legal-link { padding: 8px 15px; margin: 0; font-size: 0.8rem; flex-shrink: 0; }
-            .legal-content-area { padding: 20px; }
-            .titular { font-size: 1.8rem; }
-            .data-table { display: block; overflow-x: auto; }
-        }
-    </style>
-
-    <meta name="theme-color" content="#0f172a">
-
-
-    <meta name="application-name" content="TITAN OS">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="TITAN OS">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-
-
-
-
-    <link rel="stylesheet" href="./css/design-system.css?v=200.0">
-    <script src="./js/titan-v100.js?v=200.0" defer></script>
-
-    <!-- SEO: TITAN OS -->
-    <meta name="description" content="Comprends comment TITAN OS protege les donnees personnelles, la progression sportive, les sauvegardes et les informations de compte.">
-    <meta name="author" content="TITAN OS Sport">
-    <meta name="robots" content="index, follow">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="image_src" content="https://titan-app.fr/image/og-titan-os.png">
-    <link rel="canonical" href="https://titan-app.fr/legal_privacy">
-    <link rel="alternate" hreflang="fr-FR" href="https://titan-app.fr/legal_privacy">
-    <link rel="alternate" hreflang="x-default" href="https://titan-app.fr/legal_privacy">
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="192x192" href="/image/logo-192.png">
-    <link rel="apple-touch-icon" href="/image/logo-192.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta property="og:site_name" content="TITAN OS Sport">
-    <meta property="og:locale" content="fr_FR">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Confidentialite - TITAN OS">
-    <meta property="og:description" content="Comprends comment TITAN OS protege les donnees personnelles, la progression sportive, les sauvegardes et les informations de compte.">
-    <meta property="og:url" content="https://titan-app.fr/legal_privacy">
-    <meta property="og:image" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta property="og:image:secure_url" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Confidentialite - TITAN OS">
-    <meta name="twitter:description" content="Comprends comment TITAN OS protege les donnees personnelles, la progression sportive, les sauvegardes et les informations de compte.">
-    <meta name="twitter:image" content="https://titan-app.fr/image/og-titan-os.png">
-    <meta name="twitter:image:alt" content="TITAN OS Sport, journal multisport et progression sportive">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="preload" href="/image/logo.png" as="image">
-    <!-- /SEO: TITAN OS -->
-    <script type="application/ld+json" data-seo-schema>
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://titan-app.fr/#organization",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "description": "Application française de suivi sportif multisport et de progression motivante accessible dans le navigateur.",
-          "url": "https://titan-app.fr/",
-          "email": "titanteam.app@gmail.com",
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "email": "titanteam.app@gmail.com",
-            "contactType": "customer support",
-            "availableLanguage": [
-              "fr"
-            ]
-          },
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://titan-app.fr/image/logo-192.png",
-            "width": 192,
-            "height": 192
-          }
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://titan-app.fr/#website",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "url": "https://titan-app.fr/",
-          "inLanguage": "fr-FR",
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": [
-            "WebApplication",
-            "SoftwareApplication"
-          ],
-          "@id": "https://titan-app.fr/#app",
-          "name": "TITAN OS Sport",
-          "alternateName": [
-            "TITAN Sport",
-            "TITAN OS Sport"
-          ],
-          "url": "https://titan-app.fr/",
-          "applicationCategory": "SportsApplication",
-          "operatingSystem": "Web",
-          "browserRequirements": "Requires JavaScript. Works as a Progressive Web App on compatible browsers.",
-          "inLanguage": "fr-FR",
-          "description": "Journal sportif, statistiques lisibles et progression motivante pour plus de 260 disciplines. Commence gratuitement avec TITAN OS Sport.",
-          "softwareVersion": "102.0",
-          "image": "https://titan-app.fr/image/og-titan-os.png",
-          "screenshot": "https://titan-app.fr/image/og-titan-os.png",
-          "installUrl": "https://titan-app.fr/",
-          "isAccessibleForFree": true,
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "EUR",
-            "availability": "https://schema.org/InStock"
-          },
-          "featureList": [
-            "Journal d'entrainement",
-            "Catalogue de plus de 260 sports",
-            "Recherche par nom, alias, famille et metrique",
-            "Saisie adaptee a chaque discipline",
-            "Statistiques sportives",
-            "Progression par XP",
-            "Objectifs hebdomadaires",
-            "Motivation sportive gamifiee",
-            "Suivi de recuperation",
-            "Aventure et boss",
-            "PWA gratuite"
-          ],
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": "WebPage",
-          "@id": "https://titan-app.fr/legal_privacy#webpage",
-          "url": "https://titan-app.fr/legal_privacy",
-          "name": "Confidentialite - TITAN OS",
-          "headline": "Confidentialite - TITAN OS",
-          "description": "Comprends comment TITAN OS protege les donnees personnelles, la progression sportive, les sauvegardes et les informations de compte.",
-          "inLanguage": "fr-FR",
-          "isPartOf": {
-            "@id": "https://titan-app.fr/#website"
-          },
-          "about": {
-            "@id": "https://titan-app.fr/#app"
-          },
-          "primaryImageOfPage": {
-            "@type": "ImageObject",
-            "url": "https://titan-app.fr/image/og-titan-os.png",
-            "width": 1200,
-            "height": 630
-          },
-          "breadcrumb": {
-            "@id": "https://titan-app.fr/legal_privacy#breadcrumb"
-          },
-          "dateModified": "2026-08-10",
-          "publisher": {
-            "@id": "https://titan-app.fr/#organization"
-          }
-        },
-        {
-          "@type": "BreadcrumbList",
-          "@id": "https://titan-app.fr/legal_privacy#breadcrumb",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "TITAN OS",
-              "item": "https://titan-app.fr/"
-            },
-            {
-              "@type": "ListItem",
-              "position": 2,
-              "name": "Confidentialite",
-              "item": "https://titan-app.fr/legal_privacy"
-            }
-          ]
-        }
-      ]
-    }
-    </script>
-    <link rel="stylesheet" href="./css/tracking.css?v=200.0">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Politique de confidentialité | TITAN</title>
+<meta name="description" content="Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://titan-app.fr/legal_privacy">
+<meta name="theme-color" content="#05070a">
+<meta property="og:site_name" content="TITAN"><meta property="og:type" content="website"><meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Politique de confidentialité | TITAN"><meta property="og:description" content="Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité."><meta property="og:url" content="https://titan-app.fr/legal_privacy">
+<meta property="og:image" content="https://titan-app.fr/image/og-titan.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="TITAN — Ton sport réel. Une progression qui dure.">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Politique de confidentialité | TITAN"><meta name="twitter:description" content="Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité."><meta name="twitter:image" content="https://titan-app.fr/image/og-titan.jpg">
+<link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
+<link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/ascension.css?v=300.0"><link rel="stylesheet" href="/css/public.css?v=300.0">
+<script src="/js/pwa.js?v=300.0" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://titan-app.fr/#organization","name":"TITAN","url":"https://titan-app.fr/","logo":"https://titan-app.fr/image/logo-192.png"},{"@type":"WebPage","@id":"https://titan-app.fr/legal_privacy#page","url":"https://titan-app.fr/legal_privacy","name":"Politique de confidentialité | TITAN","description":"Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité.","inLanguage":"fr-FR","isPartOf":{"@type":"WebSite","name":"TITAN","url":"https://titan-app.fr/"}}]}</script>
 </head>
-<body class="legal-page legal-document legal-privacy" data-page="legal_privacy">
-    <div class="legal-layout">
-        <nav class="legal-sidebar" aria-label="Navigation legale">
-            <div class="sidebar-title">Legal</div>
-            <a class='legal-link' href='/legal_hub'><i class="ri-dashboard-line"></i> Vue globale</a>
-            <a class='legal-link' href='/legal_cgu'><i class="ri-file-text-line"></i> CGU</a>
-            <a class='legal-link active' href='/legal_privacy'><i class="ri-shield-keyhole-line"></i> Confidentialite</a>
-            <a class='legal-link' href='/legal_mentions'><i class="ri-building-line"></i> Mentions</a>
-            <a class='legal-link back-link' href='/'><i class="ri-arrow-left-line"></i> Retour à TITAN</a>
-        </nav>
-
-        <main class="legal-content-area">
-
-            <header class="doc-header">
-                <div class="doc-meta">DOCUMENT RÉFÉRENCE : DPO-2026-RGPD-V4</div>
-                <h1 class="titular" style="color:var(--primary);">POLITIQUE DE CONFIDENTIALITÉ</h1>
-                <div class="doc-subtitle">
-                    DONNÉES PERSONNELLES, COOKIES, PUBLICITÉ & PAIEMENTS
-                </div>
-            </header>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">01.</span> PRINCIPE DE TRANSPARENCE</div>
-                <div class="article-text">
-                    <strong>TITAN OS</strong> est un projet indépendant développé par deux amis d'université. Nous collectons uniquement les données utiles au compte, à la sauvegarde, à la progression, à la sécurité, aux fonctions sociales et à TITAN+. Les données personnelles ne sont pas revendues. Les outils d'intelligence artificielle utilisés pour développer le projet ne reçoivent pas automatiquement les données de votre compte ou de vos séances.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">02.</span> DONNÉES COLLECTÉES (INVENTAIRE)</div>
-                <div class="article-text">
-                    Voici les principales catégories de données traitées par le Service :
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>CATÉGORIE</th>
-                                <th>TYPE DE DONNÉES</th>
-                                <th>FINALITÉ, BASE LÉGALE & DURÉE</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Identité</strong></td>
-                                <td>Email, identifiant de compte, pseudo et avatar.</td>
-                                <td>Création du compte, connexion, profil et support. Base: exécution du service. Conservation: jusqu'à suppression du compte ou inactivité prolongée.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Progression (Jeu)</strong></td>
-                                <td>XP, Niveau, Crédits, Inventaire, Quêtes, Boss vaincus.</td>
-                                <td>Sauvegarde, continuité de progression et lutte contre la triche. Base : exécution du service et intérêt légitime de sécurité. Conservation : durée de vie du compte.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Santé / Sport</strong></td>
-                                <td>Historique d'entraînement, discipline, durée, distance, charge, notes, indicateurs déclarés.</td>
-                                <td>Journal sportif, statistiques et progression ludique. Base: consentement par saisie volontaire et exécution du service. Conservation: durée de vie du compte, export/suppression possibles.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Technique</strong></td>
-                                <td>Historique de connexion, adresse IP et informations générales sur l'appareil.</td>
-                                <td>Sécurité, diagnostic, anti-abus, prévention de la fraude. Base: intérêt légitime. Conservation: durée limitée selon les journaux techniques des prestataires.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Social</strong></td>
-                                <td>Code ami, demandes d'ami, guildes, messages, défis, signalements.</td>
-                                <td>Fonctionnalités communautaires et modération. Base: exécution du service et intérêt légitime de sécurité. Conservation: tant que le module ou le compte est actif, sauf suppression/modération.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Paiement TITAN+</strong></td>
-                                <td>Identifiant Paddle, statut d'abonnement, produit/prix, dates de renouvellement, annulation ou remboursement.</td>
-                                <td>Activation et gestion de TITAN+. Base : exécution du contrat. Les données bancaires restent traitées par Paddle, pas par TITAN OS.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">03.</span> PUBLICITÉ & PARTENAIRES TIERS</div>
-                <div class="article-text">
-                    Aucune publicité n'est actuellement chargée dans TITAN OS et la boutique ne propose pas de récompense liée au visionnage d'une annonce.<br><br>
-                    Si une régie publicitaire est ajoutée plus tard, cette politique sera mise à jour et ton accord sera demandé avant tout chargement lorsque la loi l'exige.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">03B.</span> BASES LÉGALES DES TRAITEMENTS</div>
-                <div class="article-text">
-                    <ul>
-                        <li><strong>Compte, progression, sauvegarde :</strong> exécution du service demandé par l'utilisateur.</li>
-                        <li><strong>Sécurité, anti-abus, logs techniques :</strong> intérêt légitime à protéger le service et les autres utilisateurs.</li>
-                        <li><strong>Publicité et mesure publicitaire :</strong> consentement lorsque celui-ci est requis.</li>
-                        <li><strong>Paiement TITAN+ :</strong> exécution du contrat et obligations de gestion et de facturation opérées par Paddle.</li>
-                        <li><strong>Support et demandes RGPD :</strong> intérêt légitime à répondre aux utilisateurs et obligation légale lorsqu'une demande porte sur vos droits.</li>
-                    </ul>
-                    TITAN OS limite les données affichées publiquement au pseudo, avatar, niveau et informations sociales nécessaires aux alliés/guildes.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">04.</span> TRANSACTIONS FINANCIÈRES</div>
-                <div class="article-text">
-                    TITAN OS n'a jamais accès à vos numéros de carte bancaire. Les paiements TITAN+ sont traités par <strong>Paddle</strong>, notre partenaire de paiement et vendeur officiel.<br>
-                    Paddle collecte les données nécessaires au paiement, à la facturation, aux taxes, aux remboursements et à la lutte contre la fraude. TITAN OS reçoit uniquement le résultat et les changements nécessaires pour activer, renouveler ou arrêter TITAN+.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">05.</span> STOCKAGE ET SÉCURITÉ</div>
-                <div class="article-text">
-                    <strong>5.1. Hébergement :</strong> le site et les comptes reposent sur des prestataires spécialisés listés dans les mentions légales. Selon leur rôle, certaines opérations peuvent impliquer des transferts hors Union européenne encadrés par leurs engagements contractuels et leurs garanties de sécurité.<br>
-                    <strong>5.2. Sécurité :</strong> l'accès au compte est protégé, les données de chaque utilisateur sont séparées et les actions sensibles sont contrôlées côté serveur. Aucun système n'est invulnérable : en cas de faille suspectée, contactez immédiatement <a href="mailto:titanteam.app@gmail.com" style="color:var(--primary);">titanteam.app@gmail.com</a>.<br>
-                    <strong>5.3. Destinataires :</strong> les prestataires d'hébergement, de compte, de paiement et de diagnostic reçoivent uniquement les données nécessaires à leur rôle. Les données ne sont pas vendues à des courtiers de données.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">06.</span> VOS DROITS (ART. 15-22 RGPD)</div>
-                <div class="article-text">
-                    Vous disposez de plusieurs moyens pour agir sur vos données directement depuis l'application :
-                    <ul>
-                        <li><strong>Droit d'accès & portabilité :</strong> rendez-vous dans <em>Profil > Mes données</em> pour télécharger une copie de ton dossier dans un format lisible par d'autres services.</li>
-                        <li><strong>Droit à l'effacement :</strong> le bouton « Supprimer mon compte » déclenche la suppression des données liées au compte. Une demande par email reste possible.</li>
-                        <li><strong>Droit de rectification :</strong> Vous pouvez modifier votre pseudo, avatar et informations de profil à tout moment via l'interface.</li>
-                        <li><strong>Droit d'opposition et limitation :</strong> vous pouvez nous contacter pour limiter certains traitements non indispensables, sous réserve des contraintes de sécurité, facturation et preuve.</li>
-                    </ul>
-                    Nous pouvons demander une vérification raisonnable de votre identité avant de traiter une demande sensible. Vous pouvez introduire une réclamation auprès de la CNIL si vous estimez que vos droits ne sont pas respectés.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">07.</span> COOKIES & STOCKAGE LOCAL</div>
-                <div class="article-text">
-                    TITAN OS conserve aussi quelques informations sur ton appareil pour :
-                    <ul>
-                        <li>Maintenir votre session ouverte.</li>
-                        <li>Stocker temporairement votre progression en mode hors-ligne.</li>
-                        <li>Conserver vos préférences d'interface (Sons, Thème).</li>
-                        <li>Mémoriser vos choix de consentement publicitaire.</li>
-                    </ul>
-                    En vidant les données du site sur ton appareil, tu supprimes cette copie locale, mais pas nécessairement la sauvegarde liée au compte. Les traceurs publicitaires non nécessaires ne doivent être activés qu'après accord lorsque celui-ci est requis.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">08.</span> CONTACT, DÉLAIS & CONSERVATION</div>
-                <div class="article-text">
-                    Pour exercer vos droits, utilisez les boutons du profil ou écrivez à <a href="mailto:titanteam.app@gmail.com" style="color:var(--primary);">titanteam.app@gmail.com</a>.
-                    Les données de compte et de progression sont conservées tant que le compte existe. Les messages sociaux, défis et éléments de guilde peuvent rester visibles tant que le module social est actif, sauf suppression technique, modération ou demande légitime. Les journaux de sécurité et de paiement peuvent être conservés plus longtemps lorsque cela est nécessaire à la preuve, à la sécurité, à la lutte contre la fraude ou au respect d'obligations légales.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">09.</span> MINEURS ET DONNÉES SENSIBLES</div>
-                <div class="article-text">
-                    Les mineurs doivent utiliser TITAN OS avec l'accord de leur représentant légal. Nous déconseillons de saisir des données médicales détaillées, diagnostics, documents de santé, informations bancaires ou données personnelles de tiers dans les notes de séance, messages ou profils. TITAN OS doit rester un outil de suivi sportif personnel et ludique.
-                </div>
-            </div>
-
-            <div class="article-box">
-                <div class="article-title"><span class="article-number">10.</span> AVENTURE, OBJECTIFS ET SUIVI COACH</div>
-                <div class="article-text">
-                    Les objectifs personnels et la progression des campagnes sont liés à votre compte. En découverte, ils sont conservés sur cet appareil. L’export personnel du profil inclut ces informations.<br>
-                    Le suivi coach commence après l’acceptation explicite d’une invitation par le sportif. Celui-ci choisit une date de début, éventuellement un sport, et autorise séparément les notes et les détails de séance. Les mesures de base sont la date, le sport, la valeur, l’unité et la durée disponible. Ce partage n’inclut pas les traces GPS, les données de santé, le poids, le sommeil ou la biographie.<br>
-                    Le sportif peut modifier son périmètre ; chaque participant peut révoquer la relation. Les lectures suivantes appliquent immédiatement ce changement. La révocation ne peut pas effacer les informations déjà vues ou conservées par l’autre personne. Les données partagées ne sont pas mises en cache hors ligne par l’espace coach.<br>
-                    Les invitations non utilisées expirent après sept jours ; leur code est conservé sous forme d’empreinte. Les relations et propositions restent liées aux comptes tant qu’ils existent, sauf suppression applicable. L’export personnel comprend vos relations et propositions, sans recopier le journal partagé d’un autre sportif. <a href="/pour-les-coachs">Consulter le fonctionnement détaillé</a>.
-                </div>
-            </div>
-
-            <footer class="legal-footer">
-                © 2026 TITAN OS PROJECT. Dernière mise à jour : 13 septembre 2026.<br>
-                Pour toute question légale ou RGPD : <a href="mailto:titanteam.app@gmail.com" style="color:var(--primary);">titanteam.app@gmail.com</a>
-            </footer>
-
-        </main>
-    </div>
-<script src="./js/pending-ui.js?v=200.0"></script>
-</body>
+<body class="asc pub"><a class="asc-skip" href="#contenu">Aller au contenu</a><header class="pub-header"><div class="pub-wrap">
+  <a class="pub-brand" href="/" aria-label="TITAN, accueil"><svg class="pub-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="9" fill="#0b1117"/><path d="m9 15.5 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 23.5 7-7 7 7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>TITAN</a>
+  <nav class="pub-nav" aria-label="Navigation principale"><a href="/fonctionnalites">Fonctionnalités</a><a href="/niveaux-et-xp">Progression</a><a href="/aventures-sportives">Aventure</a><a href="/pour-les-coachs">Coachs</a><a href="/tarifs">Tarifs</a></nav>
+  <div class="pub-actions"><a class="asc-btn asc-btn-ghost pub-login" href="/login">Se connecter</a><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer</a>
+    <details class="pub-menu"><summary aria-label="Menu"><svg class="t-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary><nav aria-label="Menu"><a href="/fonctionnalites">Fonctionnalités</a><a href="/niveaux-et-xp">Progression</a><a href="/aventures-sportives">Aventure</a><a href="/pour-les-coachs">Coachs</a><a href="/tarifs">Tarifs</a><a href="/debuter-titan">Bien démarrer</a><a href="/comprendre-mes-donnees">Comprendre mes données</a><a href="/login">Se connecter</a></nav></details></div>
+</div></header><main id="contenu"><header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Confiance</p><h1>Politique de confidentialité</h1><p class="pub-fine">Version 5 · mise à jour le 5 octobre 2026</p></div></header>
+        <div class="pub-wrap"><div class="pub-doc"><nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a></nav>
+<h2>1. En bref</h2>
+<ul><li>TITAN est <strong>privé par défaut</strong> : ton journal, tes notes et tes statistiques ne sont visibles que par toi tant que tu n’en décides pas autrement.</li><li>Nous ne vendons aucune donnée et <strong>aucune publicité</strong> n’est chargée.</li><li>Les statistiques d’usage ne sont liées à ton compte qu’avec ton accord ; tu peux les refuser entièrement.</li><li>Tu peux <strong>exporter</strong> ou <strong>supprimer</strong> toutes tes données depuis Profil, à tout moment.</li></ul>
+<h2>2. Responsable du traitement</h2>
+<p>L’équipe TITAN, projet indépendant porté par Théo et son cofondateur. Contact pour toute question ou demande liée à tes données : <a href="mailto:titanteam.app@gmail.com">titanteam.app@gmail.com</a>.</p>
+<h2>3. Données traitées et finalités</h2>
+<div class="pub-table" tabindex="0" role="region" aria-label="Tableau 1"><table><thead><tr><th>Catégorie</th><th>Données</th><th>Pourquoi</th><th>Base légale</th></tr></thead><tbody><tr><td>Compte</td><td>E-mail, identifiant, nom affiché, personnage choisi</td><td>Créer le compte, te connecter, t’afficher</td><td>Exécution du service</td></tr><tr><td>Journal sportif</td><td>Sport, date, mesures (distance, durée, séries, charges, cotations), ressenti, notes, statistiques d’un GPX importé (le tracé GPS n’est pas conservé)</td><td>Journal, records, analyses, progression</td><td>Exécution du service, à ton initiative</td></tr><tr><td>Progression</td><td>XP, niveau, crédits, maîtrise, cadence, campagnes, insignes, collection, apparence équipée</td><td>Faire fonctionner la progression et la garder équitable</td><td>Exécution du service ; intérêt légitime (anti-triche)</td></tr><tr><td>Communauté</td><td>Code ami, demandes, amitiés, blocages, Moments partagés, encouragements, défis, participations aux expéditions, guilde et messages</td><td>Fonctions sociales et modération</td><td>Exécution du service ; intérêt légitime (sécurité)</td></tr><tr><td>Coaching</td><td>Invitations (empreinte du code), liens, périmètre choisi, propositions et leur statut</td><td>Suivi entre un sportif et son coach</td><td>Exécution du service, avec le consentement explicite du sportif</td></tr><tr><td>Profil public</td><td>Uniquement les blocs que tu actives (nom, niveau, totaux, sports, distinctions)</td><td>Carte d’athlète accessible par lien</td><td>Consentement (désactivé par défaut)</td></tr><tr><td>TITAN+</td><td>Identifiants d’abonnement Paddle, statut, dates de renouvellement ou de fin</td><td>Activer et gérer l’abonnement</td><td>Exécution du contrat</td></tr><tr><td>Statistiques d’usage</td><td>Événements produit (liste au §6), page, date</td><td>Améliorer TITAN</td><td>Consentement, ou mesure anonyme sans identifiant</td></tr><tr><td>Sécurité</td><td>Journaux techniques, adresse IP chez nos prestataires, signalements</td><td>Protéger les comptes, prévenir la fraude</td><td>Intérêt légitime</td></tr></tbody></table></div>
+<h2>4. Qui voit quoi</h2>
+<div class="pub-table" tabindex="0" role="region" aria-label="Tableau 2"><table><thead><tr><th>Donnée</th><th>Toi</th><th>Tes amis acceptés</th><th>Coach (si tu l’autorises)</th><th>Profil public (si activé)</th></tr></thead><tbody><tr><td>Séances et mesures</td><td>Oui</td><td>Non</td><td>Selon ton périmètre</td><td>Non (totaux seulement, si choisis)</td></tr><tr><td>Notes de séance</td><td>Oui</td><td>Non</td><td>Seulement si tu l’autorises</td><td>Jamais</td></tr><tr><td>Niveau, activité de la semaine</td><td>Oui</td><td>Selon tes réglages de confidentialité</td><td>—</td><td>Si tu l’actives</td></tr><tr><td>Moments</td><td>Oui</td><td>Ceux que tu partages</td><td>—</td><td>Non</td></tr><tr><td>Santé, poids, GPS</td><td>Oui (si saisis)</td><td>Jamais</td><td>Jamais</td><td>Jamais</td></tr></tbody></table></div>
+<p>Les réglages se trouvent dans Profil &gt; Réglages et Profil &gt; Profil public. Changer un réglage s’applique aux lectures suivantes ; cela ne peut pas effacer ce qu’une personne a déjà vu.</p>
+<h2>5. Données sportives et santé</h2>
+<p>Ton journal peut révéler des informations sur ta condition physique. Elles servent uniquement à ton journal, à tes analyses et à ta progression. Elles ne sont jamais utilisées pour de la publicité, jamais vendues, et jamais affichées dans les espaces sociaux. Évite de saisir des diagnostics, traitements ou documents médicaux dans les notes. TITAN n’est pas un dispositif médical.</p>
+<h2>6. Statistiques d’usage</h2>
+<p>Trois situations, que tu choisis à l’inscription ou dans Profil &gt; Réglages :</p>
+<ul><li><strong>Accord</strong> : les événements sont liés à ton compte pour comprendre les parcours (par exemple, combien de personnes enregistrent une deuxième séance).</li><li><strong>Pas encore de réponse</strong> : comptage anonyme, sans identifiant de compte ni d’appareil, sans référent.</li><li><strong>Refus</strong> : rien n’est envoyé.</li></ul>
+<p>Événements possibles : inscription, onboarding terminé, première et deuxième séance, objectif créé, record battu, campagne démarrée ou avancée, défi rejoint, récap hebdomadaire consulté, ouverture du paiement TITAN+, activation de TITAN+. Les seules propriétés acceptées sont des catégories (famille de sport, identifiant de sport, étape, monde, chapitre). Jamais de santé, de poids, de GPS, de note ni de texte libre. Conservation : 13 mois au plus.</p>
+<h2>7. Prestataires et transferts</h2>
+<ul><li><strong>Supabase</strong> : base de données, authentification et fonctions serveur.</li><li><strong>Netlify</strong> : hébergement du site et fonction de réception des paiements.</li><li><strong>Paddle</strong> : vendeur officiel et paiement de TITAN+ ; TITAN ne voit jamais tes coordonnées bancaires.</li></ul>
+<p>Certains prestataires peuvent traiter des données hors de l’Union européenne, dans le cadre de leurs engagements contractuels (clauses contractuelles types) et de leurs garanties de sécurité. Aucune donnée n’est transmise à des courtiers, régies publicitaires ou réseaux sociaux.</p>
+<h2>8. Durées de conservation</h2>
+<div class="pub-table" tabindex="0" role="region" aria-label="Tableau 3"><table><thead><tr><th>Donnée</th><th>Durée</th></tr></thead><tbody><tr><td>Compte, journal, progression</td><td>Tant que le compte existe. Suppression immédiate à ta demande.</td></tr><tr><td>Inscription jamais confirmée et vide</td><td>30 jours</td></tr><tr><td>Compte sans aucune activité (connexion, session, séance)</td><td>3 ans, sauf abonnement TITAN+ en cours</td></tr><tr><td>Messages de discussion</td><td>48 à 72 heures selon l’espace</td></tr><tr><td>Statistiques d’usage</td><td>13 mois au plus</td></tr><tr><td>Données de facturation</td><td>Chez Paddle, selon ses obligations légales</td></tr></tbody></table></div>
+<h2>9. Stockage sur ton appareil</h2>
+<p>TITAN conserve sur ton appareil : ta session, les séances en attente d’envoi (pour le mode hors ligne), tes brouillons, tes préférences et tes choix de confidentialité. Aucun traceur publicitaire. Effacer les données du site supprime cette copie locale, pas les données de ton compte ; les séances non envoyées seraient perdues.</p>
+<h2>10. Tes droits</h2>
+<ul><li><strong>Accès et portabilité</strong> : Profil &gt; Exporter toutes mes données (JSON) et Exporter mon journal (CSV).</li><li><strong>Rectification</strong> : modifie une séance, ton nom ou tes réglages dans l’application.</li><li><strong>Effacement</strong> : Profil &gt; Supprimer mon compte. Suppression définitive des données du compte.</li><li><strong>Opposition, limitation, retrait du consentement</strong> : dans les réglages, ou en écrivant à <a href="mailto:titanteam.app@gmail.com">titanteam.app@gmail.com</a>.</li></ul>
+<p>Nous répondons sous un mois. Tu peux introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+<h2>11. Mineurs</h2>
+<p>Avant 15 ans, l’utilisation de TITAN et de ses fonctions sociales nécessite l’accord d’un représentant légal. Les profils restent privés par défaut pour tous.</p>
+<h2>12. Sécurité</h2>
+<p>Les données de chaque compte sont isolées par des règles d’accès en base. Les récompenses, achats et partages sont validés par le serveur. Aucune clé secrète n’est présente dans l’application. En cas de faille suspectée, écris-nous immédiatement.</p>
+<h2>13. Modifications</h2>
+<p>Cette politique évolue avec le produit. Les changements importants sont signalés dans l’application et dans les <a href="/changelog">nouveautés</a>.</p></div></div></main><footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
+  <div><a class="pub-brand" href="/"><svg class="pub-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="9" fill="#0b1117"/><path d="m9 15.5 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 23.5 7-7 7 7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
+  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
+  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
+  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
+  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Aide et contact</a></nav></div>
+</div><small>© 2026 TITAN · Sans publicité · Paiements TITAN+ opérés par Paddle</small></div></footer></body>
 </html>
-

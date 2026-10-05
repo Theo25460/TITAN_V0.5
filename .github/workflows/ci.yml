@@ -40,3 +40,33 @@ jobs:
 
       - name: Verifier, tester et construire
         run: pnpm run verify
+
+  e2e:
+    name: Parcours navigateur (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Installer les dependances verrouillees
+        run: pnpm install --frozen-lockfile
+      - name: Installer Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Parcours de bout en bout
+        run: pnpm run test:e2e
+
+  database:
+    name: Migrations sur une replique vide (Postgres 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rejouer les migrations en attente et les tests SQL
+        run: sudo -E bash tools/db/test-migrations.sh
