@@ -840,7 +840,8 @@ window.initTitanPaddleCheckout = async function(checkoutData) {
         if (checkoutData.environment === 'sandbox' && paddle.Environment && typeof paddle.Environment.set === 'function') {
             paddle.Environment.set('sandbox');
         }
-        paddle.Initialize({ token: checkoutData.clientToken });
+        // The checkout event only tells the page to re-read the server: TITAN+ is granted by the signed webhook.
+        paddle.Initialize({ token: checkoutData.clientToken, eventCallback: (event) => window.dispatchEvent(new CustomEvent('titan:paddle', { detail: { name: event?.name || '' } })) });
         window.__titanPaddleInitialized = true;
     }
     return paddle;

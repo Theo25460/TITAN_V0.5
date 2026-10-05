@@ -30,7 +30,7 @@
     const next = pr.nextRank;
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
-      <div class="pf-id"><span class="pf-avatar"><img src="/assets/renaissance/${esc(u.avatar || "scout")}.webp" alt="" width="128" height="128"></span>
+      <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}.webp" alt="" width="128" height="128"></span>
         <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2><p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
       <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span><span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span></div>
         <span class="asc-ascent"><span style="--p:${pct}%"></span></span>
@@ -89,7 +89,7 @@
       const ch = w?.chapters?.[r.chapter - 1];
       return w && ch ? `<li class="pf-item" style="--world:${w.color}"><span class="av-badge is-earned">${icon(["compass", "route", "journal", "leaf", "layers", "target", "bolt", "shield", "crown"][(r.chapter - 1) % 9])}<small>${String(r.chapter).padStart(2, "0")}</small></span><span><strong>${esc(ch.title)}</strong><small>${esc(w.name)}</small></span></li>` : "";
     };
-    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${rewards.length + ms.length + hs.length} pièces</span></div>
+    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${rewards.length + ms.length + hs.length} pièces · <a href="/boutique">Atelier</a></span></div>
       <div class="pf-collection">
         <div class="pf-col-block"><p class="asc-eyebrow">Insignes d’aventure</p>${rewards.length ? `<ul class="pf-items">${rewards.map(badge).join("")}</ul>` : `<p class="asc-small asc-muted">Allume ta première balise dans <a href="/adventure">l’Aventure</a>.</p>`}</div>
         <div class="pf-col-block"><p class="asc-eyebrow">Jalons</p><ul class="pf-chips">${ms.map((m) => `<li>${icon("flag")} ${m} séance${m > 1 ? "s" : ""}</li>`).join("")}${hs.map((h) => `<li>${icon("clock")} ${h} h</li>`).join("")}${held ? `<li>${icon("check")} ${held} semaine${held > 1 ? "s" : ""} tenue${held > 1 ? "s" : ""}</li>` : ""}${records ? `<li>${icon("star")} ${records} record${records > 1 ? "s" : ""}</li>` : ""}</ul>

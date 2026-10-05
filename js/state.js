@@ -1294,6 +1294,7 @@ window.syncWithSupabase = async function() {
         if (!keepLocalGameState && profile.inventory) window.state.user.inventory = profile.inventory;
         window.state.inventory = window.state.user.inventory;
         window.state.user.is_elite = (profile.is_elite === true);
+        if (profile.appearance && typeof profile.appearance === 'object') window.state.user.appearance = profile.appearance;
         window.state.user.is_tester = (profile.is_tester === true);
         window.state.user.is_suspended = (profile.is_suspended === true);
 

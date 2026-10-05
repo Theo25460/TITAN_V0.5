@@ -50,7 +50,7 @@
 
   function mapHtml(world, p) {
     const current = p.chapter >= 1 && p.chapter <= 9 ? p.chapter : 0;
-    return `<section class="av-map" aria-label="Carte des neuf balises : ${esc(world.name)}" style="--world:${world.color}">
+    return `<section class="av-map" aria-label="Carte des neuf balises : ${esc(world.name)}" style="--world:${world.color}"${window.titanShell?.look?.().map ? ` data-ambiance="${esc(window.titanShell.look().map)}"` : ""}>
       <img class="av-map-img" srcset="/assets/renaissance/${world.image}-small.webp 800w, /assets/renaissance/${world.image}.webp 1600w" sizes="(max-width: 960px) 100vw, 860px" src="/assets/renaissance/${world.image}.webp" alt="" width="1600" height="900" decoding="async">
       <svg class="av-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M12 78 Q17 62 28 68 T41 81 Q43 55 54 61 T72 70 Q94 63 86 47 T68 35 Q29 36 43 26 T57 11"/></svg>
       ${world.chapters

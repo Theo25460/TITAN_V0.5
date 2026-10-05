@@ -66,11 +66,27 @@
       name: guest ? "Découverte" : u.name || u.username || "Athlète",
       level: Number(s?.level ?? u.level ?? 1) || 1,
       avatar: AVATARS.includes(s?.avatar) ? s.avatar : "scout",
+      frame: guest ? null : look().frame,
     };
   }
 
+  /* Equipped cosmetics as last confirmed by the server (titan_atelier / profile row). Display only:
+     TITAN+ pieces fall back to the default look as soon as the local status says the plan ended. */
+  const PLUS_PIECES = new Set(["frame-aegis", "frame-frost", "map-aurora", "card-obsidian"]);
+  function look() {
+    const a = window.state?.user?.appearance || {};
+    const out = {};
+    for (const k of ["frame", "map", "card"]) {
+      const v = String(a[k] || "");
+      if (!/^[a-z]+-[a-z]+$/.test(v) || v.endsWith("-default") || v === "frame-standard") continue;
+      if (PLUS_PIECES.has(v) && window.state?.user?.is_elite !== true) continue;
+      out[k] = v;
+    }
+    return out;
+  }
+
   function avatarImg(u) {
-    return `<span class="asc-avatar"><img src="/assets/renaissance/${u.avatar}.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>`;
+    return `<span class="asc-avatar"${u.frame ? ` data-frame="${u.frame}"` : ""}><img src="/assets/renaissance/${u.avatar}.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>`;
   }
 
   function computeSync() {
@@ -269,7 +285,7 @@
   });
 
   /* ---------- Legacy compatibility ---------- */
-  window.titanShell = { refresh, toast, sheet, confirm, user, territories: TERRITORIES, esc };
+  window.titanShell = { refresh, toast, sheet, confirm, user, look, territories: TERRITORIES, esc };
   window.injectSidebar = refresh;
   window.injectMobileHeader = refresh;
   window.injectMobileNav = refresh;
