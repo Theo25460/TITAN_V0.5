@@ -1,0 +1,32 @@
+name: Recette en ligne
+
+# Read-only smoke test of https://titan-app.fr after a deploy (pages, noindex, /u/, service worker, webhook).
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Mise en ligne (Netlify)"]
+    types: [completed]
+  push:
+    branches: ["claude/**"]
+    paths: ["tools/smoke-live.mjs", ".github/workflows/live-check.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Verifier titan-app.fr
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Recette
+        run: node tools/smoke-live.mjs https://titan-app.fr
