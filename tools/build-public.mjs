@@ -17,7 +17,9 @@ const publicFiles = [
   'sitemap.xml',
   'sw.js'
 ];
-const excludedHtml = new Set(['sys_core_override_99.html']);
+// Pages replaced by the Ascension app (301 in netlify.toml); kept in the repository for reference only.
+const retiredHtml = ['personnage.html', 'trophies.html', 'talents.html', 'bilan.html', 'health.html', 'notifications.html', 'disciplines.html', 'sport_details.html', 'chat.html', 'activities.html'];
+const excludedHtml = new Set(['sys_core_override_99.html', ...retiredHtml]);
 const blockedDistEntries = [
   'sql',
   'tools',
