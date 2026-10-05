@@ -858,7 +858,7 @@ window.openEliteCheckout = async function(options = {}) {
     const btn = options?.button && options.button.nodeType === 1 ? options.button : null;
     const originalText = btn ? btn.innerHTML : '';
     if (btn) {
-        btn.innerHTML = `<i class="ri-loader-4-line ri-spin"></i> OUVERTURE...`;
+        btn.innerHTML = 'Ouverture du paiement…';
         btn.classList.add('disabled');
         btn.setAttribute('aria-busy', 'true');
         btn.style.pointerEvents = 'none';

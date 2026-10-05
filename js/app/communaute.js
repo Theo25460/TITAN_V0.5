@@ -20,6 +20,7 @@
   let guild = null;
   let status = "loading";
   let errorText = "";
+  let pending = false; // the server does not offer the Communauté yet
 
   const isGuest = () => String(window.state?.user?.id || "").startsWith("guest_");
   const rpc = async (name, params = {}) => {
@@ -38,6 +39,11 @@
     GUILD_OWNER_REQUIRED: "Seul le fondateur peut régler l’objectif.",
     CHAT_RATE_LIMIT: "Doucement : 5 messages par minute au plus.",
     INSUFFICIENT_CREDITS: "Cette action demande encore des crédits sur ce serveur.",
+    INVALID_GUILD_CODE: "Un code de guilde ressemble à G-AB12.",
+    GUILD_NOT_FOUND: "Aucune guilde avec ce code.",
+    REQUEST_NOT_FOUND: "Cette demande n’existe plus.",
+    CHALLENGE_TRANSITION_INVALID: "Ce défi a déjà changé d’état.",
+    MOMENT_NOT_FOUND: "Ce Moment n’est plus visible.",
   };
   const human = (e) => {
     const raw = String(e?.message || e || "");
@@ -45,6 +51,10 @@
     if (k) return MESSAGES[k];
     if (e?.code === "PGRST202" || raw.includes("Could not find the function")) return "Cette fonction arrive avec la prochaine mise à jour du serveur.";
     return navigator.onLine ? "Action impossible pour le moment. Réessaie dans un instant." : "Hors ligne : la communauté revient avec le réseau.";
+  };
+  /** Confirm dialogs show the thrown message: give them the human one. */
+  const failed = (e) => {
+    throw new Error(human(e));
   };
 
   async function load() {
@@ -62,6 +72,7 @@
       status = "ready";
     } catch (e) {
       errorText = human(e);
+      pending = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find the function");
       status = "error";
     }
     render();
@@ -160,7 +171,9 @@
 
   function guildHtml() {
     const week = data?.guild;
-    if (!guild || !week)
+    if (week && !guild)
+      return `<section class="asc-section" id="guilde"><div class="asc-section-head"><h2>Guilde</h2></div><p class="asc-small asc-muted">Ta guilde ne s’affiche pas pour le moment. Réessaie dans un instant.</p></section>`;
+    if (!week)
       return `<section class="asc-section" id="guilde"><div class="asc-section-head"><h2>Guilde</h2></div>
         <p class="asc-small asc-muted">Une guilde, c’est une équipe qui tient une semaine d’effort ensemble : un objectif commun, la part de chacun, un fil de discussion.</p>
         <div class="cm-guild-forms"><form class="cm-add" data-create-guild><input class="asc-input" name="name" maxlength="28" placeholder="Nom de la guilde" required><button type="submit" class="asc-btn asc-btn-secondary">Fonder</button></form>
@@ -194,7 +207,7 @@
       return;
     }
     if (status === "offline" || status === "error") {
-      root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p><button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button></div>`;
+      root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : pending ? "Communauté bientôt disponible" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p>${status === "error" && pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>`}</div>`;
       root.setAttribute("aria-busy", "false");
       return;
     }
@@ -231,8 +244,8 @@
       if (!b) return;
       d.close();
       if (b.dataset.m === "challenge") return newChallenge([id]);
-      if (b.dataset.m === "remove") return window.titanShell.confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: () => rpc("titan_social_remove", { p_user: id }).then(load) });
-      if (b.dataset.m === "block") return window.titanShell.confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN. Débloquer reste possible depuis le support.", confirmLabel: "Bloquer", danger: true, action: () => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }).then(load) });
+      if (b.dataset.m === "remove") return window.titanShell.confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: () => rpc("titan_social_remove", { p_user: id }).then(load, failed) });
+      if (b.dataset.m === "block") return window.titanShell.confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN. Débloquer reste possible depuis le support.", confirmLabel: "Bloquer", danger: true, action: () => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }).then(load, failed) });
     });
   }
 
@@ -298,9 +311,11 @@
         .catch((err) => window.titanShell.toast({ type: "warn", message: human(err) }))
         .finally(() => (b.disabled = false));
     }
-    if (b.dataset.deleteMoment) return window.titanShell.confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: () => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }).then(load) });
+    if (b.dataset.deleteMoment) return window.titanShell.confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: () => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }).then(load, failed) });
     if (b.dataset.copyCode) {
-      navigator.clipboard?.writeText(b.dataset.copyCode).then(() => window.titanShell.toast({ type: "ok", title: "Code copié", message: b.dataset.copyCode }));
+      (navigator.clipboard?.writeText(b.dataset.copyCode) || Promise.reject())
+        .then(() => window.titanShell.toast({ type: "ok", title: "Code copié", message: b.dataset.copyCode }))
+        .catch(() => window.titanShell.toast({ type: "warn", title: "Copie impossible", message: `Ton code : ${b.dataset.copyCode}` }));
       return;
     }
     if (b.dataset.friendMenu) return friendMenu(b.dataset.friendMenu);
@@ -309,7 +324,7 @@
       const a = b.dataset.act;
       return act(() => rpc("titan_challenge_respond", { p_id: b.dataset.challenge, p_action: a }).then(() => a === "join" && window.TitanAnalytics?.track("challenge_joined")), a === "join" ? { title: "Défi relevé" } : null);
     }
-    if (b.hasAttribute("data-leave-guild")) return window.titanShell.confirm({ title: "Quitter la guilde ?", message: "Ta part de la semaine reste à toi ; elle ne compte plus pour l’équipe.", confirmLabel: "Quitter", action: () => rpc("titan_leave_guild").then(load) });
+    if (b.hasAttribute("data-leave-guild")) return window.titanShell.confirm({ title: "Quitter la guilde ?", message: "Ta part de la semaine reste à toi ; elle ne compte plus pour l’équipe.", confirmLabel: "Quitter", action: () => rpc("titan_leave_guild").then(load, failed) });
   }
 
   function onSubmit(e) {

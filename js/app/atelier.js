@@ -18,13 +18,16 @@
   let data = null;
   let loading = true;
   let error = "";
+  let pending = false; // the server does not offer the Atelier yet
+  let fallbackPlus = null; // TITAN+ status read from the profile while titan_atelier is missing
   let slot = "frame";
   const guest = () => D().isGuest();
-  const plusActive = () => data?.plus?.active === true;
+  const plusActive = () => (data?.plus ?? fallbackPlus)?.active === true;
+  const missing = (e) => e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
 
   const messageOf = (e) => {
     const m = String(e?.message || "");
-    if (e?.code === "PGRST202" || m.includes("Could not find")) return "L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.";
+    if (missing(e)) return "L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.";
     if (m.includes("NO_FUNDS")) return "Il te manque des crédits pour cette pièce. Ils viennent de tes séances.";
     if (m.includes("PURCHASE_LIMIT_ONCE")) return "Cette pièce est déjà dans ta collection.";
     if (m.includes("NOT_FOR_SALE")) return "Cette pièce ne s’achète pas : elle se mérite par le rang ou vient avec TITAN+.";
@@ -54,9 +57,22 @@
       noteActivation();
     } catch (e) {
       error = messageOf(e);
+      pending = missing(e);
     }
     loading = false;
     render();
+    if (!data && pending) await readPlusFromProfile().then(render);
+  }
+
+  /** Before the server update, TITAN+ status still comes from the profile the payment webhook writes (read only). */
+  async function readPlusFromProfile() {
+    try {
+      const { data: p } = await window.titanClient.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", window.state.user.id).maybeSingle();
+      if (!p) return;
+      fallbackPlus = { active: p.is_elite === true, renews_at: p.elite_renews_at, ends_at: p.elite_ends_at };
+      if (window.state?.user) window.state.user.is_elite = fallbackPlus.active;
+      noteActivation();
+    } catch {}
   }
 
   /** The server is the truth: mirror balance, status and look into the local state the shell reads. */
@@ -150,7 +166,7 @@
   }
 
   function plusHtml() {
-    const p = data?.plus || {};
+    const p = data?.plus || fallbackPlus || { active: window.state?.user?.is_elite === true };
     const date = (v) => new Date(v).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
     const support = window.TITAN_EXTERNAL_URLS?.supportEmail || "titanteam.app@gmail.com";
     const never = `<ul class="at-never"><li>${icon("close")} Pas d’XP en plus</li><li>${icon("close")} Pas de crédits en plus</li><li>${icon("close")} Pas de plafond relevé</li><li>${icon("close")} Pas d’avance sur les gardiens ni les classements</li></ul>`;
@@ -162,6 +178,7 @@
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de monde à explorer. Pas plus de puissance.</h2>
       <ul class="at-includes"><li>${icon("compass")} <span><strong>2 campagnes en plus</strong> · les forges d’Obsidienne et la citadelle des Aurores, 18 chapitres</span></li><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>4 pièces de collection</strong> : Aegis, Givre, Aurores, Obsidienne</span></li></ul>
       ${never}
+      ${pending && !data ? `<p class="asc-small asc-faint">Les pièces de collection TITAN+ apparaissent avec la prochaine mise à jour du serveur ; un abonnement pris d’ici là les inclut.</p>` : ""}
       ${window.titanInAndroidApp?.() ? `<p class="asc-note">${icon("info")}<span>TITAN+ se souscrit depuis le site titan-app.fr, dans ton navigateur. L’abonnement s’applique ensuite partout, application comprise.</span></p>` : `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>`}
       ${guest() ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
       <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les deux premières campagnes et la Communauté restent gratuits, sans limite de durée.</p></section>`;
@@ -179,7 +196,7 @@
     }
     if (loading) return;
     if (!data) {
-      root.innerHTML = `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p><button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`;
+      root.innerHTML = `<p class="asc-note${pending ? "" : " err"}">${icon(pending ? "info" : "alert")}<span>${esc(error)}</span></p>${pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`}${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;
     }
