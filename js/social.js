@@ -142,7 +142,7 @@ function syncFriendRankingToggle() {
 
 function toggleFriendRankings(enabled) {
     if (!window.state?.user) return;
-    window.state.user.privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, window.state.user.privacy || {});
+    window.state.user.privacy = Object.assign({ publicProfile: false, showStats: false, socialPresence: false, friendRankings: false }, window.state.user.privacy || {});
     window.state.user.privacy.friendRankings = enabled === true;
     if (window.saveState) window.saveState({ forceCloud: true });
     if (window.showNotification) {

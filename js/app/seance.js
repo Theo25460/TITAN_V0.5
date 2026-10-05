@@ -251,6 +251,8 @@
   function pickHtml() {
     const recents = recentSports();
     const last3 = recents.slice(0, 3);
+    const favorites = (window.state?.user?.favoriteSports || []).filter((id) => window.SPORTS_CONFIG?.[id]);
+    const mine = [...new Set([...recents.map((l) => l.sport), ...favorites])].slice(0, 8);
     const routines = (window.state?.user?.gymRoutines || []).slice(0, 6);
     const fams = Object.keys(S_().FAMILY_LABEL);
     const byFam = Object.fromEntries(fams.map((f) => [f, []]));
@@ -266,7 +268,7 @@
         <input id="sport-q" class="asc-input" type="search" autocomplete="off" placeholder="Course, musculation, escalade, padel…" value="${esc(S.query)}" aria-controls="sport-results">
       </div>
       <div id="sport-results" class="seance-results" role="listbox" aria-label="Sports"></div>
-      ${recents.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${recents.slice(0, 8).map((l) => `<button type="button" class="seance-chip" data-sport="${esc(l.sport)}">${icon(S_().FAMILY_ICON[S_().familyOf(l.sport)])}${esc(S_().label(l.sport))}</button>`).join("")}</div></section>` : ""}
+      ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${mine.map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${icon(S_().FAMILY_ICON[S_().familyOf(id)])}${esc(S_().label(id))}</button>`).join("")}</div></section>` : ""}
       ${last3.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Refaire</h2><span class="asc-small asc-faint">Reprend les mesures, à la date d’aujourd’hui</span></div><div class="asc-list">${last3.map((l) => {
         const m = P().minutesOf(l);
         const main = l.unit === "km" ? F().distance(l.val) : l.unit === "m" ? `${F().number(l.val)} m` : l.details?.exercises?.length ? `${l.details.exercises.length} exercice${l.details.exercises.length > 1 ? "s" : ""}` : F().duration(m.minutes);

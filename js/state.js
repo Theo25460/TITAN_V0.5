@@ -440,7 +440,7 @@ async function pushProfileStateToCloud() {
         avatar: safeAvatar,
         inventory: window.state.user.inventory,
         friend_code: window.state.user.friend_code,
-        privacy: window.state.user.privacy || { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+        privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
         streak_count: window.state.user.streak_count,
         last_week_id: window.state.user.last_week_id,
         updated_at: new Date().toISOString()
@@ -662,7 +662,7 @@ window.ensureStateIntegrity = function() {
         lastSessionSummary: null,
         adventureJournal: [],
         weeklyGoalSessions: 3,
-        privacy: { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+        privacy: { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
         unlockedTitles: ['title-recruit'],
         activeTitle: 'title-recruit',
         purchase_history: [],
@@ -741,7 +741,7 @@ window.ensureStateIntegrity = function() {
     if (!Array.isArray(window.state.user.recoveryCheckIns)) window.state.user.recoveryCheckIns = [];
     if (!Array.isArray(window.state.user.adventureJournal)) window.state.user.adventureJournal = [];
     if (isNaN(window.state.user.weeklyGoalSessions)) window.state.user.weeklyGoalSessions = 3;
-    window.state.user.privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, window.state.user.privacy || {});
+    window.state.user.privacy = Object.assign({ publicProfile: false, showStats: false, socialPresence: false, friendRankings: false }, window.state.user.privacy || {});
     if (!window.state.user.unlockedTitles) window.state.user.unlockedTitles = ['title-recruit'];
     if (!window.state.user.unlockedTitles.includes('title-recruit')) window.state.user.unlockedTitles.unshift('title-recruit');
     if (!window.state.user.activeTitle) window.state.user.activeTitle = 'title-recruit';
@@ -815,7 +815,7 @@ window.createDefaultState = function() {
             lastSessionSummary: null,
             adventureJournal: [],
             weeklyGoalSessions: 3,
-            privacy: { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+            privacy: { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
             unlockedTitles: ['title-recruit'],
             activeTitle: 'title-recruit',
             purchase_history: [],
@@ -1221,7 +1221,7 @@ window.syncWithSupabase = async function() {
                     p_username: window.titanCleanProfileName(signupName) || 'Agent',
                     p_avatar: window.state.user.avatar || null,
                     p_inventory: window.state.user.inventory || {},
-                    p_privacy: window.state.user.privacy || { publicProfile: true, showStats: true, socialPresence: true, friendRankings: false },
+                    p_privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
                     p_streak_count: window.state.user.streak_count || 0,
                     p_last_week_id: window.state.user.last_week_id || '',
                     p_last_seen_news_version: window.state.user.last_seen_news_version || null
@@ -1299,7 +1299,7 @@ window.syncWithSupabase = async function() {
 
         if (profile.username) window.state.user.name = profile.username;
         if (profile.avatar) window.state.user.avatar = profile.avatar;
-        if (profile.privacy) window.state.user.privacy = Object.assign({ publicProfile: true, showStats: true, socialPresence: true, friendRankings: false }, profile.privacy || {});
+        if (profile.privacy) window.state.user.privacy = Object.assign({ publicProfile: false, showStats: false, socialPresence: false, friendRankings: false }, profile.privacy || {});
         if (profile.streak_count !== undefined) window.state.user.streak_count = profile.streak_count;
         if (profile.last_week_id !== undefined) window.state.user.last_week_id = profile.last_week_id;
         if (profile.friend_code) window.state.user.friend_code = profile.friend_code;

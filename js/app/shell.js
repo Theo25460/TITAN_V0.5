@@ -90,6 +90,17 @@
   function render() {
     const root = document.body;
     if (!root.classList.contains("asc")) return;
+    if (root.dataset.shell === "none") {
+      // Focused flows (onboarding): no navigation, but toasts still have a home.
+      if (!document.querySelector(".asc-toasts")) {
+        const t = document.createElement("div");
+        t.className = "asc-toasts";
+        t.setAttribute("role", "status");
+        t.setAttribute("aria-live", "polite");
+        root.append(t);
+      }
+      return;
+    }
     const u = user();
     syncState = computeSync();
     const title = document.body.dataset.title || document.title.split("—")[0].trim();
