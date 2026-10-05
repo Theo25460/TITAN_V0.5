@@ -318,7 +318,7 @@
     return `<div class="jr-detail">
       <dl class="moment-metrics">${metrics.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       ${recs.length ? `<p class="jr-record">${icon("star")}<span>${recs.length > 1 ? "Records actuels" : "Record actuel"} : ${esc(recs.map((r) => r.label).join(", "))}</span></p>` : ""}
-      <p class="jr-reward ${rw.cls}">${esc(rw.text)}${l.syncStatus === "pending" ? " En attente de synchronisation." : ""}${l.syncStatus === "error" ? " Le serveur a refusé l’envoi : corrige ou exporte cette séance." : ""}</p>
+      <p class="jr-reward ${rw.cls}">${esc(rw.text)}${l.syncStatus === "pending" ? " En attente de synchronisation." : ""}${l.syncStatus === "error" ? (historical(l) ? " Le serveur l’acceptera avec sa prochaine mise à jour : elle partira alors d’elle-même. Tu peux déjà l’exporter." : " Le serveur a refusé l’envoi : exporte cette séance puis enregistre-la de nouveau.") : ""}</p>
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
       ${l.details?.note ? `<section class="jr-detail-block"><p class="asc-eyebrow">Note</p><p class="jr-note">${esc(l.details.note)}</p></section>` : ""}

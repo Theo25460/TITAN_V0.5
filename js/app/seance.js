@@ -297,7 +297,7 @@
         ${[["now", "Maintenant"], ["yesterday", "Hier"], ["other", "Autre jour"]].map(([k, l]) => `<button type="button" data-when="${k}" aria-pressed="${S.when === k}">${l}</button>`).join("")}
       </div>
       ${S.when !== "now" ? `<div class="asc-form-grid seance-when-fields">${S.when === "other" ? `<label class="asc-field"><span>Date</span><input class="asc-input" type="date" data-k="date" value="${esc(S.date)}" max="${F().dateKey(new Date())}"></label>` : ""}<label class="asc-field"><span>Heure</span><input class="asc-input" type="time" data-k="time" value="${esc(S.time)}"></label></div>` : ""}
-      ${old ? `<p class="asc-note warn">${icon("info")}<span>${window.TitanData?.rulesV300?.() ? "Cette séance date de plus de 30 jours : elle rejoindra ton historique, tes statistiques et tes records, sans XP ni progression d’aventure." : "Cette séance date de plus de 30 jours : elle reste sur cet appareil, sans XP. Le serveur acceptera ces séances avec sa prochaine mise à jour ; tu pourras alors la renvoyer depuis le journal."}</span></p>` : ""}
+      ${old ? `<p class="asc-note warn">${icon("info")}<span>${window.TitanData?.rulesV300?.() ? "Cette séance date de plus de 30 jours : elle rejoindra ton historique, tes statistiques et tes records, sans XP ni progression d’aventure." : "Cette séance date de plus de 30 jours : elle reste sur cet appareil, sans XP. Le serveur acceptera ces séances avec sa prochaine mise à jour ; elle partira alors d’elle-même."}</span></p>` : ""}
     </section>`;
   }
 

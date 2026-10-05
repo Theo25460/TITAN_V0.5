@@ -79,7 +79,7 @@
         sub:
           isGuest() || log.syncStatus === "confirmed"
             ? "Ajoutée à ton historique, à tes statistiques et à tes records. Sans XP : seules les séances des 30 derniers jours en rapportent."
-            : "Gardée sur cet appareil, sans XP. Le serveur acceptera les séances de plus de 30 jours avec sa prochaine mise à jour ; tu pourras alors la renvoyer depuis le journal.",
+            : "Gardée sur cet appareil, sans XP. Le serveur acceptera les séances de plus de 30 jours avec sa prochaine mise à jour ; elle partira alors d’elle-même.",
       };
     const est = P().effortOf(log);
     if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Estimation du mode découverte. Crée ton compte pour rendre ta progression officielle : tes séances te suivent." };

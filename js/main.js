@@ -165,7 +165,7 @@ window.flushPendingTrainingLogs = function(options={}) {
         const items=await window.TitanQueue.refresh();let sent=0;
         for(const item of items){
             if(window.state?.user?.id!==uid)break;
-            if(item.ownerId!==uid||(item.status==='error'&&!options.retry))continue;
+            if(item.ownerId!==uid||(item.status==='error'&&!item.deferred&&!options.retry))continue;
             try {
                 const {data,error}=await submitTrainingSessionToCloud(item.payload,session.data.session);
                 if(error)throw error;
@@ -177,7 +177,10 @@ window.flushPendingTrainingLogs = function(options={}) {
             } catch(error){
                 const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
                 const tooOld=String(error.message||'').includes('TRAINING_DATE_OUT_OF_RANGE')&&new Date(item.payload.date).getTime()<Date.now()-30*86400000;
-                await window.TitanQueue.put({...item,status:permanent?'error':'pending',reason:tooOld?'Séance de plus de 30 jours : acceptée avec la prochaine mise à jour du serveur':(error.message||'Connexion indisponible')});
+                // deferred: refused only until the server update, so it is offered again automatically on each send.
+                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : acceptée avec la prochaine mise à jour du serveur':(error.message||'Connexion indisponible')});
+                const failedLocal=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
+                if(failedLocal)failedLocal.syncStatus=permanent?'error':'pending';
                 if(!permanent)break;
             }
         }
