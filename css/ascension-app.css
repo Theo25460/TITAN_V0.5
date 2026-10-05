@@ -1,0 +1,212 @@
+/* TITAN 300 — page compositions built on ascension.css. */
+
+/* ---------- QG ---------- */
+.qg-head {
+  margin-bottom: var(--s6);
+}
+.qg-head h1 {
+  font-size: clamp(32px, 6vw, 48px);
+}
+.qg-guest {
+  margin-bottom: var(--s5);
+}
+.qg-guest strong {
+  color: var(--tx);
+}
+.qg-hero {
+  display: grid;
+  gap: var(--s4);
+  min-height: 260px;
+  align-content: end;
+}
+.qg-hero-title {
+  font-size: clamp(30px, 6.2vw, 52px) !important;
+  font-stretch: 76% !important;
+  max-width: 18ch;
+  line-height: 0.98 !important;
+}
+.qg-hero .asc-lead {
+  max-width: 46ch;
+}
+.qg-hero-figure {
+  font-size: clamp(54px, 13vw, 96px);
+  line-height: 0.9;
+  color: var(--tx);
+  letter-spacing: -0.02em;
+}
+.qg-hero.is-record .qg-hero-figure {
+  color: var(--am);
+}
+@media (min-width: 860px) {
+  .qg-hero.has-figure {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--s8);
+  }
+  .qg-hero.has-figure > * {
+    grid-column: 1;
+  }
+  .qg-hero.has-figure .qg-hero-figure {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: center;
+    font-size: clamp(88px, 9vw, 132px);
+  }
+}
+.asc-stat-value.is-up {
+  color: var(--cy);
+}
+.qg-hero-actions {
+  margin-top: var(--s2);
+  align-items: center;
+}
+.qg-hero.is-error {
+  border-color: rgba(242, 102, 95, 0.4);
+}
+.qg-hero.is-error::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--err);
+}
+.qg-why {
+  color: var(--tx-3);
+  font-size: 13px;
+}
+.qg-why summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-weight: 650;
+  color: var(--tx-3);
+}
+.qg-why summary::-webkit-details-marker {
+  display: none;
+}
+.qg-why summary::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: radial-gradient(circle, currentColor 1.5px, transparent 2px);
+}
+.qg-why[open] summary {
+  color: var(--tx-2);
+}
+.qg-why p {
+  margin-top: 4px;
+  max-width: 60ch;
+  color: var(--tx-2);
+}
+.qg-hero .qg-why {
+  flex-basis: 100%;
+}
+@media (min-width: 720px) {
+  .qg-hero .qg-why {
+    flex-basis: auto;
+  }
+}
+.qg-week {
+  display: grid;
+  gap: var(--s6);
+}
+.qg-cadence {
+  display: grid;
+  gap: var(--s3);
+}
+.qg-held {
+  color: var(--cy);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+@media (min-width: 860px) {
+  .qg-week {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+  }
+}
+.qg-grid {
+  margin-top: 0;
+}
+.qg-rank {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--s4);
+  margin-bottom: var(--s4);
+}
+.qg-rank-name {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-stretch: 76%;
+  font-size: clamp(34px, 6vw, 46px);
+  line-height: 1;
+  margin-top: 4px;
+}
+.qg-level {
+  display: grid;
+  justify-items: end;
+  line-height: 1;
+}
+.qg-level .asc-num {
+  font-size: 46px;
+  color: var(--cy);
+}
+.qg-level small {
+  color: var(--tx-3);
+  font-size: 12px;
+  font-weight: 650;
+}
+.qg-ascent .asc-ascent {
+  margin-bottom: var(--s3);
+}
+.qg-ascent p + p {
+  margin-top: 4px;
+}
+.qg-ascent .asc-small strong {
+  color: var(--tx);
+}
+.qg-goal .asc-ascent,
+.asc-list .asc-ascent.thin {
+  margin: 6px 0 4px;
+  max-width: 360px;
+}
+.qg-insights {
+  border-top: 0;
+}
+.qg-insight {
+  display: flex;
+  gap: var(--s3);
+  padding: var(--s4) 0;
+  border-bottom: 1px solid var(--line);
+}
+.qg-insight:first-child {
+  border-top: 1px solid var(--line);
+}
+.qg-insight .asc-row-title {
+  white-space: normal;
+}
+.qg-insight .asc-row-title:hover {
+  color: var(--cy-2);
+}
+.qg-insight .asc-row-sub {
+  white-space: normal;
+}
+.qg-insight[data-tone="am"] .asc-row-icon {
+  color: var(--am);
+  border-color: var(--am-line);
+}
+.qg-insight[data-tone="cy"] .asc-row-icon {
+  color: var(--cy);
+}
+.qg-insight[data-tone="err"] .asc-row-icon {
+  color: var(--err);
+}
+.asc-list .asc-row > .t-icon:last-child {
+  color: var(--tx-4);
+}

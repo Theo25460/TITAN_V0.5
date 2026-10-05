@@ -71,7 +71,7 @@
 
   function navLink(t, cls) {
     const current = territory() === t.id ? ' aria-current="page"' : "";
-    return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Enregistrer une séance" : t.label}</span></a>`;
+    return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Nouvelle séance" : t.label}</span></a>`;
   }
 
   function render() {

@@ -255,10 +255,18 @@
     const from = F().weekStart(start).getTime();
     const to = from + 7 * DAY;
     const week = summarize(weekLogs(logs, start));
-    const previous = [1, 2, 3, 4].map((k) => summarize(weekLogs(logs, new Date(from - k * 7 * DAY))));
-    const withData = previous.filter((w) => w.sessions > 0);
+    // For the week in progress, compare with the same elapsed part of previous weeks.
+    const elapsed = current ? Math.min(7 * DAY, new Date(now).getTime() - from) : 7 * DAY;
+    const previous = [1, 2, 3, 4].map((k) => {
+      const wFrom = from - k * 7 * DAY;
+      return summarize(weekLogs(logs, new Date(wFrom)).filter((l) => new Date(l.date).getTime() - wFrom <= elapsed));
+    });
+    const history = [1, 2, 3, 4].map((k) => summarize(weekLogs(logs, new Date(from - k * 7 * DAY))));
+    // Weeks before the very first session are not "rest weeks": they are excluded from the baseline.
+    const firstAt = Math.min(...activeLogs(logs, now).map((l) => new Date(l.date).getTime()));
+    const withData = previous.filter((_, i) => Number.isFinite(firstAt) && from - i * 7 * DAY > firstAt);
     const avg = (key) => (withData.length ? withData.reduce((n, w) => n + w[key], 0) / withData.length : null);
-    const baseline = { sessions: avg("sessions"), minutes: avg("minutes"), distance: avg("distance"), weeks: withData.length };
+    const baseline = { sessions: avg("sessions"), minutes: avg("minutes"), distance: avg("distance"), weeks: withData.length, partial: current };
     const top = Object.values(week.bySport).sort((a, b) => b.minutes - a.minutes || b.sessions - a.sessions)[0] || null;
     const records = newRecords(logs, from, to, now);
     const goalLines = (goals || [])
@@ -269,7 +277,7 @@
         return { goal: g, value: end.value, before: startState.value, ratio: end.ratio, complete: end.complete, completedThisWeek: end.complete && !startState.complete };
       })
       .filter((g) => g.value > g.before);
-    const best = Math.max(0, ...previous.map((w) => w.minutes));
+    const best = Math.max(0, ...history.map((w) => w.minutes));
     return {
       from: new Date(from),
       to: new Date(to - 1),
@@ -280,7 +288,7 @@
       topSport: top,
       records,
       goals: goalLines,
-      bestOfRecentWeeks: week.minutes > 0 && week.minutes > best && withData.length >= 2,
+      bestOfRecentWeeks: week.minutes > 0 && week.minutes > best && history.filter((w) => w.sessions > 0).length >= 2,
       empty: week.sessions === 0,
     };
   }
@@ -389,18 +397,21 @@
 
     // Recent records (last 7 days).
     const recent = newRecords(logs, nowT - 7 * DAY, nowT + DAY, nowT).filter((r) => !r.first);
-    for (const r of recent.slice(0, 2)) {
-      const val = r.unit === "km" ? f.distance(r.value) : r.unit === "min" ? f.duration(r.value) : r.unit === "kg" ? f.weight(r.value) : `${r.value} ${r.unit}`.trim();
-      const prev = r.previous
-        ? r.previous.unit === "km" ? f.distance(r.previous.value) : r.previous.unit === "min" ? f.duration(r.previous.value) : r.previous.unit === "kg" ? f.weight(r.previous.value) : `${r.previous.value}`
-        : null;
+    const fmtRecord = (r) =>
+      r.unit === "km" ? f.distance(r.value) : r.unit === "min" ? f.duration(r.value) : r.unit === "kg" ? f.weight(r.value) : `${r.value} ${r.unit}`.trim();
+    const RECORD_WEIGHT = { time: 78, strength: 77, climbing: 77, distance: 74, duration: 55 };
+    for (const r of recent.slice().sort((a, b) => (RECORD_WEIGHT[b.kind] || 60) - (RECORD_WEIGHT[a.kind] || 60)).slice(0, 2)) {
+      const sport = sportMeta(r.sport).label;
+      const label = r.kind === "duration" ? "plus longue séance" : r.kind === "strength" ? `${r.label} · charge` : r.label.toLowerCase();
       out.push({
         id: `record-${r.id}`,
-        priority: 75,
+        priority: RECORD_WEIGHT[r.kind] || 60,
         tone: "am",
-        title: `Record : ${r.label.toLowerCase()} — ${val}`,
-        text: `${sportMeta(r.sport).label}, ${f.relativeDay(r.log.date, now)}.`,
-        why: prev ? `Précédent repère : ${prev}. ${r.context}` : r.context,
+        eyebrow: "Nouveau record",
+        title: `${sport} : ${label}`,
+        value: fmtRecord(r),
+        text: r.previous ? `${f.relativeDay(r.log.date, now).replace(/^./, (c) => c.toUpperCase())}. Précédent : ${fmtRecord(r.previous)}.` : `${f.relativeDay(r.log.date, now).replace(/^./, (c) => c.toUpperCase())}.`,
+        why: r.previous ? `Précédent repère : ${fmtRecord(r.previous)}, ${f.relativeDay(r.previous.log.date, now)}. ${r.context}` : r.context,
         cta: { label: "Voir les records", href: "/records" },
       });
     }

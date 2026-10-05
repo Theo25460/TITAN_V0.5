@@ -77,7 +77,8 @@ test("insights explain records with the previous mark and never invent one for a
   const ids = records.map((r) => r.id).sort();
   assert.equal(ids.join(","), "record-distance:running,record-duration:running", "longest distance and longest duration both improved");
   const dist = records.find((r) => r.id === "record-distance:running");
-  assert.match(dist.title, /plus longue distance — 12,4\skm/);
+  assert.equal(dist.title, "Course à pied : plus longue distance");
+  assert.match(dist.value, /12,4\skm/);
   assert.match(dist.why, /Précédent repère : 10\skm/);
   const first = P.insights({ logs: [log("2026-10-06T07:00:00")], now: NOW }).filter((i) => i.id.startsWith("record-"));
   assert.equal(first.length, 0);
