@@ -2440,3 +2440,332 @@
 .av-main .asc-note {
   margin-bottom: var(--s4);
 }
+
+/* ---------- Profil ---------- */
+.pf-hero {
+  display: grid;
+  gap: var(--s5);
+}
+@media (min-width: 760px) {
+  .pf-hero {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+}
+.pf-id {
+  display: flex;
+  gap: var(--s4);
+  align-items: center;
+}
+.pf-avatar img {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 1px solid var(--line-2);
+}
+.pf-name {
+  font-size: clamp(26px, 6vw, 38px);
+  font-stretch: 80%;
+}
+.pf-level {
+  display: grid;
+  gap: var(--s2);
+}
+.pf-level-n {
+  font-weight: 700;
+  color: var(--tx-2);
+}
+.pf-level-n strong {
+  font-family: var(--font-display);
+  font-stretch: 80%;
+  font-size: 34px;
+  color: var(--tx);
+  margin-left: 4px;
+}
+.pf-jump {
+  display: flex;
+  gap: var(--s2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: var(--s5) calc(-1 * var(--s4)) 0;
+  padding: 0 var(--s4);
+}
+.pf-jump::-webkit-scrollbar {
+  display: none;
+}
+.pf-jump a {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--tx-2);
+}
+.pf-jump a:hover {
+  border-color: var(--line-3);
+  color: var(--tx);
+}
+@media (min-width: 960px) {
+  .pf-jump {
+    margin: var(--s5) 0 0;
+    padding: 0;
+  }
+}
+#maitrise,
+#adn,
+#collection,
+#personnage,
+#reglages,
+#compte {
+  scroll-margin-top: calc(var(--topbar) + var(--s4));
+}
+.pf-mastery {
+  display: grid;
+  gap: var(--s3);
+}
+@media (min-width: 760px) {
+  .pf-mastery {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.pf-mastery-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.pf-mastery-main {
+  display: grid;
+  gap: 6px;
+}
+.pf-dna {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s5);
+  border-radius: var(--r4);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.pf-dna-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--s3);
+  margin: 0;
+}
+.pf-dna-facts dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tx-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pf-dna-facts dd {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-stretch: 82%;
+  font-weight: 800;
+  font-size: 26px;
+}
+.pf-dna-line {
+  color: var(--tx-2);
+  line-height: 1.55;
+}
+.pf-dna-line strong {
+  color: var(--tx);
+}
+.pf-collection {
+  display: grid;
+  gap: var(--s4);
+  margin-bottom: var(--s3);
+}
+@media (min-width: 760px) {
+  .pf-collection {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+.pf-col-block {
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+  padding: var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.pf-items {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pf-item {
+  display: flex;
+  gap: var(--s3);
+  align-items: center;
+}
+.pf-item span:last-child {
+  display: grid;
+}
+.pf-item small {
+  color: var(--tx-3);
+}
+.pf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pf-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pf-chips .t-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--cy);
+}
+.pf-avatars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--s3);
+}
+.pf-avatar-pick {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: var(--s3);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--tx);
+  text-align: center;
+}
+.pf-avatar-pick img {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+.pf-avatar-pick strong {
+  font-size: 13px;
+}
+.pf-avatar-pick small {
+  font-size: 11.5px;
+  color: var(--tx-3);
+}
+.pf-avatar-pick[aria-checked="true"] {
+  border-color: var(--cy);
+  background: var(--cy-soft);
+}
+.pf-avatar-pick[aria-disabled="true"] img {
+  filter: grayscale(1) brightness(0.5);
+}
+.pf-settings {
+  display: grid;
+  gap: var(--s5);
+}
+.pf-inline {
+  display: flex;
+  gap: var(--s2);
+}
+.pf-target {
+  max-width: 420px;
+}
+.pf-privacy {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pf-toggle {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s3);
+  align-items: center;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  cursor: pointer;
+}
+.pf-toggle span {
+  display: grid;
+  order: -1;
+}
+.pf-toggle small {
+  color: var(--tx-3);
+  font-size: 13px;
+}
+.pf-toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--bg-4);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.pf-toggle input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--tx-2);
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.pf-toggle input:checked {
+  background: var(--cy);
+}
+.pf-toggle input:checked::after {
+  transform: translateX(18px);
+  background: var(--cy-ink);
+}
+.pf-actions {
+  margin: var(--s3) 0;
+}
+.pf-data {
+  margin-top: var(--s3);
+}
+.pf-danger .asc-row-title,
+.pf-danger .asc-row-icon {
+  color: var(--err);
+}
+.pf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.pf-table th,
+.pf-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.pf-table th {
+  color: var(--tx-3);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
