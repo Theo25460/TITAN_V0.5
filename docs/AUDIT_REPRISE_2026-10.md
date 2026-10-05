@@ -122,17 +122,17 @@ Recommandation : rééquilibrer **maintenant** (aucun utilisateur actif à migre
 
 Les issues GitHub reprennent ces constats avec un préfixe de priorité :
 
-- **P0 — Fiabilité des données** : B1 (séances de plus de 30 jours) ; S1 (écritures directes guildes).
-- **P1 — Fiabilité** : B2 (catalogue hors ligne) ; B3 (invité orphelin et import invité → compte).
-- **P1 — Sécurité** : S2 à S4 (policies héritées, grants `anon`, RPC `SECURITY DEFINER`, mots de passe compromis).
-- **P1 — Ops** : D1 (rebasage des migrations) ; D2 (CD Netlify reliée à `main`, protection de branche).
-- **P1 — QA** : tests E2E Playwright en CI ; QA mobile réelle (iPhone Safari, Android Chrome).
-- **P1 — Analytics** : instrumentation produit respectueuse du consentement.
-- **P1 — Android** : étude Capacitor/TWA puis APK.
-- **P2 — UX** : login et onboarding en DA Renaissance (U1, U2) ; boutique (B4).
-- **P2 — Progression** : rééquilibrage XP/aventure appuyé sur la simulation (section 8).
-- **P2 — Legacy** : documentation, `_redirects`, inline JS et `innerHTML`, découpage progressif.
-- **P3** : B5, B6, D6, D7 ; extension de l'aventure ; programmes coach.
+- **P0 — Fiabilité des données** : B1, séances de plus de 30 jours (#1) ; S1, écritures directes guildes (#2).
+- **P1 — Fiabilité** : B2, catalogue hors ligne (#3) ; B3, invité orphelin et import invité → compte (#4).
+- **P1 — Sécurité** : S2 et S5, policies héritées et grants `anon` (#5) ; S3 et S4, RPC `SECURITY DEFINER` et mots de passe compromis (#6).
+- **P1 — Ops** : D1, rebasage des migrations (#7) ; D2, CD Netlify reliée à `main` et protection de branche (#8).
+- **P1 — QA** : tests E2E Playwright en CI (#9) ; QA mobile réelle, iPhone Safari et Android Chrome (#10).
+- **P1 — Analytics** : instrumentation produit respectueuse du consentement (#11).
+- **P1 — Android** : choix TWA/Capacitor puis APK (#12).
+- **P2 — UX** : login et onboarding en DA Renaissance, U1 à U3 (#13) ; boutique, B4 (#14).
+- **P2 — Progression** : rééquilibrage XP/aventure appuyé sur la simulation, section 8 (#15).
+- **P2 — Legacy** : documentation, `_redirects`, inline JS et `innerHTML`, poids des pages (#16).
+- **P3** : B5, B6, U5 et petits défauts (#17). L'extension de l'aventure et les programmes coach restent dans `PLAN_TITAN_RENAISSANCE.md` jusqu'à ce que les fondations soient posées.
 
 ## 11. Proposition de prochaine release : « Fondations 201 »
 
