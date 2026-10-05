@@ -98,12 +98,17 @@
       <p class="rc-big asc-num">${esc(value(r))}</p>
       <p class="asc-small asc-muted">${esc(r.context || "")}</p>
       <a class="asc-row" href="/journal?session=${encodeURIComponent(X().idOf(r.log))}"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">Séance source</span><span class="asc-row-sub">${esc(new Date(r.log.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</span></span>${icon("chevron")}</a>
+      ${window.TitanShare?.available() ? `<button type="button" class="asc-btn asc-btn-secondary" data-share-record>${icon("send")} Partager avec mes amis</button>` : ""}
       ${steps.length > 1 ? `<section class="asc-stack-sm"><p class="asc-eyebrow">Progression</p><ol class="rc-steps">${steps
         .slice()
         .reverse()
         .map((s, i) => `<li${i === 0 ? ' class="is-current"' : ""}><span class="asc-num">${esc(value(r, s.value))}</span><span class="asc-small asc-muted">${esc(new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }))}</span></li>`)
         .join("")}</ol></section>` : `<p class="asc-small asc-faint">Premier repère : la prochaine séance comparable dira si tu le bats.</p>`}`;
     window.titanShell.sheet({ title: r.label, eyebrow: SP().label(r.sport), body });
+    body.querySelector("[data-share-record]")?.addEventListener("click", () => {
+      const prev = steps.length > 1 ? steps[steps.length - 2] : null;
+      window.TitanShare.open({ kind: "record", title: `${SP().label(r.sport)} : ${r.label.toLowerCase()} ${value(r)}`, detail: prev ? `avant : ${value(r, prev.value)}` : "", sport: r.sport, logId: r.log.syncStatus === "confirmed" ? r.log.id : null });
+    });
   }
 
   let booted = false;

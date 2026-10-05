@@ -138,6 +138,7 @@
       ${masteryHtml(log)}
       ${adventureHtml(log)}
       <div class="moment-actions">
+        ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
         <button type="button" class="asc-btn asc-btn-primary" data-moment="done">Terminé</button>
         <a class="asc-btn asc-btn-secondary" href="/journal">${icon("journal")} Voir dans le journal</a>
       </div>
@@ -173,6 +174,18 @@
     }
     body.addEventListener("click", (e) => {
       if (e.target.closest("[data-moment='done']")) dialog.close();
+      if (e.target.closest("[data-moment='share']")) {
+        const l = current(log);
+        const rec = records(l).find((r) => !r.first);
+        const m = metrics(l).filter(([k]) => k !== "Ressenti").slice(0, 3).map(([, v]) => v).join(" · ");
+        window.TitanShare.open({
+          kind: rec ? "record" : "session",
+          title: rec ? `${S().label(l.sport)} : ${rec.label.toLowerCase()} ${fmtRecord(rec)}` : `${S().label(l.sport)} · ${m}`,
+          detail: rec ? (rec.previous ? `avant : ${fmtRecord(rec, rec.previous.value)}` : "") : "",
+          sport: l.sport,
+          logId: l.syncStatus === "confirmed" ? l.id : null,
+        });
+      }
     });
     window.addEventListener("titan:history-updated", update);
     window.addEventListener("titan:adventure-updated", update);

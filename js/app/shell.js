@@ -132,6 +132,7 @@
     top.innerHTML = `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
       <span style="flex:1"></span>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Aide"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
       <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
         <span class="asc-sync" data-state="${syncState.state}"></span>
         <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>
@@ -250,6 +251,22 @@
       setTimeout(() => ok.focus(), 30);
     });
   }
+
+  /* Secondary destinations on mobile: one tap from the top bar, out of the main tab bar. */
+  function openMore() {
+    const body = `<nav class="asc-list" aria-label="Plus">${SECONDARY.map((t) => `<a class="asc-row" href="${t.href}"${territory() === t.id ? ' aria-current="page"' : ""}><span class="asc-row-icon">${icon(t.icon)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(t.label)}</span><span class="asc-row-sub">${esc(MORE_HINTS[t.id] || "")}</span></span>${icon("chevron")}</a>`).join("")}</nav>
+      <p class="asc-small asc-faint asc-more-legal"><a href="/legal_cgu">Conditions</a> · <a href="/legal_privacy">Confidentialité</a> · <a href="/changelog">Nouveautés</a></p>`;
+    sheet({ title: "Plus", body });
+  }
+  const MORE_HINTS = {
+    communaute: "Expéditions, amis, défis, guilde",
+    coaching: "Partager tes séances avec un coach, sous ton contrôle",
+    atelier: "Personnalisation et TITAN+",
+    aide: "Questions, contact, signaler un problème",
+  };
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-shell-more]")) openMore();
+  });
 
   /* ---------- Legacy compatibility ---------- */
   window.titanShell = { refresh, toast, sheet, confirm, user, territories: TERRITORIES, esc };
