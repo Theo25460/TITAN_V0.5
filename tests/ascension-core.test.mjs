@@ -86,3 +86,13 @@ test("GPX: distance, moving time and smoothed ascent, glitches ignored", () => {
   assert.equal(r.start, "2026-10-05T07:00:00.000Z");
   assert.equal(G.analyse("<gpx></gpx>").ok, false);
 });
+
+test("format: chronometer and record values keep the seconds that matter", () => {
+  const F = require("../js/core/format.js");
+  assert.equal(F.clock(52.5), "52:30");
+  assert.equal(F.clock(65.2), "1:05:12");
+  assert.equal(F.clock(52), "52 min");
+  assert.equal(F.recordValue("min", 25.5), "25 min 30 s");
+  assert.equal(F.recordValue("rép.", 12), "12 rép.");
+  assert.match(F.recordValue("kg", 92.5), /^92,5\skg$/);
+});

@@ -38,6 +38,7 @@
       value: "",
       durH: "",
       durM: "",
+      durS: "",
       elevation: "",
       pool: "25",
       exercises: [],
@@ -96,9 +97,9 @@
     return Number.isFinite(n) ? n : null;
   };
   const duration = () => {
-    const h = num(S.durH) || 0, m = num(S.durM) || 0;
-    const total = h * 60 + m;
-    return total > 0 ? total : null;
+    const h = num(S.durH) || 0, m = num(S.durM) || 0, s = num(S.durS) || 0;
+    const total = h * 60 + m + s / 60;
+    return total > 0 ? Math.round(total * 100) / 100 : null;
   };
   function performedAt() {
     if (S.when === "now") return new Date();
@@ -163,7 +164,7 @@
     else data.performedAt = at.toISOString();
     if (dur !== null) {
       if (dur > 1440) fail("Une séance dure au maximum 24 h.", "durH");
-      data.val2 = Math.round(dur * 10) / 10;
+      data.val2 = Math.round(dur * 100) / 100;
       data.duration = data.val2;
     }
     let unit = S_().unitOf(sport);
@@ -297,10 +298,11 @@
     </section>`;
   }
 
-  function durationHtml(label = "Durée", optional = false) {
+  function durationHtml(label = "Durée", optional = false, seconds = false) {
     return `<div class="asc-field"><span>${label}${optional ? ' <small class="asc-faint">facultatif</small>' : ""}</span>
-      <div class="seance-duration"><label><input class="asc-input" inputmode="numeric" type="number" min="0" max="24" step="1" data-k="durH" value="${esc(S.durH)}" placeholder="0" aria-label="Heures"><span>h</span></label>
+      <div class="seance-duration${seconds ? " has-seconds" : ""}"><label><input class="asc-input" inputmode="numeric" type="number" min="0" max="24" step="1" data-k="durH" value="${esc(S.durH)}" placeholder="0" aria-label="Heures"><span>h</span></label>
       <label><input class="asc-input" inputmode="numeric" type="number" min="0" max="59" step="1" data-k="durM" value="${esc(S.durM)}" placeholder="00" aria-label="Minutes"><span>min</span></label>
+      ${seconds ? `<label><input class="asc-input" inputmode="numeric" type="number" min="0" max="59" step="1" data-k="durS" value="${esc(S.durS)}" placeholder="00" aria-label="Secondes"><span>s</span></label>` : ""}
       <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm seance-chrono-apply" data-chrono-apply hidden>${icon("timer")} Reporter le chrono</button></div></div>`;
   }
 
@@ -357,7 +359,7 @@
       const mode = S_().paceMode(S.sport);
       return `<section class="seance-block"><div class="seance-big">
           <label class="asc-field"><span>Distance</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" max="300" step="0.01" data-k="distance" value="${esc(S.distance)}" placeholder="0,0"><span>km</span></div></label>
-          ${durationHtml()}
+          ${durationHtml("Durée", false, true)}
         </div>
         <p class="seance-derived asc-small" id="derived" aria-live="polite"></p>
         ${S_().hasElevation(S.sport) ? `<label class="asc-field seance-elev"><span>Dénivelé positif <small class="asc-faint">facultatif</small></span><div class="seance-unit"><input class="asc-input" inputmode="numeric" type="number" min="0" max="12000" step="1" data-k="elevation" value="${esc(S.elevation)}" placeholder="0"><span>m</span></div></label>` : ""}
@@ -369,7 +371,7 @@
     if (form === "swim")
       return `<section class="seance-block"><div class="seance-big">
           <label class="asc-field"><span>Distance nagée</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="numeric" type="number" min="0" max="20000" step="25" data-k="meters" value="${esc(S.meters)}" placeholder="0"><span>m</span></div></label>
-          ${durationHtml()}
+          ${durationHtml("Durée", false, true)}
         </div>
         <p class="seance-derived asc-small" id="derived" aria-live="polite"></p>
         <div class="asc-field"><span>Bassin</span><div class="asc-seg" role="group" aria-label="Bassin">${[["25", "25 m"], ["50", "50 m"], ["open", "Eau libre"]].map(([k, l]) => `<button type="button" data-pool="${k}" aria-pressed="${S.pool === k}">${l}</button>`).join("")}</div></div>
@@ -513,8 +515,10 @@
     const m = window.TitanTraining.duration(l);
     const p = { note: "" };
     if (m) {
-      p.durH = String(Math.floor(m / 60) || "");
-      p.durM = String(Math.round(m % 60));
+      const secs = Math.round(m * 60);
+      p.durH = String(Math.floor(secs / 3600) || "");
+      p.durM = String(Math.floor((secs % 3600) / 60));
+      p.durS = secs % 60 ? String(secs % 60) : "";
     }
     const form = S_().formOf(l.sport);
     if (form === "distance" && l.unit === "km") p.distance = String(l.val);
@@ -585,8 +589,10 @@
     S.distance = String(r.distanceKm);
     const mins = r.movingMinutes || r.elapsedMinutes;
     if (mins) {
-      S.durH = String(Math.floor(mins / 60) || "");
-      S.durM = String(Math.round(mins % 60));
+      const secs = Math.round(mins * 60);
+      S.durH = String(Math.floor(secs / 3600) || "");
+      S.durM = String(Math.floor((secs % 3600) / 60));
+      S.durS = secs % 60 ? String(secs % 60) : "";
     }
     if (r.ascent) S.elevation = String(r.ascent);
     if (r.start) {
@@ -705,9 +711,11 @@
     const act = t.dataset.act;
     if (!act) {
       if (t.hasAttribute("data-chrono-apply")) {
-        const mins = Math.max(1, Math.round(elapsedMs(timer()) / 60000));
+        const secs = Math.max(60, Math.round(elapsedMs(timer()) / 1000));
+        const mins = Math.floor(secs / 60);
         S.durH = String(Math.floor(mins / 60) || "");
         S.durM = String(mins % 60);
+        S.durS = ["distance", "swim"].includes(S_().formOf(S.sport)) && secs % 60 ? String(secs % 60) : "";
         render();
         persist();
         window.titanShell.toast({ type: "ok", title: "Durée reportée", message: F().duration(mins) });

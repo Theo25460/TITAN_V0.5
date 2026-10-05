@@ -112,7 +112,33 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
-  const api = { isNum, number, duration, hours, distance, pace, speed, weight, relativeDay, longDate, time, daysSince, plural, weekStart, startOfDay, dateKey, DAY };
+  /** Chronometer style for timed efforts: 52.5 → "52:30", 65.2 → "1:05:12". Whole minutes keep "52 min". */
+  function clock(minutes) {
+    if (!isNum(minutes) || Number(minutes) <= 0) return "—";
+    const total = Math.round(Number(minutes) * 60);
+    if (total % 60 === 0) return duration(total / 60);
+    const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), sec = total % 60;
+    return h ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`;
+  }
+
+  /** A record value in its own unit: km, minutes, kg, repetitions or a climbing grade. */
+  function recordValue(unit, value) {
+    if (unit === "km") return distance(value);
+    if (unit === "min") {
+      // Timed records keep their seconds: 25.5 → "25 min 30 s".
+      const v = Number(value);
+      const sec = Math.round((v - Math.floor(v)) * 60);
+      if (isNum(v) && v < 60 && sec > 0 && sec < 60) return `${Math.floor(v)} min ${String(sec).padStart(2, "0")} s`;
+      return duration(value);
+    }
+    if (unit === "kg") return `${number(value, 1)} kg`;
+    if (unit === "reps" || unit === "rép.") return `${number(value)} rép.`;
+    if (unit === "s") return `${number(value)} s`;
+    if (unit === "m") return `${number(value)} m`;
+    return String(value ?? "—") + (unit ? ` ${unit}` : "");
+  }
+
+  const api = { isNum, number, duration, hours, distance, pace, speed, weight, relativeDay, longDate, time, daysSince, plural, weekStart, startOfDay, dateKey, recordValue, clock, DAY };
   root.TitanFormat = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

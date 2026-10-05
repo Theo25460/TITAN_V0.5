@@ -101,13 +101,7 @@
     return `<section class="asc-section"><div class="asc-section-head"><h2>Ce qui a compté</h2></div><div class="asc-list">${items.join("")}</div></section>`;
   }
 
-  function fmtRecord(r, value = r.value) {
-    if (r.unit === "km") return F().distance(value);
-    if (r.unit === "min") return F().duration(value);
-    if (r.unit === "kg") return `${F().number(value)} kg`;
-    if (r.unit === "reps") return `${F().number(value)} rép.`;
-    return String(value);
-  }
+  const fmtRecord = (r, value = r.value) => F().recordValue(r.unit, value);
 
   /* ---------- Questions ---------- */
   function card(q, answer, body, basis) {

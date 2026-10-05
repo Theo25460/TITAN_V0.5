@@ -22,7 +22,7 @@
     if (log.unit === "km") {
       out.push(["Distance", F().distance(log.val)]);
       if (minutes) {
-        out.push(["Durée", F().duration(minutes)]);
+        out.push(["Durée", F().clock(minutes)]);
         out.push(S().paceMode(log.sport) === "pace" ? ["Allure", F().pace(log.val, minutes)] : ["Vitesse", F().speed(log.val, minutes)]);
       }
       const elev = Number(d.elevation || d.gpxStats?.ascent);
@@ -30,7 +30,7 @@
     } else if (log.unit === "m") {
       out.push(["Distance", `${F().number(log.val)} m`]);
       if (minutes) {
-        out.push(["Durée", F().duration(minutes)]);
+        out.push(["Durée", F().clock(minutes)]);
         const sec = Math.round((minutes * 60) / (Number(log.val) / 100));
         out.push(["Allure", `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} /100 m`]);
       }
@@ -55,15 +55,7 @@
     return out.slice(0, 5);
   }
 
-  function fmtRecord(r, value = r.value) {
-    if (r.unit === "km") return F().distance(value);
-    if (r.unit === "min") return F().duration(value);
-    if (r.unit === "kg") return `${F().number(value)} kg`;
-    if (r.unit === "reps") return `${F().number(value)} rép.`;
-    if (r.unit === "s") return `${F().number(value)} s`;
-    if (r.unit === "m") return `${F().number(value)} m`;
-    return `${value}${r.unit && r.unit !== "grade" ? " " + r.unit : ""}`;
-  }
+  const fmtRecord = (r, value = r.value) => F().recordValue(r.unit, value);
 
   function records(log) {
     const t = new Date(log.date).getTime();
