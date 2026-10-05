@@ -3520,3 +3520,76 @@
     height: 100px;
   }
 }
+
+/* ---------- Shareable image cards ---------- */
+.cd-preview {
+  border-radius: var(--r3);
+  overflow: hidden;
+  border: 1px solid var(--line-2);
+  background: var(--bg-2);
+  max-width: 360px;
+  margin: 0 auto;
+  width: 100%;
+}
+.cd-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- Public profile (settings in Profil, page /u/…) ---------- */
+.pf-public {
+  display: grid;
+  gap: var(--s4);
+}
+.pf-public-share {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: center;
+  padding: var(--s4);
+  border-radius: var(--r3);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.pf-qr {
+  width: 120px;
+  height: 120px;
+  padding: 6px;
+  border-radius: var(--r2);
+  background: #fff;
+}
+.pf-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ap-main {
+  max-width: 760px;
+}
+.ap-hero {
+  display: grid;
+  gap: var(--s5);
+}
+.ap-totals {
+  margin: 0;
+}
+.ap-cta {
+  display: grid;
+  gap: var(--s3);
+  justify-items: start;
+  margin-top: var(--s6);
+  padding: var(--s5);
+  border-radius: var(--r4);
+  border: 1px solid var(--cy-line);
+  background: radial-gradient(120% 80% at 100% 0%, var(--cy-soft), transparent 60%), var(--bg-1);
+}
+.ap-foot {
+  margin-top: var(--s5);
+}
+.ap-main .asc-section {
+  margin-top: var(--s6);
+}
+.wk-card {
+  justify-self: start;
+}

@@ -21,7 +21,16 @@
   ];
 
   let root = null;
+  let card = null; // public card settings (server)
+  let titles = null; // expedition titles earned (server)
   const guest = () => D().isGuest();
+  const BLOCKS = [
+    ["name", "Mon nom affiché", "Sinon : « Athlète TITAN »."],
+    ["level", "Mon niveau et mon rang", ""],
+    ["totals", "Séances, temps et semaines actives", "Des totaux, jamais le détail des séances."],
+    ["sports", "Mes sports et leur maîtrise", "Jusqu’à six sports, sans dates ni lieux."],
+    ["titles", "Mes titres d’expédition et insignes", ""],
+  ];
   const logs = () => window.state?.history || [];
 
   function heroHtml() {
@@ -58,7 +67,7 @@
     if (!d.enough)
       return `<section class="asc-section" id="adn"><div class="asc-section-head"><h2>ADN sportif</h2></div><p class="asc-small asc-muted">Ton ADN se dessine à partir de 5 séances : familles de sports, moment de la journée, jour favori, disciplines maîtrisées.</p></section>`;
     const slot = { matin: "du matin", midi: "de la pause de midi", "après-midi": "de l’après-midi", soir: "du soir" }[d.timeOfDay];
-    return `<section class="asc-section" id="adn"><div class="asc-section-head"><h2>ADN sportif</h2><span class="asc-small asc-muted">depuis le ${esc(new Date(d.first).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}</span></div>
+    return `<section class="asc-section" id="adn"><div class="asc-section-head"><h2>ADN sportif</h2>${window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-dna-card>${icon("share")} Image</button>` : `<span class="asc-small asc-muted">depuis le ${esc(new Date(d.first).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}</span>`}</div>
       <div class="pf-dna">
         <div class="wk-stack" role="img" aria-label="${esc(d.families.map((f) => `${f.label} ${Math.round(f.share * 100)} %`).join(", "))}">${d.families.map((f) => `<span data-family="${esc(f.id)}" style="--w:${(f.share * 100).toFixed(1)}%"></span>`).join("")}</div>
         <ul class="wk-legend">${d.families.map((f) => `<li data-family="${esc(f.id)}"><i></i>${esc(f.label)} ${Math.round(f.share * 100)} %</li>`).join("")}</ul>
@@ -92,6 +101,7 @@
     return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${rewards.length + ms.length + hs.length} pièces · <a href="/boutique">Atelier</a></span></div>
       <div class="pf-collection">
         <div class="pf-col-block"><p class="asc-eyebrow">Insignes d’aventure</p>${rewards.length ? `<ul class="pf-items">${rewards.map(badge).join("")}</ul>` : `<p class="asc-small asc-muted">Allume ta première balise dans <a href="/adventure">l’Aventure</a>.</p>`}</div>
+        ${titles?.length ? `<div class="pf-col-block"><p class="asc-eyebrow">Titres d’expédition</p><ul class="pf-chips">${titles.map((t) => `<li>${icon("mountain")} ${esc(t.title)} <small class="asc-faint">· ${esc(t.expedition)}</small></li>`).join("")}</ul></div>` : ""}
         <div class="pf-col-block"><p class="asc-eyebrow">Jalons</p><ul class="pf-chips">${ms.map((m) => `<li>${icon("flag")} ${m} séance${m > 1 ? "s" : ""}</li>`).join("")}${hs.map((h) => `<li>${icon("clock")} ${h} h</li>`).join("")}${held ? `<li>${icon("check")} ${held} semaine${held > 1 ? "s" : ""} tenue${held > 1 ? "s" : ""}</li>` : ""}${records ? `<li>${icon("star")} ${records} record${records > 1 ? "s" : ""}</li>` : ""}</ul>
           <p class="asc-small asc-faint">${nextM ? `Prochain jalon : ${nextM} séances (${nextM - list.length} à venir)` : ""}${nextM && nextH ? " · " : ""}${nextH ? `${nextH} h de pratique` : ""}</p></div>
       </div>
@@ -125,6 +135,61 @@
       </div></section>`;
   }
 
+  function publicHtml() {
+    if (guest()) return "";
+    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${navigator.onLine ? "Chargement…" : "Disponible avec le réseau."}</p></section>`;
+    const url = card.slug ? `https://titan-app.fr/u/${card.slug}` : "";
+    let qr = "";
+    if (card.enabled && url && !window.qrcode) window.TitanCard?.loadQr().then((q) => q && render());
+    if (card.enabled && url && window.qrcode) {
+      const q = window.qrcode(0, "M");
+      q.addData(url);
+      q.make();
+      qr = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    }
+    return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div>
+      <div class="pf-public">
+        <label class="pf-toggle"><input type="checkbox" role="switch" data-card-enabled ${card.enabled ? "checked" : ""}><span><strong>Une carte d’athlète accessible par lien</strong><small>Désactivée par défaut. Le lien est impossible à deviner ; pas de référencement dans les moteurs de recherche.</small></span></label>
+        ${card.enabled ? `<div class="pf-public-share"><div class="pf-qr" role="img" aria-label="QR code de ton profil public">${qr}</div>
+          <div class="asc-stack-sm"><input class="asc-input asc-num" readonly value="${esc(url)}" aria-label="Lien de ton profil public">
+            <div class="asc-row-flex"><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/u/${esc(card.slug)}" target="_blank" rel="noopener">${icon("eye")} Voir</a><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-copy>${icon("copy")} Copier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-relink>${icon("restore")} Nouveau lien</button></div></div></div>
+        <fieldset class="pf-privacy"><legend class="seance-label">Ce que la carte montre</legend>${BLOCKS.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-card-show="${k}" ${card.show?.[k] !== false ? "checked" : ""}><span><strong>${esc(label)}</strong>${help ? `<small>${esc(help)}</small>` : ""}</span></label>`).join("")}</fieldset>
+        <p class="asc-small asc-faint">Jamais affichés : santé, poids, GPS, notes, dates et heures des séances, amis, guilde, e-mail.</p>` : ""}
+      </div></section>`;
+  }
+
+  async function saveCard(enabled, show, relink = false) {
+    const { data, error } = await window.titanClient.rpc("titan_public_card_save", { p_enabled: enabled, p_show: show || {}, p_new_link: relink });
+    if (error) throw error;
+    card = data;
+    render();
+  }
+
+  let bitsLoading = false;
+  async function loadServerBits() {
+    if (bitsLoading || card || guest() || !window.titanClient || !navigator.onLine) return;
+    bitsLoading = true;
+    const [c, t] = await Promise.allSettled([window.titanClient.rpc("titan_public_card_settings"), window.titanClient.rpc("titan_expedition_titles")]);
+    if (c.status === "fulfilled" && !c.value.error) card = c.value.data;
+    if (t.status === "fulfilled" && !t.value.error) titles = t.value.data || [];
+    bitsLoading = false;
+    render();
+  }
+
+  function dnaCard() {
+    const d = P().dna(logs());
+    window.TitanCard.open({
+      kind: "dna",
+      eyebrow: `ADN sportif · ${D().progression().rank.name}`,
+      title: "Mon ADN sportif",
+      families: d.families.map((f) => ({ id: f.id, label: f.label, share: f.share })),
+      stats: [["Séances", F().number(d.sessions)], ["Temps", F().hours(d.minutes)], ["Semaines", F().number(d.activeWeeks)]],
+      detail: d.topSports.length ? `Mes piliers : ${d.topSports.map((x) => x.label).join(", ")}.` : "",
+      name: window.TitanCard.userName(),
+      filename: "titan-adn",
+    });
+  }
+
   function accountHtml() {
     const s = A()?.snapshot;
     const plus = Boolean(s?.plus || window.state?.user?.is_elite);
@@ -145,8 +210,8 @@
   function render() {
     if (!root) return;
     root.innerHTML = `${heroHtml()}
-      <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
-      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${accountHtml()}`;
+      <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ...(guest() ? [] : [["public", "Public"]]), ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
+      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`;
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
       root.dataset.scrolled = "1";
@@ -229,6 +294,18 @@
         .join("")}</tbody></table>`;
       return window.titanShell.sheet({ title: "Les paliers de maîtrise", eyebrow: "Maîtrise", body });
     }
+    if (b.hasAttribute("data-dna-card")) return dnaCard();
+    if (b.hasAttribute("data-card-copy"))
+      return navigator.clipboard?.writeText(`https://titan-app.fr/u/${card.slug}`).then(() => window.titanShell.toast({ type: "ok", title: "Lien copié" }));
+    if (b.hasAttribute("data-card-relink"))
+      return window.titanShell.confirm({
+        title: "Créer un nouveau lien ?",
+        message: "L’ancien lien et les QR codes déjà partagés cesseront de fonctionner.",
+        confirmLabel: "Nouveau lien",
+        action: () => saveCard(null, null, true).catch(() => {
+          throw new Error("Le lien n’a pas pu être changé. Vérifie ta connexion.");
+        }),
+      });
     if (b.hasAttribute("data-export-json")) return exportJson();
     if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.(logs());
     if (b.hasAttribute("data-clear-cache"))
@@ -262,6 +339,19 @@
       window.saveState?.({ forceCloud: true });
       window.titanShell.toast({ type: "ok", title: "Confidentialité", message: t.checked ? "Partage activé." : "Partage désactivé." });
     }
+    if (t.matches("[data-card-enabled]") || t.dataset.cardShow) {
+      const enabled = t.matches("[data-card-enabled]") ? t.checked : null;
+      const show = t.dataset.cardShow ? { [t.dataset.cardShow]: t.checked } : {};
+      t.disabled = true;
+      return saveCard(enabled, show)
+        .then(() => enabled !== null && window.titanShell.toast({ type: "ok", title: enabled ? "Profil public activé" : "Profil public désactivé", message: enabled ? "Seuls ceux qui ont le lien peuvent le voir." : "Le lien ne mène plus nulle part." }))
+        .catch((err) => {
+          t.checked = !t.checked;
+          t.disabled = false;
+          const m = String(err?.message || "");
+          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Réglage non enregistré. Vérifie ta connexion." });
+        });
+    }
     if (t.matches("[data-analytics]")) {
       window.TitanAnalytics?.setConsent(t.checked);
       window.titanShell.toast({ type: "ok", title: "Statistiques d’usage", message: t.checked ? "Merci pour ton aide." : "Plus rien n’est envoyé." });
@@ -280,6 +370,7 @@
       A()?.refresh?.();
     }
     render();
+    loadServerBits();
   }
   let queued = false;
   const queue = () => {

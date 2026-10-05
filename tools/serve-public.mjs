@@ -36,6 +36,7 @@ const types = {
 
 function publicPath(urlPath) {
   const clean = decodeURIComponent((urlPath || '/').split('?')[0]);
+  if (/^\/u\/[a-z0-9]+\/?$/i.test(clean)) return join(root, 'athlete.html'); // mirrors the netlify.toml rewrite
   const normalized = normalize(clean).replace(/^(\.\.[/\\])+/, '');
   let target = resolve(root, `.${normalized}`);
   if (!target.startsWith(root)) target = join(root, '404.html');

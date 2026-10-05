@@ -47,7 +47,7 @@
     return { title, text };
   }
 
-  function dayStrip(r) {
+  function perDay(r) {
     const from = r.from.getTime();
     const per = Array.from({ length: 7 }, () => ({ minutes: 0, sessions: 0 }));
     for (const l of P().activeLogs(logs())) {
@@ -57,6 +57,12 @@
       per[i].minutes += P().minutesOf(l).minutes || 0;
       per[i].sessions++;
     }
+    return per;
+  }
+
+  function dayStrip(r) {
+    const from = r.from.getTime();
+    const per = perDay(r);
     const max = Math.max(60, ...per.map((d) => d.minutes));
     const today = offset === 0 ? (new Date().getDay() + 6) % 7 : -1;
     return `<div class="wk-days" role="list" aria-label="Minutes par jour">${per
@@ -87,7 +93,25 @@
       </dl>
       ${dayStrip(r)}
       ${w.estimatedMinutes ? `<p class="asc-small asc-faint">Dont ${esc(F().duration(w.estimatedMinutes))} estimées pour des séances sans durée.</p>` : ""}
+      ${w.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm wk-card" data-week-card>${icon("share")} Image de ma semaine</button>` : ""}
     </section>`;
+  }
+
+  function weekCard() {
+    const r = recapFor(offset);
+    const settings = D().cadenceSettings();
+    const h = headline(r, settings.target);
+    const w = r.week;
+    window.TitanCard.open({
+      kind: "week",
+      eyebrow: `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`,
+      title: h.title,
+      detail: h.text,
+      stats: [["Jours actifs", `${w.activeDays}/${settings.target}`], ["Temps", w.minutes ? F().duration(w.minutes) : "—"], w.distance ? ["Distance", F().distance(w.distance)] : ["Séances", String(w.sessions)]],
+      days: perDay(r).map((d) => d.minutes),
+      name: window.TitanCard.userName(),
+      filename: "titan-semaine",
+    });
   }
 
   function highlightsHtml(r) {
@@ -225,6 +249,7 @@
       booted = true;
       SP().ensure();
       root.addEventListener("click", (e) => {
+        if (e.target.closest("[data-week-card]")) return weekCard();
         const b = e.target.closest("[data-week]");
         if (!b || b.disabled) return;
         offset = Math.max(0, Number(b.dataset.week));

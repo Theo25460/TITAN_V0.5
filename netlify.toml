@@ -125,6 +125,12 @@ from = "/prevoir"
 to = "/prevoir.html"
 status = 200
 
+# Public athlete cards: an opt-in, unguessable link per athlete (never indexed).
+[[redirects]]
+from = "/u/*"
+to = "/athlete.html"
+status = 200
+
 [[redirects]]
 from = "/algorithme"
 to = "/niveaux-et-xp"
@@ -811,6 +817,17 @@ status = 200
 
 [[headers]]
   for = "/stats"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/u/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/athlete.html"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
