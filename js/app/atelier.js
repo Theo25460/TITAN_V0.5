@@ -245,13 +245,21 @@
     const owner = dataOwner;
     if (window.state?.user?.id !== owner) throw new Error("ACCOUNT_CHANGED");
     const item = data.items.find((i) => i.id === id);
+    const previous = removed ? data.items.find((i) => i.slot === item.slot && i.cosmetic === data.appearance?.[item.slot]) : item;
+    const trigger = document.activeElement;
     const { data: look, error: e } = await window.titanClient.rpc("titan_set_appearance", { p_slot: item.slot, p_item: id });
     if (window.state?.user?.id !== owner) return;
     if (e) throw e;
     data.appearance = look || {};
     syncUser();
+    const restoreFocus = document.activeElement === trigger && root.contains(trigger);
     render();
-    window.titanShell.toast({ type: "ok", title: removed ? "Style d’origine rétabli" : `${item.name} porté`, message: removed ? "Ta pièce reste dans ta collection. Tu peux la porter à nouveau quand tu veux." : item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
+    if (restoreFocus) {
+      const buttons = [...root.querySelectorAll("button")];
+      const next = buttons.find((b) => removed ? b.dataset.wear === previous?.id : b.dataset.remove === item.slot) || buttons.find((b) => b.dataset.preview === previous?.id) || root.querySelector(`[data-collection="${collection}"]`);
+      next?.focus({ preventScroll: true });
+    }
+    window.titanShell.toast({ type: "ok", title: removed ? "Style d’origine rétabli" : `${item.name} porté`, message: removed ? previous && permanent(previous) ? "Ta pièce acquise reste dans ta collection. Tu peux la porter à nouveau." : "Cette pièce reste accessible tant que ton accès TITAN+ est actif. Les pièces acquises restent dans ta collection." : item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
   }
 
   function openPreview(id) {
