@@ -122,7 +122,7 @@
     const wear = worn ? `<span class="asc-chip cy">${icon("check")} Porté</span>` : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>` : "";
     if (item.unlock === "credits" && !permanent(item)) {
       const short = item.price - (Number(data.credits) || 0);
-      const purchase = short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)} crédits</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">${item.owned ? "Garder avec mes crédits" : "Débloquer"}</button>`;
+      const purchase = short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)} crédits</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">${item.owned ? "Garder la pièce" : "Débloquer"}</button>`;
       return wear + purchase;
     }
     if (wear) return wear;

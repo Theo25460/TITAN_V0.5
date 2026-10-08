@@ -18,7 +18,7 @@ Les quatre coûtent ensemble 4 600 crédits, soit cinq semaines si le plafond ex
 ## Comportement et compatibilité
 
 - Un non-abonné peut acheter, porter et garder chacune des quatre pièces.
-- Un abonné peut porter immédiatement ces pièces. « Garder avec mes crédits » reste disponible, même pour une pièce déjà portée ; seul cet achat crée une acquisition permanente.
+- Un abonné peut porter immédiatement ces pièces. « Garder la pièce » reste disponible, même pour une pièce déjà portée ; le prix et la confirmation indiquent le coût en crédits. Seul cet achat crée une acquisition permanente.
 - Après expiration, une pièce achetée reste portée. Une pièce seulement empruntée revient au style initial, avec conservation de la préférence stockée existante.
 - `titan_atelier()` ajoute `permanent` et `plus_access` sans retirer de champ. Le front prend en charge l'ancien contrat : les achats historiques restent permanents et les anciennes pièces encore marquées `plus` annoncent la mise à jour du catalogue en attente.
 - La page Tarifs et l'Atelier distinguent acquisition permanente et accès temporaire. L'équipement, l'achat, le débit et le reçu restent validés par les RPC existantes ; aucun crédit, XP, rang, avantage sportif ou paiement réel n'est ajouté par le client.
@@ -39,7 +39,9 @@ Déploiement préparé : front compatible d'abord, puis migration suivant le pro
 - RED navigateur : les trois nouveaux parcours échouent sur la permanence absente, le bouton d'acquisition absent pour un abonné et l'absence de notice pour l'ancien contrat.
 - Vérification locale de la correction : 60 tests, build et audit ; 9 E2E verts. Achat Free à 360/1280 px, acquisition par un abonné puis expiration, ancien contrat, absence de débordement et d'erreur JavaScript. Les RPC navigateur sont synthétiques ; cela ne remplace pas une recette connectée réelle.
 - SQL : acquisition/équipement des quatre pièces par Free, prix serveur, reçu unique, pas d'XP ni niveau, impossibilité de falsifier l'accès ou le solde, expiration après achat et accès seulement emprunté. Le rejeu vérifie profils/reçus/métadonnées/droits inchangés, restauration du timeout, rollback du transactionnaire et refus atomique hors transaction.
-- CI SQL et relecture de la branche : à compléter avant livraison.
+- CI de la correction : [37775989334](https://github.com/Theo25460/TITAN_V0.5/actions/runs/37775989334), 60 tests, 9 E2E, dix migrations et huit suites SQL, trois jobs verts. L'erreur `COSMETIC_CATALOG_PREREQUISITE_MISSING` est provoquée intentionnellement puis vérifiée dans la suite de refus atomique ; le job SQL se termine bien par `OK`.
+- Contrôle visuel : 360/1280 px. Un test ciblé a reproduit le débordement du long libellé d'acquisition chez un abonné ; « Garder la pièce » et la mise en ligne flexible le corrigent. La confirmation conserve le prix, le caractère permanent et l'action « Débloquer et porter ».
+- Relecture de la branche et CI finale : à compléter avant livraison.
 
 ## Audit de la boucle boutique et suites du cahier
 

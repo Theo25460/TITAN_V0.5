@@ -153,6 +153,8 @@ test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 12
 test("atelier: a subscriber can purchase a borrowed piece and keep it when Titan+ ends", async () => {
   const { page, context, errors } = await atelierPage(360, true);
   assert.match(await page.locator("#collection").innerText(), /Accès temporaire TITAN\+/);
+  assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').evaluate((b) =>
+    b.getBoundingClientRect().right <= b.closest(".at-body").getBoundingClientRect().right + 1), true, "purchase control stays inside its card body");
   if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: "/tmp/titan-fair-plus-360.png", fullPage: true });
   await page.click('[data-buy="cos_frame_aegis"]');
   await page.getByRole("button", { name: "Débloquer et porter", exact: true }).click();
