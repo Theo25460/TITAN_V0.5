@@ -217,6 +217,80 @@ test("atelier: a subscriber can purchase a borrowed piece and keep it when Titan
   await context.close();
 });
 
+test("atelier inventory: acquired pieces exclude borrowed access and stay available after removing a style", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await atelierPage(width, true);
+    assert.equal(await page.locator('[data-collection="owned"]').count(), 1, "inventory filter is available");
+    await page.click('[data-collection="owned"]');
+    assert.equal(await page.locator("#collection .at-item").count(), 1, "only the base frame is permanently acquired");
+    assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0, "a borrowed piece is not in the permanent inventory");
+    await page.click('[data-collection="all"]');
+    await page.click('[data-buy="cos_frame_aegis"]');
+    await page.getByRole("button", { name: "Débloquer et porter", exact: true }).click();
+    await page.waitForSelector("dialog[open]", { state: "hidden" });
+    await page.click('[data-collection="owned"]');
+    assert.equal(await page.locator("#collection .at-item").count(), 2);
+    assert.equal(await page.locator('[data-remove="frame"]').count(), 1, "an equipped piece can be removed");
+    await page.click('[data-remove="frame"]');
+    await page.waitForFunction(() => window.state.user.appearance.frame === "frame-standard");
+    assert.equal(await page.locator('[data-wear="cos_frame_aegis"]').count(), 1, "removing does not discard the purchase");
+    assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.state.user.credits), 600, "removing never spends credits");
+    assert.equal(await page.evaluate(() => window.titanShell.look().frame), undefined, "the base frame removes the visible decoration");
+    assert.equal(await page.locator('.asc-avatar[data-frame="frame-aegis"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.atelierCalls.filter((c) => c.name === "titan_purchase_shop_item").length), 1);
+    await page.click('[data-wear="cos_frame_aegis"]');
+    await page.waitForFunction(() => window.titanShell.look().frame === "frame-aegis");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-inventory-${width}.png`, fullPage: true, animations: "disabled" });
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("atelier inventory: locked filter has a useful empty state and legacy purchases stay acquired", async () => {
+  const { page, context, errors } = await atelierPage(360, false, true);
+  assert.equal(await page.locator('[data-collection="owned"]').count(), 1);
+  await page.click('[data-collection="owned"]');
+  assert.equal(await page.locator('[data-wear="cos_frame_neon"]').count(), 1);
+  await page.click('[data-collection="locked"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 2, "old subscription pieces are still not acquired");
+  await page.click('[data-slot="map"][role="tab"]');
+  await page.click('[data-collection="owned"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 1);
+  await page.evaluate(() => {
+    const d = window.atelierFixture;
+    d.items.find((i) => i.id === "cos_map_aurora").owned = true;
+    d.items.find((i) => i.id === "cos_map_aurora").unlock = "credits";
+    dispatchEvent(new Event("online"));
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#collection .at-item").length === 2);
+  await page.click('[data-collection="locked"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 0);
+  assert.ok(await page.locator('[data-collection-empty]').isVisible());
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier preview: frame, ambiance and card previews do not change balance or equipped appearance", async () => {
+  const { page, context, errors } = await atelierPage(360);
+  for (const [slot, id, previewSelector] of [["frame", "cos_frame_aegis", '[data-frame="frame-aegis"]'], ["map", "cos_map_aurora", '[data-ambiance="map-aurora"]'], ["card", "cos_card_obsidian", '[data-card="card-obsidian"]']]) {
+    await page.click(`[data-slot="${slot}"][role="tab"]`);
+    assert.equal(await page.locator(`[data-preview="${id}"]`).count(), 1, "each piece has an explicit preview");
+    const before = await page.evaluate(() => ({ credits: window.state.user.credits, appearance: structuredClone(window.state.user.appearance), calls: window.atelierCalls.length }));
+    await page.click(`[data-preview="${id}"]`);
+    const dialog = page.locator("dialog[open]");
+    assert.equal(await dialog.locator(previewSelector).count(), 1);
+    assert.equal(await dialog.locator('[data-buy], [data-wear]').count(), 0, "preview cannot silently acquire or equip");
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-preview-${slot}-360.png`, animations: "disabled" });
+    await dialog.getByRole("button", { name: "Fermer", exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => ({ credits: window.state.user.credits, appearance: structuredClone(window.state.user.appearance), calls: window.atelierCalls.length })), before);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  }
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("atelier: an older server shows a catalog update notice without inventing a free price", async () => {
   const { page, context, errors } = await atelierPage(360, false, true);
   assert.match(await page.locator("#atelier").innerText(), /Mise à jour du catalogue en attente/);

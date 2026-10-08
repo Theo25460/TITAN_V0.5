@@ -22,6 +22,7 @@
   let pending = false; // the server does not offer the Atelier yet
   let fallbackPlus = null; // TITAN+ status read from the profile while titan_atelier is missing
   let slot = "frame";
+  let collection = "all";
   const guest = () => D().isGuest();
   const plusActive = () => (data?.plus ?? fallbackPlus)?.active === true;
   // Older servers have no permanence field; their credit purchases are already permanent.
@@ -138,7 +139,8 @@
 
   function action(item) {
     const worn = (data.appearance || {})[item.slot] === item.cosmetic || (!data.appearance?.[item.slot] && item.unlock === "default");
-    const wear = worn ? `<span class="asc-chip cy">${icon("check")} Porté</span>` : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>` : "";
+    const canRemove = worn && item.unlock !== "default" && (data.items || []).some((i) => i.slot === item.slot && i.unlock === "default" && i.owned);
+    const wear = worn ? `<span class="asc-chip cy">${icon("check")} Porté</span>${canRemove ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-remove="${esc(item.slot)}" aria-label="Retirer ${esc(item.name)}">Retirer</button>` : ""}` : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>` : "";
     if (item.unlock === "credits" && !permanent(item)) {
       const short = item.price - (Number(data.credits) || 0);
       const purchase = short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)} crédits</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">${item.owned ? "Garder la pièce" : "Débloquer"}</button>`;
@@ -161,7 +163,7 @@
         ${item.owned ? `<p class="asc-small asc-muted">${permanent(item) ? "Acquis définitivement" : "Accès temporaire TITAN+"}</p>` : ""}
         ${short > 0 ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, (Number(data.credits) || 0) / item.price) * 100)}%"></span></span><p class="asc-small asc-faint">Environ ${Math.ceil(short / creditsPerSession())} séance${Math.ceil(short / creditsPerSession()) > 1 ? "s" : ""} à ton rythme actuel.</p>` : ""}
         ${item.unlock === "rank" && !item.owned ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, level / item.min_level) * 100)}%"></span></span>` : ""}
-        <div class="at-action asc-row-flex">${action(item)}</div></div></article>`;
+        <div class="at-action asc-row-flex">${action(item)}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-preview="${esc(item.id)}" aria-label="Prévisualiser ${esc(item.name)}">Aperçu</button></div></div></article>`;
   }
 
   /* ---------- Sections ---------- */
@@ -184,12 +186,17 @@
   }
 
   function shelfHtml() {
-    const items = (data.items || []).filter((i) => i.slot === slot);
+    const catalog = data.items || [];
+    const items = catalog.filter((i) => i.slot === slot && (collection === "all" || (collection === "owned" ? permanent(i) : !permanent(i))));
     const meta = SLOTS.find((s) => s.id === slot);
-    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${(data.items || []).filter((i) => i.owned).length} / ${(data.items || []).length} pièces</span></div>
+    const acquired = catalog.filter(permanent).length;
+    const borrowed = catalog.filter((i) => i.owned && !permanent(i)).length;
+    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${acquired} / ${catalog.length} acquises${borrowed ? ` · ${borrowed} accès TITAN+` : ""}</span></div>
       <div class="asc-seg at-tabs" role="tablist" aria-label="Type de pièce">${SLOTS.map((s) => `<button type="button" role="tab" data-slot="${s.id}" aria-selected="${s.id === slot}">${esc(s.label)}</button>`).join("")}</div>
+      <div class="at-filters" role="group" aria-label="Filtrer la collection">${[["all", "Tout"], ["owned", "Acquis"], ["locked", "À débloquer"]].map(([id, label]) => `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-collection="${id}" aria-pressed="${collection === id}">${label}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${esc(meta.hint)}</p>
-      <div class="at-grid">${items.map(itemHtml).join("")}</div></section>`;
+      ${collection === "owned" ? `<p class="asc-small asc-faint">Tes pièces acquises restent disponibles sans TITAN+. Les accès temporaires sont dans « Tout ».</p>` : ""}
+      <div class="at-grid">${items.length ? items.map(itemHtml).join("") : `<p class="asc-note" data-collection-empty>${collection === "owned" ? "Aucune pièce acquise dans cette catégorie. Découvre ce que tu peux viser dans « À débloquer »." : collection === "locked" ? "Tu as acquis toutes les pièces de cette catégorie." : "Aucune pièce dans cette catégorie pour le moment."}</p>`}</div></section>`;
   }
 
   function plusHtml() {
@@ -234,7 +241,7 @@
   }
 
   /* ---------- Actions ---------- */
-  async function wear(id) {
+  async function wear(id, removed = false) {
     const owner = dataOwner;
     if (window.state?.user?.id !== owner) throw new Error("ACCOUNT_CHANGED");
     const item = data.items.find((i) => i.id === id);
@@ -244,7 +251,17 @@
     data.appearance = look || {};
     syncUser();
     render();
-    window.titanShell.toast({ type: "ok", title: `${item.name} porté`, message: item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
+    window.titanShell.toast({ type: "ok", title: removed ? "Style d’origine rétabli" : `${item.name} porté`, message: removed ? "Ta pièce reste dans ta collection. Tu peux la porter à nouveau quand tu veux." : item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
+  }
+
+  function openPreview(id) {
+    const item = data?.items?.find((i) => i.id === id);
+    if (!item || window.state?.user?.id !== dataOwner) return;
+    window.titanShell.sheet({
+      title: item.name,
+      eyebrow: "Aperçu",
+      body: `<div class="at-preview at-preview-large">${preview(item)}</div><p class="asc-small asc-muted">${esc(item.description || "")}</p><div class="at-action">${condition(item)}</div><p class="asc-small asc-muted">${permanent(item) ? "Cette pièce est acquise." : item.owned ? "Ton accès TITAN+ est temporaire. Une acquisition par crédits garde la pièce dans ta collection." : "Consulte les conditions de la pièce dans la collection pour la débloquer."}</p><p class="asc-small asc-faint">Cet aperçu ne change pas ton style et ne dépense aucun crédit.</p>`,
+    });
   }
 
   function buy(id) {
@@ -287,6 +304,12 @@
   function onClick(e) {
     const b = e.target.closest("button");
     if (!b || !root.contains(b)) return;
+    if (b.dataset.collection) {
+      collection = b.dataset.collection;
+      render();
+      root.querySelector(`[data-collection="${collection}"]`)?.focus({ preventScroll: true });
+      return;
+    }
     if (b.dataset.slot) {
       slot = b.dataset.slot;
       render();
@@ -295,6 +318,12 @@
     }
     if (b.dataset.wear)
       return wear(b.dataset.wear).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
+    if (b.dataset.remove) {
+      const base = data?.items?.find((i) => i.slot === b.dataset.remove && i.unlock === "default" && i.owned);
+      if (base) return wear(base.id, true).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
+      return;
+    }
+    if (b.dataset.preview) return openPreview(b.dataset.preview);
     if (b.dataset.buy) return buy(b.dataset.buy);
     if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
