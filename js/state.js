@@ -1220,6 +1220,16 @@ window.titanRetry = async function(task, options = {}) {
 
 // 6. SYNC PROFIL UTILISATEUR (AUTH)
 let titanProfileSyncGeneration = 0;
+window.titanAccountTransition = { active: false, owner: null, epoch: 0 };
+function beginTitanAccountTransition(owner) {
+    window.titanAccountTransition = { active: true, owner, epoch: window.titanAccountTransition.epoch + 1 };
+    window.dispatchEvent(new CustomEvent('titan:account-changing'));
+}
+// Called synchronously by auth, before deferred profile/history work can run.
+window.titanInvalidateAccountSession = function(owner) {
+    ++titanProfileSyncGeneration;
+    beginTitanAccountTransition(owner);
+};
 window.syncWithSupabase = async function() {
     const client = window.titanClient;
     const generation = ++titanProfileSyncGeneration;
@@ -1242,9 +1252,11 @@ window.syncWithSupabase = async function() {
 
         const { data: { session } } = sessionResult;
         if (!session) {
+            if (expectedOwner && !String(expectedOwner).startsWith('guest_')) beginTitanAccountTransition(null);
             if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('local', 'Sur cet appareil');
             return;
         }
+        if (session.user.id !== expectedOwner) beginTitanAccountTransition(session.user.id);
 
         let { data: profile, error } = await withTitanTimeout(client
             .from('profiles')
@@ -1380,6 +1392,10 @@ window.syncWithSupabase = async function() {
         expectedOwner = session.user.id;
         ensureStateIntegrity();
         if (!current()) return;
+        if (window.titanAccountTransition.active) {
+            window.titanAccountTransition = { ...window.titanAccountTransition, active: false, owner: expectedOwner };
+            window.dispatchEvent(new CustomEvent('titan:account-changed'));
+        }
         await window.titanSyncAppearance();
         if (!current()) return;
 

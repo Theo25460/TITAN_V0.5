@@ -289,6 +289,10 @@ async function setupTitanAuthListener() {
 
     window.__titanAuthListenerBound = true;
     window.titanClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || ((event === 'SIGNED_IN' || event === 'USER_UPDATED')
+            && session?.user?.id !== window.state?.user?.id)) {
+            window.titanInvalidateAccountSession?.(session?.user?.id || null);
+        }
         setTimeout(async()=>{
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();

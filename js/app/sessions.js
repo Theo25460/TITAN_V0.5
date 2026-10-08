@@ -99,6 +99,8 @@
   async function update(log, patch) {
     const owner = window.state?.user?.id;
     if (!owner) throw new Error("Session indisponible.");
+    if (window.titanAccountTransition?.active || (log.user_id && log.user_id !== owner))
+      throw new Error("Le compte a changé. Rouvre la séance depuis son journal.");
     if (isGuest()) {
       const row = applyLocally(log, patch);
       await window.TitanQueue.saveGuestSession(owner, row);

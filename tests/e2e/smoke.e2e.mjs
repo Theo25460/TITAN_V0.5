@@ -164,8 +164,8 @@ test("comparisons: revalidation removes results after expiry and ignores prior-o
   await page.evaluate(() => {
     window.compareAccess = "plus";
     window.titanClient.rpc = (name, p) => new Promise((resolve) => { const data = window.makeComparison(p); window.resolveOldComparison = () => resolve({ data }); });
+    window.dispatchEvent(new Event("focus"));
   });
-  await page.click("#compare-submit");
   await page.waitForFunction(() => !!window.resolveOldComparison);
   await page.evaluate(() => { window.state.user.id = "guest_other"; window.dispatchEvent(new Event("titan:history-updated")); window.resolveOldComparison(); });
   await page.waitForSelector("#compare-status a");
@@ -200,7 +200,8 @@ test("comparisons: a discarded response cannot end the newer loading state", asy
   await page.locator("#compare-panel summary").click();
   await page.waitForFunction(() => window.pendingComparisons[4].length > 0);
   await page.selectOption("#compare-weeks", "12");
-  await page.click("#compare-submit");
+  // A real focus refresh can already start the selected request in a slow CI browser.
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await page.waitForFunction(() => window.pendingComparisons[12].length > 0);
   await page.evaluate(() => window.pendingComparisons[4].forEach(resolve => resolve()));
   assert.equal(await page.locator("#compare-submit").isDisabled(), true, "new comparison is still loading");
@@ -225,8 +226,9 @@ test("comparisons: malformed or wrong-owner data never becomes a result", async 
   }
 });
 
-test("journal: a source outside the local history opens via an owner-filtered read", async () => {
-  const { page, context, errors } = await newPage(360);
+async function journalSourcePage() {
+  const fixture = await newPage(360);
+  const { page } = fixture;
   await page.route("**/js/app/journal.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
   await page.goto(BASE + "/journal?session=00000000-0000-4000-8000-000000000999", { waitUntil: "load" });
   await page.evaluate(() => {
@@ -234,17 +236,97 @@ test("journal: a source outside the local history opens via an owner-filtered re
     window.state.user.id = owner;
     window.state.history = [];
     window.sourceFilters = [];
-    const query = { select() { return this; }, eq(k, v) { window.sourceFilters.push([k, v]); return this; }, maybeSingle: async () => ({ data: { id: "00000000-0000-4000-8000-000000000999", user_id: owner, sport: "running", unit: "km", val: 5, date: "2026-01-01T12:00:00Z", details: { val2: 30 }, xp: 0, revision: 1 } }) };
+    const query = { select() { return this; }, eq(k, v) { window.sourceFilters.push([k, v]); return this; }, maybeSingle: async () => ({ data: { id: "00000000-0000-4000-8000-000000000999", user_id: owner, sport: "running", unit: "km", val: 5, date: "2026-01-01T12:00:00Z", details: { val2: 30, note: "Note privée du compte A" }, xp: 0, revision: 1 } }) };
     window.titanClient = { from(t) { if (t !== "training_logs") throw Error("unexpected source read"); return query; } };
   });
   await page.addScriptTag({ path: ROOT + "/js/app/journal.js" });
   await page.waitForSelector("dialog.asc-sheet[open]");
+  return fixture;
+}
+
+test("journal: a source outside the local history opens via an owner-filtered read", async () => {
+  const { page, context, errors } = await journalSourcePage();
   assert.match(await page.locator("dialog.asc-sheet[open]").innerText(), /Course à pied|5 km/);
   assert.deepEqual(await page.evaluate(() => window.sourceFilters), [["id", "00000000-0000-4000-8000-000000000999"], ["user_id", "00000000-0000-4000-8000-000000000123"]]);
   await page.evaluate(() => { window.state.user.id = "guest_new"; window.dispatchEvent(new Event("titan:history-updated")); });
   assert.equal(await page.locator("dialog[open]").count(), 0);
   assert.deepEqual(errors, []);
   await context.close();
+});
+
+test("comparisons: real profile sync clears the prior account before history pagination ends", async () => {
+  const { page, context } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000456";
+    const profile = { id: owner, friend_code: "B123", is_elite: false, game_state: structuredClone(window.state) };
+    profile.game_state.user.id = owner;
+    window.titanClient.auth = { getSession: async () => ({ data: { session: { user: { id: owner } } } }) };
+    window.titanClient.from = () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: profile }) });
+    window.compareAccess = "free";
+    window.titanMaybeSubmitCacheReconciliation = undefined;
+    window.titanSyncAppearance = async () => {};
+    window.TitanTraining.paginate = () => new Promise(resolve => { window.finishHistory = () => resolve({ logs: [], total: 0 }); });
+    window.TitanQueue.migrate = async () => {};
+    window.TitanQueue.refresh = async () => [];
+    window.TitanQueue.saveHistory = async () => {};
+    window.syncWithSupabase();
+  });
+  await page.waitForFunction(() => !!window.finishHistory);
+  assert.equal(await page.evaluate(() => window.state.user.id), "00000000-0000-4000-8000-000000000456");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('.compare-sources a').count(), 0);
+  await context.close();
+});
+
+test("comparisons: real SIGNED_OUT callback immediately removes results and blocks refresh", async () => {
+  const { page, context } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(async () => {
+    window.__titanAuthListenerBound = false;
+    window.titanClient.auth = { onAuthStateChange(cb) { window.authCallback = cb; } };
+    await window.setupTitanAuthListener();
+    window.authCallback("SIGNED_OUT", null);
+    window.dispatchEvent(new Event("focus"));
+  });
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('.compare-sources a').count(), 0);
+  await context.close();
+});
+
+test("journal: correction closes on account change and a retained form cannot save its private note", async () => {
+  const { page, context } = await journalSourcePage();
+  await page.locator("dialog[open] [data-edit]").click();
+  assert.equal(await page.locator('dialog[open] [name=note]').inputValue(), "Note privée du compte A");
+  await page.evaluate(() => {
+    window.retainedCorrection = document.querySelector("dialog[open] form");
+    window.sourceSaves = 0;
+    window.TitanSessions.update = async () => { window.sourceSaves++; };
+    window.state.user.id = "guest_new";
+    window.dispatchEvent(new Event("titan:history-updated"));
+  });
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  await page.evaluate(() => window.retainedCorrection.dispatchEvent(new Event("submit", { cancelable: true })));
+  assert.equal(await page.evaluate(() => window.sourceSaves), 0);
+  await context.close();
+});
+
+test("journal: detail and derived archive confirmation close before a new account is adopted", async () => {
+  for (const archive of [false, true]) {
+    const { page, context } = await journalSourcePage();
+    if (archive) await page.locator("dialog[open] [data-toggle-archive]").click();
+    await page.evaluate(async () => {
+      window.__titanAuthListenerBound = false;
+      window.titanClient.auth = { onAuthStateChange(cb) { window.authCallback = cb; } };
+      window.syncWithSupabase = () => new Promise(() => {});
+      await window.setupTitanAuthListener();
+      window.authCallback("SIGNED_IN", { user: { id: "00000000-0000-4000-8000-000000000456" } });
+    });
+    assert.equal(await page.locator("dialog[open]").count(), 0);
+    await context.close();
+  }
 });
 
 test("landing: one h1, the start call to action, no horizontal scroll", async () => {

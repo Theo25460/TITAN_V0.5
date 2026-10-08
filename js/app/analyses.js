@@ -69,6 +69,7 @@
     const request = sequence, owner = D().owner();
     ownerShown = owner;
     form.hidden = D().isGuest();
+    if (window.titanAccountTransition?.active) return clear("La session a changé. Attends la synchronisation du compte ou reconnecte-toi.");
     if (D().isGuest()) {
       status.innerHTML = '<p>Les comparaisons TITAN+ demandent un compte et un historique synchronisé. Ton récap et tes analyses de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/profile">Accéder à mon compte</a>';
       return;
@@ -134,6 +135,8 @@
       if (panel.open && !document.hidden) load(); else clear();
     };
     ["titan:history-updated", "titan:adventure-updated", "focus", "pageshow"].forEach(ev => window.addEventListener(ev, refresh));
+    window.addEventListener("titan:account-changing", () => clear("La session a changé. Attends la synchronisation du compte ou reconnecte-toi."));
+    window.addEventListener("titan:account-changed", refresh);
     window.addEventListener("offline", () => { offline = true; clear("Hors ligne : les comparaisons reviennent avec la connexion."); });
     window.addEventListener("online", () => { offline = false; refresh(); });
     document.addEventListener("visibilitychange", () => document.hidden ? clear() : refresh());
