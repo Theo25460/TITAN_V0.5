@@ -46,6 +46,207 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
+// The real analysis UI/shell, with only the remote RPC replaced by its full contract.
+async function comparisonPage(width = 360, access = "plus") {
+  const fixture = await newPage(width);
+  const { page } = fixture;
+  await page.route("**/js/app/analyses.js?*", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/stats", { waitUntil: "load" });
+  assert.equal(await page.locator("#analyses").count(), 1, "Progrès has the secondary comparison panel");
+  await page.evaluate((access) => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    if (access !== "guest") window.state.user.id = owner;
+    window.state.user.is_elite = true; // Cannot unlock anything on its own.
+    window.compareAccess = access;
+    window.compareCalls = [];
+    window.makeComparison = (p) => {
+      if (window.compareAccess === "free") return { version: 1, owner: window.state.user.id, available: false, reason: "premium_required" };
+      const end = new Date("2026-10-05T12:00:00Z");
+      const shift = (d, days) => { const v = new Date(d); v.setUTCDate(v.getUTCDate() + days); return v.toISOString().slice(0, 10); };
+      const period = (part) => {
+        const to = shift(end, -part * p.p_weeks * 7), from = shift(end, -(part + 1) * p.p_weeks * 7);
+        const start = new Date(from + "T12:00:00Z");
+        return { from, to, sessions: part ? 4 : 8, active_days: part ? 2 : 4, minutes: part ? 0 : 240, estimated_sessions: part ? 0 : 1,
+          series: Array.from({ length: p.p_weeks }, (_, i) => ({ from: shift(start, i * 7), to: shift(start, (i + 1) * 7), sessions: i === p.p_weeks - 1 ? (part ? 4 : 8) : 0, active_days: i === p.p_weeks - 1 ? (part ? 2 : 4) : 0, minutes: i === p.p_weeks - 1 && !part ? 240 : 0 })),
+          sources: [{ id: "00000000-0000-4000-8000-000000000999", sport: p.p_sport || "running", date: shift(new Date(to + "T12:00:00Z"), -3) + "T12:00:00Z", minutes: part ? 0 : 30, estimated: !part }] };
+      };
+      return { version: 1, owner: window.state.user.id, available: true, as_of: "2026-10-08T12:00:00Z", timezone: p.p_timezone, weeks: p.p_weeks, sport: p.p_sport, recent: period(0), previous: period(1) };
+    };
+    window.titanClient = { rpc: async (name, params) => {
+      if (name !== "titan_compare_periods") throw Error("unexpected analysis RPC");
+      window.compareCalls.push(params);
+      if (window.compareAccess === "missing") return { error: { code: "PGRST202", message: "Could not find function" } };
+      if (window.compareAccess === "error") return { error: { message: "Network request failed" } };
+      return { data: window.makeComparison(params) };
+    } };
+  }, access);
+  await page.addScriptTag({ path: ROOT + "/js/app/analyses.js" });
+  await page.waitForSelector("#compare-panel summary");
+  return fixture;
+}
+
+test("comparisons: guest and Free keep the free recap, client elite flag never unlocks", async () => {
+  for (const access of ["guest", "free"]) {
+    const { page, context, errors } = await comparisonPage(360, access);
+    assert.equal(await page.locator("#compare-panel").getAttribute("open"), null);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector("#compare-status a");
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.equal(await page.locator(".wk-hero").count(), 1, "free weekly recap is retained");
+    const calls = await page.evaluate(() => window.compareCalls.length);
+    if (access === "guest") assert.equal(calls, 0);
+    else assert.ok(calls >= 1, "Free entitlement is actually checked by the server, including revalidation events");
+    assert.match(await page.locator("#compare-status").innerText(), /compte|TITAN\+/);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("comparisons: equal periods, estimates, source links and zero reference at 360/1280 px", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await comparisonPage(width);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector(".compare-results");
+    assert.match(await page.locator(".compare-results").innerText(), /4 h/);
+    assert.match(await page.locator(".compare-results").innerText(), /estimée/);
+    assert.match(await page.locator('[data-comparison-metric="minutes"]').innerText(), /pas de référence/i);
+    assert.match(await page.locator('[data-comparison-metric="minutes"]').innerText(), /0 min/, "zero is known practice volume, not missing data");
+    assert.doesNotMatch(await page.locator(".compare-results").innerText(), /Infinity|NaN/);
+    assert.equal(await page.locator('a[href="/journal?session=00000000-0000-4000-8000-000000000999"]').count(), 2);
+    await page.locator("#compare-weekly summary").click();
+    assert.equal(await page.locator("#compare-weekly tbody tr").count(), 4);
+    for (const weeks of [12, 26]) {
+      await page.selectOption("#compare-weeks", String(weeks));
+      await page.click("#compare-submit");
+      await page.waitForSelector(".compare-results");
+      await page.locator("#compare-weekly summary").click();
+      assert.equal(await page.locator("#compare-weekly tbody tr").count(), weeks);
+    }
+    await page.fill("#compare-sport-q", "course");
+    assert.ok(await page.locator("#compare-sport-results button").count() <= 12);
+    await page.locator('#compare-sport-results [data-sport="running"]').click();
+    await page.click("#compare-submit");
+    await page.waitForSelector(".compare-results");
+    assert.equal(await page.evaluate(() => window.compareCalls.at(-1).p_sport), "running");
+    assert.match(await page.locator(".compare-results").innerText(), /Course à pied/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.locator("#analyses").screenshot({ path: `/tmp/titan-comparisons-${width}.png`, animations: "disabled" });
+    await context.close();
+  }
+});
+
+test("comparisons: missing server, network failure and Retry show honest states", async () => {
+  for (const access of ["missing", "error"]) {
+    const { page, context, errors } = await comparisonPage(360, access);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector("#compare-status p");
+    assert.match(await page.locator("#compare-status").innerText(), access === "missing" ? /mise à jour du serveur/ : /Réessaie/);
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    await page.evaluate(() => { window.compareAccess = "plus"; });
+    await page.click("#compare-submit");
+    await page.waitForSelector(".compare-results");
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.match(await page.locator("#compare-status").innerText(), /Hors ligne/);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("comparisons: revalidation removes results after expiry and ignores prior-owner response", async () => {
+  const { page, context, errors } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => { window.compareAccess = "free"; window.dispatchEvent(new Event("focus")); });
+  await page.waitForSelector("#compare-status a");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  await page.evaluate(() => {
+    window.compareAccess = "plus";
+    window.titanClient.rpc = (name, p) => new Promise((resolve) => { const data = window.makeComparison(p); window.resolveOldComparison = () => resolve({ data }); });
+  });
+  await page.click("#compare-submit");
+  await page.waitForFunction(() => !!window.resolveOldComparison);
+  await page.evaluate(() => { window.state.user.id = "guest_other"; window.dispatchEvent(new Event("titan:history-updated")); window.resolveOldComparison(); });
+  await page.waitForSelector("#compare-status a");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('a[href*="session="]').count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("comparisons: an older filter response cannot overwrite a newer request", async () => {
+  const { page, context } = await comparisonPage();
+  await page.evaluate(() => {
+    window.deferredComparisons = [];
+    window.titanClient.rpc = (name, p) => p.p_weeks === 12 ? Promise.resolve({ data: window.makeComparison(p) }) : new Promise((resolve) => { window.deferredComparisons.push(() => resolve({ data: window.makeComparison(p) })); });
+  });
+  await page.locator("#compare-panel summary").click();
+  await page.waitForFunction(() => window.deferredComparisons.length >= 1);
+  await page.selectOption("#compare-weeks", "12");
+  await page.click("#compare-submit");
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => window.deferredComparisons.forEach(resolve => resolve()));
+  assert.match(await page.locator("#compare-period-title").innerText(), /12 semaines/);
+  await context.close();
+});
+
+test("comparisons: a discarded response cannot end the newer loading state", async () => {
+  const { page, context } = await comparisonPage();
+  await page.evaluate(() => {
+    window.pendingComparisons = { 4: [], 12: [] };
+    window.titanClient.rpc = (name, p) => new Promise(resolve => window.pendingComparisons[p.p_weeks].push(() => resolve({ data: window.makeComparison(p) })));
+  });
+  await page.locator("#compare-panel summary").click();
+  await page.waitForFunction(() => window.pendingComparisons[4].length > 0);
+  await page.selectOption("#compare-weeks", "12");
+  await page.click("#compare-submit");
+  await page.waitForFunction(() => window.pendingComparisons[12].length > 0);
+  await page.evaluate(() => window.pendingComparisons[4].forEach(resolve => resolve()));
+  assert.equal(await page.locator("#compare-submit").isDisabled(), true, "new comparison is still loading");
+  assert.equal(await page.locator("#compare-output").getAttribute("aria-busy"), "true");
+  await page.evaluate(() => window.pendingComparisons[12].forEach(resolve => resolve()));
+  await page.waitForSelector(".compare-results");
+  await context.close();
+});
+
+test("comparisons: malformed or wrong-owner data never becomes a result", async () => {
+  for (const invalid of ["owner", "series"]) {
+    const { page, context, errors } = await comparisonPage();
+    await page.evaluate(invalid => {
+      const make = window.makeComparison;
+      window.makeComparison = p => { const j = make(p); if (invalid === "owner") j.owner = "another_account"; else j.recent.series = []; return j; };
+    }, invalid);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForFunction(() => document.getElementById("compare-status").textContent.includes("correctement"));
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("journal: a source outside the local history opens via an owner-filtered read", async () => {
+  const { page, context, errors } = await newPage(360);
+  await page.route("**/js/app/journal.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/journal?session=00000000-0000-4000-8000-000000000999", { waitUntil: "load" });
+  await page.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    window.state.user.id = owner;
+    window.state.history = [];
+    window.sourceFilters = [];
+    const query = { select() { return this; }, eq(k, v) { window.sourceFilters.push([k, v]); return this; }, maybeSingle: async () => ({ data: { id: "00000000-0000-4000-8000-000000000999", user_id: owner, sport: "running", unit: "km", val: 5, date: "2026-01-01T12:00:00Z", details: { val2: 30 }, xp: 0, revision: 1 } }) };
+    window.titanClient = { from(t) { if (t !== "training_logs") throw Error("unexpected source read"); return query; } };
+  });
+  await page.addScriptTag({ path: ROOT + "/js/app/journal.js" });
+  await page.waitForSelector("dialog.asc-sheet[open]");
+  assert.match(await page.locator("dialog.asc-sheet[open]").innerText(), /Course à pied|5 km/);
+  assert.deepEqual(await page.evaluate(() => window.sourceFilters), [["id", "00000000-0000-4000-8000-000000000999"], ["user_id", "00000000-0000-4000-8000-000000000123"]]);
+  await page.evaluate(() => { window.state.user.id = "guest_new"; window.dispatchEvent(new Event("titan:history-updated")); });
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("landing: one h1, the start call to action, no horizontal scroll", async () => {
   const { page, errors } = await newPage();
   await page.goto(BASE + "/", { waitUntil: "load" });
@@ -71,7 +272,7 @@ test("Titan+ prices: concrete capacities and worlds are readable on mobile and d
     assert.equal(await page.locator("#stats-free").isVisible(), true);
     assert.match(await page.locator("#stats-free").innerText(), /gratuites/);
     await page.getByText("TITAN+ ajoute-t-il des analyses sportives ?", { exact: true }).click();
-    assert.match(await page.locator("details[open]").innerText(), /mêmes analyses/);
+    assert.match(await page.locator("details[open]").innerText(), /4, 12 ou 26 semaines/);
     const expiry = page.locator("details").filter({ has: page.getByText("Que se passe-t-il à la fin de TITAN+ ?", { exact: true }) });
     await expiry.locator("summary").click();
     assert.match(await expiry.innerText(), /pièces acquises avec tes crédits restent à toi/);

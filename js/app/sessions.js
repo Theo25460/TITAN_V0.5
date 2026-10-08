@@ -12,6 +12,20 @@
     return all().find((l) => idOf(l) === key || String(l.id) === key) || null;
   }
 
+  /** Source links can address sessions older than the bounded device history. No cache write. */
+  async function resolve(id) {
+    const owner = window.state?.user?.id;
+    const local = find(id);
+    if (local && (!local.user_id || local.user_id === owner)) return local;
+    if (!owner || isGuest() || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(id))) return null;
+    if (!navigator.onLine || !window.titanClient) throw new Error("Hors ligne : ouvre cette séance une fois la connexion revenue.");
+    const { data, error } = await window.titanClient.from("training_logs").select("*").eq("id", id).eq("user_id", owner).maybeSingle();
+    if (window.state?.user?.id !== owner) return null;
+    if (error) throw new Error("La séance n’a pas répondu. Réessaie dans un instant.");
+    if (!data || data.user_id !== owner || data.id !== id) return null;
+    return { ...data, cat: data.category || data.cat, syncStatus: "confirmed" };
+  }
+
   function place(row) {
     const key = idOf(row);
     window.state.history = (window.state.history || []).filter((l) => idOf(l) !== key && l.id !== row.id);
@@ -126,5 +140,5 @@
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
   }
 
-  window.TitanSessions = { idOf, find, update, archive, restore, duplicate, previousOf, applyLocally, humanize };
+  window.TitanSessions = { idOf, find, resolve, update, archive, restore, duplicate, previousOf, applyLocally, humanize };
 })();

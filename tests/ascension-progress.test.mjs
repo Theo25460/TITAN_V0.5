@@ -66,6 +66,34 @@ test("cadence calendar regressions pass in UTC, Paris and American time zones", 
   }
 });
 
+test("weekly recap keeps Sunday and excludes Monday across clock changes", () => {
+  for (const [now, monday, sunday, next] of [
+    ["2026-03-30T12:00:00", "2026-03-23", "2026-03-29", "2026-03-30"],
+    ["2026-10-26T12:00:00", "2026-10-19", "2026-10-25", "2026-10-26"],
+    ["2026-03-09T12:00:00", "2026-03-02", "2026-03-08", "2026-03-09"],
+    ["2026-11-02T12:00:00", "2026-10-26", "2026-11-01", "2026-11-02"],
+  ]) {
+    const logs = [log(`${monday}T00:00:00`), log(`${sunday}T23:30:00`), log(`${next}T00:00:00`)];
+    const r = P.recap(logs, { now: new Date(now) });
+    assert.equal(W.TitanFormat.dateKey(r.from), monday);
+    assert.equal(W.TitanFormat.dateKey(r.to), sunday);
+    assert.equal(r.week.sessions, 2, `${now}: the two sessions belong to the completed week`);
+  }
+});
+
+test("weekly recap compares the same local weekday and hour", () => {
+  const logs = [log("2026-03-25T17:30:00"), log("2026-03-25T18:30:00")];
+  const r = P.recap(logs, { now: new Date("2026-04-01T18:00:00"), current: true });
+  assert.equal(r.baseline.weeks, 1);
+  assert.equal(r.baseline.sessions, 1, "18:30 last Wednesday is later than 18:00 this Wednesday");
+});
+
+test("weekly recap calendar boundaries pass in four time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^weekly recap keeps|^weekly recap compares", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
+});
+
 test("mastery needs both practice hours and practised weeks", () => {
   assert.equal(P.masteryLevel(13, 9).name, "Régularité");
   assert.equal(P.masteryLevel(40, 9).name, "Régularité", "hours alone are not enough");

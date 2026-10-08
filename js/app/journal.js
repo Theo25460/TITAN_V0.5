@@ -331,12 +331,24 @@
     </div>`;
   }
 
-  function openDetail(id) {
-    const l = X().find(id);
+  let detailRequest = 0;
+  async function openDetail(id) {
+    const request = ++detailRequest;
+    const owner = window.state?.user?.id;
+    let l;
+    try { l = await X().resolve(id); }
+    catch (e) {
+      if (request !== detailRequest || window.state?.user?.id !== owner) return;
+      return window.titanShell.toast({ type: "warn", title: "Séance indisponible", message: e.message });
+    }
+    if (request !== detailRequest || window.state?.user?.id !== owner) return;
     if (!l) return window.titanShell.toast({ type: "warn", title: "Séance introuvable", message: "Elle a peut-être été archivée ou n’est pas encore synchronisée sur cet appareil." });
     const body = document.createElement("div");
     body.innerHTML = detailHtml(l);
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
+    const guardOwner = () => { if (window.state?.user?.id !== owner) d.close(); };
+    window.addEventListener("titan:history-updated", guardOwner);
+    d.addEventListener("close", () => window.removeEventListener("titan:history-updated", guardOwner), { once: true });
     body.addEventListener("click", async (e) => {
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
       if (e.target.closest("[data-edit]")) {

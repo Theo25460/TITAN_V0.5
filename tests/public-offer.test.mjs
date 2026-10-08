@@ -33,6 +33,16 @@ test("both generated offers explain temporary access and free acquisition", () =
   }
 });
 
+test("the real offer distinguishes paid period comparisons from free basic analyses", () => {
+  const html = generated("tarifs.html");
+  const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];
+  const answer = graph.find((x) => x["@type"] === "FAQPage").mainEntity.find((x) => /analyses sportives/.test(x.name)).acceptedAnswer.text;
+  assert.match(answer, /4, 12 ou 26 semaines/);
+  assert.match(answer, /gratuit/);
+  assert.doesNotMatch(answer, /mêmes analyses/);
+  assert.match(html, /href="\/stats#analyses"/);
+});
+
 test("committed landing and prices are reproducible from the offer generator", () => {
   for (const name of ["index.html", "tarifs.html"]) {
     assert.ok(generated(name) === readFileSync(join(root, name), "utf8"), `${name}: regenerate after editing the source`);
