@@ -128,3 +128,107 @@ test("offline: the app shell opens from the service worker cache", async () => {
     own.kill();
   }
 });
+
+// Local fixtures only: no session is written to the backend or persisted in the user's account.
+async function seedSports(page, count = 200) {
+  await page.waitForFunction(() => window.state?.user && window.TitanProgress && window.TitanSports);
+  return page.evaluate((count) => {
+    const sports = window.TitanSports.all().slice(0, count);
+    window.state.user.favoriteSports = [sports.at(-1).id];
+    window.state.history = sports.map((s, i) => ({
+      id: `fixture-${i}`, sport: s.id, unit: "min", val: 30, xp: 0,
+      date: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
+      details: { duration: 30 },
+    }));
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+    return { count: sports.length, target: sports.at(-1), first: sports[0] };
+  }, count);
+}
+
+test("records: 200 sports are paginated, searchable and retain their source session", async () => {
+  const { page, context, errors } = await newPage();
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  const fixture = await seedSports(page);
+  assert.equal(fixture.count, 200);
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator(".rc-sport").count(), 12, "only a bounded page of sports is rendered");
+  await page.getByRole("button", { name: "Page suivante" }).click();
+  assert.equal(await page.locator(".rc-sport").count(), 12);
+  await page.getByRole("searchbox", { name: "Rechercher un sport" }).fill(fixture.target.label);
+  await page.waitForTimeout(100);
+  assert.ok(await page.locator(".rc-sport").count() <= 12);
+  assert.match(await page.locator("#records").innerText(), new RegExp(fixture.target.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  await page.locator(".rc-sport [data-record]").first().click();
+  assert.equal(await page.locator('dialog[open] a[href^="/journal?session="]').count(), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("mastery: the 200th sport is reachable, filters survive updates and typing retains focus", async () => {
+  const { page, context, errors } = await newPage(360);
+  await page.goto(BASE + "/profile", { waitUntil: "load" });
+  const fixture = await seedSports(page);
+  await page.waitForTimeout(150);
+  const search = page.getByRole("searchbox", { name: "Rechercher un sport" });
+  assert.equal(await search.count(), 1, "mastery offers a search beyond the original eight rows");
+  await search.pressSequentially(fixture.target.label, { delay: 15 });
+  assert.equal(await search.inputValue(), fixture.target.label);
+  assert.equal(await search.evaluate(el => el === document.activeElement), true);
+  await page.selectOption("#mastery-scope", "favorites");
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("titan:history-updated")));
+  await page.waitForTimeout(100);
+  assert.equal(await page.inputValue("#mastery-scope"), "favorites");
+  assert.equal(await page.locator("#maitrise .pf-mastery-row").count(), 1);
+  assert.ok((await page.locator("#maitrise").innerText()).includes(fixture.target.label));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("navigation: empty searches, no-data favorites, and small accounts remain usable", async () => {
+  const { page, context, errors } = await newPage();
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  await seedSports(page, 2);
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator(".rc-sport").count(), 2);
+  const search = page.getByRole("searchbox", { name: "Rechercher un sport" });
+  await search.fill("<img src=x onerror=alert(1)>");
+  assert.equal(await page.locator(".rc-sport").count(), 0);
+  assert.equal(await page.locator("[data-nav-empty]").count(), 1);
+  assert.equal(await page.locator("#records img").count(), 0);
+  await search.fill("");
+  await page.evaluate(() => {
+    window.state.user.favoriteSports = ["yoga"];
+    window.state.history = [];
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+  });
+  await page.waitForTimeout(100);
+  await page.selectOption("#records-scope", "favorites");
+  await page.getByRole("checkbox", { name: "Masquer les sports sans données" }).uncheck();
+  assert.equal(await page.locator(".rc-sport").count(), 1);
+  assert.ok((await page.locator(".rc-sport").innerText()).includes("Yoga"));
+  assert.equal(await page.locator(".rc-sport [data-record]").count(), 0, "no fictitious record for an unpractised sport");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("installed PWA: new navigation does not use the previous CSS or analytics cache", async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
+  const page = await context.newPage();
+  await page.goto(BASE + "/aujourdhui", { waitUntil: "load" });
+  await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
+  await page.reload({ waitUntil: "load" });
+  await page.waitForFunction(() => navigator.serviceWorker.controller);
+  await page.evaluate(async () => {
+    const cache = await caches.open("titan-os-v300-ascension");
+    await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
+    await cache.put("/js/app/analytics.js?v=300.0", new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
+  });
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  await page.waitForSelector(".sn-selects");
+  assert.equal(await page.locator(".sn-selects").evaluate(el => getComputedStyle(el).display), "grid");
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_searched")), true);
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_filtered")), true);
+  await context.close();
+});
