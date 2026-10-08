@@ -29,23 +29,27 @@
 
 Fichier : `sql/tests/300_economy_integrity.sql`.
 
-- [ ] Tester reçu identique, conflits de contenu, portée par propriétaire, achat répété sans débit et absence de droits directs sur les reçus.
-- [ ] Tester le rejeu après archive et vérifier les compteurs/reçus persistés.
-- [ ] Tenter les INSERT privilégiés crédits=-1, XP=-1, niveau=0 ; attendre SQLSTATE 23514, sans avaler une assertion échouée.
-- [ ] Exécuter la CI avant correction et conserver l'échec attendu.
+- [x] Tester reçu identique, conflits de contenu, portée par propriétaire, achat répété sans débit et absence de droits directs sur les reçus.
+- [x] Tester le rejeu après archive et vérifier les compteurs/reçus persistés.
+- [x] Tenter les INSERT privilégiés crédits=-1, XP=-1, niveau=0 ; attendre SQLSTATE 23514, sans avaler une assertion échouée.
+- [x] Exécuter la CI avant correction et conserver l'échec attendu.
 
 ## Tâche 2 — Contraintes et concurrence
 
 Fichiers : migration créée par CLI ; `tools/db/test-economy-concurrency.py` ; `tools/db/test-migrations.sh`.
 
-- [ ] Ajouter les trois bornes CHECK nommées, `NOT VALID`, sans UPDATE/DELETE de données ni changement de grants.
-- [ ] Lancer deux appels séance identiques sous authenticated ; attendre le verrou et vérifier une séance, un reçu, 300 XP et 30 crédits.
-- [ ] Lancer deux achats identiques sous authenticated ; vérifier un succès, un refus PURCHASE_LIMIT_ONCE, une ligne d'historique et un débit de 450.
-- [ ] Intégrer les tests concurrents dans le banc ; refuser une base sans préfixe `titan_test_`, nettoyer les seules identités synthétiques et terminer les processus en cas d'échec.
-- [ ] Rejouer la CI entière : SQL, concurrence, tests/build et navigateur.
+- [x] Ajouter les trois bornes CHECK nommées, `NOT VALID`, sans UPDATE/DELETE de données ni changement de grants.
+- [x] Lancer deux appels séance identiques sous authenticated ; attendre le verrou et vérifier une séance, un reçu, 300 XP et 30 crédits.
+- [x] Lancer deux achats identiques sous authenticated ; vérifier un succès, un refus PURCHASE_LIMIT_ONCE, une ligne d'historique et un débit de 450.
+- [x] Intégrer les tests concurrents dans le banc ; refuser une base sans préfixe `titan_test_`, nettoyer les seules identités synthétiques et terminer les processus en cas d'échec.
+- [x] Rejouer la CI entière : SQL, concurrence, tests/build et navigateur.
 
 ## Tâche 3 — Livraison
 
-- [ ] Relecture indépendante du SQL, des contraintes et des processus de test ; traiter les constats.
-- [ ] Handoff avec preuves, limites, validation historique et rollback ; synchroniser le cahier avant chaque commit important.
-- [ ] PR prête après CI finale verte ; statuts SEC04/SEC05/SEC10 partiels tant que toutes les opérations sensibles ne sont pas couvertes.
+- [x] Relecture indépendante du SQL, des contraintes et des processus de test ; traiter les constats.
+- [x] Handoff avec preuves, limites, validation historique et rollback ; synchroniser le cahier avant chaque commit important.
+- [x] PR #21 et handoff préparés ; corrections relues vérifiées par CI 37772140507. La tête finale sera contrôlée avant remise ; SEC04/SEC05/SEC10 restent partiels.
+
+## Relecture et décisions
+
+Deux constats Important corrigés : test réel du rollback appelant et chemin RELEASE_SQL rouge sur CI 37771760136, verts sur CI 37772140507. Aucun Critical/Minor. Le bundle historique reste inchangé ; ses corrections sont appliquées séparément et testées explicitement. Nullable et gardes UPDATE conservés, validation historique différée sans réécriture. Le banc contrôle aussi le refus sur une base non-test avant fixtures. Preuves et limites : `docs/CDC_WEB_ECONOMY_HANDOFF_2026-10-08.md`.

@@ -51,5 +51,10 @@ for f in "$ROOT"/sql/tests/300_*.sql; do run "$f"; done
 echo "Economy migration preserves caller transaction"
 run "$ROOT/tools/db/test-economy-migration.sql"
 echo "Economy concurrency contracts (two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: economy concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."
