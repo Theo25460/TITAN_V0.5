@@ -1,0 +1,50 @@
+# Atelier : acquisition gratuite et permanente des cosmétiques
+
+## Périmètre et décision
+
+Le cahier vivant impose que tous les cosmétiques restent gagnables gratuitement. La lecture du catalogue et des fonctions Supabase le 8 octobre 2026 confirme 20 pièces actives, dont quatre réservées à Titan+ ; six anciennes pièces de combat restent retirées du catalogue. Aucun compte réel ni historique individuel n'a été lu ou modifié.
+
+La correction ouvre un achat permanent par crédits d'activité. Elle conserve l'accès temporaire déjà inclus dans Titan+ ; ce confort ne rend aucun objet exclusif au paiement. Les prix reprennent le haut de la fourchette déjà pratiquée pour chaque support, sans augmenter le plafond ni créer de monnaie.
+
+| Pièce | Acquisition permanente pour Free ou Titan+ | Accès inclus dans Titan+ |
+| --- | --- | --- |
+| Cadre Aegis | 1 400 crédits | Temporaire |
+| Cadre Givre | 1 400 crédits | Temporaire |
+| Aurores | 1 000 crédits | Temporaire |
+| Obsidienne | 800 crédits | Temporaire |
+
+Les quatre coûtent ensemble 4 600 crédits, soit cinq semaines si le plafond existant de 960 crédits est atteint chaque semaine. Ce calcul n'est pas une promesse de rythme réel. Le catalogue reste permanent ; aucune publicité ni souscription n'est nécessaire. Les trois pièces initiales et les cinq récompenses de rang gardent leurs conditions ; les huit achats existants gardent leurs prix.
+
+## Comportement et compatibilité
+
+- Un non-abonné peut acheter, porter et garder chacune des quatre pièces.
+- Un abonné peut porter immédiatement ces pièces. « Garder avec mes crédits » reste disponible, même pour une pièce déjà portée ; seul cet achat crée une acquisition permanente.
+- Après expiration, une pièce achetée reste portée. Une pièce seulement empruntée revient au style initial, avec conservation de la préférence stockée existante.
+- `titan_atelier()` ajoute `permanent` et `plus_access` sans retirer de champ. Le front prend en charge l'ancien contrat : les achats historiques restent permanents et les anciennes pièces encore marquées `plus` annoncent la mise à jour du catalogue en attente.
+- La page Tarifs et l'Atelier distinguent acquisition permanente et accès temporaire. L'équipement, l'achat, le débit et le reçu restent validés par les RPC existantes ; aucun crédit, XP, rang, avantage sportif ou paiement réel n'est ajouté par le client.
+
+## Migration et données
+
+`20261008120931_web_cosmetic_fairness.sql` contient une seule instruction `DO`, sans transaction interne. Elle modifie quatre lignes du catalogue et deux fonctions, avec `search_path` vide, objets qualifiés et droits existants conservés. Les identifiants, autres clés de métadonnées, autres pièces, historiques d'achat et profils restent inchangés. Une pièce manquante provoque un refus atomique, sans mise à jour partielle. Le délai d'attente des verrous est borné à cinq secondes et celui du transactionnaire appelant est restauré.
+
+La migration est préparée, **pas appliquée à la production**. Ne pas rejouer les neuf migrations historiques sur la production actuelle : leur présence dans le dépôt ne prouve pas qu'elles restent à appliquer. Vérifier l'historique Supabase et les définitions effectives avant toute intervention.
+
+Le bundle historique `release-300.sql` reste inchangé. Cette migration doit être appliquée comme correctif séparé après les prérequis Atelier. Le banc de la PR #21 sait rejouer les correctifs absents du bundle ; valider cette voie après intégration. Ne pas régénérer le bundle ni ajouter un `BEGIN/COMMIT` interne à ce correctif.
+
+Déploiement préparé : front compatible d'abord, puis migration suivant le processus validé de sauvegarde, revue et vérification. Aucune publication ni migration automatique dans ce lot. Après acquisition par des utilisateurs, ne pas revenir à l'ancien helper d'appartenance : il supprimerait l'affichage des pièces achetées lors d'une expiration. Privilégier une correction compatible ; un rollback du front conserve les données mais masque temporairement aux abonnés la possibilité de garder une pièce empruntée. Vérifier les acquisitions et l'expiration après toute reprise.
+
+## Preuves et limites
+
+- RED SQL : commit `6281386f47bd9bf953885b17cc5b7a13362a263f`, [CI 37774668591](https://github.com/Theo25460/TITAN_V0.5/actions/runs/37774668591). Échec attendu : `every active piece needs a free acquisition path`.
+- RED navigateur : les trois nouveaux parcours échouent sur la permanence absente, le bouton d'acquisition absent pour un abonné et l'absence de notice pour l'ancien contrat.
+- Vérification locale de la correction : 60 tests, build et audit ; 9 E2E verts. Achat Free à 360/1280 px, acquisition par un abonné puis expiration, ancien contrat, absence de débordement et d'erreur JavaScript. Les RPC navigateur sont synthétiques ; cela ne remplace pas une recette connectée réelle.
+- SQL : acquisition/équipement des quatre pièces par Free, prix serveur, reçu unique, pas d'XP ni niveau, impossibilité de falsifier l'accès ou le solde, expiration après achat et accès seulement emprunté. Le rejeu vérifie profils/reçus/métadonnées/droits inchangés, restauration du timeout, rollback du transactionnaire et refus atomique hors transaction.
+- CI SQL et relecture de la branche : à compléter avant livraison.
+
+## Audit de la boucle boutique et suites du cahier
+
+SHOP01 : la boucle existante est séance validée → crédits → achat serveur → collection → équipement/prévisualisation. Les pièces de rang donnent aussi un objectif de progression. L'exclusivité payante des quatre pièces était un écart concret ; ce lot la corrige. La prévisualisation existe déjà, l'inventaire sépare maintenant accès temporaire et possession permanente.
+
+Restent à concevoir : avatars et titres achetables/déblocables (SHOP05/06), récompenses reliées à des quêtes/boss/exploits (RPG13/SHOP12), inventaire plus complet, découverte des prochaines récompenses et équilibrage à partir d'usage réel. Le RPG Premium comporte encore des campagnes séparées : PREM09/RPG et l'offre Premium globale ne sont pas validés par ce lot. La source principale de crédits est encore la séance ; le travail sur les quêtes et l'appoint publicitaire volontaire reste ouvert. SHOP20 doit rester partiel, même après suppression de toute exclusivité cosmétique du catalogue actuel.
+
+PR #19 (navigation), #20 (isolation) et #21 (intégrité économique) restent indépendantes et non fusionnées. Faire une validation de leur intégration avec ce lot avant un déploiement. Android/Play Console restent au chantier WORK. La passe transversale Astra au niveau maximal requise par le cahier appartient à la version complète destinée au déploiement, pas à cette PR isolée.

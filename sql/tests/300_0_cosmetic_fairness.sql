@@ -45,7 +45,7 @@ begin
   assert (select count(*) from public.shop_history where user_id = current_setting('titan.fair_free')::uuid) = 4, 'four logged acquisitions';
   assert not exists (select 1 from jsonb_array_elements(j -> 'items') x
     where x ->> 'id' in ('cos_frame_aegis', 'cos_frame_frost', 'cos_map_aurora', 'cos_card_obsidian')
-      and (not (x ->> 'owned')::boolean or not (x ->> 'permanent')::boolean)), 'purchases belong permanently to Free';
+      and (x -> 'owned' is distinct from 'true'::jsonb or x -> 'permanent' is distinct from 'true'::jsonb)), 'purchases belong permanently to Free';
 end $$;
 
 -- An existing subscriber can wear borrowed pieces, and buy them to keep them after expiration.

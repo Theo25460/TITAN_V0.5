@@ -23,6 +23,8 @@
   let slot = "frame";
   const guest = () => D().isGuest();
   const plusActive = () => (data?.plus ?? fallbackPlus)?.active === true;
+  // Older servers have no permanence field; their credit purchases are already permanent.
+  const permanent = (item) => typeof item.permanent === "boolean" ? item.permanent : item.owned && item.unlock !== "plus" && !item.plus_access;
   const missing = (e) => e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
 
   const messageOf = (e) => {
@@ -112,13 +114,18 @@
     if (item.unlock === "default") return `<span class="asc-small asc-muted">Inclus</span>`;
     if (item.unlock === "rank") return `<span class="asc-chip">${icon("shield")} Rang ${esc(RANKS[item.min_level] || `niveau ${item.min_level}`)}</span>`;
     if (item.unlock === "plus") return `<span class="asc-chip am">${icon("crown")} TITAN+</span>`;
-    return `<span class="at-price asc-num">${F().number(item.price)} <small>crédits</small></span>`;
+    return `<span class="at-price asc-num">${F().number(item.price)} <small>crédits</small></span>${item.plus_access ? `<span class="asc-chip am">${icon("crown")} Accès TITAN+</span>` : ""}`;
   }
 
   function action(item) {
     const worn = (data.appearance || {})[item.slot] === item.cosmetic || (!data.appearance?.[item.slot] && item.unlock === "default");
-    if (worn) return `<span class="asc-chip cy">${icon("check")} Porté</span>`;
-    if (item.owned) return `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>`;
+    const wear = worn ? `<span class="asc-chip cy">${icon("check")} Porté</span>` : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>` : "";
+    if (item.unlock === "credits" && !permanent(item)) {
+      const short = item.price - (Number(data.credits) || 0);
+      const purchase = short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)} crédits</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">${item.owned ? "Garder avec mes crédits" : "Débloquer"}</button>`;
+      return wear + purchase;
+    }
+    if (wear) return wear;
     if (item.unlock === "plus") return `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus>Voir TITAN+</button>`;
     if (item.unlock === "rank") return `<span class="asc-small asc-faint">Niveau ${item.min_level}</span>`;
     const short = item.price - (Number(data.credits) || 0);
@@ -126,15 +133,16 @@
   }
 
   function itemHtml(item) {
-    const short = item.unlock === "credits" && !item.owned ? item.price - (Number(data.credits) || 0) : 0;
+    const short = item.unlock === "credits" && !permanent(item) ? item.price - (Number(data.credits) || 0) : 0;
     const level = Number(data.level) || 1;
     return `<article class="at-item" data-owned="${item.owned}" data-unlock="${esc(item.unlock)}">
       <div class="at-preview">${preview(item)}</div>
       <div class="at-body"><div class="at-head"><strong>${esc(item.name)}</strong>${condition(item)}</div>
         <p class="asc-small asc-muted">${esc(item.description || "")}</p>
+        ${item.owned ? `<p class="asc-small asc-muted">${permanent(item) ? "Acquis définitivement" : "Accès temporaire TITAN+"}</p>` : ""}
         ${short > 0 ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, (Number(data.credits) || 0) / item.price) * 100)}%"></span></span><p class="asc-small asc-faint">Environ ${Math.ceil(short / creditsPerSession())} séance${Math.ceil(short / creditsPerSession()) > 1 ? "s" : ""} à ton rythme actuel.</p>` : ""}
         ${item.unlock === "rank" && !item.owned ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, level / item.min_level) * 100)}%"></span></span>` : ""}
-        <div class="at-action">${action(item)}</div></div></article>`;
+        <div class="at-action asc-row-flex">${action(item)}</div></div></article>`;
   }
 
   /* ---------- Sections ---------- */
@@ -173,12 +181,12 @@
     if (p.active)
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Merci de soutenir TITAN.</h2>
         <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton abonnement est confirmé par notre partenaire de paiement."}</p>
-        <ul class="at-includes"><li>${icon("compass")} Les forges d’Obsidienne et la citadelle des Aurores : 18 chapitres</li><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} 4 pièces de collection TITAN+</li></ul>
+        <ul class="at-includes"><li>${icon("compass")} Les forges d’Obsidienne et la citadelle des Aurores : 18 chapitres</li><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
         <p class="asc-small asc-faint">Arrêter ou modifier : le lien figure dans l’e-mail de reçu Paddle, ou écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de monde à explorer. Pas plus de puissance.</h2>
-      <ul class="at-includes"><li>${icon("compass")} <span><strong>2 campagnes en plus</strong> · les forges d’Obsidienne et la citadelle des Aurores, 18 chapitres</span></li><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>4 pièces de collection</strong> : Aegis, Givre, Aurores, Obsidienne</span></li></ul>
+      <ul class="at-includes"><li>${icon("compass")} <span><strong>2 campagnes en plus</strong> · les forges d’Obsidienne et la citadelle des Aurores, 18 chapitres</span></li><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
-      ${pending && !data ? `<p class="asc-small asc-faint">Les pièces de collection TITAN+ apparaissent avec la prochaine mise à jour du serveur ; un abonnement pris d’ici là les inclut.</p>` : ""}
+      ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
       ${window.titanInAndroidApp?.() ? `<p class="asc-note">${icon("info")}<span>TITAN+ se souscrit depuis le site titan-app.fr, dans ton navigateur. L’abonnement s’applique ensuite partout, application comprise.</span></p>` : `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>`}
       ${guest() ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
       <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les deux premières campagnes et la Communauté restent gratuits, sans limite de durée.</p></section>`;
@@ -201,7 +209,8 @@
       return;
     }
     root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${plusHtml()}
-      <p class="asc-small asc-faint at-foot">Les pièces sont purement visuelles et restent dans ta collection. Les pièces TITAN+ se portent tant que l’abonnement est actif ; ensuite, ton apparence revient au style d’origine.</p>`;
+      <p class="asc-small asc-faint at-foot">Tous les styles du catalogue se gagnent gratuitement par les crédits ou le rang. Une pièce acquise avec tes crédits reste à toi après la fin de TITAN+. L’accès inclus par l’abonnement est temporaire : seules les pièces encore non acquises reviennent au style d’origine.</p>
+      ${(data.items || []).some((i) => i.unlock === "plus") ? `<p class="asc-note">${icon("info")}<span>Mise à jour du catalogue en attente : les pièces encore marquées TITAN+ deviendront aussi accessibles avec tes crédits d’activité.</span></p>` : ""}`;
     root.setAttribute("aria-busy", "false");
   }
 
@@ -230,6 +239,7 @@
         const row = Array.isArray(r) ? r[0] : r;
         data.credits = Number(row?.credits_after ?? left);
         item.owned = true;
+        item.permanent = true;
         await wear(id).catch(() => render());
       },
     });
