@@ -9,6 +9,8 @@ begin
   -- user_metadata is editable by the client and must never grant administrative authority.
   insert into auth.users(id,raw_user_meta_data) values
     (a,'{"role":"super_admin","is_admin":true,"is_elite":true}'),(b,'{}'),(s,'{}');
+  assert (select role='user' and is_admin=false and is_elite=false from public.profiles where id=a),
+    'signup user_metadata does not grant privileges before fixture customization';
   insert into public.profiles(id,username,credits,xp,level,role,is_elite,is_suspended,inventory,game_state)
   values (a,'qa_security_a',1250,1800,3,'user',false,false,'{"safe":1}','{"campaign":{"keep":true}}'),
          (b,'qa_security_b',500,100,1,'user',true,false,'{}','{}'),
@@ -16,6 +18,9 @@ begin
   on conflict(id) do update set credits=excluded.credits,xp=excluded.xp,level=excluded.level,
     role=excluded.role,is_elite=excluded.is_elite,is_suspended=excluded.is_suspended,
     inventory=excluded.inventory,game_state=excluded.game_state;
+  -- Positive fixture for the legacy inventory table, so its isolation check is not vacuous.
+  insert into public.items(id,name,type,stat,val,price) values(2147483000,'QA legacy cosmetic','cosmetic','appearance',0,0);
+  insert into public.inventory(user_id,item_id) values(b,2147483000);
 end $$;
 
 set local role authenticated;
@@ -23,6 +28,7 @@ select set_config('request.jwt.claims',json_build_object('sub',current_setting('
 do $$
 declare r record; g uuid;
 begin
+  assert (select count(*)=1 from public.inventory where user_id=auth.uid()),'B can read its legacy inventory fixture';
   select * into r from public.titan_submit_training_session('running','cardio',5,'km',
     jsonb_build_object('client_event_id',gen_random_uuid(),'duration',30),now()-interval '1 hour');
   perform set_config('titan.qa_log_b',r.log_id,true);
@@ -119,7 +125,14 @@ begin
 
   -- Normal sport, record source, edit and archive remain available.
   select * into r from public.titan_submit_training_session('yoga','mobility',30,'min',
-    jsonb_build_object('client_event_id',gen_random_uuid()),now()-interval '2 hours');
+    jsonb_build_object('client_event_id',gen_random_uuid(),'user_id',current_setting('titan.qa_b'),
+      'reward_xp',999999,'reward_credits',999999),now()-interval '2 hours');
+  assert r.xp=300 and r.credits=30,'session rewards are computed by the server, not declared by the client';
+  begin
+    perform public.titan_update_training_session(r.log_id::uuid,1,
+      jsonb_build_object('xp',999999,'credits',999999,'user_id',current_setting('titan.qa_b')));
+    assert false,'protected session fields must not be editable';
+  exception when invalid_parameter_value then assert sqlerrm='PATCH_INVALID',sqlerrm; end;
   j:=public.titan_update_training_session(r.log_id::uuid,1,'{"note":"corrigée"}');
   assert j->>'user_id'=auth.uid()::text and j#>>'{details,note}'='corrigée','valid own-session edit works';
   j:=public.titan_update_training_session(r.log_id::uuid,2,'{"archived":true}');
@@ -151,6 +164,6 @@ do $$
 begin
   assert (select val=5 and revision=1 and archived_at is null from public.training_logs where id=current_setting('titan.qa_log_b')::uuid),'B session preserved after all attacks';
   assert (select target=3 and revision=1 from public.sport_goals where id=current_setting('titan.qa_goal_b')::uuid),'B goal preserved';
-  assert (select is_elite and role='user' from public.profiles where id=current_setting('titan.qa_b')::uuid),'B entitlement preserved';
+  assert (select is_elite and role='user' and credits=80 and xp=400 from public.profiles where id=current_setting('titan.qa_b')::uuid),'B entitlement and economy preserved';
 end $$;
 rollback;
