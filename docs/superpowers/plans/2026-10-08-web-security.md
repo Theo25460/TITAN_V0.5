@@ -12,21 +12,21 @@
 
 ## Task 1 — Contrats adverses et reproduction
 
-- [ ] Couvrir lecture/édition/archive d'une séance d'autrui, profils, inventaire et achats d'autrui, export limité au propriétaire.
-- [ ] Couvrir objectifs : création chez autrui, transfert de propriétaire, mutation non autorisée et parcours valide.
-- [ ] Tenter une sauvegarde client de crédits/XP/Premium/inventaire/identité et vérifier les valeurs serveur ; version périmée et types invalides.
-- [ ] Vérifier combat avec multiplicateurs extrêmes et réconciliation falsifiée sans récompense ni mutation.
-- [ ] Vérifier les refus anonymes/suspendus et l'absence de privilèges issus de user_metadata.
-- [ ] Reproduire le search_path hérité en plaçant un objet synthétique homonyme dans un schéma contrôlé du banc ; le JSON de la carte doit rester canonique.
-- [ ] Exécuter ces tests sur la réplique et conserver l'échec avant correction.
+- [x] Couvrir lecture/édition/archive d'une séance d'autrui, profils, inventaire et achats d'autrui, export limité au propriétaire.
+- [x] Couvrir objectifs : création chez autrui, transfert de propriétaire, mutation non autorisée et parcours valide.
+- [x] Tenter une sauvegarde client de crédits/XP/Premium/inventaire/identité et vérifier les valeurs serveur ; version périmée et types invalides.
+- [x] Vérifier combat avec multiplicateurs extrêmes et réconciliation falsifiée sans récompense ni mutation.
+- [x] Vérifier les refus anonymes/suspendus et l'absence de privilèges issus de user_metadata.
+- [x] Reproduire le search_path hérité en plaçant un objet synthétique homonyme dans un schéma contrôlé du banc ; le JSON de la carte doit rester canonique.
+- [x] Exécuter ces tests sur la réplique et conserver l'échec avant correction (CI 37768052478).
 
 ## Task 2 — Correction minimale et vérification
 
-- [ ] Fixer le search_path du helper avec une migration compatible ; corriger toute autre erreur uniquement après preuve et test.
-- [ ] Rejouer les suites SQL et les contrôles web existants ; vérifier cartes activées/désactivées, contenus masqués et rétention inchangés.
-- [ ] Faire relire les droits, gardes, fixtures et rollback. Corriger les constats importants avec preuve.
-- [ ] Documenter l'audit, la migration non appliquée et les limites ; synchroniser le cahier avant commit.
-- [ ] Livrer une PR avec CI verte, préserver la PR #19 et libérer le périmètre après handoff.
+- [x] Fixer le search_path du helper avec une migration compatible ; corriger toute autre erreur uniquement après preuve et test.
+- [x] Rejouer les suites SQL et les contrôles web existants ; vérifier cartes activées/désactivées, contenus masqués et rétention inchangés (CI 37768637113).
+- [x] Faire relire les droits, gardes, fixtures et rollback. Aucun constat bloquant ; deux assertions de couverture renforcées.
+- [x] Documenter l'audit, la migration non appliquée et les limites ; synchroniser le cahier avant commit.
+- [x] Créer la PR #20 avec une première CI verte, préserver la PR #19 et préparer le handoff final. La libération du périmètre sera inscrite dans le cahier après les checks de la tête finale.
 
 ## Review Focus
 

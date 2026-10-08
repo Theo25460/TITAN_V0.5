@@ -26,7 +26,7 @@ end $$;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_b'),'role','authenticated')::text,true);
 do $$
-declare r record; g uuid;
+declare r record; g uuid; j jsonb;
 begin
   assert (select count(*)=1 from public.inventory where user_id=auth.uid()),'B can read its legacy inventory fixture';
   select * into r from public.titan_submit_training_session('running','cardio',5,'km',
@@ -36,6 +36,12 @@ begin
     values(auth.uid(),'Objectif privé B','sessions',3,current_date,current_date+7) returning id into g;
   perform set_config('titan.qa_goal_b',g::text,true);
   perform public.titan_purchase_shop_item('cos_frame_neon');
+  j:=public.export_own_data();
+  assert j->>'userId'=auth.uid()::text and j#>>'{profile,id}'=auth.uid()::text,'B exports its own profile';
+  assert jsonb_array_length(j->'trainingLogs')=1 and jsonb_array_length(j->'shopHistory')=1
+    and jsonb_array_length(j->'inventory')=1,'owner export includes populated collections';
+  assert j#>>'{trainingLogs,0,user_id}'=auth.uid()::text and j#>>'{shopHistory,0,user_id}'=auth.uid()::text
+    and j#>>'{inventory,0,user_id}'=auth.uid()::text,'exported collections belong to B';
 end $$;
 
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.qa_a'),'role','authenticated',
@@ -51,7 +57,8 @@ begin
   assert not exists(select 1 from public.inventory where user_id=current_setting('titan.qa_b')::uuid),'other inventory hidden';
   j:=public.export_own_data();
   assert j->>'userId'=auth.uid()::text and j#>>'{profile,id}'=auth.uid()::text,'export is bound to caller';
-  assert jsonb_array_length(j->'trainingLogs')=0 and jsonb_array_length(j->'shopHistory')=0,'export never includes B data';
+  assert jsonb_array_length(j->'trainingLogs')=0 and jsonb_array_length(j->'shopHistory')=0
+    and jsonb_array_length(j->'inventory')=0,'export never includes B data';
 
   -- Direct updates must neither rewrite one's own economy nor mutate another profile.
   update public.profiles set credits=999999,xp=999999,is_elite=true,role='super_admin' where id=auth.uid();
@@ -116,12 +123,13 @@ begin
 
   -- Retired combat cannot mint rewards even with extreme client reward parameters.
   select * into r from public.titan_submit_combat_victory('qa_forged','BOSS','boss','Forged boss',500,1000000,10000000,'{"reward_xp":999999,"reward_credits":999999}');
-  assert r.reward_xp=0 and r.reward_credits=0 and r.xp_after=1800 and r.credits_after=1250,'combat earns no economy';
+  assert r.reward_xp=0 and r.reward_credits=0 and r.xp_after=1800 and r.credits_after=1250
+    and r.level_after=3,'combat earns no economy';
   j:=public.titan_submit_cache_reconciliation(jsonb_build_object('user',jsonb_build_object('id',current_setting('titan.qa_b'),
     'xp',999999,'credits',999999,'level',99,'is_elite',true,'inventory',jsonb_build_object('forged',1))));
   assert j#>>'{cloudSummary,userId}'=auth.uid()::text,'reconciliation reads caller only';
   assert j->'riskFlags'?'LOCAL_USER_ID_MISMATCH','forged identity is flagged';
-  assert (select credits=1250 and xp=1800 and is_elite=false and inventory='{"safe":1}'::jsonb from public.profiles where id=auth.uid()),'reconciliation never changes protected state';
+  assert (select credits=1250 and xp=1800 and level=3 and is_elite=false and inventory='{"safe":1}'::jsonb from public.profiles where id=auth.uid()),'reconciliation never changes protected state';
 
   -- Normal sport, record source, edit and archive remain available.
   select * into r from public.titan_submit_training_session('yoga','mobility',30,'min',
