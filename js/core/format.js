@@ -112,6 +112,13 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
+  /** Calendar days in local time, preserving the local clock across DST. */
+  function addDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
   /** Chronometer style for timed efforts: 52.5 → "52:30", 65.2 → "1:05:12". Whole minutes keep "52 min". */
   function clock(minutes) {
     if (!isNum(minutes) || Number(minutes) <= 0) return "—";
@@ -138,7 +145,7 @@
     return String(value ?? "—") + (unit ? ` ${unit}` : "");
   }
 
-  const api = { isNum, number, duration, hours, distance, pace, speed, weight, relativeDay, longDate, time, daysSince, plural, weekStart, startOfDay, dateKey, recordValue, clock, DAY };
+  const api = { isNum, number, duration, hours, distance, pace, speed, weight, relativeDay, longDate, time, daysSince, plural, weekStart, startOfDay, dateKey, addDays, recordValue, clock, DAY };
   root.TitanFormat = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

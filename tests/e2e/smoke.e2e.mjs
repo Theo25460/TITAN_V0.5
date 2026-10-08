@@ -46,6 +46,289 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
+// The real analysis UI/shell, with only the remote RPC replaced by its full contract.
+async function comparisonPage(width = 360, access = "plus") {
+  const fixture = await newPage(width);
+  const { page } = fixture;
+  await page.route("**/js/app/analyses.js?*", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/stats", { waitUntil: "load" });
+  assert.equal(await page.locator("#analyses").count(), 1, "Progrès has the secondary comparison panel");
+  await page.evaluate((access) => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    if (access !== "guest") window.state.user.id = owner;
+    window.state.user.is_elite = true; // Cannot unlock anything on its own.
+    window.compareAccess = access;
+    window.compareCalls = [];
+    window.makeComparison = (p) => {
+      if (window.compareAccess === "free") return { version: 1, owner: window.state.user.id, available: false, reason: "premium_required" };
+      const end = new Date("2026-10-05T12:00:00Z");
+      const shift = (d, days) => { const v = new Date(d); v.setUTCDate(v.getUTCDate() + days); return v.toISOString().slice(0, 10); };
+      const period = (part) => {
+        const to = shift(end, -part * p.p_weeks * 7), from = shift(end, -(part + 1) * p.p_weeks * 7);
+        const start = new Date(from + "T12:00:00Z");
+        return { from, to, sessions: part ? 4 : 8, active_days: part ? 2 : 4, minutes: part ? 0 : 240, estimated_sessions: part ? 0 : 1,
+          series: Array.from({ length: p.p_weeks }, (_, i) => ({ from: shift(start, i * 7), to: shift(start, (i + 1) * 7), sessions: i === p.p_weeks - 1 ? (part ? 4 : 8) : 0, active_days: i === p.p_weeks - 1 ? (part ? 2 : 4) : 0, minutes: i === p.p_weeks - 1 && !part ? 240 : 0 })),
+          sources: [{ id: "00000000-0000-4000-8000-000000000999", sport: p.p_sport || "running", date: shift(new Date(to + "T12:00:00Z"), -3) + "T12:00:00Z", minutes: part ? 0 : 30, estimated: !part }] };
+      };
+      return { version: 1, owner: window.state.user.id, available: true, as_of: "2026-10-08T12:00:00Z", timezone: p.p_timezone, weeks: p.p_weeks, sport: p.p_sport, recent: period(0), previous: period(1) };
+    };
+    window.titanClient = { rpc: async (name, params) => {
+      if (name !== "titan_compare_periods") throw Error("unexpected analysis RPC");
+      window.compareCalls.push(params);
+      if (window.compareAccess === "missing") return { error: { code: "PGRST202", message: "Could not find function" } };
+      if (window.compareAccess === "error") return { error: { message: "Network request failed" } };
+      return { data: window.makeComparison(params) };
+    } };
+  }, access);
+  await page.addScriptTag({ path: ROOT + "/js/app/analyses.js" });
+  await page.waitForSelector("#compare-panel summary");
+  return fixture;
+}
+
+test("comparisons: guest and Free keep the free recap, client elite flag never unlocks", async () => {
+  for (const access of ["guest", "free"]) {
+    const { page, context, errors } = await comparisonPage(360, access);
+    assert.equal(await page.locator("#compare-panel").getAttribute("open"), null);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector("#compare-status a");
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.equal(await page.locator(".wk-hero").count(), 1, "free weekly recap is retained");
+    const calls = await page.evaluate(() => window.compareCalls.length);
+    if (access === "guest") assert.equal(calls, 0);
+    else assert.ok(calls >= 1, "Free entitlement is actually checked by the server, including revalidation events");
+    assert.match(await page.locator("#compare-status").innerText(), /compte|TITAN\+/);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("comparisons: equal periods, estimates, source links and zero reference at 360/1280 px", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await comparisonPage(width);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector(".compare-results");
+    assert.match(await page.locator(".compare-results").innerText(), /4 h/);
+    assert.match(await page.locator(".compare-results").innerText(), /estimée/);
+    assert.match(await page.locator('[data-comparison-metric="minutes"]').innerText(), /pas de référence/i);
+    assert.match(await page.locator('[data-comparison-metric="minutes"]').innerText(), /0 min/, "zero is known practice volume, not missing data");
+    assert.doesNotMatch(await page.locator(".compare-results").innerText(), /Infinity|NaN/);
+    assert.equal(await page.locator('a[href="/journal?session=00000000-0000-4000-8000-000000000999"]').count(), 2);
+    await page.locator("#compare-weekly summary").click();
+    assert.equal(await page.locator("#compare-weekly tbody tr").count(), 4);
+    for (const weeks of [12, 26]) {
+      await page.selectOption("#compare-weeks", String(weeks));
+      await page.click("#compare-submit");
+      await page.waitForSelector(".compare-results");
+      await page.locator("#compare-weekly summary").click();
+      assert.equal(await page.locator("#compare-weekly tbody tr").count(), weeks);
+    }
+    await page.fill("#compare-sport-q", "course");
+    assert.ok(await page.locator("#compare-sport-results button").count() <= 12);
+    await page.locator('#compare-sport-results [data-sport="running"]').click();
+    await page.click("#compare-submit");
+    await page.waitForSelector(".compare-results");
+    assert.equal(await page.evaluate(() => window.compareCalls.at(-1).p_sport), "running");
+    assert.match(await page.locator(".compare-results").innerText(), /Course à pied/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.locator("#analyses").screenshot({ path: `/tmp/titan-comparisons-${width}.png`, animations: "disabled" });
+    await context.close();
+  }
+});
+
+test("comparisons: missing server, network failure and Retry show honest states", async () => {
+  for (const access of ["missing", "error"]) {
+    const { page, context, errors } = await comparisonPage(360, access);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForSelector("#compare-status p");
+    assert.match(await page.locator("#compare-status").innerText(), access === "missing" ? /mise à jour du serveur/ : /Réessaie/);
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    await page.evaluate(() => { window.compareAccess = "plus"; });
+    await page.click("#compare-submit");
+    await page.waitForSelector(".compare-results");
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.match(await page.locator("#compare-status").innerText(), /Hors ligne/);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("comparisons: revalidation removes results after expiry and ignores prior-owner response", async () => {
+  const { page, context, errors } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => { window.compareAccess = "free"; window.dispatchEvent(new Event("focus")); });
+  await page.waitForSelector("#compare-status a");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  await page.evaluate(() => {
+    window.compareAccess = "plus";
+    window.titanClient.rpc = (name, p) => new Promise((resolve) => { const data = window.makeComparison(p); window.resolveOldComparison = () => resolve({ data }); });
+    window.dispatchEvent(new Event("focus"));
+  });
+  await page.waitForFunction(() => !!window.resolveOldComparison);
+  await page.evaluate(() => { window.state.user.id = "guest_other"; window.dispatchEvent(new Event("titan:history-updated")); window.resolveOldComparison(); });
+  await page.waitForSelector("#compare-status a");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('a[href*="session="]').count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("comparisons: an older filter response cannot overwrite a newer request", async () => {
+  const { page, context } = await comparisonPage();
+  await page.evaluate(() => {
+    window.deferredComparisons = [];
+    window.titanClient.rpc = (name, p) => p.p_weeks === 12 ? Promise.resolve({ data: window.makeComparison(p) }) : new Promise((resolve) => { window.deferredComparisons.push(() => resolve({ data: window.makeComparison(p) })); });
+  });
+  await page.locator("#compare-panel summary").click();
+  await page.waitForFunction(() => window.deferredComparisons.length >= 1);
+  await page.selectOption("#compare-weeks", "12");
+  await page.click("#compare-submit");
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => window.deferredComparisons.forEach(resolve => resolve()));
+  assert.match(await page.locator("#compare-period-title").innerText(), /12 semaines/);
+  await context.close();
+});
+
+test("comparisons: a discarded response cannot end the newer loading state", async () => {
+  const { page, context } = await comparisonPage();
+  await page.evaluate(() => {
+    window.pendingComparisons = { 4: [], 12: [] };
+    window.titanClient.rpc = (name, p) => new Promise(resolve => window.pendingComparisons[p.p_weeks].push(() => resolve({ data: window.makeComparison(p) })));
+  });
+  await page.locator("#compare-panel summary").click();
+  await page.waitForFunction(() => window.pendingComparisons[4].length > 0);
+  await page.selectOption("#compare-weeks", "12");
+  // A real focus refresh can already start the selected request in a slow CI browser.
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await page.waitForFunction(() => window.pendingComparisons[12].length > 0);
+  await page.evaluate(() => window.pendingComparisons[4].forEach(resolve => resolve()));
+  assert.equal(await page.locator("#compare-submit").isDisabled(), true, "new comparison is still loading");
+  assert.equal(await page.locator("#compare-output").getAttribute("aria-busy"), "true");
+  await page.evaluate(() => window.pendingComparisons[12].forEach(resolve => resolve()));
+  await page.waitForSelector(".compare-results");
+  await context.close();
+});
+
+test("comparisons: malformed or wrong-owner data never becomes a result", async () => {
+  for (const invalid of ["owner", "series"]) {
+    const { page, context, errors } = await comparisonPage();
+    await page.evaluate(invalid => {
+      const make = window.makeComparison;
+      window.makeComparison = p => { const j = make(p); if (invalid === "owner") j.owner = "another_account"; else j.recent.series = []; return j; };
+    }, invalid);
+    await page.locator("#compare-panel summary").click();
+    await page.waitForFunction(() => document.getElementById("compare-status").textContent.includes("correctement"));
+    assert.equal(await page.locator(".compare-results").count(), 0);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+async function journalSourcePage() {
+  const fixture = await newPage(360);
+  const { page } = fixture;
+  await page.route("**/js/app/journal.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/journal?session=00000000-0000-4000-8000-000000000999", { waitUntil: "load" });
+  await page.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    window.state.user.id = owner;
+    window.state.history = [];
+    window.sourceFilters = [];
+    const query = { select() { return this; }, eq(k, v) { window.sourceFilters.push([k, v]); return this; }, maybeSingle: async () => ({ data: { id: "00000000-0000-4000-8000-000000000999", user_id: owner, sport: "running", unit: "km", val: 5, date: "2026-01-01T12:00:00Z", details: { val2: 30, note: "Note privée du compte A" }, xp: 0, revision: 1 } }) };
+    window.titanClient = { from(t) { if (t !== "training_logs") throw Error("unexpected source read"); return query; } };
+  });
+  await page.addScriptTag({ path: ROOT + "/js/app/journal.js" });
+  await page.waitForSelector("dialog.asc-sheet[open]");
+  return fixture;
+}
+
+test("journal: a source outside the local history opens via an owner-filtered read", async () => {
+  const { page, context, errors } = await journalSourcePage();
+  assert.match(await page.locator("dialog.asc-sheet[open]").innerText(), /Course à pied|5 km/);
+  assert.deepEqual(await page.evaluate(() => window.sourceFilters), [["id", "00000000-0000-4000-8000-000000000999"], ["user_id", "00000000-0000-4000-8000-000000000123"]]);
+  await page.evaluate(() => { window.state.user.id = "guest_new"; window.dispatchEvent(new Event("titan:history-updated")); });
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("comparisons: real profile sync clears the prior account before history pagination ends", async () => {
+  const { page, context } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000456";
+    const profile = { id: owner, friend_code: "B123", is_elite: false, game_state: structuredClone(window.state) };
+    profile.game_state.user.id = owner;
+    window.titanClient.auth = { getSession: async () => ({ data: { session: { user: { id: owner } } } }) };
+    window.titanClient.from = () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: profile }) });
+    window.compareAccess = "free";
+    window.titanMaybeSubmitCacheReconciliation = undefined;
+    window.titanSyncAppearance = async () => {};
+    window.TitanTraining.paginate = () => new Promise(resolve => { window.finishHistory = () => resolve({ logs: [], total: 0 }); });
+    window.TitanQueue.migrate = async () => {};
+    window.TitanQueue.refresh = async () => [];
+    window.TitanQueue.saveHistory = async () => {};
+    window.syncWithSupabase();
+  });
+  await page.waitForFunction(() => !!window.finishHistory);
+  assert.equal(await page.evaluate(() => window.state.user.id), "00000000-0000-4000-8000-000000000456");
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('.compare-sources a').count(), 0);
+  await context.close();
+});
+
+test("comparisons: real SIGNED_OUT callback immediately removes results and blocks refresh", async () => {
+  const { page, context } = await comparisonPage();
+  await page.locator("#compare-panel summary").click();
+  await page.waitForSelector(".compare-results");
+  await page.evaluate(async () => {
+    window.__titanAuthListenerBound = false;
+    window.titanClient.auth = { onAuthStateChange(cb) { window.authCallback = cb; } };
+    await window.setupTitanAuthListener();
+    window.authCallback("SIGNED_OUT", null);
+    window.dispatchEvent(new Event("focus"));
+  });
+  assert.equal(await page.locator(".compare-results").count(), 0);
+  assert.equal(await page.locator('.compare-sources a').count(), 0);
+  await context.close();
+});
+
+test("journal: correction closes on account change and a retained form cannot save its private note", async () => {
+  const { page, context } = await journalSourcePage();
+  await page.locator("dialog[open] [data-edit]").click();
+  assert.equal(await page.locator('dialog[open] [name=note]').inputValue(), "Note privée du compte A");
+  await page.evaluate(() => {
+    window.retainedCorrection = document.querySelector("dialog[open] form");
+    window.sourceSaves = 0;
+    window.TitanSessions.update = async () => { window.sourceSaves++; };
+    window.state.user.id = "guest_new";
+    window.dispatchEvent(new Event("titan:history-updated"));
+  });
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  await page.evaluate(() => window.retainedCorrection.dispatchEvent(new Event("submit", { cancelable: true })));
+  assert.equal(await page.evaluate(() => window.sourceSaves), 0);
+  await context.close();
+});
+
+test("journal: detail and derived archive confirmation close before a new account is adopted", async () => {
+  for (const archive of [false, true]) {
+    const { page, context } = await journalSourcePage();
+    if (archive) await page.locator("dialog[open] [data-toggle-archive]").click();
+    await page.evaluate(async () => {
+      window.__titanAuthListenerBound = false;
+      window.titanClient.auth = { onAuthStateChange(cb) { window.authCallback = cb; } };
+      window.syncWithSupabase = () => new Promise(() => {});
+      await window.setupTitanAuthListener();
+      window.authCallback("SIGNED_IN", { user: { id: "00000000-0000-4000-8000-000000000456" } });
+    });
+    assert.equal(await page.locator("dialog[open]").count(), 0);
+    await context.close();
+  }
+});
+
 test("landing: one h1, the start call to action, no horizontal scroll", async () => {
   const { page, errors } = await newPage();
   await page.goto(BASE + "/", { waitUntil: "load" });
@@ -53,6 +336,56 @@ test("landing: one h1, the start call to action, no horizontal scroll", async ()
   assert.equal(await page.locator('a.asc-btn-primary[href="/onboarding"]').first().isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
   assert.deepEqual(errors, []);
+});
+
+test("Titan+ prices: concrete capacities and worlds are readable on mobile and desktop", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width);
+    await page.goto(BASE + "/tarifs#concret", { waitUntil: "load" });
+    assert.equal(await page.locator("#concret").count(), 1);
+    for (const [kind, free] of [["routines", 5], ["coach", 3]]) {
+      const meter = page.locator(`[data-benefit="${kind}"] .pub-benefit-meter`);
+      assert.equal(await meter.locator("span").count(), 20);
+      assert.equal(await meter.locator(".is-free").count(), free);
+      assert.match(await meter.getAttribute("aria-label"), new RegExp(`${free}.*20`));
+    }
+    assert.equal(await page.locator('#concret a[href="/aventures-sportives#forge"]').count(), 1);
+    assert.equal(await page.locator('#concret a[href="/aventures-sportives#aurores"]').count(), 1);
+    assert.equal(await page.locator("#stats-free").isVisible(), true);
+    assert.match(await page.locator("#stats-free").innerText(), /gratuites/);
+    await page.getByText("TITAN+ ajoute-t-il des analyses sportives ?", { exact: true }).click();
+    assert.match(await page.locator("details[open]").innerText(), /4, 12 ou 26 semaines/);
+    const expiry = page.locator("details").filter({ has: page.getByText("Que se passe-t-il à la fin de TITAN+ ?", { exact: true }) });
+    await expiry.locator("summary").click();
+    assert.match(await expiry.innerText(), /pièces acquises avec tes crédits restent à toi/);
+    assert.equal(await page.locator("h1").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-offer-${width}.png`, fullPage: true, animations: "disabled" });
+    await context.close();
+  }
+});
+
+test("Atelier: both subscription states can consult the concrete benefits without a checkout", async () => {
+  for (const plus of [false, true]) {
+    const { page, context, errors } = await atelierPage(360, plus);
+    const calls = await page.evaluate(() => window.atelierCalls.length);
+    let checkoutCalls = 0;
+    await page.exposeFunction("recordCheckoutCall", () => { checkoutCalls++; });
+    await page.evaluate(() => { window.openEliteCheckout = window.recordCheckoutCall; });
+    const link = page.locator('#plus a[href="/tarifs#concret"]');
+    assert.equal(await link.count(), 1);
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL("**/tarifs#concret");
+    assert.equal(await page.locator("#concret").isVisible(), true);
+    assert.equal(checkoutCalls, 0, "consulting benefits never calls the checkout entry point");
+    // Check before returning: the active Atelier can clear a pending marker on reload.
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v1")), null);
+    assert.ok(calls > 0, "subscription state was loaded before navigating");
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
 });
 
 test("guest: record a run, then find it in the journal and the week", async () => {
@@ -93,6 +426,372 @@ test("private pages are noindex, public guides are indexable", async () => {
   }
 });
 
+// Real Atelier page/shell with a synthetic RPC contract. No signed-in production account.
+async function atelierPage(width, plus = false, legacy = false) {
+  const fixture = await newPage(width);
+  await fixture.page.route("**/js/app/atelier.js?*", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await fixture.page.goto(BASE + "/boutique", { waitUntil: "load" });
+  await fixture.page.evaluate(({ plus, legacy }) => {
+    window.state.user.id = "00000000-0000-4000-8000-000000000123";
+    const items = [
+      { id: "cos_frame_standard", cosmetic: "frame-standard", slot: "frame", name: "Standard", unlock: "default", price: 0, owned: true, permanent: true },
+      { id: "cos_frame_aegis", cosmetic: "frame-aegis", slot: "frame", name: "Cadre Aegis", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1400, owned: plus, permanent: false, plus_access: !legacy },
+      { id: "cos_frame_frost", cosmetic: "frame-frost", slot: "frame", name: "Cadre Givre", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1400, owned: plus, permanent: false, plus_access: !legacy },
+      { id: "cos_map_default", cosmetic: "map-default", slot: "map", name: "Vallée", unlock: "default", price: 0, owned: true, permanent: true },
+      { id: "cos_map_aurora", cosmetic: "map-aurora", slot: "map", name: "Aurores", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1000, owned: plus, permanent: false, plus_access: !legacy },
+      { id: "cos_card_default", cosmetic: "card-default", slot: "card", name: "Classique", unlock: "default", price: 0, owned: true, permanent: true },
+      { id: "cos_card_obsidian", cosmetic: "card-obsidian", slot: "card", name: "Obsidienne", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 800, owned: plus, permanent: false, plus_access: !legacy },
+    ];
+    if (legacy) {
+      items.push({ id: "cos_frame_neon", cosmetic: "frame-neon", slot: "frame", name: "Néon", unlock: "credits", price: 450, owned: true });
+      for (const i of items) { delete i.permanent; delete i.plus_access; }
+    }
+    window.atelierFixture = { credits: 2000, level: 1, week_credits: 0, week_credit_cap: 960, plus: { active: plus }, appearance: {}, items };
+    window.atelierCalls = [];
+    window.titanClient = { rpc: async (name, params) => {
+      window.atelierCalls.push({ name, params });
+      const d = window.atelierFixture;
+      if (name === "titan_atelier") return { data: structuredClone(d) };
+      const item = d.items.find((i) => i.id === (params.p_item_id || params.p_item));
+      if (name === "titan_purchase_shop_item") {
+        d.credits -= item.price;
+        item.owned = item.permanent = true;
+        return { data: [{ credits_after: d.credits }] };
+      }
+      if (name === "titan_set_appearance") {
+        d.appearance[params.p_slot] = item.cosmetic;
+        return { data: structuredClone(d.appearance) };
+      }
+      throw new Error("Unexpected fixture RPC: " + name);
+    } };
+  }, { plus, legacy });
+  await fixture.page.addScriptTag({ path: ROOT + "/js/app/atelier.js" });
+  await fixture.page.waitForSelector("[data-buy], [data-wear], [data-goto-plus]");
+  return fixture;
+}
+
+test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 1280 px", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await atelierPage(width);
+    assert.match(await page.locator('[data-buy="cos_frame_aegis"]').innerText(), /Débloquer/);
+    assert.match(await page.locator("#collection").innerText(), /1[\s\u202f\u00a0]?400/);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-fair-free-${width}.png`, fullPage: true });
+    await page.click('[data-buy="cos_frame_aegis"]');
+    assert.match(await page.locator("dialog[open]").innerText(), /gardée dans ta collection|permanent/i);
+    await page.getByRole("button", { name: "Débloquer et porter", exact: true }).click();
+    await page.waitForSelector("dialog[open]", { state: "hidden" });
+    assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
+    assert.match(await page.locator("#collection").innerText(), /Acquis définitivement/);
+    assert.equal(await page.evaluate(() => window.state.user.credits), 600);
+    assert.equal(await page.evaluate(() => window.titanShell.look().frame), "frame-aegis", "earned frame reaches the shared shell");
+    await page.locator('.asc-avatar[data-frame="frame-aegis"]').first().waitFor({ state: "attached" });
+    assert.ok(await page.locator('.asc-avatar[data-frame="frame-aegis"]').count(), "navigation displays the earned frame");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `Atelier overflow at ${width}`);
+    assert.deepEqual(errors, []);
+    const resolved = await page.evaluate(() => window.atelierFixture);
+    await page.goto(BASE + "/profile", { waitUntil: "load" });
+    await page.evaluate(async (resolved) => {
+      const u = window.state.user;
+      u.id = "00000000-0000-4000-8000-000000000123";
+      u.is_elite = false;
+      // Reconnection restores a raw stored preference containing an old, expired borrowed ambiance.
+      u.appearance = { frame: "frame-aegis", map: "map-aurora" };
+      delete u.appearanceAccess;
+      window.titanClient = { rpc: async (name) => name === "titan_atelier" ? { data: resolved } : { error: { code: "PGRST202" } } };
+      await window.titanSyncAppearance();
+      window.titanShell.refresh();
+      dispatchEvent(new CustomEvent("titan:history-updated"));
+    }, resolved);
+    await page.waitForSelector('.pf-avatar[data-frame="frame-aegis"]');
+    const sportFixture = await seedSports(page);
+    await page.getByRole("searchbox", { name: "Rechercher un sport" }).fill(sportFixture.target.label);
+    await page.selectOption("#mastery-scope", "favorites");
+    await page.waitForSelector("#maitrise .pf-mastery-row");
+    assert.equal(await page.locator("#maitrise .pf-mastery-row").count(), 1);
+    assert.equal(await page.locator('.pf-avatar[data-frame="frame-aegis"]').count(), 1, "200-sport mastery rerenders keep the acquired frame");
+    assert.equal(await page.evaluate(() => window.titanShell.look().map), undefined, "raw expired preference is never reauthorized on navigation");
+    assert.equal(await page.evaluate(async (resolved) => {
+      let finish;
+      window.titanClient.rpc = () => new Promise((resolve) => { finish = resolve; });
+      const pending = window.titanSyncAppearance();
+      window.state.user.id = "00000000-0000-4000-8000-000000000456";
+      window.state.user.appearance = {};
+      finish({ data: resolved });
+      await pending;
+      return window.titanShell.look().frame;
+    }, resolved), undefined, "late response from the previous user is ignored");
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("atelier: a subscriber can purchase a borrowed piece and keep it when Titan+ ends", async () => {
+  const { page, context, errors } = await atelierPage(360, true);
+  assert.match(await page.locator("#collection").innerText(), /Accès temporaire TITAN\+/);
+  assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').evaluate((b) =>
+    b.getBoundingClientRect().right <= b.closest(".at-body").getBoundingClientRect().right + 1), true, "purchase control stays inside its card body");
+  if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: "/tmp/titan-fair-plus-360.png", fullPage: true });
+  await page.click('[data-buy="cos_frame_aegis"]');
+  await page.getByRole("button", { name: "Débloquer et porter", exact: true }).click();
+  await page.waitForSelector("dialog[open]", { state: "hidden" });
+  await page.evaluate(() => {
+    const d = window.atelierFixture;
+    d.plus.active = false;
+    for (const i of d.items) if (!i.permanent) i.owned = false;
+    dispatchEvent(new Event("online"));
+  });
+  await page.waitForFunction(() => window.state.user.is_elite === false);
+  assert.match(await page.locator("#collection").innerText(), /Acquis définitivement/);
+  assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
+  assert.equal(await page.evaluate(() => window.state.user.appearance.frame), "frame-aegis");
+  assert.equal(await page.evaluate(() => window.titanShell.look().frame), "frame-aegis", "permanent access survives expiry on all shell consumers");
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier inventory: acquired pieces exclude borrowed access and stay available after removing a style", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await atelierPage(width, true);
+    assert.equal(await page.locator('[data-collection="owned"]').count(), 1, "inventory filter is available");
+    await page.click('[data-collection="owned"]');
+    assert.equal(await page.locator("#collection .at-item").count(), 1, "only the base frame is permanently acquired");
+    assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0, "a borrowed piece is not in the permanent inventory");
+    await page.click('[data-collection="all"]');
+    await page.click('[data-buy="cos_frame_aegis"]');
+    await page.getByRole("button", { name: "Débloquer et porter", exact: true }).click();
+    await page.waitForSelector("dialog[open]", { state: "hidden" });
+    await page.click('[data-collection="owned"]');
+    assert.equal(await page.locator("#collection .at-item").count(), 2);
+    assert.equal(await page.locator('[data-remove="frame"]').count(), 1, "an equipped piece can be removed");
+    await page.locator('[data-remove="frame"]').focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => window.state.user.appearance.frame === "frame-standard");
+    assert.equal(await page.locator('[data-wear="cos_frame_aegis"]').count(), 1, "removing does not discard the purchase");
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.wear), "cos_frame_aegis", "keyboard focus stays on the removed piece");
+    assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.state.user.credits), 600, "removing never spends credits");
+    assert.equal(await page.evaluate(() => window.titanShell.look().frame), undefined, "the base frame removes the visible decoration");
+    await page.waitForFunction(() => !document.querySelector('.asc-avatar[data-frame="frame-aegis"]'));
+    assert.equal(await page.locator('.asc-avatar[data-frame="frame-aegis"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.atelierCalls.filter((c) => c.name === "titan_purchase_shop_item").length), 1);
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => window.titanShell.look().frame === "frame-aegis");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-inventory-${width}.png`, fullPage: true, animations: "disabled" });
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("atelier inventory: locked filter has a useful empty state and legacy purchases stay acquired", async () => {
+  const { page, context, errors } = await atelierPage(360, false, true);
+  assert.equal(await page.locator('[data-collection="owned"]').count(), 1);
+  await page.click('[data-collection="owned"]');
+  assert.equal(await page.locator('[data-wear="cos_frame_neon"]').count(), 1);
+  await page.click('[data-collection="locked"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 2, "old subscription pieces are still not acquired");
+  await page.click('[data-slot="map"][role="tab"]');
+  await page.click('[data-collection="owned"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 1);
+  await page.evaluate(() => {
+    const d = window.atelierFixture;
+    d.items.find((i) => i.id === "cos_map_aurora").owned = true;
+    d.items.find((i) => i.id === "cos_map_aurora").unlock = "credits";
+    dispatchEvent(new Event("online"));
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#collection .at-item").length === 2);
+  await page.click('[data-collection="locked"]');
+  assert.equal(await page.locator("#collection .at-item").count(), 0);
+  assert.ok(await page.locator('[data-collection-empty]').isVisible());
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier preview: frame, ambiance and card previews do not change balance or equipped appearance", async () => {
+  const { page, context, errors } = await atelierPage(360);
+  for (const [slot, id, previewSelector] of [["frame", "cos_frame_aegis", '[data-frame="frame-aegis"]'], ["map", "cos_map_aurora", '[data-ambiance="map-aurora"]'], ["card", "cos_card_obsidian", '[data-card="card-obsidian"]']]) {
+    await page.click(`[data-slot="${slot}"][role="tab"]`);
+    assert.equal(await page.locator(`[data-preview="${id}"]`).count(), 1, "each piece has an explicit preview");
+    const before = await page.evaluate(() => ({ credits: window.state.user.credits, appearance: structuredClone(window.state.user.appearance), calls: window.atelierCalls.length }));
+    await page.click(`[data-preview="${id}"]`);
+    const dialog = page.locator("dialog[open]");
+    assert.equal(await dialog.locator(previewSelector).count(), 1);
+    assert.equal(await dialog.locator('[data-buy], [data-wear]').count(), 0, "preview cannot silently acquire or equip");
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-preview-${slot}-360.png`, animations: "disabled" });
+    await dialog.getByRole("button", { name: "Fermer", exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => ({ credits: window.state.user.credits, appearance: structuredClone(window.state.user.appearance), calls: window.atelierCalls.length })), before);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  }
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier: an older server shows a catalog update notice without inventing a free price", async () => {
+  const { page, context, errors } = await atelierPage(360, false, true);
+  assert.match(await page.locator("#atelier").innerText(), /Mise à jour du catalogue en attente/);
+  assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
+  assert.equal(await page.locator("[data-goto-plus]").count(), 2);
+  const neon = page.locator('article').filter({ has: page.locator('[data-wear="cos_frame_neon"]') });
+  assert.match(await neon.innerText(), /Acquis définitivement/, "legacy purchase without new fields stays permanent");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("shell: a borrowed cached style expires by date while an earned style stays visible", async () => {
+  const { page, context, errors } = await atelierPage(360, true);
+  await page.evaluate(() => {
+    const d = window.atelierFixture;
+    d.appearance = { frame: "frame-aegis", map: "map-aurora" };
+    d.items.find((i) => i.id === "cos_map_aurora").permanent = true;
+    d.plus.ends_at = new Date(Date.now() - 1000).toISOString();
+    window.titanApplyAtelierAppearance(d, window.state.user.id);
+  });
+  assert.equal(await page.evaluate(() => window.titanShell.look().frame), undefined, "stale true flag cannot keep a borrowed style");
+  assert.equal(await page.evaluate(() => window.titanShell.look().map), "map-aurora", "date does not remove a permanent acquisition");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier: a delayed response cannot copy the previous user's balance or appearance", async () => {
+  const { page, context, errors } = await atelierPage(360);
+  assert.equal(await page.evaluate(async () => {
+    let finish;
+    const previous = structuredClone(window.atelierFixture);
+    previous.appearance = { frame: "frame-aegis" };
+    window.titanClient.rpc = () => new Promise((resolve) => { finish = resolve; });
+    dispatchEvent(new Event("online"));
+    window.state.user.id = "00000000-0000-4000-8000-000000000456";
+    window.state.user.appearance = {};
+    window.state.user.credits = 777;
+    finish({ data: previous });
+    await new Promise((r) => setTimeout(r, 30));
+    return window.state.user.credits === 777 && !window.state.user.appearance.frame;
+  }), true, "obsolete response belongs to the previous user");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = false) {
+  const fixture = await newPage(360);
+  await fixture.page.goto(BASE + "/profile", { waitUntil: "load" });
+  await fixture.page.evaluate(({ gate, fromGuest, emptyHistory }) => {
+    const a = "00000000-0000-4000-8000-000000000123";
+    const b = "00000000-0000-4000-8000-000000000456";
+    window.state.user.id = fromGuest ? "guest_bootstrap" : a;
+    const f = window.bootstrapFixture = {
+      a, b, actor: a, entered: false, heldOnce: false, calls: [],
+      profile: { id: a, username: "Compte A", credits: 10, xp: 0, level: 1, friend_code: gate === "friend" ? null : "A-FRIEND", state_version: 1 },
+    };
+    const step = async (name, value) => {
+      f.calls.push({ name, owner: window.state.user.id });
+      if (name === gate && !f.heldOnce) {
+        f.heldOnce = f.entered = true;
+        await new Promise(resolve => { f.release = resolve; });
+      }
+      return value;
+    };
+    window.TITAN_DB_STATUS.issues = [];
+    window.titanMaybeSubmitCacheReconciliation = undefined;
+    window.titanClient = {
+      auth: { getSession: () => step("session", { data: { session: { user: { id: f.actor, user_metadata: {} } } } }), onAuthStateChange() {} },
+      from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: () => step("profile", { data: gate === "create" ? null : structuredClone(f.profile) }) }),
+      rpc: (name) => {
+        if (name === "titan_save_profile_state") return step("create", { data: structuredClone(f.profile) });
+        if (name === "titan_assign_friend_code") return step("friend", { data: "A-FRIEND" });
+        if (name === "titan_atelier") return step("appearance", { data: { owner: f.actor, appearance: {}, items: [], plus: { active: false } } });
+        return Promise.resolve({ error: { code: "PGRST202" } });
+      },
+    };
+    window.TitanTraining.paginate = (_client, owner) => {
+      // RLS would return no A rows after authentication has moved to B. A request
+      // begun before that switch may still complete later with A's own rows.
+      const logs = !emptyHistory && owner === f.actor ? [{ id: "A-session", user_id: a, client_event_id: "A-event", sport: "running", category: "endurance", unit: "min", val: 30, date: new Date().toISOString(), details: { duration: 30 }, xp: 0 }] : [];
+      return step("history", { logs, total: logs.length });
+    };
+    Object.assign(window.TitanQueue, {
+      migrate: () => step("migrate"), refresh: () => step("refresh", []),
+      saveHistory: () => step("saveHistory"), list: () => [],
+    });
+    // Exercise the real bootstrap while keeping unrelated page-start timers from
+    // launching a third synchronization during this deliberately controlled race.
+    const sync = window.syncWithSupabase;
+    window.syncWithSupabase = () => Promise.resolve();
+    f.run = () => sync();
+    f.start = () => { f.pending = sync(); };
+  }, { gate, fromGuest, emptyHistory });
+  return fixture;
+}
+
+test("bootstrap: delayed responses never replace another account's profile or history", async () => {
+  for (const [gate, emptyHistory] of [...["session", "profile", "create", "friend", "appearance", "history", "migrate", "refresh", "saveHistory"].map(x => [x, false]), ["appearance", true]]) {
+    const { page, context, errors } = await bootstrapPage(gate, false, emptyHistory);
+    await page.evaluate(() => { window.bootstrapFixture.start(); });
+    await page.waitForFunction(() => window.bootstrapFixture.entered);
+    const result = await page.evaluate(async () => {
+      const f = window.bootstrapFixture;
+      f.actor = f.b;
+      Object.assign(window.state.user, { id: f.b, name: "Compte B", credits: 777, xp: 123, level: 3 });
+      window.state.history = [{ id: "B-session", user_id: f.b, sport: "yoga", unit: "min", val: 20, date: new Date().toISOString(), details: { duration: 20 } }];
+      window.state.archivedHistory = [{ id: "B-archive", user_id: f.b }];
+      window.state.meta = { profileVersion: 77, historyTotal: 2, owner: f.b };
+      window.titanCloudHistoryLoadedAt = 444;
+      const expected = structuredClone(window.state);
+      const callCount = f.calls.length;
+      f.release();
+      await f.pending;
+      return { expected, actual: window.state, lateCalls: f.calls.slice(callCount), loadedAt: window.titanCloudHistoryLoadedAt, issues: window.TITAN_DB_STATUS.issues };
+    });
+    assert.deepEqual(result.actual, result.expected, `${gate}: B's identity, balance, history and metadata stay intact`);
+    assert.deepEqual(result.lateCalls, [], `${gate}: obsolete bootstrap stops before further account operations`);
+    assert.equal(result.loadedAt, 444);
+    assert.deepEqual(result.issues, []);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("bootstrap: the normal guest-to-account synchronization still loads confirmed history", async () => {
+  const { page, context, errors } = await bootstrapPage(null, true);
+  const result = await page.evaluate(async () => {
+    window.bootstrapFixture.start();
+    await window.bootstrapFixture.pending;
+    return { id: window.state.user.id, credits: window.state.user.credits, history: window.state.history, version: window.state.meta.profileVersion, issues: window.TITAN_DB_STATUS.issues };
+  });
+  assert.equal(result.id, "00000000-0000-4000-8000-000000000123");
+  assert.equal(result.credits, 10);
+  assert.equal(result.history[0]?.id, "A-session");
+  assert.equal(result.history[0]?.syncStatus, "confirmed");
+  assert.equal(result.version, 1);
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("bootstrap: an older synchronization cannot overwrite a newer one for the same account", async () => {
+  const { page, context, errors } = await bootstrapPage("profile");
+  await page.evaluate(() => { window.bootstrapFixture.start(); });
+  await page.waitForFunction(() => window.bootstrapFixture.entered);
+  const result = await page.evaluate(async () => {
+    const f = window.bootstrapFixture;
+    f.profile = { ...f.profile, username: "Profil récent", credits: 55, state_version: 2 };
+    await f.run();
+    const expected = structuredClone(window.state);
+    const callCount = f.calls.length;
+    f.release();
+    await f.pending;
+    return { expected, actual: window.state, lateCalls: f.calls.slice(callCount), issues: window.TITAN_DB_STATUS.issues };
+  });
+  assert.equal(result.expected.user.credits, 55);
+  assert.deepEqual(result.actual, result.expected, "the newer profile and history win");
+  // The successful newer sync also starts independent Auth reads from the page.
+  // The older bootstrap already read its session before its held profile request.
+  assert.deepEqual(result.lateCalls.filter(call => call.name !== "session"), []);
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("app pages fit a 360 px screen without errors", async () => {
   const { page, errors } = await newPage(360);
   for (const path of ["/aujourdhui", "/training", "/journal", "/stats", "/records", "/objectifs", "/prevoir", "/adventure", "/profile", "/social", "/coaching", "/boutique", "/onboarding", "/login"]) {
@@ -127,4 +826,120 @@ test("offline: the app shell opens from the service worker cache", async () => {
   } finally {
     own.kill();
   }
+});
+
+// Local fixtures only: no session is written to the backend or persisted in the user's account.
+async function seedSports(page, count = 200) {
+  await page.waitForFunction(() => window.state?.user && window.TitanProgress && window.TitanSports);
+  return page.evaluate((count) => {
+    const sports = window.TitanSports.all().slice(0, count);
+    window.state.user.favoriteSports = [sports.at(-1).id];
+    window.state.history = sports.map((s, i) => ({
+      id: `fixture-${i}`, sport: s.id, unit: "min", val: 30, xp: 0,
+      date: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
+      details: { duration: 30 },
+    }));
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+    return { count: sports.length, target: sports.at(-1), first: sports[0] };
+  }, count);
+}
+
+test("records: 200 sports are paginated, searchable and retain their source session", async () => {
+  const { page, context, errors } = await newPage();
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  const fixture = await seedSports(page);
+  assert.equal(fixture.count, 200);
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator(".rc-sport").count(), 12, "only a bounded page of sports is rendered");
+  await page.getByRole("button", { name: "Page suivante" }).click();
+  assert.equal(await page.locator(".rc-sport").count(), 12);
+  await page.getByRole("searchbox", { name: "Rechercher un sport" }).fill(fixture.target.label);
+  await page.waitForTimeout(100);
+  assert.ok(await page.locator(".rc-sport").count() <= 12);
+  assert.match(await page.locator("#records").innerText(), new RegExp(fixture.target.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  await page.locator(".rc-sport [data-record]").first().click();
+  assert.equal(await page.locator('dialog[open] a[href^="/journal?session="]').count(), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("mastery: the 200th sport is reachable, filters survive updates and typing retains focus", async () => {
+  const { page, context, errors } = await newPage(360);
+  await page.goto(BASE + "/profile", { waitUntil: "load" });
+  const fixture = await seedSports(page);
+  await page.waitForTimeout(150);
+  const search = page.getByRole("searchbox", { name: "Rechercher un sport" });
+  assert.equal(await search.count(), 1, "mastery offers a search beyond the original eight rows");
+  await search.pressSequentially(fixture.target.label, { delay: 15 });
+  assert.equal(await search.inputValue(), fixture.target.label);
+  assert.equal(await search.evaluate(el => el === document.activeElement), true);
+  await page.selectOption("#mastery-scope", "favorites");
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("titan:history-updated")));
+  await page.waitForTimeout(100);
+  assert.equal(await page.inputValue("#mastery-scope"), "favorites");
+  assert.equal(await page.locator("#maitrise .pf-mastery-row").count(), 1);
+  assert.ok((await page.locator("#maitrise").innerText()).includes(fixture.target.label));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("navigation: empty searches, no-data favorites, and small accounts remain usable", async () => {
+  const { page, context, errors } = await newPage();
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  await seedSports(page, 2);
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator(".rc-sport").count(), 2);
+  const search = page.getByRole("searchbox", { name: "Rechercher un sport" });
+  await search.fill("<img src=x onerror=alert(1)>");
+  assert.equal(await page.locator(".rc-sport").count(), 0);
+  assert.equal(await page.locator("[data-nav-empty]").count(), 1);
+  assert.equal(await page.locator("#records img").count(), 0);
+  await search.fill("");
+  await page.evaluate(() => {
+    window.state.user.favoriteSports = ["yoga"];
+    window.state.history = [];
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+  });
+  await page.waitForTimeout(100);
+  await page.selectOption("#records-scope", "favorites");
+  await page.getByRole("checkbox", { name: "Masquer les sports sans données" }).uncheck();
+  assert.equal(await page.locator(".rc-sport").count(), 1);
+  assert.ok((await page.locator(".rc-sport").innerText()).includes("Yoga"));
+  assert.equal(await page.locator(".rc-sport [data-record]").count(), 0, "no fictitious record for an unpractised sport");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("installed PWA: navigation and cosmetic resources bypass the previous cache on the first visit", async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
+  const page = await context.newPage();
+  await page.goto(BASE + "/aujourdhui", { waitUntil: "load" });
+  await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
+  await page.reload({ waitUntil: "load" });
+  await page.waitForFunction(() => navigator.serviceWorker.controller);
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"]]
+    .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
+  await page.evaluate(async (staleScripts) => {
+    const cache = await caches.open("titan-os-v300-ascension");
+    await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
+    await cache.put("/js/app/analytics.js?v=300.0", new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
+    // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
+    // to the new page even when a background fetch will replace them for a later visit.
+    for (const [path, marker, body] of staleScripts) {
+      await cache.put(path + "?v=300.0", new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
+    }
+  }, staleScripts);
+  await page.goto(BASE + "/records", { waitUntil: "load" });
+  await page.waitForSelector(".sn-selects");
+  assert.equal(await page.locator(".sn-selects").evaluate(el => getComputedStyle(el).display), "grid");
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_searched")), true);
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_filtered")), true);
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.state)), false, "first navigation loads the new appearance resolver");
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.shell)), false, "first navigation loads the new shared rendering guard");
+  assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
+  await page.goto(BASE + "/boutique", { waitUntil: "load" });
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
+  await context.close();
 });

@@ -30,6 +30,14 @@ if [[ -n "${RELEASE_SQL:-}" ]]; then
   run "$ROOT/$RELEASE_SQL"
   echo "  · second run must refuse and change nothing"
   if "${PSQL[@]}" -d "$DB" -f "$ROOT/$RELEASE_SQL" >/dev/null 2>&1; then echo "release file ran twice"; exit 1; fi
+  echo "Follow-up migrations not included in the historical release file"
+  for f in "$ROOT"/supabase/migrations/*.sql; do
+    v="$(basename "$f" | cut -d_ -f1)"
+    [[ "$v" < "$FROM" ]] && continue
+    [[ "$v" =~ ^[0-9]{14}$ ]] || { echo "invalid migration version"; exit 1; }
+    included=$("${PSQL[@]}" -d "$DB" -At -c "select exists(select 1 from supabase_migrations.schema_migrations where version='$v')")
+    [[ "$included" == "t" ]] || run "$f"
+  done
 else
   echo "Pending migrations from $FROM"
   for f in "$ROOT"/supabase/migrations/*.sql; do
@@ -40,4 +48,13 @@ else
 fi
 echo "SQL tests"
 for f in "$ROOT"/sql/tests/300_*.sql; do run "$f"; done
+echo "Economy migration preserves caller transaction"
+run "$ROOT/tools/db/test-economy-migration.sql"
+echo "Economy concurrency contracts (two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: economy concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."
