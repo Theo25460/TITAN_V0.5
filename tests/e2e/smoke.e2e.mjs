@@ -103,10 +103,16 @@ async function atelierPage(width, plus = false, legacy = false) {
     const items = [
       { id: "cos_frame_standard", cosmetic: "frame-standard", slot: "frame", name: "Standard", unlock: "default", price: 0, owned: true, permanent: true },
       { id: "cos_frame_aegis", cosmetic: "frame-aegis", slot: "frame", name: "Cadre Aegis", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1400, owned: plus, permanent: false, plus_access: !legacy },
+      { id: "cos_frame_frost", cosmetic: "frame-frost", slot: "frame", name: "Cadre Givre", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1400, owned: plus, permanent: false, plus_access: !legacy },
       { id: "cos_map_default", cosmetic: "map-default", slot: "map", name: "Vallée", unlock: "default", price: 0, owned: true, permanent: true },
-      { id: "cos_map_aurora", cosmetic: "map-aurora", slot: "map", name: "Aurores", unlock: "credits", price: 1000, owned: plus, permanent: false, plus_access: true },
+      { id: "cos_map_aurora", cosmetic: "map-aurora", slot: "map", name: "Aurores", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 1000, owned: plus, permanent: false, plus_access: !legacy },
       { id: "cos_card_default", cosmetic: "card-default", slot: "card", name: "Classique", unlock: "default", price: 0, owned: true, permanent: true },
+      { id: "cos_card_obsidian", cosmetic: "card-obsidian", slot: "card", name: "Obsidienne", unlock: legacy ? "plus" : "credits", price: legacy ? 0 : 800, owned: plus, permanent: false, plus_access: !legacy },
     ];
+    if (legacy) {
+      items.push({ id: "cos_frame_neon", cosmetic: "frame-neon", slot: "frame", name: "Néon", unlock: "credits", price: 450, owned: true });
+      for (const i of items) { delete i.permanent; delete i.plus_access; }
+    }
     window.atelierFixture = { credits: 2000, level: 1, week_credits: 0, week_credit_cap: 960, plus: { active: plus }, appearance: {}, items };
     window.atelierCalls = [];
     window.titanClient = { rpc: async (name, params) => {
@@ -144,7 +150,26 @@ test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 12
     assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
     assert.match(await page.locator("#collection").innerText(), /Acquis définitivement/);
     assert.equal(await page.evaluate(() => window.state.user.credits), 600);
+    assert.equal(await page.evaluate(() => window.titanShell.look().frame), "frame-aegis", "earned frame reaches the shared shell");
+    assert.ok(await page.locator('.asc-avatar[data-frame="frame-aegis"]').count(), "navigation displays the earned frame");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `Atelier overflow at ${width}`);
+    assert.deepEqual(errors, []);
+    const resolved = await page.evaluate(() => window.atelierFixture);
+    await page.goto(BASE + "/profile", { waitUntil: "load" });
+    await page.evaluate(async (resolved) => {
+      const u = window.state.user;
+      u.id = "00000000-0000-4000-8000-000000000123";
+      u.is_elite = false;
+      // Reconnection restores a raw stored preference containing an old, expired borrowed ambiance.
+      u.appearance = { frame: "frame-aegis", map: "map-aurora" };
+      delete u.appearanceAccess;
+      window.titanClient = { rpc: async (name) => name === "titan_atelier" ? { data: resolved } : { error: { code: "PGRST202" } } };
+      await window.titanSyncAppearance();
+      window.titanShell.refresh();
+      dispatchEvent(new CustomEvent("titan:history-updated"));
+    }, resolved);
+    await page.waitForSelector('.pf-avatar[data-frame="frame-aegis"]');
+    assert.equal(await page.evaluate(() => window.titanShell.look().map), undefined, "raw expired preference is never reauthorized on navigation");
     assert.deepEqual(errors, []);
     await context.close();
   }
@@ -169,6 +194,7 @@ test("atelier: a subscriber can purchase a borrowed piece and keep it when Titan
   assert.match(await page.locator("#collection").innerText(), /Acquis définitivement/);
   assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
   assert.equal(await page.evaluate(() => window.state.user.appearance.frame), "frame-aegis");
+  assert.equal(await page.evaluate(() => window.titanShell.look().frame), "frame-aegis", "permanent access survives expiry on all shell consumers");
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
   assert.deepEqual(errors, []);
   await context.close();
@@ -178,7 +204,9 @@ test("atelier: an older server shows a catalog update notice without inventing a
   const { page, context, errors } = await atelierPage(360, false, true);
   assert.match(await page.locator("#atelier").innerText(), /Mise à jour du catalogue en attente/);
   assert.equal(await page.locator('[data-buy="cos_frame_aegis"]').count(), 0);
-  assert.equal(await page.locator("[data-goto-plus]").count(), 1);
+  assert.equal(await page.locator("[data-goto-plus]").count(), 2);
+  const neon = page.locator('article').filter({ has: page.locator('[data-wear="cos_frame_neon"]') });
+  assert.match(await neon.innerText(), /Acquis définitivement/, "legacy purchase without new fields stays permanent");
   assert.deepEqual(errors, []);
   await context.close();
 });

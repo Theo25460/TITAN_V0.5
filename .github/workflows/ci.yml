@@ -70,3 +70,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Rejouer les migrations en attente et les tests SQL
         run: sudo -E bash tools/db/test-migrations.sh
+      - name: Verifier le bundle historique et ses correctifs
+        if: ${{ !cancelled() }}
+        run: sudo -E env RELEASE_SQL=supabase/release-300.sql bash tools/db/test-migrations.sh
