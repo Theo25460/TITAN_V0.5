@@ -37,9 +37,9 @@
 - Consumes: têtes #19 `ddfeeda974c0fd8f59aca3e188c0b044f5dc3e4d`, #20 `edefe39cbdf1fb20da73e1135d86fac7c6a032fa`, #21 `3c0dcaafb91efe0be9cf0cab6f6e07118b851d4c`, #22 `0d85eb594e43545c33928277f973f05f9be2ce48` ; tous les handoffs.
 - Produces: arbre réunissant les quatre têtes, suites combinées et CI de la PR d'intégration.
 
-- [ ] **Step 1: Contrôler la baseline.** `pnpm test` depuis main : attendu 60 tests verts et arbre propre, hors présent plan.
-- [ ] **Step 2: Fusionner les quatre têtes avec `git merge --no-ff`, une à une.** Conserver tous les tests ; pour les blocs communs identiques, une seule copie. Vérifier chaque tête avec `git merge-base --is-ancestor <tête> HEAD`.
-- [ ] **Step 3: Vérifier le point de jonction profil/Atelier et les ressources PWA.** Si un défaut concret apparaît, écrire un test runtime, observer son échec, corriger au minimum et observer sa réussite ; sinon conserver les preuves existantes sans test miroir.
-- [ ] **Step 4: Exécuter `pnpm run verify`, `pnpm run test:e2e`, `git diff --check`.** Attendu : au moins 71 tests et 15 E2E verts. Lire les résultats et inspecter 360/1280 px si le rendu change.
-- [ ] **Step 5: Publier une PR brouillon et lire ses trois jobs CI.** Attendu : 12 migrations, 12 suites SQL, rollback appelant et deux scénarios concurrents sur chacune des deux voies ; 71 tests et au moins 15 E2E verts. Aucun environnement de production.
-- [ ] **Step 6: Livrer le handoff et une seule revue indépendante de la branche.** Examiner les constats, corriger les défauts importants par RED→GREEN ; conserver la CI finale verte, passer la PR en revue et libérer la déclaration Drive. Ne pas fusionner main ni fermer #19 à #22.
+- [x] **Step 1: Contrôler la baseline.** `pnpm test` depuis main : attendu 60 tests verts et arbre propre, hors présent plan.
+- [x] **Step 2: Fusionner les quatre têtes avec `git merge --no-ff`, une à une.** Conserver tous les tests ; pour les blocs communs identiques, une seule copie. Vérifier chaque tête avec `git merge-base --is-ancestor <tête> HEAD`.
+- [x] **Step 3: Vérifier le point de jonction profil/Atelier et les ressources PWA.** Si un défaut concret apparaît, écrire un test runtime, observer son échec, corriger au minimum et observer sa réussite ; sinon conserver les preuves existantes sans test miroir.
+- [x] **Step 4: Exécuter `pnpm run verify`, `pnpm run test:e2e`, `git diff --check`.** Attendu : au moins 71 tests et 15 E2E verts. Lire les résultats et inspecter 360/1280 px si le rendu change.
+- [x] **Step 5: Publier une PR brouillon et lire ses trois jobs CI.** Attendu : 12 migrations, 12 suites SQL, rollback appelant et deux scénarios concurrents sur chacune des deux voies ; 71 tests et au moins 15 E2E verts. Aucun environnement de production.
+- [x] **Step 6: Livrer le handoff et une seule revue indépendante de la branche.** Examiner les constats, corriger les défauts importants par RED→GREEN ; conserver la CI finale verte, passer la PR en revue et libérer la déclaration Drive. Ne pas fusionner main ni fermer #19 à #22.
