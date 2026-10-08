@@ -87,7 +87,8 @@
    */
   function cadence(logs, { target = 3, pauses = [], now = new Date(), window = 8 } = {}) {
     const goal = Math.min(7, Math.max(1, Math.round(Number(target) || 3)));
-    const paused = new Set((pauses || []).map((p) => weekKey(p)));
+    // A YYYY-MM-DD pause is a local calendar date, not UTC midnight.
+    const paused = new Set((pauses || []).map((p) => weekKey(typeof p === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p) ? `${p}T12:00:00` : p)));
     const days = new Map();
     for (const l of activeLogs(logs, now)) {
       const wk = weekKey(l.date);
@@ -113,7 +114,8 @@
           fill: Math.round(Math.min(1, active / goal) * 100),
         });
       }
-      cursor = new Date(cursor.getTime() - 7 * DAY);
+      // Calendar subtraction keeps the preceding Monday across DST changes.
+      cursor.setDate(cursor.getDate() - 7);
       cursor.setHours(0, 0, 0, 0);
       cursor = F().weekStart(cursor);
       guard++;

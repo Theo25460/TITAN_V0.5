@@ -55,6 +55,53 @@ test("landing: one h1, the start call to action, no horizontal scroll", async ()
   assert.deepEqual(errors, []);
 });
 
+test("Titan+ prices: concrete capacities and worlds are readable on mobile and desktop", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width);
+    await page.goto(BASE + "/tarifs#concret", { waitUntil: "load" });
+    assert.equal(await page.locator("#concret").count(), 1);
+    for (const [kind, free] of [["routines", 5], ["coach", 3]]) {
+      const meter = page.locator(`[data-benefit="${kind}"] .pub-benefit-meter`);
+      assert.equal(await meter.locator("span").count(), 20);
+      assert.equal(await meter.locator(".is-free").count(), free);
+      assert.match(await meter.getAttribute("aria-label"), new RegExp(`${free}.*20`));
+    }
+    assert.equal(await page.locator('#concret a[href="/aventures-sportives#forge"]').count(), 1);
+    assert.equal(await page.locator('#concret a[href="/aventures-sportives#aurores"]').count(), 1);
+    assert.equal(await page.locator("#stats-free").isVisible(), true);
+    assert.match(await page.locator("#stats-free").innerText(), /gratuites/);
+    await page.getByText("TITAN+ ajoute-t-il des analyses sportives ?", { exact: true }).click();
+    assert.match(await page.locator("details[open]").innerText(), /mêmes analyses/);
+    const expiry = page.locator("details").filter({ has: page.getByText("Que se passe-t-il à la fin de TITAN+ ?", { exact: true }) });
+    await expiry.locator("summary").click();
+    assert.match(await expiry.innerText(), /pièces acquises avec tes crédits restent à toi/);
+    assert.equal(await page.locator("h1").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-offer-${width}.png`, fullPage: true, animations: "disabled" });
+    await context.close();
+  }
+});
+
+test("Atelier: both subscription states can consult the concrete benefits without a checkout", async () => {
+  for (const plus of [false, true]) {
+    const { page, context, errors } = await atelierPage(360, plus);
+    const calls = await page.evaluate(() => window.atelierCalls.length);
+    const link = page.locator('#plus a[href="/tarifs#concret"]');
+    assert.equal(await link.count(), 1);
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL("**/tarifs#concret");
+    assert.equal(await page.locator("#concret").isVisible(), true);
+    await page.goBack();
+    // Navigation never starts a checkout. No purchase is stored on either page.
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v1")), null);
+    assert.ok(calls > 0, "subscription state was loaded before navigating");
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
 test("guest: record a run, then find it in the journal and the week", async () => {
   const { page, errors } = await newPage();
   await page.goto(BASE + "/training", { waitUntil: "load" });
