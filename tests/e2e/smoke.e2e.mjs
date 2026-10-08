@@ -87,14 +87,17 @@ test("Atelier: both subscription states can consult the concrete benefits withou
   for (const plus of [false, true]) {
     const { page, context, errors } = await atelierPage(360, plus);
     const calls = await page.evaluate(() => window.atelierCalls.length);
+    let checkoutCalls = 0;
+    await page.exposeFunction("recordCheckoutCall", () => { checkoutCalls++; });
+    await page.evaluate(() => { window.openEliteCheckout = window.recordCheckoutCall; });
     const link = page.locator('#plus a[href="/tarifs#concret"]');
     assert.equal(await link.count(), 1);
     await link.focus();
     await page.keyboard.press("Enter");
     await page.waitForURL("**/tarifs#concret");
     assert.equal(await page.locator("#concret").isVisible(), true);
-    await page.goBack();
-    // Navigation never starts a checkout. No purchase is stored on either page.
+    assert.equal(checkoutCalls, 0, "consulting benefits never calls the checkout entry point");
+    // Check before returning: the active Atelier can clear a pending marker on reload.
     assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v1")), null);
     assert.ok(calls > 0, "subscription state was loaded before navigating");
     assert.deepEqual(errors, []);

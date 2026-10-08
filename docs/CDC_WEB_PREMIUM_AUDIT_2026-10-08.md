@@ -53,7 +53,7 @@ Les campagnes payantes actuelles doivent aussi être réévaluées dans le lot R
 
 ## Mesure et limites
 
-`js/app/analytics.js` prévoit `premium_checkout_started` et `premium_activated`, avec consentement et propriétés limitées. Il ne démontre ni que les bénéfices sont compris, ni la conversion par usage, ni la rétention de l’abonnement. Aucun taux n’a été inventé et aucune nouvelle collecte n’est ajoutée ici.
+`js/app/analytics.js` prévoit `premium_checkout_started` et `premium_activated`, avec propriétés limitées : événements liés au compte avec consentement accordé, anonymes tant que le choix est absent, désactivés en cas de refus. Il ne démontre ni que les bénéfices sont compris, ni la conversion par usage, ni la rétention de l’abonnement. Aucun taux n’a été inventé et aucune nouvelle collecte n’est ajoutée ici.
 
 La suite PREM15 devra relier, avec consentement, consultation des bénéfices, utilisation des nouveaux outils, checkout confirmé et rétention, sans notes, santé, GPS ou textes libres. Les événements du navigateur ne constituent pas une preuve de revenu ni d’abonnement.
 
