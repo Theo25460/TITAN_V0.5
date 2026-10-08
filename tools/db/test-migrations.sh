@@ -30,6 +30,14 @@ if [[ -n "${RELEASE_SQL:-}" ]]; then
   run "$ROOT/$RELEASE_SQL"
   echo "  · second run must refuse and change nothing"
   if "${PSQL[@]}" -d "$DB" -f "$ROOT/$RELEASE_SQL" >/dev/null 2>&1; then echo "release file ran twice"; exit 1; fi
+  echo "Follow-up migrations not included in the historical release file"
+  for f in "$ROOT"/supabase/migrations/*.sql; do
+    v="$(basename "$f" | cut -d_ -f1)"
+    [[ "$v" < "$FROM" ]] && continue
+    [[ "$v" =~ ^[0-9]{14}$ ]] || { echo "invalid migration version"; exit 1; }
+    included=$("${PSQL[@]}" -d "$DB" -At -c "select exists(select 1 from supabase_migrations.schema_migrations where version='$v')")
+    [[ "$included" == "t" ]] || run "$f"
+  done
 else
   echo "Pending migrations from $FROM"
   for f in "$ROOT"/supabase/migrations/*.sql; do

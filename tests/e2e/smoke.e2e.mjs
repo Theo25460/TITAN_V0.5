@@ -151,6 +151,7 @@ test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 12
     assert.match(await page.locator("#collection").innerText(), /Acquis définitivement/);
     assert.equal(await page.evaluate(() => window.state.user.credits), 600);
     assert.equal(await page.evaluate(() => window.titanShell.look().frame), "frame-aegis", "earned frame reaches the shared shell");
+    await page.locator('.asc-avatar[data-frame="frame-aegis"]').first().waitFor({ state: "attached" });
     assert.ok(await page.locator('.asc-avatar[data-frame="frame-aegis"]').count(), "navigation displays the earned frame");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `Atelier overflow at ${width}`);
     assert.deepEqual(errors, []);
@@ -170,6 +171,16 @@ test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 12
     }, resolved);
     await page.waitForSelector('.pf-avatar[data-frame="frame-aegis"]');
     assert.equal(await page.evaluate(() => window.titanShell.look().map), undefined, "raw expired preference is never reauthorized on navigation");
+    assert.equal(await page.evaluate(async (resolved) => {
+      let finish;
+      window.titanClient.rpc = () => new Promise((resolve) => { finish = resolve; });
+      const pending = window.titanSyncAppearance();
+      window.state.user.id = "00000000-0000-4000-8000-000000000456";
+      window.state.user.appearance = {};
+      finish({ data: resolved });
+      await pending;
+      return window.titanShell.look().frame;
+    }, resolved), undefined, "late response from the previous user is ignored");
     assert.deepEqual(errors, []);
     await context.close();
   }
@@ -207,6 +218,40 @@ test("atelier: an older server shows a catalog update notice without inventing a
   assert.equal(await page.locator("[data-goto-plus]").count(), 2);
   const neon = page.locator('article').filter({ has: page.locator('[data-wear="cos_frame_neon"]') });
   assert.match(await neon.innerText(), /Acquis définitivement/, "legacy purchase without new fields stays permanent");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("shell: a borrowed cached style expires by date while an earned style stays visible", async () => {
+  const { page, context, errors } = await atelierPage(360, true);
+  await page.evaluate(() => {
+    const d = window.atelierFixture;
+    d.appearance = { frame: "frame-aegis", map: "map-aurora" };
+    d.items.find((i) => i.id === "cos_map_aurora").permanent = true;
+    d.plus.ends_at = new Date(Date.now() - 1000).toISOString();
+    window.titanApplyAtelierAppearance(d, window.state.user.id);
+  });
+  assert.equal(await page.evaluate(() => window.titanShell.look().frame), undefined, "stale true flag cannot keep a borrowed style");
+  assert.equal(await page.evaluate(() => window.titanShell.look().map), "map-aurora", "date does not remove a permanent acquisition");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("atelier: a delayed response cannot copy the previous user's balance or appearance", async () => {
+  const { page, context, errors } = await atelierPage(360);
+  assert.equal(await page.evaluate(async () => {
+    let finish;
+    const previous = structuredClone(window.atelierFixture);
+    previous.appearance = { frame: "frame-aegis" };
+    window.titanClient.rpc = () => new Promise((resolve) => { finish = resolve; });
+    dispatchEvent(new Event("online"));
+    window.state.user.id = "00000000-0000-4000-8000-000000000456";
+    window.state.user.appearance = {};
+    window.state.user.credits = 777;
+    finish({ data: previous });
+    await new Promise((r) => setTimeout(r, 30));
+    return window.state.user.credits === 777 && !window.state.user.appearance.frame;
+  }), true, "obsolete response belongs to the previous user");
   assert.deepEqual(errors, []);
   await context.close();
 });

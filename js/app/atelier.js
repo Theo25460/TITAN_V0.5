@@ -16,6 +16,7 @@
 
   let root = null;
   let data = null;
+  let dataOwner = null;
   let loading = true;
   let error = "";
   let pending = false; // the server does not offer the Atelier yet
@@ -35,6 +36,7 @@
     if (m.includes("NOT_FOR_SALE")) return "Cette pièce ne s’achète pas : elle se mérite par le rang ou vient avec TITAN+.";
     if (m.includes("NOT_OWNED")) return "Cette pièce n’est pas encore dans ta collection.";
     if (m.includes("ACCOUNT_SUSPENDED")) return "Ton compte est suspendu : l’Atelier est indisponible.";
+    if (m.includes("ACCOUNT_CHANGED")) return "Le compte a changé. Rouvre l’Atelier.";
     return navigator.onLine ? "L’Atelier n’a pas répondu. Réessaie dans un instant." : "Hors ligne : l’Atelier revient avec le réseau.";
   };
 
@@ -46,18 +48,23 @@
   }
 
   async function load() {
+    const owner = window.state?.user?.id;
+    if (dataOwner && dataOwner !== owner) { data = null; dataOwner = null; fallbackPlus = null; }
     if (guest() || !window.titanClient) {
       loading = false;
       return render();
     }
     try {
       const { data: d, error: e } = await window.titanClient.rpc("titan_atelier");
+      if (window.state?.user?.id !== owner || (d?.owner && d.owner !== owner)) return ownerChanged();
       if (e) throw e;
       data = d;
+      dataOwner = owner;
       error = "";
       syncUser();
       noteActivation();
     } catch (e) {
+      if (window.state?.user?.id !== owner) return ownerChanged();
       error = messageOf(e);
       pending = missing(e);
     }
@@ -66,11 +73,22 @@
     if (!data && pending) await readPlusFromProfile().then(render);
   }
 
+  function ownerChanged() {
+    data = null;
+    dataOwner = null;
+    fallbackPlus = null;
+    loading = false;
+    pending = false;
+    error = messageOf(new Error("ACCOUNT_CHANGED"));
+    render();
+  }
+
   /** Before the server update, TITAN+ status still comes from the profile the payment webhook writes (read only). */
   async function readPlusFromProfile() {
+    const owner = window.state?.user?.id;
     try {
-      const { data: p } = await window.titanClient.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", window.state.user.id).maybeSingle();
-      if (!p) return;
+      const { data: p } = await window.titanClient.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", owner).maybeSingle();
+      if (!p || window.state?.user?.id !== owner) return;
       fallbackPlus = { active: p.is_elite === true, renews_at: p.elite_renews_at, ends_at: p.elite_ends_at };
       if (window.state?.user) window.state.user.is_elite = fallbackPlus.active;
       noteActivation();
@@ -80,10 +98,11 @@
   /** The server is the truth: mirror balance, status and look into the local state the shell reads. */
   function syncUser() {
     const u = window.state?.user;
-    if (!u || !data) return;
+    if (!u || !data || u.id !== dataOwner) return;
     u.credits = Number(data.credits) || 0;
     u.is_elite = plusActive();
     u.appearance = data.appearance || {};
+    window.titanApplyAtelierAppearance?.(data, u.id);
     window.titanShell?.refresh?.();
   }
 
@@ -216,8 +235,11 @@
 
   /* ---------- Actions ---------- */
   async function wear(id) {
+    const owner = dataOwner;
+    if (window.state?.user?.id !== owner) throw new Error("ACCOUNT_CHANGED");
     const item = data.items.find((i) => i.id === id);
     const { data: look, error: e } = await window.titanClient.rpc("titan_set_appearance", { p_slot: item.slot, p_item: id });
+    if (window.state?.user?.id !== owner) return;
     if (e) throw e;
     data.appearance = look || {};
     syncUser();
@@ -226,6 +248,7 @@
   }
 
   function buy(id) {
+    const owner = dataOwner;
     const item = data.items.find((i) => i.id === id);
     const left = (Number(data.credits) || 0) - item.price;
     window.titanShell.confirm({
@@ -234,7 +257,9 @@
       detail: "Une pièce visuelle, gardée dans ta collection. Aucun effet sur l’XP, les gardiens ou les classements.",
       confirmLabel: "Débloquer et porter",
       action: async () => {
+        if (window.state?.user?.id !== owner) throw new Error(messageOf(new Error("ACCOUNT_CHANGED")));
         const { data: r, error: e } = await window.titanClient.rpc("titan_purchase_shop_item", { p_item_id: id });
+        if (window.state?.user?.id !== owner) return;
         if (e) throw new Error(messageOf(e));
         const row = Array.isArray(r) ? r[0] : r;
         data.credits = Number(row?.credits_after ?? left);

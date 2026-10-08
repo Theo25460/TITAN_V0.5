@@ -27,10 +27,10 @@ begin
       select case coalesce(si.metadata ->> 'unlock', 'credits')
         when 'default' then true
         when 'rank' then coalesce(p.level, 1) >= coalesce(si.required_level, 1)
-        when 'plus' then coalesce(p.is_elite, false)
+        when 'plus' then p.is_elite is true and p.elite_refunded_at is null and (p.elite_ends_at is null or p.elite_ends_at > now())
         when 'credits' then
           exists (select 1 from public.shop_history h where h.user_id = p_uid and h.item_id = si.id)
-          or (si.metadata ->> 'plus_access' = 'true' and coalesce(p.is_elite, false))
+          or (si.metadata ->> 'plus_access' = 'true' and p.is_elite is true and p.elite_refunded_at is null and (p.elite_ends_at is null or p.elite_ends_at > now()))
         else false end
       from public.shop_items si join public.profiles p on p.id = p_uid
       where si.id = p_item and si.type = 'cosmetic'
@@ -65,11 +65,11 @@ begin
     select greatest(0, coalesce(u.credits_awarded, 0))::integer into v_week
       from public.titan_weekly_reward_usage u where u.user_id = v_uid and u.week_start = public.titan_week_start(now());
     return jsonb_build_object(
-      'credits', coalesce(v_p.credits, 0), 'level', coalesce(v_p.level, 1),
+      'owner', v_uid, 'credits', coalesce(v_p.credits, 0), 'level', coalesce(v_p.level, 1),
       'week_credits', coalesce(v_week, 0),
       'week_credit_cap', coalesce((public.titan_economy_limits(v_uid) ->> 'weeklyCreditCap')::integer, 960),
-      'plus', jsonb_build_object('active', coalesce(v_p.is_elite, false), 'status', v_p.elite_status,
-        'renews_at', v_p.elite_renews_at, 'ends_at', v_p.elite_ends_at),
+      'plus', jsonb_build_object('active', v_p.is_elite is true and v_p.elite_refunded_at is null and (v_p.elite_ends_at is null or v_p.elite_ends_at > now()), 'status', v_p.elite_status,
+        'renews_at', v_p.elite_renews_at, 'ends_at', v_p.elite_ends_at, 'refunded_at', v_p.elite_refunded_at),
       'appearance', private.titan_appearance(v_uid), 'items', v_items);
   end;
   $atelier$;

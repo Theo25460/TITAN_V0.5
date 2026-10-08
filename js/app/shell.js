@@ -82,16 +82,22 @@
     };
   }
 
-  /* Equipped cosmetics as last confirmed by the server (titan_atelier / profile row). Display only:
-     TITAN+ pieces fall back to the default look as soon as the local status says the plan ended. */
+  /* Server-resolved appearance is distinct from the raw profile preference. Permanent purchases
+     remain visible after Titan+ ends; temporary access expires. Old servers use a conservative fallback. */
   const PLUS_PIECES = new Set(["frame-aegis", "frame-frost", "map-aurora", "card-obsidian"]);
   function look() {
-    const a = window.state?.user?.appearance || {};
+    const u = window.state?.user || {};
+    const access = window.titanAppearanceAccess?.owner === u.id ? window.titanAppearanceAccess : null;
+    const a = access?.appearance || u.appearance || {};
+    const ends = access ? access.endsAt : u.elite_ends_at;
+    const plus = u.is_elite === true && !u.elite_refunded_at && (!ends || Date.parse(ends) > Date.now()) && (!access || access.plusActive);
     const out = {};
     for (const k of ["frame", "map", "card"]) {
       const v = String(a[k] || "");
       if (!/^[a-z]+-[a-z]+$/.test(v) || v.endsWith("-default") || v === "frame-standard") continue;
-      if (PLUS_PIECES.has(v) && window.state?.user?.is_elite !== true) continue;
+      if (access) {
+        if (!access.permanent.includes(v) && !(plus && access.temporary.includes(v))) continue;
+      } else if (PLUS_PIECES.has(v) && !plus) continue;
       out[k] = v;
     }
     return out;
