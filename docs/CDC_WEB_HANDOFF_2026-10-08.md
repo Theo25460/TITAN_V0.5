@@ -25,7 +25,7 @@ Fichiers : `js/core/sport-navigation.js`, `js/app/sport-browser.js`, `js/core/sp
 | Régressions de relecture | Alias avec catalogue en ligne ; favori ancien sans historique ; CSS/analytics d'une PWA déjà installée : reproduites puis corrigées et couvertes |
 | Rendu inspecté | Records à 360 et 1280 px ; Maîtrise à 360 px ; aucun débordement horizontal |
 | Événements | Payload vérifié par client de test : champs libres exclus ; événements acceptés par l'allowlist |
-| Base locale | Non exécutée dans ce conteneur, sans PostgreSQL installé ; le job CI existant rejoue les migrations et suites SQL sur une réplique vide |
+| Base / CI | Non exécutée localement, sans PostgreSQL ; CI verte sur `174196f`, avec neuf migrations Ascension et six suites SQL sur réplique vide |
 
 L'audit statique conserve des avertissements existants de longueur de titres/descriptions et de `h1` générés par JavaScript. Le contrôle de syntaxe n'est **pas** un type-check. Ne pas fermer A08 sur cette seule preuve.
 
@@ -89,6 +89,10 @@ Stratégie : branches distinctes `codex/web-*`, `codex/economie-*`, `codex/antic
 - NAV01–NAV10 : implémentés et vérifiés sur cette branche, pas encore publiés.
 - DATA06 : événements implémentés et payload vérifié ; l'analyse de trafic attend leur publication et des usages réels.
 - QA07 : fixture locale 200 sports vérifiée, pas un compte réel de production ni une mesure sur appareil physique.
-- A08/SEC01 : restent en cours ; QA01 attend la CI incluant la base. Les critères de fin globale restent ouverts.
+- A08/SEC01 : restent en cours ; QA01 validé sur ce lot par la CI incluant la base. Les critères de fin globale restent ouverts.
 
 Le handoff final sur Drive doit référencer la PR et l'état exact de ses trois jobs CI. La priorité n'est libérée qu'après cette synchronisation. Toute reprise doit relire le cahier et les changements de la branche avant d'utiliser ce bilan.
+
+## Livraison GitHub
+
+[PR #19](https://github.com/Theo25460/TITAN_V0.5/pull/19), commit produit `174196f786725878ac9574e5ee01a39ac96a8519`. [CI Qualite 37765297170](https://github.com/Theo25460/TITAN_V0.5/actions/runs/37765297170) : les trois jobs tests/build, Chromium et SQL ont réussi. La finalisation documentaire ne modifie pas le code testé ; la CI de la tête finale doit aussi rester verte avant fusion. La production reste inchangée.

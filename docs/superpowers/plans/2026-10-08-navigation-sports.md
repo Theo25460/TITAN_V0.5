@@ -52,6 +52,6 @@
 
 - [x] Documenter architecture et parcours existants, état vérifié des migrations/CI, surface des secrets sans afficher leurs valeurs, écarts de monétisation/RPG/anti-triche et dépendances.
 - [x] Distinguer preuve locale, lecture de production et parcours connecté non testé ; aucun `[x]` sur simple présence de code.
-- [ ] Préparer une PR sur GitHub, attendre la CI, synchroniser le handoff et libérer le périmètre déclaré après livraison du lot.
+- [x] Préparer une PR sur GitHub, attendre la CI, synchroniser le handoff et libérer le périmètre déclaré après livraison du lot.
 
 Le chantier global demeure ouvert : Android, régies, conformité, billing et tests sur appareils réels ne sont pas réputés terminés par ce lot web.
