@@ -1172,6 +1172,35 @@ function withTitanTimeout(promise, timeoutMs, scope) {
 
 window.titanWithTimeout = withTitanTimeout;
 
+// Separate raw profile preferences from cosmetics resolved by the authenticated server.
+// This cache is memory-only and bound to its owner; never part of game_state/profile writes.
+window.titanAppearanceAccess = null;
+window.titanApplyAtelierAppearance = function(data, ownerId) {
+    const u = window.state?.user;
+    if (!u || u.id !== ownerId || !data || (data.owner && data.owner !== ownerId) || !Array.isArray(data.items) || !data.appearance || typeof data.appearance !== 'object') return false;
+    const owned = data.items.filter(i => i.owned === true);
+    const permanent = i => i.permanent === true || (typeof i.permanent === 'undefined' && i.unlock !== 'plus' && !i.plus_access);
+    window.titanAppearanceAccess = {
+        owner: ownerId, appearance: Object.assign({}, data.appearance),
+        permanent: owned.filter(permanent).map(i => i.cosmetic),
+        temporary: owned.filter(i => !permanent(i)).map(i => i.cosmetic),
+        plusActive: data.plus?.active === true, endsAt: data.plus?.ends_at || null
+    };
+    u.appearance = Object.assign({}, data.appearance);
+    u.is_elite = data.plus?.active === true;
+    u.elite_ends_at = data.plus?.ends_at || null;
+    if (Object.prototype.hasOwnProperty.call(data.plus || {}, 'refunded_at')) u.elite_refunded_at = data.plus.refunded_at;
+    return true;
+};
+window.titanSyncAppearance = async function() {
+    const ownerId = window.state?.user?.id;
+    if (!ownerId || String(ownerId).startsWith('guest_') || !window.titanClient?.rpc) return false;
+    try {
+        const {data, error} = await withTitanTimeout(window.titanClient.rpc('titan_atelier'), 4000, 'Apparence');
+        return !error && window.titanApplyAtelierAppearance(data, ownerId);
+    } catch { return false; } // Old/missing RPC or offline: keep the conservative profile fallback.
+};
+
 window.titanRetry = async function(task, options = {}) {
     const retries = Math.max(0, parseInt(options.retries, 10) || 0);
     const delayMs = Math.max(0, parseInt(options.delayMs, 10) || 250);
@@ -1321,6 +1350,8 @@ window.syncWithSupabase = async function() {
         if (!keepLocalGameState && profile.inventory) window.state.user.inventory = profile.inventory;
         window.state.inventory = window.state.user.inventory;
         window.state.user.is_elite = (profile.is_elite === true);
+        window.state.user.elite_ends_at = profile.elite_ends_at || null;
+        window.state.user.elite_refunded_at = profile.elite_refunded_at || null;
         if (profile.appearance && typeof profile.appearance === 'object') window.state.user.appearance = profile.appearance;
         window.state.user.is_tester = (profile.is_tester === true);
         window.state.user.is_suspended = (profile.is_suspended === true);
@@ -1335,6 +1366,7 @@ window.syncWithSupabase = async function() {
 
         window.state.user.id = profile.id || session.user.id;
         ensureStateIntegrity();
+        await window.titanSyncAppearance();
 
         const historyResult = await window.TitanTraining.paginate(window.titanClient,session.user.id);
         await window.TitanQueue.migrate();
