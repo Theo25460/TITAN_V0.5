@@ -40,4 +40,6 @@ else
 fi
 echo "SQL tests"
 for f in "$ROOT"/sql/tests/300_*.sql; do run "$f"; done
+echo "Economy concurrency contracts (two real connections)"
+python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

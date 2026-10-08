@@ -69,7 +69,7 @@ end $$;
 
 -- Update guards do not cover INSERT. Boundaries must also hold for trusted writers.
 do $$
-declare u uuid; column_name text; constraint_name text;
+declare u uuid; column_name text; v_constraint text;
 begin
   foreach column_name in array array['credits','xp','level'] loop
     u:=gen_random_uuid();
@@ -80,8 +80,8 @@ begin
         using u,'qa_invalid_economy',case when column_name='level' then 0 else -1 end;
       assert false,'database must reject invalid '||column_name||' on INSERT';
     exception when check_violation then
-      get stacked diagnostics constraint_name=constraint_name;
-      assert constraint_name='profiles_'||column_name||'_minimum_check',constraint_name;
+      get stacked diagnostics v_constraint=constraint_name;
+      assert v_constraint='profiles_'||column_name||'_minimum_check',v_constraint;
     end;
     insert into public.profiles(id,username,credits,xp,level) values(u,'qa_valid_boundary',0,0,1);
     assert (select credits=0 and xp=0 and level=1 from public.profiles where id=u),'valid economy boundary accepted';
