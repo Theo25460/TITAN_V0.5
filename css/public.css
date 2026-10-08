@@ -488,6 +488,51 @@ a.pub-card:hover {
   color: var(--tx-3);
 }
 
+/* Existing Titan+ capacities, separate from the comparison table. */
+.pub-benefit-meter {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 5px;
+}
+.pub-benefit-meter span {
+  height: 14px;
+  border: 1px solid var(--am-line);
+  background: var(--am);
+  border-radius: 3px;
+}
+.pub-benefit-meter .is-free {
+  background: var(--cy);
+  border-color: var(--cy);
+}
+.pub-benefit-worlds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+}
+.pub-benefit-worlds a {
+  display: grid;
+  gap: 6px;
+}
+.pub-benefit-worlds img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r2);
+}
+#concret {
+  scroll-margin-top: 80px;
+}
+#concret .pub-price {
+  font-size: 36px;
+  color: var(--tx);
+}
+#concret .pub-price small {
+  display: block;
+  margin-top: 8px;
+}
+#stats-free {
+  margin-top: var(--s3);
+}
+
 /* The loop */
 .pub-loop {
   display: grid;

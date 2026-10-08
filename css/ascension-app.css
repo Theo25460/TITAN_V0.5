@@ -1,5 +1,22 @@
 /* TITAN 300 — page compositions built on ascension.css. */
 
+/* Shared Records / Maîtrise navigation: controls stay compact, sport cards are paginated. */
+.sn-controls { display: grid; gap: var(--s3); margin: var(--s4) 0; }
+.sn-search, .sn-selects label { display: grid; gap: var(--s1); min-width: 0; }
+.sn-selects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
+.sn-hide { display: flex; align-items: center; gap: var(--s2); min-height: 44px; cursor: pointer; }
+.sn-hide input { width: 20px; height: 20px; accent-color: var(--tx); }
+.sn-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin: var(--s4) 0; }
+.sn-pages, .sn-sport-actions { display: flex; align-items: center; gap: var(--s2); }
+.sn-favorite { flex: 0 0 auto; min-width: 44px; min-height: 44px; }
+.sn-favorite[aria-pressed="true"] { color: var(--amber); }
+.pf-mastery-row:has(.sn-favorite) { grid-template-columns: 36px minmax(0, 1fr) 44px; }
+@media (max-width: 540px) {
+  .sn-selects { grid-template-columns: 1fr; }
+  .sn-sport-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .rc-sport .asc-section-head h2 { overflow-wrap: anywhere; }
+}
+
 /* ---------- QG ---------- */
 .qg-head {
   margin-bottom: var(--s6);
@@ -3319,6 +3336,16 @@
 .at-tabs {
   margin: var(--s2) 0;
 }
+.at-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin: var(--s3) 0;
+}
+.at-filters [aria-pressed="true"] {
+  border-color: var(--cy);
+  color: var(--cy);
+}
 .at-grid {
   display: grid;
   gap: var(--s3);
@@ -3361,6 +3388,7 @@
   display: flex;
   gap: var(--s2);
   align-items: center;
+  flex-wrap: wrap;
 }
 .at-price {
   font-family: var(--font-display);
@@ -3381,6 +3409,10 @@
   border-radius: var(--r2);
   background: var(--bg-2);
   overflow: hidden;
+}
+.at-preview-large {
+  min-height: 180px;
+  margin-bottom: var(--s4);
 }
 .at-portrait img {
   width: 64px;
@@ -3456,6 +3488,25 @@
   letter-spacing: 0.2em;
   color: var(--c-ac);
   margin-top: 6px;
+}
+.at-preview-large .at-portrait img {
+  width: 112px;
+  height: 112px;
+}
+.at-preview-large .at-map {
+  width: min(280px, 100%);
+  height: 160px;
+}
+.at-preview-large .at-card {
+  width: min(240px, 100%);
+  padding: 20px;
+}
+.at-preview-large .at-card small,
+.at-preview-large .at-card em {
+  font-size: 12px;
+}
+.at-preview-large .at-card strong {
+  font-size: 28px;
 }
 [data-card="card-chalk"] { --c-bg: #e8ebe6; --c-tx: #1b2228; --c-ac: #2a6f7a; --c-line: #c9cfc8; }
 [data-card="card-ember"] { --c-bg: linear-gradient(135deg, #2a120a, #7a3418); --c-tx: #fff3e6; --c-ac: #f4bb54; --c-line: rgba(244, 187, 84, 0.45); }

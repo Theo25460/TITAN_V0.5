@@ -19,7 +19,7 @@ const PLUS = [
   "2 campagnes de plus : les forges d’Obsidienne et la citadelle des Aurores",
   "20 routines nommées au lieu de 5",
   "Jusqu’à 20 sportifs dans l’espace coach",
-  "4 pièces de collection TITAN+ (Aegis, Givre, Aurores, Obsidienne)",
+  "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
 ];
 const offersHtml = `<div class="pub-grid cols-2">
   <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
@@ -258,11 +258,22 @@ guide({
 
 /* ---------- Tarifs ---------- */
 const tarifsFaq = faq([
-  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses, ta progression, tes insignes et tes crédits restent. Les campagnes TITAN+ ne peuvent plus être poursuivies, les pièces TITAN+ reviennent au style d’origine, et la capacité coach revient à 3 pour les nouveaux suivis."],
+  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses, ta progression, tes insignes et tes crédits restent. Les campagnes TITAN+ ne peuvent plus être poursuivies, les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis."],
+  ["TITAN+ ajoute-t-il des analyses sportives ?", "Aujourd’hui, Classique et TITAN+ donnent accès aux mêmes analyses sportives. TITAN+ ajoute les capacités et les campagnes présentées sur cette page."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
   ["Comment résilier ?", "Depuis le lien de gestion de l’e-mail de reçu Paddle, ou en écrivant au support. L’accès reste actif jusqu’à la fin de la période payée."],
   ["Y a-t-il de la publicité ?", "Non, ni dans l’offre gratuite ni dans TITAN+."],
 ]);
+// Capacity diagrams describe existing limits, not a fictional application screen.
+const capacityMeter = (free, label) => `<div class="pub-benefit-meter" role="img" aria-label="${free} ${label} en Classique, 20 avec TITAN+">${Array.from({ length: 20 }, (_, i) => `<span${i < free ? ' class="is-free"' : ""}></span>`).join("")}</div>`;
+const concreteBenefits = `<section class="pub-section" id="concret"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">TITAN+, concrètement</p><h2>Plus de place pour ta pratique.</h2><p class="pub-lead">Les capacités et les mondes disponibles aujourd’hui, pour choisir selon ton usage.</p></div>
+  <div class="pub-grid cols-3">
+    <article class="pub-card" data-benefit="routines">${icon("layers")}<h3>Garde plusieurs cycles de musculation.</h3><p class="pub-price">5 → 20 <small>routines nommées</small></p>${capacityMeter(5, "routines")}<p>Retrouve tes exercices, séries, charges et répétitions sans reconstruire la séance. Pratique si tu alternes plusieurs programmes.</p><p class="pub-fine">5 emplacements en Classique ; 15 de plus avec TITAN+.</p><a href="/carnet-musculation" class="asc-btn asc-btn-secondary">Voir le carnet musculation</a></article>
+    <article class="pub-card" data-benefit="coach">${icon("group")}<h3>Accompagne un groupe plus large.</h3><p class="pub-price">3 → 20 <small>sportifs suivis</small></p>${capacityMeter(3, "sportifs suivis")}<p>Consulte le périmètre autorisé et propose des séances. Chaque sportif choisit ce qu’il partage et peut retirer son accord.</p><p class="pub-fine">L’abonnement concerne le coach. Le sportif suivi peut rester en Classique.</p><a href="/pour-les-coachs" class="asc-btn asc-btn-secondary">Voir le fonctionnement coach</a></article>
+    <article class="pub-card" data-benefit="worlds">${icon("compass")}<h3>Explore deux mondes supplémentaires.</h3><div class="pub-benefit-worlds">${C.worlds.filter((w) => w.tier === "plus").map((w) => `<a href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span>${w.name}</span></a>`).join("")}</div><p>18 chapitres et 2 gardiens en plus. Même effort, mêmes règles de progression. L’Aube et les Marées restent accessibles gratuitement.</p></article>
+  </div>
+  <aside class="pub-card" id="stats-free"><h3>Tes repères sportifs restent gratuits.</h3><p>Récap hebdomadaire, historique, records et tendances de volume, d’allure, de force ou d’escalade : les analyses déjà disponibles restent gratuites, avec ou sans TITAN+.</p><a class="asc-btn asc-btn-secondary" href="/comprendre-mes-donnees">Comprendre les analyses</a></aside>
+</div></section>`;
 writeFileSync(
   "tarifs.html",
   page({
@@ -271,15 +282,17 @@ writeFileSync(
     description: "TITAN est gratuit pour journaliser, analyser et progresser. TITAN+ à 5 € par mois ajoute deux campagnes, des routines et de la capacité coach, jamais d’XP.",
     image: "aurora",
     schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : campagnes, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", price: "5", priceCurrency: "EUR", url: `${SITE}/tarifs` } }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journaliser, comprendre et progresser ne doivent rien coûter. TITAN+ finance le projet et ouvre plus de monde, sans jamais vendre de progression.</p></div></header>
+    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journal, statistiques et progression sont accessibles gratuitement. TITAN+ ajoute des emplacements, de la capacité coach et deux mondes à explorer.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
       <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
+      ${concreteBenefits}
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2></div><div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Fonction</th><th>Classique</th><th>TITAN+</th></tr></thead><tbody>${[
         ["Journal, 260 sports, export CSV et JSON", "Inclus", "Inclus"],
         ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus"],
+        ["Analyses sportives et historique actuellement disponibles", "Inclus", "Inclus"],
         ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus"],
         ["Campagnes d’aventure", "2 mondes · 18 chapitres", "4 mondes · 36 chapitres"],
         ["Communauté, défis, expéditions, guilde", "Inclus", "Inclus"],
-        ["Atelier (pièces gagnées avec les crédits)", "Inclus", "Inclus + 4 pièces TITAN+"],
+        ["Atelier (tous les styles gagnables gratuitement)", "Inclus", "Inclus + accès temporaire à 4 pièces"],
         ["Routines nommées", "5", "20"],
         ["Sportifs suivis dans l’espace coach", "3", "20"],
         ["Profil public et images à partager", "Inclus", "Inclus"],
