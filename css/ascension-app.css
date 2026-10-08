@@ -1,5 +1,22 @@
 /* TITAN 300 — page compositions built on ascension.css. */
 
+/* Shared Records / Maîtrise navigation: controls stay compact, sport cards are paginated. */
+.sn-controls { display: grid; gap: var(--s3); margin: var(--s4) 0; }
+.sn-search, .sn-selects label { display: grid; gap: var(--s1); min-width: 0; }
+.sn-selects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
+.sn-hide { display: flex; align-items: center; gap: var(--s2); min-height: 44px; cursor: pointer; }
+.sn-hide input { width: 20px; height: 20px; accent-color: var(--tx); }
+.sn-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin: var(--s4) 0; }
+.sn-pages, .sn-sport-actions { display: flex; align-items: center; gap: var(--s2); }
+.sn-favorite { flex: 0 0 auto; min-width: 44px; min-height: 44px; }
+.sn-favorite[aria-pressed="true"] { color: var(--amber); }
+.pf-mastery-row:has(.sn-favorite) { grid-template-columns: 36px minmax(0, 1fr) 44px; }
+@media (max-width: 540px) {
+  .sn-selects { grid-template-columns: 1fr; }
+  .sn-sport-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .rc-sport .asc-section-head h2 { overflow-wrap: anywhere; }
+}
+
 /* ---------- QG ---------- */
 .qg-head {
   margin-bottom: var(--s6);

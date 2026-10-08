@@ -17,6 +17,8 @@
     "weekly_recap_viewed",
     "premium_checkout_started",
     "premium_activated",
+    "sport_navigation_searched",
+    "sport_navigation_filtered",
   ]);
   const ONCE = new Set(["signup", "onboarding_completed", "first_session", "second_session", "premium_activated"]);
   const PROPS = { family: /^[a-z]{2,20}$/, sport: /^[a-z0-9_]{2,40}$/, step: /^[a-z0-9_-]{1,30}$/, source: /^[a-z0-9_-]{1,30}$/, plan: /^[a-z0-9_-]{1,30}$/, world: /^[a-z0-9_-]{1,30}$/, chapter: /^\d{1,2}$/, kind: /^[a-z_]{1,20}$/, count: /^\d{1,4}$/ };
