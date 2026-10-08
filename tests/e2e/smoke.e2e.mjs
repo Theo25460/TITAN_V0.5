@@ -262,6 +262,126 @@ test("atelier: a delayed response cannot copy the previous user's balance or app
   await context.close();
 });
 
+async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = false) {
+  const fixture = await newPage(360);
+  await fixture.page.goto(BASE + "/profile", { waitUntil: "load" });
+  await fixture.page.evaluate(({ gate, fromGuest, emptyHistory }) => {
+    const a = "00000000-0000-4000-8000-000000000123";
+    const b = "00000000-0000-4000-8000-000000000456";
+    window.state.user.id = fromGuest ? "guest_bootstrap" : a;
+    const f = window.bootstrapFixture = {
+      a, b, actor: a, entered: false, heldOnce: false, calls: [],
+      profile: { id: a, username: "Compte A", credits: 10, xp: 0, level: 1, friend_code: gate === "friend" ? null : "A-FRIEND", state_version: 1 },
+    };
+    const step = async (name, value) => {
+      f.calls.push({ name, owner: window.state.user.id });
+      if (name === gate && !f.heldOnce) {
+        f.heldOnce = f.entered = true;
+        await new Promise(resolve => { f.release = resolve; });
+      }
+      return value;
+    };
+    window.TITAN_DB_STATUS.issues = [];
+    window.titanMaybeSubmitCacheReconciliation = undefined;
+    window.titanClient = {
+      auth: { getSession: () => step("session", { data: { session: { user: { id: f.actor, user_metadata: {} } } } }), onAuthStateChange() {} },
+      from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: () => step("profile", { data: gate === "create" ? null : structuredClone(f.profile) }) }),
+      rpc: (name) => {
+        if (name === "titan_save_profile_state") return step("create", { data: structuredClone(f.profile) });
+        if (name === "titan_assign_friend_code") return step("friend", { data: "A-FRIEND" });
+        if (name === "titan_atelier") return step("appearance", { data: { owner: f.actor, appearance: {}, items: [], plus: { active: false } } });
+        return Promise.resolve({ error: { code: "PGRST202" } });
+      },
+    };
+    window.TitanTraining.paginate = (_client, owner) => {
+      // RLS would return no A rows after authentication has moved to B. A request
+      // begun before that switch may still complete later with A's own rows.
+      const logs = !emptyHistory && owner === f.actor ? [{ id: "A-session", user_id: a, client_event_id: "A-event", sport: "running", category: "endurance", unit: "min", val: 30, date: new Date().toISOString(), details: { duration: 30 }, xp: 0 }] : [];
+      return step("history", { logs, total: logs.length });
+    };
+    Object.assign(window.TitanQueue, {
+      migrate: () => step("migrate"), refresh: () => step("refresh", []),
+      saveHistory: () => step("saveHistory"), list: () => [],
+    });
+    // Exercise the real bootstrap while keeping unrelated page-start timers from
+    // launching a third synchronization during this deliberately controlled race.
+    const sync = window.syncWithSupabase;
+    window.syncWithSupabase = () => Promise.resolve();
+    f.run = () => sync();
+    f.start = () => { f.pending = sync(); };
+  }, { gate, fromGuest, emptyHistory });
+  return fixture;
+}
+
+test("bootstrap: delayed responses never replace another account's profile or history", async () => {
+  for (const [gate, emptyHistory] of [...["session", "profile", "create", "friend", "appearance", "history", "migrate", "refresh", "saveHistory"].map(x => [x, false]), ["appearance", true]]) {
+    const { page, context, errors } = await bootstrapPage(gate, false, emptyHistory);
+    await page.evaluate(() => { window.bootstrapFixture.start(); });
+    await page.waitForFunction(() => window.bootstrapFixture.entered);
+    const result = await page.evaluate(async () => {
+      const f = window.bootstrapFixture;
+      f.actor = f.b;
+      Object.assign(window.state.user, { id: f.b, name: "Compte B", credits: 777, xp: 123, level: 3 });
+      window.state.history = [{ id: "B-session", user_id: f.b, sport: "yoga", unit: "min", val: 20, date: new Date().toISOString(), details: { duration: 20 } }];
+      window.state.archivedHistory = [{ id: "B-archive", user_id: f.b }];
+      window.state.meta = { profileVersion: 77, historyTotal: 2, owner: f.b };
+      window.titanCloudHistoryLoadedAt = 444;
+      const expected = structuredClone(window.state);
+      const callCount = f.calls.length;
+      f.release();
+      await f.pending;
+      return { expected, actual: window.state, lateCalls: f.calls.slice(callCount), loadedAt: window.titanCloudHistoryLoadedAt, issues: window.TITAN_DB_STATUS.issues };
+    });
+    assert.deepEqual(result.actual, result.expected, `${gate}: B's identity, balance, history and metadata stay intact`);
+    assert.deepEqual(result.lateCalls, [], `${gate}: obsolete bootstrap stops before further account operations`);
+    assert.equal(result.loadedAt, 444);
+    assert.deepEqual(result.issues, []);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("bootstrap: the normal guest-to-account synchronization still loads confirmed history", async () => {
+  const { page, context, errors } = await bootstrapPage(null, true);
+  const result = await page.evaluate(async () => {
+    window.bootstrapFixture.start();
+    await window.bootstrapFixture.pending;
+    return { id: window.state.user.id, credits: window.state.user.credits, history: window.state.history, version: window.state.meta.profileVersion, issues: window.TITAN_DB_STATUS.issues };
+  });
+  assert.equal(result.id, "00000000-0000-4000-8000-000000000123");
+  assert.equal(result.credits, 10);
+  assert.equal(result.history[0]?.id, "A-session");
+  assert.equal(result.history[0]?.syncStatus, "confirmed");
+  assert.equal(result.version, 1);
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("bootstrap: an older synchronization cannot overwrite a newer one for the same account", async () => {
+  const { page, context, errors } = await bootstrapPage("profile");
+  await page.evaluate(() => { window.bootstrapFixture.start(); });
+  await page.waitForFunction(() => window.bootstrapFixture.entered);
+  const result = await page.evaluate(async () => {
+    const f = window.bootstrapFixture;
+    f.profile = { ...f.profile, username: "Profil récent", credits: 55, state_version: 2 };
+    await f.run();
+    const expected = structuredClone(window.state);
+    const callCount = f.calls.length;
+    f.release();
+    await f.pending;
+    return { expected, actual: window.state, lateCalls: f.calls.slice(callCount), issues: window.TITAN_DB_STATUS.issues };
+  });
+  assert.equal(result.expected.user.credits, 55);
+  assert.deepEqual(result.actual, result.expected, "the newer profile and history win");
+  // The successful newer sync also starts independent Auth reads from the page.
+  // The older bootstrap already read its session before its held profile request.
+  assert.deepEqual(result.lateCalls.filter(call => call.name !== "session"), []);
+  assert.deepEqual(result.issues, []);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("app pages fit a 360 px screen without errors", async () => {
   const { page, errors } = await newPage(360);
   for (const path of ["/aujourdhui", "/training", "/journal", "/stats", "/records", "/objectifs", "/prevoir", "/adventure", "/profile", "/social", "/coaching", "/boutique", "/onboarding", "/login"]) {

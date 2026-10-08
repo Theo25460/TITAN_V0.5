@@ -1219,15 +1219,22 @@ window.titanRetry = async function(task, options = {}) {
 };
 
 // 6. SYNC PROFIL UTILISATEUR (AUTH)
+let titanProfileSyncGeneration = 0;
 window.syncWithSupabase = async function() {
-    if (!window.titanClient) {
+    const client = window.titanClient;
+    const generation = ++titanProfileSyncGeneration;
+    let expectedOwner = window.state?.user?.id;
+    const current = () => generation === titanProfileSyncGeneration
+        && window.titanClient === client && window.state?.user?.id === expectedOwner;
+    if (!client) {
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('offline', 'Connexion indisponible');
         return;
     }
 
     try {
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Récupération…');
-        const sessionResult = await withTitanTimeout(window.titanClient.auth.getSession(), 4000, 'Session Supabase');
+        const sessionResult = await withTitanTimeout(client.auth.getSession(), 4000, 'Session Supabase');
+        if (!current()) return;
         if (sessionResult.error) {
             trackDbIssue('auth.session', sessionResult.error);
             return;
@@ -1239,11 +1246,12 @@ window.syncWithSupabase = async function() {
             return;
         }
 
-        let { data: profile, error } = await withTitanTimeout(window.titanClient
+        let { data: profile, error } = await withTitanTimeout(client
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle(), 4000, 'Profil Supabase');
+        if (!current()) return;
 
         if (error) {
             trackDbIssue('profiles.select', error);
@@ -1253,10 +1261,11 @@ window.syncWithSupabase = async function() {
         if (!profile) {
             if (!window.state) createDefaultState();
             window.state.user.id = session.user.id;
+            expectedOwner = session.user.id;
             ensureStateIntegrity();
             const signupName = session.user.user_metadata?.username || session.user.user_metadata?.full_name || "Agent";
 
-            if (!window.titanClient.rpc || typeof window.titanClient.rpc !== 'function') {
+            if (!client.rpc || typeof client.rpc !== 'function') {
                 const rpcRequiredError = new Error('PROFILE_CREATE_RPC_REQUIRED');
                 rpcRequiredError.code = 'PROFILE_CREATE_RPC_REQUIRED';
                 trackDbIssue('profiles.create.rpc', rpcRequiredError);
@@ -1265,7 +1274,7 @@ window.syncWithSupabase = async function() {
 
             const stateSnapshot = cloneProfileStateForCloud(window.state);
             const { data: createdProfile, error: createProfileError } = await withTitanTimeout(
-                window.titanClient.rpc('titan_save_profile_state', {
+                client.rpc('titan_save_profile_state', {
                     p_state: stateSnapshot,
                     p_username: window.titanCleanProfileName(signupName) || 'Agent',
                     p_avatar: window.state.user.avatar || null,
@@ -1278,6 +1287,7 @@ window.syncWithSupabase = async function() {
                 5000,
                 'Creation profil RPC'
             );
+            if (!current()) return;
 
             if (createProfileError) {
                 trackDbIssue('profiles.create.rpc', createProfileError);
@@ -1291,7 +1301,8 @@ window.syncWithSupabase = async function() {
             const reason = profile.suspension_reason || "Compte suspendu par l'administration TITAN OS.";
             if (window.showNotification) window.showNotification('error', 'ACCES SUSPENDU', reason);
             else console.warn('[ACCES SUSPENDU]', reason);
-            await window.titanClient.auth.signOut();
+            await client.auth.signOut();
+            if (!current()) return;
             localStorage.removeItem(window.STATE_KEY);
             createDefaultState();
             saveState({ forceCloud: false });
@@ -1300,12 +1311,13 @@ window.syncWithSupabase = async function() {
         }
 
         if (!profile.friend_code) {
-            if (window.titanClient.rpc) {
+            if (client.rpc) {
                 const { data: assignedCode, error: assignError } = await withTitanTimeout(
-                    window.titanClient.rpc('titan_assign_friend_code'),
+                    client.rpc('titan_assign_friend_code'),
                     4000,
                     'Generation code ami'
                 );
+                if (!current()) return;
                 if (!assignError && assignedCode) {
                     profile.friend_code = assignedCode;
                 } else if (assignError && assignError.code !== 'PGRST202') {
@@ -1365,16 +1377,23 @@ window.syncWithSupabase = async function() {
         if (profile.last_seen_news_version) window.state.user.last_seen_news_version = profile.last_seen_news_version;
 
         window.state.user.id = profile.id || session.user.id;
+        expectedOwner = session.user.id;
         ensureStateIntegrity();
+        if (!current()) return;
         await window.titanSyncAppearance();
+        if (!current()) return;
 
-        const historyResult = await window.TitanTraining.paginate(window.titanClient,session.user.id);
+        const historyResult = await window.TitanTraining.paginate(client,session.user.id);
+        if (!current()) return;
         await window.TitanQueue.migrate();
+        if (!current()) return;
         const pending=await window.TitanQueue.refresh();
+        if (!current()) return;
         const confirmed=historyResult.logs.map(l=>({...l,cat:l.category,syncStatus:'confirmed'}));
         const ids=new Set(confirmed.map(l=>l.client_event_id));
         const provisional=pending.filter(i=>i.ownerId===session.user.id&&!ids.has(i.payload.details.client_event_id)).map(i=>({...i.payload,id:i.payload.details.client_event_id,client_event_id:i.payload.details.client_event_id,cat:i.payload.category,xp:0,syncStatus:i.status}));
         await window.TitanQueue.saveHistory(session.user.id,confirmed);
+        if (!current()) return;
         window.titanCloudHistoryLoadedAt=Date.now();
         window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
         window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
@@ -1390,6 +1409,7 @@ window.syncWithSupabase = async function() {
         if (document.getElementById('sports-grid') && typeof window.renderSports === 'function') window.renderSports();
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
     } catch (e) {
+        if (!current()) return;
         console.error("Erreur Sync:", e);
         trackDbIssue('syncWithSupabase', e);
         window.dispatchEvent(new CustomEvent('titan:history-error'));
