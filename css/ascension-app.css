@@ -3664,6 +3664,14 @@
 .compare-source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .compare-sources { padding-left: 18px; }
 .compare-sources li { margin: 10px 0; }
+.report-controls { display: grid; gap: 8px; max-width: 420px; margin: 20px 0; }
+#report-status { margin: 16px 0; }
+.report-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+.report-metrics dt { font-size: .8rem; color: var(--tx-2); }
+.report-metrics dd { margin: 6px 0 0; font-size: 1.4rem; font-weight: 700; }
+.report-results section { margin-top: 24px; }
+#report-sport-search { display: block; width: 100%; margin-top: 8px; }
+.report-pages { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: .8rem; }
 @media (max-width: 540px) {
   .compare-controls, .compare-source-grid { grid-template-columns: 1fr; }
   .compare-body { padding: 0 12px 16px; }

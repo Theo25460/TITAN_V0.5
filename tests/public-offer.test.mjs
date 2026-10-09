@@ -48,3 +48,19 @@ test("committed landing and prices are reproducible from the offer generator", (
     assert.ok(generated(name) === readFileSync(join(root, name), "utf8"), `${name}: regenerate after editing the source`);
   }
 });
+
+test("generated report offer explains aggregated CSV, provisional periods and free journal exports", () => {
+  const html = generated("tarifs.html");
+  const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];
+  const answer = graph.find(x => x["@type"] === "FAQPage").mainEntity.find(x => /bilans/.test(x.name))?.acceptedAnswer.text;
+  assert.ok(answer, "report FAQ exists");
+  assert.match(answer, /mensuel.*annuel/);
+  assert.match(answer, /provisoire/);
+  assert.match(answer, /CSV agrégé/);
+  assert.match(answer, /CSV et JSON.*gratuit/);
+  assert.match(answer, /mise à jour du serveur/);
+  assert.ok(html.includes(`<p>${answer}</p>`));
+  assert.match(html, /href="\/stats#bilans"/);
+  assert.match(generated("index.html"), /Bilans mensuels et annuels.*après mise à jour serveur/);
+  assert.equal(graph.find(x => x["@type"] === "Product").offers.price, "5");
+});

@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { readFileSync } from "node:fs";
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server;
@@ -46,6 +47,184 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
+async function reportPage(width = 360, access = "plus", many = false) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/rapports.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/stats", { waitUntil: "load" });
+  assert.equal(await page.locator("#bilans").count(), 1, "secondary report surface exists");
+  // Finish the real guest adventure boot before replacing the authenticated report gateway.
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  await page.evaluate(({ access, many }) => {
+    if (access !== "guest") window.state.user.id = "00000000-0000-4000-8000-000000000123";
+    window.state.user.is_elite = true;
+    window.reportAccess = access; window.reportMany = many; window.reportFactor = 1; window.reportCalls = [];
+    window.makeReport = p => {
+      const owner = window.state.user.id;
+      if (window.reportAccess === "free") return { version: 1, owner, available: false, reason: "premium_required" };
+      const annual = p.p_period === "year", previous = p.p_offset === 1;
+      const from = annual ? (previous ? "2023-01-01" : "2024-01-01") : (previous ? "2024-02-01" : "2024-03-01");
+      const to = annual ? (previous ? "2024-01-01" : "2025-01-01") : (previous ? "2024-03-01" : "2024-04-01");
+      const shift = n => { const d = new Date(from + "T12:00:00Z"); annual ? d.setUTCMonth(d.getUTCMonth() + n) : d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+      const size = annual ? (previous ? 12 : 3) : (previous ? 29 : 15), f = window.reportFactor;
+      const sports = window.reportMany ? Array.from({ length: 200 }, (_, i) => ({ sport: "sport_" + i, sessions: 1, active_days: 1, minutes: f, estimated_sessions: 0 }))
+        : [{ sport: "running", sessions: 1, active_days: 1, minutes: 30 * f, estimated_sessions: 1 }, { sport: "yoga", sessions: 1, active_days: 1, minutes: 20 * f, estimated_sessions: 0 }];
+      const sessions = window.reportMany ? 200 : 2, minutes = window.reportMany ? 200 * f : 50 * f, estimated_sessions = window.reportMany ? 0 : 1;
+      const sources = window.reportMany ? Array.from({ length: 5 }, (_, i) => ({ id: "00000000-0000-4000-8000-" + String(999 - i).padStart(12, "0"), sport: "sport_" + i, date: from + "T12:00:00Z", minutes: f, estimated: false }))
+        : [{ id: "00000000-0000-4000-8000-000000000999", sport: "yoga", date: from + "T13:00:00Z", minutes: 20 * f, estimated: false }, { id: "00000000-0000-4000-8000-000000000998", sport: "running", date: from + "T12:00:00Z", minutes: 30 * f, estimated: true }];
+      return { version: 1, owner, available: true, period: p.p_period, offset: p.p_offset, timezone: p.p_timezone, as_of: "2024-03-15T12:00:00Z", from, to, current: !previous,
+        sessions, active_days: 1, minutes, estimated_sessions, sports, sources,
+        series: Array.from({ length: size }, (_, i) => ({ from: shift(i), to: shift(i + 1), sessions: i === 0 ? sessions : 0, active_days: i === 0 ? 1 : 0, minutes: i === 0 ? minutes : 0, estimated_sessions: i === 0 ? estimated_sessions : 0 })) };
+    };
+    window.titanClient = { rpc: async (name, params) => {
+      if (name !== "titan_practice_report") throw Error("unexpected report RPC");
+      window.reportCalls.push(params);
+      if (window.reportAccess === "missing") return { error: { code: "PGRST202" } };
+      if (window.reportAccess === "error") return { error: { message: "Network failed" } };
+      return { data: window.makeReport(params) };
+    } };
+  }, { access, many });
+  await page.addScriptTag({ path: ROOT + "/js/app/rapports.js" });
+  await page.waitForSelector("#report-panel > summary");
+  return fixture;
+}
+
+test("reports: four choices, provisional labels, estimates and sources at 360/1280 px", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await reportPage(width);
+    assert.equal(await page.locator("#report-panel").getAttribute("open"), null);
+    await page.locator("#report-panel > summary").click();
+    await page.waitForSelector(".report-results");
+    for (const [choice, size] of [["month:0", 15], ["month:1", 29], ["year:0", 3], ["year:1", 12]]) {
+      await page.selectOption("#report-period", choice);
+      await page.click("#report-submit");
+      await page.waitForSelector(".report-results");
+      assert.match(await page.locator(".report-results").innerText(), choice.endsWith(":0") ? /provisoire/i : /période complète/i);
+      assert.match(await page.locator(".report-results").innerText(), /estimée/);
+      assert.equal(await page.locator('[data-report-metric="active_days"]').innerText(), "1");
+      await page.locator("#report-calendar summary").click();
+      assert.equal(await page.locator("#report-calendar tbody tr").count(), size);
+    }
+    assert.equal(await page.locator('.report-sources a[href="/journal?session=00000000-0000-4000-8000-000000000999"]').count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.locator("#bilans").screenshot({ path: `/tmp/titan-reports-${width}.png`, animations: "disabled" });
+    await context.close();
+  }
+});
+test("reports: CSV uses a fresh server snapshot and retains all 200 sports beyond pagination", async () => {
+  const { page, context, errors } = await reportPage(360, "plus", true);
+  await page.locator("#report-panel > summary").click(); await page.waitForSelector(".report-results");
+  assert.equal(await page.locator("#report-sport-rows tr").count(), 20);
+  await page.click("#report-next"); assert.match(await page.locator("#report-page").innerText(), /2.*10/);
+  await page.fill("#report-sport-search", "sport_199"); assert.equal(await page.locator("#report-sport-rows tr").count(), 1);
+  const calls = await page.evaluate(() => window.reportCalls.length);
+  await page.evaluate(() => { window.reportFactor = 2; });
+  const downloadPromise = page.waitForEvent("download"); await page.click("#report-export");
+  const download = await downloadPromise, csv = readFileSync(await download.path(), "utf8");
+  assert.match(download.suggestedFilename(), /bilan.*\.csv$/);
+  assert.equal(csv.split("\r\n").filter(s => s.startsWith('"Sport"')).length, 200);
+  assert.match(csv, /"200";"1";"400";"0"/);
+  assert.doesNotMatch(csv, /00000000-0000/);
+  assert.ok(await page.evaluate(() => window.reportCalls.length) > calls);
+  assert.deepEqual(errors, []); await context.close();
+});
+test("reports: guest, Free, old server and network errors never expose a paid aggregate", async () => {
+  for (const access of ["guest", "free", "missing", "error"]) {
+    const { page, context, errors } = await reportPage(360, access);
+    await page.locator("#report-panel > summary").click();
+    await page.waitForFunction(() => !document.querySelector("#report-status").textContent.includes("Calcul") && !!document.querySelector("#report-status").textContent);
+    assert.equal(await page.locator(".report-results").count(), 0);
+    assert.equal(await page.locator("#report-export").count(), 0);
+    assert.equal(await page.locator(".wk-hero").count(), 1);
+    assert.match(await page.locator("#report-status").innerText(), access === "missing" ? /mise à jour du serveur/ : access === "error" ? /Réessaie/ : /compte|TITAN\+/);
+    if (access === "guest") assert.equal(await page.evaluate(() => window.reportCalls.length), 0);
+    else assert.ok(await page.evaluate(() => window.reportCalls.length) > 0);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+test("reports: expiry between preview and export blocks download and removes the old report", async () => {
+  const { page, context } = await reportPage(); let downloads = 0; page.on("download", () => downloads++);
+  await page.locator("#report-panel > summary").click(); await page.waitForSelector(".report-results");
+  await page.evaluate(() => { window.reportAccess = "free"; });
+  await page.click("#report-export"); await page.waitForSelector("#report-status a");
+  assert.equal(await page.locator(".report-results").count(), 0); assert.equal(downloads, 0);
+  await context.close();
+});
+test("reports: never-answering request expires at fifteen seconds and can be retried", async () => {
+  const { page, context } = await reportPage(); await page.clock.install();
+  await page.evaluate(() => { window.titanClient.rpc = () => { window.hungReport = true; return new Promise(() => {}); }; });
+  await page.locator("#report-panel > summary").click(); await page.waitForFunction(() => window.hungReport);
+  await page.clock.runFor(15001);
+  assert.match(await page.locator("#report-status").innerText(), /15 secondes/);
+  assert.equal(await page.locator("#report-submit").isDisabled(), false);
+  await page.evaluate(() => { window.titanClient.rpc = async (name, p) => ({ data: window.makeReport(p) }); });
+  await page.click("#report-submit"); await page.waitForSelector(".report-results");
+  await context.close();
+});
+test("reports: malformed totals and obsolete filter response never become a preview", async () => {
+  const { page, context } = await reportPage();
+  await page.evaluate(() => { window.pendingReports = []; window.titanClient.rpc = (name, p) => new Promise(resolve => { const data = window.makeReport(p); window.pendingReports.push({ p, finish: () => resolve({ data }) }); }); });
+  await page.locator("#report-panel > summary").click(); await page.waitForFunction(() => window.pendingReports.length > 0);
+  await page.selectOption("#report-period", "year:1"); await page.click("#report-submit");
+  await page.waitForFunction(() => window.pendingReports.some(r => r.p.p_period === "year"));
+  await page.evaluate(() => window.pendingReports.filter(r => r.p.p_period === "month").forEach(r => r.finish()));
+  assert.equal(await page.locator("#report-output").getAttribute("aria-busy"), "true");
+  await page.evaluate(() => window.pendingReports.filter(r => r.p.p_period === "year").forEach(r => r.finish()));
+  await page.waitForSelector(".report-results"); assert.match(await page.locator("#report-title").innerText(), /2023/);
+  await page.evaluate(() => { window.titanClient.rpc = async (name, p) => { const data = window.makeReport(p); data.active_days = 99; return { data }; }; });
+  await page.click("#report-submit"); await page.waitForFunction(() => document.querySelector("#report-status").textContent.includes("correctement"));
+  assert.equal(await page.locator(".report-results").count(), 0); await context.close();
+});
+test("reports: actual SIGNED_OUT and A→B→A invalidate both preview and pending export", async () => {
+  const { page, context } = await reportPage(); let downloads = 0; page.on("download", () => downloads++);
+  await page.locator("#report-panel > summary").click(); await page.waitForSelector(".report-results");
+  await page.evaluate(async () => {
+    window.__titanAuthListenerBound = false; window.titanClient.auth = { onAuthStateChange(cb) { window.reportAuth = cb; } };
+    await window.setupTitanAuthListener();
+    window.titanClient.rpc = (name, p) => new Promise(resolve => { const data = window.makeReport(p); window.oldReportExport = () => resolve({ data }); });
+  });
+  await page.click("#report-export"); await page.waitForFunction(() => !!window.oldReportExport);
+  await page.evaluate(() => {
+    window.reportAuth("SIGNED_IN", { user: { id: "00000000-0000-4000-8000-000000000456" } });
+    window.reportAuth("SIGNED_IN", { user: { id: "00000000-0000-4000-8000-000000000123" } });
+    window.oldReportExport(); window.dispatchEvent(new Event("focus"));
+  });
+  assert.equal(await page.locator(".report-results").count(), 0); assert.equal(downloads, 0);
+  await page.evaluate(() => window.reportAuth("SIGNED_OUT", null));
+  assert.equal(await page.locator(".report-sources a").count(), 0); await context.close();
+});
+test("reports: close, offline and history change clear stale reports immediately", async () => {
+  const { page, context } = await reportPage();
+  await page.locator("#report-panel > summary").click(); await page.waitForSelector(".report-results");
+  await page.locator("#report-panel > summary").click(); await page.waitForFunction(() => !document.querySelector(".report-results"));
+  await page.locator("#report-panel > summary").click(); await page.waitForSelector(".report-results");
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  assert.equal(await page.locator(".report-results").count(), 0);
+  await page.evaluate(() => window.dispatchEvent(new Event("online"))); await page.waitForSelector(".report-results");
+  await page.evaluate(() => { window.reportAccess = "free"; window.dispatchEvent(new Event("titan:history-updated")); });
+  await page.waitForSelector("#report-status a"); assert.equal(await page.locator(".report-results").count(), 0);
+  await context.close();
+});
+test("reports: empty period is explicit and abort signal cancels obsolete options", async () => {
+  const { page, context } = await reportPage();
+  await page.evaluate(() => {
+    window.reportSignals = []; window.titanClient.rpc = (name, p) => ({
+      abortSignal(signal) { window.reportSignals.push(signal); return new Promise(() => {}); }
+    });
+  });
+  await page.locator("#report-panel > summary").click(); await page.waitForFunction(() => window.reportSignals.length > 0);
+  await page.selectOption("#report-period", "year:1");
+  assert.equal(await page.evaluate(() => window.reportSignals.every(s => s.aborted)), true);
+  await page.evaluate(() => { window.titanClient.rpc = async (name, p) => {
+    const data = window.makeReport(p); Object.assign(data, { sessions: 0, active_days: 0, minutes: 0, estimated_sessions: 0, sports: [], sources: [] });
+    data.series = data.series.map(s => ({ ...s, sessions: 0, active_days: 0, minutes: 0, estimated_sessions: 0 })); return { data };
+  }; });
+  await page.click("#report-submit"); await page.waitForSelector(".report-results");
+  assert.match(await page.locator(".report-results").innerText(), /Aucune séance synchronisée/);
+  assert.equal(await page.locator('[data-report-metric="minutes"]').innerText(), "0 min");
+  await context.close();
+});
+
 // The real analysis UI/shell, with only the remote RPC replaced by its full contract.
 async function comparisonPage(width = 360, access = "plus") {
   const fixture = await newPage(width);
@@ -53,6 +232,7 @@ async function comparisonPage(width = 360, access = "plus") {
   await page.route("**/js/app/analyses.js?*", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
   await page.goto(BASE + "/stats", { waitUntil: "load" });
   assert.equal(await page.locator("#analyses").count(), 1, "Progrès has the secondary comparison panel");
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
   await page.evaluate((access) => {
     const owner = "00000000-0000-4000-8000-000000000123";
     if (access !== "guest") window.state.user.id = owner;

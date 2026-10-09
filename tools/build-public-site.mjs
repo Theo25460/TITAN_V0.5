@@ -17,6 +17,7 @@ const FREE = [
 const PLUS = [
   "Tout le Classique, avec exactement les mêmes règles d’XP et de crédits",
   "Comparaisons de 4, 12 ou 26 semaines, tous sports ou un sport, après mise à jour serveur",
+  "Bilans mensuels et annuels avec CSV agrégé, après mise à jour serveur",
   "2 campagnes de plus : les forges d’Obsidienne et la citadelle des Aurores",
   "20 routines nommées au lieu de 5",
   "Jusqu’à 20 sportifs dans l’espace coach",
@@ -259,8 +260,9 @@ guide({
 
 /* ---------- Tarifs ---------- */
 const tarifsFaq = faq([
-  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes prend fin et les campagnes TITAN+ ne peuvent plus être poursuivies. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis."],
+  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans et à leur CSV agrégé prend fin et les campagnes TITAN+ ne peuvent plus être poursuivies. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis."],
   ["TITAN+ ajoute-t-il des analyses sportives ?", "Oui : les comparaisons de 4, 12 ou 26 semaines complètes avec la période précédente, tous sports ou un sport, ajoutent une lecture de ta pratique. Séances, jours actifs et minutes sont calculés depuis ton historique synchronisé. Le récap, les records et les tendances de base restent gratuits. Le panneau indique clairement si la mise à jour du serveur est encore nécessaire."],
+  ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits. Les bilans ouvrent après la mise à jour du serveur, et chaque téléchargement recalcule les données avec ton accès actuel."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
   ["Comment résilier ?", "Depuis le lien de gestion de l’e-mail de reçu Paddle, ou en écrivant au support. L’accès reste actif jusqu’à la fin de la période payée."],
   ["Y a-t-il de la publicité ?", "Non, ni dans l’offre gratuite ni dans TITAN+."],
@@ -269,6 +271,7 @@ const tarifsFaq = faq([
 const capacityMeter = (free, label) => `<div class="pub-benefit-meter" role="img" aria-label="${free} ${label} en Classique, 20 avec TITAN+">${Array.from({ length: 20 }, (_, i) => `<span${i < free ? ' class="is-free"' : ""}></span>`).join("")}</div>`;
 const concreteBenefits = `<section class="pub-section" id="concret"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">TITAN+, concrètement</p><h2>Prends du recul sur ta pratique.</h2><p class="pub-lead">Compare des périodes de même durée, garde tes routines et explore d’autres mondes.</p></div>
   <article class="pub-card" data-benefit="comparisons"><h3>Qu’est-ce qui change entre deux périodes ?</h3><p class="pub-price">4 · 12 · 26 <small>semaines complètes</small></p><p>Compare tes séances, tes jours actifs et ton temps de pratique à la période précédente. Choisis tous tes sports ou un seul, puis consulte les semaines et les séances sources.</p><p class="pub-fine">Historique synchronisé, durées estimées signalées. Plus de volume ne signifie pas meilleure performance. Si le serveur n’a pas encore reçu la mise à jour, le panneau te l’indique.</p><a class="asc-btn asc-btn-secondary" href="/stats#analyses">Ouvrir les comparaisons</a></article>
+  <article class="pub-card" data-benefit="reports"><h3>Garde une vue de ton mois ou de ton année.</h3><p>Consulte tes séances, tes jours actifs et ton temps de pratique, par sport et dans le calendrier. Télécharge le même bilan en CSV agrégé, recalculé au moment de l’export.</p><p class="pub-fine">Période courante provisoire ou période précédente complète, durées estimées signalées. Disponible après mise à jour serveur ; le journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#bilans">Ouvrir mon bilan</a></article>
   <div class="pub-grid cols-3">
     <article class="pub-card" data-benefit="routines">${icon("layers")}<h3>Garde plusieurs cycles de musculation.</h3><p class="pub-price">5 → 20 <small>routines nommées</small></p>${capacityMeter(5, "routines")}<p>Retrouve tes exercices, séries, charges et répétitions sans reconstruire la séance. Pratique si tu alternes plusieurs programmes.</p><p class="pub-fine">5 emplacements en Classique ; 15 de plus avec TITAN+.</p><a href="/carnet-musculation" class="asc-btn asc-btn-secondary">Voir le carnet musculation</a></article>
     <article class="pub-card" data-benefit="coach">${icon("group")}<h3>Accompagne un groupe plus large.</h3><p class="pub-price">3 → 20 <small>sportifs suivis</small></p>${capacityMeter(3, "sportifs suivis")}<p>Consulte le périmètre autorisé et propose des séances. Chaque sportif choisit ce qu’il partage et peut retirer son accord.</p><p class="pub-fine">L’abonnement concerne le coach. Le sportif suivi peut rester en Classique.</p><a href="/pour-les-coachs" class="asc-btn asc-btn-secondary">Voir le fonctionnement coach</a></article>
@@ -281,9 +284,9 @@ writeFileSync(
   page({
     route: "/tarifs",
     title: "Gratuit et TITAN+ : tout ce qui est inclus | TITAN",
-    description: "Journal et progression gratuits. TITAN+ à 5 €/mois ajoute comparaisons de périodes, campagnes, routines et capacité coach, sans avantage d’XP.",
+    description: "Journal et progression gratuits. TITAN+ à 5 €/mois ajoute comparaisons, bilans mensuels/annuels, campagnes, routines et capacité coach, sans avantage d’XP.",
     image: "aurora",
-    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, campagnes, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", price: "5", priceCurrency: "EUR", url: `${SITE}/tarifs` } }],
+    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, campagnes, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", price: "5", priceCurrency: "EUR", url: `${SITE}/tarifs` } }],
     body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journal, statistiques et progression sont accessibles gratuitement. TITAN+ ajoute des emplacements, de la capacité coach et deux mondes à explorer.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
       <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
       ${concreteBenefits}
@@ -292,6 +295,7 @@ writeFileSync(
         ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus"],
         ["Analyses de base, tendances et historique", "Inclus", "Inclus"],
         ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus après mise à jour serveur"],
+        ["Bilans mensuels/annuels et CSV agrégé", "—", "Inclus après mise à jour serveur"],
         ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus"],
         ["Campagnes d’aventure", "2 mondes · 18 chapitres", "4 mondes · 36 chapitres"],
         ["Communauté, défis, expéditions, guilde", "Inclus", "Inclus"],
