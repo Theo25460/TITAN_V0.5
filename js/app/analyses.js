@@ -14,9 +14,12 @@
   const lastDay = (v) => { const d = new Date(`${v}T12:00:00Z`); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
   let root, panel, form, status, output;
   let sport = null, sequence = 0, timer = null, ownerShown = null, offline = !navigator.onLine;
+  let saved = null, pending = null;
 
   function clear(message = "") {
     sequence++;
+    saved = null;
+    if (pending) { clearTimeout(pending.timer); pending.controller.abort(); pending = null; }
     clearTimeout(timer);
     timer = null;
     output.innerHTML = "";
@@ -66,7 +69,9 @@
 
   async function load() {
     clear();
-    const request = sequence, owner = D().owner();
+    const request = sequence, owner = D().owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
+    const current = () => request === sequence && D().owner() === owner && !D().isGuest() && client === window.titanClient
+      && window.titanAccountTransition?.epoch === epoch && !window.titanAccountTransition?.active && panel.open && !document.hidden && !offline && navigator.onLine;
     ownerShown = owner;
     form.hidden = D().isGuest();
     if (window.titanAccountTransition?.active) return clear("La session a changé. Attends la synchronisation du compte ou reconnecte-toi.");
@@ -77,12 +82,19 @@
     if (offline || !navigator.onLine) return clear("Hors ligne : les comparaisons reviennent avec la connexion. Tes statistiques de base restent accessibles.");
     if (!window.titanClient) return clear("La connexion au serveur n’est pas prête. Réessaie dans un instant.");
     const options = { p_weeks: Number(form.querySelector("#compare-weeks").value), p_sport: sport, p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" };
+    const job = { controller: new AbortController(), timer: null }; pending = job;
     output.setAttribute("aria-busy", "true");
     form.querySelector("button[type=submit]").disabled = true;
     status.innerHTML = "<p>Calcul des périodes…</p>";
     try {
-      const { data: j, error } = await window.titanClient.rpc("titan_compare_periods", options);
-      if (request !== sequence || D().owner() !== owner || D().isGuest()) return;
+      let query = client.rpc("titan_compare_periods", options);
+      if (typeof query?.abortSignal === "function") query = query.abortSignal(job.controller.signal);
+      const expiry = new Promise((resolve, reject) => {
+        job.controller.signal.addEventListener("abort", () => reject(new Error("COMPARISON_CANCELLED")), { once: true });
+        job.timer = setTimeout(() => { reject(new Error("COMPARISON_TIMEOUT")); job.controller.abort(); }, 15000);
+      });
+      const { data: j, error } = await Promise.race([Promise.resolve(query), expiry]);
+      if (!current()) return;
       if (error) throw error;
       if (!j || j.owner !== owner) throw new Error("INVALID_COMPARISON_RESPONSE");
       if (j.available === false) {
@@ -90,14 +102,19 @@
       } else {
         if (j.available !== true || !valid(j, options)) throw new Error("INVALID_COMPARISON_RESPONSE");
         results(j);
+        saved = { owner, epoch, kind: "comparison", options: { weeks: j.weeks, sport: j.sport } };
+        output.insertAdjacentHTML("afterbegin", '<button type="button" class="asc-btn asc-btn-secondary" id="compare-save-view">Enregistrer cette vue</button>');
         status.innerHTML = "<p>Comparaison calculée.</p>";
         timer = setTimeout(() => { if (panel.open && !document.hidden) load(); }, 60000);
       }
     } catch (e) {
-      if (request !== sequence || D().owner() !== owner) return;
+      if (!current()) return;
       const missing = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
-      clear(missing ? "Les comparaisons ouvrent avec la prochaine mise à jour du serveur. Tes statistiques de base restent disponibles." : "La comparaison n’a pas répondu correctement. Réessaie dans un instant.");
+      clear(missing ? "Les comparaisons ouvrent avec la prochaine mise à jour du serveur. Tes statistiques de base restent disponibles."
+        : e?.message === "COMPARISON_TIMEOUT" ? "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant."
+          : "La comparaison n’a pas répondu correctement. Réessaie dans un instant.");
     } finally {
+      clearTimeout(job.timer); if (pending === job) pending = null;
       if (D().owner() === owner && request === sequence) {
         output.removeAttribute("aria-busy");
         form.querySelector("button[type=submit]").disabled = false;
@@ -130,6 +147,22 @@
     });
     form.querySelector("#compare-sport-results").addEventListener("click", e => { const b = e.target.closest("[data-sport]"); if (b) choose(b.dataset.sport); });
     form.querySelector("#compare-all").addEventListener("click", () => choose(null));
+    output.addEventListener("click", e => {
+      if (e.target.closest("#compare-save-view") && saved && saved.owner === D().owner()
+        && saved.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active)
+        window.dispatchEvent(new CustomEvent("titan:analysis-view-save", { detail: saved }));
+    });
+    window.addEventListener("titan:analysis-view-selected", e => {
+      const d = e.detail;
+      if (!d || d.owner !== D().owner() || d.epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active
+        || D().isGuest() || document.hidden || offline || !navigator.onLine || d.view?.kind !== "comparison" || !window.TitanAnalysisViews.validView(d.view)) return;
+      sport = d.view.options.sport;
+      form.querySelector("#compare-weeks").value = String(d.view.options.weeks);
+      form.querySelector("#compare-sport-q").value = ""; form.querySelector("#compare-sport-results").innerHTML = "";
+      form.querySelector("#compare-sport-current").textContent = sport ? SP().label(sport) : "Tous les sports";
+      if (panel.open) load(); else panel.open = true;
+      panel.scrollIntoView({ block: "nearest" }); form.querySelector("#compare-submit").focus();
+    });
     const refresh = () => {
       if (ownerShown !== D().owner()) { sport = null; choose(null); clear(); }
       if (panel.open && !document.hidden) load(); else clear();

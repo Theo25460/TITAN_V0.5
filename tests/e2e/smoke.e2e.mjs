@@ -88,6 +88,132 @@ async function reportPage(width = 360, access = "plus", many = false) {
   return fixture;
 }
 
+async function viewsPage(width=360, type='report', seeded=false) {
+  const fixture=await (type==='comparison'?comparisonPage(width):reportPage(width));
+  const {page}=fixture;
+  assert.equal(await page.locator('#vues').count(),1,'secondary saved views surface exists');
+  await page.evaluate(seeded=>{
+    const owner=window.state.user.id;
+    const stamp='2026-10-09T20:00:00+00:00';
+    window.viewRows=seeded?[{id:'00000000-0000-4000-8000-000000000333',name:'Mon année',kind:'report',options:{period:'year',offset:1},revision:1,created_at:stamp,updated_at:stamp}]:[];
+    window.viewsAccess='plus';window.viewsCalls=[];
+    window.makeViewList=p=>({version:1,owner:window.state.user.id,available:window.viewsAccess==='plus',...(window.viewsAccess==='plus'?{}:{reason:'premium_required'}),limit:10,count:window.viewRows.length,
+      views:window.viewRows.filter(v=>!p?.p_id||p.p_id===v.id).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at)||(a.id<b.id?-1:1))});
+    const analysis=window.titanClient.rpc;
+    window.viewGateway=async(name,p)=>{
+      if(name==='titan_analysis_views')return {data:window.makeViewList(p)};
+      if(name==='titan_mutate_analysis_view'){
+        if(window.viewsAccess==='free'&&p.p_action==='save')return {error:{message:'PREMIUM_REQUIRED'}};
+        const old=window.viewRows.find(v=>v.id===p.p_id);
+        if(p.p_action==='delete'){window.viewRows=window.viewRows.filter(v=>v.id!==p.p_id);return {data:{version:1,owner:window.state.user.id,action:'delete',deleted_id:p.p_id}};}
+        if(old&&p.p_expected_revision===0&&old.revision===1)return {data:{version:1,owner:window.state.user.id,action:'save',view:{...old}}};
+        if(old&&old.revision!==p.p_expected_revision)return {error:{message:'VIEW_VERSION_CONFLICT'}};
+        if(!old&&window.viewRows.length===10)return {error:{message:'VIEW_LIMIT'}};
+        const view={id:p.p_id,name:p.p_name,kind:p.p_kind,options:structuredClone(p.p_options),revision:(old?.revision||0)+1,created_at:old?.created_at||new Date().toISOString(),updated_at:new Date().toISOString()};
+        window.viewRows=window.viewRows.filter(v=>v.id!==p.p_id).concat(view);
+        return {data:{version:1,owner:window.state.user.id,action:'save',view}};
+      }
+      return analysis(name,p);
+    };
+    window.titanClient.rpc=(name,p)=>{window.viewsCalls.push({name,p});return window.viewGateway(name,p);};
+  },seeded);
+  return fixture;
+}
+
+test('views: save current report, restore fresh, rename and delete at 360/1280 px',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await viewsPage(width);
+    assert.equal(await page.locator('#views-panel').getAttribute('open'),null);
+    await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');
+    await page.selectOption('#report-period','year:1');await page.click('#report-submit');await page.waitForSelector('#report-save-view');
+    await page.click('#report-save-view');await page.waitForSelector('#views-draft-form:not([hidden])');
+    await page.fill('#views-name','Mon année');await page.click('#views-submit');await page.waitForSelector('[data-view]');
+    assert.match(await page.locator('#views-list').innerText(),/Mon année.*Année précédente/s);
+    await page.evaluate(()=>{window.reportFactor=2;});await page.locator('[data-view-action="apply"]').click();
+    await page.waitForFunction(()=>document.querySelector('[data-report-metric="minutes"]')?.textContent==='1 h 40');
+    assert.equal(await page.locator('#report-period').inputValue(),'year:1');
+    const last=await page.evaluate(()=>window.reportCalls.at(-1));assert.equal(last.p_offset,1);assert.ok(last.p_timezone);
+    await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','<b>Privé</b>');await page.click('#views-submit');
+    await page.waitForFunction(()=>document.querySelector('#views-list').textContent.includes('<b>Privé</b>'));assert.equal(await page.locator('#views-list b').count(),0);
+    if(process.env.TITAN_QA_SCREENSHOTS)await page.locator('#vues').screenshot({path:`/tmp/titan-views-${width}.png`,animations:'disabled'});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.locator('[data-view-action="delete"]').click();await page.click('#views-confirm-delete');
+    await page.waitForFunction(()=>document.querySelectorAll('[data-view]').length===0);assert.match(await page.locator('#views-status').innerText(),/supprimée/);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('views: comparison sport and 12 weeks restored with a fresh calculation',async()=>{
+  const {page,context,errors}=await viewsPage(360,'comparison');
+  await page.locator('#compare-panel > summary').click();await page.waitForSelector('#compare-save-view');
+  await page.selectOption('#compare-weeks','12');await page.fill('#compare-sport-q','course');await page.locator('[data-sport="running"]').click();await page.click('#compare-submit');
+  await page.waitForSelector('#compare-save-view');await page.click('#compare-save-view');await page.fill('#views-name','Course 12 semaines');await page.click('#views-submit');await page.waitForSelector('[data-view]');
+  await page.selectOption('#compare-weeks','4');await page.click('#compare-all');await page.locator('[data-view-action="apply"]').click();
+  await page.waitForSelector('#compare-save-view');assert.equal(await page.locator('#compare-weeks').inputValue(),'12');
+  assert.match(await page.locator('#compare-sport-current').innerText(),/Course/);const p=await page.evaluate(()=>window.compareCalls.at(-1));assert.equal(p.p_sport,'running');assert.equal(p.p_weeks,12);
+  assert.deepEqual(errors,[]);await context.close();
+});
+test('views: expired retained parameters are deletable; fresh apply cannot unlock paid reports',async()=>{
+  const {page,context}=await viewsPage(360,'report',true);
+  await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');
+  await page.evaluate(()=>{window.viewsAccess='free';window.reportAccess='free';});
+  await page.locator('[data-view-action="apply"]').click();await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('conservées'));
+  assert.equal(await page.locator('[data-view-action="apply"]').isDisabled(),true);assert.equal(await page.locator('[data-view-action="edit"]').isDisabled(),true);
+  assert.equal(await page.locator('.report-results').count(),0);assert.match(await page.locator('#views-list').innerText(),/Mon année/);
+  await page.locator('[data-view-action="delete"]').click();await page.click('#views-confirm-delete');await page.waitForFunction(()=>!document.querySelector('[data-view]'));
+  await context.close();
+});
+test('views: stable create UUID survives uncertain response; success then refresh error remains honest',async()=>{
+  const {page,context}=await viewsPage();
+  await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');await page.click('#report-save-view');await page.fill('#views-name','Retry');
+  await page.evaluate(()=>{const gateway=window.viewGateway;let first=true;window.viewGateway=async(name,p)=>{const result=await gateway(name,p);if(name==='titan_mutate_analysis_view'&&first){first=false;return {error:{message:'Network lost'}};}return result;};});
+  await page.click('#views-submit');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('vérifie'));
+  await page.click('#views-submit');await page.waitForSelector('[data-view]');
+  const ids=await page.evaluate(()=>window.viewsCalls.filter(c=>c.name==='titan_mutate_analysis_view').map(c=>c.p.p_id));assert.equal(new Set(ids).size,1);assert.equal(await page.evaluate(()=>window.viewRows.length),1);
+  await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Saved');
+  await page.evaluate(()=>{const gateway=window.viewGateway;let saved=false;window.viewGateway=async(name,p)=>{if(name==='titan_analysis_views'&&saved)return {error:{message:'Offline'}};const result=await gateway(name,p);if(name==='titan_mutate_analysis_view')saved=true;return result;};});
+  await page.click('#views-submit');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('enregistrée')&&/actualiser/i.test(document.querySelector('#views-status').textContent));
+  assert.equal(await page.evaluate(()=>window.viewRows[0].name),'Saved');await context.close();
+});
+test('views: malformed list rejected, missing server and timeout recover without retaining stale rows',async()=>{
+  const {page,context}=await viewsPage(360,'report',true);await page.clock.install();
+  await page.evaluate(()=>{window.viewGateway=async()=>({data:{...window.makeViewList({}),owner:'foreign'}});});
+  await page.locator('#views-panel > summary').click();await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('correctement'));assert.equal(await page.locator('[data-view]').count(),0);
+  await page.evaluate(()=>{window.viewGateway=()=>new Promise(resolve=>{window.oldViewReply=()=>resolve({data:window.makeViewList({})});});});
+  await page.click('#views-retry');await page.waitForFunction(()=>!!window.oldViewReply);await page.clock.fastForward(15100);
+  assert.match(await page.locator('#views-status').innerText(),/15 secondes/);await page.evaluate(()=>window.oldViewReply());assert.equal(await page.locator('[data-view]').count(),0);
+  await page.evaluate(()=>{window.viewGateway=async()=>({error:{code:'PGRST202'}});});await page.click('#views-retry');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('mise à jour du serveur'));await context.close();
+});
+test('views: delayed mutations cannot cross an actual A to B to A auth transition',async()=>{
+  const {page,context}=await viewsPage();await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');await page.click('#report-save-view');await page.fill('#views-name','Private A');
+  await page.evaluate(async()=>{window.__titanAuthListenerBound=false;window.titanClient.auth={onAuthStateChange(cb){window.viewsAuth=cb;}};await window.setupTitanAuthListener();const gateway=window.viewGateway;
+    window.viewGateway=(name,p)=>name==='titan_mutate_analysis_view'?new Promise(async resolve=>{const response=await gateway(name,p);window.oldViewMutation=()=>resolve(response);}):gateway(name,p);});
+  await page.click('#views-submit');await page.waitForFunction(()=>!!window.oldViewMutation);
+  await page.evaluate(()=>{window.viewsAuth('SIGNED_IN',{user:{id:'00000000-0000-4000-8000-000000000456'}});window.viewsAuth('SIGNED_IN',{user:{id:'00000000-0000-4000-8000-000000000123'}});window.oldViewMutation();});
+  assert.equal(await page.locator('[data-view]').count(),0);assert.equal(await page.locator('#views-draft-form').isVisible(),false);assert.doesNotMatch(await page.locator('#views-status').innerText(),/enregistrée/);
+  await page.evaluate(()=>window.viewsAuth('SIGNED_OUT',null));assert.equal(await page.locator('[data-view]').count(),0);await context.close();
+});
+
+test('views: closing/offline cancels late mutations; stale rename requires a fresh revision',async()=>{
+  const {page,context}=await viewsPage(360,'report',true);
+  await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Stale');
+  await page.evaluate(()=>{window.viewRows[0].revision=2;window.viewRows[0].name='Other device';});
+  await page.click('#views-submit');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('autre appareil'));
+  assert.equal(await page.evaluate(()=>window.viewRows[0].name),'Other device');
+  await page.click('#views-cancel');await page.waitForFunction(()=>document.querySelector('#views-list').textContent.includes('Other device'));
+  await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Late');
+  await page.evaluate(()=>{const gateway=window.viewGateway;window.viewGateway=(name,p)=>name==='titan_mutate_analysis_view'?new Promise(async resolve=>{const response=await gateway(name,p);window.lateClosedView=()=>resolve(response);}):gateway(name,p);});
+  await page.click('#views-submit');await page.waitForFunction(()=>!!window.lateClosedView);await page.locator('#views-panel > summary').click();await page.evaluate(()=>window.lateClosedView());
+  await page.waitForFunction(()=>!document.querySelector('[data-view]'));
+  assert.equal(await page.locator('[data-view]').count(),0);assert.equal(await page.locator('#views-draft-form').isVisible(),false);
+  await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');await page.evaluate(()=>window.dispatchEvent(new Event('offline')));
+  assert.equal(await page.locator('[data-view]').count(),0);assert.match(await page.locator('#views-status').innerText(),/Hors ligne/);await context.close();
+});
+test('views: expiration during save disables paid draft controls and retains the name',async()=>{
+  const {page,context}=await viewsPage();await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');await page.click('#report-save-view');await page.fill('#views-name','Retained draft');
+  await page.evaluate(()=>{window.viewsAccess='free';});await page.click('#views-submit');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('conservées'));
+  assert.equal(await page.locator('#views-name').isDisabled(),true);assert.equal(await page.locator('#views-submit').isDisabled(),true);assert.equal(await page.locator('#views-name').inputValue(),'Retained draft');await context.close();
+});
+
 test("reports: four choices, provisional labels, estimates and sources at 360/1280 px", async () => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await reportPage(width);

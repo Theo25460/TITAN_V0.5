@@ -57,4 +57,11 @@ fi
 [[ "$guard" == "Refused: economy concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Analysis views concurrency contracts (two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-analysis-views-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "analysis views runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: analysis views concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · analysis views non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-analysis-views-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

@@ -9,11 +9,12 @@
   const last = v => { const d = new Date(v + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
   let root, panel, form, status, output, shown = null, sequence = 0, pending = null, refreshTimer = null;
   let offline = !navigator.onLine, page = 0, search = "";
+  let shownEpoch = null;
   function clear(message = "") {
     sequence++;
     if (pending) { clearTimeout(pending.timer); pending.controller.abort(); pending = null; }
     clearTimeout(refreshTimer); refreshTimer = null;
-    shown = null; page = 0; search = "";
+    shown = null; shownEpoch = null; page = 0; search = "";
     output.innerHTML = ""; output.removeAttribute("aria-busy");
     form.querySelector("button[type=submit]").disabled = false;
     status.innerHTML = message ? `<p>${esc(message)}</p>` : "";
@@ -30,13 +31,14 @@
   }
   function results(j) {
     shown = j;
+    shownEpoch = window.titanAccountTransition?.epoch;
     output.innerHTML = `<div class="report-results compare-results"><h3 id="report-title">${esc(date(j.from))} – ${esc(date(last(j.to)))}</h3>
       <p><strong>${j.current ? "Bilan provisoire" : "Période complète"}</strong> · ${esc(j.timezone)}. Calcul arrêté au ${esc(new Date(j.as_of).toLocaleString("fr-FR", { timeZone: j.timezone }))}.</p>
       <dl class="report-metrics">${[["sessions", "Séances", String], ["active_days", "Jours actifs", String], ["minutes", "Temps de pratique", duration]].map(([key, title, fmt]) => `<div><dt>${title}</dt><dd data-report-metric="${key}">${esc(fmt(j[key]))}</dd></div>`).join("")}</dl>
       <p class="asc-small">${j.estimated_sessions ? `${j.estimated_sessions} durée(s) estimée(s), incluse(s) dans le temps de pratique.` : "Toutes les durées sont renseignées."} Une date compte une seule fois au total, même avec plusieurs sports ; les jours par sport ne se somment pas.</p>
       <p class="asc-small asc-muted">Historique synchronisé uniquement. ${j.current ? "Les jours ou mois à venir ne sont pas encore observés. " : ""}Plus de volume ne signifie pas meilleure performance.</p>
       ${j.sessions === 0 ? '<p>Aucune séance synchronisée dans cette période.</p>' : ""}
-      <button type="button" id="report-export" class="asc-btn asc-btn-secondary">Exporter le bilan CSV</button><p class="asc-small asc-muted">Le téléchargement recalcule le bilan avec ton accès actuel. Le CSV contient les totaux, les sports et le calendrier.</p>
+      <div class="view-actions"><button type="button" id="report-export" class="asc-btn asc-btn-secondary">Exporter le bilan CSV</button><button type="button" id="report-save-view" class="asc-btn asc-btn-secondary">Enregistrer cette vue</button></div><p class="asc-small asc-muted">Le téléchargement recalcule le bilan avec ton accès actuel. Le CSV contient les totaux, les sports et le calendrier.</p>
       <section><h4>Répartition par sport</h4><label for="report-sport-search">Rechercher dans ce bilan</label><input class="asc-input" type="search" id="report-sport-search" placeholder="Nom du sport" autocomplete="off">
         <div class="compare-table-wrap" tabindex="0" role="region" aria-label="Répartition du bilan par sport"><table class="compare-table"><thead><tr><th scope="col">Sport</th><th scope="col">Séances</th><th scope="col">Jours</th><th scope="col">Temps</th></tr></thead><tbody id="report-sport-rows"></tbody></table></div>
         <div class="report-pages"><button type="button" class="asc-btn asc-btn-secondary" id="report-prev">Précédente</button><span id="report-page" role="status"></span><button type="button" class="asc-btn asc-btn-secondary" id="report-next">Suivante</button></div></section>
@@ -110,7 +112,17 @@
     output.addEventListener("click", e => {
       const id = e.target.closest("button")?.id;
       if (id === "report-export") load(true);
+      if (id === "report-save-view" && shown && shown.owner === D().owner() && shownEpoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active)
+        window.dispatchEvent(new CustomEvent("titan:analysis-view-save", { detail: { owner: shown.owner, epoch: shownEpoch, kind: "report", options: { period: shown.period, offset: shown.offset } } }));
       if (id === "report-prev" || id === "report-next") { page += id === "report-next" ? 1 : -1; sportRows(); }
+    });
+    window.addEventListener("titan:analysis-view-selected", e => {
+      const d = e.detail;
+      if (!d || d.owner !== D().owner() || d.epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active
+        || D().isGuest() || document.hidden || offline || !navigator.onLine || d.view?.kind !== "report" || !window.TitanAnalysisViews.validView(d.view)) return;
+      form.querySelector("#report-period").value = `${d.view.options.period}:${d.view.options.offset}`;
+      if (panel.open) load(); else panel.open = true;
+      panel.scrollIntoView({ block: "nearest" }); form.querySelector("#report-submit").focus();
     });
     const refresh = () => panel.open && !document.hidden ? load() : clear();
     ["titan:history-updated", "titan:adventure-updated", "focus", "pageshow", "titan:account-changed"].forEach(ev => window.addEventListener(ev, refresh));

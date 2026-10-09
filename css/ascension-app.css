@@ -3678,3 +3678,10 @@
   .compare-panel > summary { padding: 16px 12px; font-size: 1rem; }
   .compare-table th, .compare-table td { padding: 10px 5px; font-size: .85rem; }
 }
+/* Saved analysis parameters stay secondary, with short actions on narrow screens. */
+.analysis-view { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.analysis-view h3, .analysis-view p, .view-confirm p { overflow-wrap: anywhere; }
+.view-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#views-draft-form { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+#views-draft-form input { width: 100%; }
+.view-confirm { margin-top: 12px; }

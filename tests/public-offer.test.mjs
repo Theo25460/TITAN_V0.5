@@ -64,3 +64,13 @@ test("generated report offer explains aggregated CSV, provisional periods and fr
   assert.match(generated("index.html"), /Bilans mensuels et annuels.*après mise à jour serveur/);
   assert.equal(graph.find(x => x["@type"] === "Product").offers.price, "5");
 });
+
+test("saved views offer describes private parameters, retention, free favorites and unchanged price", () => {
+  const html=generated('tarifs.html');
+  const graph=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])['@graph'];
+  const answer=graph.find(x=>x['@type']==='FAQPage').mainEntity.find(x=>/vues sauvegardées/.test(x.name))?.acceptedAnswer.text;
+  assert.ok(answer,'saved views FAQ');assert.match(answer,/10 vues/);assert.match(answer,/paramètres/);assert.match(answer,/conservées.*supprimées/);
+  assert.match(answer,/favoris.*gratuits/);assert.match(answer,/mise à jour du serveur/);assert.ok(html.includes(`<p>${answer}</p>`));
+  assert.match(html,/href="\/stats#vues"/);assert.match(generated('index.html'),/10 vues d’analyse privées.*après mise à jour serveur/);
+  assert.equal(graph.find(x=>x['@type']==='Product').offers.price,'5');
+});
