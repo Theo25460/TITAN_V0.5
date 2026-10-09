@@ -44,4 +44,4 @@ Après tâches : package whole-branch et UNE revue Sol 6.1 fraîche ; classer pa
 
 ## Progression contrôlée
 
-Task 1 : SQL RED→GREEN local, mutation/RLS/quotas/révisions et runner concurrent commis. Task 2 : 101/101 tests unitaires, build/audit sans erreur (avertissements SEO existants), 52/52 E2E complets en Chromium, captures 360/1280 contrôlées. Revue indépendante et preuve PostgreSQL16 CI encore requises avant livraison ; aucun déploiement ni fermeture du cahier global.
+Task 1 et Task 2 complets avec contrats RED→GREEN : 101/101 tests unitaires, build/audit sans erreur (16 avertissements SEO antérieurs), 52/52 E2E Chromium, captures 360/1280 contrôlées. Unique revue Sol 6.1 sans Critical/Important, trois Minor différés et aucun comportement écarté. CI 37995034526 trois jobs verts, dont PostgreSQL16 deux routes avec quinze suites SQL et concurrence quota/révision. Handoff dans `docs/CDC_WEB_ANALYSIS_VIEWS_HANDOFF_2026-10-09.md` ; le dernier commit documentaire doit aussi passer sa CI, puis la PR et le cahier donnent la preuve canonique. Aucun déploiement ni fermeture du cahier global ; PREM06 reste partiel.
