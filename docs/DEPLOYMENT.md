@@ -113,6 +113,10 @@ Le workflow **Mise en ligne (Netlify)** (`.github/workflows/deploy-netlify.yml`,
 
 Appliquer chaque fichier tel quel (Supabase MCP `apply_migration` avec le nom sans horodatage, ou SQL editor), dans l'ordre, sans en sauter. **Variante en un seul geste** : `supabase/release-300.sql` (généré par `node tools/build-release-sql.mjs`) contient les 9 migrations dans une seule transaction et les inscrit dans l'historique ; il se colle tel quel dans l'éditeur SQL et refuse de s'exécuter deux fois. Vérifié sur le banc : `RELEASE_SQL=supabase/release-300.sql bash tools/db/test-migrations.sh`. Après chacun : aucune erreur, puis `select version, name from supabase_migrations.schema_migrations order by version desc limit 3;`.
 
+Le bundle enregistré reste celui de ces neuf migrations historiques. Les migrations correctives ultérieures doivent être appliquées séparément, après vérification de l'historique de la cible. Le banc `RELEASE_SQL` rejoue le bundle, vérifie son refus au second passage, puis applique les fichiers ultérieurs absents de son historique avant les suites SQL : il ne prouve pas que le bundle historique les contient. Pour une base déjà en v300, ne pas recoller ce bundle ni régénérer un fichier incluant des migrations déjà appliquées.
+
+Correctif économique du 08/10/2026 : `20261008113411_web_economy_bounds.sql` ajoute trois CHECK `NOT VALID` (crédits/XP non négatifs, niveau au moins 1), sans réécrire les profils ni changer les droits. Lire `docs/CDC_WEB_ECONOMY_HANDOFF_2026-10-08.md` pour le préflight, la validation historique séparée et le rollback. Cette migration reste préparée en PR jusqu'à la release ; elle n'a pas été appliquée en production pendant ce chantier.
+
 ### Contrôles après migrations
 
 - Advisors Supabase (sécurité et performance) : aucune nouvelle alerte critique.
