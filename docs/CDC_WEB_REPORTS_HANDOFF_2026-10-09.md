@@ -20,17 +20,22 @@ Résultats uniquement en mémoire : fermeture, paramètres, session, hors ligne 
 - `pnpm run verify` (tests/build) et audit public séparé : seize avertissements préexistants, aucune erreur. Rendu inspecté à 360/1280 px, sans débordement horizontal ; les tables restent lisibles.
 - Suite locale au commit d’interface : 93/93 unitaires, 44/44 E2E et contrat SQL verts.
 
-La PR et sa dernière CI donnent les SHA et comptes finaux canoniques après revue. Validation native PostgreSQL des deux chemins de migration exigée avant libération du périmètre ; elle reste à confirmer au moment de cette rédaction.
+PR [#27](https://github.com/Theo25460/TITAN_V0.5/pull/27), premier candidat `d10d92a9c83757b017f51b15df06128105d01265`, arbre `5bc7dad6981e6922acb6fc60abf0cb9c3e877e34` identique au local. CI [37991943468](https://github.com/Theo25460/TITAN_V0.5/actions/runs/37991943468) : trois jobs verts, 93 tests, 44 E2E ; PostgreSQL 16 natif, quatorze migrations individuelles ou bundle historique + cinq correctifs, quatorze suites SQL dans chaque voie, rollback appelant, refus sur base non-test et deux cas concurrents. Les deux étapes du job natif sont vérifiées dans leurs logs.
+
+Ce commit finalise uniquement le handoff et le plan, après cette preuve complète. La tête finale publiée, sa CI et l’état prêt de la PR sont attestés dans la description de PR et le cahier vivant ; leur dernière version fait foi. Le lot reste sans fusion/déploiement. PREM07 livré côté web sur branche après ces gates ; PREM06/PREM08 restent partiels.
 
 ## Décisions et coût
 
-- Exécution native autonome du plan autorisée par le cahier et « Continue ». Une seule revue indépendante du lot ; aucun sous-agent implémenteur ni seconde revue.
+- Exécution native autonome du plan autorisée par le cahier et « Continue ». Une seule revue indépendante du lot ; aucun sous-agent implémenteur ni seconde revue. Coût si choix erroné : revoir le design avant production.
 - Quatre périodes calendaires bornées à un an, pas de plage arbitraire. Coût : une autre période personnalisée exige un lot futur ; le bilan courant est explicitement provisoire.
 - RPC stable invoker, search_path vide, grants limités et index existant propriétaire/date. Coût : migration et déploiement web doivent être intégrés avant disponibilité réelle.
 - Aucun résultat Premium depuis le cache local. Coût : bilan indisponible hors ligne et séances en attente non incluses ; journal/analyses de base continuent.
 - Résultat retiré pendant chaque recalcul, export demandant une nouvelle RPC. Coût : attente courte et recherche/pagination réinitialisées ; pas de téléchargement d’un ancien aperçu après expiration ou changement de compte.
 - Jours actifs distincts au total ; ceux par sport peuvent se recouvrir. CSV documente les mêmes totaux et chaque sport sans fausse addition.
-- Pas de PDF, envoi automatique/mail, partage public, rapport sauvegardé, widgets ou personnalisation libre de dashboard. PREM06/PREM08 restent partiels ; PREM07 pourra être livré sur branche après preuves finales.
+- Pas de PDF, envoi automatique/mail, partage public, rapport sauvegardé, widgets ou personnalisation libre de dashboard. PREM06/PREM08 restent partiels.
+- Fixture future bornée à la tolérance d’ingestion existante ; au-delà de dix minutes, le rejet d’ingestion est couvert, sans fixture spécifique du bilan.
+- Attente du boot invité avant gateway artificiel de test ; coût : cette course artificielle sort du test, les revalidations produit restent présentes et testées.
+- PR isolée préparée selon le cahier sans menu de fusion ; coût : intégration des branches empilées requise avant production.
 
 ## Revue et parties non jugées
 

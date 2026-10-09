@@ -43,4 +43,4 @@
 - [x] Implémenter panneau replié, annulable et borné à quinze secondes, export seulement après RPC frais, gardes de session/visibilité et liens sources ; recherche vingt sports par page.
 - [x] Aligner offre/générateur/FAQ sans prix ni promesse anticipée, régénérer. Expected: tests exécutant le vrai générateur verts.
 - [x] pnpm run verify + test:e2e ; Expected: toutes vertes. Inspecter 360/1280 px. Relire CDC et commit.
-- [ ] Une revue Sol 6.1 sur le lot ; classer les findings, corriger Important par RED→GREEN puis suite verte ; publier PR isolée, vérifier trois jobs et deux voies SQL, synchroniser handoff/statuts et libérer le périmètre.
+- [x] Une revue Sol 6.1 sur le lot ; aucun Critical/Important, un Minor différé ; PR #27 publiée, premier candidat avec trois jobs et deux voies SQL verts, handoff synchronisé. La dernière tête/CI et les statuts livrés/libération sont attestés dans la PR et le cahier vivant après le commit documentaire final.
