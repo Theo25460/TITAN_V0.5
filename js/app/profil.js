@@ -11,6 +11,7 @@
   const D = () => window.TitanData;
   const C = () => window.TitanCodex;
   const A = () => window.TitanAdventure;
+  const B = () => window.TitanSportBrowser;
   const MILESTONES = [1, 10, 25, 50, 100, 200, 365, 500, 1000];
   const HOURS = [10, 25, 50, 100, 250, 500, 1000];
   const PRIVACY = [
@@ -21,6 +22,7 @@
   ];
 
   let root = null;
+  let masteryNavigation = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -50,17 +52,24 @@
 
   function masteryHtml() {
     const list = P().mastery(logs());
-    if (!list.length) return "";
+    const result = masteryNavigation.select(B().entries(list));
     return `<section class="asc-section" id="maitrise"><div class="asc-section-head"><h2>Maîtrise</h2><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-mastery-help>${icon("help")} Les paliers</button></div>
-      <div class="pf-mastery">${list
-        .slice(0, 8)
+      ${masteryNavigation.controls()}
+      <div class="pf-mastery">${result.items
         .map(
           (m) => `<div class="pf-mastery-row" data-family="${esc(m.family)}"><span class="jr-icon">${icon(SP().FAMILY_ICON[SP().familyOf(m.sport)])}</span>
+        ${m.hasData ? `
         <span class="pf-mastery-main"><span class="asc-between"><strong>${esc(m.label)}</strong><span class="asc-small">${esc(m.name)} · ${m.level}/10</span></span>
         <span class="asc-ascent thin"><span style="--p:${Math.round(m.progress * 100)}%"></span></span>
-        <span class="asc-small asc-faint">${esc(F().duration(m.minutes))} sur ${m.weeks} semaine${m.weeks > 1 ? "s" : ""}${m.next ? ` · ${esc(m.next.name)} : ${m.next.hours} h sur ${m.next.weeks} semaines` : ""}</span></span></div>`,
+        <span class="asc-small asc-faint">${esc(F().duration(m.minutes))} sur ${m.weeks} semaine${m.weeks > 1 ? "s" : ""}${m.next ? ` · ${esc(m.next.name)} : ${m.next.hours} h sur ${m.next.weeks} semaines` : ""}</span></span>` : `<span class="pf-mastery-main"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">Aucune pratique enregistrée. <a href="/training?sport=${encodeURIComponent(m.sport)}">Ajouter une séance</a></span></span>`}
+        ${B().favoriteButton(m.sport, m.label)}</div>`,
         )
-        .join("")}</div></section>`;
+        .join("")}</div>${result.total ? "" : masteryNavigation.empty()}${masteryNavigation.footer()}</section>`;
+  }
+
+  function renderMastery() {
+    const section = root?.querySelector("#maitrise");
+    if (section) B().preserveFocus(() => { section.outerHTML = masteryHtml(); });
   }
 
   function dnaHtml() {
@@ -221,9 +230,9 @@
 
   function render() {
     if (!root) return;
-    root.innerHTML = `${heroHtml()}
+    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}
       <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ...(guest() ? [] : [["public", "Public"]]), ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
-      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`;
+      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`; });
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
       root.dataset.scrolled = "1";
@@ -279,6 +288,7 @@
   }
 
   function onClick(e) {
+    if (masteryNavigation.handle(e)) return renderMastery();
     const b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.cadence) {
@@ -348,6 +358,7 @@
   }
 
   function onChange(e) {
+    if (masteryNavigation.handle(e)) return renderMastery();
     const t = e.target;
     if (t.dataset.privacy) {
       window.state.user.privacy = { ...(window.state.user.privacy || {}), [t.dataset.privacy]: t.checked };
@@ -376,12 +387,14 @@
   let booted = false;
   function start() {
     root = document.getElementById("profil");
-    if (!root || !window.state?.user || !window.TitanSports) return;
+    if (!root || !window.state?.user || !window.TitanSports || !B()) return;
     if (!booted) {
       booted = true;
       SP().ensure();
+      masteryNavigation = B().create("mastery", { defaultSort: "mastery", sorts: [["mastery", "Maîtrise la plus élevée"], ["alphabetical", "Nom A–Z"], ["recent", "Pratique la plus récente"]] });
       root.addEventListener("click", onClick);
       root.addEventListener("change", onChange);
+      root.addEventListener("input", (e) => { if (masteryNavigation.handle(e)) renderMastery(); });
       A()?.refresh?.();
     }
     render();
