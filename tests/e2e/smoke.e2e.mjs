@@ -1907,6 +1907,87 @@ test("navigation: empty searches, no-data favorites, and small accounts remain u
   await context.close();
 });
 
+// Published CMS content and analytics use the real page, entry point and SDK; only HTTP/auth boundaries are synthetic.
+async function publicContentPage({consent="granted",content="published",blocked=false,missingCollector=false}={}) {
+  const fixture=await newPage(),{page}=fixture;
+  await page.addInitScript(({consent,content,blocked})=>{
+    if(consent) localStorage.setItem("titan_privacy_v1",JSON.stringify({analytics:consent}));
+    else localStorage.removeItem("titan_privacy_v1");
+    window.publicWrites=[];window.publicQueries=[];
+    if(blocked) window.publicMetricGate=new Promise(resolve=>{window.releasePublicMetric=resolve;});
+    const native=window.fetch;
+    window.fetch=async(input,init)=>{
+      const url=new URL(input,location.origin);
+      if(url.pathname==="/rest/v1/dynamic_pages") {
+        window.publicQueries.push(url.search);
+        const rows=content==="missing"?[]:[{id:"00000000-0000-4000-8000-000000000999",slug:"fixture-public",status:"published",title:"Contenu public de test",meta_title:"Contenu public de test",meta_description:"Un contenu publié de test",content:"<p>Un contenu publié lisible.</p>",cover_image_url:null,is_indexable:false}];
+        return new Response(JSON.stringify(content==="error"?{message:"Synthetic server failure"}:rows),{status:content==="error"?500:200,headers:{"content-type":"application/json"}});
+      }
+      if(url.pathname==="/rest/v1/analytics_events") {
+        window.publicWrites.push({row:JSON.parse(init.body),authorization:new Headers(init.headers).get("Authorization")});
+        if(window.publicMetricGate) await window.publicMetricGate;
+        return new Response(null,{status:blocked?500:201});
+      }
+      return native(input,init);
+    };
+  },{consent,content,blocked});
+  await page.route("**/js/config.js?*",r=>r.fulfill({contentType:"text/javascript",body:readFileSync(ROOT+"/js/config.js","utf8")+`\nwindow.initTitanSupabaseClient().auth.getSession=async()=>({data:{session:{user:{id:"00000000-0000-4000-8000-000000000123"},access_token:"fixture-public-token"}},error:null});`}));
+  await page.route("**/js/content.js?*",r=>r.fulfill({contentType:"text/javascript",body:readFileSync(ROOT+"/js/content.js","utf8")+`\nconst publicTrack=window.titanTrackEvent;window.titanTrackEvent=(...args)=>window.publicTracked=publicTrack(...args);`}));
+  if(missingCollector) await page.route("**/js/app/analytics.js?*",r=>r.abort("failed"));
+  await page.goto(BASE+"/dynamic-page?slug=fixture-public&utm_source=private-fixture",{waitUntil:"load",referer:BASE+"/private?notes=private-fixture"});
+  await page.locator("#dynamic-page h1").filter({hasText:content==="published"?"Contenu public de test":"Page introuvable"}).waitFor();
+  return fixture;
+}
+test("public page analytics: refusal suppresses tracking while published content remains readable",async()=>{
+  const {page,context,errors}=await publicContentPage({consent:"denied"});
+  assert.equal(await page.evaluate(()=>window.publicTracked),false);assert.deepEqual(await page.evaluate(()=>window.publicWrites),[]);
+  assert.match(await page.locator(".dynamic-content").innerText(),/publié lisible/);
+  assert.deepEqual(errors,[]);await context.close();
+});
+test("public page analytics: an unanswered choice never carries account or URL attribution",async()=>{
+  const {page,context,errors}=await publicContentPage({consent:null});
+  assert.equal(await page.evaluate(()=>window.publicTracked),true);
+  assert.deepEqual(await page.evaluate(()=>window.publicWrites),[{row:{event_name:"dynamic_page_opened",user_id:null,page:"/dynamic-page",source:null,referrer:null,metadata:{consent:"anonymous",v:300}},authorization:`Bearer ${await page.evaluate(()=>window.TITAN_SUPABASE_ANON_KEY)}`}]);
+  const query=await page.evaluate(()=>window.publicQueries[0]);assert.match(query,/slug=eq.fixture-public/);assert.match(query,/status=eq.published/);
+  assert.deepEqual(errors,[]);await context.close();
+});
+test("public page analytics: agreed published openings keep the stable name and a minimal payload",async()=>{
+  const {page,context,errors}=await publicContentPage();assert.equal(await page.evaluate(()=>window.publicTracked),true);
+  assert.deepEqual(await page.evaluate(()=>window.publicWrites),[{row:{event_name:"dynamic_page_opened",user_id:"00000000-0000-4000-8000-000000000123",page:"/dynamic-page",source:null,referrer:null,metadata:{consent:"granted",v:300}},authorization:"Bearer fixture-public-token"}]);
+  assert.deepEqual(errors,[]);await context.close();
+});
+test("public page analytics: unavailable or missing CMS content creates no opening",async()=>{
+  for(const content of ["missing","error"]){
+    const {page,context,errors}=await publicContentPage({content});
+    assert.equal(await page.evaluate(()=>window.publicTracked),undefined);assert.deepEqual(await page.evaluate(()=>window.publicWrites),[]);
+    assert.equal(await page.locator(".dynamic-back[href='/']").isVisible(),true);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test("public page analytics: an unresolved or failed measure never blocks the rendered page",async()=>{
+  const {page,context,errors}=await publicContentPage({blocked:true});
+  await page.waitForFunction(()=>window.publicWrites.length===1);
+  assert.equal(await page.locator("#dynamic-page h1").textContent(),"Contenu public de test");
+  await page.evaluate(()=>window.releasePublicMetric());assert.equal(await page.evaluate(()=>window.publicTracked),false);
+  await page.locator(".dynamic-back").click();await page.waitForURL(BASE+"/");
+  assert.deepEqual(errors,[]);await context.close();
+});
+test("public page analytics: home navigation succeeds while the measure is still unresolved",async()=>{
+  const {page,context,errors}=await publicContentPage({blocked:true});
+  await page.waitForFunction(()=>window.publicWrites.length===1);
+  await page.evaluate(()=>{window.publicTracked.then(()=>{window.publicMetricSettled=true;});});
+  assert.equal(await page.evaluate(()=>window.publicMetricSettled===true),false);
+  // Leave the real metric promise unresolved: navigation must not wait for its HTTP result.
+  await page.locator(".dynamic-back").click({timeout:5000});await page.waitForURL(BASE+"/");
+  assert.deepEqual(errors,[]);await context.close();
+});
+test("public page analytics: a missing collector leaves the page usable without unsafe fallback",async()=>{
+  const {page,context,errors}=await publicContentPage({missingCollector:true});
+  assert.equal(await page.evaluate(()=>window.publicTracked),false);assert.deepEqual(await page.evaluate(()=>window.publicWrites),[]);
+  assert.equal(await page.locator("#dynamic-page h1").textContent(),"Contenu public de test");
+  assert.deepEqual(errors,[]);await context.close();
+});
+
 test("installed PWA: navigation and cosmetic resources bypass the previous cache on the first visit", async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
@@ -1915,12 +1996,12 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
     await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
-    for (const version of ['300.0','300.1','300.2']) {
+    for (const version of ['300.0','300.1','300.2','300.3']) {
       await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
     }
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
@@ -1945,5 +2026,9 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
   }
+  await page.goto(BASE + "/dynamic-page?slug=fixture-unavailable", { waitUntil: "load" });
+  await page.getByRole("heading", { name: "Page introuvable" }).waitFor();
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("dynamic_page_opened")), true, "first public visit loads the shared collector");
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.content)), false, "first public visit loads the guarded legacy entry point");
   await context.close();
 });

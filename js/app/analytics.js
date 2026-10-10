@@ -26,8 +26,10 @@
     "analysis_view_renamed",
     "analysis_view_deleted",
     "analysis_view_opened",
+    "dynamic_page_opened",
   ]);
   const ANALYSIS = new Set([...EVENTS].filter(name => name.startsWith("analysis_")));
+  const PUBLIC = new Set(["dynamic_page_opened"]);
   const ONCE = new Set(["signup", "onboarding_completed", "first_session", "second_session", "premium_activated"]);
   const PROPS = { family: /^[a-z]{2,20}$/, sport: /^[a-z0-9_]{2,40}$/, step: /^[a-z0-9_-]{1,30}$/, source: /^[a-z0-9_-]{1,30}$/, plan: /^[a-z0-9_-]{1,30}$/, world: /^[a-z0-9_-]{1,30}$/, chapter: /^\d{1,2}$/, kind: /^[a-z_]{1,20}$/, count: /^\d{1,4}$/ };
   const PRIVACY_KEY = "titan_privacy_v1";
@@ -87,6 +89,7 @@
   }
 
   function clean(props, name) {
+    if (PUBLIC.has(name)) return {};
     if (ANALYSIS.has(name)) {
       return name.startsWith("analysis_view_") && ["report", "comparison"].includes(props?.kind) ? { kind: props.kind } : {};
     }
@@ -157,7 +160,7 @@
         user_id: userId,
         event_name: name,
         page: location.pathname.slice(0, 80),
-        source: c === "granted" && !ANALYSIS.has(name) ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
+        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
         referrer: null,
         metadata: { ...clean(props, name), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
       });

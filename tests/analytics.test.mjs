@@ -218,3 +218,41 @@ test('analytics login: confirmation-only signup stays unlinked and deduplicates 
   assert.equal(await f.analytics.track('signup',{}, {owner:A}),false);
   assert.deepEqual(f.requests.map(r=>r.row.user_id),[null,null]);assert.ok(f.requests.every(r=>r.authorization==='Bearer fake-anon-key'));
 });
+
+// Run the historical public entry point against the actual collector and vendored transport.
+function publicEntry(f){
+  f.context.location.pathname='/dynamic-page';f.context.location.search='?slug=private-fixture&utm_source=private-source';
+  f.context.document={referrer:'https://example.test/private?notes=private-fixture'};
+  vm.runInContext(readFileSync(new URL('../js/content.js',import.meta.url),'utf8'),f.context);
+  return f.context.window.titanTrackEvent;
+}
+test('public analytics: the historical entry respects an explicit refusal',async()=>{
+  const f=sdkFixture({login:true,delayed:false}),track=publicEntry(f);f.analytics.setConsent(false);
+  assert.equal(await track('dynamic_page_opened',{slug:'private-fixture'}),false);assert.deepEqual(f.requests,[]);
+});
+test('public analytics: unanswered preference counts without account token or URL details',async()=>{
+  const f=sdkFixture({login:true,delayed:false}),track=publicEntry(f);f.storage.delete('titan_privacy_v1');
+  assert.equal(await track('dynamic_page_opened',{slug:'private-fixture',notes:'private',gps:[1,2]}),true);
+  assert.equal(f.requests[0].authorization,'Bearer fake-anon-key');
+  assert.deepEqual(JSON.parse(JSON.stringify(f.requests[0].row)),{event_name:'dynamic_page_opened',user_id:null,page:'/dynamic-page',source:null,referrer:null,metadata:{consent:'anonymous',v:300}});
+});
+test('public analytics: an agreed opening retains its historical unit with minimal properties',async()=>{
+  const f=sdkFixture({login:true,delayed:false}),track=publicEntry(f);
+  assert.equal(await track('dynamic_page_opened',{slug:'private-fixture',family:'private',sport:'running',source:'private',notes:'private'}),true);
+  assert.equal(await track('dynamic_page_opened'),true,'two genuine page openings remain two counts');
+  assert.equal(f.requests.length,2);assert.equal(f.requests[0].authorization,`Bearer token-${A}`);
+  assert.deepEqual(JSON.parse(JSON.stringify(f.requests[0].row)),{event_name:'dynamic_page_opened',user_id:A,page:'/dynamic-page',source:null,referrer:null,metadata:{consent:'granted',v:300}});
+});
+test('public analytics: missing shared collector never falls back to an unguarded write',async()=>{
+  const f=sdkFixture({login:true,delayed:false});delete f.context.window.TitanAnalytics;
+  assert.equal(await publicEntry(f)('dynamic_page_opened'),false);assert.deepEqual(f.requests,[]);
+});
+test('public analytics: withdrawal and restoration during native token preparation invalidates an opening',async()=>{
+  const f=sdkFixture({login:true}),sent=publicEntry(f)('dynamic_page_opened');await f.prepared.promise;
+  f.analytics.setConsent(false);f.analytics.setConsent(true);f.token.resolve(f.session(A));
+  assert.equal(await sent,false);assert.deepEqual(f.requests,[]);
+});
+test('public analytics: legacy callers cannot introduce unregistered event names',async()=>{
+  const f=sdkFixture({login:true,delayed:false});
+  assert.equal(await publicEntry(f)('private_health_event',{notes:'private'}),false);assert.deepEqual(f.requests,[]);
+});
