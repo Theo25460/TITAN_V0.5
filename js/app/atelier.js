@@ -12,7 +12,12 @@
     { id: "card", label: "Cartes", hint: "Le style des cartes que tu partages." },
   ];
   const RANKS = { 6: "Sentinelle", 10: "Gardien", 15: "Champion", 25: "Titan", 40: "Légende" };
-  const CHECKOUT_KEY = "titan_checkout_started_v1";
+  const CHECKOUT_KEY = "titan_checkout_started_v2:";
+  const activationPending = new Set();
+  let loadSequence = 0;
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const accountCurrent = (c) => c.owner === window.state?.user?.id && c.client === window.titanClient
+    && c.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
 
   let root = null;
   let data = null;
@@ -49,29 +54,32 @@
   }
 
   async function load() {
-    const owner = window.state?.user?.id;
+    const context = accountContext(), { owner, client } = context, request = ++loadSequence;
+    const current = () => request === loadSequence && accountCurrent(context);
     if (dataOwner && dataOwner !== owner) { data = null; dataOwner = null; fallbackPlus = null; }
-    if (guest() || !window.titanClient) {
+    if (guest() || !client || !accountCurrent(context)) {
       loading = false;
       return render();
     }
     try {
-      const { data: d, error: e } = await window.titanClient.rpc("titan_atelier");
-      if (window.state?.user?.id !== owner || (d?.owner && d.owner !== owner)) return ownerChanged();
+      const { data: d, error: e } = await client.rpc("titan_atelier");
+      if (!current()) return;
+      if (d?.owner && d.owner !== owner) return ownerChanged();
       if (e) throw e;
       data = d;
       dataOwner = owner;
       error = "";
+      pending = false;
       syncUser();
-      noteActivation();
+      noteActivation(context);
     } catch (e) {
-      if (window.state?.user?.id !== owner) return ownerChanged();
+      if (!current()) return;
       error = messageOf(e);
       pending = missing(e);
     }
     loading = false;
     render();
-    if (!data && pending) await readPlusFromProfile().then(render);
+    if (!data && pending) await readPlusFromProfile(context, current).then(() => current() && render());
   }
 
   function ownerChanged() {
@@ -85,14 +93,14 @@
   }
 
   /** Before the server update, TITAN+ status still comes from the profile the payment webhook writes (read only). */
-  async function readPlusFromProfile() {
-    const owner = window.state?.user?.id;
+  async function readPlusFromProfile(context, current) {
+    const { owner, client } = context;
     try {
-      const { data: p } = await window.titanClient.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", owner).maybeSingle();
-      if (!p || window.state?.user?.id !== owner) return;
+      const { data: p } = await client.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", owner).maybeSingle();
+      if (!p || !current()) return;
       fallbackPlus = { active: p.is_elite === true, renews_at: p.elite_renews_at, ends_at: p.elite_ends_at };
       if (window.state?.user) window.state.user.is_elite = fallbackPlus.active;
-      noteActivation();
+      noteActivation(context);
     } catch {}
   }
 
@@ -107,17 +115,41 @@
     window.titanShell?.refresh?.();
   }
 
-  /** premium_activated only when a checkout started from this browser is now confirmed by the webhook. */
-  function noteActivation() {
-    if (!plusActive()) return;
+  /** A browser receipt is attribution only. The fresh server status grants access; an analytics ack consumes the receipt. */
+  async function noteActivation(context) {
+    if (!accountCurrent(context)) return;
+    const key = CHECKOUT_KEY + context.owner;
     try {
-      const started = Number(localStorage.getItem(CHECKOUT_KEY) || 0);
-      if (!started) return;
-      localStorage.removeItem(CHECKOUT_KEY);
-      if (Date.now() - started < 3 * 86400000) {
-        window.TitanAnalytics?.track("premium_activated", { source: "atelier" });
+      // The old timestamp has no owner and cannot be migrated safely between accounts.
+      localStorage.removeItem("titan_checkout_started_v1");
+      let raw = localStorage.getItem(key);
+      if (!raw) return;
+      let receipt;
+      try { receipt = JSON.parse(raw); } catch {}
+      const now = Date.now();
+      if (!receipt || receipt.v !== 2 || receipt.owner !== context.owner || !Number.isSafeInteger(receipt.at)
+        || receipt.at <= 0 || receipt.at > now || now - receipt.at >= 3 * 86400000 || typeof receipt.notified !== "boolean") {
+        localStorage.removeItem(key);
+        return;
+      }
+      if (!plusActive() || activationPending.has(key)) return;
+      if (!receipt.notified) {
+        receipt.notified = true;
+        raw = JSON.stringify(receipt);
+        localStorage.setItem(key, raw);
         window.titanShell?.toast({ type: "ok", title: "TITAN+ est actif", message: "Merci. Les campagnes et la collection TITAN+ sont ouvertes." });
       }
+      // Refusal does not prevent the functional confirmation or create a later analytics replay.
+      if (window.TitanAnalytics?.consent() === "denied") {
+        localStorage.removeItem(key);
+        return;
+      }
+      activationPending.add(key);
+      try {
+        const accepted = await window.TitanAnalytics?.track("premium_activated", { source: "atelier" });
+        if (accountCurrent(context) && localStorage.getItem(key) === raw
+          && (accepted === true || window.TitanAnalytics?.consent() === "denied")) localStorage.removeItem(key);
+      } finally { activationPending.delete(key); }
     } catch {}
   }
 
@@ -298,14 +330,18 @@
   }
 
   async function checkout(btn) {
-    if (guest()) return;
+    const context = accountContext();
+    if (guest() || !accountCurrent(context)) return;
     btn.disabled = true;
-    try {
-      localStorage.setItem(CHECKOUT_KEY, String(Date.now()));
-    } catch {}
+    // Keep the historical event's unit: a subscription CTA action, including an unsuccessful opening.
     window.TitanAnalytics?.track("premium_checkout_started", { source: "atelier" });
     try {
-      await window.openEliteCheckout?.({ button: btn });
+      const opened = await window.openEliteCheckout?.({ button: btn });
+      if (opened === true && accountCurrent(context)) {
+        try {
+          localStorage.setItem(CHECKOUT_KEY + context.owner, JSON.stringify({ v: 2, owner: context.owner, at: Date.now(), notified: false }));
+        } catch {}
+      }
     } finally {
       btn.disabled = false;
     }
@@ -362,6 +398,8 @@
     load().then(() => location.hash && document.getElementById(location.hash.slice(1))?.scrollIntoView());
   }
   window.addEventListener("online", () => booted && load());
+  window.addEventListener("titan:account-changing", () => { ++loadSequence; if (booted) ownerChanged(); });
+  window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("titan:history-updated", () => setTimeout(start, 0));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
