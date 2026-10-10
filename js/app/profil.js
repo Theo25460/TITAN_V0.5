@@ -379,7 +379,11 @@
         });
     }
     if (t.matches("[data-analytics]")) {
-      window.TitanAnalytics?.setConsent(t.checked);
+      const saved = window.TitanAnalytics?.setConsent(t.checked);
+      if (saved !== true) {
+        window.titanShell.toast({ type: "warn", title: "Choix non enregistré", message: "Ton choix vaut pour cette page. Après navigation ou rechargement, l’ancien réglage peut revenir. Réessaie avant de quitter cette page." });
+        return;
+      }
       window.titanShell.toast({ type: "ok", title: "Statistiques d’usage", message: t.checked ? "Merci pour ton aide." : "Plus rien n’est envoyé." });
     }
   }

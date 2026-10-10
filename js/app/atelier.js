@@ -12,8 +12,12 @@
     { id: "card", label: "Cartes", hint: "Le style des cartes que tu partages." },
   ];
   const RANKS = { 6: "Sentinelle", 10: "Gardien", 15: "Champion", 25: "Titan", 40: "Légende" };
-  const CHECKOUT_KEY = "titan_checkout_started_v2:";
+  const CHECKOUT_KEY = "titan_checkout_started_v3:";
   const activationPending = new Set();
+  const activationNotified = new Map();
+  const receiptLock = (owner, action) => navigator.locks?.request
+    ? navigator.locks.request("titan_checkout_receipt:" + owner, () => action(true))
+    : Promise.resolve(action(false));
   let loadSequence = 0;
   const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
   const accountCurrent = (c) => c.owner === window.state?.user?.id && c.client === window.titanClient
@@ -119,38 +123,67 @@
   async function noteActivation(context) {
     if (!accountCurrent(context)) return;
     const key = CHECKOUT_KEY + context.owner;
+    if (activationPending.has(key)) return;
+    activationPending.add(key);
     try {
-      // The old timestamp has no owner and cannot be migrated safely between accounts.
-      localStorage.removeItem("titan_checkout_started_v1");
-      let raw = localStorage.getItem(key);
-      if (!raw) return;
-      let receipt;
-      try { receipt = JSON.parse(raw); } catch {}
-      const now = Date.now();
-      if (!receipt || receipt.v !== 2 || receipt.owner !== context.owner || !Number.isSafeInteger(receipt.at)
-        || receipt.at <= 0 || receipt.at > now || now - receipt.at >= 3 * 86400000 || typeof receipt.notified !== "boolean") {
-        localStorage.removeItem(key);
-        return;
-      }
-      if (!plusActive() || activationPending.has(key)) return;
-      if (!receipt.notified) {
-        receipt.notified = true;
-        raw = JSON.stringify(receipt);
-        localStorage.setItem(key, raw);
-        window.titanShell?.toast({ type: "ok", title: "TITAN+ est actif", message: "Merci. Les campagnes et la collection TITAN+ sont ouvertes." });
-      }
-      // Refusal does not prevent the functional confirmation or create a later analytics replay.
-      if (window.TitanAnalytics?.consent() === "denied") {
-        localStorage.removeItem(key);
-        return;
-      }
-      activationPending.add(key);
-      try {
+      const pending = await receiptLock(context.owner, writable => {
+        if (!accountCurrent(context)) return;
+        // The old timestamp has no owner and cannot be migrated safely between accounts.
+        if (writable) { try { localStorage.removeItem("titan_checkout_started_v1"); } catch {} }
+        // v2 has no preference snapshot; keep its functional confirmation, never infer analytics consent.
+        let storedKey = key, raw = localStorage.getItem(key);
+        const previousKey = "titan_checkout_started_v2:" + context.owner;
+        if (!raw) { storedKey = previousKey; raw = localStorage.getItem(previousKey); }
+        if (!raw) return;
+        const removeCurrent = () => {
+          if (writable && accountCurrent(context) && localStorage.getItem(storedKey) === raw) {
+            localStorage.removeItem(storedKey);
+            activationNotified.delete(storedKey);
+          }
+        };
+        let receipt;
+        try { receipt = JSON.parse(raw); } catch {}
+        const now = Date.now();
+        if (!receipt || ![2, 3].includes(receipt.v) || receipt.owner !== context.owner || !Number.isSafeInteger(receipt.at)
+          || receipt.at <= 0 || receipt.at > now || now - receipt.at >= 3 * 86400000 || typeof receipt.notified !== "boolean") {
+          removeCurrent();
+          return;
+        }
+        if (!plusActive()) return;
+        if (!receipt.notified) {
+          if (localStorage.getItem(storedKey) !== raw) return;
+          const alreadyNotified = activationNotified.get(storedKey) === raw;
+          activationNotified.set(storedKey, raw);
+          if (writable) {
+            receipt.notified = true;
+            const notifiedRaw = JSON.stringify(receipt);
+            try { localStorage.setItem(storedKey, notifiedRaw); raw = notifiedRaw; } catch {}
+          }
+          if (!alreadyNotified) window.titanShell?.toast({ type: "ok", title: "TITAN+ est actif", message: "Merci. Les campagnes et la collection TITAN+ sont ouvertes." });
+        }
+        // Without cross-tab locking, keep confirmation read-only and do not measure an unprotected receipt.
+        if (!writable) return;
+        // Refusal does not prevent the functional confirmation or create a later analytics replay.
+        const preferenceCurrent = () => typeof receipt.consent === "string" && receipt.consent === window.TitanAnalytics?.consentSnapshot?.();
+        if (receipt.v !== 3 || !preferenceCurrent() || window.TitanAnalytics?.consent() === "denied") {
+          removeCurrent();
+          return;
+        }
+        return { raw, consent: receipt.consent };
+      });
+      if (pending && accountCurrent(context)) {
+        // Network/token preparation never holds the receipt lock.
         const accepted = await window.TitanAnalytics?.track("premium_activated", { source: "atelier" });
-        if (accountCurrent(context) && localStorage.getItem(key) === raw
-          && (accepted === true || window.TitanAnalytics?.consent() === "denied")) localStorage.removeItem(key);
-      } finally { activationPending.delete(key); }
-    } catch {}
+        await receiptLock(context.owner, writable => {
+          if (writable && accountCurrent(context)
+            && (accepted === true || pending.consent !== window.TitanAnalytics?.consentSnapshot?.() || window.TitanAnalytics?.consent() === "denied")
+            && localStorage.getItem(key) === pending.raw) {
+            localStorage.removeItem(key);
+            activationNotified.delete(key);
+          }
+        });
+      }
+    } catch {} finally { activationPending.delete(key); }
   }
 
   /* ---------- Previews ---------- */
@@ -331,6 +364,7 @@
 
   async function checkout(btn) {
     const context = accountContext();
+    const consent = window.TitanAnalytics?.consentSnapshot?.() ?? null;
     if (guest() || !accountCurrent(context)) return;
     btn.disabled = true;
     // Keep the historical event's unit: a subscription CTA action, including an unsuccessful opening.
@@ -339,7 +373,11 @@
       const opened = await window.openEliteCheckout?.({ button: btn });
       if (opened === true && accountCurrent(context)) {
         try {
-          localStorage.setItem(CHECKOUT_KEY + context.owner, JSON.stringify({ v: 2, owner: context.owner, at: Date.now(), notified: false }));
+          await receiptLock(context.owner, writable => {
+            if (!writable || !accountCurrent(context)) return;
+            localStorage.setItem(CHECKOUT_KEY + context.owner, JSON.stringify({ v: 3, owner: context.owner, at: Date.now(), notified: false, consent }));
+            localStorage.removeItem("titan_checkout_started_v2:" + context.owner);
+          });
         } catch {}
       }
     } finally {

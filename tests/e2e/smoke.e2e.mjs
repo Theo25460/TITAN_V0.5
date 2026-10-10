@@ -910,8 +910,18 @@ test("private pages are noindex, public guides are indexable", async () => {
 });
 
 // Real Atelier page/shell with a synthetic RPC contract. No signed-in production account.
-async function atelierPage(width, plus = false, legacy = false) {
-  const fixture = await newPage(width);
+async function atelierPage(width, plus = false, legacy = false, existing = null) {
+  const fixture = existing || await newPage(width);
+  if (existing) await fixture.page.evaluate(() => {
+    // Our synthetic signed-in state can have been persisted by the real shell. Finish a
+    // genuine guest boot again before reinstalling the external authenticated RPC fixture.
+    const saved = JSON.parse(localStorage.getItem(window.STATE_KEY) || "null");
+    if (saved?.user?.id === "00000000-0000-4000-8000-000000000123") {
+      saved.user.id = "guest_checkout_fixture";
+      localStorage.setItem(window.STATE_KEY, JSON.stringify(saved));
+    }
+  });
+  await fixture.page.unroute("**/js/app/atelier.js?*");
   await fixture.page.route("**/js/app/atelier.js?*", (r) => r.fulfill({ contentType: "text/javascript", body: "" }));
   await fixture.page.goto(BASE + "/boutique", { waitUntil: "load" });
   await fixture.page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
@@ -955,11 +965,16 @@ async function atelierPage(width, plus = false, legacy = false) {
 }
 
 // Keep the real checkout helper, Atelier and analytics transport; replace only external boundaries.
-async function checkoutPage(width = 360, configured = true, granted = true) {
-  const fixture = await atelierPage(width);
+async function checkoutPage(width = 360, configured = true, granted = true, existing = null) {
+  const fixture = await atelierPage(width, false, false, existing);
   await fixture.page.evaluate(({ configured, granted }) => {
-    window.TitanAnalytics.setConsent(granted);
+    if (granted !== null) window.TitanAnalytics.setConsent(granted);
     window.checkoutWrites = []; window.checkoutOpens = []; window.activationToasts = [];
+    window.checkoutReceiptTasks = [];
+    if (navigator.locks?.request) {
+      const request = navigator.locks.request.bind(navigator.locks);
+      navigator.locks.request = (...args) => { const pending = request(...args); window.checkoutReceiptTasks.push(pending); return pending; };
+    }
     window.checkoutMetricStatus = 201;
     window.titanClient.auth = { getSession: async () => ({ data: { session: { user: { id: window.state.user.id }, access_token: "fixture-token" } } }) };
     const nativeFetch = window.fetch;
@@ -996,7 +1011,14 @@ async function clickCheckout(page) {
 async function confirmCheckout(page) {
   await page.evaluate(() => { window.atelierFixture.plus.active = true; dispatchEvent(new Event("online")); });
   await page.waitForFunction(() => window.state.user.is_elite === true);
-  await page.evaluate(() => window.checkoutActivation);
+  await settleCheckout(page);
+}
+async function settleCheckout(page) {
+  await page.evaluate(async () => {
+    await Promise.all(window.checkoutReceiptTasks || []);
+    await window.checkoutActivation;
+    await Promise.all(window.checkoutReceiptTasks || []);
+  });
 }
 
 test("checkout attribution: missing payment configuration leaves no activation receipt but preserves click intent", async () => {
@@ -1080,11 +1102,11 @@ test("checkout attribution: another account cannot consume the receipt and its o
     await page.evaluate(() => { window.state.user.id = "00000000-0000-4000-8000-000000000456"; });
     await confirmCheckout(page);
     assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0, "B must not inherit A's checkout");
-    assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:00000000-0000-4000-8000-000000000123")));
+    assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:00000000-0000-4000-8000-000000000123")));
     await page.evaluate(() => { window.state.user.id = "00000000-0000-4000-8000-000000000123"; window.state.user.is_elite = false; });
     await confirmCheckout(page);
     assert.deepEqual(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").map(r => r.user_id)), ["00000000-0000-4000-8000-000000000123"]);
-    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:00000000-0000-4000-8000-000000000123")), null);
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:00000000-0000-4000-8000-000000000123")), null);
     await confirmCheckout(page);
     assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
     assert.deepEqual(errors, []); await context.close();
@@ -1095,13 +1117,13 @@ test("checkout attribution: a refused metric retains the receipt for a fresh ser
   const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
   await page.evaluate(() => { window.checkoutMetricStatus = 500; });
   await confirmCheckout(page);
-  assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:00000000-0000-4000-8000-000000000123")), "failed delivery remains retryable");
+  assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:00000000-0000-4000-8000-000000000123")), "failed delivery remains retryable");
   await page.evaluate(() => { window.checkoutMetricStatus = 201; window.state.user.is_elite = false; });
   await confirmCheckout(page);
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 2);
   assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
   assert.equal(await page.evaluate(() => window.state.user.credits), 2000);
-  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:00000000-0000-4000-8000-000000000123")), null);
+  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:00000000-0000-4000-8000-000000000123")), null);
   assert.deepEqual(errors, []); await context.close();
 });
 
@@ -1162,14 +1184,23 @@ test("checkout attribution: legacy, future and expired receipts cannot produce a
   await page.evaluate(() => { localStorage.setItem("titan_checkout_started_v1", String(Date.now())); });
   await confirmCheckout(page);
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
+  await page.evaluate(() => {
+    const owner = window.state.user.id;
+    localStorage.setItem("titan_checkout_started_v2:" + owner, JSON.stringify({ v: 2, owner, at: Date.now(), notified: false }));
+    window.state.user.is_elite = false;
+  });
+  await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.activationToasts.length), 1, "an owned legacy receipt keeps the functional server confirmation");
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0, "legacy has no reliable preference snapshot");
+  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:" + window.state.user.id)), null);
   for (const at of [Date.now() + 86400000, Date.now() - 4 * 86400000]) {
     await page.evaluate(at => {
       const owner = window.state.user.id;
-      localStorage.setItem("titan_checkout_started_v2:" + owner, JSON.stringify({ v: 2, owner, at, notified: false }));
+      localStorage.setItem("titan_checkout_started_v3:" + owner, JSON.stringify({ v: 3, owner, at, notified: false, consent: window.TitanAnalytics.consentSnapshot() }));
       window.state.user.is_elite = false;
     }, at);
     await confirmCheckout(page);
-    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:" + window.state.user.id)), null);
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id)), null);
   }
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
   assert.deepEqual(errors, []); await context.close();
@@ -1182,18 +1213,257 @@ test("checkout attribution: an older ack cannot erase a newer receipt and concur
     window.atelierFixture.plus.active = true; dispatchEvent(new Event("online"));
   });
   await page.waitForFunction(() => window.checkoutWrites.some(r => r.event_name === "premium_activated"));
-  assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:" + window.state.user.id)), "the receipt remains until the HTTP ack");
+  assert.ok(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id)), "the receipt remains until the HTTP ack");
   await page.evaluate(() => {
     dispatchEvent(new Event("online"));
     const owner = window.state.user.id;
-    window.newReceipt = JSON.stringify({ v: 2, owner, at: Date.now(), notified: false });
-    localStorage.setItem("titan_checkout_started_v2:" + owner, window.newReceipt);
+    window.newReceipt = JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: window.TitanAnalytics.consentSnapshot() });
+    localStorage.setItem("titan_checkout_started_v3:" + owner, window.newReceipt);
     window.finishCheckoutMetric();
   });
   await page.evaluate(() => window.checkoutActivation);
-  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v2:" + window.state.user.id) === window.newReceipt), true);
+  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id) === window.newReceipt), true);
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1);
   assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent replay: refusal then agreement between confirmations cannot revive a failed activation", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await checkoutPage(width);
+    await page.evaluate(() => {
+      const NativeDate = Date, fixed = Date.now();
+      window.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : [fixed])); } static now() { return fixed; } };
+      window.TitanAnalytics.setConsent(true); // All following preference changes have the same timestamp.
+    });
+    await clickCheckout(page);
+    await page.evaluate(() => { window.checkoutMetricStatus = 500; }); await confirmCheckout(page);
+    await page.evaluate(() => {
+      window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true);
+      window.checkoutMetricStatus = 201; window.state.user.is_elite = false;
+    });
+    await confirmCheckout(page);
+    assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1, "only the pre-refusal failed attempt exists");
+    assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
+    assert.equal(await page.evaluate(() => window.state.user.credits), 2000);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("consent replay: refusal during a failed ack prevents a later retry", async () => {
+  const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
+  await page.evaluate(() => {
+    window.checkoutMetricStatus = 500;
+    window.checkoutMetricGate = new Promise(resolve => { window.finishCheckoutMetric = resolve; });
+    window.atelierFixture.plus.active = true; dispatchEvent(new Event("online"));
+  });
+  await page.waitForFunction(() => window.checkoutWrites.some(r => r.event_name === "premium_activated"));
+  await page.evaluate(() => { window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true); window.finishCheckoutMetric(); });
+  await page.evaluate(() => window.checkoutActivation);
+  await page.evaluate(() => { window.checkoutMetricStatus = 201; window.state.user.is_elite = false; }); await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1);
+  assert.equal(await page.evaluate(() => window.state.user.is_elite), true);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent replay: a changed preference during SDK loading preserves payment and functional activation only", async () => {
+  const { page, context, errors } = await checkoutPage();
+  await page.evaluate(() => { window.checkoutSdkGate = new Promise(resolve => { window.finishCheckoutSdk = resolve; }); });
+  await page.click("[data-checkout]"); await page.waitForFunction(() => window.checkoutSdkWaiting);
+  await page.evaluate(() => { window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true); window.finishCheckoutSdk(); });
+  assert.equal(await page.evaluate(() => window.checkoutOpening), true);
+  await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.checkoutOpens.length), 1);
+  assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent replay: preference changes on the real profile survive leaving and reopening Atelier", async () => {
+  for (const changed of [false, true]) {
+    const fixture = await checkoutPage(), { page, context, errors } = fixture; await clickCheckout(page);
+    await page.evaluate(() => { window.checkoutMetricStatus = 500; }); await confirmCheckout(page);
+    await page.goto(BASE + "/profile", { waitUntil: "load" });
+    await page.locator("[data-analytics]").waitFor();
+    assert.equal(await page.locator("[data-analytics]").isChecked(), true);
+    if (changed) { await page.locator("[data-analytics]").uncheck(); await page.locator("[data-analytics]").check(); }
+    await checkoutPage(360, true, null, fixture); await confirmCheckout(page);
+    assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), changed ? 0 : 1);
+    assert.equal(await page.evaluate(() => window.state.user.is_elite), true);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("consent replay: refusal in another real tab prevents old conversion while a new checkout remains measurable", async () => {
+  const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
+  await page.evaluate(() => { window.checkoutMetricStatus = 500; }); await confirmCheckout(page);
+  const prefs = await context.newPage(); await prefs.goto(BASE + "/profile", { waitUntil: "load" });
+  await prefs.locator("[data-analytics]").uncheck(); await prefs.locator("[data-analytics]").check(); await prefs.close();
+  await page.evaluate(() => { window.checkoutMetricStatus = 201; window.state.user.is_elite = false; }); await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1);
+  // A fresh page removes the old SDK-opening lock without bypassing its production guard.
+  await checkoutPage(360, true, null, { page, context, errors }); await clickCheckout(page); await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent storage: the real profile warns when a refusal cannot be saved", async () => {
+  const { page, context, errors } = await checkoutPage();
+  await page.goto(BASE + "/profile", { waitUntil: "load" }); await page.locator("[data-analytics]").waitFor();
+  await page.evaluate(() => {
+    const save = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) { if (key === "titan_privacy_v1") throw Error("Synthetic write failure"); return save.call(this, key, value); };
+    window.privacyToasts = [];
+    const toast = window.titanShell.toast.bind(window.titanShell);
+    window.titanShell.toast = options => { window.privacyToasts.push(options); return toast(options); };
+  });
+  await page.locator("[data-analytics]").uncheck();
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.consent()), "denied");
+  const notice = await page.evaluate(() => window.privacyToasts.at(-1));
+  assert.equal(notice.type, "warn");assert.match(notice.message, /rechargement/);
+  assert.doesNotMatch(notice.message, /Plus rien n’est envoyé/);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("checkout confirmation: failed notification persistence still confirms functionally once in the page", async () => {
+  const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
+  await page.evaluate(() => {
+    const save = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) { if (key.startsWith("titan_checkout_started")) throw Error("Synthetic receipt write failure"); return save.call(this, key, value); };
+    window.checkoutMetricStatus = 500;
+  });
+  await confirmCheckout(page); await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.state.user.is_elite), true);
+  assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 2, "unchanged consent permits legitimate failed-ack retries");
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("checkout receipt: preference invalidation cannot erase a newer receipt from another tab", async () => {
+  const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
+  await page.evaluate(() => {
+    const key = "titan_checkout_started_v3:" + window.state.user.id;
+    const receipt = JSON.parse(localStorage.getItem(key)); receipt.notified = true; localStorage.setItem(key, JSON.stringify(receipt));
+    window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true);
+    window.newReceipt = JSON.stringify({ v: 3, owner: window.state.user.id, at: Date.now(), notified: false, consent: window.TitanAnalytics.consentSnapshot() });
+    const snapshot = window.TitanAnalytics.consentSnapshot;
+    window.TitanAnalytics.consentSnapshot = () => { localStorage.setItem(key, window.newReceipt); window.TitanAnalytics.consentSnapshot = snapshot; return snapshot(); };
+  });
+  await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id)), await page.evaluate(() => window.newReceipt));
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent storage: signup exposes an unsaved choice before automatic navigation", async () => {
+  for (const session of [false, true]) {
+    const { page, context, errors } = await newPage(); await page.goto(BASE + "/login?mode=signup", { waitUntil: "load" });
+    await page.evaluate(session => {
+      localStorage.setItem("titan_privacy_v1", JSON.stringify({ analytics: "granted" }));
+      const save = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) { if (key === "titan_privacy_v1") throw Error("Synthetic write failure"); return save.call(this, key, value); };
+      const client = window.initTitanSupabaseClient(), user = { id: "00000000-0000-4000-8000-000000000123" };
+      client.auth.signUp = async () => ({ data: { user, session: session ? { user, access_token: "fixture-token" } : null }, error: null });
+      client.auth.getSession = async () => ({ data: { session: null } });
+    }, session);
+    await page.fill("[name=name]", "Test consentement"); await page.fill("[name=email]", "fixture@example.test");
+    await page.fill("[name=password]", "synthetic-password"); await page.check("[name=terms]"); await page.click(".auth-submit");
+    await page.getByRole("alert").filter({ hasText: "rechargement" }).waitFor({ timeout: 3000 });
+    assert.match(page.url(), /\/login\?mode=signup$/);assert.equal(await page.evaluate(() => window.TitanAnalytics.consent()), "denied");
+    if (session) { await page.locator("#auth a[href='/onboarding']").click(); await page.waitForURL("**/onboarding"); }
+    else assert.equal(await page.locator(".auth-sent").count(), 1);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("consent storage: onboarding shows an unsaved choice before continuing", async () => {
+  const { page, context, errors } = await newPage();
+  await page.addInitScript(() => { localStorage.setItem("titan_privacy_v1", JSON.stringify({ analytics: "granted" })); });
+  await page.goto(BASE + "/onboarding?again=1", { waitUntil: "load" });
+  await page.locator("[data-next]").click(); await page.locator("[data-next]").click(); await page.locator("[data-analytics]").uncheck();
+  await page.locator("[data-next]").click();
+  await page.evaluate(() => {
+    const save = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) { if (key === "titan_privacy_v1") throw Error("Synthetic write failure"); return save.call(this, key, value); };
+  });
+  await page.locator("[data-finish][href='/aujourdhui']").click();
+  await page.getByRole("alert").filter({ hasText: "rechargement" }).waitFor({ timeout: 3000 });
+  assert.match(page.url(), /\/onboarding\?again=1$/);assert.equal(await page.evaluate(() => window.TitanAnalytics.consent()), "denied");
+  assert.equal(await page.evaluate(() => window.state.user.onboardingComplete), true);
+  await page.locator(".ob-go a[href='/aujourdhui']").click(); await page.waitForURL("**/aujourdhui");
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("consent storage: an unsaved agreement yields to a refusal in a real second tab", async () => {
+  const { page, context, errors } = await checkoutPage();
+  await page.evaluate(() => {
+    const save = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) { if (key === "titan_privacy_v1") throw Error("Synthetic write failure"); return save.call(this, key, value); };
+    window.TitanAnalytics.setConsent(true);
+  });
+  await clickCheckout(page);
+  const prefs = await context.newPage(); await prefs.goto(BASE + "/profile", { waitUntil: "load" }); await prefs.locator("[data-analytics]").uncheck();
+  await confirmCheckout(page);
+  assert.equal(await page.evaluate(() => window.TitanAnalytics.consent()), "denied");
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
+  assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("checkout receipt: a real cross-tab lock protects confirmation from concurrent replacement", async () => {
+  const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
+  await page.evaluate(() => { window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true); });
+  const writer = await context.newPage(); await writer.goto(BASE + "/legal_privacy", { waitUntil: "load" });
+  await writer.evaluate(() => {
+    window.writerLock = navigator.locks.request("titan_checkout_receipt:00000000-0000-4000-8000-000000000123", async () => {
+      window.writerLocked = true; await new Promise(resolve => { window.releaseWriter = resolve; });
+    });
+  });
+  await writer.waitForFunction(() => window.writerLocked);
+  await page.evaluate(() => { window.atelierFixture.plus.active = true; dispatchEvent(new Event("online")); });
+  await page.waitForFunction(async () => (await navigator.locks.query()).pending.some(l => l.name === "titan_checkout_receipt:" + window.state.user.id), null, { timeout: 2000 });
+  await writer.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    localStorage.setItem("titan_checkout_started_v3:" + owner, JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: localStorage.getItem("titan_privacy_v1") }));
+    window.releaseWriter();
+  });
+  await settleCheckout(page);
+  assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1, "the current replacement is measured after the writer releases its lock");
+  assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("checkout receipt: opening waits for a real cross-tab receipt writer before changing storage", async () => {
+  const { page, context, errors } = await checkoutPage();
+  const writer = await context.newPage(); await writer.goto(BASE + "/legal_privacy", { waitUntil: "load" });
+  await writer.evaluate(() => {
+    window.writerLock = navigator.locks.request("titan_checkout_receipt:00000000-0000-4000-8000-000000000123", async () => {
+      window.writerLocked = true; await new Promise(resolve => { window.releaseWriter = resolve; });
+    });
+  });
+  await writer.waitForFunction(() => window.writerLocked); await page.click("[data-checkout]");
+  await page.waitForFunction(async () => (await navigator.locks.query()).pending.some(l => l.name === "titan_checkout_receipt:" + window.state.user.id), null, { timeout: 2000 });
+  assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id)), null);
+  await writer.evaluate(() => { window.releaseWriter(); });
+  await page.waitForFunction(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id));
+  assert.equal(await page.evaluate(() => window.checkoutOpens.length), 1);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("checkout receipt: browsers without locks keep functional confirmation read-only", async () => {
+  for (const existing of [false, true]) {
+    const { page, context, errors } = await checkoutPage();
+    if (existing) await clickCheckout(page);
+    const raw = await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id));
+    await page.evaluate(() => { Object.defineProperty(navigator, "locks", { value: undefined, configurable: true }); });
+    if (!existing) await clickCheckout(page);
+    await confirmCheckout(page); await confirmCheckout(page);
+    assert.equal(await page.evaluate(() => window.state.user.is_elite), true);
+    assert.equal(await page.evaluate(() => window.checkoutOpens.length), 1);
+    assert.equal(await page.evaluate(() => window.activationToasts.length), existing ? 1 : 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id)), raw);
+    assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 0);
+    assert.deepEqual(errors, []); await context.close();
+  }
 });
 
 test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 1280 px", async () => {
@@ -1645,18 +1915,18 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
     await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
-    for (const version of ['300.0','300.1']) {
+    for (const version of ['300.0','300.1','300.2']) {
       await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
     }
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4"] : ["300.0"];
+      const versions = marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
@@ -1671,5 +1941,9 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
   await page.goto(BASE + "/boutique", { waitUntil: "load" });
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
+  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/onboarding?again=1", "onboarding"]]) {
+    await page.goto(BASE + path, { waitUntil: "load" });
+    assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
+  }
   await context.close();
 });

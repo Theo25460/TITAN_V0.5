@@ -108,15 +108,20 @@
       if (name.length < 2) throw new UserError("Choisis un nom de 2 caractères minimum.");
       if (password.length < 8) throw new UserError("Choisis un mot de passe d’au moins 8 caractères.");
       if (!fd.get("terms")) throw new UserError("Accepte les conditions pour créer ton compte.");
-      window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics")));
+      const consentSaved = window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics"))) === true;
       const { data, error } = await c.auth.signUp({ email, password, options: { emailRedirectTo: `${SITE}/onboarding`, data: { full_name: name, username: name } } });
       if (error) throw error;
       window.TitanAnalytics?.track("signup", {}, { owner: data?.user?.id || data?.session?.user?.id || null });
       if (data?.session) {
+        if (!consentSaved) {
+          $("#auth").innerHTML = `<div class="asc-stack"><h2 class="asc-h3">Ton compte est créé</h2><p role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p><a class="asc-btn asc-btn-primary" href="/onboarding">Continuer</a></div>`;
+          return;
+        }
         location.href = "/onboarding";
         return;
       }
       sent(email, "signup");
+      if (!consentSaved) message("Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.");
     } catch (error) {
       message(error instanceof UserError ? error.message : human(error));
     } finally {

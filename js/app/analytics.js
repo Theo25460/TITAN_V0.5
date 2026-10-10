@@ -34,6 +34,7 @@
   const ONCE_KEY = "titan_analytics_once_v1";
   const sending = new Set();
   let consentSequence = 0;
+  let memoryPreference, memoryPreferenceBase; // Keep an unsaved choice only while the stored preference is unchanged.
   let authClient = null, authSequence = 0, authSubscription = null;
 
   function observeAuth(client) {
@@ -45,22 +46,44 @@
     })?.data?.subscription || null;
   }
 
+  function consentSnapshot() {
+    let persisted;
+    try { persisted = localStorage.getItem(PRIVACY_KEY) || ""; } catch { return null; }
+    if (memoryPreference !== undefined && persisted === memoryPreferenceBase) return memoryPreference;
+    memoryPreference = memoryPreferenceBase = undefined;
+    return persisted;
+  }
   function consent() {
+    const raw = consentSnapshot();
+    if (raw === null) return "denied";
     try {
-      const v = JSON.parse(localStorage.getItem(PRIVACY_KEY) || "null");
-      return v?.analytics === "granted" ? "granted" : v?.analytics === "denied" ? "denied" : null;
+      const v = JSON.parse(raw || "null");
+      if (v !== null && (typeof v !== "object" || Array.isArray(v))) return "denied";
+      return v?.analytics === "granted" ? "granted" : v?.analytics === "denied" ? "denied"
+        : v && Object.hasOwn(v, "analytics") ? "denied" : null;
     } catch {
-      return null;
+      return "denied";
     }
   }
   function setConsent(granted) {
     consentSequence++;
+    let v;
+    try { v = JSON.parse(consentSnapshot() || "{}"); } catch {}
+    if (!v || typeof v !== "object" || Array.isArray(v)) v = {};
+    v.analytics = granted ? "granted" : "denied";
+    v.at = new Date().toISOString();
+    // An opaque, local revision survives reload and avoids same-millisecond deny→grant collisions.
+    v.revision = window.crypto?.randomUUID?.() || `${Date.now()}-${consentSequence}-${Math.random()}`;
+    const raw = JSON.stringify(v);
     try {
-      const v = JSON.parse(localStorage.getItem(PRIVACY_KEY) || "{}") || {};
-      v.analytics = granted ? "granted" : "denied";
-      v.at = new Date().toISOString();
-      localStorage.setItem(PRIVACY_KEY, JSON.stringify(v));
-    } catch {}
+      localStorage.setItem(PRIVACY_KEY, raw);
+      memoryPreference = memoryPreferenceBase = undefined;
+      return true;
+    } catch {
+      memoryPreference = raw;
+      try { memoryPreferenceBase = localStorage.getItem(PRIVACY_KEY) || ""; } catch { memoryPreferenceBase = null; }
+      return false;
+    }
   }
 
   function clean(props, name) {
@@ -99,11 +122,12 @@
     const c = consent();
     if (c === "denied") return false;
     if (!navigator.onLine || !window.titanClient || window.titanAccountTransition?.active) return false;
-    const client = window.titanClient, owner = window.state?.user?.id, epoch = window.titanAccountTransition?.epoch, revision = consentSequence;
+    const client = window.titanClient, owner = window.state?.user?.id, epoch = window.titanAccountTransition?.epoch, revision = consentSequence, preference = consentSnapshot();
     try { observeAuth(client); } catch { return false; }
     const sessionRevision = authSequence, signupOwner = name === "signup" ? attribution?.owner || null : null;
     const current = () => client === window.titanClient && owner === window.state?.user?.id && epoch === window.titanAccountTransition?.epoch
-      && !window.titanAccountTransition?.active && revision === consentSequence && sessionRevision === authSequence && consent() === c && navigator.onLine;
+      && !window.titanAccountTransition?.active && revision === consentSequence && preference === consentSnapshot()
+      && sessionRevision === authSequence && consent() === c && navigator.onLine;
     const unique = ONCE.has(name); let key, locked = false;
     try {
       let userId = null, token = null;
@@ -148,7 +172,7 @@
 
   window.addEventListener?.("storage", e => { if (e.key === PRIVACY_KEY || e.key === null) consentSequence++; });
 
-  window.TitanAnalytics = { track, consent, setConsent, EVENTS };
+  window.TitanAnalytics = { track, consent, consentSnapshot, setConsent, EVENTS };
   // Legacy callers (landing pages) keep working, through the same filter.
   if (!window.titanTrackEvent) window.titanTrackEvent = (name, metadata) => track(name, metadata);
 })();

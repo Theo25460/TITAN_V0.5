@@ -105,6 +105,32 @@ test('analytics: unknown event names remain rejected',async()=>{
   const {analytics,writes}=fixture();assert.equal(await analytics.track('unplanned_private_event',{notes:'private'}),false);assert.deepEqual(writes,[]);
 });
 
+test('analytics consent: failed preference writes cannot re-enable tracking after refusal',async()=>{
+  const {context,analytics,writes}=fixture();
+  context.localStorage.setItem=()=>{throw Error('Synthetic storage denied');};
+  analytics.setConsent(false);
+  assert.equal(await analytics.track('analysis_report_viewed'),false);
+  assert.deepEqual(writes,[]);
+});
+test('analytics consent: unavailable preference storage suppresses tracking',async()=>{
+  const {context,analytics,writes}=fixture();
+  context.localStorage.getItem=()=>{throw Error('Synthetic storage unavailable');};
+  assert.equal(await analytics.track('analysis_report_viewed'),false);
+  assert.deepEqual(writes,[]);
+});
+test('analytics consent: refusal replaces a malformed preference instead of leaving anonymous tracking active',async()=>{
+  const {analytics,writes,storage}=fixture();storage.set('titan_privacy_v1','{invalid');
+  analytics.setConsent(false);
+  assert.equal(await analytics.track('analysis_report_viewed'),false);
+  assert.deepEqual(writes,[]);
+});
+test('analytics consent: invalid stored preference shapes cannot become anonymous permission',async()=>{
+  for(const raw of ['[]','"granted"','7','{"analytics":"unexpected"}']){
+    const {analytics,writes,storage}=fixture();storage.set('titan_privacy_v1',raw);
+    assert.equal(await analytics.track('analysis_report_viewed'),false);assert.deepEqual(writes,[]);
+  }
+});
+
 // Actual vendored SDK, including its asynchronous token preparation. Only native HTTP/auth boundaries are faked.
 function sdkFixture({login=false,delayed=true}={}){
   const storage=new Map([['titan_privacy_v1',JSON.stringify({analytics:'granted'})]]),requests=[],listeners=new Map();
@@ -144,6 +170,30 @@ test('analytics actual SDK: current events use only the captured session token a
   const f=sdkFixture({delayed:false});assert.equal(await f.analytics.track('analysis_view_created',{kind:'report',name:'private'}),true);
   assert.equal(f.requests.length,1);assert.equal(f.requests[0].authorization,`Bearer token-${A}`);
   assert.equal(f.requests[0].row.user_id,A);assert.deepEqual(JSON.parse(JSON.stringify(f.requests[0].row.metadata)),{kind:'report',consent:'granted',v:300});
+});
+test('analytics consent: the SDK rejects a changed persisted preference before its storage event arrives',async()=>{
+  const f=sdkFixture(),sent=f.analytics.track('analysis_report_viewed');await f.prepared.promise;
+  f.storage.set('titan_privacy_v1',JSON.stringify({analytics:'denied',revision:'refusal'}));
+  f.storage.set('titan_privacy_v1',JSON.stringify({analytics:'granted',revision:'new-agreement'}));
+  // Real cross-tab events are asynchronous; no event has reached this document yet.
+  f.token.resolve(f.session(A));assert.equal(await sent,false);assert.deepEqual(f.requests,[]);
+});
+test('analytics consent: an unsaved agreement cannot mask a later persisted refusal',async()=>{
+  const f=sdkFixture({delayed:false});
+  const save=f.context.localStorage.setItem;
+  f.context.localStorage.setItem=(key,value)=>{if(key==='titan_privacy_v1')throw Error('Synthetic write failure');save(key,value);};
+  f.analytics.setConsent(true);
+  assert.equal(await f.analytics.track('analysis_report_viewed'),true,'the explicit live-page agreement initially applies');
+  f.storage.set('titan_privacy_v1',JSON.stringify({analytics:'denied',revision:'other-tab-refusal'}));
+  assert.equal(f.analytics.consent(),'denied','the persisted change wins before delivery of storage');
+  f.emit('storage',{key:'titan_privacy_v1'});
+  assert.equal(await f.analytics.track('analysis_report_viewed'),false);assert.equal(f.requests.length,1);
+});
+test('analytics consent: an unsaved agreement cannot bypass unavailable preference reads',async()=>{
+  const f=sdkFixture({delayed:false});
+  f.context.localStorage.setItem=()=>{throw Error('Synthetic write failure');};f.analytics.setConsent(true);
+  f.context.localStorage.getItem=()=>{throw Error('Synthetic read failure');};
+  assert.equal(await f.analytics.track('analysis_report_viewed'),false);assert.deepEqual(f.requests,[]);
 });
 test('analytics login: signup cannot be attributed to a different session owner',async()=>{
   const f=sdkFixture({login:true,delayed:false});f.client.auth.getSession=async()=>f.session(B);
