@@ -120,6 +120,61 @@ async function viewsPage(width=360, type='report', seeded=false) {
   return fixture;
 }
 
+test('views UX: pending save retains the draft until its uncertain response arrives',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await viewsPage(width,'report',true);
+    await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');
+    await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Nom à conserver');
+    await page.evaluate(()=>{
+      const previous=window.viewGateway;
+      window.viewGateway=(name,p)=>name==='titan_mutate_analysis_view'
+        ?new Promise(resolve=>{window.finishPendingViewFailure=()=>resolve({error:{message:'Network lost'}});})
+        :previous(name,p);
+    });
+    await page.click('#views-submit');await page.waitForFunction(()=>typeof window.finishPendingViewFailure==='function');
+    assert.equal(await page.locator('#views-cancel').isDisabled(),true,'pending save cannot discard its draft');
+    await page.evaluate(()=>document.querySelector('#views-cancel').click());
+    assert.equal(await page.locator('#views-draft-form').isVisible(),true);
+    assert.equal(await page.locator('#views-name').inputValue(),'Nom à conserver');
+    await page.evaluate(()=>window.finishPendingViewFailure());
+    await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('vérifie la liste'));
+    assert.equal(await page.locator('#views-cancel').isDisabled(),false);
+    assert.equal(await page.locator('#views-draft-form').isVisible(),true);
+    assert.equal(await page.locator('#views-name').inputValue(),'Nom à conserver');
+    await page.click('#views-cancel');assert.equal(await page.locator('#views-draft-form').isVisible(),false);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('views UX: rename removes the previous delete confirmation',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await viewsPage(width,'report',true);
+    await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');
+    await page.locator('[data-view-action="delete"]').click();assert.equal(await page.locator('#views-confirm-delete').count(),1);
+    await page.locator('[data-view-action="edit"]').click();
+    assert.equal(await page.locator('#views-confirm-delete').count(),0,'rename clears the visible confirmation');
+    assert.equal(await page.locator('#views-draft-form').isVisible(),true);
+    assert.equal(await page.locator('#views-name').inputValue(),'Mon année');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'views-name');
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('views UX: keyboard cancellation returns focus to the same view delete button',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await viewsPage(width,'report',true);
+    await page.evaluate(()=>window.viewRows.push({...window.viewRows[0],id:'00000000-0000-4000-8000-000000000444',name:'Deuxième vue'}));
+    await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');
+    const card=page.locator('[data-view="00000000-0000-4000-8000-000000000444"]');
+    await card.locator('[data-view-action="delete"]').click();
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'views-confirm-delete');
+    await page.keyboard.press('Tab');await page.keyboard.press('Enter');
+    assert.deepEqual(await page.evaluate(()=>({action:document.activeElement?.dataset.viewAction,id:document.activeElement?.closest('[data-view]')?.dataset.view})),
+      {action:'delete',id:'00000000-0000-4000-8000-000000000444'});
+    assert.equal(await page.locator('#views-confirm-delete').count(),0);
+    await page.keyboard.press('Enter');assert.equal(await card.locator('#views-confirm-delete').count(),1);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+
 test('views: save current report, restore fresh, rename and delete at 360/1280 px',async()=>{
   for(const width of [360,1280]){
     const {page,context,errors}=await viewsPage(width);

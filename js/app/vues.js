@@ -7,6 +7,7 @@
   const message=text=>{status.innerHTML=text?`<p>${esc(text)}</p>`:'';};
   function controls(busy=false) {
     retry.disabled=busy;
+    form.querySelector('#views-cancel').disabled=busy;
     form.querySelector('#views-submit').disabled=busy||!shown?.available;
     form.querySelector('#views-name').disabled=busy||!shown?.available;
     list.querySelectorAll('button').forEach(b=>{b.disabled=busy||(['apply','edit'].includes(b.dataset.viewAction)&&!shown?.available);});
@@ -82,7 +83,7 @@
     finally {finish(job);}
   }
   function edit(v) {
-    confirmed=null;
+    if(confirmed){confirmed=null;render(shown);}
     draft={id:v.id,revision:v.revision,kind:v.kind,options:structuredClone(v.options)};
     form.hidden=false;form.querySelector('#views-name').value=v.name;
     form.querySelector('#views-draft-summary').textContent=V().describe(v.kind,v.options);
@@ -132,7 +133,7 @@
       <div id="views-list"></div><p class="asc-small asc-muted">À la fin de TITAN+, tes vues sont conservées et supprimables. Tes favoris, ton historique et tes exports de base restent gratuits.</p></div></details>`;
     panel=root.querySelector('details');form=root.querySelector('form');status=root.querySelector('#views-status');list=root.querySelector('#views-list');retry=root.querySelector('#views-retry');
     panel.addEventListener('toggle',()=>panel.open?load():clear());retry.addEventListener('click',load);
-    form.addEventListener('submit',e=>{e.preventDefault();save();});form.querySelector('#views-cancel').addEventListener('click',()=>{discardDraft();refresh();});
+    form.addEventListener('submit',e=>{e.preventDefault();save();});form.querySelector('#views-cancel').addEventListener('click',()=>{if(pending)return;discardDraft();refresh();});
     list.addEventListener('click',e=>{
       const button=e.target.closest('[data-view-action]');if(!button||pending)return;
       const v=shown?.views.find(v=>v.id===button.closest('[data-view]')?.dataset.view);if(!v)return;
@@ -140,7 +141,7 @@
       if(action==='apply')apply(v.id);
       if(action==='edit'&&shown.available)edit(v);
       if(action==='delete'){confirmed=v.id;render(shown);list.querySelector('#views-confirm-delete')?.focus();}
-      if(action==='cancel-delete'){confirmed=null;render(shown);}
+      if(action==='cancel-delete'){confirmed=null;render(shown);list.querySelector(`[data-view="${v.id}"] [data-view-action="delete"]`)?.focus();}
       if(action==='confirm'&&confirmed===v.id)mutate({p_action:'delete',p_id:v.id,p_expected_revision:v.revision});
     });
     window.addEventListener('titan:analysis-view-save',e=>{
