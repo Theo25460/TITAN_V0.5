@@ -385,6 +385,7 @@ const INDEXABLE = [
   ["/motivation-sport", 0.6],
   ["/changelog", 0.4],
   ["/service", 0.4],
+  ["/partenariats", 0.4],
   ["/legal_privacy", 0.3],
   ["/legal_cgu", 0.3],
   ["/legal_mentions", 0.3],

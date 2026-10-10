@@ -23,6 +23,35 @@
         return window.titanClient || null;
     }
 
+    function updatePageMetadata(data, slug) {
+        const title = data.meta_title || data.title || 'TITAN';
+        const description = data.meta_description || document.querySelector('meta[name="description"]')?.content || '';
+        const url = `https://titan-app.fr/dynamic-page?slug=${encodeURIComponent(slug)}`;
+        document.title = title;
+        for (const [selector, value] of [
+            ['meta[name="description"]', description],
+            ['meta[property="og:title"]', title], ['meta[property="og:description"]', description],
+            ['meta[property="og:url"]', url],
+            ['meta[name="twitter:title"]', title], ['meta[name="twitter:description"]', description]
+        ]) document.querySelector(selector)?.setAttribute('content', value);
+        document.querySelector('link[rel="canonical"]')?.setAttribute('href', url);
+
+        // A damaged optional schema must not stop content rendering or its existing measurement.
+        const schema = document.querySelector('script[data-seo-schema]');
+        if (schema) {
+            try {
+                const payload = JSON.parse(schema.textContent);
+                const page = payload['@graph'].find(node => node['@type'] === 'WebPage');
+                if (page) {
+                    Object.assign(page, { '@id': `${url}#webpage`, url, name: title, description });
+                    schema.textContent = JSON.stringify(payload).replaceAll('<', '\\u003c');
+                }
+            } catch (error) {
+                console.warn('[TITAN PAGE SEO]', error);
+            }
+        }
+    }
+
     async function loadPage() {
         const target = document.getElementById('dynamic-page');
         const slug = getSlug();
@@ -51,11 +80,7 @@
                 return;
             }
 
-            document.title = data.meta_title || data.title || 'TITAN OS';
-            const meta = document.querySelector('meta[name="description"]');
-            if (meta && data.meta_description) meta.setAttribute('content', data.meta_description);
-            const canonical = document.querySelector('link[rel="canonical"]');
-            if (canonical) canonical.setAttribute('href', `${location.origin}${location.pathname}?slug=${encodeURIComponent(slug)}`);
+            updatePageMetadata(data, slug);
 
             if (data.is_indexable === false) {
                 let robots = document.querySelector('meta[name="robots"]');

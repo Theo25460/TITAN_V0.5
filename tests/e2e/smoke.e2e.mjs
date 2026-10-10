@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server;
@@ -1908,9 +1908,9 @@ test("navigation: empty searches, no-data favorites, and small accounts remain u
 });
 
 // Published CMS content and analytics use the real page, entry point and SDK; only HTTP/auth boundaries are synthetic.
-async function publicContentPage({consent="granted",content="published",blocked=false,missingCollector=false}={}) {
+async function publicContentPage({consent="granted",content="published",blocked=false,missingCollector=false,metadata={},schema="normal"}={}) {
   const fixture=await newPage(),{page}=fixture;
-  await page.addInitScript(({consent,content,blocked})=>{
+  await page.addInitScript(({consent,content,blocked,metadata})=>{
     if(consent) localStorage.setItem("titan_privacy_v1",JSON.stringify({analytics:consent}));
     else localStorage.removeItem("titan_privacy_v1");
     window.publicWrites=[];window.publicQueries=[];
@@ -1920,7 +1920,7 @@ async function publicContentPage({consent="granted",content="published",blocked=
       const url=new URL(input,location.origin);
       if(url.pathname==="/rest/v1/dynamic_pages") {
         window.publicQueries.push(url.search);
-        const rows=content==="missing"?[]:[{id:"00000000-0000-4000-8000-000000000999",slug:"fixture-public",status:"published",title:"Contenu public de test",meta_title:"Contenu public de test",meta_description:"Un contenu publié de test",content:"<p>Un contenu publié lisible.</p>",cover_image_url:null,is_indexable:false}];
+        const rows=content==="missing"?[]:[{id:"00000000-0000-4000-8000-000000000999",slug:"fixture-public",status:"published",title:"Contenu public de test",meta_title:"Contenu public de test",meta_description:"Un contenu publié de test",content:"<p>Un contenu publié lisible.</p>",cover_image_url:null,is_indexable:false,...metadata}];
         return new Response(JSON.stringify(content==="error"?{message:"Synthetic server failure"}:rows),{status:content==="error"?500:200,headers:{"content-type":"application/json"}});
       }
       if(url.pathname==="/rest/v1/analytics_events") {
@@ -1930,14 +1930,153 @@ async function publicContentPage({consent="granted",content="published",blocked=
       }
       return native(input,init);
     };
-  },{consent,content,blocked});
+  },{consent,content,blocked,metadata});
   await page.route("**/js/config.js?*",r=>r.fulfill({contentType:"text/javascript",body:readFileSync(ROOT+"/js/config.js","utf8")+`\nwindow.initTitanSupabaseClient().auth.getSession=async()=>({data:{session:{user:{id:"00000000-0000-4000-8000-000000000123"},access_token:"fixture-public-token"}},error:null});`}));
   await page.route("**/js/content.js?*",r=>r.fulfill({contentType:"text/javascript",body:readFileSync(ROOT+"/js/content.js","utf8")+`\nconst publicTrack=window.titanTrackEvent;window.titanTrackEvent=(...args)=>window.publicTracked=publicTrack(...args);`}));
   if(missingCollector) await page.route("**/js/app/analytics.js?*",r=>r.abort("failed"));
+  if(schema!=="normal") await page.route("**/dynamic-page?*",async route=>{
+    const response=await page.request.get(route.request().url());
+    const html=(await response.text()).replace(/<script[^>]*data-seo-schema[^>]*>[\s\S]*?<\/script>/,schema==="missing"?"":'<script type="application/ld+json" data-seo-schema>{broken</script>');
+    await route.fulfill({contentType:"text/html",body:html});
+  });
   await page.goto(BASE+"/dynamic-page?slug=fixture-public&utm_source=private-fixture",{waitUntil:"load",referer:BASE+"/private?notes=private-fixture"});
   await page.locator("#dynamic-page h1").filter({hasText:content==="published"?"Contenu public de test":"Page introuvable"}).waitFor();
   return fixture;
 }
+
+async function renderedPublicMetadata(page) {
+  return page.evaluate(() => {
+    const value = selector => document.querySelector(selector)?.getAttribute("content");
+    const graph = JSON.parse(document.querySelector("script[data-seo-schema]").textContent)["@graph"];
+    const webPage = graph.find(node => node["@type"] === "WebPage");
+    return {
+      title: document.title, description: value('meta[name="description"]'),
+      canonical: document.querySelector('link[rel="canonical"]').href,
+      ogTitle: value('meta[property="og:title"]'), ogDescription: value('meta[property="og:description"]'),
+      ogUrl: value('meta[property="og:url"]'), twitterTitle: value('meta[name="twitter:title"]'),
+      twitterDescription: value('meta[name="twitter:description"]'),
+      schemaName: webPage.name, schemaDescription: webPage.description, schemaUrl: webPage.url,
+      robots: value('meta[name="robots"]'), googlebot: value('meta[name="googlebot"]'), bingbot: value('meta[name="bingbot"]'),
+    };
+  });
+}
+
+test("SEO metadata: served admin and public CMS use the current share image and page facts", async () => {
+  const { page, context } = await newPage();
+  for (const path of ["/admin", "/dynamic-page"]) {
+    const response = await page.request.get(BASE + path);
+    assert.equal(response.status(), 200);
+    const metadata = await page.evaluate(html => {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const value = selector => doc.querySelector(selector)?.getAttribute("content");
+      const graph = JSON.parse(doc.querySelector("script[data-seo-schema]").textContent)["@graph"];
+      return { image: value('meta[property="og:image"]'), secureImage: value('meta[property="og:image:secure_url"]'),
+        imageType: value('meta[property="og:image:type"]'), twitterImage: value('meta[name="twitter:image"]'),
+        appleTouch: doc.querySelector('link[rel="apple-touch-icon"]').getAttribute("href"),
+        organization: graph.find(node => node["@type"] === "Organization"),
+        webPage: graph.find(node => node["@type"] === "WebPage"),
+        productClaims: graph.filter(node => [node["@type"]].flat().some(type => ["SoftwareApplication", "WebApplication", "Product"].includes(type))),
+        robots: value('meta[name="robots"]') };
+    }, await response.text());
+    assert.equal(metadata.image, "https://titan-app.fr/image/og-titan.jpg");
+    assert.equal(metadata.secureImage, metadata.image);
+    assert.equal(metadata.imageType, "image/jpeg");
+    assert.equal(metadata.twitterImage, metadata.image);
+    assert.equal(metadata.appleTouch, "/image/apple-touch-icon.png");
+    assert.equal(metadata.organization.name, "TITAN");
+    assert.equal(metadata.organization.logo.url, "https://titan-app.fr/image/logo-192.png");
+    assert.deepEqual(metadata.productClaims, []);
+    assert.equal(metadata.webPage.url, "https://titan-app.fr" + path);
+    assert.match(metadata.robots, /noindex/);
+  }
+  await page.goto(BASE + "/");
+  assert.deepEqual(await page.evaluate(async origin => {
+    const image = new Image(); image.src = origin + "/image/og-titan.jpg"; await image.decode();
+    return [image.naturalWidth, image.naturalHeight];
+  }, BASE), [1200, 630]);
+  await context.close();
+});
+
+test("SEO metadata: sitemap includes every served indexable public canonical", async () => {
+  const { page, context } = await newPage();
+  const pages = await Promise.all(readdirSync(ROOT + "/dist").filter(file => file.endsWith(".html")).map(async file => {
+    const response = await page.request.get(BASE + "/" + file);
+    return response.text();
+  }));
+  const sitemap = await (await page.request.get(BASE + "/sitemap.xml")).text();
+  const inventory = await page.evaluate(({ pages, sitemap }) => {
+    const parser = new DOMParser();
+    const canonicals = pages.flatMap(html => {
+      const doc = parser.parseFromString(html, "text/html");
+      const robots = doc.querySelector('meta[name="robots"]')?.content;
+      if (!robots || robots.includes("noindex")) return [];
+      return [doc.querySelector('link[rel="canonical"]')?.getAttribute("href")];
+    });
+    const xml = parser.parseFromString(sitemap, "application/xml");
+    return { canonicals, urls: [...xml.querySelectorAll("loc")].map(node => node.textContent), invalidXML: Boolean(xml.querySelector("parsererror")) };
+  }, { pages, sitemap });
+  assert.equal(inventory.invalidXML, false);
+  assert.equal(new Set(inventory.urls).size, inventory.urls.length);
+  assert.ok(inventory.canonicals.every(url => url?.startsWith("https://titan-app.fr/")));
+  assert.deepEqual(inventory.urls.sort(), inventory.canonicals.sort());
+  await context.close();
+});
+
+test("SEO metadata: published CMS title description and canonical agree across consumers", async () => {
+  const { page, context, errors } = await publicContentPage({ consent: "denied" });
+  const result = await renderedPublicMetadata(page);
+  for (const key of ["title", "ogTitle", "twitterTitle", "schemaName"]) assert.equal(result[key], "Contenu public de test", key);
+  for (const key of ["description", "ogDescription", "twitterDescription", "schemaDescription"]) assert.equal(result[key], "Un contenu publié de test", key);
+  for (const key of ["canonical", "ogUrl", "schemaUrl"]) assert.equal(result[key], "https://titan-app.fr/dynamic-page?slug=fixture-public", key);
+  for (const key of ["robots", "googlebot", "bingbot"]) assert.match(result[key], /noindex/, key);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("SEO metadata: CMS text remains literal in tags and JSON-LD", async () => {
+  const title = 'Un titre </script><script>window.seoInjected=true</script> & "cité"';
+  const description = 'Une description <img src=x onerror="window.seoInjected=true"> et des accents : été.';
+  const { page, context, errors } = await publicContentPage({ consent: "denied", metadata: { meta_title: title, meta_description: description } });
+  const result = await renderedPublicMetadata(page);
+  for (const key of ["title", "ogTitle", "twitterTitle", "schemaName"]) assert.equal(result[key], title, key);
+  for (const key of ["description", "ogDescription", "twitterDescription", "schemaDescription"]) assert.equal(result[key], description, key);
+  assert.equal(await page.evaluate(() => window.seoInjected), undefined);
+  assert.equal(await page.locator("#dynamic-page h1").textContent(), "Contenu public de test");
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("SEO metadata: missing CMS fields and failed reads keep a coherent noindex fallback", async () => {
+  for (const content of ["published", "missing", "error"]) {
+    const { page, context, errors } = await publicContentPage({ consent: "denied", content, metadata: { meta_title: null, meta_description: "", is_indexable: true } });
+    const result = await renderedPublicMetadata(page);
+    const title = content === "published" ? "Contenu public de test" : "Page publique TITAN";
+    for (const key of ["title", "ogTitle", "twitterTitle", "schemaName"]) assert.equal(result[key], title, key);
+    assert.ok(result.description);
+    for (const key of ["ogDescription", "twitterDescription", "schemaDescription"]) assert.equal(result[key], result.description, key);
+    for (const key of ["canonical", "ogUrl", "schemaUrl"]) assert.equal(result[key], "https://titan-app.fr/dynamic-page" + (content === "published" ? "?slug=fixture-public" : ""), key);
+    for (const key of ["robots", "googlebot", "bingbot"]) assert.match(result[key], /noindex/, key);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("SEO metadata: missing or malformed JSON-LD never blocks published content", async () => {
+  for (const schema of ["missing", "malformed"]) {
+    for (const consent of ["denied", "granted"]) {
+      const { page, context, errors } = await publicContentPage({ consent, schema });
+      assert.equal(await page.locator("#dynamic-page h1").textContent(), "Contenu public de test");
+      assert.equal(await page.locator('meta[property="og:title"]').getAttribute("content"), "Contenu public de test");
+      assert.equal(await page.locator('meta[name="robots"]').getAttribute("content"), "noindex, nofollow");
+      if (consent === "granted") {
+        await page.waitForFunction(() => window.publicWrites.length === 1);
+        assert.equal(await page.evaluate(() => window.publicTracked), true);
+        assert.deepEqual(await page.evaluate(() => window.publicWrites), [{ row: { event_name: "dynamic_page_opened", user_id: "00000000-0000-4000-8000-000000000123", page: "/dynamic-page", source: null, referrer: null, metadata: { consent: "granted", v: 300 } }, authorization: "Bearer fixture-public-token" }]);
+      } else {
+        assert.equal(await page.evaluate(() => window.publicTracked), false);
+        assert.deepEqual(await page.evaluate(() => window.publicWrites), []);
+      }
+      assert.deepEqual(errors, []); await context.close();
+    }
+  }
+});
 test("public page analytics: refusal suppresses tracking while published content remains readable",async()=>{
   const {page,context,errors}=await publicContentPage({consent:"denied"});
   assert.equal(await page.evaluate(()=>window.publicTracked),false);assert.deepEqual(await page.evaluate(()=>window.publicWrites),[]);
@@ -1996,7 +2135,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -2030,5 +2169,6 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.getByRole("heading", { name: "Page introuvable" }).waitFor();
   assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("dynamic_page_opened")), true, "first public visit loads the shared collector");
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.content)), false, "first public visit loads the guarded legacy entry point");
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.dynamic)), false, "first public visit loads the updated metadata producer");
   await context.close();
 });
