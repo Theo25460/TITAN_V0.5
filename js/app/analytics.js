@@ -17,30 +17,82 @@
     "weekly_recap_viewed",
     "premium_checkout_started",
     "premium_activated",
+    "sport_navigation_searched",
+    "sport_navigation_filtered",
+    "analysis_comparison_viewed",
+    "analysis_report_viewed",
+    "analysis_report_exported",
+    "analysis_view_created",
+    "analysis_view_renamed",
+    "analysis_view_deleted",
+    "analysis_view_opened",
+    "dynamic_page_opened",
   ]);
+  const ANALYSIS = new Set([...EVENTS].filter(name => name.startsWith("analysis_")));
+  const PUBLIC = new Set(["dynamic_page_opened"]);
   const ONCE = new Set(["signup", "onboarding_completed", "first_session", "second_session", "premium_activated"]);
   const PROPS = { family: /^[a-z]{2,20}$/, sport: /^[a-z0-9_]{2,40}$/, step: /^[a-z0-9_-]{1,30}$/, source: /^[a-z0-9_-]{1,30}$/, plan: /^[a-z0-9_-]{1,30}$/, world: /^[a-z0-9_-]{1,30}$/, chapter: /^\d{1,2}$/, kind: /^[a-z_]{1,20}$/, count: /^\d{1,4}$/ };
   const PRIVACY_KEY = "titan_privacy_v1";
   const ONCE_KEY = "titan_analytics_once_v1";
+  const sending = new Set();
+  let consentSequence = 0;
+  let memoryPreference, memoryPreferenceBase; // Keep an unsaved choice only while the stored preference is unchanged.
+  let authClient = null, authSequence = 0, authSubscription = null;
 
+  function observeAuth(client) {
+    if (client === authClient) return;
+    authSubscription?.unsubscribe();
+    authClient = client; authSequence++;
+    authSubscription = client.auth.onAuthStateChange?.(event => {
+      if (client === authClient && event !== "INITIAL_SESSION" && event !== "TOKEN_REFRESHED") authSequence++;
+    })?.data?.subscription || null;
+  }
+
+  function consentSnapshot() {
+    let persisted;
+    try { persisted = localStorage.getItem(PRIVACY_KEY) || ""; } catch { return null; }
+    if (memoryPreference !== undefined && persisted === memoryPreferenceBase) return memoryPreference;
+    memoryPreference = memoryPreferenceBase = undefined;
+    return persisted;
+  }
   function consent() {
+    const raw = consentSnapshot();
+    if (raw === null) return "denied";
     try {
-      const v = JSON.parse(localStorage.getItem(PRIVACY_KEY) || "null");
-      return v?.analytics === "granted" ? "granted" : v?.analytics === "denied" ? "denied" : null;
+      const v = JSON.parse(raw || "null");
+      if (v !== null && (typeof v !== "object" || Array.isArray(v))) return "denied";
+      return v?.analytics === "granted" ? "granted" : v?.analytics === "denied" ? "denied"
+        : v && Object.hasOwn(v, "analytics") ? "denied" : null;
     } catch {
-      return null;
+      return "denied";
     }
   }
   function setConsent(granted) {
+    consentSequence++;
+    let v;
+    try { v = JSON.parse(consentSnapshot() || "{}"); } catch {}
+    if (!v || typeof v !== "object" || Array.isArray(v)) v = {};
+    v.analytics = granted ? "granted" : "denied";
+    v.at = new Date().toISOString();
+    // An opaque, local revision survives reload and avoids same-millisecond deny→grant collisions.
+    v.revision = window.crypto?.randomUUID?.() || `${Date.now()}-${consentSequence}-${Math.random()}`;
+    const raw = JSON.stringify(v);
     try {
-      const v = JSON.parse(localStorage.getItem(PRIVACY_KEY) || "{}") || {};
-      v.analytics = granted ? "granted" : "denied";
-      v.at = new Date().toISOString();
-      localStorage.setItem(PRIVACY_KEY, JSON.stringify(v));
-    } catch {}
+      localStorage.setItem(PRIVACY_KEY, raw);
+      memoryPreference = memoryPreferenceBase = undefined;
+      return true;
+    } catch {
+      memoryPreference = raw;
+      try { memoryPreferenceBase = localStorage.getItem(PRIVACY_KEY) || ""; } catch { memoryPreferenceBase = null; }
+      return false;
+    }
   }
 
-  function clean(props) {
+  function clean(props, name) {
+    if (PUBLIC.has(name)) return {};
+    if (ANALYSIS.has(name)) {
+      return name.startsWith("analysis_view_") && ["report", "comparison"].includes(props?.kind) ? { kind: props.kind } : {};
+    }
     const out = {};
     for (const [k, v] of Object.entries(props || {})) {
       if (!PROPS[k] || v === null || v === undefined) continue;
@@ -50,54 +102,80 @@
     return out;
   }
 
-  function onceKey(name) {
-    return `${window.state?.user?.id || "anon"}:${name}`;
+  function onceKey(name, owner) {
+    return `${owner || "anon"}:${name}`;
   }
-  function seen(name) {
+  function seen(key) {
     try {
-      return (JSON.parse(localStorage.getItem(ONCE_KEY) || "[]") || []).includes(onceKey(name));
+      return (JSON.parse(localStorage.getItem(ONCE_KEY) || "[]") || []).includes(key);
     } catch {
       return false;
     }
   }
-  function remember(name) {
+  function remember(key) {
     try {
       const list = JSON.parse(localStorage.getItem(ONCE_KEY) || "[]") || [];
-      list.push(onceKey(name));
+      list.push(key);
       localStorage.setItem(ONCE_KEY, JSON.stringify(list.slice(-200)));
     } catch {}
   }
 
-  async function track(name, props = {}) {
+  async function track(name, props = {}, attribution = {}) {
     if (!EVENTS.has(name)) return false;
     const c = consent();
     if (c === "denied") return false;
-    if (ONCE.has(name)) {
-      if (seen(name)) return false;
-      remember(name);
-    }
-    if (!navigator.onLine || !window.titanClient) return false;
+    if (!navigator.onLine || !window.titanClient || window.titanAccountTransition?.active) return false;
+    const client = window.titanClient, owner = window.state?.user?.id, epoch = window.titanAccountTransition?.epoch, revision = consentSequence, preference = consentSnapshot();
+    try { observeAuth(client); } catch { return false; }
+    const sessionRevision = authSequence, signupOwner = name === "signup" ? attribution?.owner || null : null;
+    const current = () => client === window.titanClient && owner === window.state?.user?.id && epoch === window.titanAccountTransition?.epoch
+      && !window.titanAccountTransition?.active && revision === consentSequence && preference === consentSnapshot()
+      && sessionRevision === authSequence && consent() === c && navigator.onLine;
+    const unique = ONCE.has(name); let key, locked = false;
     try {
-      let userId = null;
+      let userId = null, token = null;
       if (c === "granted") {
-        const session = (await window.titanClient.auth.getSession())?.data?.session;
-        userId = session?.user?.id || null;
+        const { data, error } = await client.auth.getSession();
+        if (error) return false;
+        userId = data?.session?.user?.id || null;
+        token = data?.session?.access_token || null;
+        if (userId && !token) return false;
+        if (signupOwner && userId && userId !== signupOwner) return false;
+        if (owner && !window.TitanData?.isGuest?.() && userId !== owner) return false;
       }
-      const { error } = await window.titanClient.from("analytics_events").insert({
+      key = onceKey(name, c === "granted" ? userId || signupOwner || owner : owner);
+      if (!current() || (unique && (seen(key) || sending.has(key)))) return false;
+      if (unique) { sending.add(key); locked = true; }
+      // This token-only client has no persisted auth or refresh loop. The guard runs after
+      // every SDK await, immediately before native dispatch; the shared client is untouched.
+      const transport = window.supabase.createClient(window.TITAN_SUPABASE_URL, window.TITAN_SUPABASE_ANON_KEY, {
+        accessToken: async () => token,
+        db: { retry: false },
+        global: { fetch: (input, init) => {
+          if (!current()) throw new Error("STALE_ANALYTICS");
+          return fetch(input, init);
+        } },
+      });
+      const { error } = await transport.from("analytics_events").insert({
         user_id: userId,
         event_name: name,
         page: location.pathname.slice(0, 80),
-        source: c === "granted" ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
+        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
         referrer: null,
-        metadata: { ...clean(props), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
+        metadata: { ...clean(props, name), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
       });
+      if (!error && unique) remember(key);
       return !error;
     } catch {
       return false;
+    } finally {
+      if (locked) sending.delete(key);
     }
   }
 
-  window.TitanAnalytics = { track, consent, setConsent, EVENTS };
+  window.addEventListener?.("storage", e => { if (e.key === PRIVACY_KEY || e.key === null) consentSequence++; });
+
+  window.TitanAnalytics = { track, consent, consentSnapshot, setConsent, EVENTS };
   // Legacy callers (landing pages) keep working, through the same filter.
   if (!window.titanTrackEvent) window.titanTrackEvent = (name, metadata) => track(name, metadata);
 })();
