@@ -91,6 +91,13 @@
     return LABELS[id] || s?.label || conf(id)?.label || String(id || "Séance").replace(/_/g, " ");
   }
 
+  /** Online rows carry aliases in trackingSummary; keep the offline vocabulary as a fallback. */
+  function aliasesOf(id) {
+    const c = conf(id) || {};
+    const groups = [c.aliases, c.trackingSummary?.aliases, snapshot().get(id)?.aliases];
+    return [...new Set(groups.flatMap((list) => Array.isArray(list) ? list.filter((s) => typeof s === "string") : []))];
+  }
+
   function profileOf(id) {
     const c = conf(id) || {};
     return c.balanceProfile || c.balance_profile || snapshot().get(id)?.balanceProfile || "";
@@ -139,7 +146,7 @@
     const results = [];
     for (const id of Object.keys(root.SPORTS_CONFIG)) {
       const lab = norm(label(id));
-      const aliases = (conf(id)?.aliases || snapshot().get(id)?.aliases || []).map(norm);
+      const aliases = aliasesOf(id).map(norm);
       let score = 0;
       if (expanded.has(id)) score = Math.max(score, 120 - [...expanded].indexOf(id));
       if (lab === q) score = Math.max(score, 110);
@@ -156,7 +163,7 @@
     return results.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "fr")).slice(0, limit);
   }
 
-  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, POPULAR, norm, ensure, conf, label, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
+  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
   root.TitanSports = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
