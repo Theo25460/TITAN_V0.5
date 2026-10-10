@@ -120,6 +120,128 @@ async function viewsPage(width=360, type='report', seeded=false) {
   return fixture;
 }
 
+async function recordAnalysisAnalytics(page,granted=true){
+  await page.evaluate(granted=>{
+    window.TitanAnalytics.setConsent(granted);window.analyticsWrites=[];
+    window.titanClient.auth={getSession:async()=>({data:{session:{user:{id:window.state.user.id},access_token:"fixture-token"}}})};
+    const nativeFetch=window.fetch;
+    window.fetch=(input,init)=>{
+      if(new URL(input).pathname!=="/rest/v1/analytics_events")return nativeFetch(input,init);
+      window.analyticsWrites.push(JSON.parse(init.body));return Promise.resolve(new Response(null,{status:201}));
+    };
+    history.replaceState(null,'','/stats?utm_source=private%20text');
+  },granted);
+}
+test('analysis analytics: standalone signup uses its receipt owner and separate account keys',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await newPage(width);await page.goto(BASE+'/login?mode=signup',{waitUntil:'load'});
+    await page.evaluate(()=>{
+      if(window.state||window.titanAccountTransition)throw Error('login must be tested without application state');
+      const client=window.initTitanSupabaseClient();window.signupOwner='00000000-0000-4000-8000-000000000123';window.signupSession='00000000-0000-4000-8000-000000000456';
+      window.analyticsWrites=[];const nativeFetch=window.fetch;
+      window.fetch=(input,init)=>{if(new URL(input).pathname!=='/rest/v1/analytics_events')return nativeFetch(input,init);window.analyticsWrites.push(JSON.parse(init.body));return Promise.resolve(new Response(null,{status:201}));};
+      client.auth.signUp=async()=>({data:{user:{id:window.signupOwner},session:null},error:null});
+      client.auth.getSession=async()=>({data:{session:{user:{id:window.signupSession},access_token:'fixture-token'}}});
+      const track=window.TitanAnalytics.track;window.TitanAnalytics.track=(...args)=>(window.lastAnalyticsResult=track(...args));
+    });
+    const submit=async()=>{
+      await page.locator('[name=name]').fill('Agent');await page.locator('[name=email]').fill('agent@example.test');await page.locator('[name=password]').fill('fixture-password');
+      await page.locator('[name=terms]').check();await page.locator('[name=analytics]').check();await page.locator('.auth-submit').click();
+      await page.waitForSelector('.auth-sent');return page.evaluate(()=>window.lastAnalyticsResult);
+    };
+    assert.equal(await submit(),false,'a foreign session cannot receive the signup event');
+    const repeat=async(owner)=>{
+      await page.locator('.auth-sent [data-mode=signin]').click();await page.locator('[data-mode=signup]').click();
+      await page.evaluate(owner=>{window.signupOwner=owner;window.signupSession=owner;},owner);return submit();
+    };
+    const a='00000000-0000-4000-8000-000000000123',b='00000000-0000-4000-8000-000000000456';
+    assert.equal(await repeat(a),true);assert.equal(await repeat(b),true);assert.equal(await repeat(b),false);
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.user_id)),[a,b]);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('analysis analytics: report use counts intentional previews and CSV, not background refresh',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await reportPage(width);await recordAnalysisAnalytics(page);
+    await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-export');
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.event_name)),['analysis_report_viewed']);
+    await page.evaluate(()=>{window.reportFactor=2;window.dispatchEvent(new Event('focus'));});
+    await page.waitForFunction(()=>document.querySelector('[data-report-metric="minutes"]')?.textContent==='1 h 40');
+    assert.equal(await page.evaluate(()=>window.analyticsWrites.length),1);
+    await page.click('#report-submit');await page.waitForSelector('#report-export');
+    assert.equal(await page.evaluate(()=>window.analyticsWrites.length),2);
+    const download=page.waitForEvent('download');await page.click('#report-export');await download;
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.event_name)),['analysis_report_viewed','analysis_report_viewed','analysis_report_exported']);
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>({source:r.source,metadata:r.metadata}))),Array.from({length:3},()=>({source:null,metadata:{consent:'granted',v:300}})));
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('analysis analytics: comparison usage ignores refreshes, expired access and invalid snapshots',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await comparisonPage(width);await recordAnalysisAnalytics(page);
+    await page.locator('#compare-panel > summary').click();await page.waitForSelector('#compare-save-view');
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.event_name)),['analysis_comparison_viewed']);
+    await page.evaluate(()=>{window.compareFactor=2;window.dispatchEvent(new Event('titan:history-updated'));});
+    await page.waitForSelector('#compare-save-view');assert.equal(await page.evaluate(()=>window.analyticsWrites.length),1);
+    await page.selectOption('#compare-weeks','12');await page.click('#compare-submit');await page.waitForSelector('#compare-save-view');
+    assert.equal(await page.evaluate(()=>window.analyticsWrites.length),2);
+    await page.evaluate(()=>{window.compareAccess='free';});await page.click('#compare-submit');
+    await page.waitForFunction(()=>document.querySelector('#compare-status').textContent.includes('TITAN+ ajoute'));
+    assert.equal(await page.evaluate(()=>window.analyticsWrites.length),2);
+    await page.evaluate(()=>{window.titanClient.rpc=async()=>({data:{version:1,owner:'wrong-owner',available:true}});});
+    await page.click('#compare-submit');await page.waitForFunction(()=>document.querySelector('#compare-status').textContent.includes('pas répondu correctement'));
+    assert.equal(await page.evaluate(()=>window.analyticsWrites.length),2);assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('analysis analytics: saved view actions use confirmed receipts and closed kinds, including Free deletion',async()=>{
+  for(const width of [360,1280]){
+    const {page,context,errors}=await viewsPage(width);await recordAnalysisAnalytics(page);
+    await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');await page.click('#report-save-view');
+    await page.fill('#views-name','Nom privé');await page.click('#views-submit');await page.waitForSelector('[data-view]');
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.event_name)),['analysis_report_viewed','analysis_view_created']);
+    await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Autre nom privé');await page.click('#views-submit');
+    await page.waitForFunction(()=>document.querySelector('#views-list').textContent.includes('Autre nom privé'));
+    await page.locator('[data-view-action="apply"]').click();
+    await page.waitForFunction(()=>window.analyticsWrites.filter(r=>r.event_name==='analysis_report_viewed').length===2);
+    await page.evaluate(()=>{window.viewsAccess='free';});await page.click('#views-retry');await page.waitForSelector('[data-view-action="edit"]:disabled');
+    await page.locator('[data-view-action="delete"]').click();await page.click('#views-confirm-delete');
+    await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('Vue supprimée'));
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.filter(r=>r.event_name.startsWith('analysis_view_')).map(r=>({name:r.event_name,source:r.source,metadata:r.metadata}))),
+      ['created','renamed','opened','deleted'].map(action=>({name:'analysis_view_'+action,source:null,metadata:{kind:'report',consent:'granted',v:300}})));
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+test('analysis analytics: refused tracking and a failed report leave the product usable without events',async()=>{
+  const {page,context,errors}=await reportPage();await recordAnalysisAnalytics(page,false);
+  await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-export');
+  const download=page.waitForEvent('download');await page.click('#report-export');await download;
+  assert.deepEqual(await page.evaluate(()=>window.analyticsWrites),[]);
+  await page.evaluate(()=>{window.TitanAnalytics.setConsent(true);window.reportAccess='error';});await page.click('#report-submit');
+  await page.waitForFunction(()=>document.querySelector('#report-status').textContent.includes('pas répondu correctement'));
+  assert.deepEqual(await page.evaluate(()=>window.analyticsWrites),[]);assert.deepEqual(errors,[]);await context.close();
+});
+test('analysis analytics: an acknowledged mutation counts even if list refresh fails; an invalid receipt does not',async()=>{
+  for(const acknowledged of [false,true]){
+    const {page,context,errors}=await viewsPage(360,'report',true);await recordAnalysisAnalytics(page);
+    await page.locator('#views-panel > summary').click();await page.waitForSelector('[data-view]');await page.locator('[data-view-action="edit"]').click();await page.fill('#views-name','Renommage privé');
+    await page.evaluate(acknowledged=>{
+      const previous=window.viewGateway;let failed=false;
+      window.viewGateway=async(name,p)=>{
+        if(name==='titan_mutate_analysis_view'){
+          if(!acknowledged)return {data:{version:1,owner:'wrong-owner',action:'save'}};
+          const result=await previous(name,p);failed=true;return result;
+        }
+        if(failed&&name==='titan_analysis_views')return {error:{message:'Network lost'}};
+        return previous(name,p);
+      };
+    },acknowledged);
+    await page.click('#views-submit');
+    await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('mais la liste')||document.querySelector('#views-status').textContent.includes('vérifie la liste'));
+    assert.deepEqual(await page.evaluate(()=>window.analyticsWrites.map(r=>r.event_name)),acknowledged?['analysis_view_renamed']:[]);
+    assert.deepEqual(errors,[]);await context.close();
+  }
+});
+
 test('views UX: pending save retains the draft until its uncertain response arrives',async()=>{
   for(const width of [360,1280]){
     const {page,context,errors}=await viewsPage(width,'report',true);
@@ -1285,7 +1407,9 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
     await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
-    await cache.put("/js/app/analytics.js?v=300.0", new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
+    for (const version of ['300.0','300.1']) {
+      await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
+    }
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {

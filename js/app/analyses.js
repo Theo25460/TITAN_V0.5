@@ -67,7 +67,7 @@
     </div>`;
   }
 
-  async function load() {
+  async function load(usage = false) {
     clear();
     const request = sequence, owner = D().owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => request === sequence && D().owner() === owner && !D().isGuest() && client === window.titanClient
@@ -105,6 +105,7 @@
         saved = { owner, epoch, kind: "comparison", options: { weeks: j.weeks, sport: j.sport } };
         output.insertAdjacentHTML("afterbegin", '<button type="button" class="asc-btn asc-btn-secondary" id="compare-save-view">Enregistrer cette vue</button>');
         status.innerHTML = "<p>Comparaison calculée.</p>";
+        if (usage) window.TitanAnalytics?.track("analysis_comparison_viewed");
         timer = setTimeout(() => { if (panel.open && !document.hidden) load(); }, 60000);
       }
     } catch (e) {
@@ -138,8 +139,8 @@
       <form id="compare-form"><div class="compare-controls"><div><label for="compare-weeks">Période</label><select class="asc-select" id="compare-weeks"><option value="4">4 semaines</option><option value="12">12 semaines</option><option value="26">26 semaines</option></select></div><div><label for="compare-sport-q">Sport</label><input class="asc-input" type="search" id="compare-sport-q" placeholder="Rechercher un sport" autocomplete="off" aria-describedby="compare-sport-current"><div id="compare-sport-results" role="group" aria-label="Sports trouvés"></div><p class="asc-small"><span id="compare-sport-current" aria-live="polite">Tous les sports</span> <button type="button" class="asc-btn asc-btn-ghost" id="compare-all">Tous les sports</button></p></div></div><button type="submit" class="asc-btn asc-btn-primary" id="compare-submit">Comparer</button></form>
       <div id="compare-status" role="status" aria-live="polite"></div><div id="compare-output"></div></div></details>`;
     panel = root.querySelector("details"); form = root.querySelector("form"); status = root.querySelector("#compare-status"); output = root.querySelector("#compare-output");
-    panel.addEventListener("toggle", () => panel.open ? load() : clear());
-    form.addEventListener("submit", e => { e.preventDefault(); load(); });
+    panel.addEventListener("toggle", () => panel.open ? load(true) : clear());
+    form.addEventListener("submit", e => { e.preventDefault(); load(true); });
     form.querySelector("#compare-weeks").addEventListener("change", () => clear("Période modifiée. Lance la comparaison pour ces paramètres."));
     form.querySelector("#compare-sport-q").addEventListener("input", e => {
       const matches = SP().search(e.target.value, { limit: 12 });
@@ -160,7 +161,7 @@
       form.querySelector("#compare-weeks").value = String(d.view.options.weeks);
       form.querySelector("#compare-sport-q").value = ""; form.querySelector("#compare-sport-results").innerHTML = "";
       form.querySelector("#compare-sport-current").textContent = sport ? SP().label(sport) : "Tous les sports";
-      if (panel.open) load(); else panel.open = true;
+      if (panel.open) load(true); else panel.open = true;
       panel.scrollIntoView({ block: "nearest" }); form.querySelector("#compare-submit").focus();
     });
     const refresh = () => {

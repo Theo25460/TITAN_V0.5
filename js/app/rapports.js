@@ -47,7 +47,7 @@
     </div>`;
     sportRows();
   }
-  async function load(download = false) {
+  async function load(download = false, usage = false) {
     clear();
     const request = sequence, owner = D().owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => request === sequence && D().owner() === owner && !D().isGuest() && client === window.titanClient
@@ -85,6 +85,9 @@
         const a = document.createElement("a"); a.href = url; a.download = `titan-bilan-${j.period}-${j.from}.csv`;
         document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         status.innerHTML = "<p>Bilan recalculé et CSV téléchargé.</p>";
+        window.TitanAnalytics?.track("analysis_report_exported");
+      } else if (usage) {
+        window.TitanAnalytics?.track("analysis_report_viewed");
       }
       refreshTimer = setTimeout(() => { if (panel.open && !document.hidden) load(); }, 60000);
     } catch (e) {
@@ -105,13 +108,13 @@
       <form id="report-form"><div class="report-controls"><label for="report-period">Période du bilan</label><select id="report-period" class="asc-select"><option value="month:0">Ce mois</option><option value="month:1">Mois précédent</option><option value="year:0">Cette année</option><option value="year:1">Année précédente</option></select></div><button type="submit" id="report-submit" class="asc-btn asc-btn-primary">Calculer mon bilan</button></form>
       <div id="report-status" role="status" aria-live="polite"></div><div id="report-output"></div></div></details>`;
     panel = root.querySelector("details"); form = root.querySelector("form"); status = root.querySelector("#report-status"); output = root.querySelector("#report-output");
-    panel.addEventListener("toggle", () => panel.open ? load() : clear());
-    form.addEventListener("submit", e => { e.preventDefault(); load(); });
+    panel.addEventListener("toggle", () => panel.open ? load(false, true) : clear());
+    form.addEventListener("submit", e => { e.preventDefault(); load(false, true); });
     form.querySelector("select").addEventListener("change", () => clear("Période modifiée. Calcule le bilan pour ces paramètres."));
     output.addEventListener("input", e => { if (e.target.id === "report-sport-search") { search = e.target.value; page = 0; sportRows(); } });
     output.addEventListener("click", e => {
       const id = e.target.closest("button")?.id;
-      if (id === "report-export") load(true);
+      if (id === "report-export") load(true, true);
       if (id === "report-save-view" && shown && shown.owner === D().owner() && shownEpoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active)
         window.dispatchEvent(new CustomEvent("titan:analysis-view-save", { detail: { owner: shown.owner, epoch: shownEpoch, kind: "report", options: { period: shown.period, offset: shown.offset } } }));
       if (id === "report-prev" || id === "report-next") { page += id === "report-next" ? 1 : -1; sportRows(); }
@@ -121,7 +124,7 @@
       if (!d || d.owner !== D().owner() || d.epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active
         || D().isGuest() || document.hidden || offline || !navigator.onLine || d.view?.kind !== "report" || !window.TitanAnalysisViews.validView(d.view)) return;
       form.querySelector("#report-period").value = `${d.view.options.period}:${d.view.options.offset}`;
-      if (panel.open) load(); else panel.open = true;
+      if (panel.open) load(false, true); else panel.open = true;
       panel.scrollIntoView({ block: "nearest" }); form.querySelector("#report-submit").focus();
     });
     const refresh = () => panel.open && !document.hidden ? load() : clear();

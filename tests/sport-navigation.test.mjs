@@ -76,12 +76,13 @@ test("navigation analytics never transmits the search text or session details", 
   const writes = [];
   const context = {
     window: { state: { user: { id: "fixture-account" } }, titanClient: {
-      auth: { getSession: async () => ({ data: { session: { user: { id: "fixture-account" } } } }) },
+      auth: { getSession: async () => ({ data: { session: { user: { id: "fixture-account" }, access_token: "fixture-token" } } }) },
       from: () => ({ insert: async payload => { writes.push(payload); return { error: null }; } }),
     } },
     localStorage: { getItem: () => JSON.stringify({ analytics: "granted" }) },
     navigator: { onLine: true }, location: { pathname: "/records", search: "" }, URLSearchParams,
   };
+  context.window.supabase = { createClient: () => context.window.titanClient };
   vm.runInNewContext(readFileSync(new URL("../js/app/analytics.js", import.meta.url), "utf8"), context);
   const sent = await context.window.TitanAnalytics.track("sport_navigation_searched", { source: "records", count: 1, query: "private search", sessions: [{ health: "private" }] });
   assert.equal(sent, true, "the documented navigation event is accepted");

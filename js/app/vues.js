@@ -103,6 +103,8 @@
     try {
       const receipt=await rpc(job,'titan_mutate_analysis_view',p);if(!job.current())return;
       if(!V().validReceipt(receipt,job.owner,p))throw new Error('INVALID_VIEW_RECEIPT');
+      window.TitanAnalytics?.track(p.p_action==='delete'?'analysis_view_deleted':p.p_expected_revision===0?'analysis_view_created':'analysis_view_renamed',
+        {kind:p.p_action==='delete'?shown?.views.find(v=>v.id===p.p_id)?.kind:p.p_kind});
       acknowledged=true;discardDraft();confirmed=null;shown=null;list.innerHTML='';
       const j=await fetchList(job);if(!j)return;render(j);
       message(p.p_action==='delete'?'Vue supprimée.':'Vue enregistrée. Ses données seront recalculées à l’ouverture.');
@@ -119,6 +121,7 @@
       const j=await fetchList(job,id);if(!j)return;
       if(!j.available){if(shown)shown={...shown,available:false,reason:'premium_required'};message(errorText({message:'PREMIUM_REQUIRED'}));return;}
       if(j.views.length!==1){message(errorText({message:'VIEW_NOT_FOUND'}));return;}
+      window.TitanAnalytics?.track('analysis_view_opened',{kind:j.views[0].kind});
       window.dispatchEvent(new CustomEvent('titan:analysis-view-selected',{detail:{owner:job.owner,epoch:job.epoch,view:j.views[0]}}));
       message('Filtres restaurés. Le panneau d’analyse vérifie ton accès et recalcule les données.');
     }catch(e){if(job.current())message(errorText(e));}
