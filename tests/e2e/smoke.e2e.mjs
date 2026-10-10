@@ -2127,6 +2127,80 @@ test("public page analytics: a missing collector leaves the page usable without 
   assert.deepEqual(errors,[]);await context.close();
 });
 
+async function adventureConfirmationPage() {
+  const fixture = await newPage(), { page } = fixture;
+  await page.goto(BASE + "/adventure", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  await page.evaluate(async () => {
+    const owner = "00000000-0000-4000-8000-000000000123";
+    window.state.user.id = owner;
+    window.titanClient.auth.getSession = async () => ({ data: { session: { user: { id: owner }, access_token: "synthetic-adventure-token" } } });
+    window.adventureCharacter = (revision = 1, chapter = 1) => ({ version: 1, owner, level: 1, xp: 0, next_level_xp: 500,
+      credits: 0, plus: false, avatar: "scout", selected_world: "aube", revision, generated_at: "2026-10-10T12:00:00Z",
+      rewards: chapter > 1 ? [{ world: "aube", chapter: 1, source_ids: ["synthetic-session"], earned_at: "2026-10-10T12:00:00Z" }] : [],
+      campaigns: [{ id: "aube", tier: "free", chapter, route: "rhythm", started_at: "2026-10-09T12:00:00Z", target: chapter === 1 ? 1 : 2,
+        effort_target: 0, evidence: { days: chapter === 1 ? 1 : 0, effort: 0, source_ids: chapter === 1 ? ["synthetic-session"] : [] }, completed_at: null }] });
+    // The real engine may also schedule a boot refresh; identify the held RPCs rather than their array positions.
+    window.adventureRequests = [];
+    const native = window.fetch;
+    window.fetch = (input, init) => {
+      const url = new URL(input, location.origin);
+      if (!/^\/rest\/v1\/rpc\/titan_adventure_(snapshot|action)$/.test(url.pathname)) return native(input, init);
+      if (!window.adventureRequests.length) {
+        window.adventureRequests.push({ name: "boot" });
+        return Promise.resolve(new Response(JSON.stringify(window.adventureCharacter()), { status: 200, headers: { "content-type": "application/json" } }));
+      }
+      return new Promise(resolve => {
+        const request = { name: url.pathname.split("/").at(-1), params: JSON.parse(init.body),
+          respond: (data, status = 200) => resolve(new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } })) };
+        window.adventureRequests.push(request);
+        if (request.name === "titan_adventure_action") window.adventureActionRequest = request;
+        if (request.name === "titan_adventure_snapshot" && window.captureAdventureRead) {
+          window.adventureReadRequest = request;
+          window.captureAdventureRead = false;
+        }
+      });
+    };
+    await window.TitanAdventure.refresh({ force: true });
+  });
+  await page.locator("[data-claim='1']").waitFor();
+  return fixture;
+}
+
+test("adventure confirmation: late old cloud data cannot extinguish the earned map badge", async () => {
+  const { page, context, errors } = await adventureConfirmationPage();
+  await page.locator("[data-claim='1']").click();
+  await page.waitForFunction(() => window.adventureActionRequest);
+  await page.evaluate(() => { window.captureAdventureRead = true; window.adventureReading = window.TitanAdventure.refresh({ force: true }); });
+  await page.waitForFunction(() => window.adventureReadRequest);
+  await page.evaluate(() => window.adventureActionRequest.respond(window.adventureCharacter(2, 2)));
+  await page.locator("[data-close-celebrate]").click();
+  await page.locator(".av-node.is-earned").waitFor();
+  await page.evaluate(async () => { window.adventureReadRequest.respond(window.adventureCharacter()); await window.adventureReading; });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await page.locator(".av-node.is-earned").count(), 1);
+  assert.equal(await page.locator(".av-node.is-active").getAttribute("data-chapter"), "2");
+  assert.equal(await page.locator(".av-carnet-row.is-earned").count(), 1);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("titan_adventure_v1:00000000-0000-4000-8000-000000000123")).revision), 2);
+  assert.deepEqual(errors, []); await context.close();
+});
+
+test("adventure confirmation: a late read error does not label the confirmed badge as cached", async () => {
+  const { page, context, errors } = await adventureConfirmationPage();
+  await page.locator("[data-claim='1']").click();
+  await page.waitForFunction(() => window.adventureActionRequest);
+  await page.evaluate(() => { window.captureAdventureRead = true; window.adventureReading = window.TitanAdventure.refresh({ force: true }); });
+  await page.waitForFunction(() => window.adventureReadRequest);
+  await page.evaluate(() => window.adventureActionRequest.respond(window.adventureCharacter(2, 2)));
+  await page.locator("[data-close-celebrate]").click();
+  await page.evaluate(async () => { window.adventureReadRequest.respond({ message: "Synthetic read failure" }, 500); await window.adventureReading; });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await page.locator("#aventure").getByText("Dernière progression connue", { exact: false }).count(), 0);
+  assert.equal(await page.locator(".av-node.is-earned").count(), 1);
+  assert.equal(await page.evaluate(() => window.TitanAdventure.status), "ready");
+  assert.deepEqual(errors, []); await context.close();
+});
+
 test("installed PWA: navigation and cosmetic resources bypass the previous cache on the first visit", async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
@@ -2135,7 +2209,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -2158,6 +2232,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.state)), false, "first navigation loads the new appearance resolver");
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.shell)), false, "first navigation loads the new shared rendering guard");
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.main)), false, "first navigation loads the new checkout guard");
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.adventure)), false, "first navigation loads the guarded adventure engine");
   assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
   await page.goto(BASE + "/boutique", { waitUntil: "load" });
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
