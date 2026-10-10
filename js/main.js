@@ -289,6 +289,10 @@ async function setupTitanAuthListener() {
 
     window.__titanAuthListenerBound = true;
     window.titanClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || ((event === 'SIGNED_IN' || event === 'USER_UPDATED')
+            && session?.user?.id !== window.state?.user?.id)) {
+            window.titanInvalidateAccountSession?.(session?.user?.id || null);
+        }
         setTimeout(async()=>{
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();
@@ -852,6 +856,10 @@ window.initTitanPaddleCheckout = async function(checkoutData) {
 };
 
 window.openEliteCheckout = async function(options = {}) {
+    const owner = window.state?.user?.id, client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
+    const current = () => owner === window.state?.user?.id && client === window.titanClient
+        && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+    if (!current()) return false;
     const now = Date.now();
     if (window.__titanEliteCheckoutLock && now - window.__titanEliteCheckoutLock < 5000) {
         if(typeof window.showNotification === 'function') window.showNotification('info', 'PAIEMENT', 'Ouverture du paiement deja en cours.');
@@ -896,6 +904,7 @@ window.openEliteCheckout = async function(options = {}) {
 
     try {
         const paddle = await window.initTitanPaddleCheckout(checkoutData);
+        if (!current()) return false;
         paddle.Checkout.open(checkoutData.checkout);
         return true;
     } catch (error) {
