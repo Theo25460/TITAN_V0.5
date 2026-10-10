@@ -1,0 +1,17 @@
+# Comparaisons personnelles TITAN+
+
+Autorité : CDC vivant, PREM04, PREM02, PREM06, PREM09 et audit de valeur PR #25. Les arbitrages techniques réversibles sont autorisés ; aucune nouvelle validation produit n'est nécessaire pour ce lot.
+
+Comparer 4, 12 ou 26 semaines calendaires complètes à la période immédiatement précédente de même durée. Lundi inclus, lundi suivant exclu, dans le fuseau IANA du navigateur ; semaine courante exclue. Tous les sports ou un sport du catalogue. Comparer séances, jours actifs et minutes de pratique, avec séries hebdomadaires et cinq séances sources maximum par période. Plus de volume ne signifie pas meilleure performance ; pas de pourcentage lorsque la référence vaut zéro.
+
+RPC `public.titan_compare_periods(p_weeks integer default 4, p_sport text default null, p_timezone text default 'UTC') returns jsonb`. Lecture seule, SECURITY INVOKER, search_path vide, propriétaire exclusivement auth.uid(), RLS conservée, exécution authentifiée seulement. Le serveur vérifie profiles.is_elite, elite_ends_at, elite_refunded_at et is_suspended à chaque requête. Sans droit : `{version:1, owner, available:false, reason:'premium_required'}` sans agrégats. Sans utilisateur : AUTH_REQUIRED. Paramètres invalides : INVALID_COMPARISON_OPTIONS.
+
+Résultat autorisé : `{version:1,owner,available:true,as_of,timezone,weeks,sport,recent,previous}`. Chaque période : `{from,to,sessions,active_days,minutes,estimated_sessions,series,sources}` ; `to` est exclusif, from/to sont des dates locales YYYY-MM-DD. Chaque semaine de series : `{from,to,sessions,active_days,minutes}`. Chaque source : `{id,sport,date,minutes,estimated}`. Aucune note, GPS, santé, donnée d'un autre compte, XP ou crédit.
+
+L'historique serveur non archivé est exhaustif dans les deux périodes, indépendamment du cache client. Le signalement d'une séance ne l'efface pas du journal privé ; il reste inclus. La durée est recalculée par titan_effort_v300, jamais par details.effort fourni par le client. Les durées estimées sont signalées. Les séances locales non synchronisées sont explicitement exclues.
+
+Interface : panneau replié après les statistiques gratuites de `/stats`, avec filtre sport par recherche (douze suggestions maximum), durée et bouton Comparer. Pas de nouvelle navigation principale. Invité : accès libre aux statistiques existantes et explication du besoin de compte. Connecté : contrôle serveur, jamais is_elite client pour l'autorisation. Réponses obsolètes ou d'un autre propriétaire rejetées ; changement de compte, hors ligne ou erreur retirent immédiatement les anciens résultats. Aucun résultat persistant. Rechargement, refocus et nouvelle comparaison revalident les droits. Serveur ancien : disponibilité ultérieure clairement annoncée, sans tableau inventé. Source liée au journal privé existant.
+
+Les helpers hebdomadaires gratuits concernés utilisent des déplacements de dates calendaires, pas des multiples de 168 heures. La comparaison d'une semaine en cours avec les précédentes garde le même jour et la même heure locale. Le reste des fenêtres glissantes et des algorithmes de performance est hors périmètre.
+
+Livraison : branche isolée depuis PR #25, migration additive préparée et testée sans production, tests unitaires/E2E/SQL et une revue Sol 6.1. Aucun changement de prix/paiement, progression, récompense, Android, données existantes ni fusion main. Les autres tableaux de bord, rapports, vues sauvegardées et intégrations de paiement restent ouverts.
