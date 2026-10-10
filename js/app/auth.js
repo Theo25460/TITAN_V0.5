@@ -111,7 +111,7 @@
       window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics")));
       const { data, error } = await c.auth.signUp({ email, password, options: { emailRedirectTo: `${SITE}/onboarding`, data: { full_name: name, username: name } } });
       if (error) throw error;
-      window.TitanAnalytics?.track("signup");
+      window.TitanAnalytics?.track("signup", {}, { owner: data?.user?.id || data?.session?.user?.id || null });
       if (data?.session) {
         location.href = "/onboarding";
         return;
