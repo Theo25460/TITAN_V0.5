@@ -262,27 +262,48 @@
   /** Accessible confirmation; resolves true only on an explicit confirm. `action` may be async and throw. */
   function confirm({ title = "", message = "", detail = "", confirmLabel = "Confirmer", danger = false, action } = {}) {
     return new Promise((resolve) => {
-      let done = false;
+      let done = false, pending = false;
       const body = document.createElement("div");
       body.className = "asc-stack";
-      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small" role="alert" data-error></p>
+      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small asc-muted" role="status" data-progress></p><p class="asc-small" role="alert" data-error></p>
         <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="button" class="asc-btn ${danger ? "asc-btn-danger" : "asc-btn-primary"}" data-ok>${esc(confirmLabel)}</button></div>`;
       const d = sheet({ title, body, onClose: () => !done && resolve(false) });
-      body.querySelector("[data-cancel]").addEventListener("click", () => d.close());
+      const cancel = body.querySelector("[data-cancel]");
+      cancel.addEventListener("click", () => d.close());
       const ok = body.querySelector("[data-ok]");
+      const close = d.querySelector("[data-close]");
+      const progress = body.querySelector("[data-progress]");
+      const errorText = body.querySelector("[data-error]");
+      const setPending = value => {
+        pending = value;
+        d.setAttribute("aria-busy", String(value));
+        ok.disabled = cancel.disabled = close.disabled = value;
+        progress.textContent = value ? "Action en cours…" : "";
+      };
+      // Block user dismissal only. Account guards must still be able to call close().
+      d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+      d.addEventListener("click", e => {
+        if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
       ok.addEventListener("click", async () => {
-        ok.disabled = true;
+        if (pending || done || !d.open) return;
+        errorText.textContent = "";
+        setPending(true);
         try {
           if (action) await action();
           done = true;
           resolve(true);
           d.close();
         } catch (error) {
-          body.querySelector("[data-error]").textContent = error?.message || "Action impossible pour le moment.";
-          ok.disabled = false;
+          errorText.textContent = error?.message || "Action impossible pour le moment.";
+          setPending(false);
+          if (d.open) ok.focus();
         }
       });
-      setTimeout(() => ok.focus(), 30);
+      (danger ? cancel : ok).focus();
     });
   }
 

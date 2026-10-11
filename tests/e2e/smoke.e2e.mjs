@@ -812,6 +812,145 @@ test("journal: detail and derived archive confirmation close before a new accoun
   }
 });
 
+async function pendingConfirmationPage(width = 360, danger = false) {
+  const fixture = await newPage(width);
+  await fixture.page.goto(BASE + "/profile", { waitUntil: "load" });
+  await fixture.page.evaluate(danger => {
+    window.confirmationCalls = 0;
+    window.confirmationResult = "waiting";
+    window.confirmation = window.titanShell.confirm({
+      title: "Confirmer l’action ?", confirmLabel: "Enregistrer", danger,
+      action: () => {
+        window.confirmationCalls++;
+        return new Promise((resolve, reject) => {
+          window.finishConfirmation = resolve;
+          window.failConfirmation = () => reject(new Error("Connexion interrompue"));
+        });
+      },
+    }).then(result => { window.confirmationResult = result; });
+  }, danger);
+  return fixture;
+}
+
+test("confirmations: user dismissal cannot cancel a running action", async () => {
+  for (const method of ["cancel", "close", "escape", "backdrop"]) {
+    const { page, context, errors } = await pendingConfirmationPage();
+    const dialog = page.getByRole("dialog", { name: "Confirmer l’action ?" });
+    await dialog.locator("[data-ok]").click();
+    await page.waitForFunction(() => !!window.finishConfirmation);
+    if (method === "escape") await page.keyboard.press("Escape");
+    else await dialog.evaluate((d, method) => {
+      const target = method === "backdrop" ? d : d.querySelector(`[data-${method}]`);
+      target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    }, method);
+    assert.equal(await dialog.count(), 1, method + " must keep the pending dialog open");
+    assert.equal(await dialog.getAttribute("aria-busy"), "true");
+    assert.equal(await dialog.locator("[data-cancel]").isDisabled(), true);
+    assert.equal(await dialog.locator("[data-close]").isDisabled(), true);
+    assert.match(await dialog.getByRole("status").innerText(), /en cours/i);
+    assert.equal(await page.evaluate(() => window.confirmationResult), "waiting");
+    await page.evaluate(() => window.finishConfirmation());
+    await page.waitForFunction(() => window.confirmationResult === true);
+    assert.equal(await page.locator("dialog[open]").count(), 0);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("confirmations: repeated activations invoke the action once", async () => {
+  const { page, context, errors } = await pendingConfirmationPage(1280);
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.evaluate(() => {
+    const ok = document.querySelector("dialog[open] [data-ok]");
+    ok.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    ok.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  assert.equal(await page.evaluate(() => window.confirmationCalls), 1);
+  await page.evaluate(() => window.finishConfirmation());
+  await page.waitForFunction(() => window.confirmationResult === true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("confirmations: failed actions unlock dismissal and explicit retry", async () => {
+  const { page, context, errors } = await pendingConfirmationPage();
+  const dialog = page.getByRole("dialog", { name: "Confirmer l’action ?" });
+  await dialog.locator("[data-ok]").click();
+  await page.evaluate(() => window.failConfirmation());
+  await page.waitForFunction(() => document.querySelector("dialog[open] [data-error]")?.textContent.includes("Connexion interrompue"));
+  assert.equal(await dialog.getAttribute("aria-busy"), "false");
+  for (const selector of ["[data-ok]", "[data-cancel]", "[data-close]"]) assert.equal(await dialog.locator(selector).isDisabled(), false);
+  assert.equal(await dialog.getByRole("status").innerText(), "");
+  assert.equal(await dialog.locator("[data-ok]").evaluate(b => b === document.activeElement), true);
+  await dialog.locator("[data-ok]").click();
+  assert.equal(await page.evaluate(() => window.confirmationCalls), 2);
+  assert.equal(await dialog.locator("[data-error]").innerText(), "");
+  await page.evaluate(() => window.finishConfirmation());
+  await page.waitForFunction(() => window.confirmationResult === true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("confirmations: destructive actions start on Cancel for keyboard users", async () => {
+  const { page, context, errors } = await pendingConfirmationPage(360, true);
+  assert.equal(await page.locator("dialog[open] [data-cancel]").evaluate(b => b === document.activeElement), true);
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.confirmationResult === false);
+  assert.equal(await page.evaluate(() => window.confirmationCalls), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("confirmations: account safety can still close a running dialog", async () => {
+  const { page, context, errors } = await pendingConfirmationPage();
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.evaluate(() => {
+    window.closedConfirmation = document.querySelector("dialog[open]");
+    window.closedConfirmation.close();
+  });
+  await page.waitForFunction(() => window.confirmationResult === false);
+  await page.evaluate(() => {
+    window.closedConfirmation.querySelector("[data-ok]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  assert.equal(await page.evaluate(() => window.confirmationCalls), 1);
+  await page.evaluate(() => window.finishConfirmation());
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.equal(await page.evaluate(() => window.confirmationResult), false);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("confirmations: a failed action can be cancelled without another attempt", async () => {
+  const { page, context, errors } = await pendingConfirmationPage();
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.evaluate(() => window.failConfirmation());
+  await page.waitForFunction(() => !document.querySelector("dialog[open] [data-ok]").disabled);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => window.confirmationResult === false);
+  assert.equal(await page.evaluate(() => window.confirmationCalls), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("journal: changing account closes a pending archive confirmation", async () => {
+  const { page, context, errors } = await journalSourcePage();
+  await page.evaluate(() => {
+    window.TitanSessions.archive = () => new Promise(resolve => { window.finishArchive = resolve; });
+  });
+  await page.locator("dialog[open] [data-toggle-archive]").click();
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.waitForFunction(() => !!window.finishArchive);
+  await page.evaluate(() => {
+    window.state.user.id = "guest_new";
+    window.dispatchEvent(new Event("titan:history-updated"));
+  });
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  await page.evaluate(() => window.finishArchive());
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("landing: one h1, the start call to action, no horizontal scroll", async () => {
   const { page, errors } = await newPage();
   await page.goto(BASE + "/", { waitUntil: "load" });
@@ -2220,7 +2359,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
