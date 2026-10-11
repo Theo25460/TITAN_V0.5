@@ -2393,6 +2393,41 @@ test("session save: storage rejection retains the draft and timer and restores a
   assert.deepEqual(errors, []);
 });
 
+test("session save: a real IndexedDB transaction abort reports failure and retries once", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`) || "null")?.note === "Repère de séance conservé");
+  await page.evaluate(() => {
+    const original = IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction = function(stores, mode, ...rest) {
+      const tx = original.call(this, stores, mode, ...rest);
+      if (mode === "readwrite" && Array.isArray(stores) && stores.includes("history")) {
+        IDBDatabase.prototype.transaction = original;
+        queueMicrotask(() => tx.abort());
+      }
+      return tx;
+    };
+  });
+  await page.locator('[data-act="save"]').click();
+  await page.evaluate(() => window.sessionCalls[0].release());
+  await page.waitForFunction(() => !document.querySelector('[data-act="save"]').disabled);
+  assert.equal(await page.locator('#seance-status').textContent(), "Séance non enregistrée.");
+  assert.equal(await page.locator('#seance-status').getAttribute("data-kind"), "err");
+  assert.equal(await page.locator('[data-act="save"]').evaluate(el => el === document.activeElement), true);
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.equal(await page.locator('[data-k="note"]').inputValue(), "Repère de séance conservé");
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`)).note), "Repère de séance conservé");
+  assert.equal(await page.evaluate(() => window.state.history.length), 0);
+  assert.equal(await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length), 0);
+  assert.equal(await page.locator('dialog.asc-sheet[open]').count(), 0);
+  assert.deepEqual(errors, []);
+  await page.locator('[data-act="save"]').click();
+  await releaseSession(page, 1);
+  assert.equal(await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length), 1);
+  assert.equal(await page.evaluate(() => window.sessionEvents.length), 1);
+  assert.deepEqual(errors, []);
+});
+
 test("session save: the GPX upload label exposes and restores its disabled state", async t => {
   const { page, context, errors } = await sessionSavePage();
   t.after(() => context.close());

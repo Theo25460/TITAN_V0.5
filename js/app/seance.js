@@ -596,8 +596,8 @@
       render();
       window.TitanMoment?.open(log);
     } catch (error) {
-      status(error.message || "Séance non enregistrée.", "err");
-      window.titanShell.toast({ type: "err", title: "Séance non enregistrée", message: error.message || "Réessaie : rien n’a été perdu, le brouillon est conservé." });
+      status(error?.message || "Séance non enregistrée.", "err");
+      window.titanShell.toast({ type: "err", title: "Séance non enregistrée", message: error?.message || "Réessaie : rien n’a été perdu, le brouillon est conservé." });
     } finally {
       task.controls.forEach((disabled, control) => { control.disabled = disabled; });
       task.labels.forEach((value, label) => {
