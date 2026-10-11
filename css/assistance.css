@@ -1,0 +1,26 @@
+/* Assistance uses the existing public cards, FAQ and action tokens. */
+.help-topics .pub-card {
+  min-width: 0;
+}
+.help-topic h2,
+#help-categories {
+  scroll-margin-top: 88px;
+}
+#help-contact {
+  scroll-margin-top: 120px;
+}
+.help-topic .pub-cta {
+  margin-top: var(--s4);
+}
+.help-topic .help-contact-row {
+  margin-top: var(--s3);
+}
+.help-topic .pub-faq + p {
+  margin-top: var(--s4);
+}
+.help-contact-copy {
+  max-width: 68ch;
+  display: grid;
+  gap: var(--s3);
+  overflow-wrap: anywhere;
+}

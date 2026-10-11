@@ -2529,6 +2529,170 @@ test("validation: a run without distance or duration is refused on the field", a
   assert.ok((await page.locator('[aria-invalid="true"]').count()) >= 1);
 });
 
+const assistanceTopics = [
+  ["bug", "Bug ou problème technique", "/journal"],
+  ["compte", "Compte et connexion", "/login"],
+  ["titanplus", "TITAN+ et remboursement", "/tarifs"],
+  ["donnees", "Données et confidentialité", "/profile"],
+  ["communaute", "Communauté et signalement", "/social"],
+  ["autre", "Autre question", "/debuter-titan"],
+];
+
+test("assistance: Profile gives a direct visible entry on mobile and desktop", async t => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width); t.after(() => context.close());
+    await page.goto(BASE + "/profile", { waitUntil: "load" });
+    const link = page.locator('.asc-page-head').getByRole("link", { name: "Assistance", exact: true });
+    assert.equal(await link.count(), 1);
+    assert.equal(await link.isVisible(), true);
+    const box = await link.boundingBox();
+    assert.ok(box.y >= 0 && box.y + box.height <= page.viewportSize().height);
+    await link.click();
+    assert.equal(new URL(page.url()).pathname, "/service");
+    assert.equal(await page.getByRole("heading", { name: "Assistance", exact: true }).count(), 1);
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("assistance: category anchors offer an existing action before the email fallback", async t => {
+  const { page, context, errors } = await newPage(360); t.after(() => context.close());
+  for (const [id, label, action] of assistanceTopics) {
+    await page.goto(BASE + "/service", { waitUntil: "load" });
+    const index = page.getByRole("navigation", { name: "Choisir une catégorie" });
+    assert.equal(await index.locator('a').count(), 6);
+    await index.locator(`a[href="#help-${id}"]`).click();
+    const heading = page.locator(`#help-${id}`);
+    assert.equal(await heading.textContent(), label);
+    const box = await heading.boundingBox(), header = await page.locator('.pub-header').boundingBox();
+    assert.ok(box.y >= header.y + header.height - 1, "anchor heading stays below the sticky header");
+    const topic = page.locator(`section[aria-labelledby="help-${id}"]`);
+    const solution = topic.locator(`a[href="${action}"]`).first();
+    assert.equal(await solution.count(), 1);
+    const email = topic.locator('a[href^="mailto:"]');
+    assert.equal(await email.count(), 1);
+    assert.equal(await solution.evaluate((el, id) => Boolean(el.compareDocumentPosition(document.querySelector(`section[aria-labelledby="help-${id}"] a[href^="mailto:"]`)) & Node.DOCUMENT_POSITION_FOLLOWING), id), true);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("assistance: all nine existing FAQ answers remain accessible and match structured data", async t => {
+  const { page, context, errors } = await newPage(); t.after(() => context.close());
+  await page.goto(BASE + "/service", { waitUntil: "load" });
+  const faq = await page.evaluate(() => JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent)["@graph"].find(x => x["@type"] === "FAQPage").mainEntity);
+  assert.equal(faq.length, 9);
+  for (const { name, acceptedAnswer } of faq) {
+    const summary = page.locator('.pub-faq summary').filter({ hasText: name });
+    assert.equal(await summary.count(), 1);
+    await summary.click();
+    const detail = summary.locator('..');
+    assert.equal(await detail.getAttribute('open'), "");
+    assert.equal(await detail.locator('p').first().textContent(), acceptedAnswer.text);
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("assistance: email preparation includes only the category and never private app or URL data", async t => {
+  const { page, context, errors } = await newPage(); t.after(() => context.close());
+  await page.goto(BASE + "/profile", { waitUntil: "load" });
+  await page.evaluate(() => {
+    localStorage.setItem('assistance-private-fixture', 'PRIVATE_ASSISTANCE_MARKER');
+    sessionStorage.setItem('assistance-token-fixture', 'PRIVATE_ASSISTANCE_MARKER');
+    window.state.user.name = 'PRIVATE_ASSISTANCE_MARKER';
+  });
+  await page.goto(BASE + "/service?token=PRIVATE_ASSISTANCE_MARKER&email=PRIVATE_ASSISTANCE_MARKER", { waitUntil: "load" });
+  const links = await page.locator('.help-topic a[href^="mailto:"]').evaluateAll(els => els.map(el => el.getAttribute('href')));
+  assert.equal(links.length, 6);
+  for (const href of links) {
+    const url = new URL(href);
+    assert.equal(url.pathname, 'titanteam.app@gmail.com');
+    assert.deepEqual([...url.searchParams.keys()], ['subject']);
+    assert.match(url.searchParams.get('subject'), /^TITAN — Assistance — /);
+    assert.equal(href.includes('PRIVATE_ASSISTANCE_MARKER'), false);
+  }
+  assert.equal(await page.locator('main').innerText().then(text => text.includes('PRIVATE_ASSISTANCE_MARKER')), false);
+  assert.equal(await page.locator('form').count(), 0, "email fallback does not pretend to submit a ticket");
+  assert.deepEqual(errors, []);
+});
+
+test("assistance: a refund request is explicit and email delivery is never claimed", async t => {
+  const { page, context, errors } = await newPage(); t.after(() => context.close());
+  await page.goto(BASE + "/service", { waitUntil: "load" });
+  const topic = page.locator('section[aria-labelledby="help-titanplus"]');
+  assert.equal(await topic.count(), 1);
+  assert.match(await topic.innerText(), /pas automatiquement accordé/);
+  assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /application de messagerie/);
+  assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /Rien n’est envoyé/);
+  assert.equal(await page.getByText('titanteam.app@gmail.com', { exact: true }).count(), 1, "address can be copied when no mail app opens");
+  assert.deepEqual(errors, []);
+});
+
+test("assistance: the contact anchor keeps its label below the sticky header", async t => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width); t.after(() => context.close());
+    await page.goto(BASE + '/service', { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
+    await page.getByRole('link', { name: 'Nous contacter', exact: true }).click();
+    const header = await page.locator('.pub-header').boundingBox();
+    const label = await page.locator('section[aria-labelledby="help-contact"] .pub-eyebrow').boundingBox();
+    assert.ok(label.y >= header.y + header.height, 'the contact label remains visible after anchor navigation');
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("assistance: categories and FAQ work with native keyboard controls and JavaScript disabled", async t => {
+  const context = await browser.newContext({ viewport: { width: 360, height: 844 }, javaScriptEnabled: false });
+  t.after(() => context.close());
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
+  const page = await context.newPage();
+  await page.goto(BASE + "/service", { waitUntil: "load" });
+  const index = page.getByRole('navigation', { name: 'Choisir une catégorie' });
+  assert.equal(await index.locator('a').count(), 6);
+  await index.locator('a[href="#help-compte"]').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#help-compte').evaluate(el => el === document.activeElement), true);
+  const summary = page.locator('section[aria-labelledby="help-compte"] summary').first();
+  await summary.focus(); await page.keyboard.press('Space');
+  assert.equal(await summary.locator('..').getAttribute('open'), "");
+  await page.keyboard.press('Space');
+  assert.equal(await summary.locator('..').getAttribute('open'), null);
+});
+
+test("assistance: installed PWA can reach help offline before its first visit", async t => {
+  const origin = `http://127.0.0.1:${await freePort()}`;
+  const own = spawn(process.execPath, ['tools/serve-public.mjs', new URL(origin).port], { cwd: ROOT, stdio: 'ignore' });
+  t.after(() => own.kill());
+  for (let i = 0; i < 50; i++) {
+    try { if ((await fetch(origin + '/')).ok) break; } catch {}
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  const context = await browser.newContext({ viewport: { width: 360, height: 844 }, serviceWorkers: 'allow' });
+  t.after(() => context.close());
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort('internetdisconnected'));
+  const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto(origin + '/aujourdhui', { waitUntil: 'load' });
+  await page.evaluate(() => localStorage.setItem('titan_sw_dev', '1'));
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => navigator.serviceWorker.controller);
+  assert.equal(await page.evaluate(async () => Boolean(await caches.match('/service'))), true, 'help is precached before any visit');
+  // Offline emulation alone can leave the service worker's requests connected.
+  // Stop only this test's server to exercise the real worker fallback and caches.
+  const stopped = new Promise(resolve => own.once('exit', resolve));
+  own.kill(); await stopped;
+  await context.setOffline(true);
+  await page.goto(origin + '/uncached-assistance-fixture', { waitUntil: 'load' });
+  assert.equal(await page.getByRole('heading', { name: 'Pas de réseau pour l’instant.' }).count(), 1);
+  await page.getByRole('link', { name: 'Assistance', exact: true }).click();
+  assert.equal(new URL(page.url()).pathname, '/service');
+  assert.equal(await page.getByRole('navigation', { name: 'Choisir une catégorie' }).locator('a').count(), 6);
+  assert.equal(await page.locator('.help-topics').evaluate(el => getComputedStyle(el).display), 'grid');
+  assert.equal(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).borderTopStyle), 'solid');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.locator('a[href="#help-bug"]').click();
+  await page.locator('section[aria-labelledby="help-bug"] summary').first().click();
+  assert.deepEqual(errors, []);
+});
+
 test("private pages are noindex, public guides are indexable", async () => {
   for (const [path, indexable] of [["/aujourdhui", false], ["/journal", false], ["/profile", false], ["/boutique", false], ["/u/abcdefghij", false], ["/tarifs", true], ["/niveaux-et-xp", true]]) {
     const html = await (await fetch(BASE + path)).text();
@@ -3842,6 +4006,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
     await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
+    await cache.put("/service", new Response('<!doctype html><html lang="fr"><body><h1>Ancienne aide en cache</h1></body></html>', { headers: { "content-type": "text/html" } }));
     for (const version of ['300.0','300.1','300.2','300.3']) {
       await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
     }
@@ -3874,6 +4039,10 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.locator(".cm-preview li").count(), 4, "discovery explains all four existing social spaces");
   assert.equal(await page.locator(".cm-preview").evaluate(el => getComputedStyle(el).display), "grid");
   assert.equal(await page.locator("#communaute").getAttribute("aria-busy"), "false");
+  await page.goto(BASE + "/service", { waitUntil: "load" });
+  assert.equal(await page.getByRole("heading", { name: "Assistance", exact: true }).count(), 1, "first help visit replaces the previous cached HTML");
+  assert.equal(await page.getByRole("navigation", { name: "Choisir une catégorie" }).locator("a").count(), 6);
+  assert.equal(await page.getByText("Ancienne aide en cache", { exact: true }).count(), 0);
   await page.goto(BASE + "/dynamic-page?slug=fixture-unavailable", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Page introuvable" }).waitFor();
   assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("dynamic_page_opened")), true, "first public visit loads the shared collector");
