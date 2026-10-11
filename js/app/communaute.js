@@ -31,6 +31,7 @@
   let sessionContext = null;
   let viewContext = null;
   let initialSection = true;
+  let mutation = null;
 
   const owner = () => window.state?.user?.id || null;
   const isGuest = () => !owner() || String(owner()).startsWith("guest_");
@@ -83,11 +84,57 @@
     // Sheets on this page can contain names, invitees and actions from the old account.
     document.querySelectorAll(".asc-sheet[open]").forEach(d => d.close());
   }
+  const sending = () => mutation && current(mutation.job);
+  function lockControls(task, scope) {
+    scope.querySelectorAll("button, input, select, textarea").forEach(control => {
+      if (!task.controls.has(control)) task.controls.set(control, control.disabled);
+      control.disabled = true;
+    });
+  }
+  function lockForm(task, form) {
+    if (!form) return;
+    lockControls(task, form.closest("dialog") || form);
+    if (!task.forms.has(form)) task.forms.set(form, form.getAttribute("aria-busy"));
+    form.setAttribute("aria-busy", "true");
+  }
+  function showProgress(task, form) {
+    if (task.progress.some(node => node.isConnected)) return;
+    const notice = document.createElement("p");
+    notice.className = "asc-small asc-muted";
+    notice.setAttribute("role", "status");
+    notice.textContent = "Envoi en cours…";
+    // Keep the announcement outside the busy form so it remains available to assistive tech.
+    if (form) form.before(notice);
+    else root.prepend(notice);
+    task.progress.push(notice);
+  }
+  function beginMutation(job, form) {
+    if (!current(job) || sending()) return null;
+    const formAttribute = form && ["data-add-friend", "data-create-guild", "data-join-guild", "data-guild-target", "data-guild-message"].find(name => form.hasAttribute(name));
+    const task = { job, controls: new Map(), forms: new Map(), progress: [], formAttribute, done: false };
+    mutation = task;
+    lockControls(task, root);
+    lockForm(task, form);
+    showProgress(task, form);
+    return task;
+  }
+  function endMutation(task) {
+    if (!task || task.done) return;
+    task.done = true;
+    task.controls.forEach((disabled, control) => { control.disabled = disabled; });
+    task.forms.forEach((busy, form) => {
+      if (busy === null) form.removeAttribute("aria-busy");
+      else form.setAttribute("aria-busy", busy);
+    });
+    task.progress.forEach(node => node.remove());
+    if (mutation === task) mutation = null;
+  }
   function clear(next) {
     ++sequence;
     data = guild = viewContext = sessionContext = null;
     errorText = "";
     pending = false;
+    if (next === "transition" || next === "guest") mutation = null;
     status = next;
     closeDialogs();
     if (next === "transition" || next === "guest") document.querySelector(".asc-toasts")?.replaceChildren();
@@ -95,9 +142,16 @@
   }
   function confirm(options, job = viewContext) {
     if (!current(job)) return;
-    return window.titanShell.confirm({ ...options, action: () => {
+    return window.titanShell.confirm({ ...options, action: async () => {
       if (!current(job)) throw new Error("La session a changé. Rouvre cette action depuis ton compte.");
-      return options.action(job);
+      const task = beginMutation(job);
+      if (!task) throw new Error("Une action est déjà en cours. Attends sa réponse.");
+      try {
+        await options.action(job);
+      } finally {
+        endMutation(task);
+      }
+      return reload(job);
     } });
   }
 
@@ -110,6 +164,8 @@
       return render();
     }
     if (!navigator.onLine) return clear("offline");
+    // A background refresh must not replace the draft before the server has answered.
+    if (status === "ready" && sending()) return;
     if (sessionContext && !current(sessionContext)) closeDialogs();
     const job = context(), request = ++sequence;
     const latest = () => request === sequence && current(job);
@@ -309,6 +365,12 @@
       <div class="cm-circle"><p class="cm-column-label">Ton cercle</p>${friendsHtml()}</div></div>
       <p class="cm-column-label cm-team-label">Avancer en équipe</p><div class="cm-teams">${challengesHtml()}${guildHtml()}</div>`;
     root.setAttribute("aria-busy", "false");
+    if (sending()) {
+      const form = mutation.formAttribute && root.querySelector(`[${mutation.formAttribute}]`);
+      lockControls(mutation, root);
+      lockForm(mutation, form);
+      showProgress(mutation, form);
+    }
     const chat = root.querySelector(".cm-chat-list");
     if (chat) chat.scrollTop = chat.scrollHeight;
     if (initialSection) {
@@ -325,22 +387,27 @@
   }
 
   /* ---------- Actions ---------- */
-  async function act(fn, ok) {
+  async function act(fn, ok, form) {
     const job = viewContext;
-    if (!current(job)) return;
+    const task = beginMutation(job, form);
+    if (!task) return;
     try {
       await fn(job);
+      endMutation(task);
       if (!current(job)) return;
       if (ok) window.titanShell.toast({ type: "ok", ...ok });
       await load();
     } catch (e) {
+      endMutation(task);
       if (current(job)) window.titanShell.toast({ type: "warn", title: "Pas possible", message: human(e) });
+    } finally {
+      endMutation(task);
     }
   }
 
   function friendMenu(id) {
     const job = viewContext;
-    if (!current(job)) return;
+    if (!current(job) || sending()) return;
     const friends = data?.friends || [];
     const f = friends.find((x) => x.id === id);
     if (!f) return;
@@ -352,16 +419,16 @@
     const d = window.titanShell.sheet({ title: f.name, eyebrow: "Ami", body });
     body.addEventListener("click", (e) => {
       const b = e.target.closest("[data-m]");
-      if (!b || !d.open || !current(job)) return;
+      if (!b || !d.open || !current(job) || sending()) return;
       d.close();
       if (b.dataset.m === "challenge") return newChallenge([id], job, friends);
-      if (b.dataset.m === "remove") return confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: job => rpc("titan_social_remove", { p_user: id }, job).then(() => reload(job), failed) }, job);
-      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN. Débloquer reste possible depuis le support.", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).then(() => reload(job), failed) }, job);
+      if (b.dataset.m === "remove") return confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: job => rpc("titan_social_remove", { p_user: id }, job).catch(failed) }, job);
+      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN. Débloquer reste possible depuis le support.", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).catch(failed) }, job);
     });
   }
 
   function newChallenge(preselect = [], job = viewContext, friends = data?.friends || []) {
-    if (!current(job)) return;
+    if (!current(job) || sending()) return;
     const form = document.createElement("form");
     form.className = "asc-stack";
     form.noValidate = true;
@@ -374,10 +441,18 @@
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Lancer</button></div>`;
     let metric = "effort_minutes";
+    let operation = null;
     const d = window.titanShell.sheet({ title: "Nouveau défi", eyebrow: "Sans mise", body: form });
+    d.addEventListener("cancel", e => { if (operation && !operation.done) e.preventDefault(); });
+    d.addEventListener("click", e => {
+      if (operation && !operation.done && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
     form.addEventListener("click", (e) => {
       const b = e.target.closest("button");
-      if (!b || !d.open || !current(job)) return;
+      if (!b || !d.open || !current(job) || sending()) return;
       if (b.hasAttribute("data-cancel")) return d.close();
       if (b.dataset.metric) {
         metric = b.dataset.metric;
@@ -388,22 +463,28 @@
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!d.open || !current(job)) return;
+      if (!d.open || !current(job) || sending()) return;
       const err = form.querySelector(".jr-edit-error");
       const invitees = [...form.querySelectorAll("[name=invite]:checked")].map((i) => i.value);
       if (!invitees.length) return (err.textContent = "Invite au moins un ami.");
-      const btn = form.querySelector("[type=submit]");
-      btn.disabled = true;
+      err.textContent = "";
+      const task = beginMutation(job, form);
+      if (!task) return;
+      operation = task;
       try {
         await rpc("titan_challenge_create", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value), p_invitees: invitees }, job);
+        endMutation(task);
         if (!current(job)) return;
         d.close();
         window.titanShell.toast({ type: "ok", title: "Défi lancé", message: "Tes amis le trouvent dans leur Communauté." });
         load();
       } catch (error) {
+        endMutation(task);
         if (!current(job)) return;
         err.textContent = human(error);
-        btn.disabled = false;
+        if (d.open) form.querySelector("[type=submit]").focus();
+      } finally {
+        endMutation(task);
       }
     });
   }
@@ -414,11 +495,13 @@
     if (b.hasAttribute("data-retry")) return load();
     const job = viewContext;
     if (!current(job)) return clear("transition");
+    if (sending()) return;
     if (b.dataset.joinExpedition) return act(job => rpc("titan_expedition_join", { p_id: b.dataset.joinExpedition }, job), { title: "Expédition rejointe", message: "Chaque séance compte désormais." });
     if (b.dataset.accept) return act(job => rpc("titan_social_respond", { p_user: b.dataset.accept, p_accept: true }, job), { title: "Nouvel ami" });
     if (b.dataset.decline) return act(job => rpc("titan_social_respond", { p_user: b.dataset.decline, p_accept: false }, job));
     if (b.dataset.cheer) {
-      b.disabled = true;
+      const task = beginMutation(job);
+      if (!task) return;
       return rpc("titan_moment_cheer", { p_id: b.dataset.cheer }, job)
         .then((r) => {
           if (!current(job)) return;
@@ -426,9 +509,9 @@
           b.querySelector("span").textContent = r?.count || "";
         })
         .catch((err) => current(job) && window.titanShell.toast({ type: "warn", message: human(err) }))
-        .finally(() => (b.disabled = false));
+        .finally(() => endMutation(task));
     }
-    if (b.dataset.deleteMoment) return confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: job => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }, job).then(() => reload(job), failed) });
+    if (b.dataset.deleteMoment) return confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: job => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }, job).catch(failed) });
     if (b.dataset.copyCode) {
       (navigator.clipboard?.writeText(b.dataset.copyCode) || Promise.reject())
         .then(() => current(job) && window.titanShell.toast({ type: "ok", title: "Code copié", message: b.dataset.copyCode }))
@@ -441,7 +524,7 @@
       const a = b.dataset.act;
       return act(job => rpc("titan_challenge_respond", { p_id: b.dataset.challenge, p_action: a }, job).then(() => current(job) && a === "join" && window.TitanAnalytics?.track("challenge_joined")), a === "join" ? { title: "Défi relevé" } : null);
     }
-    if (b.hasAttribute("data-leave-guild")) return confirm({ title: "Quitter la guilde ?", message: "Ta part de la semaine reste à toi ; elle ne compte plus pour l’équipe.", confirmLabel: "Quitter", action: job => rpc("titan_leave_guild", {}, job).then(() => reload(job), failed) });
+    if (b.hasAttribute("data-leave-guild")) return confirm({ title: "Quitter la guilde ?", message: "Ta part de la semaine reste à toi ; elle ne compte plus pour l’équipe.", confirmLabel: "Quitter", action: job => rpc("titan_leave_guild", {}, job).catch(failed) });
   }
 
   function onSubmit(e) {
@@ -449,19 +532,20 @@
     if (!root.contains(f)) return;
     e.preventDefault();
     if (!current(viewContext)) return clear("transition");
+    if (sending()) return;
     const v = (n) => (f.querySelector(`[name=${n}]`)?.value || "").trim();
     if (f.hasAttribute("data-add-friend")) {
       const code = v("code").toUpperCase();
       if (!code) return;
-      return act(job => rpc("titan_social_request", { p_code: code }, job).then((r) => current(job) && window.titanShell.toast({ type: "ok", title: r?.status === "friends" ? "Vous êtes amis" : "Demande envoyée", message: r?.status === "friends" ? "Vous voyez maintenant ce que chacun partage." : "La personne doit l’accepter." })));
+      return act(job => rpc("titan_social_request", { p_code: code }, job).then((r) => current(job) && window.titanShell.toast({ type: "ok", title: r?.status === "friends" ? "Vous êtes amis" : "Demande envoyée", message: r?.status === "friends" ? "Vous voyez maintenant ce que chacun partage." : "La personne doit l’accepter." })), null, f);
     }
-    if (f.hasAttribute("data-create-guild")) return act(job => rpc("titan_create_guild", { p_name: v("name"), p_motto: "" }, job), { title: "Guilde fondée", message: "Partage son code pour réunir ton équipe." });
-    if (f.hasAttribute("data-join-guild")) return act(job => rpc("titan_join_guild", { p_code: v("code").toUpperCase() }, job), { title: "Bienvenue dans la guilde" });
-    if (f.hasAttribute("data-guild-target")) return act(job => rpc("titan_guild_set_effort_target", { p_minutes: Number(v("minutes")) }, job), { title: "Objectif réglé" });
+    if (f.hasAttribute("data-create-guild")) return act(job => rpc("titan_create_guild", { p_name: v("name"), p_motto: "" }, job), { title: "Guilde fondée", message: "Partage son code pour réunir ton équipe." }, f);
+    if (f.hasAttribute("data-join-guild")) return act(job => rpc("titan_join_guild", { p_code: v("code").toUpperCase() }, job), { title: "Bienvenue dans la guilde" }, f);
+    if (f.hasAttribute("data-guild-target")) return act(job => rpc("titan_guild_set_effort_target", { p_minutes: Number(v("minutes")) }, job), { title: "Objectif réglé" }, f);
     if (f.hasAttribute("data-guild-message")) {
       const content = v("content");
       if (!content) return;
-      return act(job => rpc("titan_send_guild_message", { p_content: content }, job));
+      return act(job => rpc("titan_send_guild_message", { p_content: content }, job), null, f);
     }
   }
 

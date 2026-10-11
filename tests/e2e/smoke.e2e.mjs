@@ -113,6 +113,180 @@ async function releaseCommunity(page, index, response) {
   }, { index, response });
 }
 
+test("community pending actions: repeated guild message submissions send once and an error keeps the draft retryable", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, hold: ["titan_send_guild_message"] });
+  await page.locator('[data-guild-message] [name="content"]').fill("Bravo l’équipe");
+  await page.evaluate(() => {
+    const form = document.querySelector("[data-guild-message]");
+    for (let i = 0; i < 3; i++) form.requestSubmit();
+  });
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_send_guild_message").length), 1);
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').isDisabled(), true);
+  await page.getByRole("status").filter({ hasText: "Envoi en cours" }).first().waitFor();
+  const progress = await page.getByRole("status").filter({ hasText: "Envoi en cours" }).first().boundingBox();
+  assert.ok(progress.y >= 0 && progress.y + progress.height <= page.viewportSize().height, "the pending message remains visible beside the submitted guild draft");
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_send_guild_message"));
+  await releaseCommunity(page, index, { error: { message: "CHAT_RATE_LIMIT" } });
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').inputValue(), "Bravo l’équipe");
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').isEnabled(), true);
+  await page.evaluate(() => { window.communityHold = []; });
+  await page.locator('[data-guild-message] button').click();
+  await page.waitForFunction(() => window.communityCalls.filter(c => c.name === "titan_send_guild_message").length === 2);
+  await page.waitForFunction(() => document.querySelector('[data-guild-message] [name="content"]').value === "");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: accepting and declining the same request cannot race", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_social_respond"], overview: {
+    requests_in: [{ id: "zoe", name: "Zoé", avatar: "scout" }],
+  } });
+  await page.evaluate(() => {
+    document.querySelector("[data-accept]").click();
+    document.querySelector("[data-decline]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_social_respond"));
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_social_respond").length), 1);
+  assert.equal(await page.locator("[data-decline]").isDisabled(), true);
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_social_respond"));
+  await releaseCommunity(page, index);
+  await page.waitForFunction(() => !document.querySelector("[data-accept]").disabled);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: a challenge form handler cannot create the same draft repeatedly", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_challenge_create"] });
+  await page.locator("[data-new-challenge]").click();
+  await page.locator('dialog [name="invite"]').check();
+  await page.evaluate(() => {
+    const form = document.querySelector("dialog[open] form");
+    for (let i = 0; i < 3; i++) form.requestSubmit();
+  });
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_challenge_create"));
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_challenge_create").length), 1);
+  assert.equal(await page.locator('dialog [name="title"]').isDisabled(), true);
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_challenge_create"));
+  await releaseCommunity(page, index);
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: closing a challenge while it is being sent cannot imply cancellation", async () => {
+  for (const close of ["button", "header", "escape", "backdrop"]) {
+    const { page, context, errors } = await communityPage({ hold: ["titan_challenge_create"] });
+    await page.locator("[data-new-challenge]").click();
+    await page.locator('dialog [name="invite"]').check();
+    await page.locator('dialog [type="submit"]').click();
+    await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_challenge_create"));
+    if (close === "button") await page.locator("dialog [data-cancel]").evaluate(el => el.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    if (close === "header") await page.locator("dialog [data-close]").evaluate(el => el.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    if (close === "escape") await page.keyboard.press("Escape");
+    if (close === "backdrop") await page.locator("dialog[open]").evaluate(el => el.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    assert.equal(await page.locator("dialog[open]").count(), 1, close);
+    const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_challenge_create"));
+    await releaseCommunity(page, index, { error: { message: "CHALLENGE_INVALID" } });
+    await page.waitForFunction(() => !document.querySelector("dialog [data-cancel]").disabled);
+    await page.locator("dialog [data-cancel]").click();
+    assert.equal(await page.locator("dialog[open]").count(), 0);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("community pending actions: same-session refresh cannot erase a guild draft still being sent", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, hold: ["titan_send_guild_message"] });
+  await page.locator('[data-guild-message] [name="content"]').fill("On continue demain");
+  await page.locator('[data-guild-message] button').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  const before = await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_social_overview").length);
+  await page.evaluate(async () => {
+    window.dispatchEvent(new Event("online"));
+    await new Promise(requestAnimationFrame);
+  });
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').inputValue(), "On continue demain");
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_social_overview").length), before);
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_send_guild_message"));
+  await releaseCommunity(page, index, { error: { message: "CHAT_RATE_LIMIT" } });
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').inputValue(), "On continue demain");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: reconnecting while a message is unresolved keeps the wait explicit and blocks a second send", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, hold: ["titan_send_guild_message"] });
+  await page.locator('[data-guild-message] [name="content"]').fill("Message avant déconnexion");
+  await page.locator('[data-guild-message] button').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  await context.setOffline(true);
+  await page.getByRole("heading", { name: "Hors ligne", exact: true }).waitFor();
+  await context.setOffline(false);
+  await page.getByText("Discussion privée alice", { exact: false }).waitFor();
+  assert.equal(await page.getByRole("status").filter({ hasText: "Envoi en cours" }).count(), 1);
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').isDisabled(), true);
+  await page.evaluate(() => document.querySelector("[data-guild-message]").requestSubmit());
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_send_guild_message").length), 1);
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_send_guild_message"));
+  await releaseCommunity(page, index, { error: { message: "CHAT_RATE_LIMIT" } });
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').isEnabled(), true);
+  assert.equal(await page.getByRole("status").filter({ hasText: "Envoi en cours" }).count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: completion from an old account cannot unlock the new account's message", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, hold: ["titan_send_guild_message"] });
+  await page.locator('[data-guild-message] [name="content"]').fill("Message Alice");
+  await page.locator('[data-guild-message] button').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  const alice = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_send_guild_message"));
+  await page.evaluate(() => window.communitySwitch("bob"));
+  await page.getByText("Discussion privée bob", { exact: false }).waitFor();
+  await page.locator('[data-guild-message] [name="content"]').fill("Message Bob");
+  await page.locator('[data-guild-message] button').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message" && c.owner === "bob"));
+  await releaseCommunity(page, alice);
+  assert.equal(await page.locator('[data-guild-message] [name="content"]').isDisabled(), true);
+  await page.evaluate(async () => {
+    document.querySelector("[data-guild-message]").requestSubmit();
+    await new Promise(requestAnimationFrame);
+  });
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_send_guild_message" && c.owner === "bob").length), 1);
+  const bob = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_send_guild_message" && c.owner === "bob"));
+  await releaseCommunity(page, bob);
+  await page.waitForFunction(() => !document.querySelector('[data-guild-message] [name="content"]').disabled);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community pending actions: challenge failure restores the draft and the next attempt clears its old error", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_challenge_create"] });
+  await page.locator("[data-new-challenge]").click();
+  await page.locator('dialog [name="title"]').fill("Une semaine ensemble");
+  await page.locator('dialog [name="target"]').fill("600");
+  await page.locator('dialog [name="invite"]').check();
+  await page.locator('dialog [type="submit"]').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_challenge_create"));
+  const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_challenge_create"));
+  await releaseCommunity(page, index, { error: { message: "CHALLENGE_INVALID" } });
+  await page.getByRole("alert").filter({ hasText: "Vérifie la mesure" }).waitFor();
+  assert.equal(await page.locator('dialog [name="title"]').inputValue(), "Une semaine ensemble");
+  assert.equal(await page.locator('dialog [name="target"]').inputValue(), "600");
+  assert.equal(await page.locator('dialog [name="invite"]').isChecked(), true);
+  assert.equal(await page.locator('dialog [type="submit"]').isEnabled(), true);
+  await page.locator('dialog [type="submit"]').click();
+  await page.waitForFunction(() => window.communityCalls.filter(c => c.name === "titan_challenge_create").length === 2);
+  assert.equal(await page.locator('dialog .jr-edit-error').textContent(), "");
+  assert.equal(await page.locator('dialog [name="title"]').isDisabled(), true);
+  const retry = await page.evaluate(() => window.communityCalls.findLastIndex(c => c.name === "titan_challenge_create"));
+  await releaseCommunity(page, retry);
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("community hierarchy: section shortcuts explain their destinations and keyboard navigation keeps every action reachable", async () => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await communityPage({ width, overview: {
@@ -2804,7 +2978,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" || marker === "community" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
