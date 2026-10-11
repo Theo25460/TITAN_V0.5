@@ -447,6 +447,216 @@ test("password recovery: local validation never updates auth and expired session
   assert.deepEqual(errors, []);
 });
 
+async function onboardingPage({ mode = "pending", consent = true, width = 360, clock = false } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/onboarding.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/onboarding?again=1", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  if (clock) await page.clock.install();
+  await page.evaluate(({ mode, consent }) => {
+    window.onboardingCalls = [];
+    window.onboardingEffects = [];
+    window.onboardingMode = mode;
+    window.onboardingConsent = consent;
+    window.state.user.favoriteSports = [];
+    window.state.user.weeklyGoalSessions = 3;
+    window.state.user.onboardingComplete = false;
+    delete window.state.user.onboardedAt;
+    window.saveState = options => {
+      const call = { options, snapshot: structuredClone(window.state.user) };
+      window.onboardingCalls.push(call);
+      if (window.onboardingMode === "throw") throw Error("Synthetic local write failure");
+      if (window.onboardingMode === "reject") return Promise.reject(Error("Synthetic cloud failure"));
+      if (window.onboardingMode === "instant") return;
+      return new Promise(resolve => { call.release = resolve; });
+    };
+    window.TitanAnalytics.setConsent = value => {
+      window.onboardingEffects.push({ name: "consent", value });
+      return window.onboardingConsent;
+    };
+    const track = window.TitanAnalytics.track;
+    window.TitanAnalytics.track = (name, props) => {
+      if (name !== "onboarding_completed") return track(name, props);
+      window.onboardingEffects.push({ name, props });
+      return Promise.resolve(true);
+    };
+  }, { mode, consent });
+  await page.addScriptTag({ path: ROOT + "/js/app/onboarding.js" });
+  await page.locator("[data-next]").waitFor();
+  return fixture;
+}
+
+async function onboardingToGo(page, { sport = true, target = 4, analytics = false } = {}) {
+  let chosen = null;
+  if (sport) {
+    const pick = page.locator("[data-pick]").first();
+    chosen = await pick.getAttribute("data-pick");
+    await pick.click();
+  }
+  await page.locator("[data-next]").click();
+  await page.locator(`[data-target="${target}"]`).click();
+  await page.locator("[data-next]").click();
+  await page.locator("[data-analytics]").setChecked(analytics);
+  await page.locator("[data-next]").click();
+  return chosen;
+}
+
+test("onboarding finish: repeated activations save consent preferences and completion once", async t => {
+  const { page, context, errors } = await onboardingPage();
+  t.after(() => context.close());
+  const sport = await onboardingToGo(page, { analytics: true });
+  await page.evaluate(() => {
+    const link = document.querySelector('[data-finish][href="/aujourdhui"]');
+    for (let i = 0; i < 3; i++) link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  });
+  assert.equal(await page.evaluate(() => window.onboardingCalls.length), 1);
+  assert.deepEqual(await page.evaluate(() => window.onboardingCalls[0].options), { forceCloud: true });
+  assert.deepEqual(await page.evaluate(() => window.onboardingCalls[0].snapshot.favoriteSports), [sport]);
+  assert.equal(await page.evaluate(() => window.onboardingCalls[0].snapshot.weeklyGoalSessions), 4);
+  assert.deepEqual(await page.evaluate(() => window.onboardingEffects), [{ name: "consent", value: true }, { name: "onboarding_completed", props: { count: 1 } }]);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: pending preparation blocks Return and the conflicting destination", async t => {
+  const { page, context, errors } = await onboardingPage();
+  t.after(() => context.close());
+  await onboardingToGo(page);
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  assert.equal(await page.locator("[data-back]").isDisabled(), true);
+  await page.evaluate(() => {
+    document.querySelector("[data-back]").dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    document.querySelector('.ob-go a[href^="/training"]').dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  });
+  assert.equal(await page.locator("[data-analytics]").count(), 0);
+  assert.equal(await page.evaluate(() => window.onboardingCalls.length), 1);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: busy choices expose one visible status outside the busy section", async t => {
+  const { page, context, errors } = await onboardingPage();
+  t.after(() => context.close());
+  await onboardingToGo(page);
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  assert.equal(await page.locator("#onboarding").getAttribute("aria-busy"), "true");
+  assert.equal(await page.getByRole("status").filter({ hasText: "Préparation" }).count(), 1);
+  const status = page.getByRole("status").filter({ hasText: "Préparation" });
+  assert.equal(await status.evaluate(el => !!el.closest('[aria-busy="true"]')), false);
+  for (const link of await page.locator(".ob-go a").all()) {
+    assert.equal(await link.getAttribute("aria-disabled"), "true");
+    assert.equal(await link.getAttribute("tabindex"), "-1");
+  }
+  const box = await status.boundingBox();
+  assert.ok(box.y >= 0 && box.y + box.height <= page.viewportSize().height);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: synchronous preparation failure preserves choices and enables a focused retry", async t => {
+  const { page, context, errors } = await onboardingPage({ mode: "throw" });
+  t.after(() => context.close());
+  const sport = await onboardingToGo(page, { target: 6, analytics: true });
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  assert.equal(await page.locator(".ob-finish-error[role=alert]").count(), 1);
+  assert.deepEqual(errors, []);
+  assert.equal(await page.locator("[data-back]").isEnabled(), true);
+  assert.equal(await page.locator("#onboarding").getAttribute("aria-busy"), null);
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("href")), "/aujourdhui");
+  await page.evaluate(() => { window.onboardingMode = "pending"; });
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  assert.equal(await page.locator(".ob-finish-error").count(), 0);
+  assert.equal(await page.evaluate(() => window.onboardingCalls.length), 2);
+  const snapshot = await page.evaluate(() => window.onboardingCalls[1].snapshot);
+  assert.deepEqual(snapshot.favoriteSports, [sport]);
+  assert.equal(snapshot.weeklyGoalSessions, 6);
+  await Promise.all([page.waitForURL("**/aujourdhui"), page.evaluate(() => window.onboardingCalls[1].release())]);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: a failed consent save shows one warning and Continue sends no second preparation", async t => {
+  const { page, context, errors } = await onboardingPage({ consent: false });
+  t.after(() => context.close());
+  await onboardingToGo(page, { analytics: true });
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  await page.evaluate(() => {
+    const link = document.querySelector('[data-finish][href="/aujourdhui"]');
+    for (let i = 0; i < 2; i++) link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    window.onboardingCalls.forEach(call => call.release());
+  });
+  await page.getByRole("alert").filter({ hasText: "rechargement" }).first().waitFor();
+  assert.equal(await page.getByRole("alert").filter({ hasText: "rechargement" }).count(), 1);
+  assert.equal(await page.locator("[data-finish]").count(), 0);
+  assert.equal(await page.locator(".ob-go a[href='/aujourdhui']").textContent(), "Continuer");
+  await page.locator(".ob-go a[href='/aujourdhui']").click();
+  await page.waitForURL("**/aujourdhui");
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: the first chosen training destination survives another activation", async t => {
+  const { page, context, errors } = await onboardingPage({ width: 1280 });
+  t.after(() => context.close());
+  const sport = await onboardingToGo(page);
+  await page.locator('.ob-go a[href^="/training"]').click();
+  await page.evaluate(() => document.querySelector('[data-finish][href="/aujourdhui"]').dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+  assert.equal(await page.evaluate(() => window.onboardingCalls.length), 1);
+  await Promise.all([page.waitForURL(BASE + "/training?sport=" + encodeURIComponent(sport)), page.evaluate(() => window.onboardingCalls[0].release())]);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: cloud rejection and the existing 2.5 second cap both allow the saved local journey", async t => {
+  for (const mode of ["reject", "pending"]) {
+    const { page, context, errors } = await onboardingPage({ mode, clock: true });
+    t.after(() => context.close());
+    await onboardingToGo(page, { sport: false });
+    await page.locator('[data-finish][href="/aujourdhui"]').click();
+    if (mode === "pending") {
+      await page.clock.fastForward(2499);
+      assert.match(page.url(), /\/onboarding\?again=1$/);
+      assert.equal(await page.evaluate(() => window.onboardingCalls.length), 1);
+      await Promise.all([page.waitForURL("**/aujourdhui"), page.clock.fastForward(1)]);
+    } else await page.waitForURL("**/aujourdhui");
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("onboarding finish: five sports rhythm and optional analytics remain editable before preparation", async t => {
+  const { page, context, errors } = await onboardingPage();
+  t.after(() => context.close());
+  const ids = await page.locator("[data-pick]").evaluateAll(els => els.slice(0, 6).map(el => el.dataset.pick));
+  assert.equal(ids.length, 6);
+  for (const id of ids) await page.locator(`[data-pick="${id}"]`).click();
+  assert.equal(await page.locator('[data-pick][aria-pressed="true"]').count(), 5);
+  await page.getByText("5 sports maximum", { exact: false }).waitFor();
+  await page.locator("[data-next]").click();
+  await page.locator('[data-target="7"]').click();
+  await page.locator("[data-next]").click();
+  await page.locator("[data-analytics]").check();
+  await page.locator("[data-back]").click();
+  assert.equal(await page.locator('[data-target="7"]').getAttribute("aria-checked"), "true");
+  await page.locator("[data-next]").click();
+  assert.equal(await page.locator("[data-analytics]").isChecked(), true);
+  await page.locator("[data-next]").click();
+  assert.equal(await page.evaluate(() => window.onboardingCalls.length), 0);
+  await page.locator('[data-finish][href="/aujourdhui"]').click();
+  assert.deepEqual(await page.evaluate(() => window.onboardingCalls[0].snapshot.favoriteSports), ids.slice(0, 5));
+  assert.equal(await page.evaluate(() => window.onboardingCalls[0].snapshot.weeklyGoalSessions), 7);
+  assert.deepEqual(errors, []);
+});
+
+test("onboarding finish: small screens contain the sports choice while pending and after a consent warning", async t => {
+  for (const width of [320, 360, 1280]) {
+    const { page, context, errors } = await onboardingPage({ width, consent: false });
+    t.after(() => context.close());
+    await onboardingToGo(page);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.locator('[data-finish][href="/aujourdhui"]').click();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.evaluate(() => window.onboardingCalls[0].release());
+    await page.getByRole("alert").filter({ hasText: "rechargement" }).waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.equal(await page.locator(".ob-go a[href='/aujourdhui']").isVisible(), true);
+    assert.deepEqual(errors, []);
+  }
+});
+
 async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
@@ -3378,7 +3588,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
