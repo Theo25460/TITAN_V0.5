@@ -47,6 +47,332 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
+async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360 } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/social", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  await page.evaluate(({ hold, guild, wrongOwner }) => {
+    window.state.user.id = "alice";
+    window.communityCalls = [];
+    window.communityHold = hold;
+    window.communityGuild = guild;
+    window.communityWrongOwner = wrongOwner;
+    window.communityOverview = (owner, label = owner) => ({
+      me: { id: window.communityWrongOwner ? "other" : owner, friend_code: "TN-" + label, findable: true },
+      friends: [{ id: "friend-" + owner, name: "Ami privé " + label, avatar: "scout" }],
+      requests_in: [], requests_out: [], challenges: [], expedition: null,
+      moments: [{ id: "moment-" + owner, kind: "session", title: "Moment privé " + label, created_at: new Date().toISOString(), mine: true },
+        { id: "friend-moment-" + owner, kind: "session", title: "Moment ami " + label, created_at: new Date().toISOString(), author: { name: "Ami privé " + label, avatar: "scout" }, mine: false }],
+      guild: window.communityGuild ? { minutes: 30, target: 300, members: [] } : null,
+    });
+    window.titanClient = { auth: { getSession: async () => ({ data: { session: { user: { id: window.state.user.id }, access_token: "fixture-token" } } }) }, rpc: (name, params) => {
+      // Other boot modules may refresh on reconnect; keep this transport fixture scoped to social RPCs.
+      if (!/^titan_(social_|get_my_guild$|moment_|challenge_|expedition_|create_guild$|join_guild$|leave_guild$|send_guild_message$|guild_)/.test(name)) {
+        return Promise.resolve({ error: { code: "PGRST202" } });
+      }
+      const owner = window.state.user.id;
+      const data = name === "titan_social_overview" ? window.communityOverview(owner)
+        : name === "titan_get_my_guild" ? { name: "Guilde privée " + owner, code: "G-AB12", owner_id: owner, messages: [{ sender_name: "Ami", content: "Discussion privée " + owner }] }
+        : { status: "sent" };
+      const call = { name, params, owner, response: { data } };
+      window.communityCalls.push(call);
+      const result = window.communityHold.includes(name) ? new Promise(resolve => { call.release = response => resolve(response || call.response); }) : Promise.resolve(call.response);
+      return { setHeader: () => ({ then: (yes, no) => result.then(yes, no) }), then: (yes, no) => result.then(yes, no) };
+    } };
+    window.communitySwitch = (owner, finish = true) => {
+      window.titanAccountTransition = { active: true, owner, epoch: window.titanAccountTransition.epoch + 1 };
+      window.dispatchEvent(new CustomEvent("titan:account-changing"));
+      window.state.user.id = owner;
+      if (finish) {
+        window.titanAccountTransition.active = false;
+        window.dispatchEvent(new CustomEvent("titan:account-changed"));
+      }
+    };
+  }, { hold, guild, wrongOwner });
+  await page.addScriptTag({ path: ROOT + "/js/app/communaute.js" });
+  await page.waitForFunction(() => window.communityCalls.length > 0);
+  if (!hold.includes("titan_social_overview") && !(guild && hold.includes("titan_get_my_guild"))) {
+    await page.waitForFunction(() => document.querySelector("#communaute").getAttribute("aria-busy") === "false");
+  }
+  return fixture;
+}
+
+async function releaseCommunity(page, index, response) {
+  await page.evaluate(async ({ index, response }) => {
+    window.communityCalls[index].release(response);
+    await new Promise(requestAnimationFrame);
+  }, { index, response });
+}
+
+test("community: changing account clears private content and open dialogs immediately", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.locator("[data-friend-menu]").click();
+  await page.getByRole("dialog", { name: "Ami privé alice" }).waitFor();
+  await page.evaluate(() => window.communitySwitch("bob", false));
+  assert.equal(await page.locator("#communaute").textContent().then(t => t.includes("privé alice")), false);
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.equal(await page.locator("#communaute").getAttribute("aria-busy"), "false");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: an old overview cannot render after an account transition and the new account reloads", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_social_overview"] });
+  await page.evaluate(() => window.communitySwitch("bob", false));
+  await releaseCommunity(page, 0);
+  assert.equal(await page.locator("#communaute").textContent().then(t => t.includes("privé alice")), false);
+  await page.evaluate(() => {
+    window.communityHold = [];
+    window.titanAccountTransition.active = false;
+    window.dispatchEvent(new CustomEvent("titan:account-changed"));
+  });
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.locator(".cm-code-value").textContent(), "TN-bob");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: a late guild response cannot survive a new epoch for the same account", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, hold: ["titan_get_my_guild"] });
+  await page.waitForFunction(() => window.communityCalls.length === 2);
+  await page.evaluate(() => window.communitySwitch("alice", false));
+  await releaseCommunity(page, 1);
+  assert.equal(await page.locator("#communaute").textContent().then(t => t.includes("Discussion privée alice")), false);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: the newest overview wins over an earlier delayed error", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_social_overview"] });
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await page.waitForFunction(() => window.communityCalls.length === 2);
+  const fresh = await page.evaluate(() => ({ data: window.communityOverview("alice", "récent") }));
+  await releaseCommunity(page, 1, fresh);
+  await page.getByText("Moment privé récent", { exact: true }).waitFor();
+  await releaseCommunity(page, 0, { error: { code: "PGRST202" } });
+  assert.equal(await page.getByText("Moment privé récent", { exact: true }).count(), 1);
+  assert.equal(await page.getByRole("heading", { name: "Communauté bientôt disponible" }).count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: an overview for an unexpected owner is never displayed", async () => {
+  const { page, context, errors } = await communityPage({ wrongOwner: true });
+  assert.equal(await page.locator(".cm-code-value").count(), 0);
+  await page.getByRole("heading", { name: "Communauté indisponible" }).waitFor();
+  assert.equal(await page.locator("#communaute [data-retry]").count(), 1);
+  await page.evaluate(() => { window.communityWrongOwner = false; });
+  await page.locator("#communaute [data-retry]").click();
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: a previous confirmation cannot send its action in another session", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.locator("[data-delete-moment]").click();
+  await page.evaluate(() => {
+    window.previousCommunityOK = document.querySelector("dialog [data-ok]");
+    window.communitySwitch("bob");
+    window.previousCommunityOK.click();
+  });
+  assert.equal(await page.evaluate(() => window.communityCalls.some(c => c.name === "titan_moment_delete")), false);
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: a late cheer failure cannot post feedback to the next account", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_moment_cheer"] });
+  await page.locator("[data-cheer]").click();
+  await page.waitForFunction(() => window.communityCalls.length === 2);
+  await page.evaluate(() => window.communitySwitch("bob"));
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  await releaseCommunity(page, 1, { error: { message: "Network failed" } });
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
+  assert.equal(await page.locator(".cm-code-value").textContent(), "TN-bob");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: a previous challenge draft cannot submit its private invitees after transition", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.locator("[data-new-challenge]").click();
+  await page.locator('dialog [name="invite"]').check();
+  await page.evaluate(() => {
+    window.previousCommunityDraft = document.querySelector("dialog form");
+    window.communitySwitch("bob");
+    window.previousCommunityDraft.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.equal(await page.evaluate(() => window.communityCalls.some(c => c.name === "titan_challenge_create")), false);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: an old confirmation response cannot refresh or notify the new account", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_moment_delete"] });
+  await page.locator("[data-delete-moment]").click();
+  await page.locator("dialog [data-ok]").click();
+  await page.waitForFunction(() => window.communityCalls.length === 2);
+  assert.equal(await page.evaluate(() => window.communityCalls[1].owner), "alice");
+  await page.evaluate(() => window.communitySwitch("bob"));
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  await releaseCommunity(page, 1);
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.equal(await page.evaluate(() => window.communityCalls.length), 3, "only the new account overview follows the transition");
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: normal friend, challenge and guild actions still work in their current session", async () => {
+  const { page, context, errors } = await communityPage({ guild: true, width: 1280 });
+  await page.locator("[data-add-friend] [name=code]").fill("tn-ab12");
+  await page.locator("[data-add-friend] button").click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_social_request"));
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.communityCalls.find(c => c.name === "titan_social_request").params.p_code), "TN-AB12");
+  await page.locator("[data-friend-menu]").click();
+  // A same-session refresh must not invalidate an already open friend menu.
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  await page.locator('dialog [data-m="remove"]').click();
+  await page.locator("dialog [data-ok]").click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_social_remove"));
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  await page.locator("[data-friend-menu]").click();
+  const refreshing = await page.evaluate(() => {
+    window.communityHold = ["titan_social_overview"];
+    const index = window.communityCalls.length;
+    window.dispatchEvent(new Event("online"));
+    return index;
+  });
+  await page.locator('dialog [data-m="challenge"]').click();
+  await page.getByRole("dialog", { name: "Nouveau défi" }).waitFor();
+  await page.evaluate(() => { window.communityHold = []; });
+  await releaseCommunity(page, refreshing);
+  await page.locator('dialog [name="invite"]').check();
+  await page.locator('dialog button[type="submit"]').click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_challenge_create"));
+  await page.waitForFunction(() => !document.querySelector("dialog[open]"));
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  await page.locator("[data-guild-message] [name=content]").fill("Bravo l’équipe");
+  await page.locator("[data-guild-message] button").click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.communityCalls.every(c => c.owner === "alice")), true);
+  assert.deepEqual(await page.evaluate(() => window.communityCalls.find(c => c.name === "titan_challenge_create").params.p_invitees), ["friend-alice"]);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: offline recovery and guest sign-out clear private content without guest RPCs", async () => {
+  const { page, context, errors } = await communityPage();
+  await context.setOffline(true);
+  await page.getByRole("heading", { name: "Hors ligne", exact: true }).waitFor();
+  assert.equal(await page.locator("#communaute").textContent().then(t => t.includes("privé alice")), false);
+  await context.setOffline(false);
+  await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  const calls = await page.evaluate(() => window.communityCalls.length);
+  await page.evaluate(() => window.communitySwitch("guest_signed_out"));
+  await page.getByRole("heading", { name: "Avancer avec les autres, sans bruit." }).waitFor();
+  assert.equal(await page.locator("#communaute").getAttribute("aria-busy"), "false");
+  assert.equal(await page.evaluate(() => window.communityCalls.length), calls);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: replacing the client rejects its late overview and focus loads the current session", async () => {
+  const { page, context, errors } = await communityPage({ hold: ["titan_social_overview"] });
+  await page.evaluate(() => {
+    const auth = window.titanClient.auth;
+    window.titanClient = { auth, rpc: () => ({ setHeader: () => Promise.resolve({ data: window.communityOverview("alice", "nouveau client") }) }) };
+  });
+  await releaseCommunity(page, 0);
+  assert.equal(await page.locator(".cm-code-value").count(), 0);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await page.getByText("Moment privé nouveau client", { exact: true }).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: previous private notifications disappear as soon as the account changes", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async () => {} }, configurable: true }));
+  await page.locator("[data-copy-code]").click();
+  await page.locator(".asc-toasts").getByText("TN-alice", { exact: true }).waitFor();
+  await page.evaluate(() => window.communitySwitch("bob", false));
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: the real SDK pins a mutation to its captured owner when the auth lookup changes", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => {
+    window.communityHeaders = [];
+    const client = window.supabase.createClient("https://fixture.invalid", "fixture-anon", {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: { fetch: async (url, options) => {
+        const header = new Headers(options.headers).get("Authorization");
+        const name = String(url).split("/").pop();
+        window.communityHeaders.push({ name, header });
+        const owner = header === "Bearer token-alice" ? "alice" : "bob";
+        return new Response(JSON.stringify(name === "titan_social_overview" ? window.communityOverview(owner) : {}), { status: 200, headers: { "Content-Type": "application/json" } });
+      } },
+    });
+    let prepared = false, switched = false, armed = false;
+    const send = client.rpc.bind(client);
+    client.rpc = (...args) => { prepared = true; return send(...args); };
+    client.auth.getSession = async () => {
+      if (armed && prepared && !switched) { switched = true; window.communitySwitch("bob"); }
+      const id = window.state.user.id;
+      return { data: { session: { user: { id }, access_token: "token-" + id } } };
+    };
+    window.titanClient = client;
+    window.communityArm = () => { prepared = false; armed = true; };
+    window.dispatchEvent(new Event("focus"));
+  });
+  await page.waitForFunction(() => window.communityHeaders.length === 1 && document.querySelector("#communaute [data-delete-moment]"));
+  await page.locator("[data-delete-moment]").click();
+  await page.evaluate(() => window.communityArm());
+  await page.locator("dialog [data-ok]").click();
+  await page.waitForFunction(() => window.communityHeaders.some(r => r.name === "titan_moment_delete"));
+  assert.equal(await page.evaluate(() => window.communityHeaders.find(r => r.name === "titan_moment_delete").header), "Bearer token-alice");
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.locator("#communaute").textContent().then(t => t.includes("privé alice")), false);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: missing, mismatched or failed auth prevents RPCs and a valid session can retry", async () => {
+  const { page, context, errors } = await communityPage();
+  for (const kind of ["missing", "mismatched", "error"]) {
+    const count = await page.evaluate(kind => {
+      const count = window.communityCalls.length;
+      window.titanClient.auth.getSession = async () => kind === "error" ? { error: { message: "Auth unavailable" } }
+        : { data: { session: kind === "missing" ? null : { user: { id: "bob" }, access_token: "fixture-token" } } };
+      window.dispatchEvent(new Event("online"));
+      return count;
+    }, kind);
+    await page.getByRole("heading", { name: "Communauté indisponible" }).waitFor();
+    assert.equal(await page.evaluate(() => window.communityCalls.length), count);
+    assert.equal(await page.locator(".cm-code-value").count(), 0);
+    await page.evaluate(() => {
+      window.titanClient.auth.getSession = async () => ({ data: { session: { user: { id: "alice" }, access_token: "fixture-token" } } });
+    });
+    await page.locator("[data-retry]").click();
+    await page.getByText("Moment privé alice", { exact: true }).waitFor();
+  }
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 async function reportPage(width = 360, access = "plus", many = false) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/rapports.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
@@ -2348,7 +2674,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -2379,6 +2705,10 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
   }
+  await page.goto(BASE + "/social", { waitUntil: "load" });
+  await page.getByRole("heading", { name: "Avancer avec les autres, sans bruit." }).waitFor();
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.community)), false, "first community visit loads the session guards");
+  assert.equal(await page.locator("#communaute").getAttribute("aria-busy"), "false");
   await page.goto(BASE + "/dynamic-page?slug=fixture-unavailable", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Page introuvable" }).waitFor();
   assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("dynamic_page_opened")), true, "first public visit loads the shared collector");
