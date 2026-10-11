@@ -12,6 +12,7 @@
   let picked = [];
   let target = 3;
   let analytics = false;
+  let consentSaveFailed = false;
   let query = "";
   let limitHit = false;
   let root = null;
@@ -80,7 +81,7 @@
     u.weeklyGoalSessions = target;
     u.onboardedAt = new Date().toISOString();
     u.onboardingComplete = true; // kept by every server version
-    window.TitanAnalytics?.setConsent(analytics);
+    consentSaveFailed = window.TitanAnalytics?.setConsent(analytics) !== true;
     const saved = window.saveState?.({ forceCloud: true });
     window.TitanAnalytics?.track("onboarding_completed", { count: picked.length });
     return saved;
@@ -116,7 +117,12 @@
       if (fin) {
         e.preventDefault();
         // Local state is saved synchronously; wait for the cloud save (2.5 s at most) before leaving.
-        Promise.race([Promise.resolve(finish()).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]).finally(() => (location.href = fin.getAttribute("href")));
+        Promise.race([Promise.resolve(finish()).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]).finally(() => {
+          if (!consentSaveFailed) { location.href = fin.getAttribute("href"); return; }
+          fin.insertAdjacentHTML("beforebegin", `<p class="asc-note" role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p>`);
+          root.querySelectorAll("[data-finish]").forEach(link => link.removeAttribute("data-finish"));
+          fin.textContent = "Continuer";
+        });
         return;
       }
       const b = e.target.closest("button");
