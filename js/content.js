@@ -146,23 +146,9 @@
     };
 
     window.titanTrackEvent = async function titanTrackEvent(eventName, metadata = {}) {
-        const client = await getClient();
-        if (!client || !eventName) return false;
         try {
-            let userId = null;
-            if (client.auth) {
-                const session = await client.auth.getSession();
-                userId = session?.data?.session?.user?.id || null;
-            }
-            const { error } = await client.from('analytics_events').insert({
-                user_id: userId,
-                event_name: String(eventName).slice(0, 120),
-                page: location.pathname,
-                source: new URLSearchParams(location.search).get('utm_source') || null,
-                referrer: document.referrer || null,
-                metadata
-            });
-            return !error;
+            if (typeof window.TitanAnalytics?.track !== 'function') return false;
+            return await window.TitanAnalytics.track(eventName, metadata);
         } catch (_) {
             return false;
         }
