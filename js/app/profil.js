@@ -260,7 +260,9 @@
   function deleteAccount() {
     const body = document.createElement("form");
     body.className = "asc-stack";
+    const support = window.TITAN_EXTERNAL_URLS?.supportEmail || "titanteam.app@gmail.com";
     body.innerHTML = `<p>Ton compte, tes séances, tes objectifs et ta progression seront supprimés définitivement. Exporte d’abord tes données si tu veux les garder.</p>
+      <p class="asc-note" data-delete-plus>${icon("info")}<span>Si tu paies TITAN+ avec Paddle, supprimer ton compte ne résilie pas l’abonnement. Résilie-le d’abord avec le lien de l’e-mail de reçu Paddle, ou écris à <a href="mailto:${esc(support)}">${esc(support)}</a>.</span></p>
       <label class="asc-field"><span>Écris SUPPRIMER pour confirmer</span><input class="asc-input" name="confirm" autocomplete="off" autocapitalize="characters"></label>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-danger">Supprimer</button></div>`;
@@ -276,6 +278,7 @@
         const { error } = await window.titanClient.rpc("delete_own_account");
         if (error) throw error;
         const id = window.state.user.id;
+        window.titanForgetOwnerDrafts?.(id);
         await window.titanClient.auth.signOut().catch(() => {});
         await window.TitanQueue?.deleteOwner(id).catch(() => {});
         window.titanSafeClearCache?.();

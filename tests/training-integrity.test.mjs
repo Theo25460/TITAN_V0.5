@@ -76,6 +76,28 @@ test('guest corrections and archives survive reload and cannot target another ow
  assert.equal(logs.length,1);assert.equal(logs[0].val,6);assert.equal(logs[0].archived_at,'2026-09-11');assert.equal(reopened.TitanQueue.list().length,0);
  await assert.rejects(e.TitanQueue.saveGuestSession('guest_other',log),/autorisée/);
 });
+test('deleting an owner erases its queue, history, draft and timer only',async()=>{
+ const db=new IDBFactory(),e=environment(db);
+ for(const owner of ['alice','bob']){
+  await e.TitanQueue.put({key:owner+':event',ownerId:owner,status:'pending',payload:{details:{client_event_id:owner}}});
+  await e.TitanQueue.saveHistory(owner,[{id:owner}]);
+  for(const key of ['titan_training_draft_'+owner,'titan_seance_draft_v3:'+owner,'titan_seance_timer_v3:'+owner]) e.storage.set(key,'{"note":"private"}');
+ }
+ await e.TitanQueue.deleteOwner('alice');
+ const reopened=environment(db);await reopened.TitanQueue.refresh();
+ assert.equal((await reopened.TitanQueue.readHistory('alice')).length,0);assert.equal((await reopened.TitanQueue.readHistory('bob')).length,1);
+ e.window.state.user.id='alice';assert.equal(e.TitanQueue.list().length,0);e.window.state.user.id='bob';assert.equal(e.TitanQueue.list().length,1);
+ assert.deepEqual([...e.storage.keys()].sort(),['titan_seance_draft_v3:bob','titan_seance_timer_v3:bob','titan_training_draft_bob']);
+});
+test('owner drafts are erased even when durable storage fails or is missing',async()=>{
+ const drafts=e=>{for(const owner of ['alice','bob'])e.storage.set('titan_seance_draft_v3:'+owner,'{"note":"private"}');return e;};
+ const failing=drafts(environment({open(){throw new Error('storage denied')}}));
+ await assert.rejects(failing.TitanQueue.deleteOwner('alice'),/storage denied/);
+ assert.deepEqual([...failing.storage.keys()],['titan_seance_draft_v3:bob']);
+ const missing=drafts(environment(null));
+ assert.equal(missing.TitanQueue,undefined);missing.titanForgetOwnerDrafts('alice');
+ assert.deepEqual([...missing.storage.keys()],['titan_seance_draft_v3:bob']);
+});
 test('legacy migration is repeatable and preserves its event id',async()=>{
  const e=environment(),legacy=[{key:'old',ownerId:'guest_test',payload:{details:{client_event_id:'stable'},val:4}}];
  e.storage.set('titan_pending_training_logs_v1',JSON.stringify(legacy));await e.TitanQueue.migrate();

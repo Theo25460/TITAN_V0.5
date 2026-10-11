@@ -2209,7 +2209,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/training-store.js", "store"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -2220,7 +2220,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "profil" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
@@ -2239,6 +2239,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/onboarding?again=1", "onboarding"]]) {
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
+    assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.store)), false, "first visit loads the complete local account erasure");
   }
   await page.goto(BASE + "/dynamic-page?slug=fixture-unavailable", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Page introuvable" }).waitFor();
@@ -2246,4 +2247,86 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.content)), false, "first public visit loads the guarded legacy entry point");
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.dynamic)), false, "first public visit loads the updated metadata producer");
   await context.close();
+});
+
+test("account deletion: typed confirmation, failure keeps this device, success erases it at 360/1280 px", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width);
+    await page.goto(BASE + "/profile", { waitUntil: "load" });
+    await page.evaluate(async () => {
+      const id = "00000000-0000-4000-8000-000000000321";
+      const other = "00000000-0000-4000-8000-000000000654";
+      window.state.user.id = id;
+      // TITAN+ state may be missing (snapshot not loaded): the billing note must not depend on it.
+      window.state.user.is_elite = false;
+      for (const owner of [id, other]) {
+        localStorage.setItem(`titan_seance_draft_v3:${owner}`, '{"note":"brouillon privé"}');
+        await window.TitanQueue.put({ key: `${owner}:pending`, ownerId: owner, status: "pending", payload: { details: { client_event_id: owner } } });
+      }
+      window.deletion = { mode: "fail", rpc: [], signOut: 0, release: null };
+      window.titanClient = {
+        rpc: (name) => {
+          if (name !== "delete_own_account") return Promise.resolve({ error: { code: "PGRST202" } });
+          window.deletion.rpc.push(name);
+          if (window.deletion.mode === "fail") return Promise.resolve({ error: { message: "Failed to fetch" } });
+          return new Promise((resolve) => { window.deletion.release = () => resolve({ data: { userId: id, deleted: { auth_users: 1 } } }); });
+        },
+        auth: { signOut: async () => { window.deletion.signOut++; return { error: null }; }, getSession: async () => ({ data: { session: null } }), onAuthStateChange() {} },
+      };
+      window.dispatchEvent(new CustomEvent("titan:history-updated"));
+    });
+    await page.locator("[data-delete]").click();
+    const sheet = page.getByRole("dialog", { name: "Supprimer mon compte ?" });
+    await sheet.waitFor();
+    assert.match(await sheet.locator("[data-delete-plus]").innerText({ timeout: 2000 }), /ne résilie pas l’abonnement/, "payers learn that Paddle keeps billing, even before TITAN+ state loads");
+    assert.equal(await sheet.locator('[data-delete-plus] a[href^="mailto:"]').count(), 1);
+    const input = sheet.getByLabel("Écris SUPPRIMER pour confirmer");
+    await input.fill("supprime");
+    await sheet.getByRole("button", { name: "Supprimer", exact: true }).click();
+    assert.match(await sheet.getByRole("alert").innerText(), /Écris SUPPRIMER/);
+    assert.equal(await page.evaluate(() => window.deletion.rpc.length), 0, "no request before the typed confirmation");
+
+    await input.fill("supprimer");
+    await input.press("Enter");
+    await page.waitForFunction(() => window.deletion.rpc.length === 1);
+    await sheet.getByRole("alert").filter({ hasText: "rien n’a été supprimé localement" }).waitFor();
+    const kept = await page.evaluate(async () => ({
+      draft: localStorage.getItem("titan_seance_draft_v3:00000000-0000-4000-8000-000000000321"),
+      queue: (await window.TitanQueue.refresh()).filter((i) => i.ownerId === window.state.user.id).length,
+      signOut: window.deletion.signOut,
+    }));
+    assert.deepEqual(kept, { draft: '{"note":"brouillon privé"}', queue: 1, signOut: 0 }, "an unconfirmed deletion changes nothing on the device");
+    assert.equal(await sheet.getByRole("button", { name: "Supprimer", exact: true }).isEnabled(), true, "the user can retry");
+
+    await page.evaluate(() => { window.deletion.mode = "ok"; });
+    const submit = sheet.getByRole("button", { name: "Supprimer", exact: true });
+    await submit.click();
+    await page.waitForFunction(() => window.deletion.rpc.length === 2);
+    assert.equal(await submit.isDisabled(), true, "the pending request cannot be sent twice");
+    await input.press("Enter");
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => window.deletion.rpc.length), 2, "double submission sends one request");
+    const leaving = page.waitForURL(BASE + "/", { waitUntil: "load" });
+    const erased = await page.evaluate(async () => {
+      const stores = [];
+      const original = window.TitanQueue.deleteOwner;
+      const pending = async (owner) => { const current = window.state.user.id; window.state.user.id = owner;
+        try { return (await window.TitanQueue.refresh()).length; } finally { window.state.user.id = current; } };
+      window.TitanQueue.deleteOwner = async (owner) => { await original(owner); stores.push({
+        own: localStorage.getItem(`titan_seance_draft_v3:${owner}`),
+        other: localStorage.getItem("titan_seance_draft_v3:00000000-0000-4000-8000-000000000654"),
+        queue: [await pending(owner), await pending("00000000-0000-4000-8000-000000000654")],
+      }); };
+      const done = new Promise((resolve) => { window.titanSafeClearCache = () => resolve(); });
+      window.deletion.release();
+      await done;
+      return { signOut: window.deletion.signOut, stores };
+    });
+    assert.deepEqual(erased, { signOut: 1, stores: [{ own: null, other: '{"note":"brouillon privé"}', queue: [0, 1] }] },
+      "confirmed deletion signs out and erases only this account's queue and draft");
+    await leaving;
+    assert.equal(new URL(page.url()).pathname, "/");
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
 });
