@@ -47,6 +47,253 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
+async function authPage({ hold = [], signup = false, width = 360, next = "" } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/auth.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/login?mode=" + (signup ? "signup" : "signin") + (next ? "&next=" + encodeURIComponent(next) : ""), { waitUntil: "load" });
+  await page.evaluate(hold => {
+    window.authCalls = [];
+    window.authHold = hold;
+    window.authResponses = {
+      signInWithPassword: { error: { message: "Invalid login credentials" } },
+      signUp: { data: { user: { id: "00000000-0000-4000-8000-000000000123" }, session: null }, error: null },
+      resetPasswordForEmail: { data: {}, error: null },
+      resend: { data: {}, error: null },
+      signOut: { error: null },
+    };
+    const client = window.initTitanSupabaseClient();
+    client.auth.getSession = async () => ({ data: { session: null } });
+    for (const name of Object.keys(window.authResponses)) client.auth[name] = params => {
+      const call = { name, params };
+      window.authCalls.push(call);
+      return window.authHold.includes(name)
+        ? new Promise(resolve => { call.release = response => resolve(response || window.authResponses[name]); })
+        : Promise.resolve(window.authResponses[name]);
+    };
+  }, hold);
+  await page.addScriptTag({ path: ROOT + "/js/app/auth.js" });
+  await page.locator("#auth-form").waitFor();
+  return fixture;
+}
+
+async function fillAuth(page, signup = false) {
+  if (signup) await page.locator('[name="name"]').fill("Fixture Titan");
+  await page.locator('[name="email"]').fill("fixture@example.test");
+  await page.locator('[name="password"]').fill("synthetic-password");
+  if (signup) await page.locator('[name="terms"]').check();
+}
+
+async function releaseAuth(page, index, response) {
+  await page.evaluate(async ({ index, response }) => {
+    window.authCalls[index].release(response);
+    await new Promise(requestAnimationFrame);
+  }, { index, response });
+}
+
+test("auth pending actions: repeated recovery requests send once and failure retains the fields for retry", async () => {
+  const { page, context, errors } = await authPage({ hold: ["resetPasswordForEmail"] });
+  await fillAuth(page);
+  await page.evaluate(() => {
+    const button = document.querySelector("[data-forgot]");
+    for (let i = 0; i < 3; i++) button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await page.waitForFunction(() => window.authCalls.length > 0);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  assert.equal(await page.locator('[name="email"]').isDisabled(), true);
+  assert.equal(await page.locator("#auth-form").getAttribute("aria-busy"), "true");
+  await page.getByRole("status").filter({ hasText: "Envoi en cours" }).waitFor();
+  await releaseAuth(page, 0, { error: { message: "Network failed to fetch" } });
+  await page.getByRole("alert").filter({ hasText: "Vérifie ton réseau" }).waitFor();
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.equal(await page.locator('[name="password"]').inputValue(), "synthetic-password");
+  assert.equal(await page.locator("[data-forgot]").isEnabled(), true);
+  await page.evaluate(() => { window.authHold = []; });
+  await page.locator("[data-forgot]").click();
+  await page.getByRole("heading", { name: "Lien envoyé" }).waitFor();
+  await page.locator('.auth-sent [data-mode="signin"]').click();
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: signing in cannot race a mode change recovery or discovery", async () => {
+  const { page, context, errors } = await authPage({ hold: ["signInWithPassword"] });
+  await fillAuth(page);
+  await page.locator(".auth-submit").click();
+  await page.waitForFunction(() => window.authCalls.length === 1);
+  const snapshot = await page.evaluate(() => {
+    for (const selector of ['[data-mode="signup"]', "[data-forgot]", "[data-guest]"]) {
+      document.querySelector(selector)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }
+    return { signup: !!document.querySelector('[name="name"]'), calls: window.authCalls.map(c => c.name) };
+  });
+  assert.equal(snapshot.signup, false);
+  assert.deepEqual(snapshot.calls, ["signInWithPassword"]);
+  assert.equal(await page.locator('[name="password"]').isDisabled(), true);
+  await releaseAuth(page, 0);
+  await page.getByRole("alert").filter({ hasText: "incorrect" }).waitFor();
+  assert.equal(await page.locator('[data-mode="signup"]').isEnabled(), true);
+  await page.locator('[data-mode="signup"]').click();
+  await page.locator('[name="name"]').waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: signup freezes its consent and draft until its own response", async () => {
+  const { page, context, errors } = await authPage({ signup: true, hold: ["signUp"] });
+  await fillAuth(page, true);
+  await page.locator('[name="analytics"]').check();
+  await page.locator(".auth-submit").click();
+  await page.waitForFunction(() => window.authCalls.length === 1);
+  assert.equal(await page.locator('[name="analytics"]').isDisabled(), true);
+  assert.equal(await page.locator('[name="terms"]').isDisabled(), true);
+  assert.equal(await page.locator('[name="name"]').isDisabled(), true);
+  await page.evaluate(() => {
+    document.querySelector('[data-mode="signin"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.querySelector("#auth-form").requestSubmit();
+  });
+  assert.equal(await page.locator('[name="name"]').count(), 1);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  await releaseAuth(page, 0, { error: { message: "Network failed to fetch" } });
+  await page.getByRole("alert").filter({ hasText: "Vérifie ton réseau" }).waitFor();
+  assert.equal(await page.locator('[name="analytics"]').isChecked(), true);
+  assert.equal(await page.locator('[name="name"]').inputValue(), "Fixture Titan");
+  assert.equal(await page.locator('[name="password"]').isEnabled(), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: synthetic resend activations cannot send several confirmation emails", async () => {
+  const { page, context, errors } = await authPage({ signup: true, hold: ["resend"] });
+  await fillAuth(page, true);
+  await page.locator(".auth-submit").click();
+  await page.locator(".auth-sent").waitFor();
+  await page.evaluate(() => {
+    const button = document.querySelector("[data-resend]");
+    for (let i = 0; i < 3; i++) button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await page.waitForFunction(() => window.authCalls.some(c => c.name === "resend"));
+  assert.equal(await page.evaluate(() => window.authCalls.filter(c => c.name === "resend").length), 1);
+  const index = await page.evaluate(() => window.authCalls.findIndex(c => c.name === "resend"));
+  await releaseAuth(page, index);
+  await page.getByRole("alert").filter({ hasText: "E-mail renvoyé" }).waitFor();
+  assert.equal(await page.locator('[data-mode="signin"]').isEnabled(), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: a failed resend can retry immediately and a successful one keeps its cooldown", async () => {
+  const { page, context, errors } = await authPage({ signup: true, hold: ["resend"] });
+  await fillAuth(page, true);
+  await page.locator(".auth-submit").click();
+  await page.locator(".auth-sent").waitFor();
+  await page.locator("[data-resend]").click();
+  await page.waitForFunction(() => window.authCalls.some(c => c.name === "resend"));
+  const first = await page.evaluate(() => window.authCalls.findIndex(c => c.name === "resend"));
+  await releaseAuth(page, first, { error: { message: "Network failed to fetch" } });
+  await page.getByRole("alert").filter({ hasText: "Vérifie ton réseau" }).waitFor();
+  assert.equal(await page.locator("[data-resend]").isEnabled(), true);
+  await page.clock.install();
+  await page.locator("[data-resend]").click();
+  await page.waitForFunction(() => window.authCalls.filter(c => c.name === "resend").length === 2);
+  assert.equal(await page.locator(".auth-msg").textContent(), "");
+  const retry = await page.evaluate(() => window.authCalls.findLastIndex(c => c.name === "resend"));
+  await releaseAuth(page, retry);
+  assert.equal(await page.locator("[data-resend]").isDisabled(), true);
+  await page.evaluate(() => document.querySelector("[data-resend]").dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  assert.equal(await page.evaluate(() => window.authCalls.filter(c => c.name === "resend").length), 2);
+  await page.clock.fastForward(31000);
+  assert.equal(await page.locator("[data-resend]").isEnabled(), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: retry removes the old error and preserves credentials after another failure", async () => {
+  const { page, context, errors } = await authPage();
+  await fillAuth(page);
+  await page.locator(".auth-submit").click();
+  await page.getByRole("alert").filter({ hasText: "incorrect" }).waitFor();
+  await page.evaluate(() => { window.authHold = ["signInWithPassword"]; });
+  await page.locator('[name="password"]').fill("corrected-password");
+  await page.locator(".auth-submit").click();
+  await page.waitForFunction(() => window.authCalls.length === 2);
+  assert.equal(await page.locator(".auth-msg").textContent(), "");
+  const box = await page.getByRole("status").boundingBox();
+  assert.ok(box.y >= 0 && box.y + box.height <= page.viewportSize().height);
+  await releaseAuth(page, 1, { error: { message: "Network failed to fetch" } });
+  await page.getByRole("alert").filter({ hasText: "Vérifie ton réseau" }).waitFor();
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.equal(await page.locator('[name="password"]').inputValue(), "corrected-password");
+  assert.equal(await page.locator(".auth-submit").isEnabled(), true);
+  assert.equal(await page.locator("#auth-form").getAttribute("aria-busy"), null);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: discovery signs out once before navigating", async () => {
+  const { page, context, errors } = await authPage({ hold: ["signOut"] });
+  await page.evaluate(() => {
+    const button = document.querySelector("[data-guest]");
+    for (let i = 0; i < 3; i++) button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await page.waitForFunction(() => window.authCalls.length > 0);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  assert.match(page.url(), /\/login\?/);
+  await Promise.all([
+    page.waitForURL("**/onboarding"),
+    page.evaluate(() => window.authCalls[0].release()),
+  ]);
+  assert.equal(await page.evaluate(() => sessionStorage.getItem("titan_enter_discovery")), "1");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth pending actions: a failed signin returns keyboard focus to its retry button", async () => {
+  const { page, context, errors } = await authPage();
+  await fillAuth(page);
+  await page.locator(".auth-submit").click();
+  await page.getByRole("alert").filter({ hasText: "incorrect" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector(".auth-submit")), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth journeys: invalid signup never reaches auth and its valid correction can continue", async () => {
+  const { page, context, errors } = await authPage({ signup: true });
+  await fillAuth(page, true);
+  await page.locator('[name="name"]').fill("A");
+  await page.locator(".auth-submit").click();
+  await page.getByRole("alert").filter({ hasText: "2 caractères" }).waitFor();
+  await page.locator('[name="name"]').fill("Fixture Titan");
+  await page.locator('[name="password"]').fill("short");
+  await page.locator(".auth-submit").click();
+  await page.getByRole("alert").filter({ hasText: "8 caractères" }).waitFor();
+  await page.locator('[name="password"]').fill("synthetic-password");
+  await page.locator('[name="terms"]').uncheck();
+  await page.locator(".auth-submit").click();
+  await page.getByRole("alert").filter({ hasText: "Accepte les conditions" }).waitFor();
+  assert.equal(await page.evaluate(() => window.authCalls.length), 0);
+  await page.locator('[name="terms"]').check();
+  await page.locator(".auth-submit").click();
+  await page.locator(".auth-sent").waitFor();
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("auth journeys: successful signin follows a local destination and rejects an external one", async () => {
+  for (const [width, next, destination] of [[360, "/social#guilde", "/social#guilde"], [1280, "https://example.test/foreign", "/aujourdhui"]]) {
+    const { page, context, errors } = await authPage({ width, next });
+    await page.evaluate(() => { window.authResponses.signInWithPassword = { data: { user: { id: "fixture-account" } }, error: null }; });
+    await fillAuth(page);
+    await page.locator(".auth-submit").click();
+    await page.waitForURL(BASE + destination);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
 async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
@@ -2978,7 +3225,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
