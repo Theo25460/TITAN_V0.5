@@ -47,12 +47,12 @@ async function newPage(width = 390) {
   return { page, context, errors };
 }
 
-async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360 } = {}) {
+async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
-  await page.goto(BASE + "/social", { waitUntil: "load" });
+  await page.goto(BASE + "/social" + hash, { waitUntil: "load" });
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
-  await page.evaluate(({ hold, guild, wrongOwner }) => {
+  await page.evaluate(({ hold, guild, wrongOwner, overview }) => {
     window.state.user.id = "alice";
     window.communityCalls = [];
     window.communityHold = hold;
@@ -65,6 +65,7 @@ async function communityPage({ hold = [], guild = false, wrongOwner = false, wid
       moments: [{ id: "moment-" + owner, kind: "session", title: "Moment privé " + label, created_at: new Date().toISOString(), mine: true },
         { id: "friend-moment-" + owner, kind: "session", title: "Moment ami " + label, created_at: new Date().toISOString(), author: { name: "Ami privé " + label, avatar: "scout" }, mine: false }],
       guild: window.communityGuild ? { minutes: 30, target: 300, members: [] } : null,
+      ...overview,
     });
     window.titanClient = { auth: { getSession: async () => ({ data: { session: { user: { id: window.state.user.id }, access_token: "fixture-token" } } }) }, rpc: (name, params) => {
       // Other boot modules may refresh on reconnect; keep this transport fixture scoped to social RPCs.
@@ -96,7 +97,7 @@ async function communityPage({ hold = [], guild = false, wrongOwner = false, wid
         window.dispatchEvent(new CustomEvent("titan:account-changed"));
       }
     };
-  }, { hold, guild, wrongOwner });
+  }, { hold, guild, wrongOwner, overview });
   await page.addScriptTag({ path: ROOT + "/js/app/communaute.js" });
   await page.waitForFunction(() => window.communityCalls.length > 0);
   if (!hold.includes("titan_social_overview") && !(guild && hold.includes("titan_get_my_guild"))) {
@@ -111,6 +112,62 @@ async function releaseCommunity(page, index, response) {
     await new Promise(requestAnimationFrame);
   }, { index, response });
 }
+
+test("community hierarchy: section shortcuts explain their destinations and keyboard navigation keeps every action reachable", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await communityPage({ width, overview: {
+      requests_in: [{ id: "zoe", name: "Zoé", avatar: "scout" }],
+    } });
+    const nav = page.getByRole("navigation", { name: "Dans la communauté" });
+    assert.deepEqual(await nav.locator("a").evaluateAll(links => links.map(a => a.getAttribute("href"))), ["#moments", "#amis", "#defis", "#guilde"]);
+    assert.match(await nav.locator('a[href="#amis"]').textContent(), /1 demande/);
+    assert.match(await nav.locator('a[href="#moments"]').textContent(), /2 Moments/);
+    for (const id of ["amis", "defis", "guilde", "moments"]) {
+      const link = nav.locator(`a[href="#${id}"]`);
+      assert.equal(await link.evaluate(el => el.getBoundingClientRect().height >= 44), true);
+      await link.focus();
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(id => location.hash === "#" + id && document.activeElement.id === id, id);
+      const target = page.locator("#" + id);
+      assert.equal(await target.isVisible(), true);
+      assert.equal(await target.evaluate(el => el.getBoundingClientRect().top >= document.querySelector(".asc-topbar").getBoundingClientRect().bottom), true);
+    }
+    assert.equal(await page.getByRole("button", { name: "Accepter", exact: true }).count(), 1);
+    await page.getByRole("textbox", { name: "Nom de la guilde", exact: true }).fill("Les grimpeurs");
+    await page.getByRole("textbox", { name: "Code de guilde", exact: true }).fill("G-AB12");
+    assert.equal(await page.locator("[data-new-challenge]").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+    assert.deepEqual(errors, []);
+    await context.close();
+  }
+});
+
+test("community hierarchy: empty sections offer a useful next step without invented social counts or rankings", async () => {
+  const { page, context, errors } = await communityPage({ overview: { friends: [], moments: [], requests_in: [], requests_out: [], challenges: [] } });
+  const nav = page.getByRole("navigation", { name: "Dans la communauté" });
+  assert.match(await nav.locator('a[href="#moments"]').textContent(), /Aucun Moment/);
+  assert.match(await nav.locator('a[href="#amis"]').textContent(), /Ajouter un ami/);
+  assert.match(await nav.locator('a[href="#defis"]').textContent(), /Avec tes amis/);
+  assert.match(await nav.locator('a[href="#guilde"]').textContent(), /Rejoindre une équipe/);
+  await page.locator('#moments a[href="/records"]').click();
+  await page.waitForURL("**/records");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community hierarchy: an incoming deep link lands on the asynchronously loaded section", async () => {
+  const { page, context, errors } = await communityPage({ hash: "#guilde", guild: true });
+  await page.waitForFunction(() => {
+    const target = document.getElementById("guilde"), top = target?.getBoundingClientRect().top;
+    return top >= document.querySelector(".asc-topbar").getBoundingClientRect().bottom && top < innerHeight - 100;
+  });
+  assert.equal(await page.getByRole("region", { name: "Guilde privée alice", exact: true }).count(), 1);
+  await page.getByRole("textbox", { name: "Message", exact: true }).fill("On y va !");
+  await page.getByRole("button", { name: "Envoyer le message", exact: true }).click();
+  await page.waitForFunction(() => window.communityCalls.some(c => c.name === "titan_send_guild_message"));
+  assert.deepEqual(errors, []);
+  await context.close();
+});
 
 test("community: changing account clears private content and open dialogs immediately", async () => {
   const { page, context, errors } = await communityPage();
@@ -2747,7 +2804,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "main" || marker === "profil" || marker === "auth" || marker === "community" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
@@ -2769,7 +2826,9 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   }
   await page.goto(BASE + "/social", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Avancer avec les autres, sans bruit." }).waitFor();
-  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.community)), false, "first community visit loads the session guards");
+  assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.community)), false, "first community visit loads the hierarchy and session guards");
+  assert.equal(await page.locator(".cm-preview li").count(), 4, "discovery explains all four existing social spaces");
+  assert.equal(await page.locator(".cm-preview").evaluate(el => getComputedStyle(el).display), "grid");
   assert.equal(await page.locator("#communaute").getAttribute("aria-busy"), "false");
   await page.goto(BASE + "/dynamic-page?slug=fixture-unavailable", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Page introuvable" }).waitFor();

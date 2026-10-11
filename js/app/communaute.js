@@ -14,6 +14,12 @@
     distance_km: { label: "Distance d’un sport", short: "km", fmt: (v) => F().distance(v) },
   };
   const KIND_ICON = { record: "star", goal: "flag", chapter: "compass", milestone: "medal", session: "bolt", challenge: "target", expedition: "mountain", week: "calendar" };
+  const SECTIONS = [
+    { id: "moments", title: "Moments", icon: "heart", description: "Les progrès que chacun choisit de partager." },
+    { id: "amis", title: "Amis", icon: "group", description: "Ton cercle, tes demandes et ton code ami." },
+    { id: "defis", title: "Défis", icon: "target", description: "Un objectif entre amis, sans mise." },
+    { id: "guilde", title: "Guilde", icon: "shield", description: "Une équipe, un objectif et une discussion." },
+  ];
 
   let root = null;
   let data = null;
@@ -24,6 +30,7 @@
   let sequence = 0;
   let sessionContext = null;
   let viewContext = null;
+  let initialSection = true;
 
   const owner = () => window.state?.user?.id || null;
   const isGuest = () => !owner() || String(owner()).startsWith("guest_");
@@ -135,6 +142,23 @@
   }
 
   /* ---------- Sections ---------- */
+  function sectionLinksHtml() {
+    const friends = data?.friends?.length || 0;
+    const requests = data?.requests_in?.length || 0;
+    const moments = data?.moments?.length || 0;
+    const challenges = data?.challenges?.length || 0;
+    const labels = {
+      moments: moments ? `${moments} Moment${moments > 1 ? "s" : ""} · 30 jours` : "Aucun Moment pour le moment",
+      amis: requests ? `${requests} demande${requests > 1 ? "s" : ""} à traiter` : friends ? `${friends} ami${friends > 1 ? "s" : ""}` : "Ajouter un ami",
+      defis: challenges ? `${challenges} défi${challenges > 1 ? "s" : ""}` : "Avec tes amis",
+      guilde: data?.guild ? "Voir mon équipe" : "Rejoindre une équipe",
+    };
+    return `<nav class="cm-shortcuts" aria-label="Dans la communauté">${SECTIONS.map(s => `<a class="cm-entry" href="#${s.id}">
+      <span class="cm-entry-title">${icon(s.icon)}<strong>${s.title}</strong>${icon("chevron")}</span>
+      <span class="cm-entry-description">${s.description}</span><span class="cm-entry-status${s.id === "amis" && requests ? " cm-attention" : ""}">${labels[s.id]}</span>
+    </a>`).join("")}</nav>`;
+  }
+
   function expeditionHtml() {
     const x = data?.expedition;
     if (!x) return "";
@@ -161,15 +185,16 @@
   function requestsHtml() {
     const list = data?.requests_in || [];
     if (!list.length) return "";
-    return `<section class="asc-section"><div class="asc-section-head"><h2>Demandes d’amis</h2></div><div class="asc-list">${list
-      .map((r) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
+    return `<div class="cm-requests" role="group" aria-labelledby="cm-requests-title"><h3 id="cm-requests-title">Demandes d’amis</h3><div class="asc-list">${list
+      .map((r) => `<div class="asc-row cm-request"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
         <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept="${esc(r.id)}">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-decline="${esc(r.id)}">Refuser</button></span></div>`)
-      .join("")}</div></section>`;
+      .join("")}</div></div>`;
   }
 
   function momentsHtml() {
     const list = data?.moments || [];
-    return `<section class="asc-section" id="moments"><div class="asc-section-head"><h2>Moments</h2><span class="asc-small asc-muted">30 derniers jours</span></div>
+    return `<section class="asc-section cm-section" id="moments" tabindex="-1" aria-labelledby="cm-moments-title"><div class="asc-section-head"><h2 id="cm-moments-title">Moments</h2><span class="asc-small asc-muted">30 derniers jours</span></div>
+      <p class="cm-section-intro">Records, objectifs et séances partagés par toi et tes amis.</p>
       ${list.length ? `<div class="cm-moments">${list
         .map((m) => `<article class="cm-moment" data-kind="${esc(m.kind)}">
           <span class="cm-avatar"><img src="/assets/renaissance/${esc(m.author?.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
@@ -180,6 +205,7 @@
           ${m.mine ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-delete-moment="${esc(m.id)}" aria-label="Supprimer ce Moment">${icon("trash")}</button>` : `<button type="button" class="cm-cheer" data-cheer="${esc(m.id)}" aria-pressed="${!!m.cheered}" aria-label="Encourager ${esc(m.author?.name)}">${icon("heart")}<span class="asc-num">${m.cheers || ""}</span></button>`}
         </article>`)
         .join("")}</div>` : `<p class="asc-empty asc-small">Un Moment, c’est un record, un objectif, une balise ou une grosse séance que tu choisis de montrer. Partage-le depuis l’écran de fin de séance ou tes records.</p>`}
+      ${list.length ? "" : '<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/records">Voir mes records</a>'}
     </section>`;
   }
 
@@ -187,7 +213,9 @@
     const me = data?.me || {};
     const list = data?.friends || [];
     const out = data?.requests_out || [];
-    return `<section class="asc-section" id="amis"><div class="asc-section-head"><h2>Amis</h2><span class="asc-small asc-muted">${list.length}</span></div>
+    return `<section class="asc-section cm-section" id="amis" tabindex="-1" aria-labelledby="cm-friends-title"><div class="asc-section-head"><h2 id="cm-friends-title">Amis</h2><span class="asc-chip">${list.length} ami${list.length > 1 ? "s" : ""}</span></div>
+      <p class="cm-section-intro">Échangez vos codes. Chacun choisit ce qu’il partage.</p>
+      ${requestsHtml()}
       <div class="cm-code"><div><p class="asc-small asc-muted">Ton code ami</p><p class="cm-code-value asc-num">${esc(me.friend_code || "—")}</p>
         <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Tu n’es pas trouvable. <a href="/profile#reglages">Activer dans Confidentialité</a> pour recevoir des demandes.`}</p></div>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-copy-code="${esc(me.friend_code || "")}">${icon("copy")} Copier</button></div>
@@ -204,7 +232,8 @@
   function challengesHtml() {
     const list = data?.challenges || [];
     const friends = data?.friends || [];
-    return `<section class="asc-section" id="defis"><div class="asc-section-head"><h2>Défis</h2>${friends.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
+    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2>${friends.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
+      <p class="cm-section-intro">Avancez vers le même objectif. La progression de chacun se voit dans son défi.</p>
       ${list.length ? `<div class="cm-challenges">${list
         .map((c) => {
           const m = METRICS[c.metric] || METRICS.effort_minutes;
@@ -222,29 +251,31 @@
           </article>`;
         })
         .join("")}</div>` : `<p class="asc-small asc-muted">${friends.length ? "Un défi, c’est une période et une mesure commune. Pas de mise : juste la motivation d’avancer ensemble." : "Ajoute un ami pour lancer votre premier défi."}</p>`}
+      ${friends.length ? "" : '<a class="asc-btn asc-btn-secondary asc-btn-sm" href="#amis">Ajouter un ami</a>'}
     </section>`;
   }
 
   function guildHtml() {
     const week = data?.guild;
     if (week && !guild)
-      return `<section class="asc-section" id="guilde"><div class="asc-section-head"><h2>Guilde</h2></div><p class="asc-small asc-muted">Ta guilde ne s’affiche pas pour le moment. Réessaie dans un instant.</p></section>`;
+      return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="asc-section-head"><h2 id="cm-guild-title">Guilde</h2></div><p class="asc-small asc-muted">Ta guilde ne s’affiche pas pour le moment. Réessaie dans un instant.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry>Réessayer</button></section>`;
     if (!week)
-      return `<section class="asc-section" id="guilde"><div class="asc-section-head"><h2>Guilde</h2></div>
-        <p class="asc-small asc-muted">Une guilde, c’est une équipe qui tient une semaine d’effort ensemble : un objectif commun, la part de chacun, un fil de discussion.</p>
-        <div class="cm-guild-forms"><form class="cm-add" data-create-guild><input class="asc-input" name="name" maxlength="28" placeholder="Nom de la guilde" required><button type="submit" class="asc-btn asc-btn-secondary">Fonder</button></form>
-        <form class="cm-add" data-join-guild><input class="asc-input" name="code" maxlength="16" placeholder="Code de guilde" autocapitalize="characters" required><button type="submit" class="asc-btn asc-btn-secondary">Rejoindre</button></form></div></section>`;
+      return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="asc-section-head"><h2 id="cm-guild-title">Guilde</h2></div>
+        <p class="cm-section-intro">Une équipe qui tient une semaine d’effort ensemble : un objectif commun, la part de chacun et une discussion.</p>
+        <div class="cm-guild-forms"><form class="cm-add" data-create-guild><label class="sr-only" for="cm-guild-name">Nom de la guilde</label><input id="cm-guild-name" class="asc-input" name="name" maxlength="28" placeholder="Nom de la guilde" required><button type="submit" class="asc-btn asc-btn-secondary">Fonder</button></form>
+        <form class="cm-add" data-join-guild><label class="sr-only" for="cm-guild-code">Code de guilde</label><input id="cm-guild-code" class="asc-input" name="code" maxlength="16" placeholder="Code de guilde" autocapitalize="characters" required><button type="submit" class="asc-btn asc-btn-secondary">Rejoindre</button></form></div></section>`;
     const pct = Math.min(100, Math.round((week.minutes / Math.max(1, week.target)) * 100));
     const owner = guild.owner_id === window.state?.user?.id;
     const msgs = (guild.messages || []).slice(-30);
-    return `<section class="asc-section" id="guilde"><div class="asc-section-head"><h2>${esc(guild.name)}</h2><span class="asc-small asc-muted">Code ${esc(guild.code || "")}</span></div>
+    return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><p class="asc-eyebrow">Guilde</p><div class="asc-section-head"><h2 id="cm-guild-title">${esc(guild.name)}</h2><span class="asc-small asc-muted">Code ${esc(guild.code || "")}</span></div>
+      <p class="cm-section-intro">L’effort de l’équipe cette semaine, puis votre discussion.</p>
       <div class="cm-guild"><div class="asc-between"><span>Semaine d’effort</span><strong class="asc-num">${F().number(week.minutes)} / ${F().number(week.target)} min</strong></div>
         <span class="asc-ascent"><span style="--p:${pct}%"></span></span>
         <ul class="cm-board">${(week.members || []).map((m) => `<li><span>${esc(m.name)}${m.role === "owner" ? ' <small class="asc-faint">fondateur</small>' : ""}</span><span class="asc-ascent thin"><span style="--p:${Math.min(100, Math.round((m.minutes / Math.max(1, week.target)) * 100))}%"></span></span><strong class="asc-num">${F().number(m.minutes)} min</strong></li>`).join("")}</ul>
         ${owner ? `<form class="cm-add" data-guild-target><label class="sr-only" for="cm-target">Objectif hebdomadaire en minutes</label><input id="cm-target" class="asc-input" type="number" min="60" max="100000" step="30" name="minutes" value="${esc(week.target)}"><button type="submit" class="asc-btn asc-btn-ghost">Régler l’objectif</button></form>` : ""}
       </div>
       <div class="cm-chat"><div class="cm-chat-list" role="log" aria-label="Discussion de guilde">${msgs.length ? msgs.map((m) => `<p><strong>${esc(m.sender_name)}</strong> ${esc(m.content)}</p>`).join("") : '<p class="asc-small asc-muted">Aucun message. Les messages s’effacent après 72 h.</p>'}</div>
-        <form class="cm-add" data-guild-message><label class="sr-only" for="cm-msg">Message</label><input id="cm-msg" class="asc-input" name="content" maxlength="280" placeholder="Un mot pour l’équipe"><button type="submit" class="asc-btn asc-btn-secondary">${icon("send")}</button></form></div>
+        <form class="cm-add" data-guild-message><label class="sr-only" for="cm-msg">Message</label><input id="cm-msg" class="asc-input" name="content" maxlength="280" placeholder="Un mot pour l’équipe"><button type="submit" class="asc-btn asc-btn-secondary" aria-label="Envoyer le message">${icon("send")}</button></form></div>
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-leave-guild>Quitter la guilde</button>
     </section>`;
   }
@@ -262,9 +293,10 @@
     }
     if (status === "guest") {
       root.innerHTML = `<section class="asc-hero cm-guest"><p class="asc-eyebrow cy">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
-        <p class="asc-lead">Des expéditions où chaque minute d’effort compte pareil, des amis qui acceptent ta demande, des défis sans mise et des Moments que tu choisis de montrer.</p>
+        <p class="asc-lead">Retrouve tes amis, partage tes progrès et participe aux expéditions.</p>
         <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login">Se connecter</a></div>
-        <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p></section>`;
+        <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p>
+        <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`;
       return;
     }
     if (status === "offline" || status === "error") {
@@ -272,12 +304,24 @@
       root.setAttribute("aria-busy", "false");
       return;
     }
-    root.innerHTML = `${expeditionHtml()}${requestsHtml()}
-      <nav class="pf-jump" aria-label="Sections"><a href="#moments">Moments</a><a href="#amis">Amis</a><a href="#defis">Défis</a><a href="#guilde">Guilde</a></nav>
-      ${momentsHtml()}${friendsHtml()}${challengesHtml()}${guildHtml()}`;
+    root.innerHTML = `${sectionLinksHtml()}
+      <div class="cm-layout"><div class="cm-stream"><p class="cm-column-label">Le fil</p>${expeditionHtml()}${momentsHtml()}</div>
+      <div class="cm-circle"><p class="cm-column-label">Ton cercle</p>${friendsHtml()}</div></div>
+      <p class="cm-column-label cm-team-label">Avancer en équipe</p><div class="cm-teams">${challengesHtml()}${guildHtml()}</div>`;
     root.setAttribute("aria-busy", "false");
     const chat = root.querySelector(".cm-chat-list");
     if (chat) chat.scrollTop = chat.scrollHeight;
+    if (initialSection) {
+      initialSection = false;
+      const id = location.hash.slice(1);
+      const target = SECTIONS.some(s => s.id === id) && document.getElementById(id);
+      const job = viewContext;
+      if (target) requestAnimationFrame(() => {
+        if (!current(job) || !target.isConnected || location.hash !== "#" + id) return;
+        target.scrollIntoView({ block: "start", behavior: "instant" });
+        target.focus({ preventScroll: true });
+      });
+    }
   }
 
   /* ---------- Actions ---------- */
