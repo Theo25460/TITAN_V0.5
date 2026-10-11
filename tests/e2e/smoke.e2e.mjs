@@ -294,6 +294,159 @@ test("auth journeys: successful signin follows a local destination and rejects a
   }
 });
 
+async function passwordPage({ hold = false, session = true, sessionError = false, width = 360, clock = false } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/update-password.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/update-password", { waitUntil: "load" });
+  if (clock) await page.clock.install();
+  await page.evaluate(({ hold, session, sessionError }) => {
+    window.passwordCalls = [];
+    window.passwordHold = hold;
+    window.passwordResponse = { error: { message: "Network failed to fetch" } };
+    const client = window.initTitanSupabaseClient();
+    client.auth.onAuthStateChange = callback => {
+      window.passwordEvent = callback;
+      queueMicrotask(() => callback("INITIAL_SESSION", session ? { user: { id: "fixture-account" } } : null));
+      return { data: { subscription: { unsubscribe() {} } } };
+    };
+    client.auth.getSession = async () => {
+      if (sessionError) throw new Error("Network failed to fetch");
+      return { data: { session: session ? { user: { id: "fixture-account" } } : null }, error: null };
+    };
+    client.auth.updateUser = params => {
+      const call = { params };
+      window.passwordCalls.push(call);
+      return window.passwordHold
+        ? new Promise(resolve => { call.release = response => resolve(response || window.passwordResponse); })
+        : Promise.resolve(window.passwordResponse);
+    };
+  }, { hold, session, sessionError });
+  await page.addScriptTag({ path: ROOT + "/js/app/update-password.js" });
+  return fixture;
+}
+
+async function fillPassword(page, value = "synthetic-password") {
+  await page.locator("#pw").fill(value);
+  await page.locator("#pw2").fill(value);
+}
+
+test("password recovery: repeated submissions reserve one update before awaiting auth", async t => {
+  const { page, context, errors } = await passwordPage({ hold: true });
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.evaluate(() => {
+    for (let i = 0; i < 3; i++) document.querySelector("#pw-form").requestSubmit();
+  });
+  await page.waitForFunction(() => window.passwordCalls.length > 0);
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 1);
+  assert.deepEqual(await page.evaluate(() => window.passwordCalls[0].params), { password: "synthetic-password" });
+  await page.evaluate(() => window.passwordCalls[0].release());
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  assert.deepEqual(errors, []);
+});
+
+test("password recovery: pending update freezes both values and announces outside the busy form", async t => {
+  const { page, context, errors } = await passwordPage({ hold: true });
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.locator("#pw-save").click();
+  await page.waitForFunction(() => window.passwordCalls.length === 1);
+  assert.equal(await page.locator("#pw").isDisabled(), true);
+  assert.equal(await page.locator("#pw2").isDisabled(), true);
+  assert.equal(await page.locator("[data-reveal]").isDisabled(), true);
+  assert.equal(await page.locator("#pw-form").getAttribute("aria-busy"), "true");
+  assert.equal(await page.getByRole("status").count(), 1);
+  assert.equal(await page.getByRole("status").evaluate(el => !!el.closest('[aria-busy="true"]')), false);
+  await page.evaluate(() => document.querySelector("[data-reveal]").dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  assert.equal(await page.locator("#pw").getAttribute("type"), "password");
+  await page.evaluate(() => window.passwordCalls[0].release());
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  assert.equal(await page.locator("#pw").inputValue(), "synthetic-password");
+  assert.equal(await page.locator("#pw2").isEnabled(), true);
+  assert.equal(await page.locator("#pw-form").getAttribute("aria-busy"), null);
+  assert.equal(await page.getByRole("status").count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test("password recovery: a failed update restores retry focus and retains the corrected draft", async t => {
+  const { page, context, errors } = await passwordPage();
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector("#pw-save")), true);
+  await fillPassword(page, "corrected-password");
+  await page.evaluate(() => { window.passwordHold = true; });
+  await page.locator("#pw-save").click();
+  await page.waitForFunction(() => window.passwordCalls.length === 2);
+  assert.equal(await page.locator("#pw-msg").textContent(), "");
+  await page.locator('.auth-legal a[href="/service"]').focus();
+  await page.evaluate(() => window.passwordCalls[1].release({ error: { message: "New password should be different from the old password." } }));
+  await page.getByRole("alert").filter({ hasText: "différent" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("href")), "/service");
+  assert.equal(await page.locator("#pw").inputValue(), "corrected-password");
+  assert.deepEqual(errors, []);
+});
+
+test("password recovery: delayed initial link diagnostics cannot overwrite an update failure", async t => {
+  const { page, context, errors } = await passwordPage({ session: false, clock: true });
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  await page.clock.fastForward(1300);
+  assert.match(await page.locator("#pw-msg").textContent(), /n’a pas pu être enregistré/);
+  assert.deepEqual(errors, []);
+});
+
+test("password recovery: session lookup rejection gives an actionable diagnostic without an unhandled error", async t => {
+  const { page, context, errors } = await passwordPage({ session: false, sessionError: true, clock: true });
+  t.after(() => context.close());
+  await page.clock.fastForward(1300);
+  assert.match(await page.locator("#pw-msg").textContent(), /réseau|vérifié/i);
+  assert.deepEqual(errors, []);
+  await fillPassword(page);
+  await page.evaluate(() => { window.passwordResponse = { error: { message: "Auth session missing" } }; });
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "Ce lien a expiré" }).waitFor();
+});
+
+test("password recovery: successful save stays locked until the existing QG redirect", async t => {
+  const { page, context, errors } = await passwordPage({ clock: true, width: 1280 });
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.evaluate(() => { window.passwordResponse = { error: null }; });
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "Mot de passe enregistré" }).waitFor();
+  await page.evaluate(() => document.querySelector("#pw-form").requestSubmit());
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 1);
+  assert.equal(await page.locator("#pw").isDisabled(), true);
+  await Promise.all([page.waitForURL("**/aujourdhui"), page.clock.fastForward(1300)]);
+  assert.deepEqual(errors, []);
+});
+
+test("password recovery: local validation never updates auth and expired sessions keep the recovery guidance", async t => {
+  const { page, context, errors } = await passwordPage({ session: false, clock: true });
+  t.after(() => context.close());
+  await page.clock.fastForward(1300);
+  await page.getByRole("alert").filter({ hasText: "Demande un nouveau lien" }).waitFor();
+  await fillPassword(page, "short");
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "8 caractères" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.id), "pw");
+  await page.locator("#pw").fill("synthetic-password");
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "ne correspondent pas" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.id), "pw2");
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 0);
+  await page.locator("#pw2").fill("synthetic-password");
+  await page.evaluate(() => { window.passwordResponse = { error: { message: "Auth session missing" } }; });
+  await page.locator("#pw-save").click();
+  await page.getByRole("alert").filter({ hasText: "Ce lien a expiré" }).waitFor();
+  assert.equal(await page.locator("#pw-save").isEnabled(), true);
+  assert.deepEqual(errors, []);
+});
+
 async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
@@ -3214,7 +3367,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -3241,7 +3394,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
   await page.goto(BASE + "/boutique", { waitUntil: "load" });
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
-  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/onboarding?again=1", "onboarding"]]) {
+  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"]]) {
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
   }
