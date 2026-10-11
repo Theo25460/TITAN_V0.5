@@ -78,7 +78,14 @@ async function communityPage({ hold = [], guild = false, wrongOwner = false, wid
       const call = { name, params, owner, response: { data } };
       window.communityCalls.push(call);
       const result = window.communityHold.includes(name) ? new Promise(resolve => { call.release = response => resolve(response || call.response); }) : Promise.resolve(call.response);
-      return { setHeader: () => ({ then: (yes, no) => result.then(yes, no) }), then: (yes, no) => result.then(yes, no) };
+      const query = { setHeader: () => query, then: (yes, no) => result.then(response => {
+        yes(response);
+        if (window.communityMicrotaskAfter === name) {
+          window.communityMicrotaskAfter = null;
+          queueMicrotask(() => window.communitySwitch("bob"));
+        }
+      }, no) };
+      return query;
     } };
     window.communitySwitch = (owner, finish = true) => {
       window.titanAccountTransition = { active: true, owner, epoch: window.titanAccountTransition.epoch + 1 };
@@ -369,6 +376,61 @@ test("community: missing, mismatched or failed auth prevents RPCs and a valid se
     await page.locator("[data-retry]").click();
     await page.getByText("Moment privé alice", { exact: true }).waitFor();
   }
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: challenge success cannot notify or reload after a transition between continuations", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.locator("[data-new-challenge]").click();
+  await page.locator('dialog [name="invite"]').check();
+  await page.evaluate(() => { window.communityMicrotaskAfter = "titan_challenge_create"; });
+  await page.locator('dialog button[type="submit"]').click();
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_social_overview" && c.owner === "bob").length), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: friend request feedback checks its session again when its continuation resumes", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => { window.communityMicrotaskAfter = "titan_social_request"; });
+  await page.locator("[data-add-friend] [name=code]").fill("TN-AB12");
+  await page.locator("[data-add-friend] button").click();
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: a confirmation continuation cannot add another new-account reload", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.locator("[data-delete-moment]").click();
+  await page.evaluate(() => { window.communityMicrotaskAfter = "titan_moment_delete"; });
+  await page.locator("dialog [data-ok]").click();
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.communityCalls.filter(c => c.name === "titan_social_overview" && c.owner === "bob").length), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: challenge analytics cannot be attributed to the account adopted between continuations", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => {
+    const base = window.communityOverview;
+    window.communityOverview = owner => ({ ...base(owner), challenges: [{ id: "challenge", title: "Semaine d’effort", metric: "sessions", target: 4,
+      ends_at: new Date(Date.now() + 86400000).toISOString(), status: "active", my_status: "invited", members: [] }] });
+    window.communityEvents = [];
+    window.TitanAnalytics = { track: name => window.communityEvents.push({ name, owner: window.state.user.id }) };
+    window.dispatchEvent(new Event("online"));
+  });
+  await page.locator('[data-challenge][data-act="join"]').waitFor();
+  await page.evaluate(() => { window.communityMicrotaskAfter = "titan_challenge_respond"; });
+  await page.locator('[data-challenge][data-act="join"]').click();
+  await page.getByText("Moment privé bob", { exact: true }).waitFor();
+  assert.deepEqual(await page.evaluate(() => window.communityEvents), []);
+  assert.equal(await page.locator(".asc-toasts").textContent(), "");
   assert.deepEqual(errors, []);
   await context.close();
 });
