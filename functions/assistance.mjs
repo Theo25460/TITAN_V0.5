@@ -13,7 +13,7 @@ const receipt = (reference, sent = false) => reply(sent ? 200 : 202, { accepted:
 function validInput(body) {
     return body !== null && typeof body === 'object' && !Array.isArray(body)
         && Object.keys(body).length === 4 && ['request_id', 'category', 'message', 'reply_allowed'].every(key => Object.hasOwn(body, key))
-        && UUID.test(body.request_id) && CATEGORIES.has(body.category) && typeof body.reply_allowed === 'boolean'
+        && typeof body.request_id === 'string' && UUID.test(body.request_id) && CATEGORIES.has(body.category) && typeof body.reply_allowed === 'boolean'
         && typeof body.message === 'string' && Array.from(body.message.trim()).length >= 10 && Array.from(body.message).length <= 4000
         && body.message.isWellFormed() && Buffer.byteLength(body.message, 'utf8') <= 16 * 1024 && !/[\x00-\x08\x0b-\x1f\x7f-\x9f]/.test(body.message);
 }
@@ -68,14 +68,14 @@ export default async function handler(request) {
         const auth = await network(`${url}/auth/v1/user`, { method: 'GET', headers: { apikey: publishable, Authorization: bearer, Accept: 'application/json' } });
         if (!auth.ok) return auth.status === 401 || auth.status === 403 ? reply(401, { error: 'authentication_required' }) : unavailable();
         owner = auth.data;
-        if (!owner || !UUID.test(owner.id) || owner.is_anonymous !== false || !owner.email_confirmed_at || !validEmail(owner.email)) return reply(401, { error: 'authentication_required' });
+        if (!owner || typeof owner.id !== 'string' || !UUID.test(owner.id) || owner.is_anonymous !== false || !owner.email_confirmed_at || !validEmail(owner.email)) return reply(401, { error: 'authentication_required' });
         accepted = await rpc('titan_support_accept_v300', { p_user_id: owner.id, p_request_id: body.request_id, p_category: body.category, p_message: body.message, p_reply_allowed: body.reply_allowed });
         if (!accepted.ok) {
             const errors = { SUPPORT_RATE_LIMIT: [429, 'rate_limit'], SUPPORT_REQUEST_CONFLICT: [409, 'request_conflict'], SUPPORT_ACCOUNT_UNAVAILABLE: [403, 'account_unavailable'] };
             const mapped = Object.hasOwn(errors, accepted.data?.message) ? errors[accepted.data.message] : null;
             return mapped ? reply(mapped[0], { error: mapped[1], fallback: '/service#help-contact' }) : unavailable();
         }
-        if (!UUID.test(accepted.data?.reference) || !['pending', 'sent'].includes(accepted.data?.notification)) return unavailable();
+        if (typeof accepted.data?.reference !== 'string' || !UUID.test(accepted.data.reference) || !['pending', 'sent'].includes(accepted.data?.notification)) return unavailable();
     } catch (_) { return unavailable(); }
 
     const reference = accepted.data.reference;

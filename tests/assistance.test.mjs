@@ -58,7 +58,7 @@ test('support: oversized streamed bodies and malformed JSON are rejected before 
 }));
 test('support: strict payload refuses identities, diagnostics, attachments, invalid categories and controls', async () => runtime(async calls => {
     const bad = [null, [], { ...INPUT, user_id: USER }, { ...INPUT, email: 'attacker@example.test' }, { ...INPUT, diagnostics: {} }, { ...INPUT, attachments: [] },
-        { ...INPUT, category: 'unknown' }, { ...INPUT, reply_allowed: 'true' }, { ...INPUT, request_id: 'not-a-uuid' }, { ...INPUT, message: 'short' },
+        { ...INPUT, category: 'unknown' }, { ...INPUT, reply_allowed: 'true' }, { ...INPUT, request_id: 'not-a-uuid' }, { ...INPUT, request_id: [REQUEST] }, { ...INPUT, message: 'short' },
         { ...INPUT, message: 'a'.repeat(4001) }, { ...INPUT, message: 'private\u0000value' }, { ...INPUT, message: 'private\rvalue' },
         { ...INPUT, message: 'private\u0085value' }, { ...INPUT, message: 'private\ud800value' }];
     for (const payload of bad) assert.equal((await handler(request(JSON.stringify(payload)))).status, 400, JSON.stringify(payload).slice(0, 80));
@@ -70,7 +70,7 @@ test('support: missing bearer, cross-origin, anonymous, unconfirmed and malforme
         assert.equal((await handler(request(INPUT, { origin: 'https://attacker.test' }))).status, 403);
         assert.equal(calls.length, 0);
     });
-    for (const user of [{ is_anonymous: true }, { id: 'bad' }, { email_confirmed_at: null }, { email: null }]) {
+    for (const user of [{ is_anonymous: true }, { id: 'bad' }, { id: [USER] }, { email_confirmed_at: null }, { email: null }]) {
         await runtime(async calls => { assert.equal((await handler(request())).status, 401); assert.deepEqual(calls.map(c => c.path), ['/auth/v1/user']); }, { user });
     }
 });
@@ -118,7 +118,8 @@ test('support: network or malformed receipt failures never invent a ticket refer
     for (const responses of [
         { '/auth/v1/user': () => { throw Error('private upstream secret'); } },
         { '/rest/v1/rpc/titan_support_accept_v300': () => { throw Error('private upstream secret'); } },
-        { '/rest/v1/rpc/titan_support_accept_v300': json({ reference: 'invalid', notification: 'sent', message: 'private' }) }
+        { '/rest/v1/rpc/titan_support_accept_v300': json({ reference: 'invalid', notification: 'sent', message: 'private' }) },
+        { '/rest/v1/rpc/titan_support_accept_v300': json({ reference: [REFERENCE], notification: 'pending' }) }
     ]) await runtime(async calls => { const response = await handler(request()); assert.equal(response.status, 503); assert.equal((await response.json()).reference, undefined); assert.ok(!calls.some(c => c.path === '/emails')); }, { responses });
 });
 test('support: provider failure or malformed acknowledgement keeps the received ticket pending', async () => {

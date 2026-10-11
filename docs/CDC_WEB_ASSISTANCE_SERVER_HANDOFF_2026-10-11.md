@@ -19,6 +19,7 @@ Réception et notification sont distinctes : 202 avec référence si mail encore
 - Deux contrôles d’intégration locaux relient le vrai handler à la vraie migration SQL, Auth/Resend étant synthétiques : ticket durable + référence identique + une seule requête fournisseur ; panne fournisseur puis reprise explicite, référence/payload/clé identiques. Aucun transport Supabase Auth/PostgREST ni domaine/email réel validé.
 - `pnpm verify` final : 158/158 tests, build 97 ressources hors ligne, audit 0 erreur/16 avertissements préexistants. E2E existants 182/182 ; le backend n’est pas branché au client dans ce lot. Syntaxe Node/bash/Python, diff check et bundle esbuild `.mts` → ESM 7,4 KiB passent. Harness/caches Python hors commit.
 - Runner PostgreSQL à deux connexions : attentes réelles observées avec pg_stat_activity/pg_blocking_pids, répétition idempotente, dernière place de quota et bail exclusif. Nom titan_test_ contrôlé avant fixtures ; nettoyage en finally. Résultats des deux voies PostgreSQL16, trois logs CI du HEAD final et revue indépendante à consigner dans PR/CDC avant livraison.
+- La revue a reproduit un défaut Minor : tableau d’un seul UUID accepté par coercition RegExp. Correction avec type string explicite pour request_id, identité Auth et référence SQL. Les trois groupes de tests correspondants ont été renforcés et reproduits RED avant le correctif ; 17/17 après correction. Les résultats complets et la CI doivent être relus sur ce HEAD corrigé, pas sur le premier draft.
 
 ## Activation et suite
 
