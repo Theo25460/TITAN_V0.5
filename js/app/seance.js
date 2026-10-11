@@ -19,6 +19,8 @@
   let root = null;
   let timerTick = null;
   let saveTimer = null;
+  let saving = null;
+  let gpxSequence = 0;
 
   const owner = () => window.state?.user?.id || "unassigned";
   const draftKey = () => `titan_seance_draft_v3:${owner()}`;
@@ -59,7 +61,7 @@
       try {
         if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpxPath: undefined, updatedAt: Date.now() }));
       } catch {
-        status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
+        if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
       }
     }, 250);
   }
@@ -547,6 +549,7 @@
   }
 
   async function save(btn) {
+    if (saving || btn.disabled) return;
     const b = build();
     if (b.errors.length) {
       // The message sits next to the save button; the faulty field is marked and focused.
@@ -560,8 +563,23 @@
       }
       return;
     }
-    btn.disabled = true;
-    btn.setAttribute("aria-busy", "true");
+    const form = root.querySelector(".seance-form");
+    const task = { controls: new Map(), labels: new Map(), busy: new Map() };
+    saving = task; // Reserve before logActivity can start a durable write.
+    ++gpxSequence; // A file read from before this submission cannot replace its draft.
+    root.querySelectorAll("button, input, select, textarea").forEach(control => {
+      task.controls.set(control, control.disabled);
+      control.disabled = true;
+    });
+    root.querySelectorAll("label.asc-btn").forEach(label => {
+      task.labels.set(label, label.getAttribute("aria-disabled"));
+      label.setAttribute("aria-disabled", "true");
+    });
+    for (const region of [form, btn]) {
+      task.busy.set(region, region.getAttribute("aria-busy"));
+      region.setAttribute("aria-busy", "true");
+    }
+    // The existing status is in the save bar, outside the busy form and button.
     status("Enregistrement…");
     try {
       const sport = S.sport;
@@ -581,15 +599,34 @@
       status(error.message || "Séance non enregistrée.", "err");
       window.titanShell.toast({ type: "err", title: "Séance non enregistrée", message: error.message || "Réessaie : rien n’a été perdu, le brouillon est conservé." });
     } finally {
-      btn.disabled = false;
-      btn.removeAttribute("aria-busy");
+      task.controls.forEach((disabled, control) => { control.disabled = disabled; });
+      task.labels.forEach((value, label) => {
+        if (value === null) label.removeAttribute("aria-disabled");
+        else label.setAttribute("aria-disabled", value);
+      });
+      task.busy.forEach((value, region) => {
+        if (value === null) region.removeAttribute("aria-busy");
+        else region.setAttribute("aria-busy", value);
+      });
+      if (saving === task) saving = null;
+      if (btn.isConnected && !btn.disabled && document.activeElement === document.body) btn.focus();
     }
   }
 
   async function onGpx(file) {
-    if (!file) return;
+    if (!file || saving) return;
     if (file.size > 15 * 1024 * 1024) return window.titanShell.toast({ type: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
-    const r = window.TitanGpx.analyse(await file.text());
+    const draft = S, sequence = ++gpxSequence;
+    const current = () => !saving && S === draft && sequence === gpxSequence;
+    let r;
+    try {
+      const text = await file.text();
+      if (!current()) return;
+      r = window.TitanGpx.analyse(text);
+    } catch (error) {
+      if (current()) window.titanShell.toast({ type: "warn", title: "GPX illisible", message: error?.message || "Le fichier n’a pas pu être lu. Réessaie." });
+      return;
+    }
     if (!r.ok) return window.titanShell.toast({ type: "warn", title: "GPX illisible", message: r.error });
     S.gpx = r;
     S.distance = String(r.distanceKm);
@@ -622,6 +659,7 @@
       const d = window.titanShell.sheet({ title: "Charger une routine", eyebrow: "Ta bibliothèque", body });
       body.querySelectorAll("[data-r]").forEach((b) =>
         b.addEventListener("click", () => {
+          if (saving) return;
           const r = routines[Number(b.dataset.r)];
           S.exercises = r.exercises.map((e) => ({ name: e.name, variant: e.variant || "", kind: e.kind || "weighted", sets: (e.setRows?.length ? e.setRows : Array.from({ length: e.sets || 3 }, () => ({ weight: e.weight, reps: e.reps }))).map((s) => ({ weight: s.weight ?? "", reps: s.reps ?? "", rir: "", seconds: s.seconds ?? "" })) }));
           d.close();
@@ -633,6 +671,7 @@
       body.innerHTML = `<label class="asc-field"><span>Nom de la routine</span><input class="asc-input" maxlength="60" placeholder="Haut du corps · A" id="routine-name"></label><p class="asc-small asc-faint">${routines.length}/${limit} routines. Un nom existant la remplace.${limit === 5 ? " TITAN+ : jusqu’à 20 routines." : ""}</p><button type="button" class="asc-btn asc-btn-primary" id="routine-save">Mémoriser</button><p class="asc-small" role="alert" id="routine-err"></p>`;
       const d = window.titanShell.sheet({ title: "Mémoriser la routine", eyebrow: "Ta bibliothèque", body });
       body.querySelector("#routine-save").addEventListener("click", () => {
+        if (saving) return;
         const name = body.querySelector("#routine-name").value.trim();
         const err = body.querySelector("#routine-err");
         if (!name) return (err.textContent = "Donne un nom à ta routine.");
@@ -651,6 +690,7 @@
 
   /* ---------- Events ---------- */
   function onInput(e) {
+    if (saving) return;
     const el = e.target;
     if (el.id === "sport-q") {
       S.query = el.value;
@@ -674,8 +714,9 @@
   }
 
   function onClick(e) {
+    if (saving) { e.preventDefault(); return; }
     const t = e.target.closest("button, [data-sport], [data-repeat], [data-routine]");
-    if (!t || !root.contains(t)) return;
+    if (!t || !root.contains(t) || t.disabled) return;
     if (t.dataset.sport) return choose(t.dataset.sport);
     if (t.dataset.repeat) {
       const l = (window.state?.history || []).find((x) => (x.client_event_id || x.id) === t.dataset.repeat);
@@ -770,10 +811,12 @@
   }
 
   function onChange(e) {
+    if (saving) return;
     if (e.target.matches("[data-gpx]")) onGpx(e.target.files?.[0]);
   }
 
   function onKey(e) {
+    if (saving) return;
     if (e.target.id === "sport-q" && e.key === "Enter") {
       const first = S_().search(S.query, { limit: 1 })[0];
       if (first) choose(first.id);

@@ -2239,6 +2239,231 @@ test("Atelier: both subscription states can consult the concrete benefits withou
   }
 });
 
+// Exercise the real logActivity and IndexedDB writer; only hold or refuse its storage boundary.
+async function sessionSavePage({ width = 360 } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/seance.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/training?sport=running", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  await page.evaluate(() => {
+    window.sessionCalls = [];
+    window.sessionEvents = [];
+    window.sessionAnalytics = [];
+    const write = window.TitanQueue.saveGuestSession;
+    window.TitanQueue.saveGuestSession = (ownerId, log) => new Promise((resolve, reject) => {
+      const call = { ownerId, log: structuredClone(log), fail: reject };
+      call.release = () => write(ownerId, log).then(resolve, reject);
+      window.sessionCalls.push(call);
+    });
+    window.addEventListener("titan:session-stored", e => window.sessionEvents.push(e.detail));
+    const track = window.TitanAnalytics.track;
+    window.TitanAnalytics.track = (name, props) => {
+      if (!["first_session", "second_session"].includes(name)) return track(name, props);
+      window.sessionAnalytics.push({ name, props });
+      return Promise.resolve(true);
+    };
+  });
+  await page.addScriptTag({ path: ROOT + "/js/app/seance.js" });
+  await page.locator('[data-act="save"]').waitFor();
+  await page.locator('[data-k="distance"]').fill("10");
+  await page.locator('[data-k="durM"]').fill("52");
+  await page.locator('[data-k="note"]').fill("Repère de séance conservé");
+  await page.locator('[data-rpe="6"]').click();
+  return fixture;
+}
+
+async function releaseSession(page, index = 0) {
+  await page.evaluate(index => window.sessionCalls[index].release(), index);
+  await page.locator("dialog.asc-sheet[open]").waitFor();
+}
+
+async function holdSessionGpx(page) {
+  await page.evaluate(() => {
+    const input = document.querySelector("[data-gpx]");
+    Object.defineProperty(input, "files", { configurable: true, value: [{ size: 100, text: () => new Promise((resolve, reject) => {
+      window.releaseSessionGpx = () => resolve('<gpx><trk><trkseg><trkpt lat="47.00" lon="7.00"/><trkpt lat="47.01" lon="7.00"/></trkseg></trk></gpx>');
+      window.failSessionGpx = () => reject(Error("Lecture du fichier interrompue"));
+    }) }] });
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+
+test("session save: repeated activations create one durable record and one completion", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    const button = document.querySelector('[data-act="save"]');
+    for (let i = 0; i < 3; i++) button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  });
+  assert.equal(await page.evaluate(() => window.sessionCalls.length), 1);
+  assert.equal(await page.locator("dialog.asc-sheet[open]").count(), 0, "no celebration before durable storage");
+  await releaseSession(page);
+  assert.equal(await page.evaluate(() => window.state.history.length), 1);
+  assert.equal(await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length), 1);
+  assert.equal(await page.evaluate(() => window.sessionEvents.length), 1);
+  assert.deepEqual(await page.evaluate(() => window.sessionAnalytics.map(e => e.name)), ["first_session"]);
+  assert.match(await page.locator("dialog.asc-sheet[open]").innerText(), /10 km/);
+  await page.locator('[data-moment="done"]').click();
+  await page.locator('#sport-q').fill("course");
+  await page.locator('#sport-results [data-sport="running"]').click();
+  await page.locator('[data-k="distance"]').fill("2");
+  await page.locator('[data-act="save"]').click();
+  await releaseSession(page, 1);
+  assert.deepEqual(await page.evaluate(() => window.sessionAnalytics.map(e => e.name)), ["first_session", "second_session"]);
+  assert.equal(await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length), 2);
+  assert.deepEqual(errors, []);
+});
+
+test("session save: the chrono cannot rebuild an enabled save button while storage is pending", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.locator('[data-act="chrono"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-act="back"]').isDisabled(), true);
+  await page.evaluate(() => {
+    for (const act of ["chrono", "back", "save"]) document.querySelector(`[data-act="${act}"]`).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    window.dispatchEvent(new CustomEvent("titan:history-updated"));
+  });
+  assert.equal(await page.locator('[data-act="save"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.equal(await page.evaluate(() => window.sessionCalls.length), 1);
+  await releaseSession(page);
+  assert.deepEqual(errors, []);
+});
+
+test("session save: pending fields and synthetic edits cannot change the submitted draft", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.locator('[data-act="save"]').click();
+  for (const control of await page.locator('#seance input, #seance textarea, #seance select, #seance button').all()) assert.equal(await control.isDisabled(), true);
+  await page.evaluate(() => {
+    const input = document.querySelector('[data-k="distance"]');
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector('[data-rpe="10"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    window.sessionCalls[0].fail(Error("Stockage temporairement indisponible"));
+  });
+  await page.locator('#seance-status').filter({ hasText: "Stockage temporairement" }).waitFor();
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.evaluate(() => window.sessionCalls[1].log.val), 10);
+  assert.equal(await page.evaluate(() => window.sessionCalls[1].log.details.bio.rpe), 6);
+  assert.deepEqual(errors, []);
+});
+
+test("session save: pending status is visible outside busy controls on mobile and desktop", async t => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await sessionSavePage({ width });
+    t.after(() => context.close());
+    await page.locator('[data-act="save"]').click();
+    assert.equal(await page.locator('.seance-form').getAttribute("aria-busy"), "true");
+    const status = page.locator('#seance-status');
+    assert.equal(await status.textContent(), "Enregistrement…");
+    assert.equal(await status.evaluate(el => !!el.closest('[aria-busy="true"]')), false);
+    const box = await status.boundingBox();
+    assert.ok(box.y >= 0 && box.y + box.height <= page.viewportSize().height);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("session save: storage rejection retains the draft and timer and restores a focused retry", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    localStorage.setItem(`titan_seance_timer_v3:${window.state.user.id}`, JSON.stringify({ elapsed: 65000, started: null }));
+    document.querySelector('[data-k="durS"]').disabled = true;
+    document.querySelector('.seance-form').setAttribute("aria-busy", "false");
+  });
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`) || "null")?.note === "Repère de séance conservé");
+  await page.locator('[data-act="save"]').click();
+  await page.evaluate(() => window.sessionCalls[0].fail(Error("Stockage temporairement indisponible")));
+  await page.locator('#seance-status').filter({ hasText: "Stockage temporairement" }).waitFor();
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.equal(await page.locator('[data-k="note"]').inputValue(), "Repère de séance conservé");
+  assert.equal(await page.locator('[data-k="durS"]').isDisabled(), true, "preserve preexisting disabled state");
+  assert.equal(await page.locator('.seance-form').getAttribute("aria-busy"), "false");
+  assert.equal(await page.locator('[data-act="save"]').evaluate(el => el === document.activeElement), true);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem(`titan_seance_timer_v3:${window.state.user.id}`)).elapsed), 65000);
+  assert.equal(await page.evaluate(() => window.state.history.length), 0);
+  assert.equal(await page.locator('dialog.asc-sheet[open]').count(), 0);
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.locator('#seance-status').textContent(), "Enregistrement…");
+  await releaseSession(page, 1);
+  assert.equal(await page.evaluate(() => localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`)), null);
+  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem(`titan_seance_timer_v3:${window.state.user.id}`))), { elapsed: 0, started: null });
+  assert.deepEqual(errors, []);
+});
+
+test("session save: the GPX upload label exposes and restores its disabled state", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.locator('.seance-gpx label').evaluate(el => el.setAttribute('aria-disabled', 'false'));
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.locator('.seance-gpx label').getAttribute('aria-disabled'), 'true');
+  await page.evaluate(() => window.sessionCalls[0].fail(Error('Stockage temporairement indisponible')));
+  await page.locator('#seance-status').filter({ hasText: 'Stockage temporairement' }).waitFor();
+  assert.equal(await page.locator('.seance-gpx label').getAttribute('aria-disabled'), 'false');
+  assert.deepEqual(errors, []);
+});
+
+test("session save: a synchronous recording exception keeps the form usable", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await page.evaluate(() => { window.logActivity = () => { throw Error("Préparation locale indisponible"); }; });
+  await page.locator('[data-act="save"]').click();
+  await page.locator('#seance-status').filter({ hasText: "Préparation locale" }).waitFor();
+  assert.equal(await page.locator('[data-act="save"]').isEnabled(), true);
+  assert.equal(await page.locator('[data-act="save"]').evaluate(el => el === document.activeElement), true);
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.deepEqual(errors, []);
+});
+
+test("session save: a GPX read started before recording cannot replace the pending or retry draft", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await holdSessionGpx(page);
+  await page.locator('[data-act="save"]').click();
+  await page.evaluate(() => window.releaseSessionGpx());
+  // The file read continuation has run before this page round trip.
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.equal(await page.locator('[data-act="save"]').isDisabled(), true);
+  await page.evaluate(() => window.sessionCalls[0].fail(Error("Stockage temporairement indisponible")));
+  await page.locator('#seance-status').filter({ hasText: "Stockage temporairement" }).waitFor();
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.evaluate(() => window.sessionCalls[1].log.val), 10);
+  assert.deepEqual(errors, []);
+});
+
+test("session save: a refused GPX file read reports an error and retains editable measures", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await holdSessionGpx(page);
+  await page.evaluate(() => window.failSessionGpx());
+  await page.getByText("Lecture du fichier interrompue", { exact: true }).waitFor({ timeout: 2000 });
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "10");
+  assert.equal(await page.locator('[data-act="save"]').isEnabled(), true);
+  assert.deepEqual(errors, []);
+});
+
+test("session save: a newer GPX selection wins and its real measures can be recorded", async t => {
+  const { page, context, errors } = await sessionSavePage();
+  t.after(() => context.close());
+  await holdSessionGpx(page);
+  await page.evaluate(() => { window.oldSessionGpx = window.releaseSessionGpx; });
+  await holdSessionGpx(page);
+  await page.evaluate(() => window.releaseSessionGpx());
+  await page.getByText(/Trace importée :/).waitFor();
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "1.11");
+  await page.locator('[data-k="distance"]').fill("5");
+  await page.evaluate(() => window.oldSessionGpx());
+  assert.equal(await page.locator('[data-k="distance"]').inputValue(), "5");
+  await page.locator('[data-act="save"]').click();
+  assert.equal(await page.evaluate(() => window.sessionCalls[0].log.val), 5);
+  assert.equal(await page.evaluate(() => window.sessionCalls[0].log.details.hasGpx), true);
+  await releaseSession(page);
+  assert.equal(await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length), 1);
+  assert.deepEqual(errors, []);
+});
+
 test("guest: record a run, then find it in the journal and the week", async () => {
   const { page, errors } = await newPage();
   await page.goto(BASE + "/training", { waitUntil: "load" });
@@ -3577,7 +3802,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/app/seance.js", "seance"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -3604,7 +3829,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
   await page.goto(BASE + "/boutique", { waitUntil: "load" });
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
-  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"]]) {
+  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"], ["/training?sport=running", "seance"]]) {
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
   }
