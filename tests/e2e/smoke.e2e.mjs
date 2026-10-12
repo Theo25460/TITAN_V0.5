@@ -2538,6 +2538,296 @@ const assistanceTopics = [
   ["autre", "Autre question", "/debuter-titan"],
 ];
 
+const SUPPORT_USER = '00000000-0000-4000-8000-000000000047';
+const SUPPORT_OTHER = '00000000-0000-4000-8000-000000000048';
+const SUPPORT_REFERENCE = '00000000-0000-4000-8000-000000000049';
+const SUPPORT_MESSAGE = 'Une demande volontaire avec <script> sans capture automatique.';
+async function supportPage(t, { width = 360, enabled = true, user = {}, session = true, verified = null, hold = false } = {}) {
+  const fixture = await newPage(width), { page, context } = fixture;
+  fixture.calls = []; fixture.releases = [];
+  fixture.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
+  fixture.hold = hold;
+  t.after(() => context.close());
+  await page.route('**/service*', r => r.fulfill({ contentType: 'text/html', body: readFileSync(ROOT + '/dist/service.html', 'utf8').replace('data-support-enabled="false"', `data-support-enabled="${enabled}"`) }));
+  await page.route('**/functions/assistance', async r => {
+    fixture.calls.push({ body: r.request().postDataJSON(), headers: r.request().headers() });
+    const result = fixture.hold ? await new Promise(resolve => fixture.releases.push(resolve)) : fixture.response;
+    try { if (result.abort) await r.abort('failed'); else await r.fulfill({ status: result.status, contentType: 'application/json', body: JSON.stringify(result.body) }); } catch { /* Closed/aborted request has no late UI continuation. */ }
+  });
+  await page.addInitScript(({ id, user, session, verified }) => {
+    const account = { id, email: 'support-fixture@example.test', email_confirmed_at: '2026-10-12T05:00:00Z', is_anonymous: false, ...user };
+    window.supportSession = session ? { user: account, access_token: 'fake-token-only-support-browser-tests' } : null;
+    window.supportVerified = verified || account;
+    window.supportAuthCalls = []; window.supportAuthHold = [];
+    window.supportClient = { auth: {
+      getSession() { const call = { name: 'getSession' }; window.supportAuthCalls.push(call); const result = { data: { session: window.supportSession }, error: null }; return window.supportAuthHold.includes('getSession') ? new Promise(resolve => { call.release = response => resolve(response || result); }) : Promise.resolve(result); },
+      getUser(token) { const call = { name: 'getUser', token }; window.supportAuthCalls.push(call); const result = { data: { user: window.supportVerified }, error: null }; return window.supportAuthHold.includes('getUser') ? new Promise(resolve => { call.release = response => resolve(response || result); }) : Promise.resolve(result); },
+      onAuthStateChange(callback) { window.supportAuthEvent = callback; return { data: { subscription: { unsubscribe() {} } } }; }
+    } };
+    window.initTitanSupabaseClient = () => { window.titanClient = window.supportClient; return window.supportClient; };
+  }, { id: SUPPORT_USER, user, session, verified });
+  await page.goto(BASE + '/service?private=PRIVATE_SUPPORT_URL', { waitUntil: 'load' });
+  assert.equal(await page.locator('#help-form').count(), 1, 'the prepared support interface exists');
+  if (enabled) await page.waitForFunction(() => ['editing', 'unavailable'].includes(document.querySelector('#help-form').dataset.supportState), { timeout: 2500 });
+  return fixture;
+}
+async function supportPreview(page, { reply = false, message = SUPPORT_MESSAGE } = {}) {
+  await page.locator('#support-message').fill(message);
+  if (reply) await page.locator('#support-reply').check();
+  await page.getByRole('button', { name: 'Voir l’aperçu', exact: true }).click();
+  await page.getByRole('heading', { name: 'Aperçu de ta demande', exact: true }).waitFor();
+}
+async function supportWaitCall(fixture, n = 1) {
+  for (let i = 0; i < 100; i++) { if (fixture.calls.length >= n) return; await new Promise(r => setTimeout(r, 20)); }
+  throw Error('No support HTTP call');
+}
+async function supportSwitch(page, id = SUPPORT_OTHER, event = 'SIGNED_IN') {
+  await page.evaluate(({ id, event }) => {
+    const account = { id, email: 'next-support@example.test', email_confirmed_at: '2026-10-12T05:00:00Z', is_anonymous: false };
+    window.supportAuthHold = [];
+    window.supportSession = id ? { user: account, access_token: 'fake-token-for-next-support-account' } : null;
+    window.supportVerified = account;
+    window.supportAuthEvent(event, window.supportSession);
+  }, { id, event });
+}
+
+test('support form: disabled activation keeps public mailto and makes no Auth or API call', async t => {
+  const f = await supportPage(t, { enabled: false });
+  assert.equal(await f.page.locator('form').count(), 0);
+  assert.equal(await f.page.locator('a[href^="mailto:"]').count(), 7);
+  assert.equal(await f.page.evaluate(() => window.supportAuthCalls.length), 0);
+  assert.equal(f.calls.length, 0);
+  assert.equal(await f.page.locator('script[src*="supabase"], script[src*="config.js"]').count(), 0);
+  assert.deepEqual(f.errors, []);
+});
+test('support form: six categories retain solutions and open the matching editable form', async t => {
+  const f = await supportPage(t);
+  for (const [id, label, action] of assistanceTopics) {
+    const topic = f.page.locator(`section[aria-labelledby="help-${id}"]`), button = topic.locator('[data-support-category]');
+    assert.equal(await topic.locator(`a[href="${action}"]`).first().count(), 1);
+    await button.click();
+    assert.equal(await f.page.locator('#support-category').inputValue(), id);
+    assert.equal(await f.page.locator('#support-category option:checked').textContent(), label);
+    assert.equal(await f.page.locator('#support-message').evaluate(el => el === document.activeElement), true);
+  }
+  await f.page.locator('#support-message').fill(SUPPORT_MESSAGE); await f.page.locator('#support-reply').check();
+  await f.page.locator('[data-support-category="bug"]').click();
+  assert.equal(await f.page.locator('#support-message').inputValue(), SUPPORT_MESSAGE); assert.equal(await f.page.locator('#support-reply').isChecked(), true);
+  assert.equal(f.calls.length, 0); assert.deepEqual(f.errors, []);
+});
+test('support form: preview and optional reply are voluntary, readable and never transmit', async t => {
+  for (const width of [360, 1280]) {
+    const f = await supportPage(t, { width });
+    assert.equal(await f.page.locator('#support-reply').isChecked(), false);
+    await supportPreview(f.page, { reply: true });
+    assert.ok((await f.page.locator('#support-preview').innerText()).includes(SUPPORT_MESSAGE));
+    assert.ok((await f.page.locator('#support-preview').innerText()).includes('support-fixture@example.test'));
+    assert.equal(await f.page.locator('#support-preview script').count(), 0);
+    assert.equal(f.calls.length, 0);
+    assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await f.page.getByRole('button', { name: 'Modifier', exact: true }).click();
+    assert.equal(await f.page.locator('#support-message').inputValue(), SUPPORT_MESSAGE);
+    assert.equal(await f.page.locator('#support-reply').isChecked(), true);
+    assert.deepEqual(f.errors, []);
+  }
+});
+test('support form: confirmed receipt shows a reference, sends only the four fields and permits a new request', async t => {
+  const f = await supportPage(t); await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  assert.equal(await f.page.locator('#support-reference').textContent(), SUPPORT_REFERENCE);
+  assert.match(await f.page.locator('#support-result').innerText(), /alerte.*acceptée/i);
+  assert.equal(f.calls.length, 1);
+  const call = f.calls[0]; assert.deepEqual(Object.keys(call.body).sort(), ['category', 'message', 'reply_allowed', 'request_id']);
+  assert.equal(call.body.message, SUPPORT_MESSAGE); assert.equal(call.body.reply_allowed, false);
+  assert.match(call.body.request_id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  assert.equal(call.headers.authorization, 'Bearer fake-token-only-support-browser-tests');
+  assert.equal(call.headers.referer, undefined);
+  assert.doesNotMatch(JSON.stringify(call.body), /PRIVATE_SUPPORT_URL|support-fixture@example|fake-token/);
+  await f.page.getByRole('button', { name: 'Nouvelle demande', exact: true }).click();
+  assert.equal(await f.page.locator('#support-message').inputValue(), ''); assert.deepEqual(f.errors, []);
+});
+test('support form: pending notification retries the same received request and reference', async t => {
+  const f = await supportPage(t); f.response = { status: 202, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'pending' } };
+  await supportPreview(f.page, { reply: true }); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  assert.match(await f.page.locator('#support-result').innerText(), /attente/);
+  f.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
+  await f.page.getByRole('button', { name: 'Vérifier à nouveau cette demande', exact: true }).click();
+  await supportWaitCall(f, 2); await f.page.waitForFunction(() => document.querySelector('#help-form').dataset.supportState === 'received');
+  assert.deepEqual(f.calls[1].body, f.calls[0].body); assert.equal(await f.page.locator('#support-reference').textContent(), SUPPORT_REFERENCE); assert.deepEqual(f.errors, []);
+});
+test('support form: repeated confirmations stay locked during Auth, HTTP and same-owner token refresh', async t => {
+  const f = await supportPage(t, { hold: true }); await supportPreview(f.page);
+  await f.page.evaluate(() => { window.supportAuthCalls = []; window.supportAuthHold = ['getSession']; const b = document.querySelector('[data-support-send]'); for (let i = 0; i < 3; i++) b.dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+  await f.page.waitForFunction(() => window.supportAuthCalls.length === 1);
+  assert.equal(f.calls.length, 0); assert.equal(await f.page.locator('#support-form').getAttribute('aria-busy'), 'true');
+  assert.equal(await f.page.locator('#support-message').isDisabled(), true);
+  await f.page.getByRole('status').filter({ hasText: 'Envoi en cours' }).waitFor();
+  await f.page.evaluate(() => { window.supportAuthHold = []; window.supportAuthCalls[0].release(); window.supportAuthEvent('TOKEN_REFRESHED', window.supportSession); });
+  await supportWaitCall(f); await f.page.evaluate(() => document.querySelector('[data-support-send]').dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  assert.equal(f.calls.length, 1); assert.equal(await f.page.locator('#support-form').getAttribute('aria-busy'), 'true');
+  f.releases[0](f.response); await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor(); assert.deepEqual(f.errors, []);
+});
+test('support form: uncertain HTTP receipt freezes its content and explicit retry uses the same UUID', async t => {
+  const f = await supportPage(t); f.response = { abort: true }; await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('alert').filter({ hasText: 'Impossible de confirmer' }).waitFor();
+  assert.equal(await f.page.locator('#support-message').isDisabled(), true);
+  assert.equal(await f.page.getByRole('button', { name: 'Modifier', exact: true }).isVisible(), false);
+  assert.equal(await f.page.getByRole('button', { name: 'Nouvelle demande', exact: true }).count(), 0);
+  f.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
+  await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).click();
+  await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  assert.equal(f.calls.length, 2); assert.deepEqual(f.calls[1].body, f.calls[0].body); assert.deepEqual(f.errors, []);
+});
+test('support form: failure after a pending receipt never removes the confirmed reference', async t => {
+  const f = await supportPage(t); f.response = { status: 202, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'pending' } };
+  await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  f.response = { status: 503, body: { error: 'unavailable', uncertain: true } };
+  await f.page.getByRole('button', { name: 'Vérifier à nouveau cette demande', exact: true }).click();
+  await f.page.getByRole('alert').filter({ hasText: 'déjà été reçue' }).waitFor();
+  assert.equal(await f.page.locator('#support-reference').textContent(), SUPPORT_REFERENCE); assert.equal(f.calls.length, 2); assert.deepEqual(f.errors, []);
+  f.response = { status: 200, body: { accepted: true, reference: SUPPORT_OTHER, notification: 'sent' } };
+  await f.page.getByRole('button', { name: 'Vérifier à nouveau cette demande', exact: true }).click();
+  await supportWaitCall(f, 3); await f.page.waitForFunction(() => document.querySelector('#help-form').dataset.supportState === 'received');
+  assert.equal(await f.page.locator('#support-reference').textContent(), SUPPORT_REFERENCE); assert.deepEqual(f.calls[2].body, f.calls[0].body);
+});
+test('support form: bounded rejection errors disclose no upstream details or invented reference', async t => {
+  for (const status of [400, 401, 403, 429]) {
+    const f = await supportPage(t); f.response = { status, body: { error: 'PRIVATE_UPSTREAM', details: 'PRIVATE_UPSTREAM' } };
+    await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+    await f.page.getByRole('alert').waitFor();
+    assert.equal(await f.page.locator('#support-reference').count(), 0); assert.doesNotMatch(await f.page.locator('#help-form').innerText(), /PRIVATE_UPSTREAM/); assert.deepEqual(f.errors, []);
+  }
+});
+test('support form: malformed receipts including coerced UUIDs never announce receipt or reflect data', async t => {
+  for (const body of [{ accepted: true, reference: [SUPPORT_REFERENCE], notification: 'sent' }, { accepted: true, reference: SUPPORT_REFERENCE, notification: 'unknown' }, { accepted: false, reference: SUPPORT_REFERENCE, notification: 'sent', content: '<img onerror=alert(1)>' }]) {
+    const f = await supportPage(t); f.response = { status: 200, body }; await supportPreview(f.page);
+    await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.getByRole('alert').filter({ hasText: 'Impossible de confirmer' }).waitFor();
+    assert.equal(await f.page.locator('#support-reference').count(), 0); assert.equal(await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).count(), 0); assert.deepEqual(f.errors, []);
+  }
+});
+test('support form: unauthenticated, anonymous, unconfirmed, malformed or mismatched identities get only fallback', async t => {
+  for (const options of [{ session: false }, { user: { is_anonymous: true } }, { user: { email_confirmed_at: null } }, { user: { id: [SUPPORT_USER] } }, { verified: { id: SUPPORT_OTHER, email: 'other@example.test', email_confirmed_at: 'yes', is_anonymous: false } }]) {
+    const f = await supportPage(t, options); assert.equal(await f.page.locator('form').count(), 0); assert.equal(f.calls.length, 0);
+    assert.equal(await f.page.locator('a[href="mailto:titanteam.app@gmail.com"]').count(), 1); assert.deepEqual(f.errors, []);
+  }
+});
+test('support form: account change while Auth is pending clears the draft and prevents the old POST', async t => {
+  const f = await supportPage(t); await supportPreview(f.page, { reply: true });
+  await f.page.evaluate(() => { window.supportAuthCalls = []; window.supportAuthHold = ['getSession']; });
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.waitForFunction(() => window.supportAuthCalls.length === 1);
+  await supportSwitch(f.page); await f.page.locator('#support-message').waitFor();
+  await f.page.evaluate(() => window.supportAuthCalls[0].release());
+  assert.equal(await f.page.locator('#support-message').inputValue(), ''); assert.equal(await f.page.locator('#support-reply').isChecked(), false);
+  assert.equal(f.calls.length, 0); assert.doesNotMatch(await f.page.locator('#help-form').innerText(), /support-fixture@example|Une demande volontaire/); assert.deepEqual(f.errors, []);
+});
+test('support form: account change during HTTP ignores the previous receipt and unlocks only the new blank form', async t => {
+  const f = await supportPage(t, { hold: true }); await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  await supportSwitch(f.page); await f.page.locator('#support-message').waitFor(); f.releases[0](f.response);
+  await f.page.evaluate(() => new Promise(requestAnimationFrame)); assert.equal(await f.page.locator('#support-reference').count(), 0); assert.equal(await f.page.locator('#support-message').inputValue(), '');
+  assert.equal(await f.page.locator('#support-message').isDisabled(), false); assert.equal(f.calls.length, 1); assert.deepEqual(f.errors, []);
+});
+test('support form: offline prevents a POST, retains the draft and going online never sends automatically', async t => {
+  const f = await supportPage(t); await supportPreview(f.page); await f.context.setOffline(true);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.getByRole('alert').filter({ hasText: 'Hors ligne' }).waitFor();
+  assert.equal(f.calls.length, 0); await f.context.setOffline(false); await f.page.evaluate(() => new Promise(requestAnimationFrame)); assert.equal(f.calls.length, 0);
+  await f.page.getByRole('button', { name: 'Modifier', exact: true }).click(); assert.equal(await f.page.locator('#support-message').inputValue(), SUPPORT_MESSAGE); assert.deepEqual(f.errors, []);
+});
+test('support form: Unicode limits and controls are validated; preview renders markup as text', async t => {
+  const f = await supportPage(t);
+  for (const message of ['court', ' '.repeat(20), 'a'.repeat(4001), 'private\u0085value']) {
+    await f.page.locator('#support-message').fill(message); await f.page.getByRole('button', { name: 'Voir l’aperçu', exact: true }).click(); await f.page.getByRole('alert').waitFor();
+    assert.equal(await f.page.locator('#support-preview').count(), 0);
+  }
+  await supportPreview(f.page, { message: '🏃'.repeat(4000) }); assert.equal(f.calls.length, 0);
+  await f.page.getByRole('button', { name: 'Modifier', exact: true }).click(); await supportPreview(f.page, { message: '<img src=x onerror="window.privateLeak=true"> demande volontaire' });
+  assert.equal(await f.page.locator('#support-preview img').count(), 0); assert.equal(await f.page.evaluate(() => window.privateLeak), undefined); assert.deepEqual(f.errors, []);
+});
+test('support form: uncertain receipt warns on leaving and BFCache does not restore private content', async t => {
+  const f = await supportPage(t); f.response = { abort: true }; await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('alert').filter({ hasText: 'Impossible de confirmer' }).waitFor();
+  assert.equal(await f.page.evaluate(() => { const e = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(e); return e.defaultPrevented; }), true);
+  await f.page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
+  assert.doesNotMatch(await f.page.locator('#help-form').innerText(), /Une demande volontaire|support-fixture@example/);
+  await f.page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))); await f.page.locator('#support-message').waitFor();
+  assert.equal(await f.page.locator('#support-message').inputValue(), ''); assert.equal(f.calls.length, 1); assert.deepEqual(f.errors, []);
+});
+test('support form: controls work by keyboard with focus returned from preview and stable layout', async t => {
+  const f = await supportPage(t); await f.page.locator('#support-message').fill(SUPPORT_MESSAGE);
+  await f.page.getByRole('button', { name: 'Voir l’aperçu', exact: true }).focus(); await f.page.keyboard.press('Enter');
+  await f.page.getByRole('heading', { name: 'Aperçu de ta demande', exact: true }).waitFor();
+  assert.equal(await f.page.locator('#support-preview h3').evaluate(el => el === document.activeElement), true);
+  await f.page.getByRole('button', { name: 'Modifier', exact: true }).focus(); await f.page.keyboard.press('Enter');
+  assert.equal(await f.page.locator('#support-message').evaluate(el => el === document.activeElement), true); assert.deepEqual(f.errors, []);
+});
+test('support form: HTTP deadline is uncertain and keeps the key for a later explicit retry', async t => {
+  const f = await supportPage(t, { hold: true }); await supportPreview(f.page);
+  await f.page.evaluate(() => { const timer = window.setTimeout; window.setTimeout = (fn, ms, ...args) => timer(fn, ms === 45000 ? 50 : ms, ...args); });
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  await f.page.getByRole('alert').filter({ hasText: 'Impossible de confirmer' }).waitFor();
+  assert.equal(await f.page.locator('#support-message').isDisabled(), true); assert.equal(f.calls.length, 1); f.releases[0](f.response); assert.deepEqual(f.errors, []);
+});
+test('support form: a silent session switch is detected before POST and before receipt rendering', async t => {
+  const f = await supportPage(t, { hold: true }); await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  await f.page.evaluate(id => { window.supportSession.user = { ...window.supportSession.user, id }; window.supportVerified = window.supportSession.user; }, SUPPORT_OTHER);
+  f.releases[0](f.response); await f.page.locator('#support-message').waitFor();
+  assert.equal(await f.page.locator('#support-reference').count(), 0); assert.equal(await f.page.locator('#support-message').inputValue(), ''); assert.deepEqual(f.errors, []);
+});
+test('support form: the real local Supabase SDK reads shared session storage and verifies Auth over HTTP', async t => {
+  const f = await newPage(), { page, context } = f; t.after(() => context.close());
+  const now = Math.floor(Date.now() / 1000), account = { id: SUPPORT_USER, email: 'sdk-support@example.test', email_confirmed_at: '2026-10-12T05:00:00Z', is_anonymous: false, app_metadata: {}, user_metadata: {}, aud: 'authenticated' };
+  const token = [Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url'), Buffer.from(JSON.stringify({ sub: SUPPORT_USER, aud: 'authenticated', role: 'authenticated', iat: now, exp: now + 3600 })).toString('base64url'), 'synthetic-signature'].join('.');
+  const authCalls = [], apiCalls = [];
+  await page.route('**/service*', r => r.fulfill({ contentType: 'text/html', body: readFileSync(ROOT + '/dist/service.html', 'utf8').replace('data-support-enabled="false"', 'data-support-enabled="true"') }));
+  await page.route('https://oubmftfufwwzwpgvrcag.supabase.co/auth/v1/user', r => { authCalls.push(r.request().headers().authorization); return r.fulfill({ contentType: 'application/json', body: JSON.stringify(account) }); });
+  await page.route('**/functions/assistance', r => { apiCalls.push({ body: r.request().postDataJSON(), token: r.request().headers().authorization }); return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' }) }); });
+  await page.addInitScript(({ account, token, expires }) => localStorage.setItem('titan_supabase_auth_v1', JSON.stringify({ access_token: token, refresh_token: 'synthetic-refresh-token', token_type: 'bearer', expires_in: 3600, expires_at: expires, user: account })), { account, token, expires: now + 3600 });
+  await page.goto(BASE + '/service', { waitUntil: 'load' }); assert.equal(await page.locator('#help-form').count(), 1);
+  await page.locator('#support-message').waitFor({ timeout: 5000 }); await supportPreview(page); await page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  assert.ok(authCalls.length >= 2); assert.ok(authCalls.every(value => value === `Bearer ${token}`)); assert.equal(apiCalls.length, 1); assert.equal(apiCalls[0].token, `Bearer ${token}`);
+  assert.equal(await page.locator('script[src*="supabase-2.111.0"]').count(), 1); assert.equal(await page.locator('script[src*="config.js"]').count(), 1); assert.deepEqual(f.errors, []);
+});
+test('support form: an old HTTP timeout cannot abort a new account request during late Auth completion', async t => {
+  const f = await supportPage(t, { hold: true }); await supportPreview(f.page);
+  await f.page.evaluate(() => { window.supportTimers = []; const timer = window.setTimeout; window.setTimeout = (fn, ms, ...args) => { if (ms === 45000) { window.supportTimers.push(fn); return timer(() => {}, 90000); } return timer(fn, ms, ...args); }; });
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  await f.page.evaluate(() => { window.supportAuthHold = ['getSession']; }); f.releases[0](f.response);
+  await f.page.waitForFunction(() => typeof window.supportAuthCalls.at(-1)?.release === 'function');
+  await f.page.evaluate(() => { window.supportOldAuthRelease = window.supportAuthCalls.at(-1).release; });
+  await supportSwitch(f.page); await f.page.locator('#support-message').waitFor(); await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f, 2);
+  await f.page.evaluate(() => { window.supportTimers[0](); }); await f.page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(await f.page.locator('#help-form').getAttribute('data-support-state'), 'sending');
+  await f.page.evaluate(() => window.supportOldAuthRelease()); assert.equal(await f.page.locator('#support-form').getAttribute('aria-busy'), 'true');
+  f.releases[1](f.response); await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor(); assert.deepEqual(f.errors, []);
+});
+test('support form: Auth deadline before HTTP keeps a modifiable draft and never posts', async t => {
+  const f = await supportPage(t); await supportPreview(f.page);
+  await f.page.evaluate(() => { window.supportAuthHold = ['getUser']; const timer = window.setTimeout; window.setTimeout = (fn, ms, ...args) => timer(fn, ms === 8000 ? 30 : ms, ...args); });
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.getByRole('alert').filter({ hasText: 'Impossible de vérifier' }).waitFor();
+  assert.equal(f.calls.length, 0); await f.page.getByRole('button', { name: 'Modifier', exact: true }).click(); assert.equal(await f.page.locator('#support-message').inputValue(), SUPPORT_MESSAGE);
+  assert.deepEqual(f.errors, []);
+});
+for (const status of [400, 401, 403, 429]) test(`support form: historical uncertainty keeps its UUID after retry rejection ${status}`, async t => {
+  const f = await supportPage(t); f.response = { abort: true }; await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.getByRole('alert').filter({ hasText: 'Impossible de confirmer' }).waitFor();
+  f.response = { status, body: { error: 'rejected' } };
+  await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).click(); await supportWaitCall(f, 2);
+  await f.page.waitForFunction(() => document.querySelector('#help-form').dataset.supportState !== 'sending');
+  assert.equal(await f.page.locator('#help-form').getAttribute('data-support-state'), 'uncertain');
+  assert.equal(await f.page.getByRole('button', { name: 'Modifier', exact: true }).isVisible(), false);
+  assert.equal(await f.page.locator('#support-message').isDisabled(), true);
+  f.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
+  await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).click();
+  await f.page.getByRole('heading', { name: 'Demande reçue', exact: true }).waitFor();
+  assert.equal(f.calls.length, 3); assert.deepEqual(f.calls[1].body, f.calls[0].body); assert.deepEqual(f.calls[2].body, f.calls[0].body); assert.deepEqual(f.errors, []);
+});
+
 test("assistance: Profile gives a direct visible entry on mobile and desktop", async t => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await newPage(width); t.after(() => context.close());
