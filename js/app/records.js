@@ -7,11 +7,12 @@
   const SP = () => window.TitanSports;
   const I = () => window.TitanInsights;
   const X = () => window.TitanSessions;
+  const B = () => window.TitanSportBrowser;
   const DAY = 86400000;
   const KIND_ORDER = { time: 0, distance: 1, strength: 2, climbing: 3, duration: 9 };
 
   let root = null;
-  let sportFilter = "all";
+  let navigation = null;
 
   const logs = () => window.state?.history || [];
   const value = (r, v = r.value) => F().recordValue(r.unit, v);
@@ -58,33 +59,35 @@
   function render() {
     if (!root) return;
     const list = all();
-    if (!list.length) {
-      root.innerHTML = `<div class="asc-empty"><h2>Tes records naîtront de tes séances</h2><p>Distance la plus longue, temps sur 5 ou 10 km, charge la plus lourde, cotation la plus dure : chaque record garde sa séance source et son contexte.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
-      root.setAttribute("aria-busy", "false");
-      return;
-    }
-    const sports = [...new Set(list.map((r) => r.sport))].sort((a, b) => SP().label(a).localeCompare(SP().label(b), "fr"));
-    if (sportFilter !== "all" && !sports.includes(sportFilter)) sportFilter = "all";
     const recent = recentlyBroken(list);
-    const shown = list.filter((r) => sportFilter === "all" || r.sport === sportFilter);
     const bySport = new Map();
-    for (const r of shown.sort((a, b) => (KIND_ORDER[a.kind] ?? 5) - (KIND_ORDER[b.kind] ?? 5))) {
+    for (const r of list.sort((a, b) => (KIND_ORDER[a.kind] ?? 5) - (KIND_ORDER[b.kind] ?? 5))) {
       if (!bySport.has(r.sport)) bySport.set(r.sport, []);
       bySport.get(r.sport).push(r);
     }
-    root.innerHTML = `
-      ${recent.length && sportFilter === "all" ? `<section class="asc-hero is-record rc-recent"><p class="asc-eyebrow am">Ces 30 derniers jours</p><div class="rc-recent-list">${recent
+    const lastActivity = new Map();
+    for (const l of logs()) {
+      if (l.archived_at || new Date(l.date).getTime() > Date.now()) continue;
+      if (!lastActivity.has(l.sport) || new Date(l.date) > new Date(lastActivity.get(l.sport))) lastActivity.set(l.sport, l.date);
+    }
+    const groups = B().entries([...bySport].map(([sport, records]) => ({ sport, records, last: lastActivity.get(sport), sortLast: records.reduce((last, r) => new Date(r.log.date) > new Date(last || 0) ? r.log.date : last, null) })));
+    const result = navigation.select(groups);
+    const u = navigation.settings;
+    B().preserveFocus(() => { root.innerHTML = `
+      ${recent.length && u.sport === "all" && !u.query && u.scope === "all" && u.family === "all" && result.page === 1 ? `<section class="asc-hero is-record rc-recent"><p class="asc-eyebrow am">Ces 30 derniers jours</p><div class="rc-recent-list">${recent
         .map((r) => `<button type="button" class="rc-recent-item" data-record="${esc(r.id)}"><span class="asc-small asc-muted">${esc(SP().label(r.sport))} · ${esc(r.label)}</span><strong class="asc-num">${esc(value(r))}</strong><span class="asc-small asc-faint">${esc(F().relativeDay(r.log.date))}</span></button>`)
         .join("")}</div></section>` : ""}
-      ${sports.length > 1 ? `<div class="seance-chips jr-fams rc-filter" role="group" aria-label="Sport"><button type="button" class="seance-chip" data-sport-filter="all" aria-pressed="${sportFilter === "all"}">Tous</button>${sports.map((s) => `<button type="button" class="seance-chip" data-sport-filter="${esc(s)}" aria-pressed="${sportFilter === s}">${esc(SP().label(s))}</button>`).join("")}</div>` : ""}
-      ${[...bySport.entries()]
+      ${navigation.controls()}
+      ${!list.length && !u.query && u.scope === "all" ? `<p class="asc-small asc-muted">Tes records naîtront de tes séances, avec leur source et leur contexte. <a href="/training">Enregistrer une séance</a></p>` : ""}
+      ${result.items
         .map(
-          ([sport, recs]) => `<section class="asc-section rc-sport" data-family="${esc(SP().familyOf(sport))}">
-        <div class="asc-section-head"><h2><span class="rc-sport-icon">${icon(SP().FAMILY_ICON[SP().familyOf(sport)])}</span>${esc(SP().label(sport))}</h2><span class="asc-small asc-muted">${recs.length} record${recs.length > 1 ? "s" : ""}</span></div>
-        <div class="rc-grid">${recs.map(cardHtml).join("")}</div></section>`,
+          (s) => `<section class="asc-section rc-sport" data-family="${esc(s.family)}">
+        <div class="asc-section-head"><h2><span class="rc-sport-icon">${icon(SP().FAMILY_ICON[s.family])}</span>${esc(s.label)}</h2><span class="sn-sport-actions">${s.hasData ? `<span class="asc-small asc-muted">${s.records.length} record${s.records.length > 1 ? "s" : ""}</span>` : ""}${B().favoriteButton(s.sport, s.label)}</span></div>
+        ${s.hasData ? `<div class="rc-grid">${s.records.map(cardHtml).join("")}</div>` : `<p class="asc-small asc-muted">Aucune donnée pour ce sport. <a href="/training?sport=${encodeURIComponent(s.sport)}">Enregistrer une séance</a></p>`}</section>`,
         )
         .join("")}
-      <p class="asc-small asc-faint rc-foot">Les records sont recalculés depuis ton journal : une séance corrigée ou archivée les met à jour. Les durées longues ne sont pas des objectifs ; elles restent des repères.</p>`;
+      ${result.total ? "" : navigation.empty()}${navigation.footer()}
+      <p class="asc-small asc-faint rc-foot">Les records sont recalculés depuis ton journal : une séance corrigée ou archivée les met à jour. Les durées longues ne sont pas des objectifs ; elles restent des repères.</p>`; });
     root.setAttribute("aria-busy", "false");
   }
 
@@ -128,21 +131,19 @@
   let booted = false;
   function start() {
     root = document.getElementById("records");
-    if (!root || !window.state?.user || !window.TitanInsights) return;
+    if (!root || !window.state?.user || !window.TitanInsights || !B()) return;
     if (!booted) {
       booted = true;
       SP().ensure();
+      navigation = B().create("records", { sorts: [["alphabetical", "Nom A–Z"], ["recent", "Records les plus récents"]] });
       root.addEventListener("click", (e) => {
-        const f = e.target.closest("[data-sport-filter]");
-        if (f) {
-          sportFilter = f.dataset.sportFilter;
-          return render();
-        }
+        if (navigation.handle(e)) return render();
         const c = e.target.closest("[data-record]");
         if (c) openRecord(c.dataset.record);
       });
+      ["input", "change"].forEach((event) => root.addEventListener(event, (e) => { if (navigation.handle(e)) render(); }));
       const q = new URLSearchParams(location.search).get("sport");
-      if (q) sportFilter = q;
+      if (q) navigation.settings.sport = q;
     }
     render();
   }
