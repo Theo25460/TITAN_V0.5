@@ -23,6 +23,7 @@
 
   let root = null;
   let masteryNavigation = null;
+  let avatarTask = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -122,11 +123,13 @@
     const s = A()?.snapshot;
     const level = D().progression().level;
     const current = s?.avatar || "scout";
+    const avatars = C()?.avatars || [];
+    const tabAvatar = avatars.find(a => a.id === current && a.level <= level) || avatars.find(a => a.level <= level);
     return `<section class="asc-section" id="personnage"><div class="asc-section-head"><h2>Personnage</h2></div>
-      <div class="pf-avatars" role="radiogroup" aria-label="Personnage">${(C()?.avatars || [])
+      <div class="pf-avatars" role="radiogroup" aria-label="Personnage">${avatars
         .map((a) => {
           const locked = a.level > level;
-          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}-s.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
+          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" tabindex="${a.id === tabAvatar?.id ? 0 : -1}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}-s.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
         })
         .join("")}</div></section>`;
   }
@@ -139,7 +142,7 @@
     return `<section class="asc-section" id="reglages"><div class="asc-section-head"><h2>Réglages</h2></div>
       <div class="pf-settings">
         ${guest() ? "" : `<label class="asc-field"><span>Nom affiché</span><span class="pf-inline"><input class="asc-input" id="pf-name" maxlength="24" value="${esc(u.name || "")}" autocomplete="nickname"><button type="button" class="asc-btn asc-btn-secondary" data-save-name>Enregistrer</button></span></label>`}
-        <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
+        <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}" tabindex="${settings.target === n ? 0 : -1}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
         <fieldset class="pf-privacy"><legend class="seance-label">Confidentialité</legend>${guest() ? `<p class="asc-small asc-muted">En mode découverte, rien ne quitte cet appareil.</p>` : PRIVACY.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-privacy="${k}" ${privacy[k] === true ? "checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(help)}</small></span></label>`).join("")}
           <label class="pf-toggle"><input type="checkbox" role="switch" data-analytics ${analytics ? "checked" : ""}><span><strong>Statistiques d’usage</strong><small>Aide à améliorer TITAN. Jamais de santé, de poids, de GPS ni de notes.</small></span></label></fieldset>
       </div></section>`;
@@ -230,9 +233,20 @@
 
   function render() {
     if (!root) return;
+    // Capture focus at render time so a late avatar response cannot reclaim it.
+    const focused = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"]') : null;
+    const attribute = focused?.hasAttribute("data-cadence") ? "data-cadence" : focused?.hasAttribute("data-avatar") ? "data-avatar" : null;
+    const value = attribute ? focused.getAttribute(attribute) : null;
     B().preserveFocus(() => { root.innerHTML = `${heroHtml()}
       <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ...(guest() ? [] : [["public", "Public"]]), ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
       ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`; });
+    if (attribute && document.activeElement === document.body) {
+      const next = [...root.querySelectorAll(`[role="radio"][${attribute}]`)].find(radio => radio.getAttribute(attribute) === value && radio.getAttribute("aria-disabled") !== "true");
+      if (next) {
+        next.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]').forEach(radio => { radio.tabIndex = radio === next ? 0 : -1; });
+        next.focus({ preventScroll: true });
+      }
+    }
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
       root.dataset.scrolled = "1";
@@ -287,6 +301,67 @@
     });
   }
 
+  const avatarContextCurrent = task => task && task.owner === window.state?.user?.id && task.client === window.titanClient
+    && task.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+
+  async function selectAvatar(avatar) {
+    if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
+    if (window.titanAccountTransition?.active) return;
+    if (avatarTask) {
+      avatarTask.next = avatar;
+      return;
+    }
+    const task = { owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch, next: avatar };
+    avatarTask = task;
+    try {
+      // Keep the latest choice while one mutation is pending; the next action
+      // then uses the confirmed revision through the existing adventure engine.
+      while (task.next && avatarTask === task && avatarContextCurrent(task)) {
+        const next = task.next;
+        task.next = null;
+        try {
+          await A().action("avatar", { avatar: next });
+          if (avatarTask !== task || !avatarContextCurrent(task)) return;
+          window.titanShell.refresh();
+          render();
+        } catch (err) {
+          if (avatarTask !== task || !avatarContextCurrent(task)) return;
+          window.titanShell.toast({ type: "warn", message: A().message(err) });
+        }
+      }
+    } finally {
+      if (avatarTask === task) avatarTask = null;
+    }
+  }
+
+  function onRadioKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) return;
+    const radio = e.target.closest('[role="radio"][data-cadence], [role="radio"][data-avatar]');
+    if (!radio || !root.contains(radio)) return;
+    e.preventDefault();
+    if (radio.disabled || radio.getAttribute("aria-disabled") === "true") return;
+    if (e.key === " ") {
+      if (radio.getAttribute("aria-checked") !== "true" || (radio.dataset.avatar && avatarContextCurrent(avatarTask))) radio.click();
+      return;
+    }
+    const group = radio.closest('[role="radiogroup"]');
+    const radios = [...group.querySelectorAll('[role="radio"]')].filter(button => !button.disabled && button.getAttribute("aria-disabled") !== "true");
+    const direction = ["ArrowRight", "ArrowDown"].includes(e.key) ? 1 : -1;
+    const next = radios[(radios.indexOf(radio) + direction + radios.length) % radios.length];
+    group.querySelectorAll('[role="radio"]').forEach(button => { button.tabIndex = button === next ? 0 : -1; });
+    next.focus();
+    if (next.getAttribute("aria-checked") !== "true" || (next.dataset.avatar && avatarContextCurrent(avatarTask))) next.click();
+  }
+
+  function onRadioExit(e) {
+    const group = e.target.closest('[role="radiogroup"]');
+    if (!group || !root.contains(group) || group.contains(e.relatedTarget)) return;
+    const radios = [...group.querySelectorAll('[role="radio"]')];
+    const enabled = radios.filter(radio => !radio.disabled && radio.getAttribute("aria-disabled") !== "true");
+    const entry = enabled.find(radio => radio.getAttribute("aria-checked") === "true") || enabled[0];
+    radios.forEach(radio => { radio.tabIndex = radio === entry ? 0 : -1; });
+  }
+
   function onClick(e) {
     if (masteryNavigation.handle(e)) return renderMastery();
     const b = e.target.closest("button");
@@ -297,10 +372,7 @@
     }
     if (b.dataset.avatar) {
       if (b.getAttribute("aria-disabled") === "true") return window.titanShell.toast({ type: "info", title: "Personnage verrouillé", message: "Il se débloque avec les niveaux, jamais avec un achat." });
-      return A()
-        .action("avatar", { avatar: b.dataset.avatar })
-        .then(() => (window.titanShell.refresh(), render()))
-        .catch((err) => window.titanShell.toast({ type: "warn", message: A().message(err) }));
+      return selectAvatar(b.dataset.avatar);
     }
     if (b.hasAttribute("data-save-name")) {
       const v = window.titanCleanProfileName?.(document.getElementById("pf-name").value) || "";
@@ -392,11 +464,14 @@
   function start() {
     root = document.getElementById("profil");
     if (!root || !window.state?.user || !window.TitanSports || !B()) return;
+    if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
     if (!booted) {
       booted = true;
       SP().ensure();
       masteryNavigation = B().create("mastery", { defaultSort: "mastery", sorts: [["mastery", "Maîtrise la plus élevée"], ["alphabetical", "Nom A–Z"], ["recent", "Pratique la plus récente"]] });
       root.addEventListener("click", onClick);
+      root.addEventListener("keydown", onRadioKey);
+      root.addEventListener("focusout", onRadioExit);
       root.addEventListener("change", onChange);
       root.addEventListener("input", (e) => { if (masteryNavigation.handle(e)) renderMastery(); });
       A()?.refresh?.();
@@ -414,6 +489,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:account-changing", () => { avatarTask = null; });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

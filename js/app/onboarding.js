@@ -41,7 +41,7 @@
     return `<p class="asc-eyebrow cy">2 · Ton rythme</p>
       <h1>Combien de jours actifs par semaine ?</h1>
       <p class="asc-lead">C’est ta cadence. Une semaine où tu l’atteins est une semaine tenue. Pas de série à casser : une semaine calme ne t’enlève rien.</p>
-      <div class="ob-target" role="radiogroup" aria-label="Jours actifs par semaine">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-target="${n}" aria-checked="${target === n}">${n}</button>`).join("")}</div>
+      <div class="ob-target" role="radiogroup" aria-label="Jours actifs par semaine">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-target="${n}" aria-checked="${target === n}" tabindex="${target === n ? 0 : -1}">${n}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${target <= 2 ? "Un départ solide, facile à tenir dans une semaine chargée." : target <= 4 ? "Le rythme le plus courant pour progresser durablement." : "Un rythme soutenu : pense aux jours de récupération."} Modifiable à tout moment depuis le QG.</p>`;
   }
 
@@ -69,10 +69,28 @@
 
   function render() {
     if (!root) return;
+    const focusedTarget = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"][data-target]')?.dataset.target : null;
     const body = [sportsStep, rhythmStep, privacyStep, goStep][step]();
     root.innerHTML = `${progress()}<div class="ob-body">${body}</div>
       ${step < STEPS.length - 1 ? `<div class="ob-nav">${step > 0 ? `<button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button>` : '<span></span>'}<button type="button" class="asc-btn asc-btn-primary" data-next>${step === 0 && !picked.length ? "Passer" : "Continuer"}</button></div>` : step > 0 ? `<div class="ob-nav"><button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button><span></span></div>` : ""}`;
     root.querySelector("h1")?.setAttribute("tabindex", "-1");
+    if (focusedTarget && document.activeElement === document.body) root.querySelector(`[data-target="${focusedTarget}"]`)?.focus({ preventScroll: true });
+  }
+
+  function onRadioKey(e) {
+    if (operation || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) return;
+    const radio = e.target.closest('[role="radio"][data-target]');
+    if (!radio || !root.contains(radio) || radio.disabled) return;
+    e.preventDefault();
+    if (e.key === " ") {
+      if (radio.getAttribute("aria-checked") !== "true") radio.click();
+      return;
+    }
+    const radios = [...radio.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]')];
+    const direction = ["ArrowRight", "ArrowDown"].includes(e.key) ? 1 : -1;
+    const next = radios[(radios.indexOf(radio) + direction + radios.length) % radios.length];
+    next.focus();
+    next.click();
   }
 
   function finish() {
@@ -160,6 +178,7 @@
     target = Math.min(7, Math.max(1, parseInt(u.weeklyGoalSessions, 10) || 3));
     analytics = window.TitanAnalytics?.consent() === "granted";
     render();
+    root.addEventListener("keydown", onRadioKey);
     root.addEventListener("input", (e) => {
       if (operation) return;
       if (e.target.id !== "ob-q") return;

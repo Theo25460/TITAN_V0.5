@@ -501,6 +501,47 @@ async function onboardingToGo(page, { sport = true, target = 4, analytics = fals
   return chosen;
 }
 
+for (const width of [360, 1280]) {
+  test(`onboarding radios: rhythm uses one Tab stop, wraps arrows and saves the keyboard choice at ${width}px`, async t => {
+    const { page, context, errors } = await onboardingPage({ width });
+    t.after(() => context.close());
+    await page.locator("[data-next]").click();
+    const group = page.getByRole("radiogroup", { name: "Jours actifs par semaine" });
+    assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    assert.equal(await page.locator('[data-target="3"]').getAttribute("tabindex"), "0");
+    await page.locator("[data-back]").focus();
+    await page.keyboard.press("Shift+Tab");
+    assert.equal(await page.locator('[data-target="3"]').evaluate(el => el === document.activeElement), true);
+    for (const [key, target] of [["ArrowRight", 4], ["ArrowDown", 5], ["ArrowLeft", 4], ["ArrowUp", 3]]) {
+      await page.keyboard.press(key);
+      assert.equal(await page.locator(`[data-target="${target}"]`).getAttribute("aria-checked"), "true");
+      assert.equal(await page.locator(`[data-target="${target}"]`).evaluate(el => el === document.activeElement), true);
+      assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    }
+    await page.locator('[data-target="1"]').click();
+    await page.keyboard.press("ArrowUp");
+    assert.equal(await page.locator('[data-target="7"]').getAttribute("aria-checked"), "true");
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await page.locator('[data-target="1"]').getAttribute("aria-checked"), "true");
+    await page.locator('[data-target="6"]').focus();
+    await page.keyboard.press("Space");
+    assert.equal(await page.locator('[data-target="6"]').getAttribute("aria-checked"), "true");
+    assert.equal(await page.locator('[data-target="6"]').evaluate(el => el === document.activeElement), true);
+    await page.keyboard.press("Tab");
+    assert.equal(await page.locator("[data-back]").evaluate(el => el === document.activeElement), true);
+    await page.locator("[data-next]").click();
+    await page.locator("[data-back]").click();
+    assert.equal(await page.locator('[data-target="6"]').getAttribute("aria-checked"), "true");
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-radio-onboarding-${width}.png`, fullPage: true });
+    await page.locator("[data-next]").click();
+    await page.locator("[data-next]").click();
+    await page.locator('[data-finish][href="/aujourdhui"]').click();
+    assert.equal(await page.evaluate(() => window.onboardingCalls[0].snapshot.weeklyGoalSessions), 6);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    assert.deepEqual(errors, []);
+  });
+}
+
 test("onboarding finish: repeated activations save consent preferences and completion once", async t => {
   const { page, context, errors } = await onboardingPage();
   t.after(() => context.close());
@@ -4438,6 +4479,210 @@ test("records: 200 sports are paginated, searchable and retain their source sess
   await context.close();
 });
 
+async function profileRadioPage(width) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.goto(BASE + "/profile", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
+  await page.locator('[data-cadence="3"]').waitFor();
+  return fixture;
+}
+
+for (const width of [360, 1280]) {
+  test(`profile radios: cadence wraps, preserves focus through updates and persists at ${width}px`, async t => {
+    const { page, context, errors } = await profileRadioPage(width);
+    t.after(() => context.close());
+    const group = page.getByRole("radiogroup", { name: "Cadence", exact: true });
+    assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    await page.locator('[data-avatar="scout"]').focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.cadence), "3");
+    for (const [key, target] of [["ArrowRight", 4], ["ArrowDown", 5], ["ArrowLeft", 4], ["ArrowUp", 3]]) {
+      await page.keyboard.press(key);
+      await page.waitForFunction(target => document.querySelector(`[data-cadence="${target}"]`)?.getAttribute("aria-checked") === "true", target);
+      assert.equal(await page.evaluate(target => document.activeElement?.dataset.cadence === String(target), target), true);
+    }
+    await page.locator('[data-cadence="1"]').click();
+    await page.waitForFunction(() => document.querySelector('[data-cadence="1"]')?.getAttribute("aria-checked") === "true");
+    await page.keyboard.press("ArrowLeft");
+    await page.waitForFunction(() => document.querySelector('[data-cadence="7"]')?.getAttribute("aria-checked") === "true");
+    await page.keyboard.press("ArrowRight");
+    await page.waitForFunction(() => document.querySelector('[data-cadence="1"]')?.getAttribute("aria-checked") === "true");
+    await page.locator('[data-cadence="6"]').focus();
+    await page.keyboard.press("Space");
+    await page.waitForFunction(() => document.querySelector('[data-cadence="6"]')?.getAttribute("aria-checked") === "true");
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.cadence), "6");
+    assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.hasAttribute("data-analytics")), true);
+    await page.locator("#mastery-query").focus();
+    await page.evaluate(async () => { dispatchEvent(new CustomEvent("titan:history-updated")); await new Promise(requestAnimationFrame); });
+    assert.equal(await page.evaluate(() => document.activeElement.id), "mastery-query");
+    await page.reload({ waitUntil: "load" });
+    await page.locator('[data-cadence="6"][aria-checked="true"]').waitFor();
+    assert.equal(await page.locator('[data-cadence="6"]').getAttribute("tabindex"), "0");
+    assert.equal(await page.evaluate(() => window.state.user.weeklyGoalSessions), 6);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-radio-profile-${width}.png`, fullPage: true });
+    assert.deepEqual(errors, []);
+  });
+
+  test(`profile radios: avatars skip locked choices, retain focus and persist through existing actions at ${width}px`, async t => {
+    const { page, context, errors } = await profileRadioPage(width);
+    t.after(() => context.close());
+    const group = page.getByRole("radiogroup", { name: "Personnage", exact: true });
+    assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    assert.equal(await group.locator('[aria-disabled="true"][tabindex="-1"]').count(), 4);
+    const progression = await page.evaluate(() => ({ xp: window.TitanAdventure.snapshot.xp, level: window.TitanAdventure.snapshot.level }));
+    await page.locator('[data-avatar="scout"]').focus();
+    for (const [key, avatar] of [["ArrowLeft", "ranger"], ["ArrowRight", "scout"], ["ArrowUp", "ranger"], ["ArrowDown", "scout"]]) {
+      await page.keyboard.press(key);
+      await page.locator(`[data-avatar="${avatar}"][aria-checked="true"]`).waitFor();
+      assert.equal(await page.evaluate(avatar => document.activeElement?.dataset.avatar === avatar, avatar), true, key);
+      assert.equal(await group.locator('[tabindex="0"]').count(), 1);
+    }
+    await page.locator('[data-avatar="ranger"]').focus();
+    await page.keyboard.press("Space");
+    await page.locator('[data-avatar="ranger"][aria-checked="true"]').waitFor();
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "ranger");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.cadence), "3");
+    await page.keyboard.press("Shift+Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "ranger");
+    await page.reload({ waitUntil: "load" });
+    await page.locator('[data-avatar="ranger"][aria-checked="true"]').waitFor();
+    assert.deepEqual(await page.evaluate(() => ({ xp: window.TitanAdventure.snapshot.xp, level: window.TitanAdventure.snapshot.level })), progression);
+    assert.deepEqual(errors, []);
+  });
+}
+
+test("profile radios: failed avatar persistence returns Tab entry to the checked unlocked choice", async t => {
+  const { page, context, errors } = await profileRadioPage(360);
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key.startsWith("titan_adventure_v1:")) throw new DOMException("Synthetic write failure", "QuotaExceededError");
+      return write.call(this, key, value);
+    };
+  });
+  await page.locator('[data-avatar="scout"]').focus();
+  await page.keyboard.press("ArrowRight");
+  await page.locator(".asc-toasts").filter({ hasText: "enregistr" }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "ranger");
+  assert.equal(await page.locator('[data-avatar="scout"]').getAttribute("aria-checked"), "true");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "scout");
+  const locked = page.locator('[data-avatar="keeper"]');
+  await locked.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Space");
+  assert.equal(await locked.getAttribute("aria-checked"), "false");
+  assert.equal(await page.locator('[data-avatar="scout"]').getAttribute("aria-checked"), "true");
+  assert.deepEqual(errors, []);
+});
+
+test("profile radios: rapid reversal keeps the last avatar intent and serializes existing actions", async t => {
+  const { page, context, errors } = await profileRadioPage(360);
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    const action = window.TitanAdventure.action;
+    window.radioAvatarCalls = [];
+    window.TitanAdventure.action = async (...args) => {
+      const call = { avatar: args[1].avatar };
+      window.radioAvatarCalls.push(call);
+      await new Promise(resolve => { call.release = resolve; });
+      return action(...args);
+    };
+  });
+  await page.locator('[data-avatar="scout"]').focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForFunction(() => window.radioAvatarCalls.length === 1);
+  await page.keyboard.press("ArrowLeft");
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "scout");
+  assert.equal(await page.evaluate(() => window.radioAvatarCalls.length), 1, "no simultaneous avatar action while the first is pending");
+  await page.evaluate(() => window.radioAvatarCalls[0].release());
+  await page.waitForFunction(() => window.radioAvatarCalls.length === 2, null, { timeout: 2000 });
+  assert.deepEqual(await page.evaluate(() => window.radioAvatarCalls.map(call => call.avatar)), ["ranger", "scout"]);
+  await page.evaluate(() => window.radioAvatarCalls[1].release());
+  await page.locator('[data-avatar="scout"][aria-checked="true"]').waitFor();
+  assert.equal(await page.evaluate(() => window.TitanAdventure.snapshot.avatar), "scout");
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.avatar), "scout");
+  await page.reload({ waitUntil: "load" });
+  await page.locator('[data-avatar="scout"][aria-checked="true"]').waitFor();
+  assert.deepEqual(errors, []);
+});
+
+for (const transition of ["owner round trip", "same owner epoch", "client replacement", "client round trip"]) {
+  test(`profile radios: pending avatar intent is discarded after ${transition}`, async t => {
+    const { page, context, errors } = await profileRadioPage(360);
+    t.after(() => context.close());
+    await page.evaluate(() => {
+      const action = window.TitanAdventure.action;
+      window.radioAvatarCalls = [];
+      window.TitanAdventure.refresh = async () => window.TitanAdventure.snapshot;
+      window.TitanAdventure.action = async (...args) => {
+        window.radioAvatarCalls.push(args[1].avatar);
+        await new Promise(resolve => { window.releaseRadioAvatar = resolve; });
+        return action(...args);
+      };
+    });
+    await page.locator('[data-avatar="scout"]').focus();
+    await page.keyboard.press("ArrowRight");
+    await page.waitForFunction(() => window.radioAvatarCalls.length === 1);
+    await page.keyboard.press("ArrowLeft");
+    await page.evaluate(async transition => {
+      const owner = window.state.user.id, client = window.titanClient;
+      const observedRender = async () => {
+        dispatchEvent(new CustomEvent("titan:history-updated"));
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      };
+      if (transition === "owner round trip") {
+        window.state.user.id = "guest_radio_other";
+        await observedRender();
+        window.state.user.id = owner;
+        await observedRender();
+      } else if (transition === "same owner epoch") {
+        window.titanInvalidateAccountSession(owner);
+        window.titanAccountTransition.active = false;
+        dispatchEvent(new CustomEvent("titan:account-changed"));
+      } else {
+        window.titanClient = {};
+        await observedRender();
+        if (transition === "client round trip") {
+          window.titanClient = client;
+          await observedRender();
+        }
+      }
+      window.releaseRadioAvatar();
+    }, transition);
+    await page.locator('[data-avatar="ranger"][aria-checked="true"]').waitFor();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.deepEqual(await page.evaluate(() => window.radioAvatarCalls), ["ranger"], "the old queued scout intent is not replayed");
+    assert.deepEqual(errors, []);
+  });
+}
+
+test("profile radios: a delayed avatar action never steals focus from outside its group", async t => {
+  const { page, context, errors } = await profileRadioPage(360);
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    const action = window.TitanAdventure.action;
+    window.TitanAdventure.action = async (...args) => {
+      await new Promise(resolve => { window.releaseRadioAvatar = resolve; });
+      return action(...args);
+    };
+  });
+  await page.locator('[data-avatar="scout"]').focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForFunction(() => window.releaseRadioAvatar);
+  await page.locator("#mastery-query").focus();
+  await page.evaluate(() => window.releaseRadioAvatar());
+  await page.locator('[data-avatar="ranger"][aria-checked="true"]').waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement.id), "mastery-query");
+  assert.deepEqual(errors, []);
+});
+
 test("mastery: the 200th sport is reachable, filters survive updates and typing retains focus", async () => {
   const { page, context, errors } = await newPage(360);
   await page.goto(BASE + "/profile", { waitUntil: "load" });
@@ -4869,7 +5114,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
