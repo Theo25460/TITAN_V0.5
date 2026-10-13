@@ -1,0 +1,61 @@
+/* Assistance uses the existing public cards, FAQ and action tokens. */
+.help-topics .pub-card {
+  min-width: 0;
+}
+.help-topic h2,
+#help-categories {
+  scroll-margin-top: 88px;
+}
+#help-contact {
+  scroll-margin-top: 120px;
+}
+.help-topic .pub-cta {
+  margin-top: var(--s4);
+}
+.help-topic .help-contact-row {
+  margin-top: var(--s3);
+}
+.help-topic .pub-faq + p {
+  margin-top: var(--s4);
+}
+.help-contact-copy {
+  max-width: 68ch;
+  display: grid;
+  gap: var(--s3);
+  overflow-wrap: anywhere;
+}
+#help-form {
+  max-width: 68ch;
+  margin-bottom: var(--s5);
+  scroll-margin-top: 100px;
+}
+#help-form[hidden], .help-contact-row [hidden], #help-form [hidden] { display: none !important; }
+.help-form-card, .help-preview, #support-fields {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+}
+#support-fields { border: 0; margin: 0; padding: 0; }
+#support-fields legend, .help-preview h3 { font-weight: 700; margin-bottom: var(--s3); }
+#support-fields select, #support-fields textarea {
+  width: 100%; min-width: 0; box-sizing: border-box;
+  padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r2);
+  background: var(--bg); color: var(--tx); font: inherit;
+}
+#support-fields textarea { resize: vertical; }
+.help-choice { display: flex; gap: var(--s3); align-items: flex-start; }
+.help-choice input { margin-top: 5px; flex-shrink: 0; accent-color: var(--cy); }
+.help-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 30rem; overflow-y: auto; }
+.help-notice { margin-bottom: var(--s3); overflow-wrap: anywhere; }
+.help-preview code { white-space: normal; overflow-wrap: anywhere; user-select: all; }
+#help-form button:disabled { cursor: wait; opacity: .6; }
+#help-form > .asc-btn { margin: 0 var(--s2) var(--s3) 0; }
+.help-report #help-form { margin-top: var(--s4); max-width: none; }
+.help-report .help-form-card { padding: var(--s3) 0; }
+.help-report .pub-cta { display: flex; flex-wrap: wrap; gap: var(--s3); }
+.help-report h3 { font-size: 1.125rem; }
+.help-report a { color: var(--cy); overflow-wrap: anywhere; }
+.help-report [data-report-fallback][hidden] { display: none; }
+.help-report [data-report-close]:disabled { opacity: .5; cursor: wait; }
+.help-report .help-message { max-height: none; }
+.help-report .asc-sheet-head { gap: var(--s3); }
