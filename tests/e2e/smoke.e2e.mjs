@@ -2694,7 +2694,7 @@ test('support report: keyboard preview and dismissal work without overflow on mo
     await f.page.keyboard.press('Escape'); await f.page.waitForFunction(() => !document.querySelector('dialog.help-report')); assert.equal(f.calls.length, 0); assert.deepEqual(f.errors, []);
   }
 });
-async function supportPage(t, { width = 360, enabled = true, user = {}, session = true, verified = null, hold = false } = {}) {
+async function supportPage(t, { width = 360, enabled = true, user = {}, session = true, verified = null, hold = false, analyticsConsent = null, metricHold = false } = {}) {
   const fixture = await newPage(width), { page, context } = fixture;
   fixture.calls = []; fixture.releases = [];
   fixture.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
@@ -2706,23 +2706,111 @@ async function supportPage(t, { width = 360, enabled = true, user = {}, session 
     const result = fixture.hold ? await new Promise(resolve => fixture.releases.push(resolve)) : fixture.response;
     try { if (result.abort) await r.abort('failed'); else await r.fulfill({ status: result.status, contentType: 'application/json', body: JSON.stringify(result.body) }); } catch { /* Closed/aborted request has no late UI continuation. */ }
   });
-  await page.addInitScript(({ id, user, session, verified }) => {
+  await page.addInitScript(({ id, user, session, verified, analyticsConsent, metricHold }) => {
     const account = { id, email: 'support-fixture@example.test', email_confirmed_at: '2026-10-12T05:00:00Z', is_anonymous: false, ...user };
     window.supportSession = session ? { user: account, access_token: 'fake-token-only-support-browser-tests' } : null;
     window.supportVerified = verified || account;
     window.supportAuthCalls = []; window.supportAuthHold = [];
+    const subscriptions = new Set();
+    window.supportMetrics = []; window.supportMetricReleases = []; window.supportMetricHold = metricHold;
+    if (analyticsConsent) localStorage.setItem('titan_privacy_v1', JSON.stringify({ analytics: analyticsConsent }));
+    window.TITAN_SUPABASE_URL = 'https://fixture.invalid'; window.TITAN_SUPABASE_ANON_KEY = 'fake-anon-key';
+    window.supabase = { createClient(_url, _key, options) { return { from() { return { async insert(row) {
+      // Reproduce the SDK's asynchronous token preparation and final guarded native boundary.
+      if (window.supportMetricHold) await new Promise(resolve => window.supportMetricReleases.push(resolve));
+      await options.accessToken();
+      return options.global.fetch('/fixture-support-metric', { method: 'POST', body: JSON.stringify(row) });
+    } }; } }; } };
+    const nativeFetch = window.fetch;
+    window.fetch = (url, options) => {
+      if (url === '/fixture-support-metric') { window.supportMetrics.push(JSON.parse(options.body)); return Promise.resolve({ error: null }); }
+      return nativeFetch(url, options);
+    };
+    window.supportAuthEvent = (event, session) => [...subscriptions].forEach(callback => callback(event, session));
     window.supportClient = { auth: {
       getSession() { const call = { name: 'getSession' }; window.supportAuthCalls.push(call); const result = { data: { session: window.supportSession }, error: null }; return window.supportAuthHold.includes('getSession') ? new Promise(resolve => { call.release = response => resolve(response || result); }) : Promise.resolve(result); },
       getUser(token) { const call = { name: 'getUser', token }; window.supportAuthCalls.push(call); const result = { data: { user: window.supportVerified }, error: null }; return window.supportAuthHold.includes('getUser') ? new Promise(resolve => { call.release = response => resolve(response || result); }) : Promise.resolve(result); },
-      onAuthStateChange(callback) { window.supportAuthEvent = callback; return { data: { subscription: { unsubscribe() {} } } }; }
+      onAuthStateChange(callback) { subscriptions.add(callback); return { data: { subscription: { unsubscribe() { subscriptions.delete(callback); } } } }; }
     } };
     window.initTitanSupabaseClient = () => { window.titanClient = window.supportClient; return window.supportClient; };
-  }, { id: SUPPORT_USER, user, session, verified });
+  }, { id: SUPPORT_USER, user, session, verified, analyticsConsent, metricHold });
   await page.goto(BASE + '/service?private=PRIVATE_SUPPORT_URL', { waitUntil: 'load' });
   assert.equal(await page.locator('#help-form').count(), 1, 'the prepared support interface exists');
   if (enabled) await page.waitForFunction(() => ['editing', 'unavailable'].includes(document.querySelector('#help-form').dataset.supportState), { timeout: 2500 });
   return fixture;
 }
+test('support metrics: granted form openings, explicit category choice and confirmed result are minimal anonymous counters', async t => {
+  const f = await supportPage(t, { analyticsConsent: 'granted' });
+  await f.page.waitForFunction(() => window.supportMetrics.length === 1);
+  await f.page.locator('#support-category').selectOption('titanplus'); await supportPreview(f.page);
+  assert.equal(await f.page.evaluate(() => window.supportMetrics.length), 2);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.locator('#support-reference').waitFor();
+  await f.page.waitForFunction(() => window.supportMetrics.length === 3);
+  const rows = await f.page.evaluate(() => window.supportMetrics);
+  assert.deepEqual(rows.map(r => r.event_name), ['support_opened','support_category_selected','support_submission_result']);
+  assert.deepEqual(rows[2].metadata, { category:'titanplus',result:'received',consent:'granted',v:300 });
+  for (const row of rows) { assert.equal(row.user_id,null); assert.equal(row.source,null); assert.equal(row.referrer,null); assert.equal(row.page,'/service'); }
+  assert.doesNotMatch(JSON.stringify(rows), /PRIVATE|<script>|support-fixture|00000000|diagnostic|request_id|reference/);
+  assert.equal(f.calls.length,1); assert.deepEqual(f.errors,[]);
+});
+test('support metrics: unanswered and denied preferences never track or block the ticket', async t => {
+  for (const analyticsConsent of [null,'denied']) { const f = await supportPage(t,{analyticsConsent}); await supportPreview(f.page);
+    await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.locator('#support-reference').waitFor();
+    assert.equal(await f.page.evaluate(() => window.supportMetrics.length),0); assert.equal(f.calls.length,1);
+  }
+});
+test('support metrics: unresolved collection does not delay reference, navigation or submit controls', async t => {
+  const f = await supportPage(t,{analyticsConsent:'granted',metricHold:true}); await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.locator('#support-reference').waitFor();
+  assert.equal(await f.page.getByRole('button',{name:'Nouvelle demande',exact:true}).isEnabled(),true); assert.equal(await f.page.evaluate(() => window.supportMetrics.length),0);
+  await f.page.getByRole('link',{name:'TITAN, accueil',exact:true}).click(); await f.page.waitForURL(BASE+'/'); assert.equal(f.calls.length,1);
+});
+test('support metrics: consent withdrawal during native preparation cancels counters without changing the ticket', async t => {
+  const f = await supportPage(t,{analyticsConsent:'granted',metricHold:true}); await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.locator('#support-reference').waitFor();
+  await f.page.evaluate(async () => { window.TitanAnalytics.setConsent(false); window.TitanAnalytics.setConsent(true); window.supportMetricHold=false; window.supportMetricReleases.forEach(r=>r()); await new Promise(requestAnimationFrame); });
+  assert.equal(await f.page.evaluate(() => window.supportMetrics.length),0); assert.equal(f.calls.length,1);
+});
+test('support metrics: double confirm sends one outcome; uncertain explicit retry has separate attempt counters', async t => {
+  const f = await supportPage(t,{analyticsConsent:'granted',hold:true}); await supportPreview(f.page);
+  await f.page.evaluate(() => { const b=document.querySelector('[data-support-send]'); for(let i=0;i<3;i++)b.click(); }); await supportWaitCall(f);
+  f.releases.shift()({abort:true}); await f.page.getByRole('button',{name:'Réessayer cette demande',exact:true}).waitFor();
+  f.hold=false; await f.page.getByRole('button',{name:'Réessayer cette demande',exact:true}).click(); await f.page.locator('#support-reference').waitFor();
+  await f.page.waitForFunction(() => window.supportMetrics.filter(r=>r.event_name==='support_submission_result').length===2);
+  const results=await f.page.evaluate(() => window.supportMetrics.filter(r=>r.event_name==='support_submission_result').map(r=>r.metadata.result));
+  assert.deepEqual(results,['uncertain','received']); assert.equal(f.calls.length,2); assert.deepEqual(f.calls[0].body,f.calls[1].body);
+});
+test('support metrics: disabled form keeps the public fallback without SDK or automatic collection', async t => {
+  const f = await supportPage(t,{enabled:false,analyticsConsent:'granted'});
+  assert.equal(await f.page.evaluate(() => window.supportMetrics.length),0); assert.equal(await f.page.evaluate(() => window.supportAuthCalls.length),0); assert.equal(f.calls.length,0);
+});
+test('support metrics: missing or throwing collector leaves receipt functional', async t => {
+  for (const missing of [true,false]) {
+    const f=await supportPage(t,{analyticsConsent:'granted'});
+    await f.page.evaluate(missing=> { window.TitanAnalytics = missing ? null : {track(){throw Error('PRIVATE metric failure');}}; },missing);
+    await supportPreview(f.page); await f.page.getByRole('button',{name:'Confirmer l’envoi',exact:true}).click(); await f.page.locator('#support-reference').waitFor();
+    assert.equal(f.calls.length,1); assert.deepEqual(f.errors,[]);
+  }
+});
+test('support metrics: account round trip cancels pending counters and never revives the old reference', async t => {
+  const f=await supportPage(t,{analyticsConsent:'granted',metricHold:true}); await supportPreview(f.page);
+  await f.page.getByRole('button',{name:'Confirmer l’envoi',exact:true}).click(); await f.page.locator('#support-reference').waitFor();
+  await supportSwitch(f.page,SUPPORT_OTHER); await supportSwitch(f.page,SUPPORT_USER);
+  await f.page.evaluate(async ()=>{window.supportMetricHold=false;window.supportMetricReleases.forEach(r=>r());await new Promise(requestAnimationFrame);});
+  assert.equal(await f.page.evaluate(()=>window.supportMetrics.length),0); assert.equal(await f.page.locator('#support-reference').count(),0); assert.equal(f.calls.length,1);
+});
+test('support metrics: Community diagnostics stay exclusively in the voluntary ticket, never the metric', async t => {
+  const f=await supportReportPage(t), rows=[];
+  await f.page.route('**/rest/v1/analytics_events',r=>{rows.push(r.request().postDataJSON());return r.fulfill({status:201,contentType:'application/json',body:'[]'});});
+  await f.page.evaluate(()=>window.TitanAnalytics.setConsent(true)); await openReport(f);
+  await f.page.locator('#support-diagnostics').check(); await supportPreview(f.page,{reply:true});
+  await f.page.getByRole('button',{name:'Confirmer l’envoi',exact:true}).click(); await f.page.locator('#support-reference').waitFor();
+  for(let i=0;i<100&&rows.length<2;i++)await new Promise(r=>setTimeout(r,10));
+  assert.equal(rows.length,2);assert.deepEqual(rows.map(r=>r.event_name),['support_opened','support_submission_result']);
+  for(const row of rows){assert.equal(row.user_id,null);assert.equal(row.source,null);assert.equal(row.referrer,null);assert.equal(row.page,'/social');}
+  assert.doesNotMatch(JSON.stringify(rows),/diagnostic|COMMUNITY|PRIVATE|00000000|report@example|Mozilla|reference|request_id|message/);
+  assert.match(f.calls[0].body.message,/Diagnostics autorisés/);assert.equal(f.calls.length,1);assert.deepEqual(f.errors,[]);
+});
 async function supportPreview(page, { reply = false, message = SUPPORT_MESSAGE } = {}) {
   await page.locator('#support-message').fill(message);
   if (reply) await page.locator('#support-reply').check();

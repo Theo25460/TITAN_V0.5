@@ -19,6 +19,43 @@ function fixture({consent='granted',getSession,insert}={}){
   return {context,writes,storage,analytics:context.window.TitanAnalytics};
 }
 
+for(const [name,props] of [['support_opened',{}],['support_category_selected',{category:'bug'}],['support_submission_result',{category:'titanplus',result:'received'}]])
+test(`support analytics: ${name} sends anonymous minimal counters after explicit consent`,async()=>{
+  const {context,analytics,writes}=fixture({getSession:()=>{throw Error('support analytics must not read account sessions');}});
+  context.location.pathname='/service';
+  assert.equal(await analytics.track(name,{...props,message:'PRIVATE',reference:'PRIVATE',request_id:'PRIVATE',diagnostics:'PRIVATE',email:'PRIVATE',source:'PRIVATE',sport:'running',count:500}),true);
+  const row=writes[0];assert.equal(row.user_id,null);assert.equal(row.source,null);assert.equal(row.referrer,null);assert.equal(row.page,'/service');
+  assert.deepEqual(JSON.parse(JSON.stringify(row.metadata)),{...props,consent:'granted',v:300});assert.equal(JSON.stringify(row).includes('PRIVATE'),false);
+});
+test('support analytics: unanswered or refused consent never creates even an anonymous counter',async()=>{
+  for(const consent of [null,'denied']){const {context,analytics,writes}=fixture({consent});context.location.pathname='/social';
+    for(const name of ['support_opened','support_category_selected','support_submission_result'])assert.equal(await analytics.track(name,{category:'bug',result:'received'}),false);
+    assert.deepEqual(writes,[]);
+  }
+});
+test('support analytics: only six categories and closed outcomes are accepted, without coercion',async()=>{
+  const {context,analytics,writes}=fixture();context.location.pathname='/social';
+  for(const category of ['bug','compte','titanplus','donnees','communaute','autre'])assert.equal(await analytics.track('support_category_selected',{category}),true);
+  for(const result of ['received','rejected','uncertain','unavailable','offline'])assert.equal(await analytics.track('support_submission_result',{category:'bug',result}),true);
+  const count=writes.length;
+  for(const category of [null,undefined,[],['bug'],12,'PRIVATE',{toString(){throw Error('coerced');}}])assert.equal(await analytics.track('support_category_selected',{category}),false);
+  for(const result of [null,undefined,[],['received'],'PRIVATE'])assert.equal(await analytics.track('support_submission_result',{category:'bug',result}),false);
+  assert.equal(writes.length,count);
+});
+test('support analytics: canonical page allowlist excludes arbitrary paths and URL attribution',async()=>{
+  const {context,analytics,writes}=fixture();
+  for(const [pathname,page] of [['/service','/service'],['/service.html','/service'],['/social','/social'],['/social.html','/social']]){
+    context.location.pathname=pathname;assert.equal(await analytics.track('support_opened'),true);assert.equal(writes.at(-1).page,page);assert.equal(writes.at(-1).source,null);
+  }
+  for(const path of ['/stats','/service/PRIVATE','/social/PRIVATE','/service?PRIVATE']){context.location.pathname=path;assert.equal(await analytics.track('support_opened'),false);}
+  assert.equal(writes.length,4);
+});
+test('support analytics: a failed collector has no automatic retry or persistent support marker',async()=>{
+  const {context,analytics,writes,storage}=fixture({insert:()=>({error:{message:'PRIVATE'}})});context.location.pathname='/service';
+  assert.equal(await analytics.track('support_submission_result',{category:'bug',result:'received'}),false);assert.equal(writes.length,1);
+  assert.equal([...storage.keys()].some(k=>/support|analytics_once/.test(k)),false);
+});
+
 test('analytics: advanced analysis events retain only closed view kinds',async()=>{
   const {analytics,writes}=fixture();
   const cases=[
@@ -170,6 +207,22 @@ test('analytics actual SDK: current events use only the captured session token a
   const f=sdkFixture({delayed:false});assert.equal(await f.analytics.track('analysis_view_created',{kind:'report',name:'private'}),true);
   assert.equal(f.requests.length,1);assert.equal(f.requests[0].authorization,`Bearer token-${A}`);
   assert.equal(f.requests[0].row.user_id,A);assert.deepEqual(JSON.parse(JSON.stringify(f.requests[0].row.metadata)),{kind:'report',consent:'granted',v:300});
+});
+test('support analytics actual SDK: granted counters use the anonymous key and never the account token',async()=>{
+  const f=sdkFixture({delayed:false});f.context.location.pathname='/service';
+  assert.equal(await f.analytics.track('support_submission_result',{category:'bug',result:'received',message:'PRIVATE',request_id:A}),true);
+  assert.equal(f.requests.length,1);assert.equal(f.requests[0].authorization,'Bearer fake-anon-key');assert.equal(f.requests[0].row.user_id,null);
+  assert.deepEqual(JSON.parse(JSON.stringify(f.requests[0].row.metadata)),{category:'bug',result:'received',consent:'granted',v:300});
+});
+for(const change of ['consent','account round trip','client replacement','cross-tab consent','SDK sign out'])
+test(`support analytics actual SDK: ${change} during preparation cancels the counter`,async()=>{
+  const f=sdkFixture();f.context.location.pathname='/social';const sent=f.analytics.track('support_opened');await f.prepared.promise;
+  if(change==='consent'){f.analytics.setConsent(false);f.analytics.setConsent(true);}
+  if(change==='account round trip'){f.context.window.titanAccountTransition.epoch+=2;}
+  if(change==='client replacement')f.context.window.titanClient={...f.client};
+  if(change==='cross-tab consent'){f.storage.set('titan_privacy_v1',JSON.stringify({analytics:'denied'}));f.emit('storage',{key:'titan_privacy_v1'});f.storage.set('titan_privacy_v1',JSON.stringify({analytics:'granted'}));f.emit('storage',{key:'titan_privacy_v1'});}
+  if(change==='SDK sign out')f.authChange('SIGNED_OUT',null);
+  f.token.resolve(f.session(A));assert.equal(await sent,false);assert.deepEqual(f.requests,[]);
 });
 test('analytics consent: the SDK rejects a changed persisted preference before its storage event arrives',async()=>{
   const f=sdkFixture(),sent=f.analytics.track('analysis_report_viewed');await f.prepared.promise;

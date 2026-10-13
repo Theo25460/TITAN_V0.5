@@ -21,6 +21,10 @@
   }
   const canDismiss = () => !pending && !(state.request?.attempted && !state.receipt);
   const listen = (target, name, callback) => target.addEventListener(name, callback, { signal: lifetime.signal });
+  function metric(name, props = {}) {
+    if (!usable()) return;
+    try { Promise.resolve(window.TitanAnalytics?.track(name, props)).catch(() => {}); } catch { /* Support never depends on product measurement. */ }
+  }
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const TOKEN = /^[A-Za-z0-9._~-]{20,8192}$/;
   const CATEGORIES = { bug: 'Bug ou problème technique', compte: 'Compte et connexion', titanplus: 'TITAN+ et remboursement', donnees: 'Données et confidentialité', communaute: 'Communauté et signalement', autre: 'Autre question' };
@@ -170,14 +174,14 @@
   }
   async function send() {
     if (!usable() || !verified || pending || !['preview', 'uncertain', 'received'].includes(state.phase) || state.receipt?.notification === 'sent') return;
-    if (!navigator.onLine) { notice('Hors ligne : reconnecte-toi puis réessaie toi-même. Rien n’est envoyé automatiquement.', true); render(); focus('.help-notice'); return; }
+    if (!navigator.onLine) { metric('support_submission_result', { category: state.draft.category, result: 'offline' }); notice('Hors ligne : reconnecte-toi puis réessaie toi-même. Rien n’est envoyé automatiquement.', true); render(); focus('.help-notice'); return; }
     const previousAttempt = state.request?.attempted === true;
     if (!state.request) {
-      if (typeof crypto.randomUUID !== 'function') { notice('Le formulaire est indisponible pour le moment. Utilise ta messagerie ci-dessous.', true); render(); return; }
+      if (typeof crypto.randomUUID !== 'function') { metric('support_submission_result', { category: state.draft.category, result: 'unavailable' }); notice('Le formulaire est indisponible pour le moment. Utilise ta messagerie ci-dessous.', true); render(); return; }
       state.request = { attempted: false, body: { request_id: crypto.randomUUID(), category: state.draft.category, message: composed(), reply_allowed: state.draft.reply } };
     }
     const job = { client, owner, epoch, request: state.request }; pending = true; state.phase = 'sending'; render();
-    let timer = null;
+    let timer = null, outcome = null;
     try {
       const session = await sessionFor(job, true); await sessionFor(job);
       if (!active(job)) return;
@@ -189,25 +193,32 @@
       const received = data?.accepted === true && typeof data.reference === 'string' && UUID.test(data.reference)
         && ((response.status === 200 && data.notification === 'sent') || (response.status === 202 && data.notification === 'pending'));
       if (received && (!state.receipt || state.receipt.reference === data.reference)) {
+        outcome = 'received';
         state.receipt = { reference: data.reference, notification: data.notification }; state.phase = 'received'; notice('');
       // A rejected retry cannot disprove receipt of an earlier uncertain POST.
       } else if (!state.receipt && !previousAttempt && [400, 401, 403, 429].includes(response.status) && data?.uncertain !== true) {
+        outcome = 'rejected';
         state.request = null; state.phase = 'preview';
         notice({ 400: 'La demande est refusée. Vérifie son contenu.', 401: 'Reconnecte-toi avant de réessayer.', 403: 'Ce compte ne peut pas envoyer de demande. Utilise ta messagerie ci-dessous.', 429: 'Trois nouvelles demandes par heure au maximum. Réessaie plus tard.' }[response.status], true);
       } else throw Error('UNCERTAIN');
     } catch {
       if (!active(job)) return;
+      outcome = state.receipt ? 'unavailable' : job.request.attempted ? 'uncertain' : 'unavailable';
       if (state.receipt) { state.phase = 'received'; notice('Ta demande a déjà été reçue. La vérification de l’alerte est indisponible pour le moment ; garde ta référence.', true); }
       else if (job.request.attempted) { state.phase = 'uncertain'; notice('Impossible de confirmer la réception. Réessaie cette même demande pour éviter un doublon. Garde cet onglet ouvert et ne l’envoie pas aussi par e-mail sans vérifier.', true); }
       else { state.phase = 'preview'; notice('Impossible de vérifier ton compte. Réessaie après avoir vérifié ta connexion.', true); }
     } finally {
       clearTimeout(timer);
-      if (usable() && (active(job) || (job.epoch === epoch && verified?.id === owner && state.request === null))) { pending = false; controller = null; render(); focus(state.receipt ? '#support-result h3' : '.help-notice'); }
+      if (usable() && (active(job) || (job.epoch === epoch && verified?.id === owner && state.request === null))) {
+        pending = false; controller = null; render(); focus(state.receipt ? '#support-result h3' : '.help-notice');
+        if (outcome) metric('support_submission_result', { category: job.request.body.category, result: outcome });
+      }
     }
   }
   listen(root, 'submit', event => { event.preventDefault(); preview(); });
   listen(root, 'input', event => { if (event.target.id === 'support-message') counter(); });
   listen(root, 'change', event => {
+    if (usable() && verified && !pending && state.phase === 'editing' && event.target.id === 'support-category') metric('support_category_selected', { category: event.target.value });
     if (!usable() || !report || pending || state.phase !== 'editing' || event.target.id !== 'support-diagnostics') return;
     state.draft.message = root.querySelector('#support-message').value;
     state.draft.category = root.querySelector('#support-category').value;
@@ -229,6 +240,7 @@
     if (state.receipt) state = fresh();
     if (state.phase === 'editing') { state.draft.message = root.querySelector('#support-message').value; state.draft.reply = root.querySelector('#support-reply').checked; }
     state.draft.category = button.dataset.supportCategory; state.phase = 'editing'; state.request = null; notice(''); render(); focus('#support-message');
+    metric('support_category_selected', { category: state.draft.category });
     root.scrollIntoView({ block: 'start', behavior: 'auto' });
   });
   listen(window, 'beforeunload', event => { if (!canDismiss()) { event.preventDefault(); event.returnValue = ''; } });
@@ -247,6 +259,7 @@
         if (id !== owner || event === 'SIGNED_OUT' || event === 'USER_UPDATED') invalidate(id);
       })?.data?.subscription;
       if (disposed) { subscription?.unsubscribe(); subscription = null; return; }
+      metric('support_opened');
       await checkAccess();
     } catch { if (!usable()) return; verified = null; notice('Le formulaire est indisponible pour le moment. Utilise ta messagerie ci-dessous.', true); render(); }
   }

@@ -1,7 +1,8 @@
 /* TITAN 300 — first-party product analytics, consent-aware and minimal.
    - Only the events below, only the whitelisted properties (never health, weight, GPS, notes or free text).
    - Consent granted: the event is linked to the account so funnels (first → second session) can be read.
-   - No answer yet: anonymous count only (no account, no referrer).  Refused: nothing is sent at all. */
+   - No answer yet: anonymous count only (no account, no referrer).  Refused: nothing is sent at all.
+   - Support counters are always anonymous and require explicit consent; no ticket content or key. */
 (function () {
   "use strict";
   const EVENTS = new Set([
@@ -27,9 +28,15 @@
     "analysis_view_deleted",
     "analysis_view_opened",
     "dynamic_page_opened",
+    "support_opened",
+    "support_category_selected",
+    "support_submission_result",
   ]);
   const ANALYSIS = new Set([...EVENTS].filter(name => name.startsWith("analysis_")));
   const PUBLIC = new Set(["dynamic_page_opened"]);
+  const SUPPORT = new Set(["support_opened", "support_category_selected", "support_submission_result"]);
+  const SUPPORT_CATEGORIES = new Set(["bug", "compte", "titanplus", "donnees", "communaute", "autre"]);
+  const SUPPORT_RESULTS = new Set(["received", "rejected", "uncertain", "unavailable", "offline"]);
   const ONCE = new Set(["signup", "onboarding_completed", "first_session", "second_session", "premium_activated"]);
   const PROPS = { family: /^[a-z]{2,20}$/, sport: /^[a-z0-9_]{2,40}$/, step: /^[a-z0-9_-]{1,30}$/, source: /^[a-z0-9_-]{1,30}$/, plan: /^[a-z0-9_-]{1,30}$/, world: /^[a-z0-9_-]{1,30}$/, chapter: /^\d{1,2}$/, kind: /^[a-z_]{1,20}$/, count: /^\d{1,4}$/ };
   const PRIVACY_KEY = "titan_privacy_v1";
@@ -89,6 +96,12 @@
   }
 
   function clean(props, name) {
+    if (SUPPORT.has(name)) {
+      if (name === "support_opened") return {};
+      if (typeof props?.category !== "string" || !SUPPORT_CATEGORIES.has(props.category)) return null;
+      if (name === "support_category_selected") return { category: props.category };
+      return typeof props.result === "string" && SUPPORT_RESULTS.has(props.result) ? { category: props.category, result: props.result } : null;
+    }
     if (PUBLIC.has(name)) return {};
     if (ANALYSIS.has(name)) {
       return name.startsWith("analysis_view_") && ["report", "comparison"].includes(props?.kind) ? { kind: props.kind } : {};
@@ -124,6 +137,9 @@
     if (!EVENTS.has(name)) return false;
     const c = consent();
     if (c === "denied") return false;
+    const support = SUPPORT.has(name), supportProps = support ? clean(props, name) : null;
+    const supportPage = ["/service", "/service.html"].includes(location.pathname) ? "/service" : ["/social", "/social.html"].includes(location.pathname) ? "/social" : null;
+    if (support && (c !== "granted" || !supportProps || !supportPage)) return false;
     if (!navigator.onLine || !window.titanClient || window.titanAccountTransition?.active) return false;
     const client = window.titanClient, owner = window.state?.user?.id, epoch = window.titanAccountTransition?.epoch, revision = consentSequence, preference = consentSnapshot();
     try { observeAuth(client); } catch { return false; }
@@ -134,7 +150,7 @@
     const unique = ONCE.has(name); let key, locked = false;
     try {
       let userId = null, token = null;
-      if (c === "granted") {
+      if (c === "granted" && !support) {
         const { data, error } = await client.auth.getSession();
         if (error) return false;
         userId = data?.session?.user?.id || null;
@@ -159,10 +175,10 @@
       const { error } = await transport.from("analytics_events").insert({
         user_id: userId,
         event_name: name,
-        page: location.pathname.slice(0, 80),
-        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
+        page: support ? supportPage : location.pathname.slice(0, 80),
+        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) && !support ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
         referrer: null,
-        metadata: { ...clean(props, name), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
+        metadata: { ...(support ? supportProps : clean(props, name)), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
       });
       if (!error && unique) remember(key);
       return !error;
