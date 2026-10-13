@@ -87,7 +87,8 @@
    */
   function cadence(logs, { target = 3, pauses = [], now = new Date(), window = 8 } = {}) {
     const goal = Math.min(7, Math.max(1, Math.round(Number(target) || 3)));
-    const paused = new Set((pauses || []).map((p) => weekKey(p)));
+    // A YYYY-MM-DD pause is a local calendar date, not UTC midnight.
+    const paused = new Set((pauses || []).map((p) => weekKey(typeof p === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p) ? `${p}T12:00:00` : p)));
     const days = new Map();
     for (const l of activeLogs(logs, now)) {
       const wk = weekKey(l.date);
@@ -113,7 +114,8 @@
           fill: Math.round(Math.min(1, active / goal) * 100),
         });
       }
-      cursor = new Date(cursor.getTime() - 7 * DAY);
+      // Calendar subtraction keeps the preceding Monday across DST changes.
+      cursor.setDate(cursor.getDate() - 7);
       cursor.setHours(0, 0, 0, 0);
       cursor = F().weekStart(cursor);
       guard++;
@@ -227,10 +229,11 @@
     return out;
   }
 
-  function weekLogs(logs, start) {
-    const from = F().weekStart(start).getTime();
-    const to = from + 7 * DAY;
-    return activeLogs(logs).filter((l) => {
+  function weekLogs(logs, start, now = new Date()) {
+    const monday = F().weekStart(start);
+    const from = monday.getTime();
+    const to = F().addDays(monday, 7).getTime();
+    return activeLogs(logs, now).filter((l) => {
       const t = new Date(l.date).getTime();
       return t >= from && t < to;
     });
@@ -256,20 +259,20 @@
   /** Weekly recap: last completed week by default. */
   function recap(logs, { now = new Date(), goals = [], current = false } = {}) {
     const thisWeek = F().weekStart(now);
-    const start = current ? thisWeek : new Date(thisWeek.getTime() - 7 * DAY);
+    const start = current ? thisWeek : F().addDays(thisWeek, -7);
     const from = F().weekStart(start).getTime();
-    const to = from + 7 * DAY;
-    const week = summarize(weekLogs(logs, start));
+    const to = F().addDays(start, 7).getTime();
+    const week = summarize(weekLogs(logs, start, now));
     // For the week in progress, compare with the same elapsed part of previous weeks.
-    const elapsed = current ? Math.min(7 * DAY, new Date(now).getTime() - from) : 7 * DAY;
     const previous = [1, 2, 3, 4].map((k) => {
-      const wFrom = from - k * 7 * DAY;
-      return summarize(weekLogs(logs, new Date(wFrom)).filter((l) => new Date(l.date).getTime() - wFrom <= elapsed));
+      const wFrom = F().addDays(start, -k * 7);
+      const cutoff = current ? F().addDays(now, -k * 7).getTime() : F().addDays(wFrom, 7).getTime();
+      return summarize(weekLogs(logs, wFrom, now).filter((l) => new Date(l.date).getTime() <= cutoff));
     });
-    const history = [1, 2, 3, 4].map((k) => summarize(weekLogs(logs, new Date(from - k * 7 * DAY))));
+    const history = [1, 2, 3, 4].map((k) => summarize(weekLogs(logs, F().addDays(start, -k * 7), now)));
     // Weeks before the very first session are not "rest weeks": they are excluded from the baseline.
     const firstAt = Math.min(...activeLogs(logs, now).map((l) => new Date(l.date).getTime()));
-    const withData = previous.filter((_, i) => Number.isFinite(firstAt) && from - i * 7 * DAY > firstAt);
+    const withData = previous.filter((_, i) => Number.isFinite(firstAt) && F().addDays(start, -i * 7).getTime() > firstAt);
     const avg = (key) => (withData.length ? withData.reduce((n, w) => n + w[key], 0) / withData.length : null);
     const baseline = { sessions: avg("sessions"), minutes: avg("minutes"), distance: avg("distance"), weeks: withData.length, partial: current };
     const top = Object.values(week.bySport).sort((a, b) => b.minutes - a.minutes || b.sessions - a.sessions)[0] || null;
