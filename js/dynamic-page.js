@@ -56,18 +56,18 @@
         const target = document.getElementById('dynamic-page');
         const slug = getSlug();
         if (!target) return;
+        updateState(target, true, 'Chargement de la page…');
         if (!slug) {
             renderNotFound(target);
             return;
         }
 
-        const client = await getClient();
-        if (!client) {
-            renderNotFound(target);
-            return;
-        }
-
         try {
+            const client = await getClient();
+            if (!client) {
+                renderNotFound(target);
+                return;
+            }
             const { data, error } = await client
                 .from('dynamic_pages')
                 .select('*')
@@ -98,6 +98,7 @@
                 <h1>${escapeHtml(data.title)}</h1>
                 <div class="dynamic-content">${data.content || ''}</div>
             `;
+            updateState(target, false, 'Page chargée.');
 
             if (typeof window.titanTrackEvent === 'function') {
                 window.titanTrackEvent('dynamic_page_opened', { slug });
@@ -113,9 +114,17 @@
             <div class="dynamic-state">
                 <i class="ri-error-warning-line" aria-hidden="true"></i>
                 <h1>Page introuvable</h1>
-                <span>Cette page n'est pas publiee ou n'existe plus.</span>
+                <span>Cette page n’est pas publiée ou n’existe plus.</span>
+                <div class="dynamic-recovery"><a class="dynamic-back" href="/">Retour à l’accueil</a><a class="dynamic-back" href="/service">Assistance</a></div>
             </div>
         `;
+        updateState(target, false, 'Page indisponible.');
+    }
+
+    function updateState(target, busy, message) {
+        target.setAttribute('aria-busy', String(busy));
+        const status = document.getElementById('dynamic-status');
+        if (status) status.textContent = message;
     }
 
     if (document.readyState === 'loading') {

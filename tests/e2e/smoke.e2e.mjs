@@ -4601,6 +4601,75 @@ test("SEO metadata: sitemap includes every served indexable public canonical", a
   await context.close();
 });
 
+async function cmsLoadingPage(width, rejectClient = false) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/dynamic-page.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/dynamic-page?slug=fixture-public", { waitUntil: "load" });
+  await page.evaluate(rejectClient => {
+    const chain = { select() { return chain; }, eq() { return chain; }, maybeSingle: async () => ({ data: { title: "Contenu public synthétique", content: "<p>Texte publié synthétique.</p>", is_indexable: false } }) };
+    window.waitForTitanSupabase = () => rejectClient ? Promise.reject(new Error("Synthetic client unavailable")) : new Promise(resolve => { window.finishCMSClient = () => resolve({ from: () => chain }); });
+  }, rejectClient);
+  await page.addScriptTag({ path: ROOT + "/js/dynamic-page.js" });
+  return fixture;
+}
+
+test("CMS fallback: pending content is busy, announced and uses the current brand", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await cmsLoadingPage(width);
+    assert.equal(await page.locator("#dynamic-page").getAttribute("aria-busy"), "true");
+    assert.equal(await page.locator("#dynamic-status").count(), 1);
+    assert.equal(await page.locator("#dynamic-status").getAttribute("role"), "status");
+    assert.equal(await page.locator("#dynamic-status").textContent(), "Chargement de la page…");
+    assert.equal(await page.getByText("TITAN OS", { exact: true }).count(), 0);
+    assert.equal(await page.locator(".dynamic-brand").innerText(), "TITAN");
+    await page.evaluate(() => { window.originalCMSStatus = document.getElementById("dynamic-status"); window.finishCMSClient(); });
+    await page.getByRole("heading", { name: "Contenu public synthétique", exact: true }).waitFor();
+    assert.equal(await page.locator("#dynamic-page").getAttribute("aria-busy"), "false");
+    assert.equal(await page.locator("#dynamic-status").textContent(), "Page chargée.");
+    assert.equal(await page.evaluate(() => window.originalCMSStatus === document.getElementById("dynamic-status")), true, "the live region persists across content replacement");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("CMS fallback: a rejected client initialization clears loading and provides recovery", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await cmsLoadingPage(width, true);
+    assert.equal(await page.locator("#dynamic-page h1").textContent(), "Page introuvable");
+    assert.equal(await page.locator("#dynamic-page").getAttribute("aria-busy"), "false");
+    assert.equal(await page.locator("#dynamic-status").textContent(), "Page indisponible.");
+    assert.equal(await page.locator("#dynamic-page").getByRole("link", { name: "Retour à l’accueil" }).getAttribute("href"), "/");
+    assert.equal(await page.locator("#dynamic-page").getByRole("link", { name: "Assistance", exact: true }).getAttribute("href"), "/service");
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("CMS fallback: missing and failed published reads finish with a useful empty state", async () => {
+  for (const content of ["missing", "error"]) {
+    const { page, context, errors } = await publicContentPage({ consent: "denied", content });
+    assert.equal(await page.locator("#dynamic-page").getAttribute("aria-busy"), "false");
+    assert.equal(await page.locator("#dynamic-status").textContent(), "Page indisponible.");
+    assert.equal(await page.getByText("Cette page n’est pas publiée ou n’existe plus.", { exact: true }).count(), 1);
+    const back = page.locator("#dynamic-page").getByRole("link", { name: "Retour à l’accueil" });
+    await back.focus(); await page.keyboard.press("Enter"); await page.waitForURL(BASE + "/");
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("CMS fallback: JavaScript-disabled readers get an explanation instead of endless loading", async () => {
+  for (const width of [360, 1280]) {
+    const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled: false, serviceWorkers: "block" });
+    await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort("internetdisconnected"));
+    const page = await context.newPage(); await page.goto(BASE + "/dynamic-page?slug=fixture-public", { waitUntil: "load" });
+    assert.equal(await page.getByText("Active JavaScript pour afficher ce contenu.", { exact: true }).isVisible(), true);
+    assert.equal(await page.getByText("Chargement...", { exact: true }).isVisible(), false);
+    assert.equal(await page.locator(".dynamic-brand").innerText(), "TITAN");
+    assert.notEqual(await page.locator("#dynamic-page").getAttribute("aria-busy"), "true");
+    await page.getByRole("link", { name: "Assistance", exact: true }).click(); await page.waitForURL(BASE + "/service");
+    await context.close();
+  }
+});
+
 test("SEO metadata: published CMS title description and canonical agree across consumers", async () => {
   const { page, context, errors } = await publicContentPage({ consent: "denied" });
   const result = await renderedPublicMetadata(page);
@@ -4678,7 +4747,7 @@ test("public page analytics: unavailable or missing CMS content creates no openi
   for(const content of ["missing","error"]){
     const {page,context,errors}=await publicContentPage({content});
     assert.equal(await page.evaluate(()=>window.publicTracked),undefined);assert.deepEqual(await page.evaluate(()=>window.publicWrites),[]);
-    assert.equal(await page.locator(".dynamic-back[href='/']").isVisible(),true);
+    assert.equal(await page.locator(".dynamic-nav .dynamic-back[href='/']").isVisible(),true);
     assert.deepEqual(errors,[]);await context.close();
   }
 });
@@ -4800,7 +4869,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
