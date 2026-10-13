@@ -257,11 +257,13 @@
     const acquired = catalog.filter(permanent).length;
     const borrowed = catalog.filter((i) => i.owned && !permanent(i)).length;
     return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${acquired} / ${catalog.length} acquises${borrowed ? ` · ${borrowed} accès TITAN+` : ""}</span></div>
-      <div class="asc-seg at-tabs" role="tablist" aria-label="Type de pièce">${SLOTS.map((s) => `<button type="button" role="tab" data-slot="${s.id}" aria-selected="${s.id === slot}">${esc(s.label)}</button>`).join("")}</div>
+      <div class="asc-seg at-tabs" role="tablist" aria-label="Type de pièce">${SLOTS.map((s) => `<button type="button" role="tab" id="at-tab-${s.id}" data-slot="${s.id}" aria-controls="at-panel-${s.id}" aria-selected="${s.id === slot}" tabindex="${s.id === slot ? 0 : -1}">${esc(s.label)}</button>`).join("")}</div>
+      <div id="at-panel-${slot}" role="tabpanel" aria-labelledby="at-tab-${slot}" tabindex="0">
       <div class="at-filters" role="group" aria-label="Filtrer la collection">${[["all", "Tout"], ["owned", "Acquis"], ["locked", "À débloquer"]].map(([id, label]) => `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-collection="${id}" aria-pressed="${collection === id}">${label}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${esc(meta.hint)}</p>
       ${collection === "owned" ? `<p class="asc-small asc-faint">Tes pièces acquises restent disponibles sans TITAN+. Les accès temporaires sont dans « Tout ».</p>` : ""}
-      <div class="at-grid">${items.length ? items.map(itemHtml).join("") : `<p class="asc-note" data-collection-empty>${collection === "owned" ? "Aucune pièce acquise dans cette catégorie. Découvre ce que tu peux viser dans « À débloquer »." : collection === "locked" ? "Tu as acquis toutes les pièces de cette catégorie." : "Aucune pièce dans cette catégorie pour le moment."}</p>`}</div></section>`;
+      <div class="at-grid">${items.length ? items.map(itemHtml).join("") : `<p class="asc-note" data-collection-empty>${collection === "owned" ? "Aucune pièce acquise dans cette catégorie. Découvre ce que tu peux viser dans « À débloquer »." : collection === "locked" ? "Tu as acquis toutes les pièces de cette catégorie." : "Aucune pièce dans cette catégorie pour le moment."}</p>`}</div></div>
+      ${SLOTS.filter(s => s.id !== slot).map(s => `<div id="at-panel-${s.id}" role="tabpanel" aria-labelledby="at-tab-${s.id}" tabindex="-1" hidden></div>`).join("")}</section>`;
   }
 
   function plusHtml() {
@@ -287,6 +289,7 @@
 
   function render() {
     if (!root) return;
+    const focusedSlot = root.contains(document.activeElement) ? document.activeElement.closest('[role="tab"][data-slot]')?.dataset.slot : null;
     if (guest()) {
       root.innerHTML = `<section class="asc-hero at-wallet"><div class="at-wallet-main"><p class="asc-eyebrow cy">Atelier</p><h2 class="cm-exp-title">Ton style se gagne à l’effort.</h2>
           <p class="asc-lead">Chaque séance rapporte des crédits. Ils débloquent des cadres, des ambiances de carte et des styles de cartes partageables. Rien ici ne change ta progression.</p>
@@ -305,6 +308,26 @@
       <p class="asc-small asc-faint at-foot">Tous les styles du catalogue se gagnent gratuitement par les crédits ou le rang. Une pièce acquise avec tes crédits reste à toi après la fin de TITAN+. L’accès inclus par l’abonnement est temporaire : seules les pièces encore non acquises reviennent au style d’origine.</p>
       ${(data.items || []).some((i) => i.unlock === "plus") ? `<p class="asc-note">${icon("info")}<span>Mise à jour du catalogue en attente : les pièces encore marquées TITAN+ deviendront aussi accessibles avec tes crédits d’activité.</span></p>` : ""}`;
     root.setAttribute("aria-busy", "false");
+    if (focusedSlot) {
+      root.querySelectorAll('.at-tabs [role="tab"]').forEach(tab => { tab.tabIndex = tab.dataset.slot === focusedSlot ? 0 : -1; });
+      root.querySelector(`[role="tab"][data-slot="${focusedSlot}"]`)?.focus({ preventScroll: true });
+    }
+  }
+
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('[role="tab"][data-slot]');
+    if (!tab || !root.contains(tab)) return;
+    const tabs = [...root.querySelectorAll('.at-tabs [role="tab"]')], index = tabs.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs.forEach((button, i) => { button.tabIndex = i === next ? 0 : -1; });
+    tabs[next].focus();
+  }
+
+  function onTabExit(e) {
+    if (!e.target.matches('[role="tab"][data-slot]') || (root.contains(e.relatedTarget) && e.relatedTarget?.closest('.at-tabs'))) return;
+    root.querySelectorAll('.at-tabs [role="tab"]').forEach(tab => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 
   /* ---------- Actions ---------- */
@@ -431,6 +454,8 @@
     if (!root || !window.state?.user || booted) return;
     booted = true;
     root.addEventListener("click", onClick);
+    root.addEventListener("keydown", onTabKey);
+    root.addEventListener("focusout", onTabExit);
     if (location.hash === "#plus") slot = "frame";
     render();
     load().then(() => location.hash && document.getElementById(location.hash.slice(1))?.scrollIntoView());

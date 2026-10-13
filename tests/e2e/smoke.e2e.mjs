@@ -3286,6 +3286,159 @@ async function atelierPage(width, plus = false, legacy = false, existing = null)
   return fixture;
 }
 
+async function coachingTabsPage(width, { unavailable = false, linked = false } = {}) {
+  const fixture = await newPage(width), { page } = fixture;
+  await page.route("**/js/app/coaching.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.goto(BASE + "/coaching", { waitUntil: "load" });
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready");
+  await page.evaluate(linked => {
+    const id = "00000000-0000-4000-8000-000000000123";
+    window.state.user.id = id;
+    window.titanClient = { auth: { getSession: async () => ({ data: { session: { user: { id }, access_token: "synthetic-coaching-tab-token" } } }) } };
+    window.coachingTabCalls = [];
+    const share = { since_date: "2026-10-01", accepted_at: "2026-10-01T12:00:00Z", revision: 1, sport: null, share_details: false, share_notes: false };
+    window.coachingTabFixture = { capacity: 3, invites: [], links: linked ? [
+      { ...share, id: "00000000-0000-4000-8000-000000000301", athlete_id: id, coach_id: "synthetic-other", coach_name: "Coach synthétique" },
+      { ...share, id: "00000000-0000-4000-8000-000000000302", coach_id: id, athlete_id: "synthetic-other", athlete_name: "Sportif synthétique" },
+    ] : [] };
+  }, linked);
+  fixture.hold = new Set(); fixture.pending = [];
+  fixture.waitPending = async count => {
+    for (let i = 0; i < 200; i++) { if (fixture.pending.length >= count) return; await new Promise(resolve => setTimeout(resolve, 10)); }
+    assert.fail(`expected ${count} held coaching responses`);
+  };
+  await page.route("**/rest/v1/rpc/titan_coach_portal", async route => {
+    const action = route.request().postDataJSON().p_action;
+    await page.evaluate(action => window.coachingTabCalls.push(action), action);
+    const body = unavailable ? { message: "UNAVAILABLE" } : action === "snapshot"
+      ? await page.evaluate(() => window.coachingTabFixture) : { rows: [], total: 0, revision: 1 };
+    if (fixture.hold.has(action)) await new Promise(resolve => fixture.pending.push({ action, resolve }));
+    await route.fulfill({ status: unavailable ? 503 : 200, contentType: "application/json", body: JSON.stringify(body) });
+  });
+  await page.addScriptTag({ path: ROOT + "/js/app/coaching.js" });
+  await page.getByRole("tablist", { name: "Mon espace" }).waitFor();
+  if (linked) await page.getByText("Aucune proposition pour le moment.", { exact: true }).waitFor();
+  return fixture;
+}
+
+async function tabFocus(page, index) {
+  await page.waitForFunction(index => document.querySelectorAll('[role="tab"]')[index] === document.activeElement, index, { timeout: 2000 });
+}
+
+async function outsideTabControl(page, root) {
+  await page.evaluate(root => { const button = document.createElement("button"); button.id = "tab-outside-fixture"; button.textContent = "Contrôle extérieur synthétique"; document.getElementById(root).before(button); }, root);
+  return page.locator("#tab-outside-fixture");
+}
+
+for (const component of ["coaching", "atelier"]) {
+  const setup = width => component === "coaching" ? coachingTabsPage(width) : atelierPage(width);
+  test(`tab keyboard: ${component} arrows navigate manually and Enter/Space activate at 360 and 1280 px`, async () => {
+    for (const width of [360, 1280]) {
+      const { page, context, errors } = await setup(width), tabs = page.getByRole("tab"), count = await tabs.count();
+      const calls = () => page.evaluate(component => component === "coaching" ? window.coachingTabCalls : window.atelierCalls, component);
+      const before = await calls();
+      await tabs.first().focus(); await page.keyboard.press("ArrowRight"); await tabFocus(page, 1);
+      assert.equal(await tabs.first().getAttribute("aria-selected"), "true", "arrows do not activate");
+      await page.keyboard.press("End"); await tabFocus(page, count - 1);
+      await page.keyboard.press("ArrowRight"); await tabFocus(page, 0);
+      await page.keyboard.press("ArrowLeft"); await tabFocus(page, count - 1);
+      await page.keyboard.press("Home"); await tabFocus(page, 0);
+      await page.keyboard.press("ArrowDown"); await tabFocus(page, 0);
+      await page.keyboard.press("Control+ArrowRight"); await tabFocus(page, 0);
+      assert.deepEqual(await calls(), before, "focus navigation starts no remote action");
+      await page.keyboard.press("End"); await page.keyboard.press("Enter"); await tabFocus(page, count - 1);
+      assert.equal(await tabs.last().getAttribute("aria-selected"), "true");
+      await page.keyboard.press("Home"); await page.keyboard.press("Space"); await tabFocus(page, 0);
+      assert.equal(await tabs.first().getAttribute("aria-selected"), "true");
+      assert.equal(await page.locator('[role="tab"][aria-selected="true"]').count(), 1);
+      assert.deepEqual(await calls(), before, "empty mode switches and cosmetic filters do not mutate remotely");
+      assert.deepEqual(errors, []); await context.close();
+    }
+  });
+  test(`tab semantics: ${component} has named panels and one tab entry with selected reentry`, async () => {
+    for (const width of [360, 1280]) {
+      const { page, context, errors } = await setup(width), tabs = page.getByRole("tab"), count = await tabs.count();
+      const inspect = () => page.evaluate(() => [...document.querySelectorAll('[role="tab"]')].map(tab => {
+        const panel = document.getElementById(tab.getAttribute("aria-controls"));
+        return { id: tab.id, selected: tab.getAttribute("aria-selected") === "true", tabIndex: tab.tabIndex, panel: panel && { role: panel.getAttribute("role"), label: panel.getAttribute("aria-labelledby"), hidden: panel.hidden, tabIndex: panel.tabIndex } };
+      }));
+      const state = await inspect(); assert.equal(state.length, count);
+      for (const tab of state) { assert.ok(tab.id && tab.panel); assert.equal(tab.panel.role, "tabpanel"); assert.equal(tab.panel.label, tab.id); assert.equal(tab.panel.hidden, !tab.selected); }
+      assert.equal(state.filter(t => t.tabIndex === 0).length, 1);
+      await tabs.first().focus(); await page.keyboard.press("Tab");
+      assert.equal(await page.getByRole("tabpanel").evaluate(el => el === document.activeElement), true, "Tab exits the tablist to its content");
+      await page.keyboard.press("Shift+Tab"); await tabFocus(page, 0);
+      await page.keyboard.press("ArrowRight"); await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab"); await tabFocus(page, 0);
+      await tabs.last().click(); await tabFocus(page, count - 1);
+      const after = await inspect(); assert.equal(after.filter(t => t.selected).length, 1);
+      assert.equal(after.filter(t => !t.panel.hidden).length, 1);
+      assert.equal(after.at(-1).panel.hidden, false);
+      assert.deepEqual(errors, []); await context.close();
+    }
+  });
+}
+
+test("tab focus: coaching keeps a pending tab through snapshot/detail renders without stealing outside focus", async () => {
+  for (const width of [360, 1280]) {
+    const fixture = await coachingTabsPage(width, { linked: true }), { page, context, errors } = fixture;
+    const outsideControl = await outsideTabControl(page, "coaching");
+    fixture.hold.add("sessions"); fixture.hold.add("assignments");
+    await page.getByRole("tab").last().click();
+    await fixture.waitPending(2);
+    await page.getByRole("tab").first().focus();
+    for (const pending of fixture.pending.splice(0)) pending.resolve();
+    await page.getByText("Prépare une séance : l’athlète choisit de l’accepter.", { exact: true }).waitFor(); await tabFocus(page, 0);
+    fixture.hold.clear();
+    for (const outside of [false, true]) {
+      fixture.hold.add("snapshot"); await page.evaluate(() => { window.tabBeforeRefresh = document.querySelector('[role="tab"]'); dispatchEvent(new Event("online")); });
+      await fixture.waitPending(1);
+      if (outside) await outsideControl.focus();
+      else await page.getByRole("tab").first().focus();
+      for (const pending of fixture.pending.splice(0)) pending.resolve();
+      await page.waitForFunction(() => !window.tabBeforeRefresh.isConnected);
+      if (outside) assert.equal(await outsideControl.evaluate(el => el === document.activeElement), true);
+      else await tabFocus(page, 0);
+      fixture.hold.clear();
+    }
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("tab focus: atelier refresh preserves unselected focus and respects an outside control", async () => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await atelierPage(width);
+    const outsideControl = await outsideTabControl(page, "atelier");
+    for (const outside of [false, true]) {
+      await page.getByRole("tab").last().focus();
+      await page.evaluate(() => { const rpc = window.titanClient.rpc; window.titanClient.rpc = name => name === "titan_atelier" ? new Promise(resolve => { window.finishTabRefresh = () => resolve({ data: structuredClone(window.atelierFixture) }); }) : rpc(name); window.tabBeforeRefresh = document.querySelector('[role="tab"]'); dispatchEvent(new Event("online")); });
+      await page.waitForFunction(() => typeof window.finishTabRefresh === "function");
+      if (outside) await outsideControl.focus();
+      await page.evaluate(() => { window.finishTabRefresh(); delete window.finishTabRefresh; });
+      await page.waitForFunction(() => !window.tabBeforeRefresh.isConnected);
+      if (outside) assert.equal(await outsideControl.evaluate(el => el === document.activeElement), true);
+      else await tabFocus(page, 2);
+      assert.equal(await page.getByRole("tab").first().getAttribute("aria-selected"), "true");
+    }
+    assert.deepEqual(errors, []); await context.close();
+  }
+});
+
+test("tab keyboard: unavailable coaching and an empty atelier catalog remain navigable", async () => {
+  for (const width of [360, 1280]) {
+    const coach = await coachingTabsPage(width, { unavailable: true });
+    await coach.page.getByRole("tab").first().focus(); await coach.page.keyboard.press("ArrowRight"); await tabFocus(coach.page, 1);
+    await coach.page.keyboard.press("Space"); await tabFocus(coach.page, 1); assert.equal(await coach.page.getByRole("tab").last().getAttribute("aria-selected"), "true");
+    assert.deepEqual(coach.errors, []); await coach.context.close();
+    const atelier = await atelierPage(width);
+    await atelier.page.evaluate(() => { window.atelierFixture.items = []; dispatchEvent(new Event("online")); });
+    await atelier.page.locator("[data-collection-empty]").waitFor();
+    await atelier.page.getByRole("tab").first().focus(); await atelier.page.keyboard.press("End"); await atelier.page.keyboard.press("Enter"); await tabFocus(atelier.page, 2);
+    assert.equal(await atelier.page.getByRole("tabpanel").getByText("Aucune pièce dans cette catégorie pour le moment.", { exact: true }).count(), 1);
+    assert.deepEqual(atelier.errors, []); await atelier.context.close();
+  }
+});
+
 // Keep the real checkout helper, Atelier and analytics transport; replace only external boundaries.
 async function checkoutPage(width = 360, configured = true, granted = true, existing = null) {
   const fixture = await atelierPage(width, false, false, existing);
@@ -4531,7 +4684,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/app/seance.js", "seance"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
+  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/app/coaching.js", "coaching"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/app/seance.js", "seance"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
@@ -4543,7 +4696,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "main" || marker === "profil" || marker === "onboarding" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
@@ -4559,7 +4712,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   assert.equal(await page.evaluate(() => typeof window.titanSyncAppearance), "function");
   await page.goto(BASE + "/boutique", { waitUntil: "load" });
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.atelier)), false, "first Atelier visit loads permanent-acquisition controls");
-  for (const [path, marker] of [["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"], ["/training?sport=running", "seance"]]) {
+  for (const [path, marker] of [["/coaching", "coaching"], ["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"], ["/training?sport=running", "seance"]]) {
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
   }
