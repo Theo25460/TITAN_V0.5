@@ -26,6 +26,7 @@
   let guild = null;
   let status = "loading";
   let errorText = "";
+  let reportCode = "COMMUNITY_LOAD_FAILED";
   let pending = false; // the server does not offer the Communauté yet
   let sequence = 0;
   let sessionContext = null;
@@ -82,7 +83,8 @@
 
   function closeDialogs() {
     // Sheets on this page can contain names, invitees and actions from the old account.
-    document.querySelectorAll(".asc-sheet[open]").forEach(d => d.close());
+    // The support report owns its account and uncertain-send lifecycle, including offline drafts.
+    document.querySelectorAll(".asc-sheet[open]:not(.help-report)").forEach(d => d.close());
   }
   const sending = () => mutation && current(mutation.job);
   function lockControls(task, scope) {
@@ -188,6 +190,7 @@
       if (!latest()) return;
       errorText = human(e);
       pending = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find the function");
+      reportCode = e?.message === "INVALID_COMMUNITY_RESPONSE" ? "COMMUNITY_RESPONSE_INVALID" : "COMMUNITY_LOAD_FAILED";
       status = "error";
     }
     render();
@@ -357,6 +360,14 @@
     }
     if (status === "offline" || status === "error") {
       root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : pending ? "Communauté bientôt disponible" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p>${status === "error" && pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>`}</div>`;
+      if (status === "error") {
+        const actions = document.createElement('div'); actions.className = 'asc-row-flex';
+        const help = document.createElement('a'); help.className = 'asc-btn asc-btn-ghost'; help.href = '/service#help-communaute'; help.textContent = 'Assistance'; actions.append(help);
+        if (!pending && current(sessionContext) && document.body.dataset.supportEnabled === 'true') {
+          const report = document.createElement('button'); report.type = 'button'; report.className = 'asc-btn asc-btn-secondary'; report.dataset.supportReport = ''; report.textContent = 'Envoyer un rapport'; actions.append(report);
+        }
+        root.querySelector('.asc-empty').append(actions);
+      }
       root.setAttribute("aria-busy", "false");
       return;
     }
@@ -493,6 +504,10 @@
     const b = e.target.closest("button");
     if (!b) return;
     if (b.hasAttribute("data-retry")) return load();
+    if (b.hasAttribute("data-support-report")) {
+      if (status === "error" && !pending && current(sessionContext)) window.TitanSupportReports?.open(reportCode, sessionContext, b);
+      return;
+    }
     const job = viewContext;
     if (!current(job)) return clear("transition");
     if (sending()) return;

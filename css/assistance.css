@@ -50,3 +50,12 @@
 .help-preview code { white-space: normal; overflow-wrap: anywhere; user-select: all; }
 #help-form button:disabled { cursor: wait; opacity: .6; }
 #help-form > .asc-btn { margin: 0 var(--s2) var(--s3) 0; }
+.help-report #help-form { margin-top: var(--s4); max-width: none; }
+.help-report .help-form-card { padding: var(--s3) 0; }
+.help-report .pub-cta { display: flex; flex-wrap: wrap; gap: var(--s3); }
+.help-report h3 { font-size: 1.125rem; }
+.help-report a { color: var(--cy); overflow-wrap: anywhere; }
+.help-report [data-report-fallback][hidden] { display: none; }
+.help-report [data-report-close]:disabled { opacity: .5; cursor: wait; }
+.help-report .help-message { max-height: none; }
+.help-report .asc-sheet-head { gap: var(--s3); }

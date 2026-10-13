@@ -2542,6 +2542,158 @@ const SUPPORT_USER = '00000000-0000-4000-8000-000000000047';
 const SUPPORT_OTHER = '00000000-0000-4000-8000-000000000048';
 const SUPPORT_REFERENCE = '00000000-0000-4000-8000-000000000049';
 const SUPPORT_MESSAGE = 'Une demande volontaire avec <script> sans capture automatique.';
+async function supportReportPage(t, { enabled = true, missing = false, invalid = false, width = 360, hold = false } = {}) {
+  const f = await communityPage({ width }); t.after(() => f.context.close());
+  f.calls = []; f.releases = []; f.hold = hold;
+  f.response = { status: 200, body: { accepted: true, reference: SUPPORT_REFERENCE, notification: 'sent' } };
+  await f.page.route('**/functions/assistance', async r => {
+    f.calls.push({ body: r.request().postDataJSON(), headers: r.request().headers() });
+    const result = f.hold ? await new Promise(resolve => f.releases.push(resolve)) : f.response;
+    try { if (result.abort) await r.abort('failed'); else await r.fulfill({ status: result.status, contentType: 'application/json', body: JSON.stringify(result.body) }); } catch {}
+  });
+  await f.page.evaluate(({ enabled, id }) => {
+    document.body.dataset.supportEnabled = String(enabled);
+    const account = { id, email: 'report@example.test', email_confirmed_at: '2026-10-13T06:00:00Z', is_anonymous: false };
+    window.supportSession = { user: account, access_token: 'fake-token-only-support-report-tests' };
+    window.supportVerified = account; window.supportAuthCalls = []; window.supportAuthHold = []; window.reportUnsubscribed = 0; window.reportCaptures = 0;
+    window.titanClient.auth.getSession = () => {
+      const call = { name: 'getSession' }; window.supportAuthCalls.push(call);
+      return Promise.resolve({ data: { session: window.supportSession } });
+    };
+    window.titanClient.auth.getUser = () => {
+      const call = { name: 'getUser' }; window.supportAuthCalls.push(call);
+      const result = { data: { user: window.supportVerified } };
+      return window.supportAuthHold.includes('getUser') ? new Promise(resolve => { call.release = response => resolve(response || result); }) : Promise.resolve(result);
+    };
+    window.titanClient.auth.onAuthStateChange = callback => { window.supportAuthEvent = callback; return { data: { subscription: { unsubscribe() { window.reportUnsubscribed++; } } } }; };
+    window.initTitanSupabaseClient = () => window.titanClient;
+    if (window.TitanSupportDiagnostics) {
+      const original = window.TitanSupportDiagnostics.capture;
+      window.TitanSupportDiagnostics = { ...window.TitanSupportDiagnostics, capture(...args) { window.reportCaptures++; return original(...args); } };
+    }
+    window.communityHold = ['titan_social_overview']; window.communitySwitch(id);
+  }, { enabled, id: SUPPORT_USER });
+  await f.page.waitForFunction(() => window.communityCalls.some(c => c.owner === window.state.user.id && c.name === 'titan_social_overview'));
+  const index = await f.page.evaluate(() => window.communityCalls.findLastIndex(c => c.name === 'titan_social_overview'));
+  await releaseCommunity(f.page, index, invalid ? { data: { me: { id: SUPPORT_OTHER } } } : { error: { code: missing ? 'PGRST202' : 'PRIVATE_RAW_CODE', message: 'PRIVATE_RAW_ERROR token GPS' } });
+  await f.page.waitForFunction(() => document.querySelector('#communaute').getAttribute('aria-busy') === 'false');
+  return f;
+}
+async function openReport(f) {
+  await f.page.locator('[data-support-report]').click({ timeout: 2500 });
+  await f.page.locator('#support-message').waitFor({ timeout: 2500 });
+}
+test('support report: disabled deployment and expected missing RPC offer canonical help without a report', async t => {
+  for (const options of [{ enabled: false }, { missing: true }]) {
+    const f = await supportReportPage(t, options);
+    assert.equal(await f.page.locator('#communaute a[href="/service#help-communaute"]').count(), 1);
+    assert.equal(await f.page.locator('[data-support-report]').count(), 0); assert.equal(f.calls.length, 0);
+    assert.equal(await f.page.locator('#help-form').count(), 0);
+  }
+});
+test('support report: real error opens one verified voluntary form without diagnostics or POST', async t => {
+  const f = await supportReportPage(t); const calls = await f.page.evaluate(() => window.communityCalls.length);
+  await openReport(f);
+  await f.page.evaluate(() => document.querySelector('[data-support-report]').click());
+  assert.equal(await f.page.locator('dialog.help-report').count(), 1);
+  assert.equal(await f.page.locator('#support-category').inputValue(), 'bug');
+  assert.equal(await f.page.locator('#support-reply').isChecked(), false); assert.equal(await f.page.locator('#support-diagnostics').isChecked(), false);
+  assert.equal(await f.page.evaluate(() => window.reportCaptures), 0); assert.equal(f.calls.length, 0);
+  assert.equal(await f.page.evaluate(() => window.communityCalls.length), calls); assert.deepEqual(f.errors, []);
+});
+test('support report: consent captures only coarse diagnostics, preview is literal and uncheck removes them', async t => {
+  const f = await supportReportPage(t, { invalid: true }); await openReport(f);
+  await f.page.locator('#support-diagnostics').check();
+  const d = await f.page.locator('[data-support-diagnostics-preview]').innerText();
+  assert.match(d, /COMMUNITY_RESPONSE_INVALID/); assert.match(d, /Écran : Communauté/); assert.match(d, /Version : 300.0/); assert.match(d, /Module : 300.4/);
+  assert.doesNotMatch(d, /PRIVATE|Mozilla|token|GPS|report@example|00000000/);
+  assert.equal(await f.page.locator('#support-reply').isChecked(), false);
+  await supportPreview(f.page); assert.match(await f.page.locator('[data-preview-message]').innerText(), /COMMUNITY_RESPONSE_INVALID/);
+  assert.equal(await f.page.locator('#support-preview script').count(), 0);
+  await f.page.getByRole('button', { name: 'Modifier', exact: true }).click(); await f.page.locator('#support-diagnostics').uncheck();
+  await supportPreview(f.page); assert.equal(await f.page.locator('[data-preview-message]').innerText(), SUPPORT_MESSAGE);
+  assert.equal(f.calls.length, 0); assert.equal(await f.page.evaluate(() => window.reportCaptures), 1);
+});
+test('support report: total Unicode limit includes optional diagnostics and never truncates', async t => {
+  const f = await supportReportPage(t); await openReport(f); await f.page.locator('#support-diagnostics').check();
+  await f.page.locator('#support-message').fill('a'.repeat(4000)); await f.page.getByRole('button', { name: 'Voir l’aperçu', exact: true }).click();
+  assert.equal(await f.page.locator('#support-preview').count(), 0); assert.equal(await f.page.locator('#support-message').inputValue(), 'a'.repeat(4000));
+  assert.match(await f.page.locator('.help-notice').innerText(), /4 000/); assert.equal(f.calls.length, 0);
+});
+test('support report: four-field contract, pending guard and stable frozen retry after uncertainty', async t => {
+  const f = await supportReportPage(t, { hold: true }); await openReport(f); await f.page.locator('#support-diagnostics').check(); await supportPreview(f.page, { reply: true });
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  assert.equal(await f.page.locator('[data-report-close]').isDisabled(), true);
+  await f.page.keyboard.press('Escape'); assert.equal(await f.page.locator('dialog.help-report[open]').count(), 1);
+  await f.page.evaluate(() => { const d = document.querySelector('dialog.help-report'); d.dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+  assert.equal(await f.page.locator('dialog.help-report[open]').count(), 1);
+  f.releases.shift()({ abort: true }); await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).waitFor();
+  await f.page.keyboard.press('Escape'); assert.equal(await f.page.locator('dialog.help-report[open]').count(), 1);
+  await f.page.evaluate(() => { window.GAME_SETTINGS.version = '999.9'; window.supportAuthEvent('TOKEN_REFRESHED', window.supportSession); });
+  f.hold = false; await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).click(); await f.page.locator('#support-reference').waitFor();
+  assert.deepEqual(f.calls[1].body, f.calls[0].body); assert.deepEqual(Object.keys(f.calls[0].body).sort(), ['category','message','reply_allowed','request_id']);
+  assert.equal(f.calls[0].body.category, 'bug'); assert.equal(f.calls[0].body.reply_allowed, true); assert.match(f.calls[0].body.message, /Version : 300.0/);
+  assert.doesNotMatch(f.calls[0].body.message, /PRIVATE|Mozilla|GPS|999.9/);
+  await f.page.locator('[data-report-close]').click(); await f.page.waitForFunction(() => !document.querySelector('dialog.help-report'));
+  assert.equal(await f.page.locator('[data-support-report]').evaluate(el => el === document.activeElement), true); assert.equal(await f.page.evaluate(() => window.reportUnsubscribed), 1);
+});
+test('support report: close before Auth completion disposes and reopening has one fresh subscription', async t => {
+  const f = await supportReportPage(t); await f.page.evaluate(() => window.supportAuthHold = ['getUser']);
+  await f.page.locator('[data-support-report]').click(); await f.page.waitForFunction(() => window.supportAuthCalls.some(c => c.name === 'getUser' && c.release));
+  await f.page.locator('[data-report-close]').click(); await f.page.waitForFunction(() => !document.querySelector('dialog.help-report'));
+  await f.page.evaluate(() => { window.supportAuthHold = []; for (const c of window.supportAuthCalls) c.release?.(); }); await openReport(f);
+  assert.equal(await f.page.locator('#support-message').inputValue(), ''); assert.equal(await f.page.evaluate(() => window.reportUnsubscribed), 1);
+  await supportPreview(f.page); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.locator('#support-reference').waitFor(); assert.equal(f.calls.length, 1);
+});
+test('support report: account transition during HTTP closes, purges and ignores a late receipt', async t => {
+  const f = await supportReportPage(t, { hold: true }); await openReport(f); await f.page.locator('#support-diagnostics').check(); await supportPreview(f.page);
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await supportWaitCall(f);
+  await f.page.evaluate(id => window.communitySwitch(id, false), SUPPORT_OTHER);
+  await f.page.waitForFunction(() => !document.querySelector('dialog.help-report'));
+  f.releases.shift()(f.response); assert.equal(await f.page.locator('#support-reference').count(), 0); assert.equal(await f.page.evaluate(() => window.reportUnsubscribed), 1);
+});
+test('support report: silent SDK owner mismatch cannot mount a form or post', async t => {
+  const f = await supportReportPage(t); await f.page.evaluate(id => { window.supportSession.user.id = id; window.supportVerified.id = id; }, SUPPORT_OTHER);
+  await f.page.locator('[data-support-report]').click(); await f.page.waitForFunction(() => !document.querySelector('dialog.help-report'));
+  assert.equal(f.calls.length, 0); assert.equal(await f.page.locator('#support-message').count(), 0);
+});
+test('support report: offline preserves an uncertain report and reconnect never submits it', async t => {
+  const f = await supportReportPage(t); await openReport(f); await supportPreview(f.page); f.response = { abort: true };
+  await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click(); await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).waitFor();
+  await f.context.setOffline(true); await f.page.waitForFunction(() => !navigator.onLine);
+  assert.equal(await f.page.locator('dialog.help-report[open]').count(), 1); assert.equal(await f.page.locator('[data-report-close]').isDisabled(), true);
+  await f.page.getByRole('button', { name: 'Réessayer cette demande', exact: true }).click(); assert.equal(f.calls.length, 1);
+  await f.context.setOffline(false); await f.page.waitForFunction(() => navigator.onLine); await f.page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(f.calls.length, 1); assert.equal(await f.page.locator('dialog.help-report[open]').count(), 1);
+});
+test('support report: transition during pending Auth disposes and a late verified user cannot POST', async t => {
+  const f = await supportReportPage(t); await openReport(f); await f.page.locator('#support-diagnostics').check(); await supportPreview(f.page);
+  await f.page.evaluate(() => window.supportAuthHold = ['getUser']); await f.page.getByRole('button', { name: 'Confirmer l’envoi', exact: true }).click();
+  await f.page.waitForFunction(() => window.supportAuthCalls.some(c => c.release));
+  await f.page.evaluate(id => { window.communitySwitch(id, false); for (const c of window.supportAuthCalls) c.release?.(); }, SUPPORT_OTHER);
+  await f.page.waitForFunction(() => !document.querySelector('dialog.help-report')); assert.equal(f.calls.length, 0); assert.equal(await f.page.evaluate(() => window.reportUnsubscribed), 1);
+});
+test('support report: silent application identity change before confirmation purges instead of posting', async t => {
+  const f = await supportReportPage(t); await openReport(f); await supportPreview(f.page);
+  await f.page.evaluate(id => { window.state.user.id = id; document.querySelector('[data-support-send]').click(); }, SUPPORT_OTHER);
+  await f.page.waitForFunction(() => !document.querySelector('dialog.help-report')); assert.equal(f.calls.length, 0);
+});
+test('support report: an anonymous verified response retains only the account fallback', async t => {
+  const f = await supportReportPage(t); await f.page.evaluate(() => window.supportVerified.is_anonymous = true);
+  await f.page.locator('[data-support-report]').click(); await f.page.waitForFunction(() => document.querySelector('#help-form')?.dataset.supportState === 'unavailable');
+  assert.equal(await f.page.locator('#support-form').count(), 0); assert.equal(await f.page.locator('dialog.help-report a[href^="mailto:"]').count(), 1); assert.equal(f.calls.length, 0); assert.equal(await f.page.evaluate(() => window.reportCaptures), 0);
+});
+test('support report: keyboard preview and dismissal work without overflow on mobile and desktop', async t => {
+  for (const width of [360,1280]) {
+    const f = await supportReportPage(t, { width }); await f.page.locator('[data-support-report]').focus(); await f.page.keyboard.press('Enter'); await f.page.locator('#support-message').waitFor();
+    await f.page.locator('#support-message').fill(SUPPORT_MESSAGE); await f.page.locator('#support-diagnostics').check();
+    await f.page.getByRole('button', { name: 'Voir l’aperçu', exact: true }).focus(); await f.page.keyboard.press('Enter');
+    assert.equal(await f.page.locator('#support-preview h3').evaluate(el => el === document.activeElement), true);
+    assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await f.page.screenshot({ path: `/tmp/titan-support-report-${width}.png`, fullPage: true });
+    await f.page.keyboard.press('Escape'); await f.page.waitForFunction(() => !document.querySelector('dialog.help-report')); assert.equal(f.calls.length, 0); assert.deepEqual(f.errors, []);
+  }
+});
 async function supportPage(t, { width = 360, enabled = true, user = {}, session = true, verified = null, hold = false } = {}) {
   const fixture = await newPage(width), { page, context } = fixture;
   fixture.calls = []; fixture.releases = [];
