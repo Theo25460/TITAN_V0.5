@@ -32,7 +32,7 @@
     { id: "communaute", label: "Communauté", href: "/social", icon: "group" },
     { id: "coaching", label: "Coaching", href: "/coaching", icon: "shield" },
     { id: "atelier", label: "Atelier", href: "/boutique", icon: "sparkle" },
-    { id: "aide", label: "Aide", href: "/service", icon: "help" },
+    { id: "aide", label: "Assistance", href: "/service", icon: "help" },
   ];
   /* Pages of a territory; a page opts in with <nav class="asc-subnav" data-subnav></nav>. */
   const SUBNAV = {
@@ -166,7 +166,7 @@
     top.innerHTML = `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
       ${isHome ? '<span style="flex:1"></span>' : ""}
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Aide"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Assistance"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
       <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
         <span class="asc-sync" data-state="${syncState.state}"></span>
         <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>

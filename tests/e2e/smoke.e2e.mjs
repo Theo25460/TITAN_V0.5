@@ -3068,6 +3068,110 @@ for (const status of [400, 401, 403, 429]) test(`support form: historical uncert
   assert.equal(f.calls.length, 3); assert.deepEqual(f.calls[1].body, f.calls[0].body); assert.deepEqual(f.calls[2].body, f.calls[0].body); assert.deepEqual(f.errors, []);
 });
 
+// Assistance navigation labels: keep the shared route and contextual hints.
+test("assistance labels: sidebar and Plus expose Assistance and keep navigation context", async t => {
+  for (const width of [360, 1280]) {
+    const { page, context, errors } = await newPage(width); t.after(() => context.close());
+    await page.goto(BASE + "/aujourdhui", { waitUntil: "load" });
+    const rail = page.locator('.asc-rail');
+    const assistance = rail.getByRole('link', { name: 'Assistance', exact: true, includeHidden: true });
+    assert.equal(await assistance.count(), 1);
+    assert.equal(await assistance.getAttribute('href'), '/service');
+    assert.equal(await rail.locator('a[aria-current="page"]').getAttribute('href'), '/aujourdhui');
+    assert.deepEqual(await rail.locator('.asc-rail-sub a').evaluateAll(links => links.map(link => [link.textContent.trim(), link.getAttribute('href')])), [
+      ['Communauté', '/social'], ['Coaching', '/coaching'], ['Atelier', '/boutique'], ['Assistance', '/service'],
+    ]);
+    if (width === 1280) {
+      assert.equal(await assistance.isVisible(), true);
+      await assistance.focus(); await page.keyboard.press('Enter');
+    } else {
+      const more = page.getByRole('button', { name: 'Plus : Communauté, Coaching, Atelier, Assistance', exact: true });
+      await more.focus(); await page.keyboard.press('Enter');
+      const dialog = page.getByRole('dialog', { name: 'Plus', exact: true });
+      const menu = dialog.getByRole('navigation', { name: 'Plus', exact: true });
+      assert.deepEqual(await menu.locator('.asc-row-sub').allTextContents(), [
+        'Expéditions, amis, défis, guilde', 'Partager tes séances avec un coach, sous ton contrôle', 'Personnalisation et TITAN+', 'Questions, contact, signaler un problème',
+      ]);
+      await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'detached' });
+      assert.equal(await more.evaluate(el => el === document.activeElement), true);
+      await page.keyboard.press('Enter');
+      const link = page.getByRole('dialog', { name: 'Plus', exact: true }).getByRole('link', { name: 'Assistance Questions, contact, signaler un problème', exact: true });
+      assert.equal(await link.getAttribute('href'), '/service');
+      await link.focus(); await page.keyboard.press('Enter');
+    }
+    await page.waitForURL(BASE + '/service');
+    assert.equal(new URL(page.url()).pathname, '/service');
+    assert.equal(await page.getByRole('heading', { name: 'Assistance', exact: true }).count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    // The public service page has no app shell. Exercise the preserved secondary
+    // territory identity through the existing shell refresh API on an app page.
+    await page.goto(BASE + '/aujourdhui', { waitUntil: 'load' });
+    await page.evaluate(() => { document.body.dataset.territory = 'aide'; window.titanShell.refresh(); });
+    await page.waitForFunction(() => document.querySelector('.asc-rail a[href="/service"]')?.getAttribute('aria-current') === 'page');
+    assert.equal(await page.locator('[data-shell-more]').getAttribute('aria-current'), 'page');
+    assert.equal(await page.locator('.asc-tabbar [aria-current="page"]').count(), 0);
+    if (width === 360) {
+      await page.locator('[data-shell-more]').click();
+      const link = page.getByRole('dialog', { name: 'Plus', exact: true }).locator('a[href="/service"]');
+      assert.equal(await link.getAttribute('aria-current'), 'page');
+      assert.equal(await link.locator('.asc-row-title').textContent(), 'Assistance');
+    }
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("assistance labels: public footers and authentication links share the destination name", async t => {
+  const paths = readdirSync(ROOT).filter(name => name.endsWith('.html') && name !== 'dynamic-page.html' && /<a\b[^>]*href="\/service"/.test(readFileSync(ROOT + '/' + name, 'utf8')));
+  const { page, context, errors } = await newPage(360); t.after(() => context.close());
+  for (const filename of paths) {
+    await page.goto(BASE + '/' + filename.replace(/\.html$/, ''), { waitUntil: 'load' });
+    const links = page.locator('a[href="/service"]');
+    assert.ok(await links.count() > 0, filename);
+    for (const link of await links.all()) assert.equal((await link.textContent()).trim(), 'Assistance', filename);
+  }
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: width === 360 ? 844 : 900 });
+    for (const path of ['/login', '/update-password', '/']) {
+      await page.goto(BASE + path, { waitUntil: 'load' });
+      const navigation = page.locator(path === '/' ? '.pub-footer' : '.auth-legal');
+      const link = navigation.getByRole('link', { name: 'Assistance', exact: true });
+      assert.equal(await link.getAttribute('href'), '/service');
+      await link.focus(); await page.keyboard.press('Enter');
+      await page.waitForURL(BASE + '/service');
+      assert.equal(new URL(page.url()).pathname, '/service');
+      assert.equal(await page.getByRole('heading', { name: 'Assistance', exact: true }).count(), 1);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    }
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("assistance labels: every shell consumer bypasses the previous cached label on first visit", async t => {
+  const context = await browser.newContext({ viewport: { width: 360, height: 844 }, serviceWorkers: 'allow' });
+  t.after(() => context.close());
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort('internetdisconnected'));
+  const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto(BASE + '/aujourdhui', { waitUntil: 'load' });
+  await page.evaluate(() => localStorage.setItem('titan_sw_dev', '1'));
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => navigator.serviceWorker.controller);
+  const shell = await (await fetch(BASE + '/js/app/shell.js')).text();
+  await page.evaluate(async shell => {
+    const cache = await caches.open('titan-os-v300-ascension');
+    const stale = shell.replaceAll('Assistance', 'Aide') + '\nwindow.titanPreviousAssistanceShell = true;';
+    for (const version of ['300.0', '300.2', '300.3']) await cache.put('/js/app/shell.js?v=' + version, new Response(stale, { headers: { 'content-type': 'text/javascript' } }));
+  }, shell);
+  const consumers = readdirSync(ROOT).filter(name => name.endsWith('.html') && /src="\/js\/app\/shell\.js\?/.test(readFileSync(ROOT + '/' + name, 'utf8')));
+  assert.equal(consumers.length, 14, 'all current shell consumers are exercised');
+  for (const filename of consumers) {
+    const path = '/' + filename.replace(/\.html$/, '') + (filename === 'onboarding.html' ? '?again=1' : '');
+    await page.goto(BASE + path, { waitUntil: 'load' });
+    assert.equal(await page.evaluate(() => Boolean(window.titanPreviousAssistanceShell)), false, filename + ': first visit loads the current Assistance shell');
+    if (await page.locator('.asc-rail').count()) assert.equal(await page.locator('.asc-rail').getByRole('link', { name: 'Assistance', exact: true, includeHidden: true }).count(), 1, filename);
+  }
+  assert.deepEqual(errors, []);
+});
+
 test("assistance: Profile gives a direct visible entry on mobile and desktop", async t => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await newPage(width); t.after(() => context.close());
