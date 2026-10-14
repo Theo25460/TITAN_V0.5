@@ -4,6 +4,7 @@
   const $ = (id) => document.getElementById(id);
   let saving = false;
   let interacted = false;
+  let localError = null;
   document.querySelectorAll("[data-mark]").forEach((el) => (el.innerHTML = window.titanMark?.() || ""));
   const reveal = document.querySelector("[data-reveal]");
   reveal.innerHTML = window.titanIcon?.("eye") || "";
@@ -19,6 +20,32 @@
     m.textContent = text || "";
     m.dataset.kind = type;
   };
+  function clearLocalError() {
+    if (!localError) return;
+    const field = localError.field;
+    field.removeAttribute("aria-invalid");
+    const refs = (field.getAttribute("aria-describedby") || "").split(/\s+/).filter(id => id && id !== "pw-msg");
+    if (refs.length) field.setAttribute("aria-describedby", refs.join(" "));
+    else field.removeAttribute("aria-describedby");
+    localError = null;
+  }
+  function invalidField(id, text) {
+    clearLocalError();
+    say(text);
+    const field = $(id);
+    localError = { field, confirmation: id === "pw2" };
+    field.setAttribute("aria-invalid", "true");
+    const refs = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+    refs.add("pw-msg");
+    field.setAttribute("aria-describedby", [...refs].join(" "));
+    field.focus();
+  }
+  for (const event of ["input", "change"]) $("pw-form").addEventListener(event, e => {
+    if (saving || !localError) return;
+    if (e.target !== localError.field && !(localError.confirmation && (e.target === $("pw") || e.target === $("pw2")))) return;
+    clearLocalError();
+    say("");
+  });
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
 
   let ready = false;
@@ -43,9 +70,10 @@
     e.preventDefault();
     if (saving) return;
     interacted = true;
+    clearLocalError();
     const pw = $("pw").value;
-    if (pw.length < 8) return say("Choisis un mot de passe d’au moins 8 caractères."), $("pw").focus();
-    if (pw !== $("pw2").value) return say("Les deux mots de passe ne correspondent pas."), $("pw2").focus();
+    if (pw.length < 8) return invalidField("pw", "Choisis un mot de passe d’au moins 8 caractères.");
+    if (pw !== $("pw2").value) return invalidField("pw2", "Les deux mots de passe ne correspondent pas.");
     const c = client();
     if (!c) return say("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
     const form = $("pw-form");

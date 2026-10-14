@@ -495,6 +495,79 @@ async function fillPassword(page, value = "synthetic-password") {
   await page.locator("#pw2").fill(value);
 }
 
+async function passwordInvalidField(page, id, text) {
+  await page.getByRole("alert").filter({ hasText: text }).waitFor();
+  const field = page.locator(`#${id}`);
+  assert.equal(await field.getAttribute("aria-invalid"), "true");
+  assert.equal(await field.evaluate(el => document.activeElement === el), true);
+  assert.equal(await field.evaluate(el => (el.getAttribute("aria-describedby") || "").split(/\s+/).some(id => document.getElementById(id)?.id === "pw-msg")), true);
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 0);
+}
+for (const width of [360, 1280]) {
+  test(`password validation: length and mismatch identify their fields and either password can correct confirmation at ${width}px`, async t => {
+    const { page, context, errors } = await passwordPage({ width });
+    t.after(() => context.close());
+    await fillPassword(page, "short");
+    await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+    await passwordInvalidField(page, "pw", "8 caractères");
+    await page.keyboard.press("Control+A"); await page.keyboard.type("synthetic-password");
+    assert.equal(await page.locator('[aria-invalid="true"]').count(), 0);
+    assert.equal(await page.locator("#pw-msg").isHidden(), true);
+    await page.locator("#pw2").fill("different-password");
+    await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+    await passwordInvalidField(page, "pw2", "ne correspondent pas");
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-password-validation-${width}.png`, fullPage: true });
+    await page.locator("#pw").focus(); await page.keyboard.press("Control+A"); await page.keyboard.type("different-password");
+    assert.equal(await page.locator('[aria-invalid="true"]').count(), 0, "editing the first password clears its confirmation dependency");
+    assert.equal(await page.locator("#pw-msg").isHidden(), true);
+    await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+    await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+    assert.equal(await page.locator('[aria-invalid="true"]').count(), 0, "server error remains generic");
+    assert.equal(await page.evaluate(() => window.passwordCalls.length), 1);
+    assert.deepEqual(errors, []);
+  });
+}
+test("password validation: correcting confirmation retains preexisting help and never erases a generic server error", async t => {
+  const { page, context, errors } = await passwordPage();
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.locator("#pw2").evaluate(el => { const hint=document.createElement("p"); hint.id="pw-existing-help"; hint.textContent="Synthetic help"; el.after(hint); el.setAttribute("aria-describedby",hint.id); });
+  await page.locator("#pw2").fill("different-password");
+  await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+  await passwordInvalidField(page, "pw2", "ne correspondent pas");
+  await page.keyboard.press("Control+A"); await page.keyboard.type("synthetic-password");
+  assert.equal(await page.locator("#pw2").getAttribute("aria-describedby"), "pw-existing-help");
+  await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  await page.locator("#pw2").fill("edited-password");
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  assert.deepEqual(errors, []);
+});
+test("password validation: pending updates ignore synthetic edits and submits", async t => {
+  const { page, context, errors } = await passwordPage({ hold: true });
+  t.after(() => context.close());
+  await fillPassword(page);
+  await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+  await page.getByRole("status").filter({ hasText: "Enregistrement" }).waitFor();
+  await page.evaluate(() => { document.querySelector("#pw").value="x"; document.querySelector("#pw").dispatchEvent(new Event("input",{bubbles:true})); document.querySelector("#pw-form").dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})); });
+  assert.equal(await page.locator('[aria-invalid="true"]').count(), 0);
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 1);
+  assert.equal(await page.evaluate(() => window.passwordCalls[0].params.password), "synthetic-password");
+  await page.evaluate(() => window.passwordCalls[0].release());
+  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  assert.deepEqual(errors, []);
+});
+test("password validation: delayed session diagnostics preserve local field guidance", async t => {
+  const { page, context, errors } = await passwordPage({ clock: true, session: false, sessionError: true });
+  t.after(() => context.close());
+  await fillPassword(page,"short");
+  await page.locator("#pw-save").focus(); await page.keyboard.press("Enter");
+  await passwordInvalidField(page,"pw","8 caractères");
+  await page.clock.fastForward(1300);
+  await passwordInvalidField(page,"pw","8 caractères");
+  assert.deepEqual(errors, []);
+});
+
 test("password recovery: repeated submissions reserve one update before awaiting auth", async t => {
   const { page, context, errors } = await passwordPage({ hold: true });
   t.after(() => context.close());
@@ -5279,7 +5352,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
