@@ -258,6 +258,88 @@ test("auth pending actions: a failed signin returns keyboard focus to its retry 
   await context.close();
 });
 
+async function authInvalidField(page, name, text) {
+  const field = page.locator(`[name="${name}"]`);
+  await page.getByRole("alert").filter({ hasText: text }).waitFor();
+  assert.equal(await field.getAttribute("aria-invalid"), "true", `${name} marked invalid`);
+  assert.equal(await field.evaluate(el => document.activeElement === el), true, `${name} focused`);
+  assert.equal(await field.evaluate(el => (el.getAttribute("aria-describedby") || "").split(/\s+/).some(id => document.getElementById(id)?.classList.contains("auth-msg"))), true, `${name} linked to its actual error`);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 0, "local invalid data never reaches Auth");
+  assert.equal(await page.evaluate(() => window.authValidationConsentCalls?.length || 0), 0, "local invalid data never writes consent");
+}
+
+for (const width of [360, 1280]) {
+  test(`auth validation: signin links errors, focuses correction and leaves server failures generic at ${width}px`, async t => {
+    const { page, context, errors } = await authPage({ width });
+    t.after(() => context.close());
+    await page.locator('[name="email"]').evaluate(el => {
+      const hint = document.createElement("p"); hint.id = "existing-email-hint"; hint.textContent = "Synthetic existing help"; el.after(hint); el.setAttribute("aria-describedby", hint.id);
+    });
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await authInvalidField(page, "email", "e-mail valide");
+    await page.keyboard.type("fixture@example.test");
+    assert.notEqual(await page.locator('[name="email"]').getAttribute("aria-invalid"), "true");
+    assert.equal(await page.locator('[name="email"]').getAttribute("aria-describedby"), "existing-email-hint", "existing help retained");
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await authInvalidField(page, "password", "Indique ton mot de passe");
+    await page.keyboard.type("synthetic-password");
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await page.getByRole("alert").filter({ hasText: "incorrect" }).waitFor();
+    assert.equal(await page.locator('[aria-invalid="true"]').count(), 0, "server credentials failure does not guess a bad field");
+    assert.equal(await page.evaluate(() => document.activeElement === document.querySelector(".auth-submit")), true);
+    assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+    assert.deepEqual(errors, []);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-auth-validation-signin-${width}.png`, fullPage: true });
+  });
+  test(`auth validation: signup guides each local field without consent or Auth before correction at ${width}px`, async t => {
+    const { page, context, errors } = await authPage({ width, signup: true });
+    t.after(() => context.close());
+    await page.evaluate(() => {
+      window.authValidationConsentCalls = [];
+      const set = window.TitanAnalytics.setConsent.bind(window.TitanAnalytics);
+      window.TitanAnalytics.setConsent = (...args) => { window.authValidationConsentCalls.push(args); return set(...args); };
+    });
+    await fillAuth(page, true);
+    await page.locator('[name="name"]').fill("A");
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await authInvalidField(page, "name", "2 caractères");
+    await page.keyboard.type("thlete");
+    await page.locator('[name="password"]').fill("short");
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await authInvalidField(page, "password", "8 caractères");
+    await page.keyboard.type("-valid");
+    await page.locator('[name="terms"]').uncheck();
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await authInvalidField(page, "terms", "Accepte les conditions");
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-auth-validation-signup-${width}.png`, fullPage: true });
+    await page.keyboard.press("Space");
+    assert.notEqual(await page.locator('[name="terms"]').getAttribute("aria-invalid"), "true");
+    await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+    await page.locator(".auth-sent").waitFor();
+    assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+    assert.deepEqual(errors, []);
+  });
+}
+
+test("auth validation: recovery points at email and pending work ignores synthetic correction", async t => {
+  const { page, context, errors } = await authPage({ hold: ["resetPasswordForEmail"] });
+  t.after(() => context.close());
+  await page.locator("[data-forgot]").focus(); await page.keyboard.press("Enter");
+  await authInvalidField(page, "email", "Indique ton e-mail");
+  await page.keyboard.type("fixture@example.test");
+  await page.locator("[data-forgot]").focus(); await page.keyboard.press("Enter");
+  await page.getByRole("status").filter({ hasText: "Envoi" }).waitFor();
+  await page.evaluate(() => {
+    const el = document.querySelector('[name="email"]'); el.value = ""; el.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector("#auth-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+  assert.equal(await page.locator('[aria-invalid="true"]').count(), 0);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  await page.evaluate(() => window.authCalls[0].release());
+  await page.locator(".auth-sent").waitFor();
+  assert.deepEqual(errors, []);
+});
+
 test("auth journeys: invalid signup never reaches auth and its valid correction can continue", async () => {
   const { page, context, errors } = await authPage({ signup: true });
   await fillAuth(page, true);
@@ -5114,7 +5196,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "community" || marker === "auth" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

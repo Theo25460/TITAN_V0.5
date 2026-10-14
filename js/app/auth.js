@@ -6,10 +6,10 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const icon = (n) => window.titanIcon(n);
   const $ = (s) => document.querySelector(s);
-  class UserError extends Error {}
   let mode = new URLSearchParams(location.search).get("mode") === "signup" ? "signup" : "signin";
   let operation = null;
   let lastEmail = "";
+  let validationField = null;
 
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
 
@@ -51,7 +51,7 @@
                <label class="auth-check"><input type="checkbox" name="analytics"><span>J’aide à améliorer TITAN avec des statistiques d’usage. Jamais de santé, de poids, de GPS ni de notes. <small class="asc-faint">Facultatif, modifiable à tout moment.</small></span></label>`
             : ""
         }
-        <p class="auth-msg" role="alert" aria-live="assertive"></p>
+        <p id="auth-validation-error" class="auth-msg" role="alert" aria-live="assertive"></p>
         <button type="submit" class="asc-btn asc-btn-primary asc-btn-block auth-submit">${signup ? "Créer mon compte" : "Se connecter"}</button>
         ${signup ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm auth-forgot" data-forgot>Mot de passe oublié ?</button>`}
       </form>
@@ -61,6 +61,7 @@
   }
 
   function render() {
+    clearValidation();
     $("#auth").innerHTML = view();
     $("#auth-title").textContent = mode === "signup" ? "Commence ton ascension." : "Content de te revoir.";
   }
@@ -71,6 +72,34 @@
     el.textContent = text;
     el.dataset.kind = kind;
   }
+
+  function clearValidation() {
+    if (!validationField) return;
+    validationField.removeAttribute("aria-invalid");
+    const refs = (validationField.getAttribute("aria-describedby") || "").split(/\s+/).filter(id => id && id !== "auth-validation-error");
+    if (refs.length) validationField.setAttribute("aria-describedby", refs.join(" "));
+    else validationField.removeAttribute("aria-describedby");
+    validationField = null;
+  }
+
+  function invalidField(name, text) {
+    clearValidation();
+    message(text);
+    const field = document.querySelector(`#auth-form [name="${name}"]`);
+    if (!field) return;
+    validationField = field;
+    field.setAttribute("aria-invalid", "true");
+    const refs = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+    refs.add("auth-validation-error");
+    field.setAttribute("aria-describedby", [...refs].join(" "));
+    field.focus();
+  }
+
+  for (const event of ["input", "change"]) document.addEventListener(event, e => {
+    if (operation || e.target !== validationField) return;
+    clearValidation();
+    message("");
+  });
 
   function begin(label, source) {
     if (operation) return null;
@@ -118,11 +147,19 @@
 
   async function submit(form) {
     if (operation) return;
+    clearValidation();
     const fd = new FormData(form);
     const email = String(fd.get("email") || "").trim().toLowerCase();
     const password = String(fd.get("password") || "");
     lastEmail = email;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return message("Indique une adresse e-mail valide.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique une adresse e-mail valide.");
+    const name = String(fd.get("name") || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
+    if (mode === "signin" && !password) return invalidField("password", "Indique ton mot de passe.");
+    if (mode === "signup") {
+      if (name.length < 2) return invalidField("name", "Choisis un nom de 2 caractères minimum.");
+      if (password.length < 8) return invalidField("password", "Choisis un mot de passe d’au moins 8 caractères.");
+      if (!fd.get("terms")) return invalidField("terms", "Accepte les conditions pour créer ton compte.");
+    }
     const c = client();
     if (!c) return message("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
     const btn = form.querySelector(".auth-submit");
@@ -131,16 +168,11 @@
     let failed = false;
     try {
       if (mode === "signin") {
-        if (!password) throw new UserError("Indique ton mot de passe.");
         const { error } = await c.auth.signInWithPassword({ email, password });
         if (error) throw error;
         location.href = nextUrl();
         return;
       }
-      const name = String(fd.get("name") || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
-      if (name.length < 2) throw new UserError("Choisis un nom de 2 caractères minimum.");
-      if (password.length < 8) throw new UserError("Choisis un mot de passe d’au moins 8 caractères.");
-      if (!fd.get("terms")) throw new UserError("Accepte les conditions pour créer ton compte.");
       const consentSaved = window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics"))) === true;
       const { data, error } = await c.auth.signUp({ email, password, options: { emailRedirectTo: `${SITE}/onboarding`, data: { full_name: name, username: name } } });
       if (error) throw error;
@@ -157,7 +189,7 @@
       if (!consentSaved) message("Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.");
     } catch (error) {
       failed = true;
-      message(error instanceof UserError ? error.message : human(error));
+      message(human(error));
     } finally {
       finish(task, failed);
     }
@@ -165,8 +197,9 @@
 
   async function forgot(button) {
     if (operation) return;
+    clearValidation();
     const email = String(document.querySelector("[name=email]")?.value || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return message("Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
     const c = client();
     if (!c) return message("Le service de connexion est indisponible.");
     lastEmail = email;
