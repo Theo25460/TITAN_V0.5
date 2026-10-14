@@ -88,6 +88,8 @@ begin
     assert (select count(*)=1 from public.training_receipts where user_id=u),c.label || ': exactly one receipt';
     if c.historical then
       assert r.xp=0 and r.credits=0,c.label || ': history has no reward';
+      assert (select xp=0 and credits=0 and level=1 from public.profiles where id=u),c.label || ': historical persisted balance unchanged';
+      assert (select xp=0 from public.training_logs where user_id=u),c.label || ': historical persisted log XP is zero';
       assert (select (details->>'historical')::boolean and not (details->>'rewardEligible')::boolean from public.training_logs where user_id=u),'history marked ineligible';
     end if;
     n:=n+1;
