@@ -277,6 +277,7 @@
 
   function render() {
     if (!root) return;
+    const focusedMode = root.contains(document.activeElement) ? document.activeElement.closest('[role="tab"][data-mode]')?.dataset.mode : null;
     if (guest()) {
       root.innerHTML = `<section class="asc-hero co-intro"><p class="asc-eyebrow cy">Sportifs · coachs · éducateurs</p><h2 class="cm-exp-title">Un suivi qui se construit à deux.</h2>
         <p class="asc-lead">Le coach crée une invitation. Le sportif choisit la période, le sport et les détails qu’il partage, et peut tout arrêter à tout moment. Le coach propose des séances ; le sportif les accepte ou non.</p>
@@ -291,8 +292,9 @@
     const list = links();
     const l = current();
     root.innerHTML = `
-      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace"><button type="button" role="tab" data-mode="athlete" aria-selected="${mode === "athlete"}">${icon("user")} Je suis sportif</button><button type="button" role="tab" data-mode="coach" aria-selected="${mode === "coach"}">${icon("group")} J’accompagne</button></div>
+      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace">${[["athlete", "user", "Je suis sportif"], ["coach", "group", "J’accompagne"]].map(([id, symbol, label]) => `<button type="button" role="tab" id="co-tab-${id}" data-mode="${id}" aria-controls="co-panel-${id}" aria-selected="${mode === id}" tabindex="${(focusedMode || mode) === id ? 0 : -1}">${icon(symbol)} ${label}</button>`).join("")}</div>
       <p class="asc-note">${icon("shield")}<span>Un partage choisi, limité et révocable. Le coach ne modifie jamais ton journal ; les séances partagées ne sont gardées qu’en mémoire.</span></p>
+      <div id="co-panel-${mode}" role="tabpanel" aria-labelledby="co-tab-${mode}" tabindex="0" style="display:grid;gap:var(--s5)">
       ${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}
       ${snapshot ? `
       <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2></div>
@@ -312,8 +314,26 @@
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="asc-empty"><h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
+      </div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
+    if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
+  }
+
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('[role="tab"][data-mode]');
+    if (!tab || !root.contains(tab)) return;
+    const tabs = [...root.querySelectorAll('.co-mode [role="tab"]')], index = tabs.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs.forEach((button, i) => { button.tabIndex = i === next ? 0 : -1; });
+    tabs[next].focus();
+  }
+
+  function onTabExit(e) {
+    if (!e.target.matches('[role="tab"][data-mode]') || (root.contains(e.relatedTarget) && e.relatedTarget?.closest('.co-mode'))) return;
+    root.querySelectorAll('.co-mode [role="tab"]').forEach(tab => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 
   function onClick(e) {
@@ -383,6 +403,8 @@
     booted = true;
     SP()?.ensure?.();
     root.addEventListener("click", onClick);
+    root.addEventListener("keydown", onTabKey);
+    root.addEventListener("focusout", onTabExit);
     root.addEventListener("submit", onSubmit);
     render();
     load();
