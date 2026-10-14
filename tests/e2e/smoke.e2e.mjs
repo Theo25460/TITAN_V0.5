@@ -258,6 +258,89 @@ test("auth pending actions: a failed signin returns keyboard focus to its retry 
   await context.close();
 });
 
+for (const width of [360, 1280]) {
+  test(`auth modes: native buttons retain email and clear only the replaced form at ${width}px`, async t => {
+    const { page, context, errors } = await authPage({ width });
+    t.after(() => context.close());
+    await page.locator('[name="email"]').fill("fixture@example.test");
+    await page.locator('[name="password"]').fill("synthetic-password");
+    await page.locator('[data-mode="signup"]').focus(); await page.keyboard.press("Space");
+    assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test", "typed email survives before any submit");
+    const group = page.getByRole("group", { name: "Connexion ou inscription", exact: true });
+    assert.equal(await group.getByRole("button").count(), 2);
+    assert.equal(await group.locator('[aria-pressed="true"]').getAttribute("data-mode"), "signup");
+    assert.equal(await page.getByRole("tab").count(), 0, "form switching uses native buttons");
+    assert.equal(await page.evaluate(() => document.activeElement?.name), "name");
+    assert.equal(await page.locator('[name="password"]').inputValue(), "", "password is not carried between forms");
+    await page.locator('[name="email"]').fill("edited@example.test");
+    await page.locator('[name="name"]').fill("Fixture Athlete");
+    await page.locator('[name="terms"]').check();
+    await page.locator('[name="analytics"]').check();
+    await page.locator('[data-mode="signin"]').focus(); await page.keyboard.press("Enter");
+    assert.equal(await page.locator('[name="email"]').inputValue(), "edited@example.test");
+    assert.equal(await page.evaluate(() => document.activeElement?.name), "email");
+    assert.equal(await page.getByRole("group", { name: "Connexion ou inscription" }).locator('[aria-pressed="true"]').getAttribute("data-mode"), "signin");
+    await page.locator('[data-mode="signup"]').focus(); await page.keyboard.press("Enter");
+    assert.equal(await page.locator('[name="name"]').inputValue(), "");
+    assert.equal(await page.locator('[name="terms"]').isChecked(), false);
+    assert.equal(await page.locator('[name="analytics"]').isChecked(), false);
+    assert.equal(await page.evaluate(() => window.authCalls.length), 0);
+    assert.deepEqual(errors, []);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth-innerWidth), 0);
+    if (process.env.TITAN_QA_SCREENSHOTS) await page.screenshot({ path: `/tmp/titan-auth-modes-${width}.png`, fullPage: true });
+  });
+}
+
+test("auth modes: invalid special characters remain inert text across a mode round trip", async t => {
+  const { page, context, errors } = await authPage();
+  t.after(() => context.close());
+  const raw = 'a"><svg onload=window.modeInjected=true>@example.test';
+  await page.locator('[name="email"]').fill(raw);
+  const typed = await page.locator('[name="email"]').inputValue();
+  await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+  await page.locator('[name="email"][aria-invalid="true"]').waitFor();
+  for (const mode of ["signup", "signin"]) {
+    await page.locator(`[data-mode="${mode}"]`).focus(); await page.keyboard.press("Enter");
+    assert.equal(await page.locator('[name="email"]').inputValue(), typed);
+    assert.equal(await page.locator('[aria-invalid="true"]').count(), 0, "old field error does not survive a form replacement");
+    assert.equal(await page.locator(".auth-msg").textContent(), "");
+  }
+  assert.equal(await page.locator('#auth svg[onload]').count(), 0);
+  assert.equal(await page.evaluate(() => Boolean(window.modeInjected)), false);
+  assert.equal(await page.evaluate(() => window.authCalls.length), 0);
+  assert.deepEqual(errors, []);
+});
+
+test("auth modes: pending signin ignores synthetic mode switches and keeps its captured request", async t => {
+  const { page, context, errors } = await authPage({ hold: ["signInWithPassword"] });
+  t.after(() => context.close());
+  await fillAuth(page);
+  await page.locator(".auth-submit").focus(); await page.keyboard.press("Enter");
+  await page.getByRole("status").filter({ hasText: "Connexion" }).waitFor();
+  await page.evaluate(() => document.querySelector('[data-mode="signup"]').dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  assert.equal(await page.locator('[name="name"]').count(), 0);
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  await page.evaluate(() => window.authCalls[0].release());
+  await page.getByRole("alert").filter({ hasText: "incorrect" }).waitFor();
+  await page.locator('[data-mode="signup"]').focus(); await page.keyboard.press("Enter");
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.deepEqual(errors, []);
+});
+
+test("auth modes: returning from sent recovery keeps its email without a current form", async t => {
+  const { page, context, errors } = await authPage();
+  t.after(() => context.close());
+  await page.locator('[name="email"]').fill("fixture@example.test");
+  await page.locator("[data-forgot]").focus(); await page.keyboard.press("Enter");
+  await page.locator(".auth-sent").waitFor();
+  await page.locator('[data-mode="signin"]').focus(); await page.keyboard.press("Enter");
+  assert.equal(await page.locator('[name="email"]').inputValue(), "fixture@example.test");
+  assert.equal(await page.evaluate(() => document.activeElement?.name), "email");
+  assert.equal(await page.evaluate(() => window.authCalls.length), 1);
+  assert.deepEqual(errors, []);
+});
+
 async function authInvalidField(page, name, text) {
   const field = page.locator(`[name="${name}"]`);
   await page.getByRole("alert").filter({ hasText: text }).waitFor();
@@ -5196,7 +5279,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

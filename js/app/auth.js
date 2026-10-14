@@ -37,9 +37,9 @@
   function view() {
     const signup = mode === "signup";
     return `
-      <div class="auth-tabs asc-seg" role="tablist" aria-label="Connexion ou inscription">
-        <button type="button" role="tab" data-mode="signin" aria-selected="${!signup}">Se connecter</button>
-        <button type="button" role="tab" data-mode="signup" aria-selected="${signup}">Créer un compte</button>
+      <div class="auth-tabs asc-seg" role="group" aria-label="Connexion ou inscription">
+        <button type="button" data-mode="signin" aria-pressed="${!signup}">Se connecter</button>
+        <button type="button" data-mode="signup" aria-pressed="${signup}">Créer un compte</button>
       </div>
       <form id="auth-form" class="asc-stack" novalidate>
         ${signup ? `<label class="asc-field"><span>Nom affiché</span><input class="asc-input" name="name" autocomplete="nickname" maxlength="24" minlength="2" required placeholder="Ton prénom ou un pseudo"><small>Visible seulement si tu partages quelque chose. Ton profil est privé par défaut.</small></label>` : ""}
@@ -260,6 +260,8 @@
     const b = e.target.closest("button");
     if (!b || b.disabled || operation) return;
     if (b.dataset.mode) {
+      // Keep only the address in page memory; passwords and checkbox choices stay form-local.
+      lastEmail = document.querySelector("#auth-form [name=email]")?.value ?? lastEmail;
       mode = b.dataset.mode;
       render();
       document.querySelector("[name=" + (mode === "signup" ? "name" : "email") + "]")?.focus();
