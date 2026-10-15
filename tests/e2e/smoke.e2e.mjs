@@ -4725,6 +4725,150 @@ async function profileRadioPage(width) {
   return fixture;
 }
 
+// Synthetic accounts only. Keep the real RPC builder and intercept its HTTP transport.
+async function profileExportPage(t, { hold = true, holdSession = false, rollover = false, mode = "ok", guest = false } = {}) {
+  const f = await profileRadioPage(360), { page } = f;
+  t.after(async () => { await f.context.close(); assert.deepEqual(f.errors, []); });
+  const releases = [];
+  await page.route("**/rest/v1/rpc/export_own_data", async route => {
+    const bearer = route.request().headers().authorization;
+    await page.evaluate(bearer => window.exportHeaders.push(bearer), bearer);
+    if (hold) await new Promise(resolve => releases.push(resolve));
+    const owner = bearer === "Bearer fixture-b-token" ? "00000000-0000-4000-8000-000000000222" : "00000000-0000-4000-8000-000000000111";
+    await route.fulfill({ status: mode === "error" ? 503 : 200, contentType: "application/json", body: JSON.stringify(mode === "error" ? { message: "synthetic unavailable" } : { userId: mode === "foreign" ? "other-owner" : owner, sessions: [] }) });
+  });
+  await page.evaluate(({ holdSession, rollover, guest }) => {
+    window.exportFiles = []; window.exportHeaders = []; window.exportSettled = 0; window.exportSessionCalls = 0;
+    const blobs = new Map(), create = URL.createObjectURL.bind(URL), click = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = blob => { const url = create(blob); blobs.set(url, blob); return url; };
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.download?.startsWith("titan-export-")) { const blob = blobs.get(this.href); window.exportFiles.push(blob); return; }
+      return click.call(this);
+    };
+    const owner = "00000000-0000-4000-8000-000000000111";
+    if (!guest) {
+      window.state.user.id = owner; window.state.user.name = "Snapshot initial";
+      const snapshot = { ...window.TitanAdventure.snapshot, owner };
+      window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
+    }
+    const client = window.titanClient, rpc = client.rpc.bind(client);
+    window.exportSessionOwner = owner;
+    client.auth.getSession = async () => {
+      const call = ++window.exportSessionCalls;
+      if (holdSession && call === 1) await new Promise(resolve => { window.releaseExportSession = resolve; });
+      const id = rollover && call > 1 ? "00000000-0000-4000-8000-000000000222" : window.exportSessionOwner;
+      return { data: { session: { user: { id }, access_token: id === owner ? "fixture-a-token" : "fixture-b-token" } }, error: null };
+    };
+    client.rpc = (name, ...args) => {
+      if (name !== "export_own_data") return Promise.resolve({ error: { code: "PGRST202" }, data: null });
+      const builder = rpc(name, ...args), then = builder.then.bind(builder);
+      builder.then = (resolve, reject) => then(value => { window.exportSettled++; return resolve(value); }, reject);
+      return builder;
+    };
+    dispatchEvent(new CustomEvent("titan:history-updated"));
+  }, { holdSession, rollover, guest });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  f.release = async (index = 0) => { releases[index](); await page.waitForFunction(n => window.exportSettled >= n, index + 1); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); };
+  f.request = async (count = 1) => page.waitForFunction(n => window.exportHeaders.length >= n, count, { timeout: 3000 });
+  f.files = async () => page.evaluate(() => Promise.all(window.exportFiles.map(async b => JSON.parse(await b.text()))));
+  return f;
+}
+
+async function changeExportContext(page, change) {
+  await page.evaluate(async change => {
+    const owner = window.state.user.id;
+    window.titanInvalidateAccountSession(owner);
+    if (change === "owner" || change === "roundtrip") window.state.user.id = "00000000-0000-4000-8000-000000000222";
+    if (change === "client") window.titanClient = {};
+    window.titanAccountTransition.active = false;
+    dispatchEvent(new CustomEvent("titan:history-updated"));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (change === "roundtrip") { window.state.user.id = owner; dispatchEvent(new CustomEvent("titan:history-updated")); await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
+  }, change);
+}
+
+test("profile export: repeated clicks reserve a single request", async t => {
+  const f = await profileExportPage(t);
+  await f.page.evaluate(() => { for (let i = 0; i < 4; i++) document.querySelector('[data-export-json]').dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+  await f.request();
+  await f.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await f.page.evaluate(() => window.exportHeaders.length), 1);
+  assert.equal(await f.page.locator('[data-export-json]').isDisabled(), true);
+  assert.equal(await f.page.locator('[data-export-progress][role="status"]').count(), 1);
+  await f.release(); assert.equal((await f.files()).length, 1);
+  assert.equal(await f.page.locator('[data-export-json]').isEnabled(), true);
+});
+
+test("profile export: snapshots local state and binds the request bearer", async t => {
+  const f = await profileExportPage(t);
+  await f.page.locator('[data-export-json]').click(); await f.request();
+  await f.page.evaluate(() => { window.state.user.name = "Later mutation"; });
+  await f.release(); const files = await f.files();
+  assert.equal(files[0].localState.user.name, "Snapshot initial");
+  assert.equal(files[0].cloud.userId, files[0].localState.user.id);
+  assert.deepEqual(await f.page.evaluate(() => window.exportHeaders), ["Bearer fixture-a-token"]);
+});
+
+for (const change of ["owner", "roundtrip", "client", "epoch"]) {
+  test(`profile export: discards a delayed file after ${change}`, async t => {
+    const f = await profileExportPage(t); await f.page.locator('[data-export-json]').click(); await f.request();
+    await changeExportContext(f.page, change); await f.release(); assert.deepEqual(await f.files(), []);
+  });
+}
+
+test("profile export: obsolete response cannot release a newer export", async t => {
+  const f = await profileExportPage(t); await f.page.locator('[data-export-json]').click(); await f.request();
+  await changeExportContext(f.page, "owner");
+  await f.page.evaluate(() => { window.exportSessionOwner = window.state.user.id; });
+  await f.page.locator('[data-export-json]').click(); await f.request(2);
+  await f.release(0); assert.deepEqual(await f.files(), []);
+  assert.equal(await f.page.locator('[data-export-json]').isDisabled(), true);
+  await f.release(1); const files = await f.files();
+  assert.equal(files.length, 1); assert.match(files[0].cloud.userId, /222$/);
+});
+
+test("profile export: obsolete session resolution starts no RPC", async t => {
+  const f = await profileExportPage(t, { holdSession: true }); await f.page.locator('[data-export-json]').click();
+  await f.page.waitForFunction(() => window.releaseExportSession);
+  await changeExportContext(f.page, "epoch");
+  await f.page.evaluate(async () => { window.releaseExportSession(); await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); });
+  assert.deepEqual(await f.files(), []); assert.deepEqual(await f.page.evaluate(() => window.exportHeaders), []);
+});
+
+test("profile export: foreign initial session produces no file or RPC", async t => {
+  const f = await profileExportPage(t, { hold: false });
+  await f.page.evaluate(() => { window.exportSessionOwner = "foreign"; });
+  await f.page.locator('[data-export-json]').click();
+  await f.page.waitForFunction(() => window.exportSessionCalls > 0 && !document.querySelector('[data-export-json]').disabled);
+  assert.deepEqual(await f.files(), []); assert.deepEqual(await f.page.evaluate(() => window.exportHeaders), []);
+});
+
+for (const mode of ["ok", "error"]) {
+  test(`profile export: SDK rollover blocks delivery including ${mode} response`, async t => {
+    const f = await profileExportPage(t, { rollover: true, mode });
+    await f.page.locator('[data-export-json]').click(); await f.request(); await f.release();
+    assert.deepEqual(await f.page.evaluate(() => window.exportHeaders), ["Bearer fixture-a-token"]);
+    assert.deepEqual(await f.files(), []);
+  });
+}
+
+test("profile export: rejects a cloud response owned by another account", async t => {
+  const f = await profileExportPage(t, { mode: "foreign" }); await f.page.locator('[data-export-json]').click(); await f.request(); await f.release();
+  assert.deepEqual(await f.files(), []);
+});
+
+test("profile export: unavailable server yields an explicit local-only file", async t => {
+  const f = await profileExportPage(t, { mode: "error" }); await f.page.locator('[data-export-json]').click(); await f.request(); await f.release();
+  const files = await f.files(); assert.equal(files.length, 1); assert.equal(files[0].source, "device"); assert.equal(files[0].cloud, undefined);
+  assert.equal(await f.page.getByText("Le fichier contient seulement les données de cet appareil.", { exact: true }).count(), 1);
+});
+
+test("profile export: discovery retains its local export without an RPC", async t => {
+  const f = await profileExportPage(t, { guest: true }); await f.page.locator('[data-export-json]').click();
+  await f.page.waitForFunction(() => window.exportFiles.length === 1);
+  assert.equal((await f.files())[0].source, "device"); assert.deepEqual(await f.page.evaluate(() => window.exportHeaders), []);
+});
+
 for (const width of [360, 1280]) {
   test(`profile radios: cadence wraps, preserves focus through updates and persists at ${width}px`, async t => {
     const { page, context, errors } = await profileRadioPage(width);
@@ -5352,7 +5496,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" || marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

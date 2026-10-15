@@ -24,6 +24,7 @@
   let root = null;
   let masteryNavigation = null;
   let avatarTask = null;
+  let exportTask = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -223,12 +224,12 @@
         <a class="asc-row" href="/boutique"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Confort, campagnes et cosmétiques. Jamais de progression achetée."}</span></span>${icon("chevron")}</a>
       </div>`}
       <div class="asc-list pf-data">
-        <button type="button" class="asc-row" data-export-json><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
+        <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
         <button type="button" class="asc-row" data-export-csv><span class="asc-row-icon">${icon("journal")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter mon journal</span><span class="asc-row-sub">Tableur CSV, lisible partout</span></span></button>
         <button type="button" class="asc-row" data-clear-cache><span class="asc-row-icon">${icon("restore")}</span><span class="asc-row-main"><span class="asc-row-title">Vider le cache de cet appareil</span><span class="asc-row-sub">Les séances en attente sont conservées</span></span></button>
         ${guest() ? "" : `<button type="button" class="asc-row" data-signout><span class="asc-row-icon">${icon("logout")}</span><span class="asc-row-main"><span class="asc-row-title">Se déconnecter</span><span class="asc-row-sub">${pending ? `${pending} séance(s) attendent l’envoi : elles restent sur cet appareil` : "Tes données restent dans ton compte"}</span></span></button>
         <button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button>`}
-      </div></section>`;
+      </div>${exportTask ? `<p class="asc-small asc-muted" role="status" data-export-progress>Préparation de l’export…</p>` : ""}</section>`;
   }
 
   function render() {
@@ -254,21 +255,78 @@
     }
   }
 
+  const exportContextCurrent = job => job && job === exportTask && job.owner === window.state?.user?.id
+    && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch
+    && !window.titanAccountTransition?.active;
+
+  function resetExportUi() {
+    const button = root?.querySelector("[data-export-json]");
+    if (button) button.disabled = false;
+    root?.querySelector("[data-export-progress]")?.remove();
+  }
+
   async function exportJson() {
-    let payload = { exportedAt: new Date().toISOString(), source: "device", pendingSessions: window.TitanQueue?.list?.() || [], localState: window.state };
-    if (!guest() && window.titanClient && navigator.onLine) {
-      try {
-        const { data, error } = await window.titanClient.rpc("export_own_data");
-        if (!error && data) payload = { ...payload, source: "account", cloud: data };
-      } catch {}
+    if (window.titanAccountTransition?.active || exportContextCurrent(exportTask)) return;
+    if (exportTask) resetExportUi();
+    const job = { owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch, startedOnline: navigator.onLine };
+    exportTask = job;
+    const button = root.querySelector("[data-export-json]");
+    button.disabled = true;
+    const progress = document.createElement("p");
+    progress.className = "asc-small asc-muted";
+    progress.setAttribute("role", "status");
+    progress.setAttribute("data-export-progress", "");
+    progress.textContent = "Préparation de l’export…";
+    button.closest(".pf-data").after(progress);
+    try {
+      // Freeze the device part before the first await: subsequent edits belong to a later export.
+      let payload = JSON.parse(JSON.stringify({ exportedAt: new Date().toISOString(), source: "device", pendingSessions: window.TitanQueue?.list?.() || [], localState: window.state }));
+      const discovery = !job.owner || String(job.owner).startsWith("guest_");
+      let localOnly = !discovery;
+      if (!discovery && job.client && job.startedOnline) {
+        const { data: auth, error: authError } = await job.client.auth.getSession();
+        if (!exportContextCurrent(job)) return;
+        const session = auth?.session;
+        if (authError || !session?.access_token || session.user?.id !== job.owner) throw new Error("PROFILE_EXPORT_SESSION_CHANGED");
+        try {
+          // The SDK's later session lookup must not change this request's owner.
+          const { data, error } = await job.client.rpc("export_own_data").setHeader("Authorization", `Bearer ${session.access_token}`);
+          if (!exportContextCurrent(job)) return;
+          if (error) throw error;
+          if (!data || data.userId !== job.owner) throw new Error("PROFILE_EXPORT_OWNER_CHANGED");
+          payload = { ...payload, source: "account", cloud: data };
+          localOnly = false;
+        } catch (error) {
+          if (error?.message === "PROFILE_EXPORT_OWNER_CHANGED") throw error;
+          // Network/server failure may still yield the frozen device data, after the session check below.
+        }
+      }
+      if (!exportContextCurrent(job)) return;
+      if (!discovery && job.client && job.startedOnline) {
+        const { data: auth, error } = await job.client.auth.getSession();
+        if (!exportContextCurrent(job)) return;
+        if (error || !auth?.session?.access_token || auth.session.user?.id !== job.owner) throw new Error("PROFILE_EXPORT_SESSION_CHANGED");
+      }
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `titan-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      window.titanShell.toast(localOnly
+        ? { type: "warn", title: "Export local prêt", message: "Le fichier contient seulement les données de cet appareil." }
+        : { type: "ok", title: "Export prêt", message: payload.source === "account" ? "Données du compte et de cet appareil." : "Données de cet appareil." });
+    } catch {
+      if (exportContextCurrent(job)) window.titanShell.toast({ type: "warn", title: "Export interrompu", message: "Vérifie ta connexion et ton compte, puis réessaie." });
+    } finally {
+      // An obsolete response cannot unlock an export started by the next account.
+      if (exportTask === job) {
+        const current = exportContextCurrent(job);
+        exportTask = null;
+        resetExportUi();
+        if (current && document.activeElement === document.body) root.querySelector("[data-export-json]")?.focus({ preventScroll: true });
+      }
     }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `titan-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    window.titanShell.toast({ type: "ok", title: "Export prêt", message: payload.source === "account" ? "Données du compte et de cet appareil." : "Données de cet appareil." });
   }
 
   function deleteAccount() {
@@ -465,6 +523,7 @@
     root = document.getElementById("profil");
     if (!root || !window.state?.user || !window.TitanSports || !B()) return;
     if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
+    if (exportTask && !exportContextCurrent(exportTask)) { exportTask = null; resetExportUi(); }
     if (!booted) {
       booted = true;
       SP().ensure();
@@ -489,7 +548,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
-  window.addEventListener("titan:account-changing", () => { avatarTask = null; });
+  window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
