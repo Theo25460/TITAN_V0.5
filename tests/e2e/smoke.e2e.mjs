@@ -4726,7 +4726,7 @@ async function profileRadioPage(width) {
 }
 
 // Read fixtures keep the SDK RPC transport and inspect both account-bound requests.
-async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allowWrites = false } = {}) {
+async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allowWrites = false, allowDeletion = false } = {}) {
   const f = await profileRadioPage(360), { page } = f;
   t.after(async () => { await f.context.close(); assert.deepEqual(f.errors, []); });
   const requests = [];
@@ -4738,7 +4738,7 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
     const label = `read-${response.label || request.index}`;
     await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: response.code || "XX000", message: "synthetic failure" } : kind === "titan_public_card_settings" ? { enabled: true, slug: label, show: {} } : [{ title: label, expedition: "Synthetic expedition" }]) });
   });
-  await page.evaluate(({ sessionOwner, rollover, allowWrites }) => {
+  await page.evaluate(({ sessionOwner, rollover, allowWrites, allowDeletion }) => {
     window.profileReadSettled = 0; window.profileReadSessionCalls = 0;
     window.readOwnerId = letter => letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
     window.profileReadSessionOwner = sessionOwner;
@@ -4749,9 +4749,9 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
       return { data: { session: { user: { id: window.readOwnerId(letter) }, access_token: `read-${letter}-token` } }, error: null };
     };
     client.rpc = (name, ...args) => {
-      if (!["titan_public_card_settings", "titan_expedition_titles"].includes(name) && !(allowWrites && name === "titan_public_card_save")) return Promise.resolve({ data: null, error: { code: "PGRST202" } });
+      if (!["titan_public_card_settings", "titan_expedition_titles"].includes(name) && !(allowWrites && name === "titan_public_card_save") && !(allowDeletion && name === "delete_own_account")) return Promise.resolve({ data: null, error: { code: "PGRST202" } });
       const builder = rpc(name, ...args), then = builder.then.bind(builder);
-      builder.then = (resolve, reject) => then(value => { if (name === "titan_public_card_save") window.profileWriteSettled++; else window.profileReadSettled++; return resolve(value); }, reject);
+      builder.then = (resolve, reject) => then(value => { if (name === "delete_own_account") window.deleteRpcSettled++; else if (name === "titan_public_card_save") window.profileWriteSettled++; else window.profileReadSettled++; return resolve(value); }, reject);
       return builder;
     };
     window.qrcode = () => ({ addData() {}, make() {}, createSvgTag: () => '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
@@ -4759,7 +4759,7 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
     const snapshot = { ...window.TitanAdventure.snapshot, owner: window.state.user.id };
     window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
     dispatchEvent(new CustomEvent("titan:history-updated"));
-  }, { sessionOwner, rollover, allowWrites });
+  }, { sessionOwner, rollover, allowWrites, allowDeletion });
   f.requests = requests;
   f.waitRequests = async n => { const end = Date.now() + 2500; while (requests.length < n && Date.now() < end) await new Promise(r => setTimeout(r, 20)); assert.equal(requests.length, n, "each account starts its own pair of reads"); };
   f.respond = async (indices, response = {}) => {
@@ -4781,6 +4781,166 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
   };
   return f;
 }
+
+async function deleteAccountPage(t, { holdSession = false, holdQueue = false, rollover = false } = {}) {
+  const f = await profileReadsPage(t, { allowDeletion: true }), { page } = f;
+  await f.waitRequests(2); await f.respond([0, 1], { label: "account-a" });
+  f.deletions = []; f.effects = [];
+  await page.exposeFunction("recordDeletionEffect", effect => { f.effects.push(effect); });
+  await page.route("**/rest/v1/rpc/delete_own_account", async route => {
+    const bearer = route.request().headers().authorization, call = { bearer, index: f.deletions.length };
+    f.deletions.push(call);
+    const response = await new Promise(resolve => { call.resolve = resolve; });
+    const letter = bearer === "Bearer delete-b-token" ? "b" : "a";
+    const userId = letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
+    await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: "XX000", message: "synthetic failure" } : { userId: response.foreign ? "foreign" : userId, deleted: { auth_users: 1 } }) });
+  });
+  await page.evaluate(({ holdSession, holdQueue, rollover }) => {
+    window.deleteRpcSettled = 0; window.deleteAuthCalls = 0; window.deleteFixtureArmed = false; window.deleteSessionOwner = "a"; window.deleteQueueFailures = 0;
+    localStorage.setItem("sb-deletion-fixture-auth-token", "synthetic-a");
+    document.addEventListener("submit", e => {
+      if (!window.deleteFixtureArmed && e.target.closest('dialog[aria-label="Supprimer mon compte ?"]')) {
+        window.deleteFixtureArmed = true; window.deleteAuthCalls = 0;
+      }
+    }, true);
+    window.titanClient.auth.getSession = async () => {
+      const call = window.deleteFixtureArmed ? ++window.deleteAuthCalls : 0;
+      const letter = rollover && call > 1 ? "b" : window.deleteSessionOwner;
+      const session = { user: { id: window.readOwnerId(letter) }, access_token: `delete-${letter}-token` };
+      if (holdSession && call === 1) await new Promise(resolve => { window.releaseDeleteSession = resolve; });
+      return { data: { session }, error: null };
+    };
+    window.titanClient.auth.signOut = async () => { await window.recordDeletionEffect({ kind: "signOut" }); return { error: null }; };
+    window.TitanQueue.deleteOwner = async owner => {
+      await window.recordDeletionEffect({ kind: "queue", owner });
+      if (holdQueue) await new Promise(resolve => { window.releaseDeleteQueue = resolve; });
+      if (window.deleteQueueFailures > 0) { window.deleteQueueFailures--; throw new Error("synthetic storage failure"); }
+    };
+    const clear = window.titanSafeClearCache;
+    window.titanSafeClearCache = () => { window.recordDeletionEffect({ kind: "cache" }); clear(); };
+  }, { holdSession, holdQueue, rollover });
+  f.open = async () => { await page.locator('[data-delete]').click(); await page.locator('dialog[open] [name="confirm"]').fill("SUPPRIMER"); };
+  f.submit = async () => page.locator('dialog[open] [type="submit"]').click();
+  f.waitDeletions = async n => { const end = Date.now() + 3000; while (f.deletions.length < n && Date.now() < end) await new Promise(r => setTimeout(r, 20)); assert.equal(f.deletions.length, n); };
+  f.reply = async (index = 0, response = {}) => { f.deletions[index].resolve(response); };
+  f.settle = async () => {
+    try { await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); }
+    catch (error) { if (!/Execution context was destroyed/.test(error.message)) throw error; await page.waitForLoadState("domcontentloaded"); }
+  };
+  f.switchAccount = async (kind = "owner", letter = "b") => {
+    await page.evaluate(letter => { window.deleteSessionOwner = letter; }, letter);
+    const count = f.requests.length;
+    await f.change(kind, letter); await f.waitRequests(count + 2); await f.respond([count, count + 1], { label: `account-${letter}` });
+  };
+  return f;
+}
+
+test("account deletion context: confirmed deletion cleans only A without a dynamic SDK signout", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
+  assert.equal(f.deletions[0].bearer, "Bearer delete-a-token"); await f.reply();
+  await f.page.waitForURL(BASE + "/");
+  assert.deepEqual(f.effects.map(e => e.kind), ["queue", "cache"]);
+  assert.match(f.effects[0].owner, /111$/);
+  assert.equal(await f.page.evaluate(() => localStorage.getItem("sb-deletion-fixture-auth-token")), null);
+});
+
+test("account deletion context: validation prevents any request", async t => {
+  const f = await deleteAccountPage(t); await f.page.locator('[data-delete]').click(); await f.submit();
+  assert.equal(f.deletions.length, 0); assert.deepEqual(f.effects, []);
+  assert.match(await f.page.locator('dialog[open] [role="alert"]').innerText(), /Écris SUPPRIMER/);
+});
+
+test("account deletion context: repeated openings share one confirmation", async t => {
+  const f = await deleteAccountPage(t);
+  await f.page.evaluate(() => { for (let i = 0; i < 3; i++) document.querySelector('[data-delete]').dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+  assert.equal(await f.page.locator('dialog[open]').count(), 1);
+  assert.equal(f.deletions.length, 0);
+});
+
+test("account deletion context: repeated submits reserve one request and block all sheet closures", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
+  await f.page.evaluate(() => { const form = document.querySelector('dialog[open] form'); for (let i = 0; i < 3; i++) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+  await f.settle(); assert.equal(f.deletions.length, 1);
+  assert.equal(await f.page.locator('dialog[open] [name="confirm"]').isDisabled(), true);
+  assert.equal(await f.page.locator('dialog[open] [data-cancel]').isDisabled(), true);
+  assert.equal(await f.page.locator('dialog[open] [data-close]').isDisabled(), true);
+  assert.equal(await f.page.locator('dialog[open] [data-delete-progress][role="status"]').count(), 1);
+  await f.page.keyboard.press("Escape");
+  await f.page.evaluate(() => { const d = document.querySelector('dialog[open]'); d.querySelector('[data-close]').dispatchEvent(new MouseEvent("click", { bubbles: true })); d.querySelector('[data-cancel]').dispatchEvent(new MouseEvent("click", { bubbles: true })); d.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+  assert.equal(await f.page.locator('dialog[open]').count(), 1);
+  await f.reply(0, { status: 503 }); await f.page.locator('dialog[open] [type="submit"]:enabled').waitFor();
+});
+
+test("account deletion context: confirmation opened by A cannot submit for B", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.switchAccount(); await f.submit(); await f.settle();
+  assert.equal(f.deletions.length, 0); assert.deepEqual(f.effects, []);
+});
+
+for (const change of ["owner", "roundtrip", "epoch", "client"]) {
+  test(`account deletion context: late reply after ${change} cannot clean or navigate the new context`, async t => {
+    const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
+    if (change === "roundtrip") { await f.switchAccount(); await f.switchAccount("owner", "a"); }
+    else await f.switchAccount(change, change === "owner" ? "b" : "a");
+    await f.reply(); await f.settle();
+    assert.deepEqual(f.effects, []); assert.equal(new URL(f.page.url()).pathname, "/profile");
+    assert.equal(await f.page.locator('dialog[open] [data-close]').isEnabled(), true);
+  });
+}
+
+test("account deletion context: session resolving after the account change starts no RPC", async t => {
+  const f = await deleteAccountPage(t, { holdSession: true }); await f.open(); await f.submit(); await f.page.waitForFunction(() => window.releaseDeleteSession);
+  await f.switchAccount(); await f.page.evaluate(() => window.releaseDeleteSession()); await f.settle();
+  assert.equal(f.deletions.length, 0); assert.deepEqual(f.effects, []);
+});
+
+test("account deletion context: foreign initial session sends no RPC", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.page.evaluate(() => { window.deleteSessionOwner = "b"; }); await f.submit(); await f.settle();
+  assert.equal(f.deletions.length, 0); assert.deepEqual(f.effects, []);
+});
+
+test("account deletion context: silent SDK rollover cannot trigger local cleanup", async t => {
+  const f = await deleteAccountPage(t, { rollover: true }); await f.open(); await f.submit(); await f.waitDeletions(1);
+  assert.equal(f.deletions[0].bearer, "Bearer delete-a-token"); await f.reply(); await f.settle();
+  assert.deepEqual(f.effects, []); assert.equal(new URL(f.page.url()).pathname, "/profile");
+});
+
+test("account deletion context: a foreign response cannot authorize local cleanup", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1); await f.reply(0, { foreign: true }); await f.settle();
+  assert.deepEqual(f.effects, []); assert.equal(new URL(f.page.url()).pathname, "/profile");
+});
+
+test("account deletion context: current RPC failure preserves the form and allows an explicit retry", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1); await f.reply(0, { status: 503 });
+  await f.page.locator('dialog[open] [type="submit"]:enabled').waitFor();
+  assert.equal(await f.page.locator('dialog[open] [name="confirm"]').inputValue(), "SUPPRIMER"); assert.deepEqual(f.effects, []);
+  await f.submit(); await f.waitDeletions(2); await f.reply(1); await f.page.waitForURL(BASE + "/");
+  assert.deepEqual(f.effects.map(e => e.kind), ["queue", "cache"]);
+});
+
+test("account deletion context: account change during A queue cleanup cannot clear B cache or redirect", async t => {
+  const f = await deleteAccountPage(t, { holdQueue: true }); await f.open(); await f.submit(); await f.waitDeletions(1); await f.reply();
+  await f.page.waitForFunction(() => window.releaseDeleteQueue); await f.switchAccount();
+  await f.page.evaluate(() => window.releaseDeleteQueue()); await f.settle();
+  assert.deepEqual(f.effects.map(e => e.kind), ["queue"]); assert.match(f.effects[0].owner, /111$/); assert.equal(new URL(f.page.url()).pathname, "/profile");
+});
+
+test("account deletion context: cleanup retry never resends a confirmed account deletion", async t => {
+  const f = await deleteAccountPage(t); await f.page.evaluate(() => { window.deleteQueueFailures = 1; }); await f.open(); await f.submit(); await f.waitDeletions(1); await f.reply(); await f.settle();
+  assert.equal(f.effects.some(e => e.kind === "cache"), false);
+  await f.page.locator('dialog[open] [type="submit"]:enabled').waitFor();
+  assert.equal(await f.page.locator('dialog[open] [type="submit"]').innerText(), "Réessayer le nettoyage");
+  assert.equal(f.deletions.length, 1); assert.deepEqual(f.effects.map(e => e.kind), ["queue"]);
+  await f.submit(); await f.page.waitForURL(BASE + "/");
+  assert.equal(f.deletions.length, 1); assert.deepEqual(f.effects.map(e => e.kind), ["queue", "queue", "cache"]);
+});
+
+test("account deletion context: silent session change during queue cleanup cannot clear another session", async t => {
+  const f = await deleteAccountPage(t, { holdQueue: true }); await f.open(); await f.submit(); await f.waitDeletions(1); await f.reply();
+  await f.page.waitForFunction(() => window.releaseDeleteQueue);
+  await f.page.evaluate(() => { window.deleteSessionOwner = "b"; window.releaseDeleteQueue(); }); await f.settle();
+  assert.deepEqual(f.effects.map(e => e.kind), ["queue"]);
+  assert.equal(new URL(f.page.url()).pathname, "/profile");
+});
 
 async function publicCardActionsPage(t, { holdSession = false, rollover = false } = {}) {
   const f = await profileReadsPage(t, { allowWrites: true }), { page } = f;
@@ -5812,7 +5972,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5", "300.6"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

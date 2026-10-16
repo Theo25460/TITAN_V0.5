@@ -27,6 +27,8 @@
   let exportTask = null;
   let cardTask = null;
   let cardConfirmation = null;
+  let deleteTask = null;
+  let deleteDialog = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -225,6 +227,8 @@
     bitsTask = null;
     cardTask = null;
     cardConfirmation = null;
+    deleteTask = null;
+    deleteDialog = null;
     card = null;
     titles = null;
     cardUnavailable = false;
@@ -406,32 +410,88 @@
     }
   }
 
+  const deletionCurrent = job => deleteTask === job && bitsCurrent(job);
+
   function deleteAccount() {
+    if (!bitsCurrent({ context: bitsContext }) || (deleteDialog && bitsCurrent(deleteDialog))) return;
+    const dialog = { context: bitsContext };
+    deleteDialog = dialog;
+    let pending = false, serverDeleted = false;
     const body = document.createElement("form");
     body.className = "asc-stack";
     body.innerHTML = `<p>Ton compte, tes séances, tes objectifs et ta progression seront supprimés définitivement. Exporte d’abord tes données si tu veux les garder.</p>
       <label class="asc-field"><span>Écris SUPPRIMER pour confirmer</span><input class="asc-input" name="confirm" autocomplete="off" autocapitalize="characters"></label>
       <p class="asc-small jr-edit-error" role="alert"></p>
+      <p class="asc-small asc-muted" role="status" data-delete-progress></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-danger">Supprimer</button></div>`;
-    const d = window.titanShell.sheet({ title: "Supprimer mon compte ?", body });
-    body.querySelector("[data-cancel]").addEventListener("click", () => d.close());
-    body.addEventListener("submit", async (e) => {
+    const d = window.titanShell.sheet({ title: "Supprimer mon compte ?", body, onClose: () => { if (deleteDialog === dialog) deleteDialog = null; } });
+    const input = body.querySelector("[name=confirm]"), btn = body.querySelector("[type=submit]");
+    const cancel = body.querySelector("[data-cancel]"), close = d.querySelector("[data-close]");
+    const err = body.querySelector(".jr-edit-error"), progress = body.querySelector("[data-delete-progress]");
+    const changed = "Le compte a changé. Ferme cette fenêtre, puis réessaie depuis le compte voulu.";
+    const setPending = value => {
+      pending = value;
+      const current = bitsCurrent(dialog);
+      input.disabled = value || serverDeleted || !current;
+      btn.disabled = value || !current;
+      btn.textContent = serverDeleted ? value ? "Nettoyage en cours…" : "Réessayer le nettoyage" : "Supprimer";
+      cancel.disabled = close.disabled = value;
+      progress.textContent = value ? serverDeleted ? "Nettoyage de cet appareil…" : "Suppression en cours…" : "";
+    };
+    cancel.addEventListener("click", () => d.close());
+    d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+    d.addEventListener("click", e => {
+      if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+        e.preventDefault(); e.stopImmediatePropagation();
+      }
+    }, true);
+    body.addEventListener("submit", async e => {
       e.preventDefault();
-      const err = body.querySelector(".jr-edit-error");
-      if (body.querySelector("[name=confirm]").value.trim().toUpperCase() !== "SUPPRIMER") return (err.textContent = "Écris SUPPRIMER pour confirmer.");
-      const btn = body.querySelector("[type=submit]");
-      btn.disabled = true;
+      if (pending || deleteTask || !d.open) return;
+      if (!bitsCurrent(dialog)) { err.textContent = changed; setPending(false); return; }
+      if (!serverDeleted && input.value.trim().toUpperCase() !== "SUPPRIMER") {
+        err.textContent = "Écris SUPPRIMER pour confirmer.";
+        input.focus();
+        return;
+      }
+      const job = { context: dialog.context };
+      deleteTask = job;
+      err.textContent = "";
+      setPending(true);
       try {
-        const { error } = await window.titanClient.rpc("delete_own_account");
-        if (error) throw error;
-        const id = window.state.user.id;
-        await window.titanClient.auth.signOut().catch(() => {});
-        await window.TitanQueue?.deleteOwner(id).catch(() => {});
-        window.titanSafeClearCache?.();
+        const session = await readBitsSession(job);
+        if (!deletionCurrent(job)) return;
+        if (!serverDeleted) {
+          const { data, error } = await job.context.client.rpc("delete_own_account")
+            .setHeader("Authorization", `Bearer ${session.access_token}`);
+          if (!deletionCurrent(job)) return;
+          if (error) throw error;
+          if (data?.userId !== job.context.owner) throw new Error("DELETE_OWNER_UNCONFIRMED");
+          serverDeleted = true;
+          setPending(true);
+        }
+        await readBitsSession(job);
+        if (!deletionCurrent(job)) return;
+        // Only this captured owner may be purged, even if IndexedDB completes after a switch.
+        await window.TitanQueue?.deleteOwner(job.context.owner);
+        if (!deletionCurrent(job)) return;
+        await readBitsSession(job);
+        if (!deletionCurrent(job)) return;
+        // The RPC removes auth.users. A dynamic SDK signOut here could instead remove B's session.
+        // Clear the persisted Auth cache synchronously under the still-validated context, then leave.
+        if (typeof window.titanSafeClearCache !== "function") throw new Error("DELETE_CACHE_UNAVAILABLE");
+        window.titanSafeClearCache();
         location.href = "/";
       } catch {
-        err.textContent = "La suppression n’a pas pu être confirmée. Vérifie ta connexion et réessaie ; rien n’a été supprimé localement.";
-        btn.disabled = false;
+        if (deletionCurrent(job)) err.textContent = serverDeleted
+          ? "Compte supprimé. Le nettoyage de cet appareil n’a pas été confirmé. Vérifie le compte actif, puis réessaie."
+          : "La suppression n’a pas pu être confirmée. Vérifie ta connexion et réessaie ; rien n’a été supprimé localement.";
+      } finally {
+        if (deleteTask === job) deleteTask = null;
+        if (d.open) {
+          if (!bitsCurrent(dialog)) err.textContent = changed;
+          setPending(false);
+        }
       }
     });
   }
