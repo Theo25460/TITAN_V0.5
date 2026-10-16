@@ -11,6 +11,7 @@
   const D = () => window.TitanData;
   const C = () => window.TitanCodex;
   const A = () => window.TitanAdventure;
+  const B = () => window.TitanSportBrowser;
   const MILESTONES = [1, 10, 25, 50, 100, 200, 365, 500, 1000];
   const HOURS = [10, 25, 50, 100, 250, 500, 1000];
   const PRIVACY = [
@@ -21,6 +22,11 @@
   ];
 
   let root = null;
+  let masteryNavigation = null;
+  let avatarTask = null;
+  let exportTask = null;
+  let cardTask = null;
+  let cardConfirmation = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -50,17 +56,24 @@
 
   function masteryHtml() {
     const list = P().mastery(logs());
-    if (!list.length) return "";
+    const result = masteryNavigation.select(B().entries(list));
     return `<section class="asc-section" id="maitrise"><div class="asc-section-head"><h2>Maîtrise</h2><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-mastery-help>${icon("help")} Les paliers</button></div>
-      <div class="pf-mastery">${list
-        .slice(0, 8)
+      ${masteryNavigation.controls()}
+      <div class="pf-mastery">${result.items
         .map(
           (m) => `<div class="pf-mastery-row" data-family="${esc(m.family)}"><span class="jr-icon">${icon(SP().FAMILY_ICON[SP().familyOf(m.sport)])}</span>
+        ${m.hasData ? `
         <span class="pf-mastery-main"><span class="asc-between"><strong>${esc(m.label)}</strong><span class="asc-small">${esc(m.name)} · ${m.level}/10</span></span>
         <span class="asc-ascent thin"><span style="--p:${Math.round(m.progress * 100)}%"></span></span>
-        <span class="asc-small asc-faint">${esc(F().duration(m.minutes))} sur ${m.weeks} semaine${m.weeks > 1 ? "s" : ""}${m.next ? ` · ${esc(m.next.name)} : ${m.next.hours} h sur ${m.next.weeks} semaines` : ""}</span></span></div>`,
+        <span class="asc-small asc-faint">${esc(F().duration(m.minutes))} sur ${m.weeks} semaine${m.weeks > 1 ? "s" : ""}${m.next ? ` · ${esc(m.next.name)} : ${m.next.hours} h sur ${m.next.weeks} semaines` : ""}</span></span>` : `<span class="pf-mastery-main"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">Aucune pratique enregistrée. <a href="/training?sport=${encodeURIComponent(m.sport)}">Ajouter une séance</a></span></span>`}
+        ${B().favoriteButton(m.sport, m.label)}</div>`,
         )
-        .join("")}</div></section>`;
+        .join("")}</div>${result.total ? "" : masteryNavigation.empty()}${masteryNavigation.footer()}</section>`;
+  }
+
+  function renderMastery() {
+    const section = root?.querySelector("#maitrise");
+    if (section) B().preserveFocus(() => { section.outerHTML = masteryHtml(); });
   }
 
   function dnaHtml() {
@@ -113,11 +126,13 @@
     const s = A()?.snapshot;
     const level = D().progression().level;
     const current = s?.avatar || "scout";
+    const avatars = C()?.avatars || [];
+    const tabAvatar = avatars.find(a => a.id === current && a.level <= level) || avatars.find(a => a.level <= level);
     return `<section class="asc-section" id="personnage"><div class="asc-section-head"><h2>Personnage</h2></div>
-      <div class="pf-avatars" role="radiogroup" aria-label="Personnage">${(C()?.avatars || [])
+      <div class="pf-avatars" role="radiogroup" aria-label="Personnage">${avatars
         .map((a) => {
           const locked = a.level > level;
-          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}-s.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
+          return `<button type="button" class="pf-avatar-pick" role="radio" data-avatar="${a.id}" aria-checked="${a.id === current}" tabindex="${a.id === tabAvatar?.id ? 0 : -1}" ${locked ? 'aria-disabled="true"' : ""}><img src="/assets/renaissance/${a.id}-s.webp" alt="" width="96" height="96" loading="lazy"><strong>${esc(a.name)}</strong><small>${locked ? `Niveau ${a.level}` : esc(a.role)}</small></button>`;
         })
         .join("")}</div></section>`;
   }
@@ -130,7 +145,7 @@
     return `<section class="asc-section" id="reglages"><div class="asc-section-head"><h2>Réglages</h2></div>
       <div class="pf-settings">
         ${guest() ? "" : `<label class="asc-field"><span>Nom affiché</span><span class="pf-inline"><input class="asc-input" id="pf-name" maxlength="24" value="${esc(u.name || "")}" autocomplete="nickname"><button type="button" class="asc-btn asc-btn-secondary" data-save-name>Enregistrer</button></span></label>`}
-        <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
+        <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}" tabindex="${settings.target === n ? 0 : -1}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
         <fieldset class="pf-privacy"><legend class="seance-label">Confidentialité</legend>${guest() ? `<p class="asc-small asc-muted">En mode découverte, rien ne quitte cet appareil.</p>` : PRIVACY.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-privacy="${k}" ${privacy[k] === true ? "checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(help)}</small></span></label>`).join("")}
           <label class="pf-toggle"><input type="checkbox" role="switch" data-analytics ${analytics ? "checked" : ""}><span><strong>Statistiques d’usage</strong><small>Aide à améliorer TITAN. Jamais de santé, de poids, de GPS ni de notes.</small></span></label></fieldset>
       </div></section>`;
@@ -149,42 +164,117 @@
       qr = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
     }
     return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div>
-      <div class="pf-public">
-        <label class="pf-toggle"><input type="checkbox" role="switch" data-card-enabled ${card.enabled ? "checked" : ""}><span><strong>Une carte d’athlète accessible par lien</strong><small>Désactivée par défaut. Le lien est impossible à deviner ; pas de référencement dans les moteurs de recherche.</small></span></label>
+      <div class="pf-public" aria-busy="${Boolean(cardTask)}">
+        <label class="pf-toggle"><input type="checkbox" role="switch" id="pf-card-enabled" data-card-enabled ${cardTask ? "disabled" : ""} ${card.enabled ? "checked" : ""}><span><strong>Une carte d’athlète accessible par lien</strong><small>Désactivée par défaut. Le lien est impossible à deviner ; pas de référencement dans les moteurs de recherche.</small></span></label>
         ${card.enabled ? `<div class="pf-public-share"><div class="pf-qr" role="img" aria-label="QR code de ton profil public">${qr}</div>
           <div class="asc-stack-sm"><input class="asc-input asc-num" readonly value="${esc(url)}" aria-label="Lien de ton profil public">
-            <div class="asc-row-flex"><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/u/${esc(card.slug)}" target="_blank" rel="noopener">${icon("eye")} Voir</a><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-copy>${icon("copy")} Copier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-relink>${icon("restore")} Nouveau lien</button></div></div></div>
-        <fieldset class="pf-privacy"><legend class="seance-label">Ce que la carte montre</legend>${BLOCKS.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-card-show="${k}" ${card.show?.[k] !== false ? "checked" : ""}><span><strong>${esc(label)}</strong>${help ? `<small>${esc(help)}</small>` : ""}</span></label>`).join("")}</fieldset>
+            <div class="asc-row-flex"><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/u/${esc(card.slug)}" target="_blank" rel="noopener">${icon("eye")} Voir</a><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-copy>${icon("copy")} Copier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" id="pf-card-relink" data-card-relink ${cardTask ? "disabled" : ""}>${icon("restore")} Nouveau lien</button></div></div></div>
+        <fieldset class="pf-privacy"><legend class="seance-label">Ce que la carte montre</legend>${BLOCKS.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" id="pf-card-show-${k}" data-card-show="${k}" ${cardTask ? "disabled" : ""} ${card.show?.[k] !== false ? "checked" : ""}><span><strong>${esc(label)}</strong>${help ? `<small>${esc(help)}</small>` : ""}</span></label>`).join("")}</fieldset>
         <p class="asc-small asc-faint">Jamais affichés : santé, poids, GPS, notes, dates et heures des séances, amis, guilde, e-mail.</p>` : ""}
-      </div></section>`;
+      </div>${cardTask ? `<p class="asc-small asc-muted" role="status" data-card-progress>Enregistrement du profil public…</p>` : ""}</section>`;
   }
 
-  async function saveCard(enabled, show, relink = false) {
-    const { data, error } = await window.titanClient.rpc("titan_public_card_save", { p_enabled: enabled, p_show: show || {}, p_new_link: relink });
-    if (error) throw error;
-    card = data;
-    window.TitanCard?.resetLink?.();
+  const cardContextValid = context => bitsCurrent({ context });
+  const cardMutationCurrent = job => cardTask === job && bitsCurrent(job);
+
+  async function saveCard(enabled, show, relink = false, expected = bitsContext, focus = null) {
+    if (cardTask || !card || !cardContextValid(expected)) return false;
+    const job = { context: expected, focus };
+    cardTask = job;
     render();
+    try {
+      const session = await readBitsSession(job);
+      if (!cardMutationCurrent(job)) return false;
+      const { data, error } = await expected.client.rpc("titan_public_card_save", { p_enabled: enabled, p_show: { ...(show || {}) }, p_new_link: relink })
+        .setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (!cardMutationCurrent(job)) return false;
+      if (error) throw error;
+      await readBitsSession(job);
+      if (!cardMutationCurrent(job)) return false;
+      if (!data) throw new Error("PUBLIC_CARD_EMPTY_RESPONSE");
+      card = data;
+      window.TitanCard?.resetLink?.();
+      return true;
+    } catch (error) {
+      if (cardMutationCurrent(job)) throw error;
+      return false;
+    } finally {
+      // A response from A cannot release B's newer mutation or restore its old controls.
+      if (cardTask === job) {
+        const current = cardMutationCurrent(job);
+        cardTask = null;
+        if (current) {
+          const restoreFocus = focus && document.activeElement === document.body;
+          render();
+          if (restoreFocus && document.activeElement === document.body) root.querySelector(focus)?.focus({ preventScroll: true });
+        }
+      }
+    }
   }
 
-  let bitsLoading = false;
+  let bitsContext = null;
+  let bitsTask = null;
   let cardFailed = false;
+  const serverBitsContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const sameBitsContext = (a, b) => a && b && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch;
+  const bitsCurrent = job => job && job.context === bitsContext && sameBitsContext(job.context, serverBitsContext())
+    && !window.titanAccountTransition?.active && !guest();
+
+  function resetServerBits() {
+    bitsContext = null;
+    bitsTask = null;
+    cardTask = null;
+    cardConfirmation = null;
+    card = null;
+    titles = null;
+    cardUnavailable = false;
+    cardFailed = false;
+  }
+
+  function syncServerBits() {
+    const next = serverBitsContext();
+    if (!sameBitsContext(bitsContext, next)) {
+      resetServerBits();
+      bitsContext = next;
+    }
+  }
+
+  async function readBitsSession(job) {
+    const { data, error } = await job.context.client.auth.getSession();
+    if (!bitsCurrent(job)) throw new Error("PROFILE_READ_CONTEXT_CHANGED");
+    const session = data?.session;
+    if (error || !session?.access_token || session.user?.id !== job.context.owner) throw new Error("PROFILE_READ_SESSION_CHANGED");
+    return session;
+  }
+
   async function loadServerBits() {
-    if (bitsLoading || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine) return;
-    bitsLoading = true;
-    const within = (p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 8000))]);
+    if (bitsTask || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine || window.titanAccountTransition?.active) return;
+    const job = { context: bitsContext };
+    bitsTask = job;
+    const within = p => {
+      let timer;
+      return Promise.race([p, new Promise((_, no) => { timer = setTimeout(() => no(new Error("timeout")), 8000); })]).finally(() => clearTimeout(timer));
+    };
     try {
-      const [c, t] = await Promise.allSettled([within(window.titanClient.rpc("titan_public_card_settings")), within(window.titanClient.rpc("titan_expedition_titles"))]);
+      const session = await readBitsSession(job);
+      const rpc = name => within(job.context.client.rpc(name).setHeader("Authorization", `Bearer ${session.access_token}`));
+      const [c, t] = await Promise.allSettled([rpc("titan_public_card_settings"), rpc("titan_expedition_titles")]);
+      if (!bitsCurrent(job)) return;
+      // The SDK can change session without a public transition while these reads are pending.
+      await readBitsSession(job);
       const err = c.status === "fulfilled" ? c.value.error : c.reason;
       if (!err && c.value.data) card = c.value.data;
       else if (err?.code === "PGRST202" || /Could not find/.test(err?.message || "")) cardUnavailable = true;
       cardFailed = !card && !cardUnavailable;
       if (t.status === "fulfilled" && !t.value.error && Array.isArray(t.value.data)) titles = t.value.data;
     } catch {
-      cardFailed = true;
+      if (bitsCurrent(job)) cardFailed = true;
     } finally {
-      bitsLoading = false;
-      render();
+      // An old account's finally cannot release the next account's reads or repaint its state.
+      if (bitsTask === job) {
+        bitsTask = null;
+        if (bitsCurrent(job)) render();
+      }
     }
   }
 
@@ -211,19 +301,30 @@
         <a class="asc-row" href="/boutique"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Confort, campagnes et cosmétiques. Jamais de progression achetée."}</span></span>${icon("chevron")}</a>
       </div>`}
       <div class="asc-list pf-data">
-        <button type="button" class="asc-row" data-export-json><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
+        <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
         <button type="button" class="asc-row" data-export-csv><span class="asc-row-icon">${icon("journal")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter mon journal</span><span class="asc-row-sub">Tableur CSV, lisible partout</span></span></button>
         <button type="button" class="asc-row" data-clear-cache><span class="asc-row-icon">${icon("restore")}</span><span class="asc-row-main"><span class="asc-row-title">Vider le cache de cet appareil</span><span class="asc-row-sub">Les séances en attente sont conservées</span></span></button>
         ${guest() ? "" : `<button type="button" class="asc-row" data-signout><span class="asc-row-icon">${icon("logout")}</span><span class="asc-row-main"><span class="asc-row-title">Se déconnecter</span><span class="asc-row-sub">${pending ? `${pending} séance(s) attendent l’envoi : elles restent sur cet appareil` : "Tes données restent dans ton compte"}</span></span></button>
         <button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button>`}
-      </div></section>`;
+      </div>${exportTask ? `<p class="asc-small asc-muted" role="status" data-export-progress>Préparation de l’export…</p>` : ""}</section>`;
   }
 
   function render() {
     if (!root) return;
-    root.innerHTML = `${heroHtml()}
+    // Capture focus at render time so a late avatar response cannot reclaim it.
+    const focused = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"]') : null;
+    const attribute = focused?.hasAttribute("data-cadence") ? "data-cadence" : focused?.hasAttribute("data-avatar") ? "data-avatar" : null;
+    const value = attribute ? focused.getAttribute(attribute) : null;
+    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}
       <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ...(guest() ? [] : [["public", "Public"]]), ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
-      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`;
+      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`; });
+    if (attribute && document.activeElement === document.body) {
+      const next = [...root.querySelectorAll(`[role="radio"][${attribute}]`)].find(radio => radio.getAttribute(attribute) === value && radio.getAttribute("aria-disabled") !== "true");
+      if (next) {
+        next.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]').forEach(radio => { radio.tabIndex = radio === next ? 0 : -1; });
+        next.focus({ preventScroll: true });
+      }
+    }
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
       root.dataset.scrolled = "1";
@@ -231,21 +332,78 @@
     }
   }
 
+  const exportContextCurrent = job => job && job === exportTask && job.owner === window.state?.user?.id
+    && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch
+    && !window.titanAccountTransition?.active;
+
+  function resetExportUi() {
+    const button = root?.querySelector("[data-export-json]");
+    if (button) button.disabled = false;
+    root?.querySelector("[data-export-progress]")?.remove();
+  }
+
   async function exportJson() {
-    let payload = { exportedAt: new Date().toISOString(), source: "device", pendingSessions: window.TitanQueue?.list?.() || [], localState: window.state };
-    if (!guest() && window.titanClient && navigator.onLine) {
-      try {
-        const { data, error } = await window.titanClient.rpc("export_own_data");
-        if (!error && data) payload = { ...payload, source: "account", cloud: data };
-      } catch {}
+    if (window.titanAccountTransition?.active || exportContextCurrent(exportTask)) return;
+    if (exportTask) resetExportUi();
+    const job = { owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch, startedOnline: navigator.onLine };
+    exportTask = job;
+    const button = root.querySelector("[data-export-json]");
+    button.disabled = true;
+    const progress = document.createElement("p");
+    progress.className = "asc-small asc-muted";
+    progress.setAttribute("role", "status");
+    progress.setAttribute("data-export-progress", "");
+    progress.textContent = "Préparation de l’export…";
+    button.closest(".pf-data").after(progress);
+    try {
+      // Freeze the device part before the first await: subsequent edits belong to a later export.
+      let payload = JSON.parse(JSON.stringify({ exportedAt: new Date().toISOString(), source: "device", pendingSessions: window.TitanQueue?.list?.() || [], localState: window.state }));
+      const discovery = !job.owner || String(job.owner).startsWith("guest_");
+      let localOnly = !discovery;
+      if (!discovery && job.client && job.startedOnline) {
+        const { data: auth, error: authError } = await job.client.auth.getSession();
+        if (!exportContextCurrent(job)) return;
+        const session = auth?.session;
+        if (authError || !session?.access_token || session.user?.id !== job.owner) throw new Error("PROFILE_EXPORT_SESSION_CHANGED");
+        try {
+          // The SDK's later session lookup must not change this request's owner.
+          const { data, error } = await job.client.rpc("export_own_data").setHeader("Authorization", `Bearer ${session.access_token}`);
+          if (!exportContextCurrent(job)) return;
+          if (error) throw error;
+          if (!data || data.userId !== job.owner) throw new Error("PROFILE_EXPORT_OWNER_CHANGED");
+          payload = { ...payload, source: "account", cloud: data };
+          localOnly = false;
+        } catch (error) {
+          if (error?.message === "PROFILE_EXPORT_OWNER_CHANGED") throw error;
+          // Network/server failure may still yield the frozen device data, after the session check below.
+        }
+      }
+      if (!exportContextCurrent(job)) return;
+      if (!discovery && job.client && job.startedOnline) {
+        const { data: auth, error } = await job.client.auth.getSession();
+        if (!exportContextCurrent(job)) return;
+        if (error || !auth?.session?.access_token || auth.session.user?.id !== job.owner) throw new Error("PROFILE_EXPORT_SESSION_CHANGED");
+      }
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `titan-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      window.titanShell.toast(localOnly
+        ? { type: "warn", title: "Export local prêt", message: "Le fichier contient seulement les données de cet appareil." }
+        : { type: "ok", title: "Export prêt", message: payload.source === "account" ? "Données du compte et de cet appareil." : "Données de cet appareil." });
+    } catch {
+      if (exportContextCurrent(job)) window.titanShell.toast({ type: "warn", title: "Export interrompu", message: "Vérifie ta connexion et ton compte, puis réessaie." });
+    } finally {
+      // An obsolete response cannot unlock an export started by the next account.
+      if (exportTask === job) {
+        const current = exportContextCurrent(job);
+        exportTask = null;
+        resetExportUi();
+        if (current && document.activeElement === document.body) root.querySelector("[data-export-json]")?.focus({ preventScroll: true });
+      }
     }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `titan-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    window.titanShell.toast({ type: "ok", title: "Export prêt", message: payload.source === "account" ? "Données du compte et de cet appareil." : "Données de cet appareil." });
   }
 
   function deleteAccount() {
@@ -278,7 +436,69 @@
     });
   }
 
+  const avatarContextCurrent = task => task && task.owner === window.state?.user?.id && task.client === window.titanClient
+    && task.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+
+  async function selectAvatar(avatar) {
+    if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
+    if (window.titanAccountTransition?.active) return;
+    if (avatarTask) {
+      avatarTask.next = avatar;
+      return;
+    }
+    const task = { owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch, next: avatar };
+    avatarTask = task;
+    try {
+      // Keep the latest choice while one mutation is pending; the next action
+      // then uses the confirmed revision through the existing adventure engine.
+      while (task.next && avatarTask === task && avatarContextCurrent(task)) {
+        const next = task.next;
+        task.next = null;
+        try {
+          await A().action("avatar", { avatar: next });
+          if (avatarTask !== task || !avatarContextCurrent(task)) return;
+          window.titanShell.refresh();
+          render();
+        } catch (err) {
+          if (avatarTask !== task || !avatarContextCurrent(task)) return;
+          window.titanShell.toast({ type: "warn", message: A().message(err) });
+        }
+      }
+    } finally {
+      if (avatarTask === task) avatarTask = null;
+    }
+  }
+
+  function onRadioKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) return;
+    const radio = e.target.closest('[role="radio"][data-cadence], [role="radio"][data-avatar]');
+    if (!radio || !root.contains(radio)) return;
+    e.preventDefault();
+    if (radio.disabled || radio.getAttribute("aria-disabled") === "true") return;
+    if (e.key === " ") {
+      if (radio.getAttribute("aria-checked") !== "true" || (radio.dataset.avatar && avatarContextCurrent(avatarTask))) radio.click();
+      return;
+    }
+    const group = radio.closest('[role="radiogroup"]');
+    const radios = [...group.querySelectorAll('[role="radio"]')].filter(button => !button.disabled && button.getAttribute("aria-disabled") !== "true");
+    const direction = ["ArrowRight", "ArrowDown"].includes(e.key) ? 1 : -1;
+    const next = radios[(radios.indexOf(radio) + direction + radios.length) % radios.length];
+    group.querySelectorAll('[role="radio"]').forEach(button => { button.tabIndex = button === next ? 0 : -1; });
+    next.focus();
+    if (next.getAttribute("aria-checked") !== "true" || (next.dataset.avatar && avatarContextCurrent(avatarTask))) next.click();
+  }
+
+  function onRadioExit(e) {
+    const group = e.target.closest('[role="radiogroup"]');
+    if (!group || !root.contains(group) || group.contains(e.relatedTarget)) return;
+    const radios = [...group.querySelectorAll('[role="radio"]')];
+    const enabled = radios.filter(radio => !radio.disabled && radio.getAttribute("aria-disabled") !== "true");
+    const entry = enabled.find(radio => radio.getAttribute("aria-checked") === "true") || enabled[0];
+    radios.forEach(radio => { radio.tabIndex = radio === entry ? 0 : -1; });
+  }
+
   function onClick(e) {
+    if (masteryNavigation.handle(e)) return renderMastery();
     const b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.cadence) {
@@ -287,10 +507,7 @@
     }
     if (b.dataset.avatar) {
       if (b.getAttribute("aria-disabled") === "true") return window.titanShell.toast({ type: "info", title: "Personnage verrouillé", message: "Il se débloque avec les niveaux, jamais avec un achat." });
-      return A()
-        .action("avatar", { avatar: b.dataset.avatar })
-        .then(() => (window.titanShell.refresh(), render()))
-        .catch((err) => window.titanShell.toast({ type: "warn", message: A().message(err) }));
+      return selectAvatar(b.dataset.avatar);
     }
     if (b.hasAttribute("data-save-name")) {
       const v = window.titanCleanProfileName?.(document.getElementById("pf-name").value) || "";
@@ -312,15 +529,27 @@
         () => window.titanShell.toast({ type: "ok", title: "Lien copié" }),
         () => window.titanShell.toast({ type: "warn", message: "Copie impossible : sélectionne le lien pour le copier." }),
       );
-    if (b.hasAttribute("data-card-relink"))
+    if (b.hasAttribute("data-card-relink")) {
+      if (cardTask || !card || !cardContextValid(bitsContext) || (cardConfirmation && bitsCurrent(cardConfirmation))) return;
+      const confirmation = { context: bitsContext };
+      cardConfirmation = confirmation;
       return window.titanShell.confirm({
         title: "Créer un nouveau lien ?",
         message: "L’ancien lien et les QR codes déjà partagés cesseront de fonctionner.",
         confirmLabel: "Nouveau lien",
-        action: () => saveCard(null, null, true).catch(() => {
-          throw new Error("Le lien n’a pas pu être changé. Vérifie ta connexion.");
-        }),
-      });
+        action: async () => {
+          if (cardTask) throw new Error("Une modification est déjà en cours. Réessaie après sa confirmation.");
+          try {
+            const applied = await saveCard(null, null, true, confirmation.context);
+            if (!applied) throw new Error("PUBLIC_CARD_CONTEXT_CHANGED");
+          } catch (error) {
+            throw new Error(error?.message === "PUBLIC_CARD_CONTEXT_CHANGED"
+              ? "Le compte a changé. Ferme cette fenêtre, puis réessaie."
+              : "Le changement de lien n’a pas pu être confirmé. Vérifie ton compte et ta connexion.");
+          }
+        },
+      }).finally(() => { if (cardConfirmation === confirmation) cardConfirmation = null; });
+    }
     if (b.hasAttribute("data-export-json")) return exportJson();
     if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.(logs());
     if (b.hasAttribute("data-clear-cache"))
@@ -348,6 +577,7 @@
   }
 
   function onChange(e) {
+    if (masteryNavigation.handle(e)) return renderMastery();
     const t = e.target;
     if (t.dataset.privacy) {
       window.state.user.privacy = { ...(window.state.user.privacy || {}), [t.dataset.privacy]: t.checked };
@@ -355,20 +585,25 @@
       window.titanShell.toast({ type: "ok", title: "Confidentialité", message: t.checked ? "Partage activé." : "Partage désactivé." });
     }
     if (t.matches("[data-card-enabled]") || t.dataset.cardShow) {
+      if (cardTask || !card || !cardContextValid(bitsContext)) { render(); return; }
+      const context = bitsContext;
       const enabled = t.matches("[data-card-enabled]") ? t.checked : null;
       const show = t.dataset.cardShow ? { [t.dataset.cardShow]: t.checked } : {};
-      t.disabled = true;
-      return saveCard(enabled, show)
-        .then(() => enabled !== null && window.titanShell.toast({ type: "ok", title: enabled ? "Profil public activé" : "Profil public désactivé", message: enabled ? "Seuls ceux qui ont le lien peuvent le voir." : "Le lien ne mène plus nulle part." }))
-        .catch((err) => {
-          t.checked = !t.checked;
-          t.disabled = false;
+      const focus = enabled !== null ? "[data-card-enabled]" : `[data-card-show="${t.dataset.cardShow}"]`;
+      return saveCard(enabled, show, false, context, focus)
+        .then(applied => applied && cardContextValid(context) && enabled !== null && window.titanShell.toast({ type: "ok", title: enabled ? "Profil public activé" : "Profil public désactivé", message: enabled ? "Seuls ceux qui ont le lien peuvent le voir." : "Le lien ne mène plus nulle part." }))
+        .catch(err => {
+          if (!cardContextValid(context)) return;
           const m = String(err?.message || "");
-          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Réglage non enregistré. Vérifie ta connexion." });
+          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
         });
     }
     if (t.matches("[data-analytics]")) {
-      window.TitanAnalytics?.setConsent(t.checked);
+      const saved = window.TitanAnalytics?.setConsent(t.checked);
+      if (saved !== true) {
+        window.titanShell.toast({ type: "warn", title: "Choix non enregistré", message: "Ton choix vaut pour cette page. Après navigation ou rechargement, l’ancien réglage peut revenir. Réessaie avant de quitter cette page." });
+        return;
+      }
       window.titanShell.toast({ type: "ok", title: "Statistiques d’usage", message: t.checked ? "Merci pour ton aide." : "Plus rien n’est envoyé." });
     }
   }
@@ -376,12 +611,19 @@
   let booted = false;
   function start() {
     root = document.getElementById("profil");
-    if (!root || !window.state?.user || !window.TitanSports) return;
+    if (!root || !window.state?.user || !window.TitanSports || !B()) return;
+    syncServerBits();
+    if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
+    if (exportTask && !exportContextCurrent(exportTask)) { exportTask = null; resetExportUi(); }
     if (!booted) {
       booted = true;
       SP().ensure();
+      masteryNavigation = B().create("mastery", { defaultSort: "mastery", sorts: [["mastery", "Maîtrise la plus élevée"], ["alphabetical", "Nom A–Z"], ["recent", "Pratique la plus récente"]] });
       root.addEventListener("click", onClick);
+      root.addEventListener("keydown", onRadioKey);
+      root.addEventListener("focusout", onRadioExit);
       root.addEventListener("change", onChange);
+      root.addEventListener("input", (e) => { if (masteryNavigation.handle(e)) renderMastery(); });
       A()?.refresh?.();
     }
     render();
@@ -397,6 +639,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); resetServerBits(); render(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

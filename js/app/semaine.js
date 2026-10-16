@@ -21,7 +21,7 @@
     const now = new Date();
     if (k === 0) return P().recap(logs(), { now, goals: goalsCache, current: true });
     // recap() describes the week before `now`: point `now` inside the week after the one we want.
-    const anchor = new Date(F().weekStart(now).getTime() - (k - 1) * 7 * DAY + DAY);
+    const anchor = F().addDays(F().weekStart(now), -(k - 1) * 7 + 1);
     return P().recap(logs(), { now: anchor, goals: goalsCache });
   }
 
@@ -52,7 +52,7 @@
     const per = Array.from({ length: 7 }, () => ({ minutes: 0, sessions: 0 }));
     for (const l of P().activeLogs(logs())) {
       const t = new Date(l.date).getTime();
-      if (t < from || t >= from + 7 * DAY) continue;
+      if (t < from || t > r.to.getTime()) continue;
       const i = (new Date(l.date).getDay() + 6) % 7;
       per[i].minutes += P().minutesOf(l).minutes || 0;
       per[i].sessions++;
@@ -67,7 +67,7 @@
     const today = offset === 0 ? (new Date().getDay() + 6) % 7 : -1;
     return `<div class="wk-days" role="list" aria-label="Minutes par jour">${per
       .map((d, i) => {
-        const date = new Date(from + i * DAY);
+        const date = F().addDays(r.from, i);
         const label = `${date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} : ${d.sessions ? `${d.sessions} séance${d.sessions > 1 ? "s" : ""}, ${F().duration(d.minutes)}` : "repos"}`;
         return `<div class="wk-day${i === today ? " is-today" : ""}${i > today && today >= 0 ? " is-future" : ""}" role="listitem" aria-label="${esc(label)}"><span class="wk-bar"><span style="--h:${Math.round((d.minutes / max) * 100)}%"${d.sessions ? ' data-on="true"' : ""}></span></span><span class="wk-day-l">${DAYS[i]}</span></div>`;
       })
