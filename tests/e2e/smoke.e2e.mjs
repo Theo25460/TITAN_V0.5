@@ -4726,7 +4726,7 @@ async function profileRadioPage(width) {
 }
 
 // Read fixtures keep the SDK RPC transport and inspect both account-bound requests.
-async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}) {
+async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allowWrites = false } = {}) {
   const f = await profileRadioPage(360), { page } = f;
   t.after(async () => { await f.context.close(); assert.deepEqual(f.errors, []); });
   const requests = [];
@@ -4738,7 +4738,7 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}
     const label = `read-${response.label || request.index}`;
     await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: response.code || "XX000", message: "synthetic failure" } : kind === "titan_public_card_settings" ? { enabled: true, slug: label, show: {} } : [{ title: label, expedition: "Synthetic expedition" }]) });
   });
-  await page.evaluate(({ sessionOwner, rollover }) => {
+  await page.evaluate(({ sessionOwner, rollover, allowWrites }) => {
     window.profileReadSettled = 0; window.profileReadSessionCalls = 0;
     window.readOwnerId = letter => letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
     window.profileReadSessionOwner = sessionOwner;
@@ -4749,9 +4749,9 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}
       return { data: { session: { user: { id: window.readOwnerId(letter) }, access_token: `read-${letter}-token` } }, error: null };
     };
     client.rpc = (name, ...args) => {
-      if (!["titan_public_card_settings", "titan_expedition_titles"].includes(name)) return Promise.resolve({ data: null, error: { code: "PGRST202" } });
+      if (!["titan_public_card_settings", "titan_expedition_titles"].includes(name) && !(allowWrites && name === "titan_public_card_save")) return Promise.resolve({ data: null, error: { code: "PGRST202" } });
       const builder = rpc(name, ...args), then = builder.then.bind(builder);
-      builder.then = (resolve, reject) => then(value => { window.profileReadSettled++; return resolve(value); }, reject);
+      builder.then = (resolve, reject) => then(value => { if (name === "titan_public_card_save") window.profileWriteSettled++; else window.profileReadSettled++; return resolve(value); }, reject);
       return builder;
     };
     window.qrcode = () => ({ addData() {}, make() {}, createSvgTag: () => '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
@@ -4759,7 +4759,7 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}
     const snapshot = { ...window.TitanAdventure.snapshot, owner: window.state.user.id };
     window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
     dispatchEvent(new CustomEvent("titan:history-updated"));
-  }, { sessionOwner, rollover });
+  }, { sessionOwner, rollover, allowWrites });
   f.requests = requests;
   f.waitRequests = async n => { const end = Date.now() + 2500; while (requests.length < n && Date.now() < end) await new Promise(r => setTimeout(r, 20)); assert.equal(requests.length, n, "each account starts its own pair of reads"); };
   f.respond = async (indices, response = {}) => {
@@ -4781,6 +4781,179 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}
   };
   return f;
 }
+
+async function publicCardActionsPage(t, { holdSession = false, rollover = false } = {}) {
+  const f = await profileReadsPage(t, { allowWrites: true }), { page } = f;
+  await f.waitRequests(2); await f.respond([0, 1], { label: "account-a" });
+  f.writes = [];
+  await page.route("**/rest/v1/rpc/titan_public_card_save", async route => {
+    const bearer = route.request().headers().authorization;
+    const params = route.request().postDataJSON(), index = f.writes.length;
+    const call = { bearer, params, index }; f.writes.push(call);
+    const reply = await new Promise(resolve => { call.resolve = resolve; });
+    const letter = bearer === "Bearer read-b-token" ? "b" : "a";
+    const data = { enabled: params.p_enabled ?? true, show: params.p_show || {}, slug: `card-${letter}-${index}` };
+    await route.fulfill({ status: reply.status || 200, contentType: "application/json", body: JSON.stringify(reply.status ? { code: reply.code || "XX000", message: "synthetic unavailable" } : data) });
+  });
+  await page.evaluate(({ holdSession, rollover }) => {
+    window.profileWriteSettled = 0; window.cardWriteAuthCalls = 0;
+    window.cardWriteSessionOwner = "a";
+    window.titanClient.auth.getSession = async () => {
+      const call = ++window.cardWriteAuthCalls;
+      const letter = rollover && call > 1 ? "b" : window.cardWriteSessionOwner;
+      const session = { user: { id: window.readOwnerId(letter) }, access_token: `read-${letter}-token` };
+      if (holdSession && call === 1) await new Promise(resolve => { window.releaseCardWriteSession = resolve; });
+      return { data: { session }, error: null };
+    };
+    const reset = window.TitanCard.resetLink;
+    window.cardLinkResets = 0;
+    window.TitanCard.resetLink = (...args) => { window.cardLinkResets++; return reset?.(...args); };
+  }, { holdSession, rollover });
+  f.waitWrites = async n => { const end = Date.now() + 3000; while (f.writes.length < n && Date.now() < end) await new Promise(r => setTimeout(r, 20)); assert.equal(f.writes.length, n); };
+  f.finish = async (index = 0, reply = {}) => {
+    f.writes[index].resolve(reply);
+    f.writeFinished = (f.writeFinished || 0) + 1;
+    await page.waitForFunction(n => window.profileWriteSettled >= n, f.writeFinished);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  };
+  f.switchAccount = async (kind = "owner", letter = "b") => {
+    await page.evaluate(letter => { window.cardWriteSessionOwner = letter; }, letter);
+    const count = f.requests.length;
+    await f.change(kind, letter); await f.waitRequests(count + 2);
+    await f.respond([count, count + 1], { label: `account-${letter}` });
+  };
+  f.settle = async () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  return f;
+}
+
+for (const field of ["enabled", "name"]) {
+  test(`public card actions: ${field} changes reach the server and use its canonical response`, async t => {
+    const f = await publicCardActionsPage(t);
+    await f.page.locator(field === "enabled" ? '[data-card-enabled]' : '[data-card-show="name"]').click(); await f.waitWrites(1);
+    assert.equal(f.writes[0].bearer, "Bearer read-a-token");
+    assert.deepEqual(f.writes[0].params, { p_enabled: field === "enabled" ? false : null, p_show: field === "name" ? { name: false } : {}, p_new_link: false });
+    await f.finish();
+    assert.equal(await f.page.locator(field === "enabled" ? '[data-card-enabled]' : '[data-card-show="name"]').isChecked(), false);
+    assert.equal(await f.page.evaluate(() => window.cardLinkResets), 1);
+  });
+}
+
+test("public card actions: all changes share one reservation and announce progress through a rerender", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(1);
+  await f.page.evaluate(() => {
+    for (const key of ["level", "sports", "titles"]) { const input = document.querySelector(`[data-card-show="${key}"]`); input.checked = false; input.dispatchEvent(new Event("change", { bubbles: true })); }
+    document.querySelector('[data-card-relink]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    dispatchEvent(new CustomEvent("titan:history-updated"));
+  });
+  await f.settle();
+  assert.equal(f.writes.length, 1);
+  assert.equal(await f.page.locator('dialog[open]').count(), 0);
+  assert.equal(await f.page.locator('#public input[type="checkbox"]:enabled, #public [data-card-relink]:enabled').count(), 0);
+  assert.equal(await f.page.locator('#public [data-card-progress][role="status"]').count(), 1);
+  assert.equal(await f.page.locator('#public .pf-public').getAttribute("aria-busy"), "true");
+  assert.equal(await f.page.locator('#public .pf-public [data-card-progress]').count(), 0, "progress remains outside the busy region");
+  await f.finish();
+  assert.equal(await f.page.locator('#public [data-card-progress]').count(), 0);
+  assert.equal(await f.page.locator('[data-card-show="level"]').isChecked(), true);
+});
+
+test("public card actions: keyboard focus returns to its setting after confirmation", async t => {
+  const f = await publicCardActionsPage(t);
+  await f.page.locator('[data-card-show="name"]').focus(); await f.page.keyboard.press("Space"); await f.waitWrites(1); await f.finish();
+  // Later queued profile renders must preserve the same control as well.
+  await f.page.evaluate(() => dispatchEvent(new CustomEvent("titan:history-updated"))); await f.settle();
+  assert.equal(await f.page.evaluate(() => document.activeElement?.dataset.cardShow), "name");
+});
+
+test("public card actions: a delayed response preserves focus moved to the sport search", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(1);
+  await f.page.locator('#mastery-query').focus(); await f.finish();
+  assert.equal(await f.page.evaluate(() => document.activeElement.id), "mastery-query");
+});
+
+test("public card actions: a current failure restores the last confirmed setting and permits retry", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(1); await f.finish(0, { status: 503 });
+  assert.equal(await f.page.locator('[data-card-show="name"]').isChecked(), true);
+  assert.equal(await f.page.locator('[data-card-show="name"]').isEnabled(), true);
+  assert.equal(await f.page.getByText("Modification non confirmée. Vérifie ta connexion, puis réessaie.", { exact: true }).count(), 1);
+  await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(2); await f.finish(1);
+  assert.equal(await f.page.locator('[data-card-show="name"]').isChecked(), false);
+});
+
+for (const change of ["owner", "roundtrip", "epoch", "client"]) {
+  test(`public card actions: discards an old response and notice after ${change}`, async t => {
+    const f = await publicCardActionsPage(t); await f.page.locator('[data-card-enabled]').click(); await f.waitWrites(1);
+    if (change === "roundtrip") { await f.switchAccount(); await f.switchAccount("owner", "a"); }
+    else await f.switchAccount(change, change === "owner" ? "b" : "a");
+    await f.finish();
+    assert.equal(await f.page.locator('[data-card-enabled]').isChecked(), true);
+    assert.doesNotMatch(await f.page.locator('#public input[readonly]').inputValue(), /card-a-0/);
+    assert.equal(await f.page.getByText("Profil public désactivé", { exact: true }).count(), 0);
+    assert.equal(await f.page.evaluate(() => window.cardLinkResets), 0);
+  });
+}
+
+test("public card actions: obsolete errors cannot release the new account reservation", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(1);
+  await f.switchAccount(); await f.page.locator('[data-card-show="level"]').click(); await f.waitWrites(2);
+  await f.finish(0, { status: 503 });
+  assert.equal(await f.page.locator('[data-card-show="level"]').isDisabled(), true);
+  assert.equal(await f.page.getByText("Modification non confirmée. Vérifie ta connexion, puis réessaie.", { exact: true }).count(), 0);
+  await f.finish(1);
+  assert.equal(await f.page.locator('[data-card-show="level"]').isChecked(), false);
+  assert.equal(f.writes[1].bearer, "Bearer read-b-token");
+});
+
+test("public card actions: stale preflight session starts no mutation", async t => {
+  const f = await publicCardActionsPage(t, { holdSession: true }); await f.page.locator('[data-card-show="name"]').click();
+  await f.page.waitForFunction(() => window.releaseCardWriteSession); await f.switchAccount();
+  await f.page.evaluate(() => window.releaseCardWriteSession()); await f.settle();
+  assert.equal(f.writes.length, 0);
+  assert.equal(await f.page.locator('[data-card-show="name"]').isChecked(), true);
+});
+
+test("public card actions: foreign initial session sends no mutation", async t => {
+  const f = await publicCardActionsPage(t);
+  await f.page.evaluate(() => { window.cardWriteSessionOwner = "b"; });
+  await f.page.locator('[data-card-show="name"]').click(); await f.settle();
+  assert.equal(f.writes.length, 0);
+  assert.equal(await f.page.locator('[data-card-show="name"]').isChecked(), true);
+});
+
+test("public card actions: bearer stays A during SDK rollover and the result is not applied", async t => {
+  const f = await publicCardActionsPage(t, { rollover: true }); await f.page.locator('[data-card-show="name"]').click(); await f.waitWrites(1);
+  assert.equal(f.writes[0].bearer, "Bearer read-a-token"); await f.finish();
+  assert.equal(await f.page.locator('[data-card-show="name"]').isChecked(), true);
+  assert.equal(await f.page.evaluate(() => window.cardLinkResets), 0);
+});
+
+test("public card actions: repeated link clicks open one confirmation and submit once", async t => {
+  const f = await publicCardActionsPage(t);
+  await f.page.evaluate(() => { for (let i = 0; i < 3; i++) document.querySelector('[data-card-relink]').dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+  assert.equal(await f.page.locator('dialog[open]').count(), 1);
+  await f.page.locator('dialog[open] [data-ok]').click(); await f.waitWrites(1);
+  await f.page.evaluate(() => { for (let i = 0; i < 3; i++) document.querySelector('dialog[open] [data-ok]').dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+  assert.equal(f.writes.length, 1); assert.equal(f.writes[0].params.p_new_link, true);
+  await f.finish(); await f.page.locator('dialog[open]').waitFor({ state: "detached" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/card-a-0");
+});
+
+test("public card actions: confirmation opened for A cannot renew B link", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-relink]').click(); await f.switchAccount();
+  await f.page.locator('dialog[open] [data-ok]').click(); await f.settle();
+  assert.equal(f.writes.length, 0);
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-account-b");
+});
+
+test("public card actions: a failed link renewal keeps its dialog and allows explicit retry", async t => {
+  const f = await publicCardActionsPage(t); await f.page.locator('[data-card-relink]').click(); await f.page.locator('dialog[open] [data-ok]').click(); await f.waitWrites(1);
+  await f.finish(0, { status: 503 });
+  assert.equal(await f.page.locator('dialog[open] [data-ok]').isEnabled(), true);
+  assert.match(await f.page.locator('dialog[open] [role="alert"]').innerText(), /n’a pas pu être confirmé/);
+  await f.page.locator('dialog[open] [data-ok]').click(); await f.waitWrites(2); await f.finish(1);
+  await f.page.locator('dialog[open]').waitFor({ state: "detached" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/card-a-1");
+});
 
 test("profile reads: both RPCs use the account bearer and show their results", async t => {
   const f = await profileReadsPage(t); await f.waitRequests(2);
@@ -4895,7 +5068,11 @@ async function profileExportPage(t, { hold = true, holdSession = false, rollover
       return { data: { session: { user: { id }, access_token: id === owner ? "fixture-a-token" : "fixture-b-token" } }, error: null };
     };
     client.rpc = (name, ...args) => {
-      if (name !== "export_own_data") return Promise.resolve({ error: { code: "PGRST202" }, data: null });
+      if (name !== "export_own_data") {
+        const unavailable = Promise.resolve({ error: { code: "PGRST202" }, data: null });
+        unavailable.setHeader = () => unavailable;
+        return unavailable;
+      }
       const builder = rpc(name, ...args), then = builder.then.bind(builder);
       builder.then = (resolve, reject) => then(value => { window.exportSettled++; return resolve(value); }, reject);
       return builder;
@@ -5635,7 +5812,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

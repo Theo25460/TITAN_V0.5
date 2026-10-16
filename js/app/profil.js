@@ -25,6 +25,8 @@
   let masteryNavigation = null;
   let avatarTask = null;
   let exportTask = null;
+  let cardTask = null;
+  let cardConfirmation = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -162,22 +164,52 @@
       qr = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
     }
     return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div>
-      <div class="pf-public">
-        <label class="pf-toggle"><input type="checkbox" role="switch" data-card-enabled ${card.enabled ? "checked" : ""}><span><strong>Une carte d’athlète accessible par lien</strong><small>Désactivée par défaut. Le lien est impossible à deviner ; pas de référencement dans les moteurs de recherche.</small></span></label>
+      <div class="pf-public" aria-busy="${Boolean(cardTask)}">
+        <label class="pf-toggle"><input type="checkbox" role="switch" id="pf-card-enabled" data-card-enabled ${cardTask ? "disabled" : ""} ${card.enabled ? "checked" : ""}><span><strong>Une carte d’athlète accessible par lien</strong><small>Désactivée par défaut. Le lien est impossible à deviner ; pas de référencement dans les moteurs de recherche.</small></span></label>
         ${card.enabled ? `<div class="pf-public-share"><div class="pf-qr" role="img" aria-label="QR code de ton profil public">${qr}</div>
           <div class="asc-stack-sm"><input class="asc-input asc-num" readonly value="${esc(url)}" aria-label="Lien de ton profil public">
-            <div class="asc-row-flex"><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/u/${esc(card.slug)}" target="_blank" rel="noopener">${icon("eye")} Voir</a><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-copy>${icon("copy")} Copier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-relink>${icon("restore")} Nouveau lien</button></div></div></div>
-        <fieldset class="pf-privacy"><legend class="seance-label">Ce que la carte montre</legend>${BLOCKS.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-card-show="${k}" ${card.show?.[k] !== false ? "checked" : ""}><span><strong>${esc(label)}</strong>${help ? `<small>${esc(help)}</small>` : ""}</span></label>`).join("")}</fieldset>
+            <div class="asc-row-flex"><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/u/${esc(card.slug)}" target="_blank" rel="noopener">${icon("eye")} Voir</a><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-copy>${icon("copy")} Copier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" id="pf-card-relink" data-card-relink ${cardTask ? "disabled" : ""}>${icon("restore")} Nouveau lien</button></div></div></div>
+        <fieldset class="pf-privacy"><legend class="seance-label">Ce que la carte montre</legend>${BLOCKS.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" id="pf-card-show-${k}" data-card-show="${k}" ${cardTask ? "disabled" : ""} ${card.show?.[k] !== false ? "checked" : ""}><span><strong>${esc(label)}</strong>${help ? `<small>${esc(help)}</small>` : ""}</span></label>`).join("")}</fieldset>
         <p class="asc-small asc-faint">Jamais affichés : santé, poids, GPS, notes, dates et heures des séances, amis, guilde, e-mail.</p>` : ""}
-      </div></section>`;
+      </div>${cardTask ? `<p class="asc-small asc-muted" role="status" data-card-progress>Enregistrement du profil public…</p>` : ""}</section>`;
   }
 
-  async function saveCard(enabled, show, relink = false) {
-    const { data, error } = await window.titanClient.rpc("titan_public_card_save", { p_enabled: enabled, p_show: show || {}, p_new_link: relink });
-    if (error) throw error;
-    card = data;
-    window.TitanCard?.resetLink?.();
+  const cardContextValid = context => bitsCurrent({ context });
+  const cardMutationCurrent = job => cardTask === job && bitsCurrent(job);
+
+  async function saveCard(enabled, show, relink = false, expected = bitsContext, focus = null) {
+    if (cardTask || !card || !cardContextValid(expected)) return false;
+    const job = { context: expected, focus };
+    cardTask = job;
     render();
+    try {
+      const session = await readBitsSession(job);
+      if (!cardMutationCurrent(job)) return false;
+      const { data, error } = await expected.client.rpc("titan_public_card_save", { p_enabled: enabled, p_show: { ...(show || {}) }, p_new_link: relink })
+        .setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (!cardMutationCurrent(job)) return false;
+      if (error) throw error;
+      await readBitsSession(job);
+      if (!cardMutationCurrent(job)) return false;
+      if (!data) throw new Error("PUBLIC_CARD_EMPTY_RESPONSE");
+      card = data;
+      window.TitanCard?.resetLink?.();
+      return true;
+    } catch (error) {
+      if (cardMutationCurrent(job)) throw error;
+      return false;
+    } finally {
+      // A response from A cannot release B's newer mutation or restore its old controls.
+      if (cardTask === job) {
+        const current = cardMutationCurrent(job);
+        cardTask = null;
+        if (current) {
+          const restoreFocus = focus && document.activeElement === document.body;
+          render();
+          if (restoreFocus && document.activeElement === document.body) root.querySelector(focus)?.focus({ preventScroll: true });
+        }
+      }
+    }
   }
 
   let bitsContext = null;
@@ -191,6 +223,8 @@
   function resetServerBits() {
     bitsContext = null;
     bitsTask = null;
+    cardTask = null;
+    cardConfirmation = null;
     card = null;
     titles = null;
     cardUnavailable = false;
@@ -495,15 +529,27 @@
         () => window.titanShell.toast({ type: "ok", title: "Lien copié" }),
         () => window.titanShell.toast({ type: "warn", message: "Copie impossible : sélectionne le lien pour le copier." }),
       );
-    if (b.hasAttribute("data-card-relink"))
+    if (b.hasAttribute("data-card-relink")) {
+      if (cardTask || !card || !cardContextValid(bitsContext) || (cardConfirmation && bitsCurrent(cardConfirmation))) return;
+      const confirmation = { context: bitsContext };
+      cardConfirmation = confirmation;
       return window.titanShell.confirm({
         title: "Créer un nouveau lien ?",
         message: "L’ancien lien et les QR codes déjà partagés cesseront de fonctionner.",
         confirmLabel: "Nouveau lien",
-        action: () => saveCard(null, null, true).catch(() => {
-          throw new Error("Le lien n’a pas pu être changé. Vérifie ta connexion.");
-        }),
-      });
+        action: async () => {
+          if (cardTask) throw new Error("Une modification est déjà en cours. Réessaie après sa confirmation.");
+          try {
+            const applied = await saveCard(null, null, true, confirmation.context);
+            if (!applied) throw new Error("PUBLIC_CARD_CONTEXT_CHANGED");
+          } catch (error) {
+            throw new Error(error?.message === "PUBLIC_CARD_CONTEXT_CHANGED"
+              ? "Le compte a changé. Ferme cette fenêtre, puis réessaie."
+              : "Le changement de lien n’a pas pu être confirmé. Vérifie ton compte et ta connexion.");
+          }
+        },
+      }).finally(() => { if (cardConfirmation === confirmation) cardConfirmation = null; });
+    }
     if (b.hasAttribute("data-export-json")) return exportJson();
     if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.(logs());
     if (b.hasAttribute("data-clear-cache"))
@@ -539,16 +585,17 @@
       window.titanShell.toast({ type: "ok", title: "Confidentialité", message: t.checked ? "Partage activé." : "Partage désactivé." });
     }
     if (t.matches("[data-card-enabled]") || t.dataset.cardShow) {
+      if (cardTask || !card || !cardContextValid(bitsContext)) { render(); return; }
+      const context = bitsContext;
       const enabled = t.matches("[data-card-enabled]") ? t.checked : null;
       const show = t.dataset.cardShow ? { [t.dataset.cardShow]: t.checked } : {};
-      t.disabled = true;
-      return saveCard(enabled, show)
-        .then(() => enabled !== null && window.titanShell.toast({ type: "ok", title: enabled ? "Profil public activé" : "Profil public désactivé", message: enabled ? "Seuls ceux qui ont le lien peuvent le voir." : "Le lien ne mène plus nulle part." }))
-        .catch((err) => {
-          t.checked = !t.checked;
-          t.disabled = false;
+      const focus = enabled !== null ? "[data-card-enabled]" : `[data-card-show="${t.dataset.cardShow}"]`;
+      return saveCard(enabled, show, false, context, focus)
+        .then(applied => applied && cardContextValid(context) && enabled !== null && window.titanShell.toast({ type: "ok", title: enabled ? "Profil public activé" : "Profil public désactivé", message: enabled ? "Seuls ceux qui ont le lien peuvent le voir." : "Le lien ne mène plus nulle part." }))
+        .catch(err => {
+          if (!cardContextValid(context)) return;
           const m = String(err?.message || "");
-          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Réglage non enregistré. Vérifie ta connexion." });
+          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
         });
     }
     if (t.matches("[data-analytics]")) {
