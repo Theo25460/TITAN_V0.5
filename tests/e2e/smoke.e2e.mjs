@@ -4782,6 +4782,110 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
   return f;
 }
 
+// The real local purge runs only against synthetic storage. Reload serves an inert
+// same-origin page so app startup cannot recreate keys and hide a mistaken purge.
+async function cacheConfirmationPage(t, { guest = false } = {}) {
+  const f = await profileReadsPage(t), { page } = f;
+  await f.waitRequests(2); await f.respond([0, 1]);
+  if (guest) await f.change("guest");
+  f.reloads = 0;
+  await page.route(BASE + "/profile", route => {
+    if (!route.request().isNavigationRequest()) return route.continue();
+    f.reloads++;
+    return route.fulfill({ contentType: "text/html", body: "<!doctype html><title>Cache reload fixture</title><p>Reloaded</p>" });
+  });
+  await page.evaluate(() => {
+    localStorage.setItem("cache_fixture_preference", "keep-until-confirmed");
+    localStorage.setItem("sb-cache-fixture-auth-token", "synthetic-auth");
+    for (const key of ["titan_training_draft_fixture", "titan_seance_draft_fixture", "titan_pending_training_logs_v1", "titan_guest_device_id_v1", "titan_guest_imported_v1"]) localStorage.setItem(key, "synthetic-preserved");
+    sessionStorage.setItem("cache_fixture_session", "keep-until-confirmed");
+    window.cacheFixtureClear = window.titanSafeClearCache;
+  });
+  f.open = () => page.locator("[data-clear-cache]").click();
+  f.confirm = () => page.locator("dialog[open] [data-ok]").click();
+  f.snapshot = () => page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
+  f.assertUntouched = async () => {
+    assert.equal(f.reloads, 0, "obsolete or failed confirmation must not reload");
+    const s = await f.snapshot();
+    assert.equal(s.local.cache_fixture_preference, "keep-until-confirmed");
+    assert.equal(s.local["sb-cache-fixture-auth-token"], "synthetic-auth");
+    assert.equal(s.session.cache_fixture_session, "keep-until-confirmed");
+  };
+  return f;
+}
+
+for (const guest of [false, true]) test(`cache confirmation: ${guest ? "discovery" : "member"} clears only after confirmation and preserves pending drafts`, async t => {
+  const f = await cacheConfirmationPage(t, { guest }); await f.open(); await f.assertUntouched(); await f.confirm();
+  assert.equal(f.reloads, 1);
+  const s = await f.snapshot();
+  assert.equal(s.local.cache_fixture_preference, undefined);
+  assert.equal(s.local["sb-cache-fixture-auth-token"], undefined);
+  assert.equal(s.session.cache_fixture_session, undefined);
+  for (const key of ["titan_training_draft_fixture", "titan_seance_draft_fixture", "titan_pending_training_logs_v1", "titan_guest_device_id_v1", "titan_guest_imported_v1"]) assert.equal(s.local[key], "synthetic-preserved");
+});
+
+for (const kind of ["owner", "silent-owner", "client", "epoch", "roundtrip", "active", "guest"]) test(`cache confirmation: stale ${kind} cannot erase another context`, async t => {
+  const f = await cacheConfirmationPage(t); await f.open();
+  if (kind === "active") await f.page.evaluate(() => { window.titanAccountTransition.active = true; });
+  else if (kind === "silent-owner") await f.page.evaluate(() => { window.state.user.id = window.readOwnerId("b"); });
+  else if (kind === "roundtrip") {
+    // Observed A -> B -> A with the same client and epoch still invalidates the
+    // original confirmation through the Profile context identity.
+    for (const letter of ["b", "a"]) await f.page.evaluate(async letter => {
+      window.state.user.id = window.readOwnerId(letter);
+      dispatchEvent(new CustomEvent("titan:history-updated"));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }, letter);
+  }
+  else await f.change(kind);
+  await f.confirm(); await f.assertUntouched();
+  assert.equal(await f.page.locator("dialog[open]").count(), 1);
+  assert.match(await f.page.locator("dialog[open] [data-error]").innerText(), /compte.*chang|contexte.*chang/i);
+});
+
+test("cache confirmation: repeated openings share a window and cancellation permits a fresh confirmation", async t => {
+  const f = await cacheConfirmationPage(t);
+  await f.page.evaluate(() => { for (let i = 0; i < 3; i++) document.querySelector("[data-clear-cache]").click(); });
+  assert.equal(await f.page.locator("dialog[open]").count(), 1);
+  await f.page.locator("dialog[open] [data-cancel]").click(); await f.assertUntouched();
+  await f.open(); assert.equal(await f.page.locator("dialog[open]").count(), 1); await f.confirm(); assert.equal(f.reloads, 1);
+});
+
+test("cache confirmation: a failed purge stays open for an explicit retry", async t => {
+  const f = await cacheConfirmationPage(t); await f.open();
+  await f.page.evaluate(() => { window.titanSafeClearCache = () => { throw new Error("synthetic private storage detail"); }; });
+  await f.confirm(); await f.assertUntouched();
+  const text = await f.page.locator("dialog[open] [data-error]").innerText();
+  assert.match(text, /cache|nettoyage/i); assert.doesNotMatch(text, /synthetic private/);
+  assert.equal(await f.page.locator("dialog[open] [data-ok]").isEnabled(), true);
+  await f.page.evaluate(() => { window.titanSafeClearCache = window.cacheFixtureClear; });
+  await f.confirm(); assert.equal(f.reloads, 1);
+});
+
+test("cache confirmation: closing an old dialog cannot release the new account reservation", async t => {
+  const f = await cacheConfirmationPage(t); await f.open(); await f.change();
+  await f.page.evaluate(() => document.querySelector("[data-clear-cache]").click());
+  assert.equal(await f.page.locator("dialog[open]").count(), 2);
+  // Native close is an allowed account-guard path, even for a lower modal.
+  await f.page.locator("dialog[open]").first().evaluate(d => d.close());
+  await f.page.evaluate(() => document.querySelector("[data-clear-cache]").click());
+  assert.equal(await f.page.locator("dialog[open]").count(), 1);
+  await f.assertUntouched(); await f.confirm(); assert.equal(f.reloads, 1);
+});
+
+test("cache confirmation: an active account transition cannot open a new dialog", async t => {
+  const f = await cacheConfirmationPage(t);
+  await f.page.evaluate(() => { window.titanAccountTransition.active = true; document.querySelector("[data-clear-cache]").click(); });
+  assert.equal(await f.page.locator("dialog[open]").count(), 0); await f.assertUntouched();
+});
+
+test("cache confirmation: an unavailable purge helper never reports success by reloading", async t => {
+  const f = await cacheConfirmationPage(t); await f.open();
+  await f.page.evaluate(() => { window.titanSafeClearCache = undefined; });
+  await f.confirm(); await f.assertUntouched();
+  assert.match(await f.page.locator("dialog[open] [data-error]").innerText(), /cache|nettoyage/i);
+});
+
 async function deleteAccountPage(t, { holdSession = false, holdQueue = false, rollover = false } = {}) {
   const f = await profileReadsPage(t, { allowDeletion: true }), { page } = f;
   await f.waitRequests(2); await f.respond([0, 1], { label: "account-a" });
@@ -5972,7 +6076,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5", "300.6"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5", "300.6", "300.7"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);

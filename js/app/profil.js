@@ -29,6 +29,7 @@
   let cardConfirmation = null;
   let deleteTask = null;
   let deleteDialog = null;
+  let cacheConfirmation = null;
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
@@ -229,6 +230,7 @@
     cardConfirmation = null;
     deleteTask = null;
     deleteDialog = null;
+    cacheConfirmation = null;
     card = null;
     titles = null;
     cardUnavailable = false;
@@ -499,6 +501,31 @@
   const avatarContextCurrent = task => task && task.owner === window.state?.user?.id && task.client === window.titanClient
     && task.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
 
+  const cacheContextCurrent = confirmation => confirmation && cacheConfirmation === confirmation
+    && confirmation.context === bitsContext && sameBitsContext(confirmation.context, serverBitsContext())
+    && confirmation.guest === guest() && !window.titanAccountTransition?.active;
+
+  function clearCache() {
+    if (!bitsContext || window.titanAccountTransition?.active || cacheContextCurrent(cacheConfirmation)) return;
+    const confirmation = { context: bitsContext, guest: guest() };
+    cacheConfirmation = confirmation;
+    return window.titanShell.confirm({
+      title: "Vider le cache ?",
+      message: "Les préférences locales sont effacées et la page se recharge. Les séances en attente et ton compte ne sont pas touchés.",
+      confirmLabel: "Vider",
+      action: () => {
+        if (!cacheContextCurrent(confirmation)) throw new Error("Le compte a changé. Ferme cette fenêtre, puis réessaie.");
+        try {
+          if (typeof window.titanSafeClearCache !== "function") throw new Error("CACHE_UNAVAILABLE");
+          window.titanSafeClearCache();
+        } catch {
+          throw new Error("Le nettoyage du cache n’a pas pu être terminé. Réessaie ou recharge la page.");
+        }
+        location.reload();
+      },
+    }).finally(() => { if (cacheConfirmation === confirmation) cacheConfirmation = null; });
+  }
+
   async function selectAvatar(avatar) {
     if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
     if (window.titanAccountTransition?.active) return;
@@ -612,16 +639,7 @@
     }
     if (b.hasAttribute("data-export-json")) return exportJson();
     if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.(logs());
-    if (b.hasAttribute("data-clear-cache"))
-      return window.titanShell.confirm({
-        title: "Vider le cache ?",
-        message: "Les préférences locales sont effacées et la page se recharge. Les séances en attente et ton compte ne sont pas touchés.",
-        confirmLabel: "Vider",
-        action: () => {
-          window.titanSafeClearCache?.();
-          location.reload();
-        },
-      });
+    if (b.hasAttribute("data-clear-cache")) return clearCache();
     if (b.hasAttribute("data-signout"))
       return window.titanShell.confirm({
         title: "Se déconnecter ?",
