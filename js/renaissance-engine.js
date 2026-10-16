@@ -312,7 +312,8 @@
       publish(next);
       return next;
     }
-    ++sequence; // discard an older in-flight snapshot after a mutation
+    ++sequence; // discard an older in-flight snapshot when the mutation starts
+    pending = null; // invalidated reads must not absorb a later normal refresh
     const next = await rpc(
       "titan_adventure_action",
       {
@@ -326,6 +327,10 @@
       },
       id,
     );
+    // A read started while the action was pending can still carry the old revision.
+    // Only a successful confirmation closes that read generation; errors leave it usable.
+    ++sequence;
+    pending = null;
     publish(next);
     return next;
   };
