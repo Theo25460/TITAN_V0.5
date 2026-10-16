@@ -26,8 +26,9 @@
     const list = P().activeLogs(logs, now);
     const out = [];
     for (let k = weeks - 1; k >= 0; k--) {
-      const from = F().weekStart(new Date(current - k * 7 * DAY + DAY)).getTime();
-      const to = from + 7 * DAY;
+      const monday = F().addDays(new Date(current), -k * 7);
+      const from = monday.getTime();
+      const to = F().addDays(monday, 7).getTime();
       const inWeek = list.filter((l) => {
         const t = new Date(l.date).getTime();
         return t >= from && t < to;
@@ -131,15 +132,16 @@
     const list = P().activeLogs(logs, now);
     const current = F().weekStart(now).getTime();
     const weekLoad = (from) => {
+      const to = F().addDays(new Date(from), 7).getTime();
       const inWeek = list.filter((l) => {
         const t = new Date(l.date).getTime();
-        return t >= from && t < from + 7 * DAY;
+        return t >= from && t < to;
       });
       const rated = inWeek.filter((l) => T().load(l) !== null);
       return { load: rated.reduce((n, l) => n + T().load(l), 0), sessions: inWeek.length, rated: rated.length };
     };
     const thisWeek = weekLoad(current);
-    const previous = [1, 2, 3, 4].map((k) => weekLoad(F().weekStart(new Date(current - k * 7 * DAY + DAY)).getTime()));
+    const previous = [1, 2, 3, 4].map((k) => weekLoad(F().addDays(new Date(current), -k * 7).getTime()));
     const sessions = previous.reduce((n, w) => n + w.sessions, 0) + thisWeek.sessions;
     const rated = previous.reduce((n, w) => n + w.rated, 0) + thisWeek.rated;
     if (sessions < 4 || rated / sessions < 0.6) return { enough: false, coverage: sessions ? rated / sessions : 0 };
