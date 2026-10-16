@@ -180,24 +180,67 @@
     render();
   }
 
-  let bitsLoading = false;
+  let bitsContext = null;
+  let bitsTask = null;
   let cardFailed = false;
+  const serverBitsContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const sameBitsContext = (a, b) => a && b && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch;
+  const bitsCurrent = job => job && job.context === bitsContext && sameBitsContext(job.context, serverBitsContext())
+    && !window.titanAccountTransition?.active && !guest();
+
+  function resetServerBits() {
+    bitsContext = null;
+    bitsTask = null;
+    card = null;
+    titles = null;
+    cardUnavailable = false;
+    cardFailed = false;
+  }
+
+  function syncServerBits() {
+    const next = serverBitsContext();
+    if (!sameBitsContext(bitsContext, next)) {
+      resetServerBits();
+      bitsContext = next;
+    }
+  }
+
+  async function readBitsSession(job) {
+    const { data, error } = await job.context.client.auth.getSession();
+    if (!bitsCurrent(job)) throw new Error("PROFILE_READ_CONTEXT_CHANGED");
+    const session = data?.session;
+    if (error || !session?.access_token || session.user?.id !== job.context.owner) throw new Error("PROFILE_READ_SESSION_CHANGED");
+    return session;
+  }
+
   async function loadServerBits() {
-    if (bitsLoading || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine) return;
-    bitsLoading = true;
-    const within = (p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 8000))]);
+    if (bitsTask || card || cardUnavailable || guest() || !window.titanClient || !navigator.onLine || window.titanAccountTransition?.active) return;
+    const job = { context: bitsContext };
+    bitsTask = job;
+    const within = p => {
+      let timer;
+      return Promise.race([p, new Promise((_, no) => { timer = setTimeout(() => no(new Error("timeout")), 8000); })]).finally(() => clearTimeout(timer));
+    };
     try {
-      const [c, t] = await Promise.allSettled([within(window.titanClient.rpc("titan_public_card_settings")), within(window.titanClient.rpc("titan_expedition_titles"))]);
+      const session = await readBitsSession(job);
+      const rpc = name => within(job.context.client.rpc(name).setHeader("Authorization", `Bearer ${session.access_token}`));
+      const [c, t] = await Promise.allSettled([rpc("titan_public_card_settings"), rpc("titan_expedition_titles")]);
+      if (!bitsCurrent(job)) return;
+      // The SDK can change session without a public transition while these reads are pending.
+      await readBitsSession(job);
       const err = c.status === "fulfilled" ? c.value.error : c.reason;
       if (!err && c.value.data) card = c.value.data;
       else if (err?.code === "PGRST202" || /Could not find/.test(err?.message || "")) cardUnavailable = true;
       cardFailed = !card && !cardUnavailable;
       if (t.status === "fulfilled" && !t.value.error && Array.isArray(t.value.data)) titles = t.value.data;
     } catch {
-      cardFailed = true;
+      if (bitsCurrent(job)) cardFailed = true;
     } finally {
-      bitsLoading = false;
-      render();
+      // An old account's finally cannot release the next account's reads or repaint its state.
+      if (bitsTask === job) {
+        bitsTask = null;
+        if (bitsCurrent(job)) render();
+      }
     }
   }
 
@@ -522,6 +565,7 @@
   function start() {
     root = document.getElementById("profil");
     if (!root || !window.state?.user || !window.TitanSports || !B()) return;
+    syncServerBits();
     if (avatarTask && !avatarContextCurrent(avatarTask)) avatarTask = null;
     if (exportTask && !exportContextCurrent(exportTask)) { exportTask = null; resetExportUi(); }
     if (!booted) {
@@ -548,7 +592,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
-  window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); });
+  window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); resetServerBits(); render(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

@@ -4725,6 +4725,141 @@ async function profileRadioPage(width) {
   return fixture;
 }
 
+// Read fixtures keep the SDK RPC transport and inspect both account-bound requests.
+async function profileReadsPage(t, { sessionOwner = "a", rollover = false } = {}) {
+  const f = await profileRadioPage(360), { page } = f;
+  t.after(async () => { await f.context.close(); assert.deepEqual(f.errors, []); });
+  const requests = [];
+  await page.route(/\/rest\/v1\/rpc\/(titan_public_card_settings|titan_expedition_titles)$/, async route => {
+    const kind = route.request().url().split('/').at(-1), bearer = route.request().headers().authorization;
+    const request = { kind, bearer, index: requests.length };
+    requests.push(request);
+    const response = await new Promise(resolve => { request.resolve = resolve; });
+    const label = `read-${response.label || request.index}`;
+    await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: response.code || "XX000", message: "synthetic failure" } : kind === "titan_public_card_settings" ? { enabled: true, slug: label, show: {} } : [{ title: label, expedition: "Synthetic expedition" }]) });
+  });
+  await page.evaluate(({ sessionOwner, rollover }) => {
+    window.profileReadSettled = 0; window.profileReadSessionCalls = 0;
+    window.readOwnerId = letter => letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
+    window.profileReadSessionOwner = sessionOwner;
+    const client = window.titanClient, rpc = client.rpc.bind(client);
+    client.auth.getSession = async () => {
+      const call = ++window.profileReadSessionCalls;
+      const letter = rollover && call > 1 ? "b" : window.profileReadSessionOwner;
+      return { data: { session: { user: { id: window.readOwnerId(letter) }, access_token: `read-${letter}-token` } }, error: null };
+    };
+    client.rpc = (name, ...args) => {
+      if (!["titan_public_card_settings", "titan_expedition_titles"].includes(name)) return Promise.resolve({ data: null, error: { code: "PGRST202" } });
+      const builder = rpc(name, ...args), then = builder.then.bind(builder);
+      builder.then = (resolve, reject) => then(value => { window.profileReadSettled++; return resolve(value); }, reject);
+      return builder;
+    };
+    window.qrcode = () => ({ addData() {}, make() {}, createSvgTag: () => '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
+    window.state.user.id = window.readOwnerId("a");
+    const snapshot = { ...window.TitanAdventure.snapshot, owner: window.state.user.id };
+    window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
+    dispatchEvent(new CustomEvent("titan:history-updated"));
+  }, { sessionOwner, rollover });
+  f.requests = requests;
+  f.waitRequests = async n => { const end = Date.now() + 2500; while (requests.length < n && Date.now() < end) await new Promise(r => setTimeout(r, 20)); assert.equal(requests.length, n, "each account starts its own pair of reads"); };
+  f.respond = async (indices, response = {}) => {
+    for (const i of indices) requests[i].resolve(response);
+    await page.waitForFunction(n => window.profileReadSettled >= n, indices.length + (f.settled || 0));
+    f.settled = (f.settled || 0) + indices.length;
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  };
+  f.change = async (kind = "owner", letter = "b") => {
+    await page.evaluate(async ({ kind, letter }) => {
+      if (kind !== "client") { window.titanInvalidateAccountSession(window.state.user.id); window.titanAccountTransition.active = false; }
+      if (kind === "owner" || kind === "guest") window.state.user.id = kind === "guest" ? "guest_reads" : window.readOwnerId(letter);
+      if (kind === "client") window.titanClient = Object.create(window.titanClient);
+      window.profileReadSessionOwner = letter;
+      if (window.TitanAdventure.snapshot) window.TitanAdventure.snapshot.owner = window.state.user.id;
+      dispatchEvent(new CustomEvent("titan:history-updated"));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }, { kind, letter });
+  };
+  return f;
+}
+
+test("profile reads: both RPCs use the account bearer and show their results", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2);
+  assert.deepEqual(f.requests.map(r => r.bearer), ["Bearer read-a-token", "Bearer read-a-token"]);
+  await f.respond([0, 1], { label: "account-a" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-account-a");
+  assert.match(await f.page.locator('#collection').innerText(), /read-account-a/);
+});
+
+test("profile reads: next account loads while the old pair is pending and ignores its late success", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2); await f.change(); await f.waitRequests(4);
+  assert.deepEqual(f.requests.slice(2).map(r => r.bearer), ["Bearer read-b-token", "Bearer read-b-token"]);
+  await f.respond([2, 3], { label: "account-b" }); await f.respond([0, 1], { label: "old-a" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-account-b");
+  assert.match(await f.page.locator('#collection').innerText(), /read-account-b/);
+  assert.doesNotMatch(await f.page.locator('#collection').innerText(), /read-old-a/);
+});
+
+test("profile reads: cached card and titles disappear immediately for the next account", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2); await f.respond([0, 1], { label: "old-a" });
+  await f.change();
+  assert.equal(await f.page.locator('#public input[readonly]').count(), 0);
+  assert.doesNotMatch(await f.page.locator('#collection').innerText(), /read-old-a/);
+  await f.waitRequests(4); await f.respond([2, 3], { label: "account-b" });
+});
+
+test("profile reads: discovery never inherits a cached account title or card", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2); await f.respond([0, 1], { label: "old-a" });
+  await f.change("guest");
+  assert.equal(await f.page.locator('#public').count(), 0);
+  assert.doesNotMatch(await f.page.locator('#collection').innerText(), /read-old-a/);
+  assert.equal(f.requests.length, 2);
+});
+
+for (const kind of ["epoch", "client"]) {
+  test(`profile reads: a ${kind} change of the same owner invalidates old replies`, async t => {
+    const f = await profileReadsPage(t); await f.waitRequests(2); await f.change(kind, "a"); await f.waitRequests(4);
+    await f.respond([2, 3], { label: "new-context" }); await f.respond([0, 1], { label: "obsolete" });
+    assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-new-context");
+    assert.doesNotMatch(await f.page.locator('#collection').innerText(), /read-obsolete/);
+  });
+}
+
+test("profile reads: an old missing-RPC error cannot mark the new account unavailable after A B A", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2); await f.change(); await f.waitRequests(4);
+  await f.change("owner", "a"); await f.waitRequests(6);
+  await f.respond([0, 1], { status: 404, code: "PGRST202" });
+  await f.respond([2, 3], { label: "old-b" }); await f.respond([4, 5], { label: "fresh-a" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-fresh-a");
+  assert.doesNotMatch(await f.page.locator('#public').innerText(), /prochaine mise à jour/);
+});
+
+test("profile reads: a foreign initial session sends neither RPC", async t => {
+  const f = await profileReadsPage(t, { sessionOwner: "b" });
+  await f.page.waitForFunction(() => window.profileReadSessionCalls > 0);
+  await f.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(f.requests.length, 0);
+  assert.equal(await f.page.locator('#public input[readonly]').count(), 0);
+});
+
+test("profile reads: silent SDK rollover cannot display the response under another session", async t => {
+  const f = await profileReadsPage(t, { rollover: true }); await f.waitRequests(2);
+  assert.deepEqual(f.requests.map(r => r.bearer), ["Bearer read-a-token", "Bearer read-a-token"]);
+  await f.respond([0, 1], { label: "old-a" });
+  assert.equal(await f.page.locator('#public input[readonly]').count(), 0);
+  assert.doesNotMatch(await f.page.locator('#collection').innerText(), /read-old-a/);
+});
+
+test("profile reads: a current server failure keeps successful titles and retries on the next refresh", async t => {
+  const f = await profileReadsPage(t); await f.waitRequests(2);
+  const card = f.requests.findIndex(r => r.kind === "titan_public_card_settings"), title = 1 - card;
+  await f.respond([card], { status: 503 }); await f.respond([title], { label: "title-ok" });
+  assert.match(await f.page.locator('#collection').innerText(), /read-title-ok/);
+  assert.match(await f.page.locator('#public').innerText(), /indisponible/);
+  await f.page.evaluate(() => dispatchEvent(new CustomEvent("titan:history-updated"))); await f.waitRequests(4);
+  await f.respond([2, 3], { label: "retry-ok" });
+  assert.equal(await f.page.locator('#public input[readonly]').inputValue(), "https://titan-app.fr/u/read-retry-ok");
+});
+
 // Synthetic accounts only. Keep the real RPC builder and intercept its HTTP transport.
 async function profileExportPage(t, { hold = true, holdSession = false, rollover = false, mode = "ok", guest = false } = {}) {
   const f = await profileRadioPage(360), { page } = f;
@@ -4738,7 +4873,7 @@ async function profileExportPage(t, { hold = true, holdSession = false, rollover
     await route.fulfill({ status: mode === "error" ? 503 : 200, contentType: "application/json", body: JSON.stringify(mode === "error" ? { message: "synthetic unavailable" } : { userId: mode === "foreign" ? "other-owner" : owner, sessions: [] }) });
   });
   await page.evaluate(({ holdSession, rollover, guest }) => {
-    window.exportFiles = []; window.exportHeaders = []; window.exportSettled = 0; window.exportSessionCalls = 0;
+    window.exportFiles = []; window.exportHeaders = []; window.exportSettled = 0; window.exportSessionCalls = 0; window.exportFixtureReady = false;
     const blobs = new Map(), create = URL.createObjectURL.bind(URL), click = HTMLAnchorElement.prototype.click;
     URL.createObjectURL = blob => { const url = create(blob); blobs.set(url, blob); return url; };
     HTMLAnchorElement.prototype.click = function () {
@@ -4754,7 +4889,7 @@ async function profileExportPage(t, { hold = true, holdSession = false, rollover
     const client = window.titanClient, rpc = client.rpc.bind(client);
     window.exportSessionOwner = owner;
     client.auth.getSession = async () => {
-      const call = ++window.exportSessionCalls;
+      const call = window.exportFixtureReady ? ++window.exportSessionCalls : 0;
       if (holdSession && call === 1) await new Promise(resolve => { window.releaseExportSession = resolve; });
       const id = rollover && call > 1 ? "00000000-0000-4000-8000-000000000222" : window.exportSessionOwner;
       return { data: { session: { user: { id }, access_token: id === owner ? "fixture-a-token" : "fixture-b-token" } }, error: null };
@@ -4767,7 +4902,11 @@ async function profileExportPage(t, { hold = true, holdSession = false, rollover
     };
     dispatchEvent(new CustomEvent("titan:history-updated"));
   }, { holdSession, rollover, guest });
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  // Finish initial profile reads before arming export-specific session delays/rollovers.
+  await page.evaluate(async () => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    window.exportFixtureReady = true;
+  });
   f.release = async (index = 0) => { releases[index](); await page.waitForFunction(n => window.exportSettled >= n, index + 1); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); };
   f.request = async (count = 1) => page.waitForFunction(n => window.exportHeaders.length >= n, count, { timeout: 3000 });
   f.files = async () => page.evaluate(() => Promise.all(window.exportFiles.map(async b => JSON.parse(await b.text()))));
@@ -5496,7 +5635,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
     for (const [path, marker, body] of staleScripts) {
-      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
+      const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
       for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
     }
   }, staleScripts);
