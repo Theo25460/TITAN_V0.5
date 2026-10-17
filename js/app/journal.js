@@ -42,7 +42,7 @@
     return (ui.archived ? window.state?.archivedHistory : window.state?.history) || [];
   }
 
-  function filtered() {
+  function filtered(ignoreDay = false) {
     const q = norm(ui.q).trim();
     const since = ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY;
     return source()
@@ -50,7 +50,7 @@
         const t = new Date(l.date).getTime();
         if (!Number.isFinite(t) || t < since) return false;
         if (ui.family !== "all" && SP().familyOf(l.sport) !== ui.family) return false;
-        if (ui.day && F().dateKey(l.date) !== ui.day) return false;
+        if (!ignoreDay && ui.day && F().dateKey(l.date) !== ui.day) return false;
         if (!q) return true;
         const hay = norm([SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" "));
         return q.split(/\s+/).every((w) => hay.includes(w));
@@ -141,7 +141,8 @@
     const offset = (first.getDay() + 6) % 7;
     const days = new Date(y, m + 1, 0).getDate();
     const byDay = new Map();
-    for (const l of source().filter((l) => ui.family === "all" || SP().familyOf(l.sport) === ui.family)) {
+    // Keep the month overview filtered, independently of the selected day.
+    for (const l of filtered(true)) {
       const k = F().dateKey(l.date);
       if (!byDay.has(k)) byDay.set(k, []);
       byDay.get(k).push(l);
@@ -219,7 +220,7 @@
           <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note, cotation…" value="${esc(ui.q)}"></div>
         <div class="jr-filters">
           <div class="asc-seg" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${l}</button>`).join("")}</div>
-          ${ui.view === "list" ? `<label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
+          <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>
         </div>
         <div class="seance-chips jr-fams" role="group" aria-label="Famille">
           <button type="button" class="seance-chip" data-family="all" aria-pressed="${ui.family === "all"}">Tout</button>
