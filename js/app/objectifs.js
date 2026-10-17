@@ -30,7 +30,6 @@
   const guest = () => String(owner() || "").startsWith("guest_");
   const key = () => `titan_goals_v1:${owner()}`;
   const iso = (d) => F().dateKey(d);
-  const today = () => iso(new Date());
 
   async function load(force = false) {
     goals = (await D().goals({ force })) || [];
@@ -152,13 +151,14 @@
   }
 
   function openEditor(old, template) {
+    const start = new Date();
     const base = old || {
       title: template?.title || "",
       metric: template?.metric || "days",
       target: template?.target || 12,
       sport: template?.sport && window.SPORTS_CONFIG?.[template.sport] ? template.sport : "",
-      start_date: today(),
-      end_date: iso(new Date(Date.now() + ((template?.days || 28) - 1) * DAY)),
+      start_date: iso(start),
+      end_date: iso(F().addDays(start, (template?.days || 28) - 1)),
     };
     const form = document.createElement("form");
     form.className = "asc-stack ob-form";
@@ -204,7 +204,7 @@
         if (b.dataset.period === "month") {
           start.setDate(1);
           end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-        } else end = new Date(start.getTime() + (Number(b.dataset.period) - 1) * DAY);
+        } else end = F().addDays(start, Number(b.dataset.period) - 1);
         field("start_date").value = iso(start);
         field("end_date").value = iso(end);
       }
