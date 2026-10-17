@@ -31,6 +31,9 @@
   const guest = () => String(owner() || "").startsWith("guest_");
   const key = () => `titan_goals_v1:${owner()}`;
   const iso = (d) => F().dateKey(d);
+  function restorePageFocus(target, preventScroll = true) {
+    if (target?.isConnected && document.activeElement === document.body && !document.querySelector("dialog[open]")) target.focus({ preventScroll });
+  }
 
   async function load(force = false) {
     goals = (await D().goals({ force })) || [];
@@ -98,7 +101,7 @@
     const pct = Math.round(s.ratio * 100);
     return `<article class="ob-card" data-state="${s.state}">
       <div class="asc-between"><span class="asc-chip">${esc(g.sport ? SP().label(g.sport) : "Tous les sports")}</span><span class="asc-small asc-muted">${g.archived_at ? "Archivé" : s.ended || s.complete ? `du ${esc(new Date(g.start_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))} au ${esc(new Date(g.end_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))}` : `jusqu’au ${esc(new Date(g.end_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}`}</span></div>
-      <h3>${esc(g.title)}</h3>
+      <h3 tabindex="-1">${esc(g.title)}</h3>
       <p class="ob-value"><strong class="asc-num">${esc(m.fmt(s.value))}</strong><span class="asc-muted"> / ${esc(m.fmt(s.target))}${g.metric === "sessions" || g.metric === "days" ? " " + esc(m.unit(s.target)) : ""}</span></p>
       <div class="ob-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${esc(g.title)} : ${pct} %"><span style="--p:${pct}%"></span>${!s.complete && !s.ended && !s.upcoming ? `<i style="--p:${Math.round(s.elapsed * 100)}%" title="Où en serait un rythme régulier aujourd’hui"></i>` : ""}</div>
       <p class="ob-line">${s.state === "done" ? icon("check") : ""}${esc(s.line)}</p>
@@ -114,6 +117,8 @@
 
   function render() {
     if (!root) return;
+    const focused = document.activeElement;
+    const focusedView = root.contains(focused) && focused.matches("[data-goals-view]") ? focused.dataset.goalsView : null;
     const active = goals.filter((g) => !g.archived_at);
     const archived = goals.filter((g) => g.archived_at);
     const current = active.filter((g) => {
@@ -125,11 +130,13 @@
     root.innerHTML = `
       <div class="asc-between ob-top"><p class="asc-small asc-muted">${showArchived ? `${archived.length} archivé${archived.length > 1 ? "s" : ""}` : `${current.length} en cours`}${guest() ? " · sur cet appareil" : ""}</p>
         <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-new>${icon("plus")} Nouvel objectif</button></div>
-      ${list.length ? `<div class="ob-grid">${list.map(goalCard).join("")}</div>` : showArchived ? '<p class="asc-small asc-muted">Aucun objectif archivé.</p>' : templatesHtml()}
+      <div class="asc-seg ob-top" role="group" aria-label="Vue des objectifs"><button type="button" data-goals-view="current" aria-pressed="${!showArchived}" aria-controls="ob-results">Mes objectifs</button><button type="button" data-goals-view="archived" aria-pressed="${showArchived}" aria-controls="ob-results">Archives (${archived.length})</button></div>
+      <div id="ob-results">${list.length ? `<div class="ob-grid">${list.map(goalCard).join("")}</div>` : showArchived ? '<p class="asc-small asc-muted">Aucun objectif archivé.</p>' : templatesHtml()}
       ${!showArchived && finished.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Terminés</h2></div><div class="ob-grid">${finished.map(goalCard).join("")}</div></section>` : ""}
-      <footer class="jr-foot"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-toggle-archived>${icon(showArchived ? "flag" : "archive")} ${showArchived ? "Objectifs en cours" : `Archives${archived.length ? ` (${archived.length})` : ""}`}</button>
+      </div><footer class="jr-foot">
       <p class="asc-small asc-faint">La cadence hebdomadaire se règle depuis le QG ; les objectifs servent aux défis sur une période.</p></footer>`;
     root.setAttribute("aria-busy", "false");
+    if (focusedView) restorePageFocus(root.querySelector(`[data-goals-view="${CSS.escape(focusedView)}"]`));
   }
 
   function templatesHtml() {
@@ -178,7 +185,15 @@
       <p class="asc-small jr-edit-error" id="ob-error-${++editorNumber}" role="alert" hidden></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${old ? "Enregistrer" : "Créer l’objectif"}</button></div>`;
     let metric = base.metric;
-    const d = window.titanShell.sheet({ title: old ? "Ajuster l’objectif" : "Nouvel objectif", eyebrow: "Objectifs", body: form });
+    const opener = document.activeElement;
+    const returnTo = opener.hasAttribute("data-new") ? "[data-new]"
+      : opener.dataset.edit ? `[data-edit="${CSS.escape(opener.dataset.edit)}"]`
+      : opener.dataset.template ? `[data-template="${CSS.escape(opener.dataset.template)}"]` : null;
+    let savedGoal = null;
+    const d = window.titanShell.sheet({ title: old ? "Ajuster l’objectif" : "Nouvel objectif", eyebrow: "Objectifs", body: form, onClose: () => {
+      const heading = savedGoal && root.querySelector(`[data-edit="${CSS.escape(savedGoal.id)}"]`)?.closest("article")?.querySelector("h3");
+      restorePageFocus(heading || (returnTo && root.querySelector(returnTo)), false);
+    } });
     const field = (n) => form.querySelector(`[name="${n}"]`);
     const err = form.querySelector(".jr-edit-error");
     let invalidField = null;
@@ -253,7 +268,8 @@
       const submit = form.querySelector("[type=submit]");
       submit.disabled = true;
       try {
-        await save(fields, old);
+        savedGoal = await save(fields, old);
+        if (!old && showArchived) { showArchived = false; render(); }
         if (!old) window.TitanAnalytics?.track("goal_created", { kind: metric, family: fields.sport ? SP().familyOf(fields.sport) : undefined });
         d.close();
         window.titanShell.toast({ type: "ok", title: old ? "Objectif ajusté" : "Objectif créé", message: fields.title });
@@ -277,9 +293,10 @@
         if (!b) return;
         if (b.hasAttribute("data-new")) return openEditor(null);
         if (b.dataset.template) return openEditor(null, TEMPLATES[Number(b.dataset.template)]);
-        if (b.hasAttribute("data-toggle-archived")) {
-          showArchived = !showArchived;
-          return render();
+        if (b.dataset.goalsView) {
+          const nextArchived = b.dataset.goalsView === "archived";
+          if (nextArchived !== showArchived) { showArchived = nextArchived; render(); }
+          return;
         }
         const g = goals.find((x) => x.id === (b.dataset.edit || b.dataset.archive));
         if (!g) return;
@@ -290,6 +307,8 @@
             message: g.archived_at ? "Il revient dans tes objectifs en cours." : "Il quitte la liste et reste dans les archives, avec sa progression.",
             confirmLabel: g.archived_at ? "Restaurer" : "Archiver",
             action: () => save({ archived_at: g.archived_at ? null : new Date().toISOString() }, g),
+          }).then(confirmed => {
+            if (confirmed) restorePageFocus(root.querySelector(`[data-goals-view="${showArchived ? "archived" : "current"}"]`));
           });
       });
       load(false);
