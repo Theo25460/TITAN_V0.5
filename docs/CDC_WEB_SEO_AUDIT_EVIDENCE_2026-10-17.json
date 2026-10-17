@@ -1,0 +1,1400 @@
+{
+  "checked_at": "2026-10-17T08:55:59.018622+00:00",
+  "source_commit": "e4650a3cd65890cc2d84ec6b096045242f562296",
+  "method": "Fresh dist from node tools/build-public.mjs; Python HTMLParser head only, XML ElementTree, tomllib; anonymous HTTPS GET with urllib.request, 15 second timeout, 8 workers, no authentication or application mutation. Redirects followed; final HTTP statuses only. HTTP responses are not Google indexing evidence.",
+  "local_sitemap": [
+    "https://titan-app.fr/",
+    "https://titan-app.fr/fonctionnalites",
+    "https://titan-app.fr/tarifs",
+    "https://titan-app.fr/niveaux-et-xp",
+    "https://titan-app.fr/aventures-sportives",
+    "https://titan-app.fr/comprendre-mes-donnees",
+    "https://titan-app.fr/debuter-titan",
+    "https://titan-app.fr/pour-les-coachs",
+    "https://titan-app.fr/sports",
+    "https://titan-app.fr/suivi-sportif",
+    "https://titan-app.fr/journal-entrainement",
+    "https://titan-app.fr/journal-course-a-pied",
+    "https://titan-app.fr/carnet-musculation",
+    "https://titan-app.fr/suivi-escalade",
+    "https://titan-app.fr/progression-sportive",
+    "https://titan-app.fr/motivation-sport",
+    "https://titan-app.fr/changelog",
+    "https://titan-app.fr/service",
+    "https://titan-app.fr/partenariats",
+    "https://titan-app.fr/legal_privacy",
+    "https://titan-app.fr/legal_cgu",
+    "https://titan-app.fr/legal_mentions",
+    "https://titan-app.fr/legal_hub"
+  ],
+  "local_robots": "User-agent: *\nAllow: /\nAllow: /image/\nAllow: /favicon.ico\nDisallow: /sys_core_override_99.html\nDisallow: /sys_core_override_99\nDisallow: /sql/\nDisallow: /tools/\nDisallow: /functions/\nDisallow: /*.sql$\nDisallow: /*.md$\nDisallow: /*.toml$\nDisallow: /package.json\nDisallow: /package-lock.json\n\nSitemap: https://titan-app.fr/sitemap.xml\n",
+  "local_pages": [
+    {
+      "meta_robots": [
+        "noindex, nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/404"
+      ],
+      "file": "404.html",
+      "route": "/404",
+      "in_sitemap": false,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex, nofollow",
+        "noindex, nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/admin"
+      ],
+      "file": "admin.html",
+      "route": "/admin",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/admin.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/admin",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/adventure"
+      ],
+      "file": "adventure.html",
+      "route": "/adventure",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/adventure.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/adventure",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [],
+      "file": "athlete.html",
+      "route": "/athlete",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/athlete.html",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/aujourdhui"
+      ],
+      "file": "aujourdhui.html",
+      "route": "/aujourdhui",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/aujourdhui",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/aventures-sportives"
+      ],
+      "file": "aventures-sportives.html",
+      "route": "/aventures-sportives",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/boutique"
+      ],
+      "file": "boutique.html",
+      "route": "/boutique",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/boutique.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/boutique",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/carnet-musculation"
+      ],
+      "file": "carnet-musculation.html",
+      "route": "/carnet-musculation",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/changelog"
+      ],
+      "file": "changelog.html",
+      "route": "/changelog",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/coaching"
+      ],
+      "file": "coaching.html",
+      "route": "/coaching",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/coaching",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/coaching.html",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/comprendre-mes-donnees"
+      ],
+      "file": "comprendre-mes-donnees.html",
+      "route": "/comprendre-mes-donnees",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/debuter-titan"
+      ],
+      "file": "debuter-titan.html",
+      "route": "/debuter-titan",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex, follow",
+        "noindex, follow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/dynamic-page"
+      ],
+      "file": "dynamic-page.html",
+      "route": "/dynamic-page",
+      "in_sitemap": false,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/fonctionnalites"
+      ],
+      "file": "fonctionnalites.html",
+      "route": "/fonctionnalites",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [],
+      "canonicals": [],
+      "file": "googleb8fedd43e28cf7d4.html",
+      "route": "/googleb8fedd43e28cf7d4",
+      "in_sitemap": false,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/"
+      ],
+      "file": "index.html",
+      "route": "/",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal-course-a-pied"
+      ],
+      "file": "journal-course-a-pied.html",
+      "route": "/journal-course-a-pied",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal-entrainement"
+      ],
+      "file": "journal-entrainement.html",
+      "route": "/journal-entrainement",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal"
+      ],
+      "file": "journal.html",
+      "route": "/journal",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/journal.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/journal",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_cgu"
+      ],
+      "file": "legal_cgu.html",
+      "route": "/legal_cgu",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_hub"
+      ],
+      "file": "legal_hub.html",
+      "route": "/legal_hub",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_mentions"
+      ],
+      "file": "legal_mentions.html",
+      "route": "/legal_mentions",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_privacy"
+      ],
+      "file": "legal_privacy.html",
+      "route": "/legal_privacy",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,follow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/login"
+      ],
+      "file": "login.html",
+      "route": "/login",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/login.html",
+          "x_robots_tag": "noindex, follow"
+        },
+        {
+          "for": "/login",
+          "x_robots_tag": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/motivation-sport"
+      ],
+      "file": "motivation-sport.html",
+      "route": "/motivation-sport",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [],
+      "file": "network-error.html",
+      "route": "/network-error",
+      "in_sitemap": false,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/niveaux-et-xp"
+      ],
+      "file": "niveaux-et-xp.html",
+      "route": "/niveaux-et-xp",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/objectifs"
+      ],
+      "file": "objectifs.html",
+      "route": "/objectifs",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/objectifs",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/objectifs.html",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/onboarding"
+      ],
+      "file": "onboarding.html",
+      "route": "/onboarding",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/onboarding.html",
+          "x_robots_tag": "noindex, follow"
+        },
+        {
+          "for": "/onboarding",
+          "x_robots_tag": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/partenariats"
+      ],
+      "file": "partenariats.html",
+      "route": "/partenariats",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/pour-les-coachs"
+      ],
+      "file": "pour-les-coachs.html",
+      "route": "/pour-les-coachs",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/prevoir"
+      ],
+      "file": "prevoir.html",
+      "route": "/prevoir",
+      "in_sitemap": false,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/profile"
+      ],
+      "file": "profile.html",
+      "route": "/profile",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/profile.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/profile",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/progression-sportive"
+      ],
+      "file": "progression-sportive.html",
+      "route": "/progression-sportive",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/records"
+      ],
+      "file": "records.html",
+      "route": "/records",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/records",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/records.html",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/service"
+      ],
+      "file": "service.html",
+      "route": "/service",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/social"
+      ],
+      "file": "social.html",
+      "route": "/social",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/social.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/social",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/sports"
+      ],
+      "file": "sports.html",
+      "route": "/sports",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/stats"
+      ],
+      "file": "stats.html",
+      "route": "/stats",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/stats.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/stats",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/suivi-escalade"
+      ],
+      "file": "suivi-escalade.html",
+      "route": "/suivi-escalade",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/suivi-sportif"
+      ],
+      "file": "suivi-sportif.html",
+      "route": "/suivi-sportif",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/tarifs"
+      ],
+      "file": "tarifs.html",
+      "route": "/tarifs",
+      "in_sitemap": true,
+      "configured_headers": []
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/training"
+      ],
+      "file": "training.html",
+      "route": "/training",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/training.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/training",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/update-password"
+      ],
+      "file": "update-password.html",
+      "route": "/update-password",
+      "in_sitemap": false,
+      "configured_headers": [
+        {
+          "for": "/update-password.html",
+          "x_robots_tag": "noindex, nofollow"
+        },
+        {
+          "for": "/update-password",
+          "x_robots_tag": "noindex, nofollow"
+        }
+      ]
+    }
+  ],
+  "live": [
+    {
+      "path": "/robots.txt",
+      "checked_at": "2026-10-17T08:55:31.314269+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/robots.txt",
+      "content_type": "text/plain; charset=utf-8",
+      "x_robots_tag": null,
+      "body_sha256": "b3a4703cd84d2ad62b2576b48eb1c2536f1aa4af47b671a389d8d206dc1db84a",
+      "text": "User-agent: *\nAllow: /\nAllow: /image/\nAllow: /favicon.ico\nDisallow: /sys_core_override_99.html\nDisallow: /sys_core_override_99\nDisallow: /sql/\nDisallow: /tools/\nDisallow: /functions/\nDisallow: /*.sql$\nDisallow: /*.md$\nDisallow: /*.toml$\nDisallow: /package.json\nDisallow: /package-lock.json\n\nSitemap: https://titan-app.fr/sitemap.xml\n"
+    },
+    {
+      "path": "/sitemap.xml",
+      "checked_at": "2026-10-17T08:55:31.315308+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/sitemap.xml",
+      "content_type": "application/xml; charset=utf-8",
+      "x_robots_tag": null,
+      "body_sha256": "26ccebb6a8516df94df6e9194de23ab07908f43fa394598038b72c4de79c05a2",
+      "urls": [
+        "https://titan-app.fr/",
+        "https://titan-app.fr/fonctionnalites",
+        "https://titan-app.fr/tarifs",
+        "https://titan-app.fr/niveaux-et-xp",
+        "https://titan-app.fr/aventures-sportives",
+        "https://titan-app.fr/comprendre-mes-donnees",
+        "https://titan-app.fr/debuter-titan",
+        "https://titan-app.fr/pour-les-coachs",
+        "https://titan-app.fr/sports",
+        "https://titan-app.fr/suivi-sportif",
+        "https://titan-app.fr/journal-entrainement",
+        "https://titan-app.fr/journal-course-a-pied",
+        "https://titan-app.fr/carnet-musculation",
+        "https://titan-app.fr/suivi-escalade",
+        "https://titan-app.fr/progression-sportive",
+        "https://titan-app.fr/motivation-sport",
+        "https://titan-app.fr/changelog",
+        "https://titan-app.fr/service",
+        "https://titan-app.fr/legal_privacy",
+        "https://titan-app.fr/legal_cgu",
+        "https://titan-app.fr/legal_mentions",
+        "https://titan-app.fr/legal_hub"
+      ]
+    },
+    {
+      "path": "/404",
+      "checked_at": "2026-10-17T08:55:31.315934+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/404",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "9180787927680ca0ae6a81851b2ebb3bdd7d9a84fdc4bcbfbc0f005775a6997a",
+      "meta_robots": [
+        "noindex, nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/404"
+      ]
+    },
+    {
+      "path": "/admin",
+      "checked_at": "2026-10-17T08:55:31.316518+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/admin",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "08cf65f8ed0406a740c7d47b806fd58900102f93b824b73a4ad381ab56265098",
+      "meta_robots": [
+        "noindex, nofollow",
+        "noindex, nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/admin"
+      ]
+    },
+    {
+      "path": "/adventure",
+      "checked_at": "2026-10-17T08:55:31.317455+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/adventure",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "42c4bc4ed5c87bc2ce675499553c50382da6f9f9ec1d4b4f3d26d18b9959fe15",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/adventure"
+      ]
+    },
+    {
+      "path": "/athlete",
+      "checked_at": "2026-10-17T08:55:31.319487+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/athlete",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "dc3997b94a56b083e7f7b1f24ef470a63fddf547a11a999f073ab9fc9675e641",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": []
+    },
+    {
+      "path": "/aujourdhui",
+      "checked_at": "2026-10-17T08:55:31.320247+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/aujourdhui",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "f4d7118af9d689e38224bae897c1917bd670f33640706f4186bf325379a49077",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/aujourdhui"
+      ]
+    },
+    {
+      "path": "/aventures-sportives",
+      "checked_at": "2026-10-17T08:55:31.320697+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/aventures-sportives",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "400e4dd52f98acc802488d9bc8059a842594b05441b4fd8a5da2c52ddc3defe0",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/aventures-sportives"
+      ]
+    },
+    {
+      "path": "/boutique",
+      "checked_at": "2026-10-17T08:55:35.808074+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/boutique",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "0e1477db8f8bf32fa5b824c9f8888cce26b567f52e5ef616c2ea47800aab5de7",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/boutique"
+      ]
+    },
+    {
+      "path": "/carnet-musculation",
+      "checked_at": "2026-10-17T08:55:35.856032+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/carnet-musculation",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "0975803edee315c320beec3888f9862ad625ba7f80d69034a6cb4a9878e8b0b8",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/carnet-musculation"
+      ]
+    },
+    {
+      "path": "/changelog",
+      "checked_at": "2026-10-17T08:55:35.868840+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/changelog",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "0a9c821a52830e347db0fae5c9157146945ce50e15409ab2ec1e8493753ddb81",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/changelog"
+      ]
+    },
+    {
+      "path": "/coaching",
+      "checked_at": "2026-10-17T08:55:35.900015+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/coaching",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "b4b03eb767fa0d3a1acc0d561eefc2c2ad955f726a53c0ba9eb0e13156364d85",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/coaching"
+      ]
+    },
+    {
+      "path": "/comprendre-mes-donnees",
+      "checked_at": "2026-10-17T08:55:35.901155+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/comprendre-mes-donnees",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "ed0e0f1fb2a37a349d94be4fcd9b7acb785e01732011596a862ca1c502f7f044",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/comprendre-mes-donnees"
+      ]
+    },
+    {
+      "path": "/debuter-titan",
+      "checked_at": "2026-10-17T08:55:35.911940+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/debuter-titan",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "43be29798eb3be9c14561093999ec4cdadd649273566b80a36df97290f48a5a8",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/debuter-titan"
+      ]
+    },
+    {
+      "path": "/dynamic-page",
+      "checked_at": "2026-10-17T08:55:35.920396+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/dynamic-page",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "e238ed0ea4840c523e3d13861ac9c20923581e096f022910c133c6ba60b0d259",
+      "meta_robots": [
+        "noindex, follow",
+        "noindex, follow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/dynamic-page"
+      ]
+    },
+    {
+      "path": "/fonctionnalites",
+      "checked_at": "2026-10-17T08:55:35.962802+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/fonctionnalites",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "6931a8c01ede180c535716d757914e907b70f75d51ef39944c18f07eb5f645fc",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/fonctionnalites"
+      ]
+    },
+    {
+      "path": "/",
+      "checked_at": "2026-10-17T08:55:40.760921+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "b99242631412a7c0af5bbe4f5707f91cfc7632830033e3c9d70cbc13895667d0",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/"
+      ]
+    },
+    {
+      "path": "/journal-course-a-pied",
+      "checked_at": "2026-10-17T08:55:40.838497+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/journal-course-a-pied",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "840982149ed79d8dfedae5f806ee10b33fa8315b2a0abf3b15dae3ce6c61736d",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal-course-a-pied"
+      ]
+    },
+    {
+      "path": "/journal-entrainement",
+      "checked_at": "2026-10-17T08:55:40.858117+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/journal-entrainement",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "80f0ef1c09060755f522768d1351b3a1c3b001d8c67ade8087b10e58382419c6",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal-entrainement"
+      ]
+    },
+    {
+      "path": "/journal",
+      "checked_at": "2026-10-17T08:55:40.864379+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/journal",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "bbba1f22818b07bd1d8ba72e51d8d3e4df5952f5efb6730be9b5b85e2718c75e",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/journal"
+      ]
+    },
+    {
+      "path": "/legal_cgu",
+      "checked_at": "2026-10-17T08:55:40.880190+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/legal_cgu",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "d59d7676ab993da35705454d83f97723e61664e92cfb0a18ab39097f2b516333",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_cgu"
+      ]
+    },
+    {
+      "path": "/legal_hub",
+      "checked_at": "2026-10-17T08:55:40.881857+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/legal_hub",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "f7be3b0ad37d0867db6dddbda7512de9085a1255ecdedcd43810d7666defbdbf",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_hub"
+      ]
+    },
+    {
+      "path": "/legal_mentions",
+      "checked_at": "2026-10-17T08:55:40.891770+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/legal_mentions",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "6169679925d3d8c62d7b35f23105d96b76b118fec0fd0070a175b6476bf440a0",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_mentions"
+      ]
+    },
+    {
+      "path": "/legal_privacy",
+      "checked_at": "2026-10-17T08:55:40.907859+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/legal_privacy",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "20932926228394485df909f64886ea9a11923dcdf1c772d52f3a0e01ac26883b",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/legal_privacy"
+      ]
+    },
+    {
+      "path": "/login",
+      "checked_at": "2026-10-17T08:55:45.221443+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/login",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, follow",
+      "body_sha256": "6857199b63e0c25c0e9483e4d79774c93bb7313da94e58c7d95836bfc46d1e8c",
+      "meta_robots": [
+        "noindex,follow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/login"
+      ]
+    },
+    {
+      "path": "/motivation-sport",
+      "checked_at": "2026-10-17T08:55:45.223430+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/motivation-sport",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "af89bfcb722510ed922f6c68d3d4236df81e3e4028f44a1f753eb5b6593a5c71",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/motivation-sport"
+      ]
+    },
+    {
+      "path": "/network-error",
+      "checked_at": "2026-10-17T08:55:45.259807+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/network-error",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "9868f0f69892156cebd904f0bf63f62e571de562d5bcab272f20a6e8baad8b7e",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": []
+    },
+    {
+      "path": "/niveaux-et-xp",
+      "checked_at": "2026-10-17T08:55:45.274906+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/niveaux-et-xp",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "fd3b5db1df96c927f1d7c42148ff43cb0a5709c873ce50fa3f463aaef460e8cc",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/niveaux-et-xp"
+      ]
+    },
+    {
+      "path": "/objectifs",
+      "checked_at": "2026-10-17T08:55:45.277878+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/objectifs",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "20491aec48a9cd8e488aac946797a6367266b6850aa7d0dbc0a800a05790abd1",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/objectifs"
+      ]
+    },
+    {
+      "path": "/onboarding",
+      "checked_at": "2026-10-17T08:55:45.284259+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/onboarding",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, follow",
+      "body_sha256": "3d1d3a74524091be2b0d0c2fb00397ca47afb5af3a635a2cdfee69257f847da7",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/onboarding"
+      ]
+    },
+    {
+      "path": "/partenariats",
+      "checked_at": "2026-10-17T08:55:45.322312+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/partenariats",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "7603f9a2e0188ed97e897cce52d453085314b47501c14ba3d2dc8a73f5d15ec2",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/partenariats"
+      ]
+    },
+    {
+      "path": "/pour-les-coachs",
+      "checked_at": "2026-10-17T08:55:45.343680+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/pour-les-coachs",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "89edf997ad5920caa9a89798e1b3b99df804a32a3636b9fe00afd046128665ed",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/pour-les-coachs"
+      ]
+    },
+    {
+      "path": "/prevoir",
+      "checked_at": "2026-10-17T08:55:50.059170+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/prevoir",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "cb3e5dc15b84bc3ccddc351f384ffec7e0f952a13b6b571c613982deb9abeccd",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/prevoir"
+      ]
+    },
+    {
+      "path": "/profile",
+      "checked_at": "2026-10-17T08:55:50.066799+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/profile",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "7218ee4453e1bc9c77f1307938fd616136f332ac27fdeef02d86eb00609b9c74",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/profile"
+      ]
+    },
+    {
+      "path": "/progression-sportive",
+      "checked_at": "2026-10-17T08:55:50.076670+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/progression-sportive",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "0308de0fcaf0ceb8f0f0474bc7b8a11dbf477cce539e7b7e6255feb1580f6c51",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/progression-sportive"
+      ]
+    },
+    {
+      "path": "/records",
+      "checked_at": "2026-10-17T08:55:50.079826+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/records",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "cae4b461f803ab23482abad1832941c4e71c1063dd053414406ee098f388a9c4",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/records"
+      ]
+    },
+    {
+      "path": "/service",
+      "checked_at": "2026-10-17T08:55:50.127649+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/service",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "b90a0cbe891dc1c7080ff42529127cc3745a5940f02bb0ae42624c2d7fcf5859",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/service"
+      ]
+    },
+    {
+      "path": "/social",
+      "checked_at": "2026-10-17T08:55:50.132683+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/social",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "b73449c9a0280ac1de28b078cbfd0203d7d63ce94ad3a4aadaea07f862efa223",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/social"
+      ]
+    },
+    {
+      "path": "/sports",
+      "checked_at": "2026-10-17T08:55:50.156457+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/sports",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "81c0209c56d7751cc2f3881b6e3834c04b49f4687f973424be009a6477859a07",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/sports"
+      ]
+    },
+    {
+      "path": "/stats",
+      "checked_at": "2026-10-17T08:55:50.217405+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/stats",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "4e0b1191c298b260ae4b0f119e9c9440de4c01d340a7bb154c402ed3dd689b4e",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/stats"
+      ]
+    },
+    {
+      "path": "/suivi-escalade",
+      "checked_at": "2026-10-17T08:55:54.505504+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/suivi-escalade",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "0dd386256cd388a46401cc30e90a5502a7e30945733167a8adf62c32aac4701c",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/suivi-escalade"
+      ]
+    },
+    {
+      "path": "/suivi-sportif",
+      "checked_at": "2026-10-17T08:55:54.612677+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/suivi-sportif",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "029ead3f17c213d7600cfee728ccceacff2505639c8fa81c8f9567d7349a260b",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/suivi-sportif"
+      ]
+    },
+    {
+      "path": "/tarifs",
+      "checked_at": "2026-10-17T08:55:54.650912+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/tarifs",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": null,
+      "body_sha256": "cf2101b94fbc7c6f11e5c7d3d6510fb64891666d62e115111d095c9bffd0bcb4",
+      "meta_robots": [
+        "index, follow, max-image-preview:large"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/tarifs"
+      ]
+    },
+    {
+      "path": "/training",
+      "checked_at": "2026-10-17T08:55:54.661795+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/training",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "368baef3fa212f9c44e6626db32ae245ae133ac243ea3535746a3f62e644fae0",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/training"
+      ]
+    },
+    {
+      "path": "/update-password",
+      "checked_at": "2026-10-17T08:55:54.668811+00:00",
+      "status": 200,
+      "final_url": "https://titan-app.fr/update-password",
+      "content_type": "text/html; charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow",
+      "body_sha256": "a6da461d366dc9d23b65445e2dc44ac0bc7266319560ace96191590fd14120d2",
+      "meta_robots": [
+        "noindex,nofollow"
+      ],
+      "canonicals": [
+        "https://titan-app.fr/update-password"
+      ]
+    },
+    {
+      "path": "/sys_core_override_99",
+      "checked_at": "2026-10-17T08:55:54.675506+00:00",
+      "status": 404,
+      "final_url": "https://titan-app.fr/sys_core_override_99",
+      "x_robots_tag": "noindex, nofollow"
+    },
+    {
+      "path": "/sys_core_override_99.html",
+      "checked_at": "2026-10-17T08:55:54.705905+00:00",
+      "status": 404,
+      "final_url": "https://titan-app.fr/sys_core_override_99.html",
+      "x_robots_tag": "noindex, nofollow"
+    },
+    {
+      "path": "/seo-audit-missing-20261017",
+      "checked_at": "2026-10-17T08:55:54.725690+00:00",
+      "status": 404,
+      "final_url": "https://titan-app.fr/seo-audit-missing-20261017",
+      "x_robots_tag": null
+    }
+  ]
+}
