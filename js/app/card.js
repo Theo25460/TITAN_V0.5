@@ -272,35 +272,70 @@
       <p class="asc-small asc-muted">${icon("lock")} L’image est créée sur ton appareil. Rien n’est publié tant que tu ne la partages pas.</p>
       <p class="asc-small asc-muted" role="status" data-card-status></p>
       <p class="asc-small jr-edit-error" role="alert" data-card-error hidden></p>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-retry hidden>Réessayer l’aperçu</button>
       <div class="asc-confirm-actions" data-card-actions aria-busy="false"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
     const sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body });
     const img = body.querySelector("img");
-    let canvas = null;
-    let file = null;
-    const paint = async () => {
-      canvas = await draw(o, { qr: link && body.querySelector("[data-qr]")?.checked ? link : null });
-      img.src = canvas.toDataURL("image/png");
-      file = null;
-    };
-    try {
-      await paint();
-    } catch {
-      body.querySelector(".cd-preview").textContent = "L’image n’a pas pu être créée sur cet appareil.";
-      body.querySelector(".asc-confirm-actions")?.remove();
-      return sheet;
-    }
-    body.querySelector("[data-qr]")?.addEventListener("change", paint);
-    const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
+    const qr = body.querySelector("[data-qr]");
     const shareBtn = body.querySelector("[data-share]");
     const saveBtn = body.querySelector("[data-save]");
+    const retry = body.querySelector("[data-card-retry]");
     const actions = body.querySelector("[data-card-actions]");
     const status = body.querySelector("[data-card-status]");
     const error = body.querySelector("[data-card-error]");
-    const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
     const available = () => sheet.isConnected && sheet.open;
+    let canvas = null;
+    let file = null;
     let pending = false;
-    const act = async (kind, button) => {
+    let painting = false;
+    let paintSequence = 0;
+    const syncActions = () => {
+      actions.setAttribute("aria-busy", String(pending || painting));
+      saveBtn.disabled = shareBtn.disabled = pending || painting || !canvas;
+      if (qr) qr.disabled = pending;
+      retry.disabled = pending || painting;
+      retry.hidden = pending || painting || Boolean(canvas);
+    };
+    const paint = async () => {
       if (pending || !available()) return;
+      const sequence = ++paintSequence;
+      const retryHadFocus = document.activeElement === retry;
+      painting = true;
+      canvas = null;
+      file = null;
+      img.removeAttribute("src");
+      error.textContent = "";
+      error.hidden = true;
+      status.textContent = "Création de l’image…";
+      syncActions();
+      try {
+        const next = await draw(o, { qr: link && qr?.checked ? link : null });
+        if (sequence !== paintSequence || !available()) return;
+        const preview = next.toDataURL("image/png");
+        canvas = next;
+        img.src = preview;
+      } catch {
+        if (sequence === paintSequence && available()) {
+          error.textContent = "L’aperçu n’a pas pu être créé. Réessaie avant d’enregistrer ou de partager l’image.";
+          error.hidden = false;
+        }
+      } finally {
+        if (sequence === paintSequence) {
+          painting = false;
+          syncActions();
+          if (available()) {
+            status.textContent = "";
+            if (retryHadFocus && [document.body, sheet].includes(document.activeElement)) (canvas ? saveBtn : retry).focus({ preventScroll: true });
+          }
+        }
+      }
+    };
+    qr?.addEventListener("change", () => { void paint(); });
+    retry.addEventListener("click", () => { void paint(); });
+    const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
+    const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
+    const act = async (kind, button) => {
+      if (pending || painting || !canvas || !available()) return;
       pending = true;
       const hadFocus = document.activeElement === button;
       const controls = [...body.querySelectorAll("button, input")].map(el => [el, el.disabled]);
@@ -328,7 +363,7 @@
       } finally {
         pending = false;
         controls.forEach(([el, disabled]) => { el.disabled = disabled; });
-        actions.setAttribute("aria-busy", "false");
+        syncActions();
         status.textContent = "";
         if (available() && hadFocus && [document.body, sheet].includes(document.activeElement)) button.focus({ preventScroll: true });
       }
@@ -346,6 +381,7 @@
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       window.titanShell.toast({ type: "ok", title: "Image enregistrée", message: "Retrouve-la dans tes téléchargements." });
     }
+    await paint();
     return sheet;
   }
 
