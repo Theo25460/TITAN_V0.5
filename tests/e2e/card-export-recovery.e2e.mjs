@@ -209,12 +209,12 @@ test("image export: updated Stats and Records bypass the previous card script", 
     const { page, context } = await newPage();
     try {
       let previousRequests = 0;
-      await page.route("**/js/app/card.js?v=300.0", route => { previousRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousImageExporter = true;" }); });
+      await page.route("**/js/app/card.js?v=300.1", route => { previousRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousImageExporter = true;" }); });
       await page.goto(BASE + path);
       await page.waitForFunction(() => Boolean(window.TitanCard));
       assert.equal(previousRequests, 0);
       assert.equal(await page.evaluate(() => Boolean(window.previousImageExporter)), false);
-      assert.equal(await page.locator('script[src="/js/app/card.js?v=300.1"]').count(), 1);
+      assert.equal(await page.locator('script[src="/js/app/card.js?v=300.2"]').count(), 1);
     } finally { await context.close(); }
   }
 });
