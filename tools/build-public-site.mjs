@@ -2,7 +2,7 @@
 // Every claim here must match what the app and the server actually do (see docs/ASCENSION_300.md).
 // Usage: node tools/build-public-site.mjs   (rewrites the HTML files listed in PAGES and the sitemap)
 import { writeFileSync } from "node:fs";
-import { icon, C, E, SITE, TODAY, typical, monthsTo, fmtMonths, MASTERY, page, faq, finalCta, cards } from "./lib/public-template.mjs";
+import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, faq, finalCta, cards } from "./lib/public-template.mjs";
 
 /* ---------- Offers (single source for landing and /tarifs) ---------- */
 const FREE = [
@@ -391,8 +391,10 @@ const INDEXABLE = [
   ["/legal_mentions", 0.3],
   ["/legal_hub", 0.2],
 ];
+// lastmod is optional. Omit it until significant changes can be dated per page;
+// neither a frozen shared date nor the build date describes those changes.
 writeFileSync(
   "sitemap.xml",
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${INDEXABLE.map(([r, p]) => `  <url><loc>${SITE}${r}</loc><lastmod>${TODAY}</lastmod><priority>${p.toFixed(1)}</priority></url>`).join("\n")}\n</urlset>\n`,
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${INDEXABLE.map(([r, p]) => `  <url><loc>${SITE}${r}</loc><priority>${p.toFixed(1)}</priority></url>`).join("\n")}\n</urlset>\n`,
 );
 console.log("Public site v300: accueil, tarifs, fonctionnalités, 5 guides et sitemap générés.");

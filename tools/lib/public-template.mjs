@@ -14,7 +14,6 @@ const E = W.TitanEffort || sandbox.TitanEffort;
 
 const SITE = "https://titan-app.fr";
 const V = "300.0";
-const TODAY = "2026-10-05";
 const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 
 /* ---------- Facts computed from the real rules ---------- */
@@ -114,4 +113,4 @@ const finalCta = (image = "archipelago") => `<section class="pub-section"><div c
 const cards = (list, cols = 3) => `<div class="pub-grid cols-${cols}">${list.map(([ic, t, d, link]) => `<${link ? `a href="${link}"` : "article"} class="pub-card pub-feature">${icon(ic)}<h3>${t}</h3><p>${d}</p></${link ? "a" : "article"}>`).join("")}</div>`;
 
 
-export { W, C, E, SITE, V, TODAY, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };
+export { W, C, E, SITE, V, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };
