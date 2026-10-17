@@ -81,10 +81,10 @@
     const max = firstWeekOffset();
     const range = offset === 0 ? "Cette semaine" : offset === 1 ? "La semaine dernière" : `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
     return `<section class="asc-hero wk-hero" aria-labelledby="wk-title">
-      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
+      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-previous" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
         <div><p class="asc-eyebrow cy">${esc(range)}</p><p class="asc-small asc-muted">${esc(r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} – ${esc(r.to.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p></div>
-        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
-      <h2 id="wk-title" class="wk-title">${esc(h.title)}</h2>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-next" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
+      <h2 id="wk-title" class="wk-title" tabindex="-1">${esc(h.title)}</h2>
       <p class="asc-lead">${esc(h.text)}</p>
       <dl class="wk-stats">
         <div><dt>Jours actifs</dt><dd class="asc-num">${w.activeDays}<small>/${settings.target}</small></dd></div>
@@ -224,12 +224,18 @@
 
   function render() {
     if (!root) return;
+    const active = document.activeElement;
+    const focusId = root.contains(active) && ["wk-title", "wk-previous", "wk-next"].includes(active.id) ? active.id : null;
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
     root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
+    if (focusId) {
+      const target = document.getElementById(focusId);
+      (target?.disabled ? root.querySelector("#wk-title") : target)?.focus();
+    }
   }
 
   async function loadGoals() {
