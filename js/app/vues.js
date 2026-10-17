@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const D=()=>window.TitanData,V=()=>window.TitanAnalysisViews,esc=v=>window.titanEsc(v);
-  let panel,form,status,list,retry,shown=null,draft=null,confirmed=null,sequence=0,pending=null,timer=null,ownerShown=null;
+  let panel,form,status,list,retry,nameError,shown=null,draft=null,confirmed=null,sequence=0,pending=null,timer=null,ownerShown=null;
   let offline=!navigator.onLine;
   const message=text=>{status.innerHTML=text?`<p>${esc(text)}</p>`:'';};
   function controls(busy=false) {
@@ -13,7 +13,20 @@
     list.querySelectorAll('button').forEach(b=>{b.disabled=busy||(['apply','edit'].includes(b.dataset.viewAction)&&!shown?.available);});
     panel.setAttribute('aria-busy',String(busy));
   }
-  function discardDraft() {draft=null;form.hidden=true;form.reset();}
+  function clearNameError() {
+    if(!nameError||nameError.hidden)return;
+    const input=form.querySelector('#views-name');
+    const ids=(input.getAttribute('aria-describedby')||'').split(/\s+/).filter(id=>id&&id!==nameError.id);
+    if(ids.length)input.setAttribute('aria-describedby',ids.join(' '));else input.removeAttribute('aria-describedby');
+    input.removeAttribute('aria-invalid');nameError.textContent='';nameError.hidden=true;
+  }
+  function invalidName() {
+    const input=form.querySelector('#views-name');
+    const ids=new Set((input.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));
+    ids.add(nameError.id);input.setAttribute('aria-describedby',[...ids].join(' '));input.setAttribute('aria-invalid','true');
+    nameError.textContent='Choisis un nom de 1 à 40 caractères, sans retour à la ligne.';nameError.hidden=false;input.focus();
+  }
+  function discardDraft() {clearNameError();draft=null;form.hidden=true;form.reset();}
   function cancel() {
     sequence++;clearTimeout(timer);timer=null;
     if(pending){clearTimeout(pending.timer);pending.controller.abort();pending=null;}
@@ -83,6 +96,7 @@
     finally {finish(job);}
   }
   function edit(v) {
+    clearNameError();
     if(confirmed){confirmed=null;render(shown);}
     draft={id:v.id,revision:v.revision,kind:v.kind,options:structuredClone(v.options)};
     form.hidden=false;form.querySelector('#views-name').value=v.name;
@@ -93,7 +107,8 @@
   async function save() {
     if(pending||!draft||!ready())return;
     const name=V().name(form.querySelector('#views-name').value);
-    if(!name){message('Choisis un nom de 1 à 40 caractères, sans retour à la ligne.');return;}
+    if(!name){invalidName();return;}
+    clearNameError();
     const p={p_action:'save',p_id:draft.id,p_expected_revision:draft.revision,p_name:name,p_kind:draft.kind,p_options:structuredClone(draft.options)};
     await mutate(p);
   }
@@ -132,9 +147,11 @@
     const root=document.getElementById('vues');if(!root)return;
     root.innerHTML=`<details id="views-panel" class="compare-panel"><summary>Mes vues d’analyse <span class="asc-pill">TITAN+</span></summary><div class="compare-body"><p>Retrouve jusqu’à dix comparaisons ou bilans sans ressaisir leurs filtres. Seuls le nom et les paramètres sont sauvegardés, privés dans ton compte.</p>
       <button type="button" class="asc-btn asc-btn-secondary" id="views-retry">Actualiser</button><div id="views-status" role="status" aria-live="polite"></div>
-      <form id="views-draft-form" hidden><p id="views-draft-summary"></p><label for="views-name">Nom de la vue · 40 caractères maximum</label><input type="text" class="asc-input" id="views-name" maxlength="80" autocomplete="off" required><div class="view-actions"><button type="submit" class="asc-btn asc-btn-primary" id="views-submit">Enregistrer la vue</button><button type="button" class="asc-btn asc-btn-ghost" id="views-cancel">Annuler</button></div></form>
+      <form id="views-draft-form" hidden><p id="views-draft-summary"></p><label for="views-name">Nom de la vue · 40 caractères maximum</label><input type="text" class="asc-input" id="views-name" maxlength="80" autocomplete="off" aria-describedby="views-draft-summary" required><p class="asc-small" id="views-name-error" role="alert" hidden></p><div class="view-actions"><button type="submit" class="asc-btn asc-btn-primary" id="views-submit">Enregistrer la vue</button><button type="button" class="asc-btn asc-btn-ghost" id="views-cancel">Annuler</button></div></form>
       <div id="views-list"></div><p class="asc-small asc-muted">À la fin de TITAN+, tes vues sont conservées et supprimables. Tes favoris, ton historique et tes exports de base restent gratuits.</p></div></details>`;
     panel=root.querySelector('details');form=root.querySelector('form');status=root.querySelector('#views-status');list=root.querySelector('#views-list');retry=root.querySelector('#views-retry');
+    nameError=root.querySelector('#views-name-error');form.querySelector('#views-name').addEventListener('input',clearNameError);
+    form.querySelector('#views-name').addEventListener('invalid',e=>{e.preventDefault();invalidName();});
     panel.addEventListener('toggle',()=>panel.open?load():clear());retry.addEventListener('click',load);
     form.addEventListener('submit',e=>{e.preventDefault();save();});form.querySelector('#views-cancel').addEventListener('click',()=>{if(pending)return;discardDraft();refresh();});
     list.addEventListener('click',e=>{
