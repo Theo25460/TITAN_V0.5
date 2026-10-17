@@ -121,6 +121,21 @@
     return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Nouvelle séance" : t.label}</span></a>`;
   }
 
+  // Restore only the exact navigation destination whose node this render replaces.
+  function retainNavigationFocus() {
+    const active = document.activeElement;
+    const region = active?.closest(".asc-rail, .asc-topbar, .asc-tabbar, [data-subnav]");
+    const selector = active?.matches("a[href]") ? "a[href]" : active?.matches("[data-shell-more]") ? "[data-shell-more]" : null;
+    if (!region || !selector) return () => {};
+    const href = active.getAttribute("href");
+    const peers = () => [...region.querySelectorAll(selector)].filter(el => el.getAttribute("href") === href);
+    const position = peers().indexOf(active);
+    return () => {
+      if (active.isConnected || document.activeElement !== document.body || document.querySelector("dialog[open]")) return;
+      peers()[position]?.focus({ preventScroll: true });
+    };
+  }
+
   function render() {
     const root = document.body;
     if (!root.classList.contains("asc")) return;
@@ -135,6 +150,7 @@
       }
       return;
     }
+    const restoreFocus = retainNavigationFocus();
     const u = user();
     syncState = computeSync();
     const title = document.body.dataset.title || document.title.split("—")[0].trim();
@@ -202,6 +218,7 @@
       t.setAttribute("aria-live", "polite");
       root.append(t);
     }
+    restoreFocus();
   }
 
   let renderQueued = false;
