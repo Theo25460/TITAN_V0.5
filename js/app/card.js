@@ -260,7 +260,7 @@
     return c;
   }
 
-  const blobOf = (canvas) => new Promise((ok) => canvas.toBlob((b) => ok(b), "image/png"));
+  const blobOf = (canvas) => new Promise((ok, fail) => canvas.toBlob((b) => b ? ok(b) : fail(new Error("PNG unavailable")), "image/png"));
 
   /** Preview sheet with Share / Save. */
   async function open(o) {
@@ -270,7 +270,9 @@
     body.innerHTML = `<div class="cd-preview"><img alt="Aperçu de l’image" width="${W}" height="${H}"></div>
       ${link ? `<label class="auth-check"><input type="checkbox" data-qr checked><span>Ajouter le QR de mon profil public</span></label>` : ""}
       <p class="asc-small asc-muted">${icon("lock")} L’image est créée sur ton appareil. Rien n’est publié tant que tu ne la partages pas.</p>
-      <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
+      <p class="asc-small asc-muted" role="status" data-card-status></p>
+      <p class="asc-small jr-edit-error" role="alert" data-card-error hidden></p>
+      <div class="asc-confirm-actions" data-card-actions aria-busy="false"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
     const sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body });
     const img = body.querySelector("img");
     let canvas = null;
@@ -290,18 +292,49 @@
     body.querySelector("[data-qr]")?.addEventListener("change", paint);
     const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
     const shareBtn = body.querySelector("[data-share]");
+    const saveBtn = body.querySelector("[data-save]");
+    const actions = body.querySelector("[data-card-actions]");
+    const status = body.querySelector("[data-card-status]");
+    const error = body.querySelector("[data-card-error]");
     const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
-    shareBtn.addEventListener("click", async () => {
-      const f = await ensureFile();
-      if (canShareFiles(f)) {
-        try {
-          await navigator.share({ files: [f], title: "TITAN" });
-        } catch {}
-        return;
+    const available = () => sheet.isConnected && sheet.open;
+    let pending = false;
+    const act = async (kind, button) => {
+      if (pending || !available()) return;
+      pending = true;
+      const hadFocus = document.activeElement === button;
+      const controls = [...body.querySelectorAll("button, input")].map(el => [el, el.disabled]);
+      controls.forEach(([el]) => { el.disabled = true; });
+      actions.setAttribute("aria-busy", "true");
+      error.textContent = "";
+      error.hidden = true;
+      status.textContent = "Préparation de l’image…";
+      try {
+        const f = await ensureFile();
+        if (!available()) return;
+        if (kind === "share" && canShareFiles(f)) {
+          status.textContent = "Partage en cours…";
+          try {
+            await navigator.share({ files: [f], title: "TITAN" });
+          } catch (e) {
+            if (e?.name !== "AbortError") throw e;
+          }
+        } else save(f);
+      } catch {
+        if (available()) {
+          error.textContent = "L’image n’a pas pu être enregistrée ou partagée. Réessaie, ou utilise Enregistrer si le partage reste indisponible.";
+          error.hidden = false;
+        }
+      } finally {
+        pending = false;
+        controls.forEach(([el, disabled]) => { el.disabled = disabled; });
+        actions.setAttribute("aria-busy", "false");
+        status.textContent = "";
+        if (available() && hadFocus && [document.body, sheet].includes(document.activeElement)) button.focus({ preventScroll: true });
       }
-      save(f);
-    });
-    body.querySelector("[data-save]").addEventListener("click", async () => save(await ensureFile()));
+    };
+    shareBtn.addEventListener("click", () => act("share", shareBtn));
+    saveBtn.addEventListener("click", () => act("save", saveBtn));
     function save(f) {
       const url = URL.createObjectURL(f);
       const a = document.createElement("a");
