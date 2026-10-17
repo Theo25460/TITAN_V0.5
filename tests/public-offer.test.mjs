@@ -1,7 +1,7 @@
 // Exercise the real public generator in an isolated output directory.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,4 +73,51 @@ test("saved views offer describes private parameters, retention, free favorites 
   assert.match(answer,/favoris.*gratuits/);assert.match(answer,/mise à jour du serveur/);assert.ok(html.includes(`<p>${answer}</p>`));
   assert.match(html,/href="\/stats#vues"/);assert.match(generated('index.html'),/10 vues d’analyse privées.*après mise à jour serveur/);
   assert.equal(graph.find(x=>x['@type']==='Product').offers.price,'5');
+});
+
+// These contracts exercise the generated XML and HTML, not the generator's source text.
+const sitemapUrls = () => [...generated("sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
+const headTags = (html, name) => {
+  const head = html.replace(/<!--[\s\S]*?-->/g, "").match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] || "";
+  return [...head.matchAll(new RegExp(`<${name}\\b[^>]*>`, "gi"))].map(([tag]) =>
+    Object.fromEntries([...tag.matchAll(/([\w:-]+)\s*=\s*(["'])(.*?)\2/g)].map(match => [match[1].toLowerCase(), match[3]])));
+};
+const metaDirectives = html => headTags(html, "meta")
+  .filter(tag => ["robots", "googlebot", "bingbot"].includes(tag.name?.toLowerCase()))
+  .flatMap(tag => (tag.content || "").toLowerCase().split(/[,\s]+/));
+
+test("sitemap regeneration omits unverified modification dates and reproduces the committed XML", () => {
+  assert.doesNotMatch(generated("sitemap.xml"), /<lastmod\b/i, "no lastmod until reliable per-page dates are available");
+  assert.equal(generated("sitemap.xml"), readFileSync(join(root, "sitemap.xml"), "utf8"));
+});
+
+test("generated sitemap uses each public page's own canonical exactly once", () => {
+  const urls = sitemapUrls();
+  assert.equal(new Set(urls).size, urls.length, "no duplicate canonical");
+  const expected = [];
+  for (const file of readdirSync(root).filter(file => file.endsWith(".html") && !["sys_core_override_99.html", "googleb8fedd43e28cf7d4.html"].includes(file))) {
+    // The generator owns some public pages; the other served pages remain authored files.
+    const html = existsSync(join(output, file)) ? generated(file) : readFileSync(join(root, file), "utf8");
+    const directives = metaDirectives(html);
+    // Indexing is allowed by default even when no robots tag is present.
+    if (directives.includes("noindex") || directives.includes("none")) continue;
+    const route = file === "index.html" ? "/" : "/" + file.replace(/\.html$/, "");
+    const canonicals = headTags(html, "link").filter(tag => tag.rel?.toLowerCase() === "canonical").map(tag => tag.href);
+    assert.deepEqual(canonicals, ["https://titan-app.fr" + route], file + ": canonical matches its own public route");
+    expected.push(canonicals[0]);
+  }
+  assert.ok(expected.length > 0, "public inventory must not be empty");
+  assert.deepEqual([...urls].sort(), expected.sort(), "sitemap and public page inventory agree");
+});
+
+test("account, application and shared-card HTML keep noindex and stay out of the generated sitemap", () => {
+  const urls = new Set(sitemapUrls());
+  const privatePages = ["404", "admin", "adventure", "athlete", "aujourdhui", "boutique", "coaching", "dynamic-page", "journal", "login", "network-error", "objectifs", "onboarding", "prevoir", "profile", "records", "social", "stats", "training", "update-password"];
+  for (const page of privatePages) {
+    const html = readFileSync(join(root, page + ".html"), "utf8");
+    const genericRobots = headTags(html, "meta").filter(tag => tag.name?.toLowerCase() === "robots")
+      .flatMap(tag => (tag.content || "").toLowerCase().split(/[,\s]+/));
+    assert.ok(genericRobots.includes("noindex"), page + ": generic noindex in the initial head, not just a bot-specific exclusion");
+    assert.ok(!urls.has("https://titan-app.fr/" + page), page + ": absent from sitemap");
+  }
 });
