@@ -18,7 +18,7 @@
     "lint": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs",
     "verify": "pnpm test && pnpm run build && pnpm run audit",
     "test:db": "bash tools/db/test-migrations.sh",
-    "test:e2e": "node tools/build-public.mjs && node --test --test-concurrency=1 tests/e2e/smoke.e2e.mjs"
+    "test:e2e": "node tools/build-public.mjs && node --test --test-concurrency=1 tests/e2e/smoke.e2e.mjs tests/e2e/brand-assets.e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.111.0"

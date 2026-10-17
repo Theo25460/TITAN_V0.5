@@ -121,3 +121,41 @@ test("account, application and shared-card HTML keep noindex and stay out of the
     assert.ok(!urls.has("https://titan-app.fr/" + page), page + ": absent from sitemap");
   }
 });
+
+test("documented search and social previews match the current homepage metadata", () => {
+  const html = generated("index.html");
+  const preview = readFileSync(join(root, "PUBLIC_SEARCH_PREVIEW.md"), "utf8");
+  const title = html.match(/<title>(.*?)<\/title>/s)[1];
+  const meta = headTags(html, "meta");
+  const value = key => meta.find(tag => (tag.name || tag.property) === key)?.content;
+  for (const current of [title, value("description"), value("og:image")]) {
+    assert.ok(preview.includes(current), "preview must reflect current metadata: " + current);
+  }
+  assert.doesNotMatch(preview, /og-titan-os\.png/, "no retired share image in the release reference");
+});
+
+test("all public share heads use current branding and agree with page metadata", () => {
+  for (const url of sitemapUrls()) {
+    const route = new URL(url).pathname;
+    const file = route === "/" ? "index.html" : route.slice(1) + ".html";
+    const html = existsSync(join(output, file)) ? generated(file) : readFileSync(join(root, file), "utf8");
+    const meta = headTags(html, "meta");
+    const value = key => {
+      const matches = meta.filter(tag => (tag.name || tag.property) === key);
+      assert.equal(matches.length, 1, file + ": one " + key);
+      return matches[0].content;
+    };
+    const title = html.match(/<title>(.*?)<\/title>/s)[1];
+    for (const key of ["og:title", "twitter:title"]) assert.equal(value(key), title, file + ": " + key);
+    for (const key of ["og:description", "twitter:description"]) assert.equal(value(key), value("description"), file + ": " + key);
+    assert.equal(value("og:url"), url, file + ": shared canonical");
+    for (const key of ["og:image", "twitter:image"]) assert.equal(value(key), "https://titan-app.fr/image/og-titan.jpg", file + ": current share image");
+    assert.equal(value("og:image:width"), "1200", file);
+    assert.equal(value("og:image:height"), "630", file);
+    assert.ok(value("og:image:alt")?.trim(), file + ": image description");
+    const links = headTags(html, "link");
+    for (const [rel, href] of [["icon", "/favicon.ico"], ["apple-touch-icon", "/image/apple-touch-icon.png"], ["manifest", "/manifest.json"]]) {
+      assert.ok(links.some(link => link.rel === rel && link.href === href), file + ": " + rel);
+    }
+  }
+});
