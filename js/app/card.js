@@ -18,13 +18,28 @@
 
   /** The QR encoder (vendored, MIT) is only fetched when a QR is actually drawn. */
   let qrLoading = null;
+  let qrAttempts = 0;
   function loadQr() {
-    if (window.qrcode) return Promise.resolve(window.qrcode);
+    if (typeof window.qrcode === "function") return Promise.resolve(window.qrcode);
     return (qrLoading ||= new Promise((ok) => {
       const sc = document.createElement("script");
-      sc.src = "/js/vendor/qrcode-generator-1.4.4.js";
-      sc.onload = () => ok(window.qrcode || null);
-      sc.onerror = () => ok(null);
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        sc.onload = sc.onerror = null;
+        const encoder = typeof window.qrcode === "function" ? window.qrcode : null;
+        if (!encoder) sc.remove();
+        qrLoading = null;
+        ok(encoder);
+      };
+      // Keep the null-on-failure contract for profile callers, but let the next attempt retry.
+      const timer = setTimeout(finish, 8000);
+      // A removed, stalled script can still be in flight in the browser. A retry must not join it.
+      const attempt = qrAttempts++;
+      sc.src = `/js/vendor/qrcode-generator-1.4.4.js${attempt ? `?retry=${attempt}` : ""}`;
+      sc.onload = sc.onerror = finish;
       document.head.append(sc);
     }));
   }
@@ -255,7 +270,11 @@
         wrap(ctx, o.detail, PAD, Math.max(ly + 50, 860) + 150, maxW, 42, 2);
       }
     }
-    if (qr) await loadQr();
+    if (qr && !(await loadQr())) {
+      const error = new Error("QR encoder unavailable");
+      error.code = "CARD_QR_UNAVAILABLE";
+      throw error;
+    }
     footer(ctx, st, o.name || "", qr);
     return c;
   }
@@ -314,9 +333,11 @@
         const preview = next.toDataURL("image/png");
         canvas = next;
         img.src = preview;
-      } catch {
+      } catch (e) {
         if (sequence === paintSequence && available()) {
-          error.textContent = "L’aperçu n’a pas pu être créé. Réessaie avant d’enregistrer ou de partager l’image.";
+          error.textContent = e?.code === "CARD_QR_UNAVAILABLE"
+            ? "Le QR n’a pas pu être chargé. Réessaie l’aperçu ou décoche le QR pour créer l’image sans lien de profil."
+            : "L’aperçu n’a pas pu être créé. Réessaie avant d’enregistrer ou de partager l’image.";
           error.hidden = false;
         }
       } finally {
