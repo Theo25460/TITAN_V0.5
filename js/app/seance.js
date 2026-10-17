@@ -106,9 +106,9 @@
   function performedAt() {
     if (S.when === "now") return new Date();
     if (S.when === "yesterday") {
-      const d = new Date(Date.now() - DAY);
-      const [hh, mm] = S.time.split(":").map(Number);
-      d.setHours(hh || 18, mm || 0, 0, 0);
+      const d = F().addDays(new Date(), -1);
+      const [hh, mm] = (S.time || "18:00").split(":").map(Number);
+      d.setHours(hh, mm, 0, 0);
       return d;
     }
     const d = new Date(`${S.date}T${S.time || "12:00"}:00`);
