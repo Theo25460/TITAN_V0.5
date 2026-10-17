@@ -256,6 +256,7 @@
 
   /* ---------- Sheets ---------- */
   function sheet({ title = "", eyebrow = "", body = "", onClose } = {}) {
+    const restoreFocus = retainNavigationFocus();
     const d = document.createElement("dialog");
     d.className = "asc-sheet";
     d.setAttribute("aria-label", title);
@@ -270,6 +271,7 @@
     d.addEventListener("close", () => {
       d.remove();
       onClose?.();
+      restoreFocus();
     });
     document.body.append(d);
     d.showModal();

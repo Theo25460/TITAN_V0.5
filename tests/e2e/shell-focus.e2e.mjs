@@ -41,11 +41,20 @@ async function shellPage(width = 360, path = "/stats") {
 }
 async function refresh(page, event = "titan:history-updated") {
   const old = await page.locator(".asc-topbar [data-shell-more]").elementHandle();
-  await page.evaluate(event => window.dispatchEvent(new Event(event)), event);
+  await page.evaluate(event => { window.fixtureShellEvent = event; window.dispatchEvent(new Event(event)); }, event);
   await page.waitForFunction(el => !el.isConnected, old);
   await old.dispose();
 }
-async function active(locator) { assert.equal(await locator.evaluate(el => document.activeElement === el), true); }
+async function active(locator) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const result = await locator.evaluate(el => ({ connected: el.isConnected, same: document.activeElement === el, actual: document.activeElement.outerHTML.slice(0, 240) }));
+    // A queued render may replace the resolved locator before this callback runs.
+    if (!result.connected) continue;
+    assert.equal(result.same, true, result.actual);
+    return;
+  }
+  assert.fail("Focus target kept being replaced during the assertion");
+}
 
 test("shell focus: subnavigation survives every refresh event at mobile and desktop widths", async () => {
   for (const width of [360, 1280]) {
@@ -154,15 +163,15 @@ test("shell focus: removing a destination does not focus a different link", asyn
 test("shell focus: updated consumers bypass the previous script resource", async () => {
   const consumers = readdirSync(ROOT).filter(name => name.endsWith(".html") && name !== "profile.html" && readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v='));
   assert.ok(consumers.length > 0);
-  for (const name of consumers) assert.ok(readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v=300.5'), name);
+  for (const name of consumers) assert.ok(readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v=300.6'), name);
   const { page, context } = await newPage();
   try {
     let staleRequests = 0;
-    await page.route("**/js/app/shell.js?v=300.4", route => { staleRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousShellFocus = true;" }); });
+    await page.route("**/js/app/shell.js?v=300.5", route => { staleRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousShellFocus = true;" }); });
     await page.goto(BASE + "/stats");
     await page.locator("[data-shell-more]").waitFor();
     assert.equal(staleRequests, 0);
     assert.equal(await page.evaluate(() => Boolean(window.previousShellFocus)), false);
-    assert.equal(await page.locator('script[src="/js/app/shell.js?v=300.5"]').count(), 1);
+    assert.equal(await page.locator('script[src="/js/app/shell.js?v=300.6"]').count(), 1);
   } finally { await context.close(); }
 });
