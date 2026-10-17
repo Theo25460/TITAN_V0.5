@@ -21,13 +21,19 @@
   }
   function sportRows() {
     if (!shown) return;
+    const focused = document.activeElement;
     const q = search.trim().toLocaleLowerCase("fr-FR");
     const rows = shown.sports.filter(s => !q || `${label(s.sport)} ${s.sport}`.toLocaleLowerCase("fr-FR").includes(q));
     const pages = Math.max(1, Math.ceil(rows.length / 20)); page = Math.min(page, pages - 1);
     output.querySelector("#report-sport-rows").innerHTML = rows.slice(page * 20, (page + 1) * 20).map(s => `<tr><th scope="row">${esc(label(s.sport))}</th><td>${s.sessions}</td><td>${s.active_days}</td><td>${esc(duration(s.minutes))}</td></tr>`).join("") || '<tr><td colspan="4">Aucun sport trouvé.</td></tr>';
     output.querySelector("#report-page").textContent = `Page ${page + 1} sur ${pages} · ${rows.length} sport(s)`;
-    output.querySelector("#report-prev").disabled = page === 0;
-    output.querySelector("#report-next").disabled = page >= pages - 1;
+    const previous = output.querySelector("#report-prev"), next = output.querySelector("#report-next");
+    previous.disabled = page === 0;
+    next.disabled = page >= pages - 1;
+    if ((focused === previous || focused === next) && focused.disabled) {
+      const available = focused === previous ? next : previous;
+      (available.disabled ? output.querySelector("#report-sport-search") : available).focus();
+    }
   }
   function results(j) {
     shown = j;
@@ -39,9 +45,9 @@
       <p class="asc-small asc-muted">Historique synchronisé uniquement. ${j.current ? "Les jours ou mois à venir ne sont pas encore observés. " : ""}Plus de volume ne signifie pas meilleure performance.</p>
       ${j.sessions === 0 ? '<p>Aucune séance synchronisée dans cette période.</p>' : ""}
       <div class="view-actions"><button type="button" id="report-export" class="asc-btn asc-btn-secondary">Exporter le bilan CSV</button><button type="button" id="report-save-view" class="asc-btn asc-btn-secondary">Enregistrer cette vue</button></div><p class="asc-small asc-muted">Le téléchargement recalcule le bilan avec ton accès actuel. Le CSV contient les totaux, les sports et le calendrier.</p>
-      <section><h4>Répartition par sport</h4><label for="report-sport-search">Rechercher dans ce bilan</label><input class="asc-input" type="search" id="report-sport-search" placeholder="Nom du sport" autocomplete="off">
+      <section><h4>Répartition par sport</h4><label for="report-sport-search">Rechercher dans ce bilan</label><input class="asc-input" type="search" id="report-sport-search" placeholder="Nom du sport" autocomplete="off" aria-controls="report-sport-rows">
         <div class="compare-table-wrap" tabindex="0" role="region" aria-label="Répartition du bilan par sport"><table class="compare-table"><thead><tr><th scope="col">Sport</th><th scope="col">Séances</th><th scope="col">Jours</th><th scope="col">Temps</th></tr></thead><tbody id="report-sport-rows"></tbody></table></div>
-        <div class="report-pages"><button type="button" class="asc-btn asc-btn-secondary" id="report-prev">Précédente</button><span id="report-page" role="status"></span><button type="button" class="asc-btn asc-btn-secondary" id="report-next">Suivante</button></div></section>
+        <div class="report-pages"><button type="button" class="asc-btn asc-btn-secondary" id="report-prev" aria-label="Page précédente des sports" aria-controls="report-sport-rows">Précédente</button><span id="report-page" role="status"></span><button type="button" class="asc-btn asc-btn-secondary" id="report-next" aria-label="Page suivante des sports" aria-controls="report-sport-rows">Suivante</button></div></section>
       <details id="report-calendar"><summary>Voir ${j.period === "month" ? "jour par jour" : "mois par mois"}</summary><div class="compare-table-wrap" tabindex="0" role="region" aria-label="Calendrier du bilan"><table class="compare-table"><thead><tr><th scope="col">Période</th><th scope="col">Séances</th><th scope="col">Jours</th><th scope="col">Temps</th></tr></thead><tbody>${j.series.map(s => `<tr><th scope="row">${esc(date(s.from))}</th><td>${s.sessions}</td><td>${s.active_days}</td><td>${esc(duration(s.minutes))}${s.estimated_sessions ? `<small>${s.estimated_sessions} estimée(s)</small>` : ""}</td></tr>`).join("")}</tbody></table></div></details>
       <details><summary>Voir les séances sources</summary><p class="asc-small">Les ${j.sources.length} plus récentes, sur ${j.sessions} séance(s).</p><ul class="report-sources compare-sources">${j.sources.map(s => `<li><a href="/journal?session=${encodeURIComponent(s.id)}">${esc(label(s.sport))} · ${esc(new Date(s.date).toLocaleDateString("fr-FR", { timeZone: j.timezone }))} · ${esc(duration(s.minutes))}${s.estimated ? " (estimée)" : ""}</a></li>`).join("")}</ul></details>
     </div>`;
