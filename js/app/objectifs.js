@@ -25,6 +25,7 @@
   let root = null;
   let goals = [];
   let showArchived = false;
+  let editorNumber = 0;
 
   const owner = () => window.state?.user?.id;
   const guest = () => String(owner() || "").startsWith("guest_");
@@ -174,15 +175,41 @@
       <div class="asc-form-grid"><label class="asc-field"><span>Début</span><input class="asc-input" type="date" name="start_date" value="${esc(base.start_date)}" required></label><label class="asc-field"><span>Fin</span><input class="asc-input" type="date" name="end_date" value="${esc(base.end_date)}" required></label></div>
       <label class="asc-field"><span>Nom</span><input class="asc-input" name="title" maxlength="100" value="${esc(base.title || autoTitle(base.metric, base.target, base.sport))}" required></label>
       <p class="asc-small asc-faint">Les séances déjà enregistrées sur la période comptent. Un objectif ne donne pas d’XP : il sert à te situer.</p>
-      <p class="asc-small jr-edit-error" role="alert"></p>
+      <p class="asc-small jr-edit-error" id="ob-error-${++editorNumber}" role="alert" hidden></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${old ? "Enregistrer" : "Créer l’objectif"}</button></div>`;
     let metric = base.metric;
     const d = window.titanShell.sheet({ title: old ? "Ajuster l’objectif" : "Nouvel objectif", eyebrow: "Objectifs", body: form });
     const field = (n) => form.querySelector(`[name="${n}"]`);
+    const err = form.querySelector(".jr-edit-error");
+    let invalidField = null;
+    const isDate = el => ["start_date", "end_date"].includes(el?.name);
+    const clearError = () => {
+      if (invalidField) {
+        const ids = (invalidField.getAttribute("aria-describedby") || "").split(/\s+/).filter(id => id && id !== err.id);
+        if (ids.length) invalidField.setAttribute("aria-describedby", ids.join(" ")); else invalidField.removeAttribute("aria-describedby");
+        invalidField.removeAttribute("aria-invalid");
+      }
+      invalidField = null;
+      err.textContent = "";
+      err.hidden = true;
+    };
+    const showError = (input, text) => {
+      clearError();
+      err.textContent = text;
+      err.hidden = false;
+      if (!input) return;
+      invalidField = input;
+      const ids = new Set((input.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      ids.add(err.id);
+      input.setAttribute("aria-describedby", [...ids].join(" "));
+      input.setAttribute("aria-invalid", "true");
+      input.focus();
+    };
     const retitle = () => {
       if (!titleTouched) field("title").value = autoTitle(metric, field("target").value, field("sport").value);
     };
     form.addEventListener("input", (e) => {
+      if (e.target === invalidField || (isDate(e.target) && isDate(invalidField))) clearError();
       if (e.target.name === "title") titleTouched = true;
       else retitle();
     });
@@ -196,6 +223,7 @@
         form.querySelectorAll("[data-metric]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
         form.querySelector("[data-unit]").textContent = metric === "minutes" ? "en minutes" : metric === "distance" ? "en km" : "";
         field("target").step = metric === "distance" ? "0.1" : "1";
+        if (invalidField === field("target")) clearError();
         retitle();
       }
       if (b.dataset.period) {
@@ -207,18 +235,21 @@
         } else end = F().addDays(start, Number(b.dataset.period) - 1);
         field("start_date").value = iso(start);
         field("end_date").value = iso(end);
+        if (isDate(invalidField)) clearError();
       }
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const err = form.querySelector(".jr-edit-error");
+      clearError();
       const target = Number(String(field("target").value).replace(",", "."));
       const fields = { title: field("title").value.trim(), metric, target, sport: field("sport").value || null, start_date: field("start_date").value, end_date: field("end_date").value };
-      if (!fields.title) return (err.textContent = "Donne un nom à ton objectif.");
-      if (!(target > 0) || target > 1000000) return (err.textContent = "Choisis une cible supérieure à zéro.");
-      if ((metric === "sessions" || metric === "days") && target !== Math.trunc(target)) return (err.textContent = "Les séances et jours actifs se comptent en nombres entiers.");
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.start_date) || !/^\d{4}-\d{2}-\d{2}$/.test(fields.end_date) || fields.end_date < fields.start_date) return (err.textContent = "La fin doit suivre le début.");
-      if ((new Date(fields.end_date) - new Date(fields.start_date)) / DAY > 730) return (err.textContent = "Une période dure au maximum deux ans.");
+      if (!fields.title) return showError(field("title"), "Donne un nom à ton objectif.");
+      if (field("target").validity.badInput || !(target > 0) || target > 1000000) return showError(field("target"), "Choisis une cible supérieure à zéro, au maximum 1 000 000.");
+      if ((metric === "sessions" || metric === "days") && target !== Math.trunc(target)) return showError(field("target"), "Les séances et jours actifs se comptent en nombres entiers.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.start_date)) return showError(field("start_date"), "Choisis une date de début.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fields.end_date)) return showError(field("end_date"), "Choisis une date de fin.");
+      if (fields.end_date < fields.start_date) return showError(field("end_date"), "La fin doit suivre le début.");
+      if ((new Date(fields.end_date) - new Date(fields.start_date)) / DAY > 730) return showError(field("end_date"), "Une période dure au maximum deux ans.");
       const submit = form.querySelector("[type=submit]");
       submit.disabled = true;
       try {
@@ -227,7 +258,7 @@
         d.close();
         window.titanShell.toast({ type: "ok", title: old ? "Objectif ajusté" : "Objectif créé", message: fields.title });
       } catch (error) {
-        err.textContent = error.message;
+        showError(null, error.message);
       } finally {
         submit.disabled = false;
       }
