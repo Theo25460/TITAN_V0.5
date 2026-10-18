@@ -10,7 +10,23 @@
   const DAY = 86400000;
   const NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-  let root = null;
+  let root = null, account = null, dayDialog = null;
+  function current(ctx) {
+    return !!ctx && account === ctx && ctx.owner === D().owner() && ctx.data === D() && ctx.client === window.titanClient
+      && ctx.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  }
+  function invalidate() {
+    account = null;
+    if (root) { root.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; root.setAttribute("aria-busy", "true"); }
+    const dialog = dayDialog; dayDialog = null; if (dialog?.open) dialog.close();
+  }
+  function adopt() {
+    if (current(account)) return account;
+    invalidate();
+    if (!D()?.owner() || window.titanAccountTransition?.active) return null;
+    account = { owner: D().owner(), data: D(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch };
+    return account;
+  }
 
   function daySelector(el) {
     if (!root?.contains(el) || !el.matches(".pv-day[data-day], .asc-row[data-day]")) return null;
@@ -48,7 +64,8 @@
 
   function render() {
     if (!root) return;
-    const focusedDay = daySelector(document.activeElement);
+    const focusedDay = current(account) ? daySelector(document.activeElement) : null;
+    const ctx = adopt(); if (!ctx || !window.state?.user) return;
     const week = weekState();
     const planned = week.filter((d) => d.sport).length;
     const target = D().cadenceSettings().target;
@@ -69,11 +86,14 @@
         <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute.</p>
       </section>`;
     root.setAttribute("aria-busy", "false");
-    restoreDay(focusedDay);
+    if (current(ctx)) restoreDay(focusedDay);
   }
 
   function openDay(key, opener) {
-    const d = D().plan().find((x) => x.key === key);
+    if (!current(account)) { invalidate(); queue(); return; }
+    const ctx = account;
+    if (dayDialog?.open) return;
+    const d = ctx.data.plan().find((x) => x.key === key);
     if (!d) return;
     const recents = [...new Set((window.state?.history || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((l) => l.sport))].filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 8);
     const quick = [...new Set([...recents, ...SP().POPULAR])].filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 12);
@@ -92,7 +112,16 @@
       <p class="asc-small jr-edit-error" id="pv-error" role="alert" hidden></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-clear>${icon("moon")} Repos / libre</button><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
     const returnTo = daySelector(opener);
-    const dialog = window.titanShell.sheet({ title: NAMES[d.index], eyebrow: "Semaine type", body: form, onClose: () => restoreDay(returnTo) });
+    const dialog = window.titanShell.sheet({ title: NAMES[d.index], eyebrow: "Semaine type", body: form, onClose: () => {
+      if (dayDialog === dialog) dayDialog = null;
+      if (current(ctx)) restoreDay(returnTo);
+    } });
+    dayDialog = dialog;
+    const allowed = () => {
+      if (!dialog.open || !dialog.isConnected || !form.isConnected || !dialog.contains(form)) return false;
+      if (current(ctx)) return true;
+      invalidate(); queue(); return false;
+    };
     const search = form.querySelector("#pv-q");
     const duration = form.querySelector("[name=minutes]");
     const err = form.querySelector(".jr-edit-error");
@@ -119,6 +148,7 @@
       field.focus();
     };
     form.addEventListener("input", (e) => {
+      if (!allowed()) return;
       if (e.target === invalidField) clearError();
       if (e.target.id !== "pv-q") return;
       const q = e.target.value.trim();
@@ -130,6 +160,7 @@
         : "";
     });
     form.addEventListener("click", (e) => {
+      if (!allowed()) return;
       const b = e.target.closest("button");
       if (!b) return;
       if (b.dataset.pick) {
@@ -143,19 +174,22 @@
         return;
       }
       if (b.hasAttribute("data-clear")) {
-        D().setPlanDay(key, null);
+        ctx.data.setPlanDay(key, null);
         dialog.close();
+        if (!current(ctx)) return;
         window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} libre` });
       }
     });
     form.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (!allowed()) return;
       clearError();
       if (!sport) return showError(search, "Choisis un sport, ou laisse ce jour libre.");
       const minutes = duration.value;
       if (duration.validity.badInput || (minutes && !(Number(minutes) >= 5 && Number(minutes) <= 600))) return showError(duration, "Une durée entre 5 minutes et 10 heures.");
-      D().setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
+      ctx.data.setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
       dialog.close();
+      if (!current(ctx)) return;
       window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} : ${SP().label(sport)}` });
     });
   }
@@ -163,7 +197,7 @@
   let booted = false;
   function start() {
     root = document.getElementById("prevoir");
-    if (!root || !window.state?.user || !window.TitanSports) return;
+    if (!root || !window.TitanSports) return;
     if (!booted) {
       booted = true;
       SP().ensure();
@@ -184,6 +218,8 @@
     });
   };
   window.addEventListener("titan:history-updated", queue);
+  window.addEventListener("titan:account-changing", invalidate);
+  window.addEventListener("titan:account-changed", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
