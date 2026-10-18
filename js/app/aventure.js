@@ -81,19 +81,29 @@
         <fieldset class="av-routes"><legend class="seance-label">Ton chemin</legend>${C()
           .routes.map((r, i) => `<label class="av-route"><input type="radio" name="route" value="${r.id}" ${i === 0 ? "checked" : ""}><span><strong>${esc(r.name)}</strong><small>${esc(r.description)}${r.id === "journal" ? " (10 caractères minimum)" : ""}</small></span></label>`)
           .join("")}</fieldset>
+        <details class="asc-note av-rules" data-rpg-departure="${esc(world.id)}"><summary>Comment ton sport fait avancer l’aventure</summary>
+        <ol><li>Commence la campagne avant ta prochaine séance. Tes séances précédentes restent dans ton journal ; elles ne sont pas reprises pour cette balise.</li>
+        <li>Pratique le sport de ton choix et enregistre ta séance. Les séances admissibles font avancer les jours de l’étape ; le chemin Observation demande aussi une note de 10 caractères minimum.</li>
+        <li>Quand tous les objectifs sont atteints, reviens allumer la balise. Le gardien demande aussi l’effort indiqué ; plusieurs séances le même jour ne créent pas plusieurs jours actifs.</li>
+        <li>La balise débloque un insigne cosmétique, ni XP ni coins supplémentaires. Les XP et coins d’une séance suivent leurs propres règles. Une pause n’efface pas tes insignes.</li></ol>
+        <p class="asc-small">${isGuest() ? "En découverte, la progression est calculée sur cet appareil." : "Avec un compte, le serveur confirme la progression et les récompenses."}</p></details>
         <button type="button" class="asc-btn asc-btn-primary" data-start>${icon("compass")} Commencer la campagne</button>
         <p class="asc-small asc-faint">Les séances comptent à partir du départ, une seule fois par jour. Aucune échéance, aucune pénalité.</p></section>`;
     const ch = world.chapters[p.chapter - 1];
-    const days = Math.min(p.target, Number(p.evidence?.days || 0));
-    const effortTarget = Number(p.effort_target ?? 0);
-    const effort = Math.min(effortTarget, Number(p.evidence?.effort || 0));
-    const ready = days >= p.target && effort >= effortTarget;
+    const progress = window.TitanProgress.campaignProgress(p);
+    const days = progress.objectives[0].value;
+    const effortObjective = progress.objectives.find(o => o.id === "effort");
+    const effortTarget = effortObjective?.target || 0;
+    const effort = effortObjective?.value || 0;
+    const ready = progress.ready;
+    const remaining = ready ? "Étape prête à valider." : progress.objectives.filter(o => o.remaining > 0).map(o => o.id === "days" ? `${F().number(o.remaining)} jour${o.remaining > 1 ? "s" : ""} ${p.route === "journal" ? "avec une séance annotée" : "actif" + (o.remaining > 1 ? "s" : "")} à accomplir` : `${F().number(o.remaining)} min d’effort à accomplir`).join(" · ");
     return `<section class="av-panel${ready ? " is-ready" : ""}">
       <div class="av-mission-head">${badge(world, ch.index, ready)}<div><p class="asc-eyebrow${ready ? " cy" : ""}">Chapitre ${ch.index} / 9${ch.boss ? " · le gardien" : ""}</p><h2 class="asc-h2">${esc(ch.name)}</h2></div></div>
       <p>${esc(ch.story)}</p>
       <div class="av-track"><div class="asc-between"><span>${p.route === "journal" ? "Jours avec une séance annotée" : "Jours actifs"}</span><strong class="asc-num">${days} / ${p.target}</strong></div><span class="asc-ascent"><span style="--p:${Math.round((days / Math.max(1, p.target)) * 100)}%"></span></span></div>
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
+      <p class="asc-small" data-rpg-remaining>${esc(remaining)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
@@ -122,6 +132,7 @@
 
   function render() {
     if (!root) return;
+    const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
     const s = A()?.snapshot;
     if (!s) {
       root.innerHTML = `<div class="asc-empty"><h2>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h2><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
@@ -143,6 +154,8 @@
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
         <p>${effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
       <p class="asc-small" role="status" id="av-error"></p>`;
+    const guide = root.querySelector("[data-rpg-departure]");
+    if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
   }
 
   async function mutate(action, params) {

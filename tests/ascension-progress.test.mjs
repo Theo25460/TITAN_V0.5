@@ -210,3 +210,30 @@ test("a planned session for today becomes a recommendation until something is re
   const done = P.insights({ logs: [log("2026-10-07T07:00:00", { sport: "yoga", unit: "min", val: 30 })], now: NOW, plan });
   assert.equal(done.find((i) => i.id === "plan-today"), undefined);
 });
+
+test('campaign objectives require both active days and guardian effort', () => {
+  assert.equal(typeof P.campaignProgress, 'function', 'shared campaign objective reader exists');
+  const c = { chapter: 9, target: 3, effort_target: 150, evidence: { days: 3, effort: 40 } };
+  const p = P.campaignProgress(c);
+  assert.equal(p.ready, false);
+  assert.equal(p.percent, 27);
+  assert.equal(p.objectives[1].remaining, 110);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 2, effort: 150 } }).ready, false);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 3, effort: 150 } }).ready, true);
+});
+test('campaign objectives preserve legacy day-only and annotated routes', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  const p = P.campaignProgress({ chapter: 9, target: 3, route: 'journal', evidence: { days: 3 } });
+  assert.equal(p.ready, true);
+  assert.equal(p.objectives.length, 1);
+  assert.match(p.objectives[0].label, /annotée/);
+});
+test('campaign objectives distinguish departure and completion without phantom targets', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  assert.equal(P.campaignProgress({ chapter: 0 }).status, 'not_started');
+  assert.equal(P.campaignProgress({ chapter: 10 }).status, 'complete');
+  assert.equal(P.campaignProgress({ chapter: 1, target: 0 }).ready, false);
+  const p = P.campaignProgress({ chapter: 1, target: 2, evidence: { days: 9 } });
+  assert.equal(p.objectives[0].value, 2);
+  assert.equal(p.percent, 100);
+});
