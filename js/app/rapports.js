@@ -38,7 +38,7 @@
   function results(j) {
     shown = j;
     shownEpoch = window.titanAccountTransition?.epoch;
-    output.innerHTML = `<div class="report-results compare-results"><h3 id="report-title">${esc(date(j.from))} – ${esc(date(last(j.to)))}</h3>
+    output.innerHTML = `<div class="report-results compare-results"><h3 id="report-title" tabindex="-1">${esc(date(j.from))} – ${esc(date(last(j.to)))}</h3>
       <p><strong>${j.current ? "Bilan provisoire" : "Période complète"}</strong> · ${esc(j.timezone)}. Calcul arrêté au ${esc(new Date(j.as_of).toLocaleString("fr-FR", { timeZone: j.timezone }))}.</p>
       <dl class="report-metrics">${[["sessions", "Séances", String], ["active_days", "Jours actifs", String], ["minutes", "Temps de pratique", duration]].map(([key, title, fmt]) => `<div><dt>${title}</dt><dd data-report-metric="${key}">${esc(fmt(j[key]))}</dd></div>`).join("")}</dl>
       <p class="asc-small">${j.estimated_sessions ? `${j.estimated_sessions} durée(s) estimée(s), incluse(s) dans le temps de pratique.` : "Toutes les durées sont renseignées."} Une date compte une seule fois au total, même avec plusieurs sports ; les jours par sport ne se somment pas.</p>
@@ -54,6 +54,11 @@
     sportRows();
   }
   async function load(download = false, usage = false) {
+    const active = document.activeElement, previous = pending;
+    const inheritFocus = previous?.restoreFocus && previous.current() && !document.querySelector('dialog[open]')
+      && [previous.focused, document.body, panel].includes(active);
+    const focused = inheritFocus ? previous.focused : active;
+    const restoreFocus = inheritFocus || !!focused && (output.contains(focused) || focused === form.querySelector("#report-submit"));
     clear();
     const request = sequence, owner = D().owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => request === sequence && D().owner() === owner && !D().isGuest() && client === window.titanClient
@@ -67,7 +72,7 @@
     if (!client) return clear("La connexion au serveur n’est pas prête. Réessaie dans un instant.");
     const [period, offset] = form.querySelector("#report-period").value.split(":");
     const options = { p_period: period, p_offset: Number(offset), p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" };
-    const job = { controller: new AbortController(), timer: null }; pending = job;
+    const job = { controller: new AbortController(), timer: null, focused, restoreFocus, current }; pending = job;
     output.setAttribute("aria-busy", "true"); form.querySelector("button[type=submit]").disabled = true;
     status.innerHTML = download ? "<p>Recalcul avant téléchargement…</p>" : "<p>Calcul du bilan…</p>";
     try {
@@ -99,13 +104,20 @@
     } catch (e) {
       if (!current()) return;
       const missing = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
-      clear(missing ? "Les bilans ouvrent avec la prochaine mise à jour du serveur. Tes exports de base restent disponibles."
+      const message = missing ? "Les bilans ouvrent avec la prochaine mise à jour du serveur. Tes exports de base restent disponibles."
         : e?.message === "REPORT_TIMEOUT" ? "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant."
-          : "Le bilan n’a pas répondu correctement. Réessaie dans un instant.");
+          : "Le bilan n’a pas répondu correctement. Réessaie dans un instant.";
+      status.innerHTML = `<p>${esc(message)}</p>`;
     } finally {
       clearTimeout(job.timer);
       if (pending === job) pending = null;
-      if (request === sequence) { output.removeAttribute("aria-busy"); form.querySelector("button[type=submit]").disabled = false; }
+      if (request === sequence) {
+        output.removeAttribute("aria-busy"); form.querySelector("button[type=submit]").disabled = false;
+        // Restore only focus this operation owned; a newer action/context keeps priority.
+        if (current() && restoreFocus && !document.querySelector('dialog[open]')
+          && [focused, document.body, panel].includes(document.activeElement))
+          (output.querySelector("#report-title") || form.querySelector("#report-submit")).focus();
+      }
     }
   }
   function start() {
