@@ -10,6 +10,38 @@
   let goalsCache = [];
   let guestToImport = 0;
   let renderQueued = false;
+  let context = null, readSequence = 0, cadenceDialog = null, importJob = null;
+
+  function current(ctx) {
+    return !!ctx && context === ctx && ctx.owner === D().owner() && ctx.data === D() && ctx.client === window.titanClient
+      && ctx.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  }
+  function invalidate() {
+    readSequence++; context = null; goalsCache = []; guestToImport = 0; importJob = null;
+    const el = root();
+    if (el) { el.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; el.setAttribute("aria-busy", "true"); }
+    const title = document.getElementById("qg-title"); if (title) title.textContent = "Ton QG";
+    const dialog = cadenceDialog; cadenceDialog = null; if (dialog?.open) dialog.close();
+  }
+  function adopt() {
+    if (current(context)) return context;
+    invalidate();
+    if (!D()?.owner() || window.titanAccountTransition?.active) return null;
+    context = { owner: D().owner(), data: D(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch };
+    return context;
+  }
+  async function refreshData() {
+    const ctx = adopt(); if (!ctx) return;
+    const request = ++readSequence;
+    const [goals, candidates] = await Promise.allSettled([
+      Promise.resolve().then(() => current(ctx) ? ctx.data.goals() : []),
+      Promise.resolve().then(() => current(ctx) ? ctx.data.guestCandidates() : []),
+    ]);
+    if (!current(ctx) || request !== readSequence) return;
+    goalsCache = goals.status === "fulfilled" && Array.isArray(goals.value) ? goals.value : [];
+    guestToImport = candidates.status === "fulfilled" && Array.isArray(candidates.value) ? candidates.value.length : 0;
+    queue();
+  }
 
   const TONE = {
     cy: { eyebrow: "À faire maintenant", cls: "is-accent" },
@@ -168,7 +200,9 @@
 
   function render() {
     const el = root();
-    if (!el || !window.state?.user || !window.TitanProgress) return;
+    if (!el) return;
+    const account = adopt();
+    if (!account || !window.state?.user || !window.TitanProgress) return;
     const f = F();
     const list = P().activeLogs(D().logs());
     const settings = D().cadenceSettings();
@@ -183,7 +217,7 @@
     document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     el.innerHTML = `
       ${D().isGuest() ? guestHtml() : ""}
-      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" style="background:none;border:0;padding:0">Les ajouter à mon compte</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
+      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
       <div class="asc-grid-2 qg-grid">
@@ -208,6 +242,8 @@
   }
 
   function cadenceSheet() {
+    const ctx = adopt(); if (!ctx) return;
+    if (cadenceDialog?.open) return cadenceDialog;
     const settings = D().cadenceSettings();
     const week = F().dateKey(F().weekStart(new Date()));
     const paused = settings.pauses.includes(week);
@@ -220,16 +256,25 @@
       <hr class="asc-divider">
       <div class="asc-between"><div><strong>Semaine en pause</strong><p class="asc-small asc-faint">Vacances, blessure, examens : cette semaine sort de ta cadence au lieu de compter comme manquée.</p></div>
       <button type="button" class="asc-btn ${paused ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm" data-pause aria-pressed="${paused}">${paused ? "En pause" : "Mettre en pause"}</button></div>`;
-    const d = window.titanShell.sheet({ title: "Ta semaine type", eyebrow: "Cadence", body });
+    const d = window.titanShell.sheet({ title: "Ta semaine type", eyebrow: "Cadence", body,
+      onClose: () => { if (cadenceDialog === d) cadenceDialog = null; } });
+    cadenceDialog = d;
+    const allowed = () => {
+      if (!d.open || !d.isConnected) return false;
+      if (current(ctx)) return true;
+      invalidate(); queue(); return false;
+    };
     body.querySelectorAll("[data-n]").forEach((b) =>
       b.addEventListener("click", () => {
-        D().setCadenceTarget(Number(b.dataset.n));
+        if (!allowed()) return;
+        ctx.data.setCadenceTarget(Number(b.dataset.n));
         body.querySelectorAll("[data-n]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
         queue();
       }),
     );
     body.querySelector("[data-pause]").addEventListener("click", (e) => {
-      const on = D().togglePause(week);
+      if (!allowed()) return;
+      const on = ctx.data.togglePause(week);
       e.currentTarget.setAttribute("aria-pressed", String(on));
       e.currentTarget.textContent = on ? "En pause" : "Mettre en pause";
       e.currentTarget.className = `asc-btn ${on ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm`;
@@ -241,31 +286,33 @@
   document.addEventListener("click", async (e) => {
     if (e.target.closest('[data-action="cadence"]')) cadenceSheet();
     const imp = e.target.closest('[data-action="import-guest"]');
-    if (imp) {
-      imp.disabled = true;
-      try {
-        const n = await D().importGuestSessions();
-        guestToImport = 0;
-        window.titanShell.toast({ type: "ok", title: "Import lancé", message: `${n} séance${n > 1 ? "s" : ""} rejoignent ton compte. La confirmation arrive dans le journal.` });
-      } catch {
-        window.titanShell.toast({ type: "err", title: "Import impossible", message: "Réessaie quand tu es connecté." });
-      }
-      queue();
+    if (!imp || !root()?.contains(imp)) return;
+    if (!current(context)) { invalidate(); queue(); return; }
+    const ctx = context;
+    if (importJob || ctx.data.isGuest() || !guestToImport) return;
+    const job = { ctx }; importJob = job;
+    imp.disabled = true; imp.setAttribute("aria-busy", "true"); imp.textContent = "Import en cours…";
+    try {
+      const n = await ctx.data.importGuestSessions();
+      if (!current(ctx) || importJob !== job) return;
+      guestToImport = 0;
+      window.titanShell.toast({ type: "ok", title: "Import lancé", message: `${n} séance${n > 1 ? "s" : ""} rejoignent ton compte. La confirmation arrive dans le journal.` });
+    } catch {
+      if (!current(ctx) || importJob !== job) return;
+      window.titanShell.toast({ type: "err", title: "Import impossible", message: "Réessaie quand tu es connecté." });
+    } finally {
+      if (importJob === job) { importJob = null; if (current(ctx)) queue(); }
     }
   });
-  ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:pending-changed", queue);
+  ["titan:history-updated", "titan:adventure-updated"].forEach(ev => window.addEventListener(ev, () => { refreshData(); queue(); }));
+  window.addEventListener("titan:account-changing", invalidate);
+  window.addEventListener("titan:account-changed", () => { refreshData(); queue(); });
   async function boot() {
-    queue();
+    const ctx = adopt(); queue();
     await Promise.resolve(window.TitanAdventure?.refresh?.()).catch(() => {});
-    goalsCache = await D().goals();
-    guestToImport = (await D().guestCandidates().catch(() => [])).length;
-    queue();
+    if (current(ctx)) refreshData();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 0));
   else setTimeout(boot, 0);
-  window.addEventListener("titan:history-updated", async () => {
-    const id = D().owner();
-    goalsCache = await D().goals();
-    if (D().owner() === id) queue();
-  }, { once: true });
 })();

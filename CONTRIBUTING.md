@@ -20,11 +20,16 @@ Le dossier `dist/` est généré. Il ne doit jamais être édité ni committé.
 
 ## Flux de contribution
 
-1. Partir de `main` à jour et créer une branche courte.
-2. Modifier les sources à la racine, dans `js/`, `css/`, `image/`, `functions/` ou `sql/`.
-3. Ajouter un test de régression pour toute correction de logique.
-4. Exécuter `pnpm run verify`.
-5. Ouvrir une pull request en expliquant le risque et le retour arrière.
+1. Lire le cahier et ses chantiers actifs ; choisir trois points cohérents et annoncer leur périmètre avant de modifier les sources. Au moins deux doivent fermer une exigence partielle ou avancer directement un gros bloc incomplet (RPG/progression, Android, intégrations, monétisation, conformité, sécurité structurante ou intégration finale). Un seul peut concerner une finition UX/accessibilité non bloquante, sauf défaut Critical/Important reproduit.
+2. Partir de `main` ou du dernier checkpoint d’intégration vérifié. Si le lot dépend de PR non fusionnées, partir de leur tête exacte et déclarer ces dépendances ; ne pas recopier des fichiers à la main.
+3. Créer une branche et un checkout isolés par macro-bloc : `codex/rpg-*`, `codex/android-*`, `codex/monetisation-*`, `codex/anticheat-*` ou `codex/web-*`. Un lot ne modifie pas les fichiers réservés à un autre chantier.
+4. Faire des commits cohérents, ajouter les tests de régression utiles et lancer `pnpm verify`, puis les parcours concernés. Toute modification commune à plusieurs lots exige leur validation ensemble.
+5. Ouvrir une PR vers sa dépendance, ou une PR de checkpoint vers `main` pour vérifier l’ensemble. Les PR sources restent ouvertes ; une PR de checkpoint n’autorise ni fusion ni déploiement.
+6. Après **huit PR empilées au maximum** depuis le dernier checkpoint, arrêter l’empilage : reprendre les têtes nécessaires sur une branche isolée, résoudre les conflits éventuels et vérifier la cohérence de l’ensemble. Enregistrer têtes, arbre, base, commandes et limites dans un handoff.
+7. Après deux PR d’une même famille de micro-améliorations, fermer l’exigence si ses critères sont satisfaits ou transférer les détails non bloquants dans [`docs/BACKLOG_FINITION.md`](docs/BACKLOG_FINITION.md), puis changer de macro-bloc. Un blocage fonctionnel/sécurité/données confirmé reste prioritaire.
+8. Avant un déploiement, garder un checkpoint validé comme point de retour ; si une régression apparaît, revenir à la version connue plutôt que modifier des données pour masquer le défaut. Toute migration garde son propre plan de sauvegarde et de rollback.
+
+Une phase est suffisamment stable quand ses parcours critiques et vérifications utiles passent et qu’aucun défaut important connu ne menace les données, comptes, paiements ou récompenses. Les limites de QA finale ne doivent pas relancer une boucle de polissage. La stratégie s’applique aussi aux branches Android, monétisation, RPG et anti-triche ; elle ne suppose pas que ces blocs sont déjà terminés.
 
 Les scripts navigateur utilisent des variables globales. Préserver l'ordre de chargement documenté dans [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Une modification de `js/config.js`, `js/state.js`, `js/main.js`, `js/ui.js`, du service worker ou d'une page à script inline exige une vérification des cinq écrans principaux.
 
