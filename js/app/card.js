@@ -45,19 +45,25 @@
   }
 
   // Only a definitive answer is kept for the page: a timeout or a network error asks again next time.
-  let linkPromise = null;
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const accountCurrent = job => !!job.owner && job.owner === window.state?.user?.id && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  let linkPromise = null, linkContext = null;
+  const resetLink = () => { linkPromise = linkContext = null; };
+  window.addEventListener("titan:account-changing", resetLink);
   function publicLink() {
-    const guest = String(window.state?.user?.id || "guest_").startsWith("guest_");
-    if (guest || !window.titanClient) return Promise.resolve(false);
-    if (!navigator.onLine) return Promise.resolve(false);
-    return (linkPromise ||= (async () => {
-      const r = await Promise.race([window.titanClient.rpc("titan_public_card_settings"), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 3000))]);
-      if (r?.error && r.error.code !== "PGRST202") linkPromise = null;
+    const job = accountContext();
+    if (!accountCurrent(job) || String(job.owner).startsWith("guest_") || !job.client || !navigator.onLine) return Promise.resolve(false);
+    if (linkPromise && linkContext && linkContext.owner === job.owner && linkContext.client === job.client && linkContext.epoch === job.epoch) return linkPromise;
+    linkContext = job;
+    let request;
+    request = (async () => {
+      const r = await Promise.race([job.client.rpc("titan_public_card_settings"), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 3000))]);
+      if (r?.error && r.error.code !== "PGRST202" && linkPromise === request) linkPromise = null;
+      if (!accountCurrent(job)) return false;
       return r?.data?.enabled && r.data.slug ? `https://titan-app.fr/u/${r.data.slug}` : false;
-    })().catch(() => {
-      linkPromise = null;
-      return false;
-    }));
+    })().catch(() => { if (linkPromise === request) linkPromise = null; return false; });
+    linkPromise = request;
+    return request;
   }
 
   function style() {
@@ -283,7 +289,22 @@
 
   /** Preview sheet with Share / Save. */
   async function open(o) {
+    const job = accountContext();
+    if (!accountCurrent(job) || (o.isCurrent && !o.isCurrent())) return null;
+    let cancelled = false, sheet = null;
+    const current = () => !cancelled && accountCurrent(job) && (!o.isCurrent || o.isCurrent());
+    const cleanup = () => {
+      window.removeEventListener("titan:account-changing", stop);
+      window.removeEventListener("titan:account-changed", stop);
+      window.removeEventListener("titan:history-updated", check);
+    };
+    function stop() { cancelled = true; if (sheet?.open) sheet.close(); cleanup(); }
+    function check() { if (!current()) stop(); }
+    window.addEventListener("titan:account-changing", stop);
+    window.addEventListener("titan:account-changed", stop);
+    window.addEventListener("titan:history-updated", check);
     const link = await publicLink();
+    if (!current()) { cleanup(); return null; }
     const body = document.createElement("div");
     body.className = "asc-stack cd-sheet";
     body.innerHTML = `<div class="cd-preview"><img alt="Aperçu de l’image" width="${W}" height="${H}"></div>
@@ -293,7 +314,7 @@
       <p class="asc-small jr-edit-error" role="alert" data-card-error hidden></p>
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-retry hidden>Réessayer l’aperçu</button>
       <div class="asc-confirm-actions" data-card-actions aria-busy="false"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
-    const sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body });
+    sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body, onClose: stop });
     const img = body.querySelector("img");
     const qr = body.querySelector("[data-qr]");
     const shareBtn = body.querySelector("[data-share]");
@@ -302,7 +323,10 @@
     const actions = body.querySelector("[data-card-actions]");
     const status = body.querySelector("[data-card-status]");
     const error = body.querySelector("[data-card-error]");
-    const available = () => sheet.isConnected && sheet.open;
+    const available = () => {
+      if (!current()) { stop(); return false; }
+      return sheet.isConnected && sheet.open;
+    };
     let canvas = null;
     let file = null;
     let pending = false;
@@ -403,7 +427,7 @@
       window.titanShell.toast({ type: "ok", title: "Image enregistrée", message: "Retrouve-la dans tes téléchargements." });
     }
     await paint();
-    return sheet;
+    return current() && sheet.open ? sheet : null;
   }
 
   const userName = () => {
@@ -411,5 +435,5 @@
     return u && !u.guest ? u.name : "";
   };
 
-  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink: () => (linkPromise = null) };
+  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink };
 })();
