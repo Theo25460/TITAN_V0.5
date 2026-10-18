@@ -11,7 +11,8 @@
     form.querySelector('#views-submit').disabled=busy||!shown?.available;
     form.querySelector('#views-name').disabled=busy||!shown?.available;
     list.querySelectorAll('button').forEach(b=>{b.disabled=busy||(['apply','edit'].includes(b.dataset.viewAction)&&!shown?.available);});
-    panel.setAttribute('aria-busy',String(busy));
+    // The live status is a sibling of these busy regions, never their descendant.
+    form.setAttribute('aria-busy',String(busy));list.setAttribute('aria-busy',String(busy));retry.setAttribute('aria-busy',String(busy));
   }
   function clearNameError() {
     if(!nameError||nameError.hidden)return;
@@ -20,11 +21,11 @@
     if(ids.length)input.setAttribute('aria-describedby',ids.join(' '));else input.removeAttribute('aria-describedby');
     input.removeAttribute('aria-invalid');nameError.textContent='';nameError.hidden=true;
   }
-  function invalidName() {
+  function invalidName(text='Choisis un nom de 1 à 40 caractères, sans retour à la ligne.',focus=true) {
     const input=form.querySelector('#views-name');
     const ids=new Set((input.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean));
     ids.add(nameError.id);input.setAttribute('aria-describedby',[...ids].join(' '));input.setAttribute('aria-invalid','true');
-    nameError.textContent='Choisis un nom de 1 à 40 caractères, sans retour à la ligne.';nameError.hidden=false;input.focus();
+    nameError.textContent=text;nameError.hidden=false;if(focus)input.focus();
   }
   function discardDraft() {clearNameError();draft=null;form.hidden=true;form.reset();}
   function cancel() {
@@ -34,9 +35,11 @@
   function clear(text='',dropDraft=true) {
     cancel();shown=null;confirmed=null;list.innerHTML='';if(dropDraft)discardDraft();controls();message(text);
   }
-  function begin(mode) {
+  function begin(mode,focused=document.activeElement,restore=!!focused&&panel.contains(focused)&&!focused.matches('summary')) {
     cancel();
     const job={mode,sequence,owner:D().owner(),epoch:window.titanAccountTransition?.epoch,client:window.titanClient,controller:new AbortController(),timer:null};
+    job.focused=focused;job.restore=restore;
+    job.target=()=>retry;
     pending=job;controls(true);
     job.current=()=>pending===job&&job.sequence===sequence&&job.owner===D().owner()&&!D().isGuest()&&job.client===window.titanClient
       &&job.epoch===window.titanAccountTransition?.epoch&&!window.titanAccountTransition?.active&&panel.open&&!document.hidden&&!offline&&navigator.onLine;
@@ -80,7 +83,31 @@
     controls(!!pending);
   }
   function schedule() {clearTimeout(timer);timer=setTimeout(()=>refresh(),60000);}
-  function finish(job) {if(pending===job){pending=null;controls();schedule();}}
+  function finish(job) {
+    if(pending!==job)return;
+    const valid=job.current();
+    const active=document.activeElement;
+    const restore=valid&&job.restore&&!document.querySelector('dialog[open]')&&[job.focused,document.body,panel].includes(active);
+    pending=null;controls();schedule();
+    if(!valid)return;
+    if(job.nameError&&draft&&!form.hidden)invalidName(job.nameError,false);
+    if(!restore)return;
+    const target=job.nameError?form.querySelector('#views-name'):job.target();
+    if(!target||target.disabled||target.closest('[hidden]'))return;
+    if(target.matches('h3'))target.tabIndex=-1;
+    target.focus();
+  }
+  function readTarget(job) {
+    const source=job.focused?.closest('[data-view]');
+    const fresh=[...list.querySelectorAll('[data-view]')].find(row=>row.dataset.view===source?.dataset.view);
+    if(fresh){
+      const action=job.focused.dataset.viewAction;
+      return [...fresh.querySelectorAll('button')].find(b=>action&&b.dataset.viewAction===action&&!b.disabled)||fresh.querySelector('h3');
+    }
+    const row=shown?.views.find(v=>v.id===draft?.id);
+    const editable=draft&&shown?.available&&!form.hidden&&(draft.revision?row?.revision===draft.revision:!row);
+    return editable?form.querySelector('#views-name'):[...list.querySelectorAll('[data-view]')].find(el=>el.dataset.view===draft?.id)?.querySelector('h3')||list.querySelector('h3')||retry;
+  }
   async function fetchList(job,id=null) {
     const j=await rpc(job,'titan_analysis_views',{p_id:id});
     if(!job.current())return null;
@@ -90,8 +117,8 @@
   async function load() {
     if(!ready())return;
     if(ownerShown!==D().owner()){discardDraft();ownerShown=D().owner();}
-    clear('',false);const job=begin('read');message('Actualisation des vues…');
-    try {const j=await fetchList(job);if(!j)return;render(j);message(j.available?`${j.count} vue(s) sur 10. Les analyses sont recalculées à l’ouverture.`:errorText({message:'PREMIUM_REQUIRED'}));}
+    const focused=document.activeElement,restore=!!focused&&panel.contains(focused)&&!focused.matches('summary');clear('',false);const job=begin('read',focused,restore);message('Actualisation des vues…');
+    try {const j=await fetchList(job);if(!j)return;render(j);job.target=()=>readTarget(job);message(j.available?`${j.count} vue(s) sur 10. Les analyses sont recalculées à l’ouverture.`:errorText({message:'PREMIUM_REQUIRED'}));}
     catch(e){if(job.current()){shown=null;list.innerHTML='';message(errorText(e));}}
     finally {finish(job);}
   }
@@ -114,6 +141,7 @@
   }
   async function mutate(p) {
     if(pending||!ready())return;
+    const index=shown?.views.findIndex(v=>v.id===p.p_id)??0;
     const job=begin('mutation');let acknowledged=false;message(p.p_action==='delete'?'Suppression…':'Enregistrement…');
     try {
       const receipt=await rpc(job,'titan_mutate_analysis_view',p);if(!job.current())return;
@@ -122,10 +150,13 @@
         {kind:p.p_action==='delete'?shown?.views.find(v=>v.id===p.p_id)?.kind:p.p_kind});
       acknowledged=true;discardDraft();confirmed=null;shown=null;list.innerHTML='';
       const j=await fetchList(job);if(!j)return;render(j);
+      const result=p.p_action==='delete'?j.views[Math.min(Math.max(index,0),j.views.length-1)]?.id:p.p_id;
+      job.target=()=>list.querySelector(`[data-view="${result}"] h3`)||retry;
       message(p.p_action==='delete'?'Vue supprimée.':'Vue enregistrée. Ses données seront recalculées à l’ouverture.');
     }catch(e){if(job.current()){
       if(String(e?.message||'').includes('PREMIUM_REQUIRED')&&shown)shown={...shown,available:false,reason:'premium_required'};
-      message(acknowledged?`${p.p_action==='delete'?'Vue supprimée':'Vue enregistrée'}, mais la liste n’a pas pu être actualisée. Choisis Actualiser pour la retrouver.`:errorText(e,true));
+      if(!acknowledged&&String(e?.message||'').includes('VIEW_NAME_TAKEN')){job.nameError=errorText(e,true);message('');}
+      else message(acknowledged?`${p.p_action==='delete'?'Vue supprimée':'Vue enregistrée'}, mais la liste n’a pas pu être actualisée. Choisis Actualiser pour la retrouver.`:errorText(e,true));
     }}
     finally {finish(job);}
   }
