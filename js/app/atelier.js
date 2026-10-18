@@ -19,6 +19,7 @@
     ? navigator.locks.request("titan_checkout_receipt:" + owner, () => action(true))
     : Promise.resolve(action(false));
   let loadSequence = 0;
+  let catalogueRequest = null;
   const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
   const accountCurrent = (c) => c.owner === window.state?.user?.id && c.client === window.titanClient
     && c.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
@@ -46,6 +47,7 @@
     if (m.includes("NOT_FOR_SALE")) return "Cette pièce ne s’achète pas : elle se mérite par le rang ou vient avec TITAN+.";
     if (m.includes("NOT_OWNED")) return "Cette pièce n’est pas encore dans ta collection.";
     if (m.includes("ACCOUNT_SUSPENDED")) return "Ton compte est suspendu : l’Atelier est indisponible.";
+    if (m === "ATELIER_TIMEOUT") return "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant.";
     if (m.includes("ACCOUNT_CHANGED")) return "Le compte a changé. Rouvre l’Atelier.";
     return navigator.onLine ? "L’Atelier n’a pas répondu. Réessaie dans un instant." : "Hors ligne : l’Atelier revient avec le réseau.";
   };
@@ -57,16 +59,66 @@
     return Math.max(5, Math.round(recent.reduce((n, l) => n + Number(l.xp) * 0.1, 0) / recent.length));
   }
 
-  async function load() {
-    const context = accountContext(), { owner, client } = context, request = ++loadSequence;
-    const current = () => request === loadSequence && accountCurrent(context);
+  function cancelCatalogue() {
+    const job = catalogueRequest;
+    if (!job) return;
+    catalogueRequest = null;
+    clearTimeout(job.timer);
+    job.controller.abort();
+  }
+
+  function showLoading(userRetry) {
+    const retry = root.querySelector("[data-retry]");
+    const restoreFocus = userRetry && retry === document.activeElement;
+    const progress = root.querySelector("[data-at-loading]") || document.createElement("p");
+    progress.className = "asc-note";
+    progress.dataset.atLoading = "";
+    progress.setAttribute("role", "status");
+    progress.tabIndex = -1;
+    // The live status stays outside the busy placeholder/button.
+    root.setAttribute("aria-busy", "false");
+    root.querySelectorAll(".asc-skeleton").forEach(el => el.setAttribute("aria-busy", "true"));
+    root.querySelector("[data-at-error]")?.setAttribute("hidden", "");
+    if (!progress.isConnected) root.prepend(progress);
+    progress.textContent = "Chargement de l’Atelier…";
+    if (retry) {
+      retry.disabled = true;
+      retry.setAttribute("aria-busy", "true");
+    }
+    if (restoreFocus) progress.focus({ preventScroll: true });
+    return progress;
+  }
+
+  function load(userRetry = false) {
+    const context = accountContext(), { owner, client } = context;
+    if (catalogueRequest && accountCurrent(catalogueRequest.context)) return catalogueRequest.done;
+    cancelCatalogue();
+    const request = ++loadSequence;
     if (dataOwner && dataOwner !== owner) { data = null; dataOwner = null; fallbackPlus = null; }
     if (guest() || !client || !accountCurrent(context)) {
       loading = false;
-      return render();
+      render();
+      return Promise.resolve();
     }
+    const job = { context, request, controller: new AbortController(), timer: null, done: null };
+    catalogueRequest = job;
+    loading = !data;
+    job.done = readCatalogue(job, userRetry);
+    return job.done;
+  }
+
+  async function readCatalogue(job, userRetry) {
+    const { context, request } = job, { owner, client } = context;
+    const current = () => request === loadSequence && accountCurrent(context);
+    const progress = !data ? showLoading(userRetry) : null;
     try {
-      const { data: d, error: e } = await client.rpc("titan_atelier");
+      let query = client.rpc("titan_atelier");
+      if (typeof query?.abortSignal === "function") query = query.abortSignal(job.controller.signal);
+      const expiry = new Promise((resolve, reject) => {
+        job.controller.signal.addEventListener("abort", () => reject(new Error("ATELIER_CANCELLED")), { once: true });
+        job.timer = setTimeout(() => { reject(new Error("ATELIER_TIMEOUT")); job.controller.abort(); }, 15000);
+      });
+      const { data: d, error: e } = await Promise.race([Promise.resolve(query), expiry]);
       if (!current()) return;
       if (d?.owner && d.owner !== owner) return ownerChanged();
       if (e) throw e;
@@ -80,13 +132,32 @@
       if (!current()) return;
       error = messageOf(e);
       pending = missing(e);
+    } finally {
+      clearTimeout(job.timer);
+      if (catalogueRequest === job) catalogueRequest = null;
     }
     loading = false;
+    const restoreFocus = userRetry && progress && document.activeElement === progress;
+    const focusedResult = renderOutcome(restoreFocus);
+    if (!data && pending) await readPlusFromProfile(context, current).then(() => {
+      if (current()) renderOutcome(focusedResult && document.activeElement === focusedResult);
+    });
+  }
+
+  function renderOutcome(restoreFocus) {
     render();
-    if (!data && pending) await readPlusFromProfile(context, current).then(() => current() && render());
+    if (!restoreFocus) return null;
+    const target = root.querySelector("[data-retry]") || root.querySelector("#collection h2") || root.querySelector("[data-at-notice]");
+    if (target) {
+      if (target.tagName !== "BUTTON") target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+    }
+    return target;
   }
 
   function ownerChanged() {
+    ++loadSequence;
+    cancelCatalogue();
     data = null;
     dataOwner = null;
     fallbackPlus = null;
@@ -300,7 +371,7 @@
     }
     if (loading) return;
     if (!data) {
-      root.innerHTML = `<p class="asc-note${pending ? "" : " err"}">${icon(pending ? "info" : "alert")}<span>${esc(error)}</span></p>${pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`}${plusHtml()}`;
+      root.innerHTML = `<p class="asc-small asc-muted" data-at-loading role="status" tabindex="-1"></p><p data-at-notice ${pending ? "" : 'data-at-error role="alert"'} class="asc-note${pending ? "" : " err"}">${icon(pending ? "info" : "alert")}<span>${esc(error)}</span></p>${pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`}${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;
     }
@@ -435,8 +506,8 @@
     if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
     if (b.hasAttribute("data-retry")) {
-      loading = true;
-      return load();
+      if (b.disabled) return;
+      return load(true);
     }
   }
 
@@ -461,7 +532,7 @@
     load().then(() => location.hash && document.getElementById(location.hash.slice(1))?.scrollIntoView());
   }
   window.addEventListener("online", () => booted && load());
-  window.addEventListener("titan:account-changing", () => { ++loadSequence; if (booted) ownerChanged(); });
+  window.addEventListener("titan:account-changing", () => { if (booted) ownerChanged(); else ++loadSequence; });
   window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("titan:history-updated", () => setTimeout(start, 0));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
