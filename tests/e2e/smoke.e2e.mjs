@@ -3909,7 +3909,7 @@ test("checkout attribution: SDK rejection and opening exception cannot leave an 
   }
 });
 
-test("checkout attribution: older RPC and compatibility-profile reads cannot overwrite a newer Free status", async () => {
+test("checkout attribution: older RPC and compatibility-profile reads from a replaced client cannot overwrite a newer Free status", async () => {
   for (const gateway of ["rpc", "profile"]) {
     const { page, context, errors } = await checkoutPage(); await clickCheckout(page);
     await page.evaluate(gateway => {
@@ -3936,7 +3936,11 @@ test("checkout attribution: older RPC and compatibility-profile reads cannot ove
       window.freeReadResponse = response(); dispatchEvent(new Event("online"));
     }, gateway);
     await page.waitForFunction(() => window.readsPending.length === 1);
-    await page.evaluate(() => { dispatchEvent(new Event("online")); });
+    // Same-client reconnects share one read; replace the client to invalidate the old one.
+    await page.evaluate(() => {
+      window.titanClient = { ...window.titanClient };
+      dispatchEvent(new Event("online"));
+    });
     await page.waitForFunction(() => window.readsPending.length === 2);
     await page.evaluate(() => { window.state.user.is_elite = true; window.readsPending[1](window.freeReadResponse); });
     await page.waitForFunction(() => window.state.user.is_elite === false);
