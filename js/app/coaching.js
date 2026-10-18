@@ -196,25 +196,56 @@
     if (!activeView()) return;
     const form = document.createElement("form");
     form.className = "asc-stack";
-    form.innerHTML = `${body}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
+    form.innerHTML = `${body}${onSubmit ? '<p class="asc-small asc-muted" role="status" data-co-progress></p>' : ""}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
     const d = own(window.titanShell.sheet({ title, eyebrow, body: form }));
+    let pending = false;
+    let controlStates = [];
+    const progress = form.querySelector("[data-co-progress]");
+    // Keep the live status outside the busy form so its update is not deferred.
+    if (progress) {
+      form.parentElement.classList.add("asc-stack");
+      form.after(progress);
+    }
+    const errorText = form.querySelector(".jr-edit-error");
+    const setPending = (value) => {
+      pending = value;
+      form.setAttribute("aria-busy", String(value));
+      if (progress) progress.textContent = value ? "Envoi en cours…" : "";
+      if (value) {
+        controlStates = [...form.querySelectorAll("input, select, textarea, button"), d.querySelector("[data-close]")].map(control => [control, control.disabled]);
+        controlStates.forEach(([control]) => { control.disabled = true; });
+      } else controlStates.forEach(([control, disabled]) => { control.disabled = disabled; });
+    };
+    form.setAttribute("aria-busy", "false");
+    // Block user dismissal while sending; account cleanup and preview chaining can still close().
+    d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+    d.addEventListener("click", e => {
+      if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
     form.querySelector("[data-cancel]").addEventListener("click", () => d.close());
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!onSubmit || !d.open || !d.isConnected) return;
+      if (!onSubmit || pending || !d.open || !d.isConnected) return;
       if (!sameContext(job)) { if (job === viewContext || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       const btn = form.querySelector("[type=submit]");
-      btn.disabled = true;
+      // Capture consent before disabling controls: disabled fields are excluded from FormData.
+      const data = new FormData(form);
+      errorText.textContent = "";
+      setPending(true);
       try {
-        await onSubmit(new FormData(form), d, job);
+        await onSubmit(data, d, job);
         if (!sameContext(job)) return;
         if (d.open) d.close();
         load();
       } catch (err) {
         if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
         if (!d.open || !d.isConnected) return;
-        form.querySelector(".jr-edit-error").textContent = human(err);
-        btn.disabled = false;
+        errorText.textContent = human(err);
+        setPending(false);
+        if ([...document.querySelectorAll("dialog[open]")].at(-1) === d) btn.focus();
       }
     });
     return d;
