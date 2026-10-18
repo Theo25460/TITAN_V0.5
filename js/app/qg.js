@@ -188,10 +188,12 @@
     if (c.chapter > 9)
       return `<a class="asc-row" href="/adventure"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(world?.name || "Monde")} terminé</span><span class="asc-row-sub">Choisis ton prochain horizon.</span></span>${icon("chevron")}</a>`;
     const chapter = world?.chapters?.[c.chapter - 1];
-    const days = Number(c.evidence?.days || 0);
+    const progress = P().campaignProgress(c);
+    const summary = progress.objectives.map(o => `${F().number(o.value)}/${F().number(o.target)} ${o.id === "days" ? c.route === "journal" ? "jours annotés" : "jours" : "min"}`).join(" · ");
+    const remaining = progress.ready ? "Étape prête à valider" : progress.objectives.filter(o => o.remaining > 0).map(o => `${F().number(o.remaining)} ${o.id === "days" ? `jour${o.remaining > 1 ? "s" : ""} restant${o.remaining > 1 ? "s" : ""}` : "min d’effort restantes"}`).join(" · ");
     return `<a class="asc-row" href="/adventure?world=${esc(c.id)}"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(chapter?.name || `Chapitre ${c.chapter}`)}</span>
-      <span class="asc-ascent thin" aria-hidden="true"><span style="--p:${Math.round(Math.min(1, days / Math.max(1, c.target)) * 100)}%"></span></span>
-      <span class="asc-row-sub">${esc(world?.name || "")} · chapitre ${c.chapter}/9 · ${Math.min(days, c.target)}/${c.target} jour${c.target > 1 ? "s" : ""}</span></span>${icon("chevron")}</a>`;
+      <span class="asc-ascent thin" aria-hidden="true"><span style="--p:${progress.percent}%"></span></span>
+      <span class="asc-small asc-muted" data-rpg-summary>${esc(world?.name || "")} · chapitre ${c.chapter}/9 · ${esc(summary)} · ${esc(remaining)}</span></span>${icon("chevron")}</a>`;
   }
 
   function guestHtml() {

@@ -613,7 +613,24 @@
     };
   }
 
+  // Read the confirmed campaign snapshot; never grant rewards or infer server rules.
+  function campaignProgress(c = {}) {
+    const number = value => Number.isFinite(Number(value)) ? Math.max(0, Number(value)) : 0;
+    const chapter = number(c.chapter);
+    if (!chapter || chapter >= 10) return { status: chapter >= 10 ? "complete" : "not_started", ready: false, percent: chapter >= 10 ? 100 : 0, objectives: [] };
+    const objective = (id, value, target, label) => {
+      target = number(target); value = Math.min(target, number(value));
+      return { id, value, target, remaining: target - value, label, ratio: target > 0 ? value / target : 0 };
+    };
+    const objectives = [objective("days", c.evidence?.days, c.target, c.route === "journal" ? "jours avec une séance annotée" : "jours actifs")];
+    // An absent effort_target is the legacy day-only contract, even at chapter nine.
+    if (number(c.effort_target) > 0) objectives.push(objective("effort", c.evidence?.effort, c.effort_target, "min d’effort"));
+    const ready = objectives.every(o => o.target > 0 && o.remaining === 0);
+    return { status: ready ? "ready" : "active", ready, percent: Math.round(Math.min(...objectives.map(o => o.ratio)) * 100), objectives };
+  }
+
   const api = {
+    campaignProgress,
     FAMILIES,
     PROFILE_FAMILY,
     MASTERY,
