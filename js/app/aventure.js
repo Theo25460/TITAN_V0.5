@@ -111,6 +111,28 @@
     </section>`;
   }
 
+  function valleyHtml(world, p, snapshot) {
+    const owner = window.state?.user?.id;
+    if (world.id !== "aube" || !owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
+    const model = window.TitanCampaignQuests?.plan({ campaign: p, history: window.TitanData?.logs?.() || [], guest: isGuest(), owner,
+      effortOf: log => window.TitanProgress.effortOf(log).effortMinutes });
+    if (!model) return "";
+    const source = p.evidence?.source_ids?.[0];
+    return `<section class="asc-section av-panel" data-valley-encounter>
+      <p class="asc-eyebrow">La vallée de l’Aube · rencontre du chapitre ${p.chapter}</p>
+      <h2 class="asc-h2">${esc(model.encounter.name)}</h2><p>${esc(model.encounter.text)}</p>
+      <details class="av-rules" data-rpg-quests="aube:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
+        <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni coins supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
+        <p class="asc-small asc-muted">${model.profile.days ? `Cibles calculées sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour${model.profile.daysTarget > 1 ? "s" : ""} et ${model.profile.effortTarget} min d’effort. Chaque jour pèse autant ; 90 min au plus servent au calcul par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil." : "Les compteurs de jours et d’effort proviennent de ta progression de campagne."}</p>
+        <div class="asc-stack">${model.quests.map(q => `<article class="asc-note" data-quest="${q.id}" data-complete="${q.complete}">
+          ${icon(q.complete ? "check" : q.id === "note" ? "journal" : "route")}<div class="asc-stack-sm"><strong>${esc(q.name)}</strong>
+          <span class="asc-small">${q.available ? `${F().number(q.value)}/${F().number(q.target)} ${esc(q.unit)}${q.complete ? " · préparatif réuni" : ""}` : "Mesure d’effort indisponible sur cette version du serveur."}</span>
+          ${q.id === "note" ? '<span class="asc-small asc-muted">Une note d’au moins 10 caractères sur une séance citée dans les preuves du chapitre.</span>' : ""}
+          ${!q.complete && q.available ? `<a class="asc-link asc-small" href="${q.id === "note" && source ? `/journal?session=${encodeURIComponent(source)}` : "/training"}">${q.id === "note" && source ? "Retrouver la séance dans le journal" : "Enregistrer une séance à ton rythme"}</a>` : ""}
+          </div></article>`).join("")}</div>
+      </details></section>`;
+  }
+
   function guardianHtml(world, p) {
     const finished = p.chapter >= 10;
     return `<section class="av-guardian" style="--world:${world.color}">
@@ -133,6 +155,7 @@
   function render() {
     if (!root) return;
     const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
+    const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
     const s = A()?.snapshot;
     if (!s) {
       root.innerHTML = `<div class="asc-empty"><h2>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h2><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
@@ -148,6 +171,7 @@
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world)}
       <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
+      ${valleyHtml(world, p, s)}
       ${guardianHtml(world, p)}
       ${carnetHtml(world, p)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
@@ -156,6 +180,8 @@
       <p class="asc-small" role="status" id="av-error"></p>`;
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
+    const quests = root.querySelector("[data-rpg-quests]");
+    if (quests && quests.dataset.rpgQuests === openQuests) quests.open = true;
   }
 
   async function mutate(action, params) {
@@ -256,6 +282,7 @@
     });
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:account-changing", () => root?.querySelector("[data-valley-encounter]")?.remove());
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
