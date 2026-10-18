@@ -133,7 +133,20 @@
       </details></section>`;
   }
 
-  function guardianHtml(world, p) {
+  function guardianHtml(world, p, snapshot) {
+    const owner = window.state?.user?.id;
+    const encounter = owner && snapshot?.owner === owner && !window.titanAccountTransition?.active
+      ? window.TitanCampaignEncounters?.describe(p, window.TitanProgress.campaignProgress(p)) : null;
+    if (encounter) return `<section class="av-panel asc-section" data-campaign-encounter data-state="${encounter.state}">
+      <div class="asc-row-flex">${encounter.kind === "guardian" ? `<img src="/assets/renaissance/guardian-aube-s.webp" alt="" width="96" height="96" loading="lazy">` : icon("route")}
+        <div><p class="asc-eyebrow">${encounter.kind === "guardian" ? "Rencontre du gardien" : "Obstacle du chapitre"}</p><h2 class="asc-h2">${esc(encounter.name)}</h2></div></div>
+      <p>${esc(encounter.text)}</p>
+      <div class="av-track"><div class="asc-between"><span>Avancement de l’épreuve</span><strong class="asc-num">${encounter.percent}%</strong></div>
+        <span class="asc-ascent" role="progressbar" aria-label="Avancement de l’épreuve" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${encounter.percent}"><span style="--p:${encounter.percent}%"></span></span></div>
+      <ol class="asc-stack-sm">${encounter.phases.map(phase => `<li data-phase="${phase.id}" data-state="${phase.state}" class="asc-small"><strong>${esc(phase.name)} · ${phase.state === "done" ? "preuves réunies" : phase.state === "active" ? "en cours" : "à venir"}</strong><p class="asc-small asc-muted">${F().number(phase.value)}/${F().number(phase.target)} ${esc(phase.unit)}</p></li>`).join("")}</ol>
+      <p class="asc-small asc-muted">Le pourcentage suit l’objectif le moins avancé du chapitre. Les mêmes séances peuvent faire avancer plusieurs phases ; les preuves déjà réunies sont conservées.</p>
+      <p class="asc-small" data-encounter-outcome>${encounter.ready ? `Épreuve prête à valider : utilise « ${encounter.kind === "guardian" ? "Affronter le gardien" : "Allumer la balise"} ». Le passage sera confirmé après validation de la campagne.` : "L’épreuve avance avec les jours et l’effort admissibles de ce chapitre. Reviens à ton rythme pour poursuivre."}</p>
+    </section>`;
     const finished = p.chapter >= 10;
     return `<section class="av-guardian" style="--world:${world.color}">
       <img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="${esc(world.guardian)}" width="256" height="256" loading="lazy" decoding="async">
@@ -171,8 +184,8 @@
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world)}
       <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
+      ${guardianHtml(world, p, s)}
       ${valleyHtml(world, p, s)}
-      ${guardianHtml(world, p)}
       ${carnetHtml(world, p)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
@@ -282,7 +295,7 @@
     });
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
-  window.addEventListener("titan:account-changing", () => root?.querySelector("[data-valley-encounter]")?.remove());
+  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter]").forEach(el => el.remove()));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
