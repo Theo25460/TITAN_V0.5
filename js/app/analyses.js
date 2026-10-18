@@ -56,7 +56,7 @@
     const a = j.recent, b = j.previous;
     const range = (p) => `${date(p.from)} – ${date(lastDay(p.to))}`;
     const metrics = [["sessions", "Séances", v => String(v)], ["active_days", "Jours actifs", v => String(v)], ["minutes", "Temps de pratique", duration]];
-    output.innerHTML = `<div class="compare-results"><h3 id="compare-period-title">${j.weeks} semaines · ${esc(j.sport ? SP().label(j.sport) : "Tous les sports")}</h3>
+    output.innerHTML = `<div class="compare-results"><h3 id="compare-period-title" tabindex="-1">${j.weeks} semaines · ${esc(j.sport ? SP().label(j.sport) : "Tous les sports")}</h3>
       <p class="asc-small">Semaines complètes du lundi au dimanche ; la semaine courante est exclue. Fuseau : ${esc(j.timezone)}.</p>
       <div class="compare-table-wrap" tabindex="0" role="region" aria-label="Comparaison des périodes"><table class="compare-table"><caption class="sr-only">Pratique récente comparée à la période précédente de même durée</caption><thead><tr><th scope="col">Repère</th><th scope="col">Récente<small>${esc(range(a))}</small></th><th scope="col">Précédente<small>${esc(range(b))}</small></th></tr></thead><tbody>${metrics.map(([key, label, fmt]) => `<tr data-comparison-metric="${key}"><th scope="row">${label}<small>${esc(difference(a[key], b[key], key))}</small></th><td>${esc(fmt(a[key]))}</td><td>${esc(fmt(b[key]))}</td></tr>`).join("")}</tbody></table></div>
       <p class="asc-small">${a.estimated_sessions + b.estimated_sessions ? `${a.estimated_sessions + b.estimated_sessions} séance(s) avec une durée estimée ; elles sont incluses dans le temps de pratique.` : "Toutes les durées de ces périodes sont renseignées."} Les jours actifs comptent chaque date une seule fois, même avec plusieurs sports.</p>
@@ -68,6 +68,11 @@
   }
 
   async function load(usage = false) {
+    const active = document.activeElement, previous = pending;
+    const inheritFocus = previous?.restoreFocus && previous.current() && !document.querySelector('dialog[open]')
+      && [previous.focused, document.body, panel].includes(active);
+    const focused = inheritFocus ? previous.focused : active;
+    const restoreFocus = inheritFocus || !!focused && (output.contains(focused) || focused === form.querySelector("#compare-submit"));
     clear();
     const request = sequence, owner = D().owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => request === sequence && D().owner() === owner && !D().isGuest() && client === window.titanClient
@@ -82,7 +87,7 @@
     if (offline || !navigator.onLine) return clear("Hors ligne : les comparaisons reviennent avec la connexion. Tes statistiques de base restent accessibles.");
     if (!window.titanClient) return clear("La connexion au serveur n’est pas prête. Réessaie dans un instant.");
     const options = { p_weeks: Number(form.querySelector("#compare-weeks").value), p_sport: sport, p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" };
-    const job = { controller: new AbortController(), timer: null }; pending = job;
+    const job = { controller: new AbortController(), timer: null, focused, restoreFocus, current }; pending = job;
     output.setAttribute("aria-busy", "true");
     form.querySelector("button[type=submit]").disabled = true;
     status.innerHTML = "<p>Calcul des périodes…</p>";
@@ -111,14 +116,19 @@
     } catch (e) {
       if (!current()) return;
       const missing = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
-      clear(missing ? "Les comparaisons ouvrent avec la prochaine mise à jour du serveur. Tes statistiques de base restent disponibles."
+      const message = missing ? "Les comparaisons ouvrent avec la prochaine mise à jour du serveur. Tes statistiques de base restent disponibles."
         : e?.message === "COMPARISON_TIMEOUT" ? "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant."
-          : "La comparaison n’a pas répondu correctement. Réessaie dans un instant.");
+          : "La comparaison n’a pas répondu correctement. Réessaie dans un instant.";
+      status.innerHTML = `<p>${esc(message)}</p>`;
     } finally {
       clearTimeout(job.timer); if (pending === job) pending = null;
       if (D().owner() === owner && request === sequence) {
         output.removeAttribute("aria-busy");
         form.querySelector("button[type=submit]").disabled = false;
+        // Only recover focus displaced by this request; newer actions keep priority.
+        if (current() && restoreFocus && !document.querySelector('dialog[open]')
+          && [focused, document.body, panel].includes(document.activeElement))
+          (output.querySelector("#compare-period-title") || form.querySelector("#compare-submit")).focus();
       }
     }
   }
