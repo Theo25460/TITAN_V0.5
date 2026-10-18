@@ -53,3 +53,28 @@ Voir [BACKLOG_FINITION.md](BACKLOG_FINITION.md). Les limites de recette finale e
 ## Périmètre et retour arrière
 
 Trois fichiers documentaires uniquement. Aucun changement applicatif, de dépendance, de schéma, de règle XP/crédits/récompense ou d’activation. Profil et smoke partagés sont lus/exécutés mais pas modifiés ; WORK/Android et RPG01 réservés respectés. Les fichiers étrangers du checkout initial sont exclus. Pour abandonner ce checkpoint : fermer sa PR ; aucune opération de base, fusion ou déploiement à annuler. Avant une mise en production future, appliquer la stratégie de sauvegarde/rollback de DEPLOYMENT.md.
+
+## Addendum de coordination — validation non clôturée
+
+Première suite commune locale : **650/665** réussis, exit1. Quatorze échecs Atelier viennent de la reconstruction concurrente déjà documentée et passent en relance isolée15/15. Le quinzième est reproductible seul : `smoke.e2e.mjs:3912`, test « checkout attribution: older RPC and compatibility-profile reads cannot overwrite a newer Free status », attend deux RPC simultanées au même client. Le contrat de la PR86 déduplique désormais ces lectures : l’attente de la deuxième ne peut aboutir. Aucun défaut produit démontré par cet échec ; le contrôle CI reste néanmoins bloqué.
+
+Le fichier smoke est explicitement réservé au chantier actif de validation du nom Profil. Il demeure **inchangé**. Proposition minimale vérifiée sur une copie temporaire (deux gateways RPC/profil, test ciblé1/1 puis15/15 checkout/consentement réussis, exit0) : remplacer le client entre les lectures, pour garder la vérification d’une réponse obsolète sans contredire la déduplication dans le même contexte. Aucun skip, suppression d’assertion ou changement produit. Les15 tests Atelier vérifient déjà le partage des lectures dans le contexte courant.
+
+```diff
+--- a/tests/e2e/smoke.e2e.mjs
++++ b/tests/e2e/smoke.e2e.mjs
+@@ -3912 +3912 @@
+-test("checkout attribution: older RPC and compatibility-profile reads cannot overwrite a newer Free status", async () => {
++test("checkout attribution: older RPC and compatibility-profile reads from a replaced client cannot overwrite a newer Free status", async () => {
+@@ -3939 +3939,5 @@
+-    await page.evaluate(() => { dispatchEvent(new Event("online")); });
++    // Same-client reconnects share one read; replace the client to invalidate the old one.
++    await page.evaluate(() => {
++      window.titanClient = { ...window.titanClient };
++      dispatchEvent(new Event("online"));
++    });
+```
+
+Application de cette adaptation en attente de coordination explicite, conformément au cahier. Le checkpoint n’est pas déclaré stable tant que la suite commune n’est pas entièrement verte. La PR et le cahier portent les résultats distants finaux sur le HEAD publié ; cet addendum ne vaut pas autorisation de toucher le fichier réservé.
+
+CI distante sur 18868733fd51fbe0b9bd248477b8edf511c0e474 : tests/build réussis (188/188), deux voies SQL réussies sur répliques jetables PostgreSQL16 ; navigateur encore en cours au moment de cet addendum. Aucune validation finale verte revendiquée. Résultats actualisés dans la PR95 et le cahier.
