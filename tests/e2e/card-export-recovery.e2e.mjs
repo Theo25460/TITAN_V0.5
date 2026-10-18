@@ -214,7 +214,7 @@ test("image export: updated Stats and Records bypass the previous card script", 
       await page.waitForFunction(() => Boolean(window.TitanCard));
       assert.equal(previousRequests, 0);
       assert.equal(await page.evaluate(() => Boolean(window.previousImageExporter)), false);
-      assert.equal(await page.locator('script[src="/js/app/card.js?v=300.3"]').count(), 1);
+      assert.equal(await page.locator('script[src="/js/app/card.js?v=300.4"]').count(), 1);
     } finally { await context.close(); }
   }
 });
