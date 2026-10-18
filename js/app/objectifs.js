@@ -26,40 +26,70 @@
   let goals = [];
   let showArchived = false;
   let editorNumber = 0;
+  let context = null, readSequence = 0;
+  const dialogs = new Set();
+  function isCurrent(ctx) {
+    return !!ctx && context === ctx && ctx.owner === owner() && ctx.data === D() && ctx.client === window.titanClient
+      && ctx.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  }
+  function invalidate() {
+    context = null; readSequence++; goals = []; showArchived = false;
+    if (root) { root.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; root.setAttribute("aria-busy", "true"); }
+    const old = [...dialogs]; dialogs.clear(); old.forEach(d => { if (d.open) d.close(); });
+  }
+  function adopt() {
+    if (isCurrent(context)) return context;
+    invalidate();
+    if (!owner() || window.titanAccountTransition?.active) return null;
+    context = { owner: owner(), data: D(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch };
+    return context;
+  }
+  function trackDialog(d) {
+    if (!d) return;
+    dialogs.add(d); d.addEventListener("close", () => dialogs.delete(d), { once: true });
+  }
 
   const owner = () => window.state?.user?.id;
   const guest = () => String(owner() || "").startsWith("guest_");
-  const key = () => `titan_goals_v1:${owner()}`;
   const iso = (d) => F().dateKey(d);
   function restorePageFocus(target, preventScroll = true) {
     if (target?.isConnected && document.activeElement === document.body && !document.querySelector("dialog[open]")) target.focus({ preventScroll });
   }
 
-  async function load(force = false) {
-    goals = (await D().goals({ force })) || [];
+  async function load(force = false, ctx = context) {
+    if (!isCurrent(ctx)) return;
+    const request = ++readSequence;
+    let next;
+    try { next = await ctx.data.goals({ force }); } catch { next = []; }
+    if (!isCurrent(ctx) || request !== readSequence) return;
+    goals = Array.isArray(next) ? next : [];
     render();
   }
 
-  async function save(fields, old) {
-    const id = owner();
-    if (!id) throw new Error("Session indisponible.");
+  async function save(fields, old, ctx) {
+    if (!isCurrent(ctx)) throw new Error("La session a changé. Rouvre cet objectif.");
+    const id = ctx.owner;
     const active = goals.filter((g) => !g.archived_at && g.id !== old?.id).length;
     if (!fields.archived_at && (!old || old.archived_at) && active >= 50) throw new Error("Tu as déjà 50 objectifs actifs. Archive ceux que tu n’utilises plus.");
     if (guest()) {
       const row = { ...old, ...fields, id: old?.id || crypto.randomUUID(), user_id: id, revision: (old?.revision || 0) + 1, created_at: old?.created_at || new Date().toISOString() };
       const next = [row, ...goals.filter((g) => g.id !== row.id)];
-      localStorage.setItem(key(), JSON.stringify(next));
-      await load(true);
+      localStorage.setItem(`titan_goals_v1:${id}`, JSON.stringify(next));
+      await load(true, ctx);
+      if (!isCurrent(ctx)) throw new Error("La session a changé. Rouvre cet objectif.");
       return row;
     }
     if (!navigator.onLine) throw new Error("Hors ligne : les objectifs se synchronisent dès le retour du réseau. Réessaie dans un instant.");
-    const q = old ? window.titanClient.from("sport_goals").update(fields).eq("id", old.id).eq("user_id", id).eq("revision", old.revision) : window.titanClient.from("sport_goals").insert({ ...fields, user_id: id });
+    const q = old ? ctx.client.from("sport_goals").update(fields).eq("id", old.id).eq("user_id", id).eq("revision", old.revision) : ctx.client.from("sport_goals").insert({ ...fields, user_id: id });
     const { data, error } = await q.select().single();
+    if (!isCurrent(ctx)) throw new Error("La session a changé. Rouvre cet objectif.");
     if (error) {
       if (error.code === "PGRST116") throw new Error("Cet objectif a changé sur un autre écran. Recharge la page.");
       throw new Error(String(error.message).includes("GOAL_LIMIT") ? "Tu as déjà 50 objectifs actifs." : "La modification n’a pas été confirmée. Vérifie ta connexion et réessaie.");
     }
-    await load(true);
+    if (!data || data.user_id !== id) throw new Error("La réponse de l’objectif n’a pas pu être vérifiée.");
+    await load(true, ctx);
+    if (!isCurrent(ctx)) throw new Error("La session a changé. Rouvre cet objectif.");
     return data;
   }
 
@@ -117,6 +147,7 @@
 
   function render() {
     if (!root) return;
+    if (!isCurrent(context)) { invalidate(); queue(); return; }
     const focused = document.activeElement;
     const focusedView = root.contains(focused) && focused.matches("[data-goals-view]") ? focused.dataset.goalsView : null;
     const active = goals.filter((g) => !g.archived_at);
@@ -159,6 +190,9 @@
   }
 
   function openEditor(old, template) {
+    if (!isCurrent(context)) { invalidate(); queue(); return; }
+    if ([...dialogs].some(d => d.open)) return;
+    const ctx = context;
     const start = new Date();
     const base = old || {
       title: template?.title || "",
@@ -191,9 +225,17 @@
       : opener.dataset.template ? `[data-template="${CSS.escape(opener.dataset.template)}"]` : null;
     let savedGoal = null;
     const d = window.titanShell.sheet({ title: old ? "Ajuster l’objectif" : "Nouvel objectif", eyebrow: "Objectifs", body: form, onClose: () => {
+      if (!isCurrent(ctx)) return;
       const heading = savedGoal && root.querySelector(`[data-edit="${CSS.escape(savedGoal.id)}"]`)?.closest("article")?.querySelector("h3");
       restorePageFocus(heading || (returnTo && root.querySelector(returnTo)), false);
     } });
+    trackDialog(d);
+    let pending = false;
+    const allowed = () => {
+      if (!d.open || !d.isConnected || !form.isConnected || !d.contains(form)) return false;
+      if (isCurrent(ctx)) return true;
+      invalidate(); queue(); return false;
+    };
     const field = (n) => form.querySelector(`[name="${n}"]`);
     const err = form.querySelector(".jr-edit-error");
     let invalidField = null;
@@ -224,12 +266,14 @@
       if (!titleTouched) field("title").value = autoTitle(metric, field("target").value, field("sport").value);
     };
     form.addEventListener("input", (e) => {
+      if (!allowed()) return;
       if (e.target === invalidField || (isDate(e.target) && isDate(invalidField))) clearError();
       if (e.target.name === "title") titleTouched = true;
       else retitle();
     });
-    form.addEventListener("change", retitle);
+    form.addEventListener("change", () => { if (allowed()) retitle(); });
     form.addEventListener("click", (e) => {
+      if (!allowed()) return;
       const b = e.target.closest("button");
       if (!b) return;
       if (b.hasAttribute("data-cancel")) return d.close();
@@ -255,6 +299,7 @@
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (pending || !allowed()) return;
       clearError();
       const target = Number(String(field("target").value).replace(",", "."));
       const fields = { title: field("title").value.trim(), metric, target, sport: field("sport").value || null, start_date: field("start_date").value, end_date: field("end_date").value };
@@ -266,17 +311,21 @@
       if (fields.end_date < fields.start_date) return showError(field("end_date"), "La fin doit suivre le début.");
       if ((new Date(fields.end_date) - new Date(fields.start_date)) / DAY > 730) return showError(field("end_date"), "Une période dure au maximum deux ans.");
       const submit = form.querySelector("[type=submit]");
-      submit.disabled = true;
+      pending = true; submit.disabled = true;
       try {
-        savedGoal = await save(fields, old);
+        const row = await save(fields, old, ctx);
+        if (!isCurrent(ctx)) return;
+        if (!old) window.TitanAnalytics?.track("goal_created", { kind: fields.metric, family: fields.sport ? SP().familyOf(fields.sport) : undefined });
+        if (!allowed()) return;
+        savedGoal = row;
         if (!old && showArchived) { showArchived = false; render(); }
-        if (!old) window.TitanAnalytics?.track("goal_created", { kind: metric, family: fields.sport ? SP().familyOf(fields.sport) : undefined });
         d.close();
         window.titanShell.toast({ type: "ok", title: old ? "Objectif ajusté" : "Objectif créé", message: fields.title });
       } catch (error) {
-        showError(null, error.message);
+        if (allowed()) showError(null, error.message);
       } finally {
-        submit.disabled = false;
+        pending = false;
+        if (allowed()) submit.disabled = false;
       }
     });
   }
@@ -284,13 +333,15 @@
   let booted = false;
   function start() {
     root = document.getElementById("objectifs");
-    if (!root || !window.state?.user || !window.TitanInsights) return;
+    if (!root || !window.TitanInsights) return;
     if (!booted) {
       booted = true;
       SP().ensure();
       root.addEventListener("click", async (e) => {
         const b = e.target.closest("button");
         if (!b) return;
+        if (!isCurrent(context)) { invalidate(); queue(); return; }
+        const ctx = context;
         if (b.hasAttribute("data-new")) return openEditor(null);
         if (b.dataset.template) return openEditor(null, TEMPLATES[Number(b.dataset.template)]);
         if (b.dataset.goalsView) {
@@ -301,20 +352,25 @@
         const g = goals.find((x) => x.id === (b.dataset.edit || b.dataset.archive));
         if (!g) return;
         if (b.dataset.edit) return openEditor(g);
-        if (b.dataset.archive)
-          window.titanShell.confirm({
+        if (b.dataset.archive) {
+          if ([...dialogs].some(d => d.open)) return;
+          const before = new Set(document.querySelectorAll("dialog"));
+          const confirmation = window.titanShell.confirm({
             title: g.archived_at ? "Restaurer cet objectif ?" : "Archiver cet objectif ?",
             message: g.archived_at ? "Il revient dans tes objectifs en cours." : "Il quitte la liste et reste dans les archives, avec sa progression.",
             confirmLabel: g.archived_at ? "Restaurer" : "Archiver",
-            action: () => save({ archived_at: g.archived_at ? null : new Date().toISOString() }, g),
-          }).then(confirmed => {
-            if (confirmed) restorePageFocus(root.querySelector(`[data-goals-view="${showArchived ? "archived" : "current"}"]`));
+            action: () => save({ archived_at: g.archived_at ? null : new Date().toISOString() }, g, ctx),
           });
+          trackDialog([...document.querySelectorAll("dialog")].find(d => !before.has(d)));
+          confirmation.then(confirmed => {
+            if (confirmed && isCurrent(ctx)) restorePageFocus(root.querySelector(`[data-goals-view="${showArchived ? "archived" : "current"}"]`));
+          });
+        }
       });
-      load(false);
-      return;
     }
-    render();
+    const previous = context, ctx = adopt();
+    if (!ctx) return;
+    if (ctx !== previous) load(false, ctx); else render();
   }
   let queued = false;
   const queue = () => {
@@ -326,6 +382,8 @@
     });
   };
   window.addEventListener("titan:history-updated", queue);
+  window.addEventListener("titan:account-changing", invalidate);
+  window.addEventListener("titan:account-changed", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
