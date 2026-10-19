@@ -10,7 +10,31 @@
   const DAY = 86400000;
   const NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-  let root = null;
+  let root = null, account = null, dayDialog = null;
+  function current(ctx) {
+    return !!ctx && account === ctx && ctx.owner === D().owner() && ctx.data === D() && ctx.client === window.titanClient
+      && ctx.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  }
+  function invalidate() {
+    account = null;
+    if (root) { root.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; root.setAttribute("aria-busy", "true"); }
+    const dialog = dayDialog; dayDialog = null; if (dialog?.open) dialog.close();
+  }
+  function adopt() {
+    if (current(account)) return account;
+    invalidate();
+    if (!D()?.owner() || window.titanAccountTransition?.active) return null;
+    account = { owner: D().owner(), data: D(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch };
+    return account;
+  }
+
+  function daySelector(el) {
+    if (!root?.contains(el) || !el.matches(".pv-day[data-day], .asc-row[data-day]")) return null;
+    return `${el.classList.contains("pv-day") ? ".pv-day" : ".asc-row"}[data-day="${CSS.escape(el.dataset.day)}"]`;
+  }
+  function restoreDay(selector) {
+    if (selector && document.activeElement === document.body && !document.querySelector("dialog[open]")) root.querySelector(selector)?.focus({ preventScroll: true });
+  }
 
   function weekState() {
     const start = F().weekStart(new Date()).getTime();
@@ -40,6 +64,8 @@
 
   function render() {
     if (!root) return;
+    const focusedDay = current(account) ? daySelector(document.activeElement) : null;
+    const ctx = adopt(); if (!ctx || !window.state?.user) return;
     const week = weekState();
     const planned = week.filter((d) => d.sport).length;
     const target = D().cadenceSettings().target;
@@ -60,10 +86,14 @@
         <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute.</p>
       </section>`;
     root.setAttribute("aria-busy", "false");
+    if (current(ctx)) restoreDay(focusedDay);
   }
 
-  function openDay(key) {
-    const d = D().plan().find((x) => x.key === key);
+  function openDay(key, opener) {
+    if (!current(account)) { invalidate(); queue(); return; }
+    const ctx = account;
+    if (dayDialog?.open) return;
+    const d = ctx.data.plan().find((x) => x.key === key);
     if (!d) return;
     const recents = [...new Set((window.state?.history || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((l) => l.sport))].filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 8);
     const quick = [...new Set([...recents, ...SP().POPULAR])].filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 12);
@@ -79,10 +109,47 @@
       <div data-chips>${chips()}</div>
       <div class="asc-form-grid"><label class="asc-field"><span>Durée prévue <small class="asc-faint">facultatif, en minutes</small></span><input class="asc-input" type="number" inputmode="numeric" min="5" max="600" step="5" name="minutes" value="${esc(d.minutes || "")}"></label>
       <label class="asc-field"><span>Repère <small class="asc-faint">facultatif</small></span><input class="asc-input" name="note" maxlength="80" value="${esc(d.note)}" placeholder="Fractionné, sortie longue, haut du corps…"></label></div>
-      <p class="asc-small jr-edit-error" role="alert"></p>
+      <p class="asc-small jr-edit-error" id="pv-error" role="alert" hidden></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-clear>${icon("moon")} Repos / libre</button><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
-    const dialog = window.titanShell.sheet({ title: NAMES[d.index], eyebrow: "Semaine type", body: form });
+    const returnTo = daySelector(opener);
+    const dialog = window.titanShell.sheet({ title: NAMES[d.index], eyebrow: "Semaine type", body: form, onClose: () => {
+      if (dayDialog === dialog) dayDialog = null;
+      if (current(ctx)) restoreDay(returnTo);
+    } });
+    dayDialog = dialog;
+    const allowed = () => {
+      if (!dialog.open || !dialog.isConnected || !form.isConnected || !dialog.contains(form)) return false;
+      if (current(ctx)) return true;
+      invalidate(); queue(); return false;
+    };
+    const search = form.querySelector("#pv-q");
+    const duration = form.querySelector("[name=minutes]");
+    const err = form.querySelector(".jr-edit-error");
+    let invalidField = null;
+    const clearError = () => {
+      if (invalidField) {
+        const ids = (invalidField.getAttribute("aria-describedby") || "").split(/\s+/).filter(id => id && id !== err.id);
+        if (ids.length) invalidField.setAttribute("aria-describedby", ids.join(" ")); else invalidField.removeAttribute("aria-describedby");
+        invalidField.removeAttribute("aria-invalid");
+      }
+      invalidField = null;
+      err.textContent = "";
+      err.hidden = true;
+    };
+    const showError = (field, text) => {
+      clearError();
+      invalidField = field;
+      const ids = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      ids.add(err.id);
+      field.setAttribute("aria-describedby", [...ids].join(" "));
+      field.setAttribute("aria-invalid", "true");
+      err.textContent = text;
+      err.hidden = false;
+      field.focus();
+    };
     form.addEventListener("input", (e) => {
+      if (!allowed()) return;
+      if (e.target === invalidField) clearError();
       if (e.target.id !== "pv-q") return;
       const q = e.target.value.trim();
       form.querySelector("[data-results]").innerHTML = q
@@ -93,29 +160,36 @@
         : "";
     });
     form.addEventListener("click", (e) => {
+      if (!allowed()) return;
       const b = e.target.closest("button");
       if (!b) return;
       if (b.dataset.pick) {
+        const hadFocus = document.activeElement === b;
         sport = b.dataset.pick;
+        if (invalidField === search) clearError();
         form.querySelector("[data-chips]").innerHTML = chips();
         form.querySelector("[data-results]").innerHTML = "";
         form.querySelector("#pv-q").value = "";
+        if (hadFocus) form.querySelector(`[data-chips] [data-pick="${CSS.escape(sport)}"]`)?.focus({ preventScroll: true });
         return;
       }
       if (b.hasAttribute("data-clear")) {
-        D().setPlanDay(key, null);
+        ctx.data.setPlanDay(key, null);
         dialog.close();
+        if (!current(ctx)) return;
         window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} libre` });
       }
     });
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const err = form.querySelector(".jr-edit-error");
-      if (!sport) return (err.textContent = "Choisis un sport, ou laisse ce jour libre.");
-      const minutes = form.querySelector("[name=minutes]").value;
-      if (minutes && !(Number(minutes) >= 5 && Number(minutes) <= 600)) return (err.textContent = "Une durée entre 5 minutes et 10 heures.");
-      D().setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
+      if (!allowed()) return;
+      clearError();
+      if (!sport) return showError(search, "Choisis un sport, ou laisse ce jour libre.");
+      const minutes = duration.value;
+      if (duration.validity.badInput || (minutes && !(Number(minutes) >= 5 && Number(minutes) <= 600))) return showError(duration, "Une durée entre 5 minutes et 10 heures.");
+      ctx.data.setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
       dialog.close();
+      if (!current(ctx)) return;
       window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} : ${SP().label(sport)}` });
     });
   }
@@ -123,13 +197,13 @@
   let booted = false;
   function start() {
     root = document.getElementById("prevoir");
-    if (!root || !window.state?.user || !window.TitanSports) return;
+    if (!root || !window.TitanSports) return;
     if (!booted) {
       booted = true;
       SP().ensure();
       root.addEventListener("click", (e) => {
         const b = e.target.closest("[data-day]");
-        if (b) openDay(b.dataset.day);
+        if (b) openDay(b.dataset.day, b);
       });
     }
     render();
@@ -144,6 +218,8 @@
     });
   };
   window.addEventListener("titan:history-updated", queue);
+  window.addEventListener("titan:account-changing", invalidate);
+  window.addEventListener("titan:account-changed", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
