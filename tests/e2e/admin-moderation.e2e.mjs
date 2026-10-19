@@ -105,6 +105,13 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
         if (name === "titan_admin_get_context_v1") return { data: { isAdmin: admin, role: admin ? "admin" : "user" }, error: null };
         if (name === "titan_session_risk_v1") {
           if (mode === "oldserver" || mode === "norisk") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
+          if (mode === "risk-throws") throw new Error("boom");
+          if (mode === "risk-hang") return new Promise(() => {});
+          if (mode === "risk-malformed") return { data: { sessions: [null, 7,
+            { id: "m1", sport: "x", date: "2026-10-18T09:00:00Z", value: null, unit: "km", state: "review", score: 5, signals: {} },
+            { id: "m2", sport: "y", date: "2026-10-18T10:00:00Z", value: 4, unit: "km", state: "critical", score: 25, excludedFromRankings: false,
+              signals: [null, { code: "speed_jump", severity: "high", points: 8, detail: { kmh: null, medianKmh: "abc", priorSessions: 5 } }] }] }, error: null };
+          if (mode === "risk-shapeless") return { data: { sessions: "x" }, error: null };
           return { data: sessionRisk(params.p_user), error: null };
         }
         if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
@@ -327,8 +334,10 @@ test("moderation case: sessions to review show state, score, explained signals a
   await modal.getByText(/Séances à examiner/i).waitFor();
   const section = modal.locator("[data-session-risk]");
   const text = await section.innerText();
-  assert.match(text, /À examiner/i, "review state is labelled");
-  assert.match(text, /À surveiller/i, "watch state is labelled");
+  const badges = await section.locator("tbody .status-badge").allInnerTexts();
+  assert.deepEqual(badges.map((b) => b.toLowerCase()), ["à examiner", "à surveiller"], "each flagged session carries its state badge, worst first");
+  const cells = await section.locator("tbody tr").first().locator("td").allInnerTexts();
+  assert.equal(cells[2].trim(), "8", "the score column shows the points");
   assert.match(text, /Vitesse inhabituelle/i);
   assert.match(text, /20 km\/h.*10 km\/h/s, "the comparison is spelled out");
   assert.match(text, /Chevauchement/i);
@@ -357,4 +366,29 @@ test("moderation case: no session to review and a server without the function ar
   assert.equal(await modal.locator('[data-moderation-decide="suspend"]').count(), 1, "decisions remain available");
   assert.deepEqual(o.errors, []);
   await o.context.close();
+});
+
+test("moderation case: a failing, hanging, malformed or shapeless risk analysis never costs the case file", async () => {
+  for (const mode of ["risk-throws", "risk-malformed", "risk-shapeless"]) {
+    const o = await open(1280, { mode });
+    await o.page.locator(`[data-moderation-open="${P1}"]`).click();
+    const modal = o.page.locator("#admin-modal");
+    await modal.locator('[data-moderation-decide="suspend"]').waitFor();
+    const section = await modal.locator("[data-session-risk]").innerText();
+    if (mode === "risk-throws") assert.match(section, /indisponible/i, mode);
+    if (mode === "risk-shapeless") assert.match(section, /illisible/i, "a shapeless answer is not shown as an empty analysis");
+    if (mode === "risk-malformed") {
+      assert.match(section, /Urgent/i, "critical maps to the urgent badge");
+      assert.match(section, /\? km\/h contre \? km\/h/, "missing numbers are shown as unknown, not 0");
+      assert.doesNotMatch(section, /0 km\/h/, mode);
+    }
+    assert.deepEqual(o.errors, [], mode);
+    await o.context.close();
+  }
+  const h = await open(1280, { mode: "risk-hang" });
+  await h.page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = h.page.locator("#admin-modal");
+  await modal.getByText(/délai dépassé/i).waitFor({ timeout: 15000 });
+  assert.equal(await modal.locator('[data-moderation-decide="suspend"]').count(), 1, "the case file opens after the timeout");
+  await h.context.close();
 });

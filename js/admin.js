@@ -1911,8 +1911,8 @@
 
     const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour' };
     function sessionSignalText(signal) {
-        const d = signal.detail || {};
-        const n = (value) => escapeHtml(Number.isFinite(Number(value)) ? Number(value) : '?');
+        const d = signal.detail && typeof signal.detail === 'object' ? signal.detail : {};
+        const n = (value) => escapeHtml(value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? '?' : Number(value));
         let detail = '';
         if (signal.code === 'overlap') detail = `${n(d.overlapMinutes)} min en commun (${n(Math.round(Number(d.shareOfShorter) * 100))} % de la plus courte)`;
         else if (signal.code === 'speed_jump') detail = `${n(d.kmh)} km/h contre ${n(d.medianKmh)} km/h habituels (${n(d.priorSessions)} séances)`;
@@ -1922,9 +1922,36 @@
     }
 
     // Advisory only: this lists sessions whose own history looks inconsistent; nothing is excluded from here.
+    // Advisory data must never hold the case file back: a throw, a rejection or a stall becomes a short note.
+    async function loadSessionRisk(userId) {
+        let timer;
+        const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve({ data: null, error: { timedOut: true, message: 'timeout' } }), 8000); });
+        try {
+            return await Promise.race([Promise.resolve(state.client.rpc('titan_session_risk_v1', { p_user: userId, p_limit: 50 })), timeout]);
+        } catch (e) {
+            return { data: null, error: (e && typeof e === 'object') ? e : { message: String(e || 'unavailable') } };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
     function sessionRiskMarkup(risk, error) {
-        if (error) return '<p><small>Analyse des séances indisponible (migration 20261019180000_session_risk.sql non appliquée, ou accès refusé).</small></p>';
-        const all = Array.isArray(risk?.sessions) ? risk.sessions : [];
+        try {
+            return sessionRiskMarkupUnsafe(risk, error);
+        } catch (e) {
+            return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        }
+    }
+
+    function sessionRiskMarkupUnsafe(risk, error) {
+        if (error) {
+            const why = moderationUnavailable(error)
+                ? 'migration 20261019180000_session_risk.sql non appliquée'
+                : error.timedOut ? 'délai dépassé' : moderationErrorText(error);
+            return `<p><small>Analyse des séances indisponible (${escapeHtml(why)}).</small></p>`;
+        }
+        if (!risk || !Array.isArray(risk.sessions)) return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        const all = risk.sessions.filter((session) => session && typeof session === 'object');
         const flagged = all.filter((session) => session.state && session.state !== 'normal');
         const rule = risk?.rule ? `<p><small>${escapeHtml(risk.rule)}</small></p>` : '';
         const head = `<p><small>${escapeHtml(all.length)} séances analysées, ${escapeHtml(flagged.length)} à examiner ou surveiller.</small></p>`;
@@ -1934,7 +1961,7 @@
                 <td>${escapeHtml(session.sport)} · ${escapeHtml(session.value)} ${escapeHtml(session.unit)}<br><small>${escapeHtml(formatDate(session.date))}</small></td>
                 <td>${moderationLevelBadge(session.state === 'critical' ? 'urgent' : session.state)}</td>
                 <td>${escapeHtml(session.score)}</td>
-                <td>${(session.signals || []).map(sessionSignalText).join('<br>')}</td>
+                <td>${(Array.isArray(session.signals) ? session.signals.filter((signal) => signal && typeof signal === 'object') : []).map(sessionSignalText).join('<br>')}</td>
                 <td>${session.excludedFromRankings ? 'Exclue des classements' : '—'}</td>
             </tr>`).join('');
         return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
@@ -1995,7 +2022,7 @@
     async function openModerationCase(userId) {
         const [{ data, error }, risk] = await Promise.all([
             state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
-            Promise.resolve(state.client.rpc('titan_session_risk_v1', { p_user: userId, p_limit: 50 })).catch((e) => ({ data: null, error: e || { message: 'unavailable' } }))
+            loadSessionRisk(userId)
         ]);
         if (error) {
             notify('Dossier indisponible', moderationErrorText(error), 'danger');
@@ -2042,7 +2069,7 @@
                 <h3>Signaux qui composent le score</h3>
                 ${signals ? tableShell(`<table class="admin-table"><thead><tr><th>Raison</th><th>Gravité</th><th>Occurrences</th><th>Points</th><th>Dernier</th></tr></thead><tbody>${signals}</tbody></table>`) : '<p><small>Aucun signal ouvert.</small></p>'}
                 <h3>Séances à examiner</h3>
-                <div data-session-risk>${sessionRiskMarkup(risk && risk.data, !risk || risk.error || !risk.data)}</div>
+                <div data-session-risk>${sessionRiskMarkup(risk && risk.data, risk && risk.error ? risk.error : (!risk || !risk.data ? { message: 'empty' } : null))}</div>
                 <h3>Derniers signaux bruts</h3>
                 ${recent}
                 <h3>Décisions</h3>

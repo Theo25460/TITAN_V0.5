@@ -22,8 +22,8 @@ Chantier AUTRE — Claude Code, 19/10/2026, suite de `docs/CDC_WEB_SESSION_RISK_
 
 ## Vérifications
 
-- RED avant implémentation (2 parcours en échec). 12 parcours de l'écran de modération verts ; mutations détectées : état « normal » listé, exclusion non affichée, texte non échappé. À 360 px, le dossier tient dans l'écran (parcours existant, maintenant avec la section).
-- `pnpm run verify` vert (229/229, build, audit, contrôle de publication) ; suite E2E complète 697/697 ; mutation sans échappement du nom de sport détectée (2 parcours en échec).
+- RED avant implémentation (2 parcours en échec). Revue de code unique : 8 remarques ; traitées : assertion d'état vide de sens, analyse qui bloquait l'ouverture du dossier (délai de 8 s puis note « délai dépassé »), exception ou rejet de l'appel, données mal formées (séance ou signal nul, `signals` non tableau), message d'erreur trompeur, `null` affiché comme 0 — un parcours dédié échoue contre la version précédente. Non traitée : course entre deux ouvertures rapides de dossiers (existait déjà, voir backlog). 13 parcours de l'écran de modération verts ; mutations détectées : état « normal » listé, exclusion non affichée, texte non échappé. À 360 px, le dossier tient dans l'écran (parcours existant, maintenant avec la section).
+- `pnpm run verify` vert (229/229, build, audit, contrôle de publication) ; suite E2E complète 697/697 avant les corrections de revue (parcours admin-moderation relancé : 13/13) ; mutation sans échappement du nom de sport détectée (2 parcours en échec).
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
@@ -32,6 +32,7 @@ Aucun Critical/Important connu ouvert. La migration `20261019180000` n'est pas a
 ## NON BLOQUANT / BACKLOG FINITION
 
 - Aucune action sur une séance (exclure, rétablir, annoter) : c'est CHEAT14/15, à décider (quand exclure ?).
+- Course possible entre deux ouvertures de dossier très rapprochées (la réponse la plus lente écrase l'autre) : antérieure à ce lot, à traiter avec un jeton de requête.
 - Pas de lien depuis une séance vers ses signaux bruts ; pas de pagination au-delà de 50 séances.
 - Les seuils restent à calibrer sur données réelles ; recette réelle après déploiement.
 
