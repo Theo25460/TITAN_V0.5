@@ -11,7 +11,7 @@ checks(check_name, blocking, ok, detail) as (
     coalesce((select count(*) from supabase_migrations.schema_migrations where version >= '20261005230000') > 0, false),
     'dernière version attendue côté production avant ce lot'
   union all
-  select 'aucune des 21 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', false,
+  select 'aucune des 22 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', false,
     (select count(*) = 0 from supabase_migrations.schema_migrations where version in (
       '20261008110220',
       '20261008113411',
@@ -32,7 +32,7 @@ checks(check_name, blocking, ok, detail) as (
       '20261019180000',
       '20261019200000',
       '20261019210000',
-      '20261019220000','20261019230000')),
+      '20261019220000','20261019230000','20261020000000')),
     'nombre déjà appliquées : ' || (select count(*) from supabase_migrations.schema_migrations where version in (
       '20261008110220',
       '20261008113411',
@@ -53,7 +53,7 @@ checks(check_name, blocking, ok, detail) as (
       '20261019180000',
       '20261019200000',
       '20261019210000',
-      '20261019220000','20261019230000'))
+      '20261019220000','20261019230000','20261020000000'))
   union all
   -- 20261008120931 : le catalogue doit contenir les 4 cosmétiques
   select 'catalogue : 4 cosmétiques attendus (20261008120931)', true,

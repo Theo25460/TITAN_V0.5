@@ -83,6 +83,10 @@
       };
     const est = P().effortOf(log);
     if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Estimation du mode découverte. Crée ton compte pour rendre ta progression officielle : tes séances te suivent." };
+    if (log.syncStatus === "confirmed" && r && r.reward_held) {
+      const hours = Math.max(1, Math.ceil((new Date(r.release_at) - Date.now()) / 3600000)) || 24;
+      return { state: "pending", big: "Récompense en vérification", sub: `${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits sont retenus par précaution, au plus ${F().number(hours)} h : ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+    }
     if (log.syncStatus === "confirmed" && r) {
       const capped = Number(r.requested_xp) > Number(r.xp);
       const lines = [];

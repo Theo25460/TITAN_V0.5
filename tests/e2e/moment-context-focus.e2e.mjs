@@ -141,6 +141,21 @@ test("recap focus: server receipt updates the displayed reward once while retain
   }finally{await context.close();}
 });
 
+test("recap: a held reward is explained instead of showing a hollow +0 XP",async()=>{
+  const {page,context,errors}=await fixture();
+  try{
+    await page.evaluate(()=>{window.momentLog={...window.momentLog,syncStatus:"confirmed",xp:0,details:{...window.momentLog.details,serverReward:{xp:0,credits:0,requested_xp:300,reward_held:true,held_xp:300,held_credits:30,release_at:new Date(Date.now()+23*3600000).toISOString()}}};window.state.history=[window.momentLog];});
+    await refresh(page);
+    const text=await recap(page).innerText();
+    assert.match(text,/Récompense en vérification/);
+    assert.match(text,/300 XP/);
+    assert.match(text,/30 crédits/);
+    assert.match(text,/24 h|23 h/);
+    assert.doesNotMatch(await recap(page).locator(".moment-xp").innerText(),/\+0 XP/);
+    assert.deepEqual(errors,[]);
+  }finally{await context.close();}
+});
+
 test("recap focus: delayed initial focus cannot replace a user-selected journal link",async()=>{
   const {page,context,errors}=await fixture(360,true);
   try{
