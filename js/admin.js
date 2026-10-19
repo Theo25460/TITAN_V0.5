@@ -1909,6 +1909,37 @@
         return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
     }
 
+    const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour' };
+    function sessionSignalText(signal) {
+        const d = signal.detail || {};
+        const n = (value) => escapeHtml(Number.isFinite(Number(value)) ? Number(value) : '?');
+        let detail = '';
+        if (signal.code === 'overlap') detail = `${n(d.overlapMinutes)} min en commun (${n(Math.round(Number(d.shareOfShorter) * 100))} % de la plus courte)`;
+        else if (signal.code === 'speed_jump') detail = `${n(d.kmh)} km/h contre ${n(d.medianKmh)} km/h habituels (${n(d.priorSessions)} séances)`;
+        else if (signal.code === 'day_volume') detail = `${n(d.minutesThatDay)} min déclarées ce jour-là`;
+        const label = SESSION_SIGNAL_LABELS[signal.code] || signal.code;
+        return `<strong>${escapeHtml(label)}</strong> · ${escapeHtml(signal.severity)} · ${n(signal.points)} pt${detail ? ` · ${detail}` : ''}`;
+    }
+
+    // Advisory only: this lists sessions whose own history looks inconsistent; nothing is excluded from here.
+    function sessionRiskMarkup(risk, error) {
+        if (error) return '<p><small>Analyse des séances indisponible (migration 20261019180000_session_risk.sql non appliquée, ou accès refusé).</small></p>';
+        const all = Array.isArray(risk?.sessions) ? risk.sessions : [];
+        const flagged = all.filter((session) => session.state && session.state !== 'normal');
+        const rule = risk?.rule ? `<p><small>${escapeHtml(risk.rule)}</small></p>` : '';
+        const head = `<p><small>${escapeHtml(all.length)} séances analysées, ${escapeHtml(flagged.length)} à examiner ou surveiller.</small></p>`;
+        if (!flagged.length) return `${head}${rule}<p>Aucune séance à examiner.</p>`;
+        const rows = flagged.map((session) => `
+            <tr>
+                <td>${escapeHtml(session.sport)} · ${escapeHtml(session.value)} ${escapeHtml(session.unit)}<br><small>${escapeHtml(formatDate(session.date))}</small></td>
+                <td>${moderationLevelBadge(session.state === 'critical' ? 'urgent' : session.state)}</td>
+                <td>${escapeHtml(session.score)}</td>
+                <td>${(session.signals || []).map(sessionSignalText).join('<br>')}</td>
+                <td>${session.excludedFromRankings ? 'Exclue des classements' : '—'}</td>
+            </tr>`).join('');
+        return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
     function moderationPayloadText(payload) {
         const text = JSON.stringify(payload || {}, null, 2);
         return text.length > 1200 ? `${text.slice(0, 1200)}\n… (tronqué, ${text.length - 1200} caractères de plus)` : text;
@@ -1962,7 +1993,10 @@
     }
 
     async function openModerationCase(userId) {
-        const { data, error } = await state.client.rpc('titan_moderation_case_v1', { p_user: userId });
+        const [{ data, error }, risk] = await Promise.all([
+            state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
+            Promise.resolve(state.client.rpc('titan_session_risk_v1', { p_user: userId, p_limit: 50 })).catch((e) => ({ data: null, error: e || { message: 'unavailable' } }))
+        ]);
         if (error) {
             notify('Dossier indisponible', moderationErrorText(error), 'danger');
             return;
@@ -2007,6 +2041,8 @@
                 </div>
                 <h3>Signaux qui composent le score</h3>
                 ${signals ? tableShell(`<table class="admin-table"><thead><tr><th>Raison</th><th>Gravité</th><th>Occurrences</th><th>Points</th><th>Dernier</th></tr></thead><tbody>${signals}</tbody></table>`) : '<p><small>Aucun signal ouvert.</small></p>'}
+                <h3>Séances à examiner</h3>
+                <div data-session-risk>${sessionRiskMarkup(risk && risk.data, !risk || risk.error || !risk.data)}</div>
                 <h3>Derniers signaux bruts</h3>
                 ${recent}
                 <h3>Décisions</h3>

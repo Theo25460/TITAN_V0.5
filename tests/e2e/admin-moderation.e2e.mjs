@@ -78,6 +78,17 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
       ],
       decisions: db.decisions[id].map((d) => ({ id: d.id, at: d.at, admin_id: "adm", decision: d.decision, reason: d.reason, reverts: d.reverts || null })),
     });
+    const sessionRisk = (id) => ({
+      sessions: id !== P1 ? [] : [
+        { id: "r1", sport: `running ${evil}`, date: "2026-10-18T09:00:00Z", value: 20, unit: "km", durationMin: 60, historical: false, score: 8, state: "review", excludedFromRankings: true,
+          signals: [{ code: "speed_jump", severity: "high", points: 8, detail: { kmh: 20, medianKmh: 10, priorSessions: 5 } }] },
+        { id: "r2", sport: "cycling", date: "2026-10-17T09:00:00Z", value: 30, unit: "min", durationMin: 60, historical: false, score: 3, state: "watch", excludedFromRankings: false,
+          signals: [{ code: "overlap", severity: "medium", points: 3, detail: { overlapMinutes: 50, shareOfShorter: 0.83 } }] },
+        { id: "r3", sport: "yoga", date: "2026-10-16T09:00:00Z", value: 30, unit: "min", durationMin: 30, historical: false, score: 0, state: "normal", excludedFromRankings: false, signals: [] },
+      ],
+      rule: "Poids faible 1, moyen 3, haut 8, critique 20. Indicatif : rien n'est exclu automatiquement.",
+      counts: { normal: id === P1 ? 1 : 0, watch: id === P1 ? 1 : 0, review: id === P1 ? 1 : 0, critical: 0 },
+    });
     const fail = (message, code) => ({ data: null, error: { message, code } });
     window.__mod = { calls, db };
     const client = {
@@ -92,6 +103,10 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
         calls.push({ name, params });
         if (name === "titan_admin_list_profiles_v1") return { data: [{ id: P2, username: "Sam", status: "active", role: "user", created_at: "2026-10-01T00:00:00Z" }], error: null };
         if (name === "titan_admin_get_context_v1") return { data: { isAdmin: admin, role: admin ? "admin" : "user" }, error: null };
+        if (name === "titan_session_risk_v1") {
+          if (mode === "oldserver" || mode === "norisk") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
+          return { data: sessionRisk(params.p_user), error: null };
+        }
         if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
         if (mode === "oldserver") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
         if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
@@ -303,4 +318,43 @@ test("moderation: a failed refresh after a recorded decision is reported, not hi
   await page.locator("#admin-toast-stack").getByText(/La décision est enregistrée/).waitFor();
   assert.equal(await page.evaluate(() => window.__mod.db.decisions["00000000-0000-4000-8000-0000000000a2"].length), 1);
   await context.close();
+});
+
+test("moderation case: sessions to review show state, score, explained signals and the existing exclusion", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = page.locator("#admin-modal");
+  await modal.getByText(/Séances à examiner/i).waitFor();
+  const section = modal.locator("[data-session-risk]");
+  const text = await section.innerText();
+  assert.match(text, /À examiner/i, "review state is labelled");
+  assert.match(text, /À surveiller/i, "watch state is labelled");
+  assert.match(text, /Vitesse inhabituelle/i);
+  assert.match(text, /20 km\/h.*10 km\/h/s, "the comparison is spelled out");
+  assert.match(text, /Chevauchement/i);
+  assert.match(text, /50 min/);
+  assert.match(text, /Exclue des classements/i, "the existing exclusion is reported");
+  assert.doesNotMatch(text, /yoga/i, "normal sessions are not listed");
+  assert.match(text, /3 séances analysées/, "the number of analysed sessions is stated");
+  assert.match(text, /rien n'est exclu automatiquement/i, "the server rule text is shown");
+  assert.equal(await section.locator("img").count(), 0, "sport names are escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_session_risk_v1")).length, 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("moderation case: no session to review and a server without the function are explained, the case still opens", async () => {
+  let o = await open(1280);
+  await o.page.locator(`[data-moderation-open="${P2}"]`).click();
+  await o.page.locator("#admin-modal").getByText(/Aucune séance à examiner/i).waitFor();
+  await o.context.close();
+  o = await open(1280, { mode: "norisk" });
+  await o.page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = o.page.locator("#admin-modal");
+  await modal.getByText(/analyse des séances indisponible/i).waitFor();
+  assert.match(await modal.innerText(), /Décisions/, "the rest of the case file is intact");
+  assert.equal(await modal.locator('[data-moderation-decide="suspend"]').count(), 1, "decisions remain available");
+  assert.deepEqual(o.errors, []);
+  await o.context.close();
 });
