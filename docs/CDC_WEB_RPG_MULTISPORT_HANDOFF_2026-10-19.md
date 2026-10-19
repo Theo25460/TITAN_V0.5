@@ -24,7 +24,7 @@ Les durées manquantes suivent toujours les estimations existantes, propres aux 
 
 ## Vérification et livraison
 
-Les commandes de référence sont pnpm verify, la suite navigateur intégrée et les deux voies PostgreSQL16 jetables de tools/db/test-migrations.sh. La PR contient les suites de recette ; le résultat sur sa tête publiée et sa référence sont consignés dans le cahier vivant et ses checks GitHub après achèvement. Aucune garantie de CI verte n’est déduite de la seule lecture des tests.
+Les commandes de référence sont pnpm verify, la suite navigateur intégrée et les deux voies PostgreSQL16 jetables de tools/db/test-migrations.sh. La PR contient les suites de recette ; le résultat sur sa tête publiée et sa référence sont consignés dans le cahier vivant et ses checks GitHub après achèvement. Aucune garantie de CI verte n’est déduite de la seule lecture des tests. Le premier passage SQL a identifié un alias de recette ambigu avec une variable PL/pgSQL ; il est renommé sans suppression ni affaiblissement de l’assertion. La revue indépendante ne relève aucun Critical/Important et rejoue les4tests Node ; elle n’exécute pas PostgreSQL/navigateur indépendamment.
 
 ## BLOQUANT À CORRIGER MAINTENANT
 

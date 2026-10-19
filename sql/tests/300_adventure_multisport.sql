@@ -81,7 +81,7 @@ begin
           execute 'set local role authenticated';
         end loop;
       end loop;
-      assert not exists(select 1 from jsonb_array_elements(s->'campaigns') c where c->>'chapter'<>'10'),practice||':all4campaigns complete';
+      assert not exists(select 1 from jsonb_array_elements(s->'campaigns') completed_campaign where completed_campaign->>'chapter'<>'10'),practice||':all4campaigns complete';
       assert jsonb_array_length(s->'rewards')=36 and jsonb_array_length(s->'quest_rewards')=108,practice||':same final collection';
       execute 'reset role';
     end loop;
