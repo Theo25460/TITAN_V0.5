@@ -61,7 +61,9 @@ begin
   else
     p_session := null;
     select status, is_suspended into v_profile from public.profiles where id = v_user;
-    if not found or not (coalesce(v_profile.is_suspended, false) or v_profile.status in ('suspended', 'banned')) then
+    -- A deleted account also carries is_suspended: it has nothing to appeal.
+    if not found or v_profile.status = 'deleted'
+       or not (coalesce(v_profile.is_suspended, false) or v_profile.status in ('suspended', 'banned')) then
       raise exception 'NOT_SUSPENDED' using errcode = '23514';
     end if;
   end if;
@@ -161,13 +163,18 @@ begin
 
   if p_accept then
     if v_appeal.kind = 'session' then
-      perform public.titan_session_exclusion_v1(v_appeal.session_id, false, v_note);
-    elsif exists (select 1 from public.profiles where id = v_appeal.user_id and status = 'banned') then
-      -- A ban is lifted with the administrator profile tool, not from this queue.
+      -- Nothing to lift (already restored since the filing): say so instead of recording a hollow acceptance.
+      if not (public.titan_session_exclusion_v1(v_appeal.session_id, false, v_note) ->> 'changed')::boolean then
+        raise exception 'STATE_CHANGED' using errcode = '23514';
+      end if;
+    elsif exists (select 1 from public.profiles where id = v_appeal.user_id and status in ('banned', 'deleted')) then
+      -- A ban (or a deleted account) is handled with the administrator profile tool, not from this queue.
       raise exception 'USE_ADMIN_PROFILE_TOOL' using errcode = '23514';
     elsif exists (select 1 from public.profiles where id = v_appeal.user_id
                     and (coalesce(is_suspended, false) or status = 'suspended')) then
       perform public.titan_moderation_decide_v1(v_appeal.user_id, 'restore', v_note);
+    else
+      raise exception 'STATE_CHANGED' using errcode = '23514';
     end if;
   end if;
 

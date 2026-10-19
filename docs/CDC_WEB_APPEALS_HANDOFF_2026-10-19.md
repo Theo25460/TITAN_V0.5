@@ -14,7 +14,7 @@ Règles : un recours ouvert par objet, 5 ouverts au plus par joueur (verrou cons
 Tests : `sql/tests/300_appeals.sql` (autorisations, validation, plafond, cooldown, acceptation/refus, aucune autre ligne modifiée) et `300_z_appeals_migration.sql` (rejeu idempotent, droits, transaction de l'appelant). Sensibilité vérifiée (plafond 5→6 : test rouge).
 
 ## BLOQUANT À CORRIGER MAINTENANT
-Aucun connu (revue indépendante : voir note du cahier).
+Aucun connu. Revue indépendante faite : un compte supprimé pouvait déposer puis obtenir une réactivation (corrigé : refusé au dépôt et à l'acceptation) ; une acceptation sans effet est maintenant refusée (`STATE_CHANGED`, le recours reste refusable) ; tests ajoutés (compte supprimé, état changé, décision de son propre recours, fin du délai de 7 jours, anonyme sur chaque RPC, bornes, cascade à la suppression de compte). Reste non testé : la concurrence sur deux connexions réelles.
 ## NON BLOQUANT – BACKLOG FINITION
 Interfaces : formulaire joueur (Profil) et onglet « Recours » dans l'administration ; information du joueur au moment de l'exclusion ; rétention des recours décidés (à fixer avec Q-002) ; notification à l'administrateur.
 ## EXIGENCE OU MACRO-BLOC À ATTAQUER ENSUITE

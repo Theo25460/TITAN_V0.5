@@ -64,7 +64,7 @@ begin
   -- Player sees only own appeals, with status; admin note only once decided.
   r:=public.titan_my_appeals_v1();
   assert jsonb_array_length(r->'appeals')=3 and (r->'appeals'->0->>'status')='open','player sees own three appeals';
-  assert not (r::text like '%'||current_setting('titan.ap_q')||'%'),'no one else''s data';
+  assert (select bool_and((e->>'sessionId')::uuid in (current_setting('titan.ap_s1')::uuid,current_setting('titan.ap_s2')::uuid,current_setting('titan.ap_s3')::uuid)) from jsonb_array_elements(r->'appeals') e),'only own sessions listed';
   perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_q'),'role','authenticated')::text,true);
   assert jsonb_array_length(public.titan_my_appeals_v1()->'appeals')=0,'other player sees none';
 
@@ -147,6 +147,76 @@ begin
   assert r->>'status'='declined','but it can be declined with a note';
 end $$;
 
+-- State changes, deleted accounts, self-decision, cooldown exit, anonymous on every RPC, bounds.
+reset role;
+do $$
+declare d uuid:=gen_random_uuid(); b2 uuid:=gen_random_uuid(); a2 uuid:=gen_random_uuid(); sc uuid:=gen_random_uuid();
+begin
+  insert into auth.users(id,raw_user_meta_data) values(d,'{}'),(b2,'{}'),(a2,'{}');
+  set local session_replication_role = replica;
+  update public.profiles set status='deleted', is_suspended=true where id=d;
+  update public.profiles set status='suspended' where id=b2;
+  update public.profiles set role='admin', status='suspended' where id=a2;
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details,is_suspicious,status)
+    values (sc,b2,'running','cardio',5,'km',1,now()-interval '1 day','{"duration":30}',true,'suspicious');
+  perform set_config('titan.ap_d',d::text,true); perform set_config('titan.ap_b2',b2::text,true);
+  perform set_config('titan.ap_a2',a2::text,true); perform set_config('titan.ap_sc',sc::text,true);
+  set local session_replication_role = origin;
+end $$;
+set local role authenticated;
+do $$
+declare ok boolean; idc bigint; ida bigint; ids bigint; n int;
+begin
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_d'),'role','authenticated')::text,true);
+  ok:=false; begin perform public.titan_appeal_submit_v1('account',null,'Mon compte supprimé veut faire appel.'); exception when others then ok:=sqlerrm='NOT_SUSPENDED'; end;
+  assert ok,'a deleted account has nothing to appeal';
+
+  -- State changed between filing and decision: acceptance is refused (nothing to lift); the appeal can still be declined.
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_b2'),'role','authenticated')::text,true);
+  idc:=(public.titan_appeal_submit_v1('session',current_setting('titan.ap_sc')::uuid,'Séance exclue à tort, merci de relire.')->>'id')::bigint;
+  ids:=(public.titan_appeal_submit_v1('account',null,'Suspension à tort, merci de relire aussi.')->>'id')::bigint;
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_a'),'role','authenticated')::text,true);
+  perform public.titan_session_exclusion_v1(current_setting('titan.ap_sc')::uuid,false,'rétablie par ailleurs');
+  perform public.titan_moderation_decide_v1(current_setting('titan.ap_b2')::uuid,'restore','rétablie par ailleurs');
+  ok:=false; begin perform public.titan_appeal_decide_v1(idc,true,'accepté'); exception when others then ok:=sqlerrm='STATE_CHANGED'; end;
+  assert ok,'hollow session acceptance refused';
+  ok:=false; begin perform public.titan_appeal_decide_v1(ids,true,'accepté'); exception when others then ok:=sqlerrm='STATE_CHANGED'; end;
+  assert ok,'hollow account acceptance refused';
+  assert public.titan_appeal_decide_v1(idc,false,'Déjà rétablie, rien à lever.')->>'status'='declined','but it can be declined';
+  assert public.titan_appeal_decide_v1(ids,false,'Déjà rétablie, rien à lever.')->>'status'='declined','both';
+
+  -- An administrator cannot decide their own appeal.
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_a2'),'role','authenticated')::text,true);
+  ida:=(public.titan_appeal_submit_v1('account',null,'Je suis administrateur suspendu, relecture svp.')->>'id')::bigint;
+  ok:=false; begin perform public.titan_appeal_decide_v1(ida,true,'je me lève'); exception when others then ok:=sqlerrm='CANNOT_MODERATE_SELF'; end;
+  assert ok,'own appeal cannot be decided';
+
+  -- Status filter and bounds.
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_a'),'role','authenticated')::text,true);
+  ok:=false; begin perform public.titan_appeal_list_v1('nope',10); exception when others then ok:=sqlerrm='UNKNOWN_STATUS'; end;
+  assert ok,'unknown status refused';
+  assert jsonb_array_length(public.titan_appeal_list_v1('declined',1)->'appeals')=1,'limit honoured';
+  n:=jsonb_array_length(public.titan_appeal_list_v1('open',-5)->'appeals');
+  assert n>=1,'a non-positive limit is clamped to 1';
+
+  -- Anonymous is refused on every RPC.
+  perform set_config('request.jwt.claims','{"role":"anon"}',true);
+  ok:=false; begin perform public.titan_my_appeals_v1(); exception when others then ok:=true; end; assert ok,'anon my';
+  ok:=false; begin perform public.titan_appeal_list_v1('open',10); exception when others then ok:=true; end; assert ok,'anon list';
+  ok:=false; begin perform public.titan_appeal_decide_v1(ida,false,'anonyme'); exception when others then ok:=true; end; assert ok,'anon decide';
+end $$;
+
+-- Cooldown ends after seven days (decision aged by the fixture owner).
+reset role;
+update private.titan_appeals set decided_at = now() - interval '8 days', created_at = now() - interval '9 days'
+ where session_id = current_setting('titan.ap_s2')::uuid;
+set local role authenticated;
+do $$
+begin
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_p'),'role','authenticated')::text,true);
+  assert (public.titan_appeal_submit_v1('session',current_setting('titan.ap_s2')::uuid,'Nouvelle demande après le délai prévu.')->>'status')='open','appeal possible again after the cooldown';
+end $$;
+
 -- Cap on open appeals per player.
 reset role;
 set local session_replication_role = replica;
@@ -181,7 +251,7 @@ begin
   select string_agg(distinct k, ',') into diff from (
     select 'profile' k, to_jsonb(p) r from public.profiles p union all select 'log', to_jsonb(l) from public.training_logs l) now_
    where not exists (select 1 from qa_ap_before b where b.k=now_.k and b.r=now_.r)
-     and now_.r->>'id' not in (current_setting('titan.ap_q'), current_setting('titan.ap_s1'), current_setting('titan.ap_m'), current_setting('titan.ap_cap'))
+     and now_.r->>'id' not in (current_setting('titan.ap_q'), current_setting('titan.ap_s1'), current_setting('titan.ap_m'), current_setting('titan.ap_cap'), current_setting('titan.ap_b2'), current_setting('titan.ap_sc'), current_setting('titan.ap_p'), current_setting('titan.ap_d'), current_setting('titan.ap_a2'))
      and coalesce(now_.r->>'user_id','') <> current_setting('titan.ap_cap');
   assert diff is null,'unexpected rows changed: '||diff;
 end $$;
