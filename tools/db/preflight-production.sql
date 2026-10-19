@@ -43,7 +43,15 @@ checks(check_name, blocking, ok, detail) as (
     'lignes en violation : ' || (select count(*) from public.shop_history where coalesce(cost_credits, 0) < 0 or coalesce(reward_credits, 0) < 0)
   union all
   -- 20261019090000 valide aussi ces deux contraintes si elles existent déjà non validées
-  select 'contraintes de profiles non validées (la validation se fait dans 20261019090000, à rejouer sur une copie restaurée)', false, true,
+  select 'profiles.role dans les valeurs permises (validé par 20261019090000)', true,
+    (select count(*) = 0 from public.profiles where role is not null and role <> all (array['user','premium','moderator','admin','super_admin'])),
+    'lignes en violation : ' || (select count(*) from public.profiles where role is not null and role <> all (array['user','premium','moderator','admin','super_admin']))
+  union all
+  select 'profiles.status dans les valeurs permises (validé par 20261019090000)', true,
+    (select count(*) = 0 from public.profiles where status is not null and status <> all (array['active','suspended','banned','deleted'])),
+    'lignes en violation : ' || (select count(*) from public.profiles where status is not null and status <> all (array['active','suspended','banned','deleted']))
+  union all
+  select 'contraintes de profiles non validées (informatif)', false, true,
     'contraintes non validées : ' || (select count(*) from pg_constraint c where c.conrelid = 'public.profiles'::regclass and not c.convalidated)
   union all
   -- 20261019120000 : un achat de cosmétique ne peut exister qu'une fois par joueur (index unique partiel)
@@ -57,8 +65,8 @@ checks(check_name, blocking, ok, detail) as (
   select 'adventure_worlds : lignes dont tier <> free (seront remises à free)', false,
     true, 'lignes concernées : ' || coalesce((select count(*) from public.adventure_worlds where tier <> 'free'), 0)
   union all
-  select 'adventure_progress : campagnes sans quest_profile (seront complétées)', false,
-    true, 'lignes concernées : ' || coalesce((select count(*) from public.adventure_progress), 0)
+  select 'adventure_progress : campagnes (chapitres 1 à 9) dont quest_profile sera complété', false,
+    true, 'lignes concernées : ' || coalesce((select count(*) from public.adventure_progress where chapter between 1 and 9), 0)
   union all
   -- 20261011061707 : suppression de compte, tables et clés étrangères visées
   select 'admin_messages / titan_admins présents (20261011061707)', false,
