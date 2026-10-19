@@ -1,0 +1,61 @@
+{
+  "_comment": "Every external host named in a shipped file (pages, scripts, styles, functions, headers). Kept in step with docs/PRIVACY_TECHNICAL_INVENTORY.md by tests/third-party-hosts.test.mjs. 'kind': first-party | runtime-on-demand (browser contacts it after a user action) | runtime-always (browser contacts it on page load) | server-side (only our functions contact it) | link (outbound link the user may click) | reference (namespace or comment, never fetched) | csp-allowance (allowed by the Content-Security-Policy but nothing in the shipped files loads from it) | disabled (named in config but switched off). 'openAllowances' lists scheme-only CSP sources (for example img-src https:) that let the browser contact hosts this file cannot enumerate; tests/third-party-hosts.test.mjs fails when the CSP gains or loses one.",
+  "hosts": [
+    {
+      "host": "titan-app.fr",
+      "kind": "first-party",
+      "note": "Site, canonical URLs, manifest, functions."
+    },
+    {
+      "host": "oubmftfufwwzwpgvrcag.supabase.co",
+      "kind": "runtime-always",
+      "note": "Supabase project (auth, database, realtime), region eu-west-1 (Ireland). Contacted for sessions and cloud sync of signed-in users. Also allowed for images (img-src): avatars are served from the project's public storage."
+    },
+    {
+      "host": "cdn.paddle.com",
+      "kind": "runtime-on-demand",
+      "note": "Paddle checkout script, loaded only when the player opens the TITAN+ checkout (js/main.js)."
+    },
+    {
+      "host": "api.resend.com",
+      "kind": "server-side",
+      "note": "Assistance e-mail delivery from functions/assistance.mjs only."
+    },
+    {
+      "host": "discord.gg",
+      "kind": "link",
+      "note": "Community link in js/config.js; the player leaves the site by clicking."
+    },
+    {
+      "host": "acscdn.com",
+      "kind": "disabled",
+      "note": "Adcash script URL in js/config.js; adsEnabled is false and the host is not in the CSP script-src, so nothing loads."
+    },
+    {
+      "host": "github.com",
+      "kind": "reference",
+      "note": "Licence credit in a CSS comment."
+    },
+    {
+      "host": "remixicon.com",
+      "kind": "reference",
+      "note": "Licence credit in a CSS comment."
+    },
+    {
+      "host": "schema.org",
+      "kind": "reference",
+      "note": "JSON-LD vocabulary identifiers, never fetched."
+    },
+    {
+      "host": "www.w3.org",
+      "kind": "reference",
+      "note": "SVG namespace, never fetched."
+    },
+    {
+      "host": "*.paddle.com",
+      "kind": "runtime-on-demand",
+      "note": "Allowed by the CSP for connect-src, frame-src and form-action: the checkout overlay and its API calls (for example buy.paddle.com, checkout-service.paddle.com). Hosts contacted by paddle.js itself cannot be enumerated from this repository. The TITAN account id is passed to Paddle as customData.user_id."
+    }
+  ],
+  "openAllowances": []
+}

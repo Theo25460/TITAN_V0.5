@@ -12,13 +12,15 @@
     "build": "node tools/build-public.mjs",
     "preview": "node tools/serve-public.mjs 4173",
     "audit": "node tools/audit-public.mjs",
+    "history-scan": "node tools/scan-git-history.mjs",
+    "release-check": "node tools/check-release-safety.mjs",
     "check": "node tools/check-inline-scripts.mjs",
-    "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/webhook.test.mjs tests/sport-first.test.mjs tests/training-integrity.test.mjs tests/renaissance.test.mjs tests/ascension-core.test.mjs tests/ascension-progress.test.mjs tests/ascension-questions.test.mjs tests/ascension-parity.test.mjs",
+    "test": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs && node --test tests/csp-inline.test.mjs tests/webhook.test.mjs tests/assistance.test.mjs tests/support-diagnostics.test.mjs tests/sport-first.test.mjs tests/training-integrity.test.mjs tests/renaissance.test.mjs tests/ascension-core.test.mjs tests/ascension-progress.test.mjs tests/campaign-quests.test.mjs tests/campaign-encounters.test.mjs tests/campaign-multisport.test.mjs tests/ascension-questions.test.mjs tests/ascension-parity.test.mjs tests/sport-navigation.test.mjs tests/public-offer.test.mjs tests/session-source.test.mjs tests/reports.test.mjs tests/analysis-views.test.mjs tests/analytics.test.mjs tests/release-safety.test.mjs tests/production-plan.test.mjs tests/git-history-scan.test.mjs tests/rate-limit-messages.test.mjs tests/third-party-hosts.test.mjs tests/android-identity.test.mjs tests/ci-config.test.mjs",
     "smoke": "node tools/check-inline-scripts.mjs",
     "lint": "node tools/check-inline-scripts.mjs && node tools/check-public-assets.mjs",
-    "verify": "pnpm test && pnpm run build && pnpm run audit",
+    "verify": "pnpm test && pnpm run build && pnpm run audit && pnpm run release-check",
     "test:db": "bash tools/db/test-migrations.sh",
-    "test:e2e": "node tools/build-public.mjs && node --test --test-concurrency=1 tests/e2e/smoke.e2e.mjs"
+    "test:e2e": "node tools/build-public.mjs && node --test --test-concurrency=1 tests/e2e/csp-browser.e2e.mjs tests/e2e/smoke.e2e.mjs tests/e2e/activation.e2e.mjs tests/e2e/admin-moderation.e2e.mjs tests/e2e/brand-assets.e2e.mjs tests/e2e/views-validation.e2e.mjs tests/e2e/report-pagination.e2e.mjs tests/e2e/goals-calendar.e2e.mjs tests/e2e/session-local-date.e2e.mjs tests/e2e/journal-calendar-filters.e2e.mjs tests/e2e/week-focus.e2e.mjs tests/e2e/shell-focus.e2e.mjs tests/e2e/dialog-return-focus.e2e.mjs tests/e2e/card-export-recovery.e2e.mjs tests/e2e/card-preview-sequence.e2e.mjs tests/e2e/card-qr-recovery.e2e.mjs tests/e2e/planner-keyboard.e2e.mjs tests/e2e/moment-share-session.e2e.mjs tests/e2e/goals-validation.e2e.mjs tests/e2e/moment-context-focus.e2e.mjs tests/e2e/goals-views.e2e.mjs tests/e2e/coaching-context.e2e.mjs tests/e2e/coaching-forms.e2e.mjs tests/e2e/atelier-retry.e2e.mjs tests/e2e/records-detail-context.e2e.mjs tests/e2e/views-recovery-focus.e2e.mjs tests/e2e/report-recovery-focus.e2e.mjs tests/e2e/comparison-recovery-focus.e2e.mjs tests/e2e/athlete-recovery.e2e.mjs tests/e2e/qg-context.e2e.mjs tests/e2e/planner-context.e2e.mjs tests/e2e/goals-context.e2e.mjs tests/e2e/rpg-progression.e2e.mjs tests/e2e/rpg-valley-quests.e2e.mjs tests/e2e/rpg-guardian-phases.e2e.mjs tests/e2e/rpg-server-quests.e2e.mjs tests/e2e/rpg-multisport.e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.111.0"
