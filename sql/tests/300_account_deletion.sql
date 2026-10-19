@@ -80,6 +80,10 @@ do $$ declare a uuid:=current_setting('titan.del_a')::uuid; begin
   update public.profiles set guild_id=(select id from public.guilds where code='QALEG1')
     where id=current_setting('titan.del_c')::uuid;
   update public.profiles set is_suspended=true where id=current_setting('titan.del_d')::uuid;
+  -- CHEAT19: A's own appeal goes with A; an appeal of another player that A decided keeps its decision, detached from A.
+  insert into private.titan_appeals(user_id,kind,message) values (a,'account','QA appeal by the deleted account');
+  insert into private.titan_appeals(user_id,kind,message,status,decided_by,decision_note,decided_at)
+    values (current_setting('titan.del_b')::uuid,'account','QA appeal decided by A','declined',a,'QA note',now());
   assert (select guild_id is not null from public.profiles where id=current_setting('titan.del_b')::uuid),'B is in A''s guild';
 end $$;
 create temporary table qa_del_others_before as
@@ -132,6 +136,8 @@ begin
     and not exists(select 1 from public.training_revisions where to_jsonb(training_revisions)::text like '%QA_PRIVATE_NOTE%'),
     'private notes and their revisions are gone';
   assert not exists(select 1 from public.admin_messages where content='QA legacy admin message'),'messages addressed to A are gone';
+  assert not exists(select 1 from private.titan_appeals where message='QA appeal by the deleted account'),'A''s appeals are gone';
+  assert exists(select 1 from private.titan_appeals where message='QA appeal decided by A' and decided_by is null and status='declined'),'B''s appeal survives, detached from A';
   assert exists(select 1 from public.analytics_events where user_id is null and event_name='first_session' and page='/journal'),
     'a consented usage event survives only as an anonymous count';
 end $$;
