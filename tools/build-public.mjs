@@ -58,6 +58,8 @@ function copyFileOrDirectory(name) {
 function copyPublicImages(source = join(root, 'image'), destination = join(dist, 'image'), relativeDir = '') {
   mkdirSync(destination, { recursive: true });
   for (const entry of readdirSync(source, { withFileTypes: true })) {
+    // Editor drafts and temporary image writes never belong in the published site.
+    if (entry.name.startsWith('.')) continue;
     const from = assertInsideRoot(join(source, entry.name));
     const to = assertInsideRoot(join(destination, entry.name));
     const nextRelative = join(relativeDir, entry.name);

@@ -26,3 +26,11 @@ test('le contrôle préalable liste toutes les migrations en attente et reste en
   assert.doesNotMatch(code, /\b(insert|update|delete|drop|alter|create|truncate|grant|revoke)\s/i, 'le contrôle ne doit rien écrire');
   assert.equal((code.match(/;/g) || []).length, 1, 'une seule instruction');
 });
+
+test('le retour arrière RPG interdit de rétablir v3 après ouverture d’un chapitre v4',()=>{
+  const plan=read('docs/CDC_WEB_PRODUCTION_RELEASE_PLAN_2026-10-19.md');
+  const row=plan.split('\n').find(line=>line.startsWith('| 12 |'));
+  assert.match(row,/uniquement avant.*chapitre v4/i,'la restauration des fonctions doit avoir une condition explicite');
+  assert.match(plan,/après.*chapitre v4.*interdit.*fonctions v3/i,'ne pas déplacer les cibles par une rétrogradation de fonctions');
+  assert.match(plan,/migration compensatrice.*main_objective/i,'conserver les contrats actifs pendant le retour arrière');
+});

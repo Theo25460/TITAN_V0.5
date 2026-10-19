@@ -1,15 +1,15 @@
-# Plan de mise en production — 18 migrations en attente (A09, A10, A11)
+# Plan de mise en production — 20 migrations en attente (A09, A10, A11)
 
-Document de préparation. **Rien n'est appliqué par ce document.** Production lue en lecture seule le 19/10/2026 (comptages uniquement) : dernière migration appliquée `20261005230000`, 18 migrations du dépôt jamais appliquées.
+Document de préparation. **Rien n'est appliqué par ce document.** Production lue en lecture seule le 19/10/2026 (comptages uniquement) : dernière migration appliquée `20261005230000`, 18 migrations du lot Claude jamais appliquées ; les lots de Codex (contrat personnel RPG, limites de débit des séances) portent l'ensemble à 20 migrations. Relancer le contrôle préalable sur la cible au moment de la publication.
 
 ## 1. Portes à passer, dans l'ordre
 
 1. **CI verte** sur le commit à publier (tests, E2E, banc de migrations deux voies).
 2. **Contrôle préalable** : exécuter `tools/db/preflight-production.sql` (un seul `SELECT`, aucune écriture) sur la base cible. Toute ligne `blocking = true` doit avoir `ok = true`, sinon **ne rien appliquer**. Résultat du 19/10/2026 sur la production : 22 lignes après correction de la revue (role/status ajoutés, vérifiés à 0 violation), tous les contrôles bloquants OK (4 cosmétiques présents, 0 solde/XP/niveau négatif, 0 montant négatif, 0 doublon d'achat cosmétique, 0 transaction longue, 0 migration du lot déjà appliquée).
 3. **Sauvegarde vérifiée (A11)** : point de restauration Supabase du jour visible dans le tableau de bord, **et** restauration réellement essayée sur un projet ou une branche jetable (jamais sur la production) ; relancer le contrôle préalable sur cette copie et appliquer le lot dessus (étape 4). Une sauvegarde jamais restaurée n'est pas une sauvegarde.
-4. **Répétition sur la copie restaurée** : appliquer les 18 migrations dans l'ordre, relancer les suites `sql/tests/` (`pnpm run test:db` sur banc local ; sur la copie, au minimum le contrôle préalable puis un parcours achat/suppression/modération à la main).
+4. **Répétition sur la copie restaurée** : appliquer les 20 migrations dans l'ordre, relancer les suites `sql/tests/` (`pnpm run test:db` sur banc local ; sur la copie, au minimum le contrôle préalable puis un parcours achat/suppression/modération à la main).
 5. **Capture des données qui seront réécrites** (voir §3), enregistrée hors de la base.
-6. **Fenêtre calme** (aucune transaction longue), puis application **un fichier à la fois, dans l'ordre du §2**, en s'arrêtant à la première erreur. Les fichiers 2, 3, 8, 12, 13, 14 et 16 posent eux-mêmes un `lock_timeout` de 5 s ; avant les fichiers 1, 7, 10 et 11 (qui modifient une fonction, une politique de `analytics_events` ou `adventure_progress` sans `lock_timeout`), exécuter dans la même session `SET lock_timeout = '5s';`. Les fichiers 4, 5, 6 et 9 ne créent que des objets nouveaux.
+6. **Fenêtre calme** (aucune transaction longue), puis application **un fichier à la fois, dans l'ordre du §2**, en s'arrêtant à la première erreur. Les fichiers 2, 3, 8, 13, 14, 15, 16 et 18 posent eux-mêmes un `lock_timeout` de 5 s ; avant les fichiers 1, 7, 10, 11, 12 et 19 (qui modifient une fonction, une politique de `analytics_events` ou `adventure_progress` sans `lock_timeout`), exécuter dans la même session `SET lock_timeout = '5s';`. Les fichiers 4, 5, 6 et 9 ne créent que des objets nouveaux.
 7. Après chaque fichier : `select version from supabase_migrations.schema_migrations order by version desc limit 3;`. Après le dernier : refaire le contrôle préalable (les lignes de prérequis doivent rester vraies) et un parcours de recette (§5).
 
 Aucune migration n'est destructive pour les données des joueurs ; la seule réécriture de données est décrite au §3.
@@ -29,37 +29,44 @@ Aucune migration n'est destructive pour les données des joueurs ; la seule ré�
 | 9 | `20261011213600_support_requests_v300` | table privée + fonctions d'assistance | non (nouvelle table) | `DROP FUNCTION public.titan_support_accept_v300(uuid,uuid,text,text,boolean); DROP FUNCTION public.titan_support_claim_v300(uuid,uuid,uuid,text); DROP FUNCTION public.titan_support_finish_v300(uuid,uuid,uuid,boolean,text);` puis `DROP TABLE private.titan_support_requests;` (efface les demandes reçues) |
 | 10 | `20261013074320_analytics_support_metadata_v300` | politique `analytics_events_support_anonymous_v300` | non | `DROP POLICY analytics_events_support_anonymous_v300 ON public.analytics_events;` (la fonction `private.titan_analytics_payload_valid_v300` reste dans sa nouvelle version ; la rejouer depuis le fichier 7 pour un retour total) |
 | 11 | `20261019053123_adventure_quests_v3` | colonne `quest_profile`, table de récompenses, `tier` des mondes | **oui : `adventure_progress.quest_profile`, `adventure_worlds.tier`** | remettre `tier` capturé au §3 ; `DROP TRIGGER titan_freeze_adventure_quests ON public.adventure_progress;` ; rejouer `titan_adventure_snapshot()` et `private.titan_adventure_action(text,text,text,text,integer,integer,text)` depuis `20261005160000_ascension_progression_v300.sql` ; `adventure_quest_rewards` et la colonne `quest_profile` (additives) peuvent rester ; `quest_profile` des campagnes 1 à 9 a été complété, à restaurer depuis une capture si nécessaire |
-| 12 | `20261019090000_economy_audit_journal` | **valide** les contraintes, journal privé append-only, RPC admin | non (validation seule) | `docs/CDC_WEB_ECONOMY_SECURITY_HANDOFF_2026-10-19.md` ; le journal est immuable par conception |
-| 13 | `20261019120000_purchase_integrity_admin_moderation` | garde de profil, RPC admin, index unique des achats cosmétiques | non | `docs/CDC_WEB_PURCHASE_MODERATION_HANDOFF_2026-10-19.md` |
-| 14 | `20261019150000_moderation_queue` | file et décisions de modération | non (nouvelle table) | `docs/CDC_WEB_MODERATION_QUEUE_HANDOFF_2026-10-19.md` |
-| 15 | `20261019180000_session_risk` | fonction privée + RPC admin de risque par séance, lecture seule | non | `DROP FUNCTION public.titan_session_risk_v1(uuid,integer); DROP FUNCTION private.titan_session_risk(uuid,integer);` |
-| 16 | `20261019200000_rate_limits` | table privée d'événements, limiteur et 2 déclencheurs (`guild_members`, `shop_history`) ; les séances relèvent de la migration de Codex (PR 103) | non | `DROP TRIGGER titan_rate_limit_guild_members ON public.guild_members; DROP TRIGGER titan_rate_limit_shop_history ON public.shop_history; DROP FUNCTION private.titan_rate_limit_trigger(); DROP FUNCTION private.titan_rate_limit(uuid,text,integer,interval); DROP TABLE private.titan_rate_events;` |
-| 17 | `20261019210000_session_exclusion` | remplace `titan_guard_training_log` (exemption étroite pour une revue administrateur) et ajoute `titan_session_exclusion_v1` | non (aucune ligne) | rejouer le corps de `titan_guard_training_log` de `20261005160000_ascension_progression_v300.sql` ; `DROP FUNCTION public.titan_session_exclusion_v1(uuid,boolean,text);` |
-| 18 | `20261019220000_risk_analysis_job` | fonction privée d'analyse périodique (signaux dédoublonnés dans `titan_suspicious_actions`) et, **si `pg_cron` existe (c'est le cas en production, v1.6.4)**, une tâche quotidienne à 04:35 UTC | non (aucune ligne existante) | `select cron.unschedule('titan_run_risk_analysis'); drop function private.titan_run_risk_analysis(integer, integer);` ; les signaux déjà écrits restent (état `open`, à classer sans suite depuis la file) |
+| 12 | `20261019062757_adventure_personal_targets_v4` | colonne `main_objective`, trigger de gel et snapshot/claim v4 | **oui : objectifs des chapitres actifs figés aux anciennes conditions** | retour aux fonctions v3 uniquement avant l’ouverture de tout chapitre v4, même sans séance, avec absence d’accès utilisateur démontrée depuis application (fenêtre de maintenance). Alors restaurer les trois définitions depuis le fichier11 en conservant la colonne additive ; sinon migration compensatrice obligatoire préservant les contrats actifs (voir §4), aucun rejeu v3 |
+| 13 | `20261019090000_economy_audit_journal` | **valide** les contraintes, journal privé append-only, RPC admin | non (validation seule) | `docs/CDC_WEB_ECONOMY_SECURITY_HANDOFF_2026-10-19.md` ; le journal est immuable par conception |
+| 14 | `20261019120000_purchase_integrity_admin_moderation` | garde de profil, RPC admin, index unique des achats cosmétiques | non | `docs/CDC_WEB_PURCHASE_MODERATION_HANDOFF_2026-10-19.md` |
+| 15 | `20261019122259_training_mutation_rate_limits` | quotas roulants privés des créations/imports/modifications ; trigger et purge quotidienne si pg_cron | non ; état nouvellement créé uniquement | désactiver le trigger `titan_limit_training_mutation` sur `public.training_logs` et le job `titan_purge_training_rate_state` ; conserver les compteurs pour ne pas réinitialiser les quotas à la reprise ; détails dans `docs/CDC_WEB_RATE_LIMITS_HANDOFF_2026-10-19.md` |
+| 16 | `20261019150000_moderation_queue` | file et décisions de modération | non (nouvelle table) | `docs/CDC_WEB_MODERATION_QUEUE_HANDOFF_2026-10-19.md` |
+| 17 | `20261019180000_session_risk` | fonction privée + RPC admin de risque par séance, lecture seule | non | `DROP FUNCTION public.titan_session_risk_v1(uuid,integer); DROP FUNCTION private.titan_session_risk(uuid,integer);` |
+| 18 | `20261019200000_rate_limits` | table privée d'événements, limiteur et 2 déclencheurs (`guild_members`, `shop_history`) ; les séances relèvent de la migration de Codex (PR 103) | non | `DROP TRIGGER titan_rate_limit_guild_members ON public.guild_members; DROP TRIGGER titan_rate_limit_shop_history ON public.shop_history; DROP FUNCTION private.titan_rate_limit_trigger(); DROP FUNCTION private.titan_rate_limit(uuid,text,integer,interval); DROP TABLE private.titan_rate_events;` |
+| 19 | `20261019210000_session_exclusion` | remplace `titan_guard_training_log` (exemption étroite pour une revue administrateur) et ajoute `titan_session_exclusion_v1` | non (aucune ligne) | rejouer le corps de `titan_guard_training_log` de `20261005160000_ascension_progression_v300.sql` ; `DROP FUNCTION public.titan_session_exclusion_v1(uuid,boolean,text);` |
+| 20 | `20261019220000_risk_analysis_job` | fonction privée d'analyse périodique (signaux dédoublonnés dans `titan_suspicious_actions`) et, **si `pg_cron` existe (c'est le cas en production, v1.6.4)**, une tâche quotidienne à 04:35 UTC | non (aucune ligne existante) | `select cron.unschedule('titan_run_risk_analysis'); drop function private.titan_run_risk_analysis(integer, integer);` ; les signaux déjà écrits restent (état `open`, à classer sans suite depuis la file) |
 
 Chaque fichier laisse la transaction à l'appelant (aucun `BEGIN/COMMIT`) : ne pas les concaténer sans transaction englobante. Si le lot entier doit s'appliquer en un geste, le faire dans **une** transaction, sur la copie d'abord.
 
 ## 3. Données réécrites : à capturer avant (lecture seule)
 
-Seulement ces deux jeux, minuscules (production le 19/10 : 2 mondes concernés, 1 progression) :
+Capturer les lignes de catalogue et mondes, ainsi que les progressions de campagne avant modification. Les anciens comptages ne constituent pas un inventaire actuel :
 
 ```sql
 select * from public.shop_items where id in ('cos_frame_aegis','cos_frame_frost','cos_map_aurora','cos_card_obsidian');
 select id, tier from public.adventure_worlds order by id;
+select * from public.adventure_progress order by user_id, world_id;
 ```
 
-Conserver le résultat hors de la base (fichier chiffré ou coffre) : c'est l'unique source pour un retour arrière des lignes 3 et 11. Si un monde d'aventure payant doit le rester, **ne pas appliquer le fichier 11** sans décision (il force `tier = 'free'`).
+Conserver le résultat hors de la base (fichier chiffré ou coffre) : c'est la référence avant modification des lignes3,11 et12. Les progressions contiennent des identifiants : accès limité et stockage protégé ; ne jamais restaurer en masse une ancienne capture après de nouvelles séances ou validations. Si un monde d'aventure payant doit le rester, **ne pas appliquer le fichier 11** sans décision (il force `tier = 'free'`).
 
 ## 4. Compatibilité site / base
 
-- L'ordre sûr est **base d'abord, site ensuite** pour les fichiers additifs (4, 5, 6, 9, 14, 15, 16, 17, 18) : le site ancien ignore les nouvelles fonctions.
+- L'ordre sûr est **base d'abord, site ensuite** pour les fichiers additifs (4, 5, 6, 9, 15, 16, 17, 18, 20) : le site ancien ignore les nouvelles fonctions.
 - Fichier 7 : la politique restrictive refuse les événements d'analyse hors contrat. Un ancien site continue de fonctionner, ses événements non conformes sont rejetés (perte de mesure, pas d'erreur bloquante pour le joueur). Publier le site du même lot juste après.
-- Fichiers 2 et 12 : une écriture qui violerait `credits >= 0`, `xp >= 0`, `level >= 1`, `role` ou `status` dans leurs valeurs permises échouerait désormais, et le fichier 12 **valide** ces règles sur les lignes existantes : une seule ligne en violation le ferait échouer. Le contrôle préalable vérifie chacune d'elles.
-- Fichier 13 : un second achat d'un même cosmétique est refusé par l'index unique ; le contrôle préalable confirme 0 doublon.
+- Fichiers 2 et 13 : une écriture qui violerait `credits >= 0`, `xp >= 0`, `level >= 1`, `role` ou `status` dans leurs valeurs permises échouerait désormais, et le fichier 13 **valide** ces règles sur les lignes existantes : une seule ligne en violation le ferait échouer. Le contrôle préalable vérifie chacune d'elles.
+- Fichier 14 : un second achat d'un même cosmétique est refusé par l'index unique ; le contrôle préalable confirme 0 doublon.
+
+- Fichier12 : publier avec le client de PR101. Le serveur v4 fige les nouvelles cibles personnelles, conserve les conditions des chapitres engagés et les expose au client ; le client plus ancien peut encore afficher des textes fixes de gardien. Réduire cette fenêtre à la seule publication coordonnée, et vérifier les détails de mission après bascule.
+
+Après l’ouverture d’un chapitre v4, il est interdit de restaurer les fonctions v3 : elles ignorent `main_objective` et imposeraient de nouveau les cibles fixes, même sans restauration de lignes. Si l’absence de toute ouverture sous v4 n’est pas démontrable, considérer ce cas actif. Une migration compensatrice doit préserver `main_objective`, les preuves admissibles et récompenses acquises, puis être éprouvée sur une copie avant publication. La règle vaut dès le départ du chapitre, sans attendre une première séance.
 
 ## 5. Recette après application (compte de test, pas de donnée réelle)
 
-Connexion, lecture du profil, achat d'un cosmétique crédit puis tentative de second achat (refus attendu), séance enregistrée, vue Analyse, formulaire d'assistance, suppression d'un compte de test, onglet Modération du centre de contrôle (admin).
+Connexion, lecture du profil, achat d'un cosmétique crédit puis tentative de second achat (refus attendu), séance enregistrée, vue Analyse, formulaire d'assistance, suppression d'un compte de test, onglet Modération du centre de contrôle (admin), nouveau chapitre Aventure (cible affichée égale à celle exigée), chapitre préexistant conservant ses anciennes conditions et insignes après rafraîchissement.
 
 ## 6. Si quelque chose tourne mal
 

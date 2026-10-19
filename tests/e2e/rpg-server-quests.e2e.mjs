@@ -84,3 +84,35 @@ test('server quests: a malformed server contract leaves the campaign usable with
   assert.equal(await page.locator('[data-claim="2"]').isVisible(),true);assert.equal(await page.locator('[data-quest-souvenir]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
+
+test('personal targets: current server goals agree in mission, details and guardian at both widths',async()=>{
+ for(const width of [360,1280]){const {page,context,errors}=await accountPage(width,'forge',4);try{
+  await page.evaluate(()=>{const c=window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='forge');Object.assign(c,{chapter:9,target:2,effort_target:70,main_objective:{version:1,days:2,effort:70,frozen_at:'2026-10-01'},evidence:{days:1,effort:35,source_ids:[]}});dispatchEvent(new Event('titan:adventure-updated'));});
+  await page.waitForFunction(()=>document.querySelector('.av-mission-head')?.textContent.includes('Chapitre 9 / 9'));
+  assert.match(await page.locator('.av-guardian').textContent(),/2 jours actifs et 70 minutes/);
+  assert.match(await page.locator('[data-rpg-remaining]').textContent(),/1 jour.*35 min/);
+  await page.getByRole('button',{name:'Détails du chapitre'}).click();
+  assert.match(await page.getByRole('dialog').textContent(),/Mission : 2 jours actifs et 70 minutes/);
+  assert.doesNotMatch(await page.getByRole('dialog').textContent(),/150 minutes/);
+  await page.keyboard.press('Escape');
+  if(process.env.TITAN_QA_SCREENSHOTS){await page.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await page.screenshot({path:`/tmp/titan-personal-targets-${width}.png`,fullPage:true,animations:'disabled'});}
+  assert.match(await page.locator('[data-personal-target]').textContent(),/28 jours.*figée/);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
+ }finally{await context.close();}}
+});
+test('personal targets: future and past chapters do not invent a personal target',async()=>{
+ const {page,context,errors}=await accountPage(360,'aube',4);try{
+  await page.locator('.av-node[data-chapter="9"]').click();
+  assert.match(await page.getByRole('dialog').textContent(),/fixée au départ/);
+  assert.doesNotMatch(await page.getByRole('dialog').textContent(),/Mission : 3 jours|150 minutes/);
+  await page.keyboard.press('Escape');await page.locator('.av-node[data-chapter="1"]').click();
+  assert.doesNotMatch(await page.getByRole('dialog').textContent(),/Mission :/);assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+test('personal targets: grandfathered guardian keeps its fixed conditions visible',async()=>{
+ const {page,context,errors}=await accountPage(360,'forge',4);try{
+  await page.evaluate(()=>{Object.assign(window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='forge'),{chapter:9,target:3,effort_target:150,main_objective:{version:0,days:3,effort:150}});dispatchEvent(new Event('titan:adventure-updated'));});
+  assert.match(await page.locator('[data-personal-target]').textContent(),/conditions.*conservées/);
+  assert.match(await page.locator('.av-guardian').textContent(),/3 jours actifs et 150 minutes/);assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});

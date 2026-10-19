@@ -1,4 +1,4 @@
--- Contrôle préalable à la mise en production des migrations 20261008110220 → 20261019150000.
+-- Contrôle préalable à la mise en production des migrations 20261008110220 → 20261019180000.
 -- LECTURE SEULE : un seul SELECT, aucune écriture, aucun identifiant ni valeur personnelle (comptages uniquement).
 -- À exécuter sur la base cible AVANT d'appliquer quoi que ce soit. Chaque ligne : check, blocking (true = ne pas migrer),
 -- ok, detail. Lecture : toutes les lignes blocking=true doivent avoir ok=true. Voir docs/CDC_WEB_PRODUCTION_RELEASE_PLAN_2026-10-19.md.
@@ -11,15 +11,49 @@ checks(check_name, blocking, ok, detail) as (
     coalesce((select count(*) from supabase_migrations.schema_migrations where version >= '20261005230000') > 0, false),
     'dernière version attendue côté production avant ce lot'
   union all
-  select 'aucune des 18 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', false,
+  select 'aucune des 20 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', false,
     (select count(*) = 0 from supabase_migrations.schema_migrations where version in (
-      '20261008110220','20261008113411','20261008120931','20261008180429','20261009205151','20261009212850',
-      '20261010163122','20261011061707','20261011213600','20261013074320','20261019053123','20261019090000',
-      '20261019120000','20261019150000','20261019180000','20261019200000','20261019210000','20261019220000')),
+      '20261008110220',
+      '20261008113411',
+      '20261008120931',
+      '20261008180429',
+      '20261009205151',
+      '20261009212850',
+      '20261010163122',
+      '20261011061707',
+      '20261011213600',
+      '20261013074320',
+      '20261019053123',
+      '20261019062757',
+      '20261019090000',
+      '20261019120000',
+      '20261019122259',
+      '20261019150000',
+      '20261019180000',
+      '20261019200000',
+      '20261019210000',
+      '20261019220000')),
     'nombre déjà appliquées : ' || (select count(*) from supabase_migrations.schema_migrations where version in (
-      '20261008110220','20261008113411','20261008120931','20261008180429','20261009205151','20261009212850',
-      '20261010163122','20261011061707','20261011213600','20261013074320','20261019053123','20261019090000',
-      '20261019120000','20261019150000','20261019180000','20261019200000','20261019210000','20261019220000'))
+      '20261008110220',
+      '20261008113411',
+      '20261008120931',
+      '20261008180429',
+      '20261009205151',
+      '20261009212850',
+      '20261010163122',
+      '20261011061707',
+      '20261011213600',
+      '20261013074320',
+      '20261019053123',
+      '20261019062757',
+      '20261019090000',
+      '20261019120000',
+      '20261019122259',
+      '20261019150000',
+      '20261019180000',
+      '20261019200000',
+      '20261019210000',
+      '20261019220000'))
   union all
   -- 20261008120931 : le catalogue doit contenir les 4 cosmétiques
   select 'catalogue : 4 cosmétiques attendus (20261008120931)', true,
@@ -67,6 +101,10 @@ checks(check_name, blocking, ok, detail) as (
   union all
   select 'adventure_progress : campagnes (chapitres 1 à 9) dont quest_profile sera complété', false,
     true, 'lignes concernées : ' || coalesce((select count(*) from public.adventure_progress where chapter between 1 and 9), 0)
+  union all
+  -- 20261019062757 : contrats principaux figés, anciennes conditions conservées
+  select 'adventure_progress : contrats principaux actifs à figer (20261019062757)', false,
+    true, 'chapitres actifs : ' || (select count(*) from public.adventure_progress where chapter between 1 and 9)
   union all
   -- 20261011061707 : suppression de compte, tables et clés étrangères visées
   select 'admin_messages / titan_admins présents (20261011061707)', false,

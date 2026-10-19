@@ -370,3 +370,9 @@ test("adventure mutation: a failed action leaves its overlapping successful read
 test('legacy adventure paywall refusal explains the free-region server update',()=>{
  const {A}=env({browser:true});assert.match(A.message(Error('TITAN_PLUS_REQUIRED')),/mise à jour du serveur/);
 });
+
+test('guardian refusal message refers to the displayed personal target',()=>{
+ const {A}=env({browser:true});
+ assert.match(A.message(Error('GUARDIAN_EFFORT_INCOMPLETE')),/objectif affiché/);
+ assert.doesNotMatch(A.message(Error('GUARDIAN_EFFORT_INCOMPLETE')),/150/);
+});
