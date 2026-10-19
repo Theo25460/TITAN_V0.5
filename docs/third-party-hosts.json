@@ -32,26 +32,6 @@
       "note": "Adcash script URL in js/config.js; adsEnabled is false and the host is not in the CSP script-src, so nothing loads."
     },
     {
-      "host": "cdn.jsdelivr.net",
-      "kind": "csp-allowance",
-      "note": "Allowed by the CSP in netlify.toml; fonts and icons are vendored, nothing loads from it. Candidate for removal from the CSP."
-    },
-    {
-      "host": "unpkg.com",
-      "kind": "csp-allowance",
-      "note": "Same as cdn.jsdelivr.net. Candidate for removal from the CSP."
-    },
-    {
-      "host": "fonts.googleapis.com",
-      "kind": "csp-allowance",
-      "note": "Fonts are vendored (css/fonts); nothing loads from it. Candidate for removal from the CSP."
-    },
-    {
-      "host": "fonts.gstatic.com",
-      "kind": "csp-allowance",
-      "note": "Same as fonts.googleapis.com. Candidate for removal from the CSP."
-    },
-    {
       "host": "github.com",
       "kind": "reference",
       "note": "Licence credit in a CSS comment."
