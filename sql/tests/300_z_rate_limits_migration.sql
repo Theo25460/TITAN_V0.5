@@ -27,7 +27,8 @@ do $$ begin
   assert not exists((select kind,row from qa_rl_rows_before) except
     (select 'profile',to_jsonb(p) from public.profiles p union all select 'shop',to_jsonb(s) from public.shop_history s
      union all select 'log',to_jsonb(l) from public.training_logs l)),'no existing row changed';
-  assert (select count(*) from pg_trigger where tgname in ('titan_rate_limit_guild_members','titan_rate_limit_shop_history','titan_rate_limit_training_logs'))=3,'one trigger of each kind after two runs';
+  assert not exists (select 1 from pg_trigger where tgname = 'titan_rate_limit_training_logs'),'no duplicate training limiter';
+  assert (select count(*) from pg_trigger where tgname in ('titan_rate_limit_guild_members','titan_rate_limit_shop_history'))=2,'one trigger of each kind after two runs';
   assert (select count(*) from pg_proc where proname in ('titan_rate_limit','titan_rate_limit_trigger'))=2,'one of each function';
   assert not has_table_privilege('anon','private.titan_rate_events','select') and not has_table_privilege('authenticated','private.titan_rate_events','insert'),'events table closed';
   assert not has_function_privilege('authenticated','private.titan_rate_limit(uuid,text,integer,interval)','execute'),'limiter closed';

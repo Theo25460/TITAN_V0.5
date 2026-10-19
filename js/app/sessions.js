@@ -90,6 +90,7 @@
     DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
     EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
     RATE_LIMITED: "Beaucoup de modifications en peu de temps. Réessaie dans un moment.",
+    TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",
   };
   function humanize(error) {
     const raw = String(error?.message || error || "");

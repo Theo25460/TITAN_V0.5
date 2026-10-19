@@ -1,4 +1,8 @@
-# Handoff — limites de débit serveur (CHEAT17, CHEAT16, SEC10)
+# Handoff — limites de débit : guildes et achats (CHEAT17, SEC10)
+
+**Convergence (19/10/2026, après la PR 103 de Codex)** : Codex a préparé son propre limiteur des créations et modifications de séances (migration `20261019122259_training_mutation_rate_limits.sql`, branche `codex/web-training-rate-limits-cdc`). Pour ne pas avoir deux mécanismes, **cette migration ne limite plus les séances** : le déclencheur `training_logs` et son test ont été retirés ; elle ne couvre que les entrées/sorties de guilde et les achats. CHEAT16 relève désormais de la migration de Codex ; le refus `TRAINING_RATE_LIMIT` de Codex reçoit un message lisible dans `js/app/sessions.js`. Ce fichier a été renommé pour éviter un conflit d'ajout avec le `docs/CDC_WEB_RATE_LIMITS_HANDOFF_2026-10-19.md` de Codex.
+
+Le reste de ce document est l'état avant convergence : les passages sur les modifications de séances (plafond 120/h, bucket `training_change`, déclencheur sur `training_logs`) ne sont plus d'actualité.
 
 Chantier AUTRE — Claude Code, 19/10/2026, au-dessus de `dbdc91d`. Aucune fusion, aucun déploiement, aucune migration appliquée à un projet réel. Aucune RPC existante réécrite, aucune donnée modifiée.
 

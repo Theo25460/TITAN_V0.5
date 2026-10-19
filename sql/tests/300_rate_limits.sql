@@ -1,4 +1,5 @@
--- CHEAT16 / CHEAT17 / SEC10: rate limits on the sensitive write paths, enforced by BEFORE triggers.
+-- CHEAT17 / SEC10: rate limits on own guild membership and purchases, enforced by BEFORE triggers.
+-- Training mutations are covered by Codex migration 20261019122259 and its own tests.
 -- Writes run with the JWT claims of a synthetic player (auth.uid() set); service-role writes are never throttled. Full rollback.
 begin;
 do $$
@@ -49,25 +50,6 @@ begin
       on conflict (user_id) do update set guild_id=excluded.guild_id;
   end loop;
   assert (select count(*) from private.titan_rate_events where user_id=p and bucket='guild_membership')=1,'30 same-guild retries cost nothing after the first join';
-
-  -- training edits: only real changes count, 60 per hour.
-  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
-  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details) values (gen_random_uuid(),q,'running','cardio',5,'km',10,now()-interval '1 day','{"duration":30}') returning id into lg;
-  perform set_config('request.jwt.claims',json_build_object('sub',q,'role','authenticated')::text,true);
-  delete from private.titan_rate_events where user_id=q;
-  for i in 1..10 loop update public.training_logs set admin_note='same' where id=lg; end loop;  -- not a content change
-  update public.training_logs set unit='mi' where id=lg; update public.training_logs set unit='km' where id=lg;
-  assert (select count(*) from private.titan_rate_events where user_id=q and bucket='training_change')=2,'a unit change counts, a note does not';
-  delete from private.titan_rate_events where user_id=q;
-  
-  for i in 1..120 loop update public.training_logs set val=5+i where id=lg; end loop;
-  ok:=false;
-  begin update public.training_logs set val=1 where id=lg; exception when others then ok:=(sqlerrm='RATE_LIMITED'); end;
-  assert ok,'the 121st content change in an hour is refused';
-  assert (select val from public.training_logs where id=lg)=125,'the refused edit changed nothing';
-  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
-  update public.training_logs set val=7 where id=lg;
-  assert (select val from public.training_logs where id=lg)=7,'service writes are never throttled';
 
   -- purchases: ceiling 120.
   perform set_config('request.jwt.claims',json_build_object('sub',p,'role','authenticated')::text,true);

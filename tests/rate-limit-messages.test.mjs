@@ -12,6 +12,9 @@ test('a rate-limited session edit reaches the player as a readable French senten
   assert.doesNotMatch(message, /RATE_LIMITED|PT429/);
   assert.match(message, /trop|beaucoup/i);
   assert.match(message, /réessaie/i);
+  const training = window.TitanSessions.humanize({ code: '23514', message: 'TRAINING_RATE_LIMIT' }).message;
+  assert.doesNotMatch(training, /TRAINING_RATE_LIMIT/);
+  assert.match(training, /trop|beaucoup/i);
 });
 
 test('guild and Atelier screens map RATE_LIMITED to a readable sentence, in their message tables', () => {
