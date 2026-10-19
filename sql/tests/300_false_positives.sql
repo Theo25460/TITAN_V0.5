@@ -5,8 +5,8 @@ do $$
 declare
   day0 timestamptz := (date_trunc('day', (now() - interval '10 days') at time zone 'utc') + interval '6 hours') at time zone 'utc';
   u uuid; i int; r jsonb; worst int; label text;
-  cases text[] := array['beginner','advanced','volume','pause','import','atypical','improver','double_day'];
-  worst_allowed int[] := array[2,2,3,2,2,2,2,2]; -- score ceiling per case: 2 = normal, 3 = watch at most
+  cases text[] := array['beginner','advanced','volume','pause','import','atypical','improver','double_day','near_record','multisport_elite','no_reference'];
+  worst_allowed int[] := array[2,2,3,2,2,2,2,2,2,2,2]; -- score ceiling per case: 2 = normal, 3 = watch at most
   k int;
 begin
   for k in 1..array_length(cases,1) loop
@@ -61,6 +61,28 @@ begin
         (u,'running','cardio',10,'km',10, day0,'{"duration":55}'),
         (u,'strength','strength',45,'min',8, day0 + interval '6 hours','{"duration":45}'),
         (u,'cycling','cardio',30,'km',12, day0 + interval '12 hours','{"duration":80}');
+    elsif label = 'near_record' then
+      -- CHEAT04: a personal record (+25 % on the usual pace) is a performance, not an anomaly.
+      for i in 0..5 loop
+        insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+        values (u,'running','cardio',12,'km',5, day0 + i * interval '1 day','{"duration":60}');
+      end loop;
+      insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+      values (u,'running','cardio',15,'km',9, day0 + interval '7 days','{"duration":60}');
+    elsif label = 'multisport_elite' then
+      -- CHEAT10: a high-level multisport athlete; each sport is judged against its own history, not against the others.
+      for i in 0..5 loop
+        insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+          (u,'running','cardio',15,'km',10, day0 + i * interval '1 day','{"duration":60}'),
+          (u,'cycling','cardio',48,'km',12, day0 + i * interval '1 day' + interval '3 hours','{"duration":90}'),
+          (u,'swimming','cardio',2.6,'km',10, day0 + i * interval '1 day' + interval '6 hours','{"duration":45}');
+      end loop;
+    elsif label = 'no_reference' then
+      -- CHEAT11: a sport with no comparable world record is judged on the player's own history only; large counts are no cap.
+      for i in 0..9 loop
+        insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+        values (u,'curling','precision', 5000 + i * 1500,'pts',5, day0 + i * interval '1 day','{"duration":40}');
+      end loop;
     end if;
     set local session_replication_role = origin;
     r := private.titan_session_risk(u, 100);

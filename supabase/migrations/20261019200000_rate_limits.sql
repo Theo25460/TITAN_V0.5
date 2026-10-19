@@ -17,6 +17,7 @@ create table if not exists private.titan_rate_events (
   bucket text not null,
   at timestamptz not null default now()
 );
+alter table private.titan_rate_events enable row level security;
 revoke all on table private.titan_rate_events from public, anon, authenticated;
 create index if not exists titan_rate_events_lookup_idx on private.titan_rate_events (user_id, bucket, at desc);
 

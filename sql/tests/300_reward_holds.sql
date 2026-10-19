@@ -34,6 +34,10 @@ begin
   select credits,xp,level into after_p from public.profiles where id=current_setting('titan.rh_p')::uuid;
   assert (after_p.level,after_p.xp)>(before_p.level,before_p.xp),'profile credited immediately';
   perform set_config('titan.rh_normal_log',r.log_id,true);
+  -- CHEAT04: a personal record (about 30 % above the usual pace, a short effort) is neither rejected nor held.
+  select * into r from public.titan_submit_training_session('running','cardio',4.3,'km',jsonb_build_object('duration',20,'client_event_id',gen_random_uuid()),now()-interval '150 minutes');
+  assert r.xp>0 and not coalesce(r.reward_held,false),'a session that approaches a personal record is accepted, rewarded and not held';
+  select credits,xp,level into after_p from public.profiles where id=current_setting('titan.rh_p')::uuid;
 
   -- A speed jump (20 km/h against a 10 km/h median) scores 8: reward held, player informed, balance untouched.
   before_p:=after_p;
