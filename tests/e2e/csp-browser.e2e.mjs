@@ -87,6 +87,18 @@ test("the production CSP blocks nothing on any page, and its allowed hosts are o
     document.head.appendChild(script);
   }));
   assert.deepEqual(await probe.evaluate(() => window.__csp), [], "the Paddle checkout script must not be blocked by the policy");
+  // Images: the project's own storage (avatars) and the site pass; an arbitrary third-party host does not.
+  await probe.evaluate(() => new Promise((resolve) => {
+    let left = 2;
+    const done = () => { if (--left === 0) resolve(); };
+    for (const src of ["https://oubmftfufwwzwpgvrcag.supabase.co/storage/v1/object/public/avatars/a.png", "https://tracker.example.test/pixel.gif"]) {
+      const img = new Image();
+      img.onload = img.onerror = done;
+      img.src = src;
+    }
+  }));
+  const imageViolations = await probe.evaluate(() => window.__csp);
+  assert.deepEqual(imageViolations, ["img-src https://tracker.example.test/pixel.gif"], "only the third-party image is refused");
   await probe.close();
   await context.close();
   assert.ok(PAGES.length >= 40, `the whole site is replayed (${PAGES.length} pages)`);
@@ -95,7 +107,8 @@ test("the production CSP blocks nothing on any page, and its allowed hosts are o
   assert.deepEqual(removed, [], "no page tries to reach a host the policy does not need");
 });
 
-test("the policy no longer names hosts nothing uses", () => {
+test("the policy no longer allows any HTTPS image, and names no host nothing uses", () => {
+  assert.doesNotMatch(POLICY, /img-src[^;]*\shttps:(?=[\s;]|$)/, "img-src must not allow every HTTPS origin");
   for (const host of ["cdn.jsdelivr.net", "unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"]) {
     assert.ok(!POLICY.includes(host), `${host} must not be allowed`);
   }

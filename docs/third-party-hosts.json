@@ -9,7 +9,7 @@
     {
       "host": "oubmftfufwwzwpgvrcag.supabase.co",
       "kind": "runtime-always",
-      "note": "Supabase project (auth, database, realtime), region eu-west-1 (Ireland). Contacted for sessions and cloud sync of signed-in users."
+      "note": "Supabase project (auth, database, realtime), region eu-west-1 (Ireland). Contacted for sessions and cloud sync of signed-in users. Also allowed for images (img-src): avatars are served from the project's public storage."
     },
     {
       "host": "cdn.paddle.com",
@@ -57,11 +57,5 @@
       "note": "Allowed by the CSP for connect-src, frame-src and form-action: the checkout overlay and its API calls (for example buy.paddle.com, checkout-service.paddle.com). Hosts contacted by paddle.js itself cannot be enumerated from this repository. The TITAN account id is passed to Paddle as customData.user_id."
     }
   ],
-  "openAllowances": [
-    {
-      "directive": "img-src",
-      "value": "https:",
-      "note": "Any HTTPS image can load. Used by content-driven images (cover_image_url of dynamic pages, mobs/bosses/creatures image_url from the database): the image host sees the visitor's IP and referrer. Tightening needs the content tables to be audited first."
-    }
-  ]
+  "openAllowances": []
 }
