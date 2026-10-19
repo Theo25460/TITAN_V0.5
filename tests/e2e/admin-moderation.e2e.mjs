@@ -120,6 +120,21 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
           if (mode === "risk-shapeless") return { data: { sessions: "x" }, error: null };
           return { data: sessionRisk(params.p_user), error: null };
         }
+        if (name === "titan_appeal_list_v1") {
+          if (mode === "oldserver") return fail("Could not find the function public.titan_appeal_list_v1 in the schema cache", "PGRST202");
+          if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
+          db.appeals = db.appeals || [
+            { id: 7, userId: P1, kind: "session", sessionId: "r1", message: `Course faite avec ma montre ${evil}`, status: "open", createdAt: "2026-10-19T08:00:00Z", session: { sport: "running", date: "2026-10-18T09:00:00Z", excluded: true } },
+            { id: 8, userId: P2, kind: "account", sessionId: null, message: "Suspension injustifiée.", status: "open", createdAt: "2026-10-19T08:30:00Z", session: null },
+          ];
+          return { data: { version: 1, appeals: mode === "empty" ? [] : db.appeals.filter((a) => a.status === "open") }, error: null };
+        }
+        if (name === "titan_appeal_decide_v1") {
+          if (mode === "appeal-refused") return fail("STATE_CHANGED", "23514");
+          const a = db.appeals.find((x) => x.id === params.p_id);
+          a.status = params.p_accept ? "accepted" : "declined";
+          return { data: { version: 1, id: a.id, status: a.status }, error: null };
+        }
         if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
         if (mode === "oldserver") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
         if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
@@ -464,5 +479,53 @@ test("admin image fields accept only site paths and the project's storage (the C
   for (const bad of ["https://evil.example.test/p.gif", "//evil.example.test/p.gif", "http://oubmftfufwwzwpgvrcag.supabase.co/x.png", "javascript:alert(1)", "data:image/png;base64,AAAA", "https://oubmftfufwwzwpgvrcag.supabase.co.evil.test/x.png"]) {
     assert.match(verdicts[bad], /Image/, `${bad} is refused with a French explanation`);
   }
+  await context.close();
+});
+
+test("appeals: open appeals listed with safe text; a decision needs a note and removes the appeal", async () => {
+  const { page, context, errors } = await open(1280, {}, "appeals");
+  const rows = page.locator("[data-appeal-row]");
+  await rows.first().waitFor();
+  assert.equal(await rows.count(), 2);
+  assert.match(await rows.first().innerText(), /Course faite avec ma montre/);
+  assert.equal(await page.locator("#admin-view img").count(), 0, "player text is escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  // No note, no request.
+  await rows.first().locator('[data-appeal-decide="accept"]').click();
+  await page.locator("[data-confirm-ok]").click();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_appeal_decide_v1")).length, 0, "empty note sends nothing");
+  await page.locator("[data-confirm-reason]").fill("Contexte vérifié, séance rétablie");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.appeals[0].status === "accepted");
+  const decide = (await calls(page)).find((c) => c.startsWith("titan_appeal_decide_v1"));
+  assert.match(decide, /"p_id":7/);
+  assert.match(decide, /"p_accept":true/);
+  assert.match(decide, /Contexte vérifié/);
+  await page.waitForFunction(() => document.querySelectorAll("[data-appeal-row]").length === 1);
+  // Decline the other one.
+  await rows.first().locator('[data-appeal-decide="decline"]').click();
+  await page.locator("[data-confirm-reason]").fill("Chevauchement avéré");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.appeals[1].status === "declined");
+  await page.locator("#admin-view").getByText(/Aucun recours en attente/).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("appeals: empty, old server, forbidden and a refused acceptance are explained", async () => {
+  for (const [mode, pattern] of [["empty", /Aucun recours en attente/], ["oldserver", /migration 20261019230000/], ["forbidden", /réservée aux administrateurs/]]) {
+    const { page, context, errors } = await open(1280, { mode }, "appeals");
+    await page.locator("#admin-view").getByText(pattern).waitFor();
+    assert.equal(await page.locator("[data-appeal-row]").count(), 0, mode);
+    assert.deepEqual(errors, [], mode);
+    await context.close();
+  }
+  const { page, context } = await open(1280, { mode: "appeal-refused" }, "appeals");
+  await page.locator("[data-appeal-row]").first().waitFor();
+  await page.locator('[data-appeal-decide="accept"]').first().click();
+  await page.locator("[data-confirm-reason]").fill("Je tente quand même");
+  await page.locator("[data-confirm-ok]").click();
+  await page.getByText(/plus rien à lever/).first().waitFor();
+  assert.equal(await page.locator("[data-appeal-row]").count(), 2, "the appeal stays open after a refusal");
   await context.close();
 });
