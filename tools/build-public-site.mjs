@@ -23,7 +23,10 @@ const PLUS = [
   "Jusqu’à 20 sportifs dans l’espace coach",
   "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
 ];
-const offersHtml = `<div class="pub-grid cols-2">
+const offersHtml = `<div class="pub-grid cols-2" style="margin-bottom:16px">
+  <article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>
+  <article class="pub-card" data-availability="planned"><h3>Les ajouts en préparation</h3><p>Les quatre campagnes complètes et les nouvelles analyses sont en préparation. Leur disponibilité est indiquée dans l’application : vérifie les fonctions actives avant de choisir TITAN+.</p></article>
+</div><div class="pub-grid cols-2">
   <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
   <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">5 € <small>par mois</small></p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-primary" href="/boutique#plus">Découvrir TITAN+</a><p class="pub-fine">Prix final, taxes, renouvellement et résiliation affichés par Paddle avant le paiement.</p></article>
 </div>
@@ -95,7 +98,7 @@ const home = page({
       ["shield", "L’équité", "Les mêmes plafonds pour tous, abonnés compris. Une séance saisie plus de 30 jours après sa date entre au journal sans XP."],
     ])}<a class="pub-link" href="/niveaux-et-xp" style="margin-top:20px">Toutes les règles de progression ${icon("arrow")}</a></div></section>
 
-  <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">L’aventure</p><h2>Quatre mondes.<br>Ton sport les rallume.</h2><p class="pub-lead">Chaque jour actif allume une balise. Après mise à jour serveur, les nouveaux chapitres suivent ta cadence récente. Le gardien demande au moins deux jours distincts et l’effort fixé au départ, 90 minutes au plus par jour.</p></div>
+  <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">L’aventure</p><h2>Quatre mondes.<br>Ton sport les rallume.</h2><p class="pub-lead">Démarre une campagne avant ta prochaine séance : tes jours actifs peuvent alors faire avancer ses balises. Après mise à jour serveur, les nouveaux chapitres suivent ta cadence récente. Le gardien demande au moins deux jours distincts et l’effort fixé au départ, 90 minutes au plus par jour.</p></div>
     <div class="pub-grid cols-4">${C.worlds.map((w) => `<a class="pub-world" href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span class="pub-tier${w.tier === "plus" ? " plus" : ""}">${w.tier === "plus" ? "TITAN+" : "GRATUIT"}</span><h3>${w.name}</h3><p>${w.subtitle} · ${w.guardian}</p></a>`).join("")}</div></div></section>
 
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble, sans pression</p><h2>Avancer avec les autres.<br>Sans tout montrer.</h2></div>
@@ -108,7 +111,7 @@ const home = page({
       ["lock", "Privé par défaut", "Amis sur demande acceptée, profil public désactivé, statistiques d’usage seulement avec ton accord."],
     ])}</div></section>
 
-  <section class="pub-section" id="offres"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Gratuit et TITAN+</p><h2>Le cœur est gratuit.<br>Pour de bon.</h2><p class="pub-lead">TITAN+ soutient le projet et ouvre plus de monde. Il n’achète jamais de progression.</p></div>${offersHtml}</div></section>
+  <section class="pub-section" id="offres"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Gratuit et TITAN+</p><h2>Le cœur est gratuit.<br>Pour de bon.</h2><p class="pub-lead">TITAN+ soutient le projet avec plus de routines, de capacité pour les coachs et de personnalisation. Les quatre mondes font partie du gratuit ; aucun abonnement n’achète de progression.</p></div>${offersHtml}</div></section>
   ${homeFaq.html}${finalCta("valley")}`,
 });
 writeFileSync("index.html", home);
