@@ -29,7 +29,7 @@ Aucun Critical/Important connu ouvert. Rappel : les limites n'existent pas en pr
 
 ## NON BLOQUANT / BACKLOG FINITION
 
-- Test de contrat de source pour `atelier.js`, `communaute.js` et `main.js` (leurs fonctions ne sont pas exportées) : aucun parcours navigateur ne simule un 429.
+- Revue de code unique : aucun défaut concret ; deux tests de source resserrés (ancrés sur la table de messages et la branche). Reste : test de contrat de source pour `atelier.js`, `communaute.js` et `main.js` (leurs fonctions ne sont pas exportées) : aucun parcours navigateur ne simule un 429.
 - Les versions de scripts dans les pages peuvent entrer en conflit avec le lot WORK en cours : garder les deux incréments.
 - Autres refus potentiels (carte publique, apparence) n'ont pas de limite donc pas de message.
 
