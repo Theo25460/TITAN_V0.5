@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { findSecrets, findPlaceholders, checkAndroidManifest, checkIgnoredPaths } from '../tools/lib/release-safety.mjs';
@@ -172,4 +172,30 @@ test('release gate: passes a clean checkout and fails closed on anything it cann
   const testAd = sandbox({ ...base, 'js/config.js': 'window.x = { adsEnabled: true, unit: "ca-app-pub-3940256099942544/6300978111" };' });
   assert.equal(gate(testAd).status, 1, 'Google test units are never allowed');
   for (const dir of [clean, leak, noGit, missing, opaque, image, adsOff, adsOn, testAd]) rmSync(dir, { recursive: true, force: true });
+});
+
+
+test('public build excludes hidden image editor files and directories while preserving real images and originals', () => {
+  const files={
+    'tools/build-public.mjs':readFileSync(new URL('../tools/build-public.mjs',import.meta.url),'utf8'),
+    'index.html':'<h1>TITAN</h1>','sw.js':'const PRECACHE = [/* PRECACHE */];',
+    'network-error.html':'offline','manifest.json':'{}','favicon.ico':'icon','image/logo-192.png':'logo',
+    'css/fonts/archivo-latin-variable.woff2':'font','css/fonts/manrope-latin-0.woff2':'font','css/fonts/manrope-latin-1.woff2':'font',
+    'js/vendor/qrcode-generator-1.4.4.js':'/* vendor fixture */',
+    'image/boss/guardian.webp':'real-image', 'image/boss/plain.png':'real-png',
+    'image/boss/.guardian.png.editor-temp':'temporary-original', 'image/.draft/hidden.webp':'temporary-draft',
+  };
+  for(const page of ['aujourdhui','training','journal','stats','records','objectifs','prevoir','adventure','profile','social','coaching','boutique','onboarding','login','service']) files[page+'.html']='<h1>Page</h1>';
+  for(const asset of ['scout-s','ranger-s','keeper-s','artisan-s','navigator-s','sentinel-s','guardian-aube-s','guardian-marees-s','guardian-forge-s','guardian-aurores-s','valley-small','valley-xs','archipelago-xs','forge-xs','aurora-xs']) files['assets/renaissance/'+asset+'.webp']='image';
+  const dir=sandbox(files,{git:false});
+  try{
+    const result=spawnSync(process.execPath,[join(dir,'tools/build-public.mjs')],{encoding:'utf8'});
+    assert.equal(result.status,0,result.stderr);
+    assert.equal(existsSync(join(dir,'dist/image/boss/.guardian.png.editor-temp')),false,'no editor temporary file shipped');
+    assert.equal(existsSync(join(dir,'dist/image/.draft')),false,'no hidden draft directory shipped');
+    assert.equal(readFileSync(join(dir,'dist/image/boss/guardian.webp'),'utf8'),'real-image');
+    assert.equal(readFileSync(join(dir,'dist/image/boss/plain.png'),'utf8'),'real-png');
+    assert.equal(readFileSync(join(dir,'image/boss/.guardian.png.editor-temp'),'utf8'),'temporary-original','source remains untouched');
+    assert.equal(readFileSync(join(dir,'image/.draft/hidden.webp'),'utf8'),'temporary-draft','source directory remains untouched');
+  }finally{rmSync(dir,{recursive:true,force:true});}
 });

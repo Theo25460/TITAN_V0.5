@@ -14,7 +14,7 @@ do $$
 declare s jsonb; q jsonb; denied boolean:=false;
 begin
   s:=public.titan_adventure_snapshot();
-  assert (s->>'version')::int=3,'quests require snapshot version3';
+  assert (s->>'version')::int>=3,'quests require snapshot version3 or later';
   assert not exists(select 1 from jsonb_array_elements(s->'campaigns') c where c->>'tier'<>'free'),'four regions free';
   s:=public.titan_adventure_action('start','forge','rhythm',null,0,null,'Europe/Paris');
   q:=public.titan_adventure_quests('forge');

@@ -61,7 +61,7 @@ begin
           s:=public.titan_adventure_snapshot();
           select value into c from jsonb_array_elements(s->'campaigns') where value->>'id'=world;
           q:=c->'quests';
-          assert (c->>'chapter')::int=chapter and (c->>'target')::int=(array[1,2,2,2,3,2,3,3,3])[chapter],practice||':expected primary target';
+          assert (c->>'chapter')::int=chapter and (c->>'target')::int=case when chapter=9 then greatest(2,(q#>>'{profile,daysTarget}')::int) else least((array[1,2,2,2,3,2,3,3,3])[chapter],(q#>>'{profile,daysTarget}')::int) end,practice||':expected primary target';
           assert (c#>>'{evidence,days}')::int=3 and (c#>>'{evidence,effort}')::numeric=150,practice||':same eligible days/effort';
           assert jsonb_array_length(q->'items')=3 and not exists(select 1 from jsonb_array_elements(q->'items') i where not (i->>'complete')::boolean),practice||':three optional quests complete';
           assert (select array_agg(i->>'id' order by i->>'id')=array['days','effort','note'] from jsonb_array_elements(q->'items') i),'only sport-neutral quest conditions';
