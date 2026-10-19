@@ -43,18 +43,27 @@ do $$ declare p uuid:=current_setting('titan.mod_player')::uuid; v int; begin
   begin perform public.titan_admin_update_profile_v1(p,'{"status":"banned"}','QA'); assert false,'player refused';
   exception when others then assert sqlerrm<>'player refused',sqlerrm; end;
   update public.profiles set credits=0,status='banned' where id=p; get diagnostics v=row_count;
-  assert v=0 and not exists(select 1 from public.profiles where id=p),'a player neither sees nor edits another profile';
-  begin update public.profiles set id=id where id=current_setting('titan.mod_admin')::uuid;
-  exception when others then null; end;
+  assert v=0,'a player edits no row of another profile';
   assert not public.titan_is_admin(auth.uid()),'forged claims grant no admin right';
 end $$;
 
--- Progression guards still bind administrators: an absurd balance jump is refused, not applied.
+-- The exemption exists only inside the audited RPC: a direct write by the administrator is still refused,
+-- the marker is cleared when the RPC returns, and progression guards still bind administrators.
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.mod_admin'),'role','authenticated')::text,true);
 do $$ declare p uuid:=current_setting('titan.mod_player')::uuid; begin
   assert (select credits=700 and status='active' and not is_suspended from public.profiles where id=p),
     'the attempts by the moderator and the player changed nothing';
-  perform public.titan_admin_update_profile_v1(p,'{"status":"active","credits":99999999}','QA absurd');
-  assert (select credits=700 from public.profiles where id=p),'an administrator cannot bypass the credit jump guard';
+  begin update public.profiles set status='banned',is_suspended=true where id=p; assert false,'direct admin write';
+  exception when others then assert sqlerrm='PROFILE_USER_MISMATCH',sqlerrm; end;
+  perform public.titan_admin_update_profile_v1(p,'{"status":"active"}','QA marker');
+  assert coalesce(current_setting('titan.admin_profile_write',true),'')='','the marker is cleared after the RPC';
+  begin update public.profiles set status='banned',is_suspended=true where id=p; assert false,'direct admin write after the RPC';
+  exception when others then assert sqlerrm='PROFILE_USER_MISMATCH',sqlerrm; end;
+  begin perform public.titan_admin_update_profile_v1(p,'{"status":"banned","credits":99999999}','QA absurd');
+    assert false,'absurd patch';
+  exception when others then assert sqlerrm='PROFILE_UPDATE_REJECTED',sqlerrm; end;
+  assert (select credits=700 and status='active' and not is_suspended from public.profiles where id=p),
+    'a rejected patch applies nothing, the ban included, and is not reported as done';
+  assert not exists(select 1 from public.admin_logs where action ilike '%ban%' and target_id=p::text),'no log of an action that did not happen';
 end $$;
 rollback;

@@ -32,6 +32,11 @@ do $$ declare a uuid:=current_setting('titan.pur_a')::uuid; b uuid:=current_sett
       values (a,'cos_frame_neon',0,0,'{"type":"cosmetic","version":300}');
     assert false,'duplicate cosmetic purchase';
   exception when unique_violation then null; end;
+  begin
+    insert into public.shop_history(user_id,item_id,cost_credits,reward_credits,economy_meta)
+      values (a,'cos_frame_neon',0,0,'{}');
+    assert false,'duplicate with other metadata';
+  exception when unique_violation then null; end;
   -- Another account may buy the same cosmetic; older repeatable purchases keep their freedom.
   insert into public.shop_history(user_id,item_id,cost_credits,reward_credits,economy_meta)
     values (b,'cos_frame_neon',0,0,'{"type":"cosmetic","version":300}');
