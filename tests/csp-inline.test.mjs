@@ -8,7 +8,7 @@ const EXCLUDED = new Set(["sys_core_override_99.html", "googleb8fedd43e28cf7d4.h
 const files = [
   ...readdirSync(ROOT).filter((f) => f.endsWith(".html") && !EXCLUDED.has(f)),
   ...readdirSync(`${ROOT}js`).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`),
-  ...readdirSync(`${ROOT}js/app`).filter((f) => f.endsWith(".js")).map((f) => `js/app/${f}`),
+  ...["app", "core"].flatMap((dir) => readdirSync(`${ROOT}js/${dir}`).filter((f) => f.endsWith(".js")).map((f) => `js/${dir}/${f}`)),
 ];
 const policy = /Content-Security-Policy\s*=\s*"([^"]+)"/.exec(readFileSync(`${ROOT}netlify.toml`, "utf8"))[1];
 const directive = (name) => policy.split(";").map((d) => d.trim()).find((d) => d.startsWith(`${name} `)) || "";
@@ -21,7 +21,7 @@ test("no shipped file uses an inline event handler attribute or a javascript: UR
   const offenders = [];
   for (const file of files) {
     const text = readFileSync(`${ROOT}${file}`, "utf8");
-    for (const m of text.matchAll(/\son[a-z]+\s*=\s*["']|javascript:/gi)) {
+    for (const m of text.matchAll(/\son[a-z]+\s*=\s*["']|setAttribute\(\s*["']on[a-z]+|javascript:/gi)) {
       offenders.push(`${file}: ${m[0].trim()}`);
     }
   }
