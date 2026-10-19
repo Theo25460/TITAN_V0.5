@@ -14,10 +14,14 @@ Retirer de la Content-Security-Policy les quatre hôtes que rien ne charge : `cd
 | LEG41 — pas de contact tiers superflu | reste `[ ]` | Une partie seulement (surface réseau) ; le CMP et les interfaces de consentement ne sont pas traités. |
 | SEC03 — injection | reste `[~]` | La surface de scripts autorisés se réduit à `'self'`, `'unsafe-inline'` et Paddle. `'unsafe-inline'` demeure : il faudrait des nonces ou des empreintes pour les scripts en ligne des pages, travail distinct. |
 
+## Revue
+
+Revue de code unique : aucune casse de production trouvée (aucune ressource chargée depuis les hôtes retirés ; `tools/vendor-runtime.mjs` est un outil de construction non livré ; la CSP est unique dans `netlify.toml`). Traité : échantillon de pages remplacé par toutes les pages construites, sonde Paddle ajoutée, durée d'attente réduite. Non traité : parcours connectés et contenus venus de la base non rejoués ; un vieux paragraphe de `docs/AUDIT_REPRISE_2026-10.md` D7 (préconnexions, Leaflet) est périmé. À vérifier en sandbox : `Permissions-Policy: payment=(self)` (`netlify.toml`) peut empêcher Apple Pay / Payment Request dans le cadre Paddle si le cadre n'a pas la délégation `payment`.
+
 ## Preuve de sûreté
 
 - Ces hôtes n'apparaissaient dans aucun fichier livré hors de la CSP (test d'inventaire existant), polices et icônes sont hébergées.
-- `tests/e2e/csp-browser.e2e.mjs` (ajouté à `test:e2e`) attache la politique **exacte** de `netlify.toml` à chaque document dans Chromium (le serveur local ne rejoue pas les en-têtes de production) et exige zéro violation sur 15 pages (accueil, écrans d'application déconnectés, boutique, Atelier, profil, communauté, tarifs, administration, page dynamique, mentions, 404, pages éditoriales). Il détecte bien un blocage : un script tiers injecté dans une page fait échouer le test (vérifié).
+- `tests/e2e/csp-browser.e2e.mjs` (ajouté à `test:e2e`) attache la politique **exacte** de `netlify.toml` à chaque document dans Chromium (le serveur local ne rejoue pas les en-têtes de production) et exige zéro violation sur **toutes les pages construites** (`dist/*.html`, 44 pages ; une première version en listait 15 dont deux retombaient sur l'accueil, relevé par la revue) et que le script de paiement `https://cdn.paddle.com/paddle/v2/paddle.js`, injecté comme en production, ne soit pas bloqué (vérifié : retirer Paddle de `script-src` fait échouer le test). Il détecte bien un blocage : un script tiers injecté dans une page fait échouer le test (vérifié).
 - Limites de cette preuve : parcours connectés non rejoués sous la CSP (Supabase autorisé inchangé), paiement Paddle non exercé (les hôtes Paddle sont inchangés), contenus venus de la base non couverts.
 
 ## BLOQUANT À CORRIGER MAINTENANT

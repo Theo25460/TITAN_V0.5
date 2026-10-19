@@ -2,7 +2,7 @@
 // The local server does not send production headers, so the exact policy is attached to each document response here.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
@@ -39,8 +39,8 @@ after(async () => {
   server?.kill();
 });
 
-// One page per family: marketing, signed-out application screens, account, store, content and administration.
-const PAGES = ["/", "/aujourdhui", "/training", "/stats", "/boutique", "/atelier", "/profile", "/communaute", "/tarifs", "/admin", "/dynamic-page", "/legal_privacy", "/404", "/debuter-titan", "/fonctionnalites"];
+// Every page the build ships (dist/*.html), not a hand-picked sample: an unknown path would fall back to index.html.
+const PAGES = readdirSync(`${ROOT}dist`).filter((f) => f.endsWith(".html")).map((f) => (f === "index.html" ? "/" : `/${f.slice(0, -5)}`));
 
 test("the production CSP blocks nothing on any page, and its allowed hosts are only those that are used", async () => {
   const context = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1100, height: 800 } });
@@ -67,12 +67,29 @@ test("the production CSP blocks nothing on any page, and its allowed hosts are o
     const consoleCsp = [];
     page.on("console", (m) => { if (/content security policy/i.test(m.text())) consoleCsp.push(m.text().slice(0, 160)); });
     await page.goto(BASE + path, { waitUntil: "load" });
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(400);
     const seen = await page.evaluate(() => window.__csp);
     for (const v of [...seen, ...consoleCsp]) violations.push(`${path}: ${v}`);
     await page.close();
   }
+  // The Paddle checkout script is injected on click in production: the policy must let it through (the host is unreachable
+  // here, so a network failure is expected; a CSP violation is not).
+  const probe = await context.newPage();
+  await probe.addInitScript(() => {
+    window.__csp = [];
+    document.addEventListener("securitypolicyviolation", (e) => window.__csp.push(`${e.violatedDirective} ${e.blockedURI}`));
+  });
+  await probe.goto(BASE + "/", { waitUntil: "load" });
+  await probe.evaluate(() => new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+    script.onload = script.onerror = resolve;
+    document.head.appendChild(script);
+  }));
+  assert.deepEqual(await probe.evaluate(() => window.__csp), [], "the Paddle checkout script must not be blocked by the policy");
+  await probe.close();
   await context.close();
+  assert.ok(PAGES.length >= 40, `the whole site is replayed (${PAGES.length} pages)`);
   assert.deepEqual(violations, [], "a page loads something the policy refuses");
   const removed = ["cdn.jsdelivr.net", "unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"].filter((h) => contacted.has(h));
   assert.deepEqual(removed, [], "no page tries to reach a host the policy does not need");
