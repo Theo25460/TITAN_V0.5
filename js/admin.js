@@ -1421,6 +1421,12 @@
             return;
         }
 
+        const sessionExclude = event.target.closest('[data-session-exclude]');
+        if (sessionExclude) {
+            await excludeSession(sessionExclude.dataset.sessionExclude, sessionExclude.dataset.excluded === 'true');
+            return;
+        }
+
         const moderationRevert = event.target.closest('[data-moderation-revert]');
         if (moderationRevert) {
             await revertModeration(moderationRevert.dataset.moderationRevert);
@@ -1889,6 +1895,8 @@
         NOT_LATEST_DECISION: 'Seule la dernière décision d’un compte peut être annulée.',
         NOT_REVERTIBLE: 'Cette décision ne peut pas être annulée.',
         DECISION_NOT_FOUND: 'Décision introuvable.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.',
+        EXCLUSION_REQUIRED: 'Choisis d’exclure ou de rétablir la séance.',
         ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
     };
 
@@ -1963,8 +1971,9 @@
                 <td>${escapeHtml(session.score)}</td>
                 <td>${(Array.isArray(session.signals) ? session.signals.filter((signal) => signal && typeof signal === 'object') : []).map(sessionSignalText).join('<br>')}</td>
                 <td>${session.excludedFromRankings ? 'Exclue des classements' : '—'}</td>
+                <td>${session.id ? buttonMarkup(session.excludedFromRankings ? 'Rétablir dans les classements' : 'Exclure des classements', session.excludedFromRankings ? 'ri-arrow-go-back-line' : 'ri-forbid-line', 'secondary', `data-session-exclude="${escapeHtml(session.id)}" data-excluded="${session.excludedFromRankings ? 'true' : 'false'}"`) : ''}</td>
             </tr>`).join('');
-        return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+        return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
     }
 
     function moderationPayloadText(payload) {
@@ -2116,6 +2125,30 @@
             console.error('[TITAN ADMIN MODERATION]', error);
             notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file pour voir son effet.', 'warning');
         }
+    }
+
+    // A human decision on one session: it stays visible to its owner, only rankings and competitive rewards skip it.
+    async function excludeSession(sessionId, currentlyExcluded) {
+        const userId = state.moderationUser;
+        if (!userId || !sessionId) return;
+        const exclude = !currentlyExcluded;
+        const reason = await moderationAsk(
+            exclude ? 'Exclure cette séance des classements' : 'Rétablir cette séance dans les classements',
+            exclude
+                ? 'La séance reste visible du joueur ; elle ne compte plus dans les classements ni les récompenses compétitives le temps de la vérification. Ses XP et crédits déjà acquis ne changent pas. Tu pourras la rétablir.'
+                : 'La séance recompte dans les classements et les récompenses compétitives.',
+            exclude ? 'Exclure' : 'Rétablir',
+            exclude
+        );
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_session_exclusion_v1', { p_session: sessionId, p_excluded: exclude, p_reason: reason });
+        if (error) notify('Action refusée', moderationErrorText(error), 'danger');
+        else if (data && data.changed === false) notify('Aucun changement', 'La séance était déjà dans cet état.', 'info');
+        else notify(exclude ? 'Séance exclue' : 'Séance rétablie', 'L’action est consignée dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
     }
 
     async function revertModeration(decisionId) {

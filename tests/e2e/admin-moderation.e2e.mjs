@@ -50,6 +50,7 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
       status: { [P1]: "active", [P2]: "active", [P3]: "banned" },
       decisions: { [P1]: [], [P2]: [], [P3]: [] },
       dismissed: {},
+      excluded: { r1: true },
       queueCalls: 0,
       next: 100,
     };
@@ -80,9 +81,9 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
     });
     const sessionRisk = (id) => ({
       sessions: id !== P1 ? [] : [
-        { id: "r1", sport: `running ${evil}`, date: "2026-10-18T09:00:00Z", value: 20, unit: "km", durationMin: 60, historical: false, score: 8, state: "review", excludedFromRankings: true,
+        { id: "r1", sport: `running ${evil}`, date: "2026-10-18T09:00:00Z", value: 20, unit: "km", durationMin: 60, historical: false, score: 8, state: "review", excludedFromRankings: !!db.excluded.r1,
           signals: [{ code: "speed_jump", severity: "high", points: 8, detail: { kmh: 20, medianKmh: 10, priorSessions: 5 } }] },
-        { id: "r2", sport: "cycling", date: "2026-10-17T09:00:00Z", value: 30, unit: "min", durationMin: 60, historical: false, score: 3, state: "watch", excludedFromRankings: false,
+        { id: "r2", sport: "cycling", date: "2026-10-17T09:00:00Z", value: 30, unit: "min", durationMin: 60, historical: false, score: 3, state: "watch", excludedFromRankings: !!db.excluded.r2,
           signals: [{ code: "overlap", severity: "medium", points: 3, detail: { overlapMinutes: 50, shareOfShorter: 0.83 } }] },
         { id: "r3", sport: "yoga", date: "2026-10-16T09:00:00Z", value: 30, unit: "min", durationMin: 30, historical: false, score: 0, state: "normal", excludedFromRankings: false, signals: [] },
       ],
@@ -103,6 +104,11 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
         calls.push({ name, params });
         if (name === "titan_admin_list_profiles_v1") return { data: [{ id: P2, username: "Sam", status: "active", role: "user", created_at: "2026-10-01T00:00:00Z" }], error: null };
         if (name === "titan_admin_get_context_v1") return { data: { isAdmin: admin, role: admin ? "admin" : "user" }, error: null };
+        if (name === "titan_session_exclusion_v1") {
+          if (mode === "refuse-session") return fail("CANNOT_MODERATE_ADMIN", "42501");
+          db.excluded[params.p_session] = params.p_excluded;
+          return { data: { session: params.p_session, excluded: params.p_excluded, changed: true }, error: null };
+        }
         if (name === "titan_session_risk_v1") {
           if (mode === "oldserver" || mode === "norisk") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
           if (mode === "risk-throws") throw new Error("boom");
@@ -391,4 +397,56 @@ test("moderation case: a failing, hanging, malformed or shapeless risk analysis 
   await modal.getByText(/délai dépassé/i).waitFor({ timeout: 15000 });
   assert.equal(await modal.locator('[data-moderation-decide="suspend"]').count(), 1, "the case file opens after the timeout");
   await h.context.close();
+});
+
+test("session exclusion: an administrator excludes or restores a session with a reason; nothing is sent without one", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = page.locator("#admin-modal");
+  const section = modal.locator("[data-session-risk]");
+  await section.locator('[data-session-exclude="r2"]').waitFor();
+  assert.equal(await section.locator('[data-session-exclude="r2"]').innerText().then((t) => t.trim()), "Exclure des classements");
+  assert.equal(await section.locator('[data-session-exclude="r1"]').innerText().then((t) => t.trim()), "Rétablir dans les classements");
+  const sent = async () => (await calls(page)).filter((c) => c.startsWith("titan_session_exclusion_v1"));
+
+  // No reason, no request.
+  await section.locator('[data-session-exclude="r2"]').click();
+  await page.locator("[data-confirm-ok]").click();
+  assert.equal((await sent()).length, 0, "an empty reason sends nothing");
+  // Closing the confirmation with the cross cancels it and returns to the case file.
+  await page.locator("#modal-close").click();
+  await modal.locator('[data-session-exclude="r2"]').waitFor();
+  assert.equal((await sent()).length, 0, "cancelling sends nothing");
+
+  // With a reason the exclusion is recorded and the case file shows it.
+  await modal.locator('[data-session-exclude="r2"]').click();
+  await page.locator("[data-confirm-reason]").fill("Chevauchement avéré avec une autre séance");
+  await page.locator("[data-confirm-ok]").click();
+  await modal.locator('[data-session-exclude="r2"]').filter({ hasText: /Rétablir/ }).waitFor();
+  const [call] = await sent();
+  assert.match(call, /"p_session":"r2"/);
+  assert.match(call, /"p_excluded":true/);
+  assert.match(call, /Chevauchement avéré/);
+  assert.match(await section.innerText(), /Exclue des classements/);
+
+  // Restoring is the same flow with the opposite choice.
+  await modal.locator('[data-session-exclude="r1"]').click();
+  await page.locator("[data-confirm-reason]").fill("Vérifié : séance légitime");
+  await page.locator("[data-confirm-ok]").click();
+  await modal.locator('[data-session-exclude="r1"]').filter({ hasText: /Exclure/ }).waitFor();
+  assert.match((await sent()).at(-1), /"p_session":"r1".*"p_excluded":false|"p_excluded":false.*"p_session":"r1"/);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("session exclusion: a server refusal is explained in French and the file stays as it was", async () => {
+  const { page, context } = await open(1280, { mode: "refuse-session" });
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = page.locator("#admin-modal");
+  await modal.locator('[data-session-exclude="r2"]').click();
+  await page.locator("[data-confirm-reason]").fill("Test de refus");
+  await page.locator("[data-confirm-ok]").click();
+  await page.locator("#admin-toast-stack").getByText(/administrateur/i).waitFor();
+  assert.equal(await modal.locator('[data-session-exclude="r2"]').innerText().then((t) => t.trim()), "Exclure des classements", "unchanged after a refusal");
+  await context.close();
 });
