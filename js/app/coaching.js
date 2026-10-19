@@ -10,7 +10,7 @@
   const I = () => window.TitanInsights;
   const DAY = 86400000;
   const owner = () => window.state?.user?.id;
-  const guest = () => String(owner() || "").startsWith("guest_");
+  const guest = () => !owner() || String(owner()).startsWith("guest_");
   const isoDay = (d = new Date()) => new Date(d).toISOString().slice(0, 10);
   const date = (v) => new Date(String(v).length === 10 ? v + "T12:00:00Z" : v).toLocaleDateString("fr-FR", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
 
@@ -26,6 +26,60 @@
   let detailSeq = 0;
   let fromDate = isoDay(Date.now() - 29 * DAY);
   let toDate = isoDay();
+
+  // A view and every action retain the same owner, client and transition epoch.
+  const context = () => ({ owner: owner(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const sameContext = (job) => !!job && job.owner === owner() && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch && !guest() && !window.titanAccountTransition?.active;
+  let viewContext = null;
+  const sheets = new Set();
+  function own(dialog) {
+    sheets.add(dialog);
+    dialog.addEventListener("close", () => sheets.delete(dialog), { once: true });
+    return dialog;
+  }
+  function invalidate() {
+    ++seq;
+    ++detailSeq;
+    snapshot = sessions = assignments = viewContext = null;
+    selected = "";
+    mode = "athlete";
+    fromDate = isoDay(Date.now() - 29 * DAY);
+    toDate = isoDay();
+    error = "";
+    loading = !guest();
+    for (const dialog of sheets) {
+      if (dialog.open) dialog.close();
+      dialog.remove();
+    }
+    sheets.clear();
+    render();
+  }
+  function requireContext(job) {
+    if (sameContext(job)) return;
+    // An obsolete completion must never erase a newer view.
+    if (job === viewContext || (viewContext && !sameContext(viewContext))) invalidate();
+    throw Error("ACCOUNT_CHANGED");
+  }
+  function activeView() {
+    if (sameContext(viewContext)) return true;
+    invalidate();
+    return false;
+  }
+  function confirm(options) {
+    const job = viewContext;
+    if (!activeView()) return;
+    const before = new Set(document.querySelectorAll("dialog"));
+    let dialog;
+    const result = window.titanShell.confirm({ ...options, action: async () => {
+      requireContext(job);
+      if (!dialog?.open || !dialog.isConnected) return;
+      await options.action(job);
+      requireContext(job);
+    } });
+    dialog = [...document.querySelectorAll("dialog")].find(d => !before.has(d));
+    if (dialog) own(dialog);
+    return result;
+  }
 
   const MESSAGES = {
     AUTH_REQUIRED: "Connecte-toi pour utiliser le partage privé.",
@@ -45,10 +99,18 @@
   };
   const human = (e) => MESSAGES[e?.message] || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
 
-  async function rpc(action, data = {}) {
-    const id = owner();
-    const session = (await window.titanClient?.auth.getSession())?.data?.session;
-    if (!id || session?.user?.id !== id) throw Error("AUTH_REQUIRED");
+  async function rpc(action, data = {}, job = viewContext) {
+    requireContext(job);
+    const receipt = await job.client?.auth.getSession();
+    requireContext(job);
+    const session = receipt?.data?.session;
+    if (receipt?.error || !session?.access_token || session?.user?.id !== job.owner) {
+      invalidate();
+      loading = false;
+      error = MESSAGES.AUTH_REQUIRED;
+      render();
+      throw Error("AUTH_REQUIRED");
+    }
     const response = await fetch(`${window.TITAN_SUPABASE_URL}/rest/v1/rpc/titan_coach_portal`, {
       method: "POST",
       headers: { apikey: window.TITAN_SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
@@ -56,7 +118,7 @@
       signal: AbortSignal.timeout(15000),
     });
     const result = await response.json();
-    if (owner() !== id) throw Error("ACCOUNT_CHANGED");
+    requireContext(job);
     if (!response.ok) throw Error(result.message || "UNAVAILABLE");
     return result;
   }
@@ -65,18 +127,17 @@
   const current = () => links().find((l) => l.id === selected);
 
   async function load() {
-    const id = owner();
-    if (!id) return;
+    if (viewContext && !sameContext(viewContext)) invalidate();
+    if (guest() || window.titanAccountTransition?.active) return invalidate();
+    const job = context();
     const s = ++seq;
-    if (guest()) {
-      loading = false;
-      return render();
-    }
+    viewContext = job;
     try {
-      const next = await rpc("snapshot");
-      if (s !== seq || id !== owner()) return;
+      const next = await rpc("snapshot", {}, job);
+      if (s !== seq || !sameContext(job)) return;
       const prev = current();
       snapshot = next;
+      viewContext = job;
       loading = false;
       error = "";
       if (!links().some((l) => l.id === selected)) selected = links()[0]?.id || "";
@@ -87,6 +148,7 @@
       render();
       if (selected) loadDetail();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       if (s !== seq) return;
       snapshot = null;
       loading = false;
@@ -96,15 +158,17 @@
   }
 
   async function loadDetail({ moreSessions = false, moreAssignments = false } = {}) {
+    const job = viewContext;
+    if (!activeView()) return;
     const link = current();
     if (!link) return;
     const s = ++detailSeq;
     try {
       const [logs, tasks] = await Promise.all([
-        moreAssignments ? Promise.resolve(sessions) : rpc("sessions", { link_id: link.id, from_date: fromDate, to_date: toDate, offset: moreSessions ? sessions?.rows.length || 0 : 0 }),
-        moreSessions ? Promise.resolve(assignments) : rpc("assignments", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }),
+        moreAssignments ? Promise.resolve(sessions) : rpc("sessions", { link_id: link.id, from_date: fromDate, to_date: toDate, offset: moreSessions ? sessions?.rows.length || 0 : 0 }, job),
+        moreSessions ? Promise.resolve(assignments) : rpc("assignments", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }, job),
       ]);
-      if (s !== detailSeq || current()?.id !== link.id) return;
+      if (s !== detailSeq || !sameContext(job) || current()?.id !== link.id) return;
       if ((logs && logs.revision !== link.revision) || (tasks && tasks.revision !== link.revision)) {
         sessions = null;
         assignments = null;
@@ -116,6 +180,7 @@
       error = "";
       render();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       if (s !== detailSeq) return;
       sessions = null;
       assignments = null;
@@ -127,23 +192,60 @@
 
   /* ---------- Forms in sheets ---------- */
   function formSheet({ title, eyebrow = "Coaching · partage privé", body, submit, onSubmit }) {
+    const job = viewContext;
+    if (!activeView()) return;
     const form = document.createElement("form");
     form.className = "asc-stack";
-    form.innerHTML = `${body}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
-    const d = window.titanShell.sheet({ title, eyebrow, body: form });
+    form.innerHTML = `${body}${onSubmit ? '<p class="asc-small asc-muted" role="status" data-co-progress></p>' : ""}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
+    const d = own(window.titanShell.sheet({ title, eyebrow, body: form }));
+    let pending = false;
+    let controlStates = [];
+    const progress = form.querySelector("[data-co-progress]");
+    // Keep the live status outside the busy form so its update is not deferred.
+    if (progress) {
+      form.parentElement.classList.add("asc-stack");
+      form.after(progress);
+    }
+    const errorText = form.querySelector(".jr-edit-error");
+    const setPending = (value) => {
+      pending = value;
+      form.setAttribute("aria-busy", String(value));
+      if (progress) progress.textContent = value ? "Envoi en cours…" : "";
+      if (value) {
+        controlStates = [...form.querySelectorAll("input, select, textarea, button"), d.querySelector("[data-close]")].map(control => [control, control.disabled]);
+        controlStates.forEach(([control]) => { control.disabled = true; });
+      } else controlStates.forEach(([control, disabled]) => { control.disabled = disabled; });
+    };
+    form.setAttribute("aria-busy", "false");
+    // Block user dismissal while sending; account cleanup and preview chaining can still close().
+    d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+    d.addEventListener("click", e => {
+      if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
     form.querySelector("[data-cancel]").addEventListener("click", () => d.close());
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!onSubmit) return;
+      if (!onSubmit || pending || !d.open || !d.isConnected) return;
+      if (!sameContext(job)) { if (job === viewContext || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       const btn = form.querySelector("[type=submit]");
-      btn.disabled = true;
+      // Capture consent before disabling controls: disabled fields are excluded from FormData.
+      const data = new FormData(form);
+      errorText.textContent = "";
+      setPending(true);
       try {
-        await onSubmit(new FormData(form), d);
+        await onSubmit(data, d, job);
+        if (!sameContext(job)) return;
         if (d.open) d.close();
         load();
       } catch (err) {
-        form.querySelector(".jr-edit-error").textContent = human(err);
-        btn.disabled = false;
+        if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
+        if (!d.open || !d.isConnected) return;
+        errorText.textContent = human(err);
+        setPending(false);
+        if ([...document.querySelectorAll("dialog[open]")].at(-1) === d) btn.focus();
       }
     });
     return d;
@@ -168,16 +270,18 @@
       title: "J’ai reçu une invitation",
       body: `<label class="asc-field"><span>Code privé du coach</span><input class="asc-input" name="token" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="48" maxlength="48" required placeholder="48 caractères"></label><p class="asc-small asc-muted">Vérifie l’identité de la personne avant d’accepter. TITAN ne vérifie pas les qualifications d’un coach.</p>`,
       submit: "Vérifier le code",
-      onSubmit: async (f, d) => {
+      onSubmit: async (f, d, job) => {
         const token = String(f.get("token")).trim();
-        const preview = await rpc("preview", { token });
+        const preview = await rpc("preview", { token }, job);
+        if (!sameContext(job) || !d.open) return;
         d.close();
         formSheet({
           title: `Partager avec ${preview.coach_name || "ce coach"}`,
           body: `${scopeFields()}<label class="auth-check"><input type="checkbox" name="consent" required><span><strong>J’autorise ce coach</strong> à consulter les données choisies et à me proposer des séances. Révocable à tout moment.</span></label>`,
           submit: "Activer ce partage",
-          onSubmit: async (data) => {
-            const r = await rpc("accept", { token, ...scopeData(data), consent: data.has("consent") });
+          onSubmit: async (data, _dialog, job) => {
+            const r = await rpc("accept", { token, ...scopeData(data), consent: data.has("consent") }, job);
+            if (!sameContext(job)) return;
             mode = "athlete";
             selected = r.id;
           },
@@ -187,14 +291,23 @@
   }
 
   async function invite(btn) {
+    const job = viewContext;
+    if (!activeView()) return;
     btn.disabled = true;
     try {
-      const r = await rpc("invite");
+      const r = await rpc("invite", {}, job);
+      if (!sameContext(job)) return;
       const body = `<p class="asc-small">Transmets ce code à une seule personne. Elle choisira ce qu’elle accepte de partager. Il expire le ${esc(date(r.expires_at))} et ne sert qu’une fois.</p><label class="asc-field"><span>Code privé</span><input class="asc-input asc-num" readonly value="${esc(r.token)}" id="co-token"></label><button type="button" class="asc-btn asc-btn-secondary" id="co-copy">${icon("copy")} Copier</button>`;
-      formSheet({ title: "Ton invitation est prête", body });
-      document.getElementById("co-copy").addEventListener("click", () => navigator.clipboard?.writeText(r.token).then(() => window.titanShell.toast({ type: "ok", title: "Code copié" })));
+      const dialog = formSheet({ title: "Ton invitation est prête", body });
+      dialog.querySelector("#co-copy").addEventListener("click", () => {
+        if (!sameContext(job) || !dialog.open) return;
+        navigator.clipboard?.writeText(r.token).then(() => {
+          if (sameContext(job) && dialog.open) window.titanShell.toast({ type: "ok", title: "Code copié" });
+        }).catch(() => {});
+      });
       load();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       window.titanShell.toast({ type: "warn", message: human(e) });
     } finally {
       btn.disabled = false;
@@ -211,7 +324,7 @@
         <label class="asc-field"><span>Consignes</span><textarea name="instructions" maxlength="2000" placeholder="Échauffement, blocs, intensité, retour au calme…">${esc(copy?.instructions || "")}</textarea></label>
         <p class="asc-small asc-muted">L’athlète accepte ou décline. Rien n’est ajouté à son journal sans lui.</p>`,
       submit: "Envoyer la proposition",
-      onSubmit: (f) => rpc("assign", { link_id: l.id, ...Object.fromEntries(f) }),
+      onSubmit: (f, _dialog, job) => rpc("assign", { link_id: l.id, ...Object.fromEntries(f) }, job),
     });
   }
 
@@ -225,15 +338,15 @@
           ? `<label class="asc-field"><span>Séance de ton journal</span><select name="session_id">${logs.map((x) => `<option value="${esc(x.id)}">${esc(SP().label(x.sport))} · ${esc(date(x.date))}</option>`).join("")}</select></label><p class="asc-small asc-muted">Le serveur vérifie qu’elle t’appartient et n’est reliée à aucune autre proposition.</p>`
           : `<p class="asc-small">Aucune séance de ${esc(SP().label(task.sport).toLowerCase())} récente dans ton journal. Enregistre-la d’abord.</p><a class="asc-btn asc-btn-primary" href="/training?sport=${encodeURIComponent(task.sport)}">Enregistrer la séance</a>`,
         submit: "Confirmer la réalisation",
-        onSubmit: logs.length ? (f) => rpc("assignment_status", { id: task.id, revision: task.revision, status, session_id: f.get("session_id") }) : null,
+        onSubmit: logs.length ? (f, _dialog, job) => rpc("assignment_status", { id: task.id, revision: task.revision, status, session_id: f.get("session_id") }, job) : null,
       });
     }
     const titles = { cancelled: "Annuler la proposition", accepted: "Accepter cette séance", declined: "Décliner cette séance" };
-    window.titanShell.confirm({
+    confirm({
       title: titles[status],
       message: `${task.title} · ${date(task.planned_date)}`,
       detail: "Le statut sera visible par ton partenaire de suivi. Ton journal ne change pas.",
-      action: () => rpc(status === "cancelled" ? "cancel_assignment" : "assignment_status", { id: task.id, revision: task.revision, status }).then(load).catch((e) => {
+      action: (job) => rpc(status === "cancelled" ? "cancel_assignment" : "assignment_status", { id: task.id, revision: task.revision, status }, job).then(() => { if (sameContext(job)) return load(); }).catch((e) => {
         throw new Error(human(e));
       }),
     });
@@ -277,6 +390,8 @@
 
   function render() {
     if (!root) return;
+    root.setAttribute("aria-busy", String(loading && !guest()));
+    const focusedMode = root.contains(document.activeElement) ? document.activeElement.closest('[role="tab"][data-mode]')?.dataset.mode : null;
     if (guest()) {
       root.innerHTML = `<section class="asc-hero co-intro"><p class="asc-eyebrow cy">Sportifs · coachs · éducateurs</p><h2 class="cm-exp-title">Un suivi qui se construit à deux.</h2>
         <p class="asc-lead">Le coach crée une invitation. Le sportif choisit la période, le sport et les détails qu’il partage, et peut tout arrêter à tout moment. Le coach propose des séances ; le sportif les accepte ou non.</p>
@@ -291,8 +406,9 @@
     const list = links();
     const l = current();
     root.innerHTML = `
-      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace"><button type="button" role="tab" data-mode="athlete" aria-selected="${mode === "athlete"}">${icon("user")} Je suis sportif</button><button type="button" role="tab" data-mode="coach" aria-selected="${mode === "coach"}">${icon("group")} J’accompagne</button></div>
+      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace">${[["athlete", "user", "Je suis sportif"], ["coach", "group", "J’accompagne"]].map(([id, symbol, label]) => `<button type="button" role="tab" id="co-tab-${id}" data-mode="${id}" aria-controls="co-panel-${id}" aria-selected="${mode === id}" tabindex="${(focusedMode || mode) === id ? 0 : -1}">${icon(symbol)} ${label}</button>`).join("")}</div>
       <p class="asc-note">${icon("shield")}<span>Un partage choisi, limité et révocable. Le coach ne modifie jamais ton journal ; les séances partagées ne sont gardées qu’en mémoire.</span></p>
+      <div id="co-panel-${mode}" role="tabpanel" aria-labelledby="co-tab-${mode}" tabindex="0" style="display:grid;gap:var(--s5)">
       ${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}
       ${snapshot ? `
       <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2></div>
@@ -312,13 +428,31 @@
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="asc-empty"><h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
+      </div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
+    if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
+  }
+
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('[role="tab"][data-mode]');
+    if (!tab || !root.contains(tab)) return;
+    const tabs = [...root.querySelectorAll('.co-mode [role="tab"]')], index = tabs.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs.forEach((button, i) => { button.tabIndex = i === next ? 0 : -1; });
+    tabs[next].focus();
+  }
+
+  function onTabExit(e) {
+    if (!e.target.matches('[role="tab"][data-mode]') || (root.contains(e.relatedTarget) && e.relatedTarget?.closest('.co-mode'))) return;
+    root.querySelectorAll('.co-mode [role="tab"]').forEach(tab => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 
   function onClick(e) {
     const b = e.target.closest("button");
-    if (!b || !root.contains(b)) return;
+    if (!b || !root.contains(b) || !activeView()) return;
     if (b.dataset.mode) {
       mode = b.dataset.mode;
       selected = links()[0]?.id || "";
@@ -341,16 +475,16 @@
     }
     if (b.hasAttribute("data-scope")) {
       const l = current();
-      return formSheet({ title: "Choisir ce que je partage", body: scopeFields(l), submit: "Enregistrer mes choix", onSubmit: (f) => rpc("scope", { link_id: l.id, revision: l.revision, ...scopeData(f) }) });
+      return formSheet({ title: "Choisir ce que je partage", body: scopeFields(l), submit: "Enregistrer mes choix", onSubmit: (f, _dialog, job) => rpc("scope", { link_id: l.id, revision: l.revision, ...scopeData(f) }, job) });
     }
     if (b.hasAttribute("data-revoke")) {
       const l = current();
-      return window.titanShell.confirm({
+      return confirm({
         title: "Arrêter ce partage ?",
         message: `Le suivi avec ${(mode === "coach" ? l.athlete_name : l.coach_name) || "cette personne"} s’arrête. Les séances ne sont plus accessibles ; ton journal reste intact.`,
         confirmLabel: "Révoquer",
         danger: true,
-        action: () => rpc("revoke", { link_id: l.id, revision: l.revision }).then(() => ((selected = ""), (sessions = null), (assignments = null), load())).catch((err) => {
+        action: (job) => rpc("revoke", { link_id: l.id, revision: l.revision }, job).then(() => { if (!sameContext(job)) return; selected = ""; sessions = assignments = null; return load(); }).catch((err) => {
           throw new Error(human(err));
         }),
       });
@@ -359,7 +493,7 @@
     if (b.dataset.reuse) return propose(assignments?.rows.find((t) => t.id === b.dataset.reuse));
     if (b.dataset.task) return taskAction(assignments?.rows.find((t) => t.id === b.dataset.task), b.dataset.status);
     if (b.dataset.cancelInvite)
-      return window.titanShell.confirm({ title: "Annuler cette invitation ?", message: "Le code ne pourra plus être accepté. Les suivis actifs restent.", confirmLabel: "Annuler l’invitation", action: () => rpc("cancel_invite", { id: b.dataset.cancelInvite }).then(load) });
+      return confirm({ title: "Annuler cette invitation ?", message: "Le code ne pourra plus être accepté. Les suivis actifs restent.", confirmLabel: "Annuler l’invitation", action: (job) => rpc("cancel_invite", { id: b.dataset.cancelInvite }, job).then(() => { if (sameContext(job)) return load(); }) });
     if (b.hasAttribute("data-more-tasks")) return loadDetail({ moreAssignments: true });
     if (b.hasAttribute("data-more-sessions")) return loadDetail({ moreSessions: true });
   }
@@ -367,6 +501,7 @@
   function onSubmit(e) {
     if (!e.target.matches("[data-period]")) return;
     e.preventDefault();
+    if (!activeView()) return;
     const f = new FormData(e.target);
     fromDate = f.get("from");
     toDate = f.get("to");
@@ -383,10 +518,14 @@
     booted = true;
     SP()?.ensure?.();
     root.addEventListener("click", onClick);
+    root.addEventListener("keydown", onTabKey);
+    root.addEventListener("focusout", onTabExit);
     root.addEventListener("submit", onSubmit);
     render();
     load();
   }
+  window.addEventListener("titan:account-changing", () => booted && invalidate());
+  window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("online", () => booted && load());
   document.addEventListener("visibilitychange", () => {
     if (!booted) return;
