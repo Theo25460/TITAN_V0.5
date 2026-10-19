@@ -450,3 +450,19 @@ test("session exclusion: a server refusal is explained in French and the file st
   assert.equal(await modal.locator('[data-session-exclude="r2"]').innerText().then((t) => t.trim()), "Exclure des classements", "unchanged after a refusal");
   await context.close();
 });
+
+test("admin image fields accept only site paths and the project's storage (the CSP blocks every other image host)", async () => {
+  const { page, context } = await open(1280);
+  await page.locator("[data-moderation-user]").first().waitFor();
+  const verdicts = await page.evaluate(() => {
+    const check = window.titanAdminValidators.imageUrlProblem;
+    return Object.fromEntries(["", null, "/image/boss.webp", "./image/boss.webp", "image/boss.webp", "https://oubmftfufwwzwpgvrcag.supabase.co/storage/v1/object/public/avatars/a.png",
+      "https://evil.example.test/p.gif", "//evil.example.test/p.gif", "http://oubmftfufwwzwpgvrcag.supabase.co/x.png", "javascript:alert(1)", "data:image/png;base64,AAAA",
+      "https://oubmftfufwwzwpgvrcag.supabase.co.evil.test/x.png"].map((v) => [String(v), check(v)]));
+  });
+  for (const ok of ["", "null", "/image/boss.webp", "./image/boss.webp", "image/boss.webp", "https://oubmftfufwwzwpgvrcag.supabase.co/storage/v1/object/public/avatars/a.png"]) assert.equal(verdicts[ok], null, `${ok} is accepted`);
+  for (const bad of ["https://evil.example.test/p.gif", "//evil.example.test/p.gif", "http://oubmftfufwwzwpgvrcag.supabase.co/x.png", "javascript:alert(1)", "data:image/png;base64,AAAA", "https://oubmftfufwwzwpgvrcag.supabase.co.evil.test/x.png"]) {
+    assert.match(verdicts[bad], /Image/, `${bad} is refused with a French explanation`);
+  }
+  await context.close();
+});

@@ -1853,6 +1853,19 @@
         `;
     }
 
+    // The Content-Security-Policy only lets images come from this site and the project's storage: say so at save time
+    // instead of leaving a silently broken picture on a public page.
+    const IMAGE_FIELDS = new Set(['image_url', 'cover_image_url']);
+    function imageUrlProblem(value) {
+        const url = String(value ?? '').trim();
+        if (!url) return null;
+        const project = String(window.TITAN_SUPABASE_URL || '').replace(/\/+$/, '');
+        const own = project && url.startsWith(`${project}/storage/`);
+        const local = (url.startsWith('/') && !url.startsWith('//')) || url.startsWith('./') || /^[a-z0-9_-][a-z0-9_./-]*$/i.test(url);
+        return own || local ? null : 'Image : utilise un chemin du site (/image/…) ou le stockage du projet ; les autres hôtes sont bloqués par la politique de sécurité.';
+    }
+    window.titanAdminValidators = { imageUrlProblem };
+
     function readFormPayload(fields) {
         const payload = {};
         fields.forEach((field) => {
@@ -1866,6 +1879,10 @@
                 const raw = el.value.trim();
                 payload[field.key] = raw ? JSON.parse(raw) : {};
             } else {
+                if (IMAGE_FIELDS.has(field.key)) {
+                    const problem = imageUrlProblem(el.value);
+                    if (problem) throw new Error(problem);
+                }
                 payload[field.key] = el.value.trim() === '' ? null : el.value.trim();
             }
         });
