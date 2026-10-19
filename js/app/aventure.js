@@ -45,7 +45,7 @@
         const finished = p?.chapter >= 10;
         return `<button type="button" role="tab" class="av-world" data-world="${w.id}" aria-selected="${w.id === world.id}" style="--world:${w.color}">
           <img src="/assets/renaissance/${w.image}-xs.webp" alt="" width="480" height="270" loading="lazy" decoding="async">
-          <span class="av-world-copy"><small>${w.tier === "plus" ? "TITAN+" : "Gratuit"} · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
+          <span class="av-world-copy"><small>Gratuit · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
           <span class="av-world-bar"><span style="--p:${Math.round((finished ? 9 : done(p)) / 9 * 100)}%"></span></span>
         </button>`;
       })
@@ -69,11 +69,11 @@
   }
 
   function missionHtml(world, p, s) {
-    const locked = world.tier === "plus" && !s.plus;
+    const locked = !isGuest() && (s.version || 1) < 3 && ["forge", "aurores"].includes(world.id) && !s.plus;
     if (locked)
-      return `<section class="av-panel"><p class="asc-eyebrow">Campagne TITAN+</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
-        <p class="asc-small asc-muted">9 chapitres, 9 insignes cosmétiques et un gardien. Les mêmes règles de progression que les campagnes gratuites : aucun bonus de puissance, aucune XP en plus.</p>
-        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/boutique">Découvrir TITAN+</a><button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></div></section>`;
+      return `<section class="av-panel"><p class="asc-eyebrow">Campagne gratuite</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
+        <p class="asc-small asc-muted">L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.</p>
+        <button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></section>`;
     if (p.chapter >= 10)
       return `<section class="av-panel is-complete"><p class="asc-eyebrow">Campagne accomplie</p><h2 class="asc-h2">${esc(world.guardian)} te reconnaît</h2><p>${esc(world.ending)}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-secondary" href="/profile#collection">Voir ma collection</a></div></section>`;
     if (!p.chapter)
@@ -113,24 +113,33 @@
 
   function valleyHtml(world, p, snapshot) {
     const owner = window.state?.user?.id;
-    if (world.id !== "aube" || !owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
     const model = window.TitanCampaignQuests?.plan({ campaign: p, history: window.TitanData?.logs?.() || [], guest: isGuest(), owner,
-      effortOf: log => window.TitanProgress.effortOf(log).effortMinutes });
+      effortOf: log => window.TitanProgress.effortOf(log).effortMinutes, serverVersion: snapshot.version });
     if (!model) return "";
     const source = p.evidence?.source_ids?.[0];
     return `<section class="asc-section av-panel" data-valley-encounter>
-      <p class="asc-eyebrow">La vallée de l’Aube · rencontre du chapitre ${p.chapter}</p>
+      <p class="asc-eyebrow">${esc(world.name)} · rencontre du chapitre ${p.chapter}</p>
       <h2 class="asc-h2">${esc(model.encounter.name)}</h2><p>${esc(model.encounter.text)}</p>
-      <details class="av-rules" data-rpg-quests="aube:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
+      <details class="av-rules" data-rpg-quests="${esc(world.id)}:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
         <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni coins supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
-        <p class="asc-small asc-muted">${model.profile.days ? `Cibles calculées sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour${model.profile.daysTarget > 1 ? "s" : ""} et ${model.profile.effortTarget} min d’effort. Chaque jour pèse autant ; 90 min au plus servent au calcul par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil." : "Les compteurs de jours et d’effort proviennent de ta progression de campagne."}</p>
+        <p class="asc-small asc-muted">${model.authority === "server" ? `Cibles figées par le serveur au départ du chapitre : ${F().number(model.profile.daysTarget)} jour(s) et ${F().number(model.profile.effortTarget)} min d’effort, d’après les jours admissibles des 28 jours précédents (90 min au plus par jour).${model.profile.legacy ? " Chapitre déjà commencé : cibles douces conservées lors de la mise à jour." : ""} Les souvenirs des missions remplies sont confirmés quand tu allumes la balise ; une mission incomplète ne bloque pas la suite.` : `${model.profile.days ? `Cibles indicatives sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour(s) et ${model.profile.effortTarget} min d’effort, 90 min au plus par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil, sans nouveaux souvenirs." : "Ces préparatifs sont indicatifs sur cette version du serveur, sans nouveaux souvenirs."}`}</p>
         <div class="asc-stack">${model.quests.map(q => `<article class="asc-note" data-quest="${q.id}" data-complete="${q.complete}">
           ${icon(q.complete ? "check" : q.id === "note" ? "journal" : "route")}<div class="asc-stack-sm"><strong>${esc(q.name)}</strong>
           <span class="asc-small">${q.available ? `${F().number(q.value)}/${F().number(q.target)} ${esc(q.unit)}${q.complete ? " · préparatif réuni" : ""}` : "Mesure d’effort indisponible sur cette version du serveur."}</span>
+          ${q.reward ? `<span class="asc-small asc-muted">Souvenir prévu : ${esc(q.reward)} · ${q.complete ? "prêt à confirmer avec la balise" : "mission à remplir"}. Cosmétique, sans XP ni coins.</span>` : ""}
           ${q.id === "note" ? '<span class="asc-small asc-muted">Une note d’au moins 10 caractères sur une séance citée dans les preuves du chapitre.</span>' : ""}
           ${!q.complete && q.available ? `<a class="asc-link asc-small" href="${q.id === "note" && source ? `/journal?session=${encodeURIComponent(source)}` : "/training"}">${q.id === "note" && source ? "Retrouver la séance dans le journal" : "Enregistrer une séance à ton rythme"}</a>` : ""}
           </div></article>`).join("")}</div>
       </details></section>`;
+  }
+
+  function questSouvenirsHtml(world, snapshot) {
+    const owner = window.state?.user?.id;
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active || isGuest() || snapshot.version < 3) return "";
+    const earned = (Array.isArray(snapshot.quest_rewards) ? snapshot.quest_rewards : []).filter(r => r.world === world.id && Number.isInteger(r.chapter) && r.chapter >= 1 && r.chapter <= 9 && window.TitanCampaignQuests?.rewardName(r.quest_id));
+    if (!earned.length) return "";
+    return `<section class="asc-section av-panel" data-quest-souvenirs><h2 class="asc-h2">Souvenirs de quêtes confirmés</h2><p class="asc-small asc-muted">Conservés dans ton carnet, même après une correction de séance. Ils ne donnent ni XP ni coins.</p><div class="asc-stack">${earned.map(r => `<p class="asc-note" data-quest-souvenir>${icon("star")}<span>Chapitre ${r.chapter} · ${esc(window.TitanCampaignQuests.rewardName(r.quest_id))}</span></p>`).join("")}</div></section>`;
   }
 
   function guardianHtml(world, p, snapshot) {
@@ -187,6 +196,7 @@
       ${guardianHtml(world, p, s)}
       ${valleyHtml(world, p, s)}
       ${carnetHtml(world, p)}
+      ${questSouvenirsHtml(world, s)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
         <p>${effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
@@ -295,7 +305,7 @@
     });
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
-  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter]").forEach(el => el.remove()));
+  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter], [data-quest-souvenirs]").forEach(el => el.remove()));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

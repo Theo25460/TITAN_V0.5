@@ -273,8 +273,6 @@
         next.avatar = a.id;
       } else {
         if (!c) throw new Error("INVALID_WORLD");
-        if (["start", "claim"].includes(action) && c.tier === "plus")
-          throw new Error("TITAN_PLUS_REQUIRED");
         if (action === "start" && !c.chapter) {
           c.chapter = 1;
           c.target = C.worlds.find((w) => w.id === c.id).chapters[0].target;

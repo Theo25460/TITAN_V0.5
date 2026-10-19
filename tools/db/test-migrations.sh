@@ -71,4 +71,11 @@ fi
 [[ "$guard" == "Refused: support concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · support non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-support-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Adventure concurrency contracts (two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-adventure-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "adventure runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: adventure concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · adventure non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-adventure-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

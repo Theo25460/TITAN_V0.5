@@ -71,3 +71,43 @@ do $$ begin
 end $$;
 reset role;
 rollback;
+
+-- Pure profile contract with canonical server fixtures: multisport parity, median, exclusions and timezone.
+begin;
+do $$
+declare a uuid:=gen_random_uuid(); q jsonb; other jsonb; t timestamptz:=now();
+begin
+  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+  insert into auth.users(id,raw_user_meta_data) values(a,'{}');
+  insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at)
+  select a,'swimming','training',40,'min',t-make_interval(days=>i),
+    '{"serverReward":true,"duration":40}',t-make_interval(days=>i) from generate_series(1,5) i;
+  perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
+  q:=private.titan_adventure_quest_profile(t,'UTC');
+  assert q->>'days'='5' and q->>'daysTarget'='2' and q->>'effortTarget'='20','five days and median40 =>2days/20min';
+  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+  update public.training_logs set sport='running' where user_id=a;
+  -- A huge day cannot dominate the median or add more days.
+  insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at)
+  values(a,'yoga','training',120,'min',t-interval '1 day','{"serverReward":true,"duration":120}',t-interval '1 day');
+  -- These rows must contribute neither days nor effort.
+  insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at,archived_at,status,is_suspicious)
+  values
+    (a,'yoga','training',20,'min',t-interval '6 days','{"serverReward":false}',t-interval '6 days',null,'valid',false),
+    (a,'yoga','training',20,'min',t-interval '7 days','{"serverReward":true,"historical":true}',t-interval '7 days',null,'valid',false),
+    (a,'yoga','training',20,'min',t-interval '8 days','{"serverReward":true}',t-interval '8 days',t,'valid',false),
+    (a,'yoga','training',20,'min',t-interval '9 days','{"serverReward":true}',t-interval '9 days',null,'flagged',true),
+    (a,'yoga','training',20,'min',t-interval '10 days','{"serverReward":true}',t+interval '1 minute',null,'valid',false);
+  perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
+  other:=private.titan_adventure_quest_profile(t,'UTC');
+  assert other=q,'sport-independent; duplicated volume and invalid/late sources cannot inflate targets';
+  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+  delete from public.training_logs where user_id=a;
+  insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at)
+  values(a,'yoga','training',20,'min',date_trunc('day',t)-interval '2 days'+interval '30 minutes','{"serverReward":true}',t-interval '1 day'),
+    (a,'yoga','training',20,'min',date_trunc('day',t)-interval '2 days'+interval '23 hours 30 minutes','{"serverReward":true}',t-interval '1 day');
+  perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
+  assert private.titan_adventure_quest_profile(t,'UTC')->>'days'='1','UTC daily grouping';
+  assert private.titan_adventure_quest_profile(t,'America/Los_Angeles')->>'days'='2','campaign timezone daily grouping';
+end $$;
+rollback;

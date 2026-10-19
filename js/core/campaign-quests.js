@@ -1,5 +1,5 @@
-/* Personal valley quests: read-only companions to confirmed campaign progress.
-   No claims, rewards, persistence, timers or server mutations. */
+/* Read-only quest presentation. Account v3 targets/progress come exclusively from the server.
+   Discovery and older servers keep indicative personal preparations. No mutation here. */
 (function(root){
   'use strict';
   const encounters = [
@@ -15,7 +15,27 @@
   ];
   const finite = v => Number.isFinite(Number(v)) ? Math.max(0,Number(v)) : 0;
   const invalid = l => !l || l.archived_at || l.is_suspicious || ['rejected','flagged','pending_review'].includes(l.status) || l.details?.historical===true || l.details?.historical==='true';
-  function plan({campaign:c,history=[],guest=false,owner=null,effortOf}={}){
+  const rewards={days:'Éclat de constance',effort:'Éclat d’élan',note:'Éclat de mémoire'};
+  const names={days:['Retrouver le chemin','jours actifs'],effort:['Rassembler les éclats','min d’effort'],note:['Laisser une trace','séance annotée']};
+  function rewardName(id){return rewards[id]||null;}
+  function serverPlan(c){
+    const data=c.quests,profile=data?.profile;
+    if(data?.version!==1||!profile||!Array.isArray(data.items)||data.items.length!==3)return null;
+    const quests=[];
+    for(const id of ['days','effort','note']){
+      const q=data.items.find(q=>q.id===id),max=id==='days'?3:id==='effort'?45:1;
+      if(!q||!Number.isFinite(q.target)||q.target<1||q.target>max||!Number.isFinite(q.value)||q.value<0||typeof q.complete!=='boolean')return null;
+      quests.push({id,name:names[id][0],unit:names[id][1],value:Math.min(q.target,q.value),target:q.target,available:true,complete:q.complete,reward:rewards[id]});
+    }
+    const completed=quests.filter(q=>q.complete).length;
+    const scene=c.id==='aube'?encounters[c.chapter-1]:['Les repères du voyage','Trois missions facultatives accompagnent ce chapitre.','Tes préparatifs prennent forme.','Tes préparatifs sont réunis.'];
+    return {chapter:c.chapter,authority:'server',profile:{...profile},quests,completed,encounter:{name:scene[0],text:scene[completed===3?3:completed?2:1]}};
+  }
+  function plan({campaign:c,history=[],guest=false,owner=null,effortOf,serverVersion=0}={}){
+    if(!guest&&serverVersion>=3){
+      if(!['aube','marees','forge','aurores'].includes(c?.id)||!Number.isInteger(c.chapter)||c.chapter<1||c.chapter>9)return null;
+      return serverPlan(c);
+    }
     if(c?.id!=='aube'||!Number.isInteger(c.chapter)||c.chapter<1||c.chapter>9)return null;
     const anchor=Date.parse(c.started_at),from=anchor-28*86400000;
     const owned=l=>!owner||!l.user_id||l.user_id===owner;
@@ -50,6 +70,6 @@
     const completed=quests.filter(q=>q.complete).length,[name,intro,progress,ending]=encounters[c.chapter-1];
     return {chapter:c.chapter,profile:{days,daysTarget,effortTarget,windowDays:28},quests,completed,encounter:{name,text:completed===3?ending:completed?progress:intro}};
   }
-  const api={plan};root.TitanCampaignQuests=api;
+  const api={plan,rewardName};root.TitanCampaignQuests=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

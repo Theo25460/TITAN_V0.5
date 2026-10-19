@@ -214,10 +214,8 @@ test("guest campaign cannot consume old sessions, double claim or convert a clai
     () => A.action("claim", { world: "aube", chapter: 1 }),
     /QUEST_INCOMPLETE/,
   );
-  await assert.rejects(
-    () => A.action("start", { world: "forge" }),
-    /TITAN_PLUS_REQUIRED/,
-  );
+  await A.action("start", { world: "forge", route: "rhythm" });
+  assert.equal(A.snapshot.campaigns.find(c=>c.id==='forge').chapter,1);
 });
 test("guest action never reports success when persistent storage fails", async () => {
   const { A } = env({ browser: true, storageFailure: true });
