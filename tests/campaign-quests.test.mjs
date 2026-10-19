@@ -34,3 +34,19 @@ test('confirmed submit receipts contribute to adaptation while provisional rows 
  assert.equal(a.plan({campaign,history}).profile.daysTarget,2);
  assert.equal(a.plan({campaign,history:history.map(l=>({...l,syncStatus:'pending'}))}).profile.daysTarget,1);
 });
+const serverCampaign={...campaign,quests:{version:1,profile:{days:8,daysTarget:2,effortTarget:35,windowDays:28,frozen_at:campaign.started_at},items:[{id:'days',value:1,target:2,complete:false},{id:'effort',value:20,target:35,complete:false},{id:'note',value:1,target:1,complete:true}]}};
+test('server quests use frozen profile and progress regardless of local history',()=>{
+ const p=api().plan({campaign:serverCampaign,serverVersion:3,history:[]});
+ assert.equal(p.authority,'server');assert.equal(p.profile.effortTarget,35);assert.equal(p.quests[2].complete,true);assert.equal(p.completed,1);
+ const changed=api().plan({campaign:serverCampaign,serverVersion:3,history:Array.from({length:15},(_,n)=>old(n,10000))});
+ assert.equal(JSON.stringify(p),JSON.stringify(changed));assert.match(p.quests[0].reward,/constance/);
+});
+test('version3 missing or malformed quests never fall back to invented account targets',()=>{
+ assert.equal(api().plan({campaign,serverVersion:3}),null);
+ assert.equal(api().plan({campaign:{...serverCampaign,quests:{...serverCampaign.quests,items:[]}},serverVersion:3}),null);
+ assert.equal(api().plan({campaign:{...serverCampaign,quests:{...serverCampaign.quests,items:serverCampaign.quests.items.map(q=>({...q,target:-1}))}},serverVersion:3}),null);
+});
+test('server quests cover all campaign regions and clamp displayed progress without mutating inputs',()=>{
+ const c=structuredClone(serverCampaign);c.id='forge';c.quests.items[0].value=999;const before=JSON.stringify(c);
+ const p=api().plan({campaign:c,serverVersion:3});assert.ok(p);assert.equal(p.quests[0].value,2);assert.equal(JSON.stringify(c),before);
+});

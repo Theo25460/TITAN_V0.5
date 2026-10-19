@@ -69,6 +69,14 @@ const ex = (weight, reps = 10, variant = "") => ({
   setRows: [{ weight, reps, rir: null }],
 });
 
+test('all four campaigns start freely in discovery', async()=>{
+ const {A}=env({browser:true});await A.refresh();
+ for(const world of ['aube','marees','forge','aurores']){
+  await A.action('start',{world,route:'rhythm'});
+  assert.equal(A.snapshot.campaigns.find(c=>c.id===world).chapter,1);
+ }
+});
+
 test("records exclude archived/future sessions and compare whole distances with explicit tolerance", () => {
   const { I } = env();
   const rows = [
