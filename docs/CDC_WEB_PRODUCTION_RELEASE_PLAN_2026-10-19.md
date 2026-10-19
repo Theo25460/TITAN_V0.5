@@ -1,15 +1,15 @@
-# Plan de mise en production — 15 migrations en attente (A09, A10, A11)
+# Plan de mise en production — 16 migrations en attente (A09, A10, A11)
 
-Document de préparation. **Rien n'est appliqué par ce document.** Production lue en lecture seule le 19/10/2026 (comptages uniquement) : dernière migration appliquée `20261005230000`, 15 migrations du dépôt jamais appliquées.
+Document de préparation. **Rien n'est appliqué par ce document.** Production lue en lecture seule le 19/10/2026 (comptages uniquement) : dernière migration appliquée `20261005230000`, 16 migrations du dépôt jamais appliquées.
 
 ## 1. Portes à passer, dans l'ordre
 
 1. **CI verte** sur le commit à publier (tests, E2E, banc de migrations deux voies).
 2. **Contrôle préalable** : exécuter `tools/db/preflight-production.sql` (un seul `SELECT`, aucune écriture) sur la base cible. Toute ligne `blocking = true` doit avoir `ok = true`, sinon **ne rien appliquer**. Résultat du 19/10/2026 sur la production : 22 lignes après correction de la revue (role/status ajoutés, vérifiés à 0 violation), tous les contrôles bloquants OK (4 cosmétiques présents, 0 solde/XP/niveau négatif, 0 montant négatif, 0 doublon d'achat cosmétique, 0 transaction longue, 0 migration du lot déjà appliquée).
 3. **Sauvegarde vérifiée (A11)** : point de restauration Supabase du jour visible dans le tableau de bord, **et** restauration réellement essayée sur un projet ou une branche jetable (jamais sur la production) ; relancer le contrôle préalable sur cette copie et appliquer le lot dessus (étape 4). Une sauvegarde jamais restaurée n'est pas une sauvegarde.
-4. **Répétition sur la copie restaurée** : appliquer les 15 migrations dans l'ordre, relancer les suites `sql/tests/` (`pnpm run test:db` sur banc local ; sur la copie, au minimum le contrôle préalable puis un parcours achat/suppression/modération à la main).
+4. **Répétition sur la copie restaurée** : appliquer les 16 migrations dans l'ordre, relancer les suites `sql/tests/` (`pnpm run test:db` sur banc local ; sur la copie, au minimum le contrôle préalable puis un parcours achat/suppression/modération à la main).
 5. **Capture des données qui seront réécrites** (voir §3), enregistrée hors de la base.
-6. **Fenêtre calme** (aucune transaction longue), puis application **un fichier à la fois, dans l'ordre du §2**, en s'arrêtant à la première erreur. Les fichiers 2, 3, 8, 12, 13 et 14 posent eux-mêmes un `lock_timeout` de 5 s ; avant les fichiers 1, 7, 10 et 11 (qui modifient une fonction, une politique de `analytics_events` ou `adventure_progress` sans `lock_timeout`), exécuter dans la même session `SET lock_timeout = '5s';`. Les fichiers 4, 5, 6 et 9 ne créent que des objets nouveaux.
+6. **Fenêtre calme** (aucune transaction longue), puis application **un fichier à la fois, dans l'ordre du §2**, en s'arrêtant à la première erreur. Les fichiers 2, 3, 8, 12, 13, 14 et 16 posent eux-mêmes un `lock_timeout` de 5 s ; avant les fichiers 1, 7, 10 et 11 (qui modifient une fonction, une politique de `analytics_events` ou `adventure_progress` sans `lock_timeout`), exécuter dans la même session `SET lock_timeout = '5s';`. Les fichiers 4, 5, 6 et 9 ne créent que des objets nouveaux.
 7. Après chaque fichier : `select version from supabase_migrations.schema_migrations order by version desc limit 3;`. Après le dernier : refaire le contrôle préalable (les lignes de prérequis doivent rester vraies) et un parcours de recette (§5).
 
 Aucune migration n'est destructive pour les données des joueurs ; la seule réécriture de données est décrite au §3.
@@ -33,6 +33,7 @@ Aucune migration n'est destructive pour les données des joueurs ; la seule ré�
 | 13 | `20261019120000_purchase_integrity_admin_moderation` | garde de profil, RPC admin, index unique des achats cosmétiques | non | `docs/CDC_WEB_PURCHASE_MODERATION_HANDOFF_2026-10-19.md` |
 | 14 | `20261019150000_moderation_queue` | file et décisions de modération | non (nouvelle table) | `docs/CDC_WEB_MODERATION_QUEUE_HANDOFF_2026-10-19.md` |
 | 15 | `20261019180000_session_risk` | fonction privée + RPC admin de risque par séance, lecture seule | non | `DROP FUNCTION public.titan_session_risk_v1(uuid,integer); DROP FUNCTION private.titan_session_risk(uuid,integer);` |
+| 16 | `20261019200000_rate_limits` | table privée d'événements, limiteur et 3 déclencheurs (`guild_members`, `shop_history`, `training_logs` en modification) | non | `DROP TRIGGER titan_rate_limit_guild_members ON public.guild_members; DROP TRIGGER titan_rate_limit_shop_history ON public.shop_history; DROP TRIGGER titan_rate_limit_training_logs ON public.training_logs; DROP FUNCTION private.titan_rate_limit_trigger(); DROP FUNCTION private.titan_rate_limit(uuid,text,integer,interval); DROP TABLE private.titan_rate_events;` |
 
 Chaque fichier laisse la transaction à l'appelant (aucun `BEGIN/COMMIT`) : ne pas les concaténer sans transaction englobante. Si le lot entier doit s'appliquer en un geste, le faire dans **une** transaction, sur la copie d'abord.
 
@@ -49,7 +50,7 @@ Conserver le résultat hors de la base (fichier chiffré ou coffre) : c'est l'un
 
 ## 4. Compatibilité site / base
 
-- L'ordre sûr est **base d'abord, site ensuite** pour les fichiers additifs (4, 5, 6, 9, 14, 15) : le site ancien ignore les nouvelles fonctions.
+- L'ordre sûr est **base d'abord, site ensuite** pour les fichiers additifs (4, 5, 6, 9, 14, 15, 16) : le site ancien ignore les nouvelles fonctions.
 - Fichier 7 : la politique restrictive refuse les événements d'analyse hors contrat. Un ancien site continue de fonctionner, ses événements non conformes sont rejetés (perte de mesure, pas d'erreur bloquante pour le joueur). Publier le site du même lot juste après.
 - Fichiers 2 et 12 : une écriture qui violerait `credits >= 0`, `xp >= 0`, `level >= 1`, `role` ou `status` dans leurs valeurs permises échouerait désormais, et le fichier 12 **valide** ces règles sur les lignes existantes : une seule ligne en violation le ferait échouer. Le contrôle préalable vérifie chacune d'elles.
 - Fichier 13 : un second achat d'un même cosmétique est refusé par l'index unique ; le contrôle préalable confirme 0 doublon.
