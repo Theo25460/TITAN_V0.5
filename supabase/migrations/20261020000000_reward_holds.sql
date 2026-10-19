@@ -11,7 +11,7 @@
 -- same grants (existing clients ignore unknown columns). The caller owns the transaction.
 -- Rollback: re-apply titan_submit_training_session from 20261005160000_ascension_progression_v300.sql and
 --   titan_session_exclusion_v1 from 20261019210000_session_exclusion.sql; select cron.unschedule('titan_release_reward_holds');
---   drop function private.titan_release_due_reward_holds(); drop function private.titan_reward_hold_settle(uuid, boolean);
+--   drop function private.titan_release_due_reward_holds(); drop function private.titan_reward_hold_settle(uuid, boolean, boolean);
 --   then drop table private.titan_reward_holds only once no hold is still 'held' (it would forfeit those rewards).
 
 create table if not exists private.titan_reward_holds (
@@ -32,7 +32,9 @@ alter table private.titan_reward_holds enable row level security;
 revoke all on table private.titan_reward_holds from public, anon, authenticated;
 
 -- grant = true: credit a held (or previously cancelled) reward once; grant = false: cancel a held reward.
-create or replace function private.titan_reward_hold_settle(p_log uuid, p_grant boolean)
+-- p_only_held = true (the hourly job): credit ONLY a still-held reward, so an exclusion that committed after the job
+-- read the session can never be overridden; only an administrator's restoration may turn cancelled into released.
+create or replace function private.titan_reward_hold_settle(p_log uuid, p_grant boolean, p_only_held boolean default false)
 returns void
 language plpgsql
 security definer
@@ -46,7 +48,7 @@ begin
     return;
   end if;
   if p_grant then
-    if v_hold.status in ('held', 'cancelled') then
+    if v_hold.status = 'held' or (v_hold.status = 'cancelled' and not p_only_held) then
       -- When an administrator's restoration triggers the grant, the profile guard needs its documented admin marker
       -- (transaction-local, honoured only for an administrator caller); the job runs without a JWT and needs none.
       perform set_config('titan.admin_profile_write', 'on', true);
@@ -59,7 +61,7 @@ begin
   end if;
 end;
 $function$;
-revoke all on function private.titan_reward_hold_settle(uuid, boolean) from public, anon, authenticated;
+revoke all on function private.titan_reward_hold_settle(uuid, boolean, boolean) from public, anon, authenticated;
 
 -- Credits every due hold of an account in good standing; returns how many were credited. One failing hold is isolated.
 create or replace function private.titan_release_due_reward_holds()
@@ -89,7 +91,7 @@ begin
       if coalesce(v_row.is_suspicious, false) then
         perform private.titan_reward_hold_settle(v_row.log_id, false);
       else
-        perform private.titan_reward_hold_settle(v_row.log_id, true);
+        perform private.titan_reward_hold_settle(v_row.log_id, true, true);
         v_done := v_done + 1;
       end if;
     exception when others then
@@ -211,9 +213,10 @@ begin
   -- (released by private.titan_release_due_reward_holds, cancelled by an exclusion, granted by a restoration).
   -- Nothing already granted is ever taken back; the weekly allowance stays consumed.
   if not v_historical and (v_xp > 0 or v_credits > 0) then
-    v_held := coalesce((select (e ->> 'score')::integer >= 8
-                          from jsonb_array_elements(private.titan_session_risk(v_user_id, 100)) e
-                         where e ->> 'id' = v_log_id), false);
+    -- A session missing from the 100 most recent scored ones (a back-dated entry among many newer sessions) cannot be
+    -- scored: it is held out of caution rather than rewarded unchecked.
+    v_held := coalesce((select max(case when e ->> 'id' = v_log_id then (e ->> 'score')::integer end) >= 8
+                          from jsonb_array_elements(private.titan_session_risk(v_user_id, 100)) e), true);
   end if;
   if v_held then
     v_release_at := now() + interval '24 hours';

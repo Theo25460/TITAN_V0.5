@@ -28,7 +28,7 @@ do $$ begin
   assert not has_function_privilege('anon','public.titan_submit_training_session(text,text,numeric,text,jsonb,timestamptz)','execute'),'anon cannot submit';
   assert has_function_privilege('authenticated','public.titan_submit_training_session(text,text,numeric,text,jsonb,timestamptz)','execute'),'authenticated keeps submit';
   assert has_function_privilege('authenticated','public.titan_session_exclusion_v1(uuid,boolean,text)','execute'),'and the exclusion RPC (admin checked inside)';
-  assert not has_function_privilege('authenticated','private.titan_release_due_reward_holds()','execute') and not has_function_privilege('authenticated','private.titan_reward_hold_settle(uuid,boolean)','execute'),'private functions closed';
+  assert not has_function_privilege('authenticated','private.titan_release_due_reward_holds()','execute') and not has_function_privilege('authenticated','private.titan_reward_hold_settle(uuid,boolean,boolean)','execute'),'private functions closed';
   assert not has_table_privilege('authenticated','private.titan_reward_holds','select'),'table closed to API roles';
 end $$;
 rollback;

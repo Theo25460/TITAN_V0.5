@@ -117,4 +117,35 @@ begin
   select credits,xp,level into after_p from public.profiles where id=p;
   assert (after_p.credits,after_p.xp,after_p.level)=(before_p.credits,before_p.xp,before_p.level),'no double grant';
 end $$;
+-- Review findings: a cancelled hold is never credited by the job path; a session that cannot be scored is held.
+reset role;
+do $$
+declare p uuid:=current_setting('titan.rh_p')::uuid; a uuid:=current_setting('titan.rh_a')::uuid; l uuid:=gen_random_uuid(); before_p record; after_p record; r record; u uuid:=gen_random_uuid();
+begin
+  perform set_config('request.jwt.claims','',true);
+  select credits,xp,level into before_p from public.profiles where id=p;
+  set local session_replication_role = replica;
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details,is_suspicious)
+    values (l,p,'running','cardio',10,'km',5,now()-interval '5 hours','{"duration":60}',true);
+  insert into private.titan_reward_holds(log_id,user_id,xp,credits,release_at,status,settled_at)
+    values (l,p,40,4,now()-interval '1 hour','cancelled',now());
+  set local session_replication_role = origin;
+  perform private.titan_reward_hold_settle(l,true,true);
+  select credits,xp,level into after_p from public.profiles where id=p;
+  assert (after_p.credits,after_p.xp,after_p.level)=(before_p.credits,before_p.xp,before_p.level),'the job path never credits a cancelled hold';
+  assert (select status from private.titan_reward_holds where log_id=l)='cancelled','and leaves it cancelled';
+
+  -- 101 newer sessions push a back-dated one out of the scored window: it is held out of caution.
+  insert into auth.users(id,raw_user_meta_data) values(u,'{}');
+  update public.profiles set xp=0,credits=0,level=1 where id=u;
+  set local session_replication_role = replica;
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,created_at,details)
+    select u,'yoga','mobility',30,'min',1, now()-interval '2 days'+g*interval '1 minute', now()-interval '3 days','{"duration":30}' from generate_series(1,101) g;
+  set local session_replication_role = origin;
+  perform set_config('request.jwt.claims',json_build_object('sub',u,'role','authenticated')::text,true);
+  set local role authenticated;
+  select * into r from public.titan_submit_training_session('yoga','mobility',30,'min',jsonb_build_object('duration',30,'client_event_id',gen_random_uuid()),now()-interval '20 days');
+  assert r.reward_held,'a back-dated session outside the scored window is held';
+  reset role;
+end $$;
 rollback;

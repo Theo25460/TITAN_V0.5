@@ -10,7 +10,9 @@ Migration `20261020000000_reward_holds.sql` (22e du lot, non appliquée) :
 
 Tests : `sql/tests/300_reward_holds.sql` (séance normale créditée aussitôt ; saut de vitesse retenu, solde intact, délai borné, rejeu du reçu sans seconde retenue ; exclusion annule ; rétablissement crédite une fois ; échéance via la tâche, jamais deux fois, jamais pour compte suspendu ; tables et tâche fermées aux rôles API), `300_z_reward_holds_migration.sql` (rejeu idempotent), e2e du récap retenu. Sensibilité vérifiée : seuil 8→9 et double crédit rendent le test rouge. Bancs deux voies verts, verify 254.
 
-Limites assumées : le score est calculé à chaque enregistrement (fenêtre 120 jours, 100 séances) ; une séance antidatée au-delà des 100 plus récentes n'est pas retenue ; la valeur affichée en local (XP de la séance) reste 0 jusqu'au prochain rechargement du journal après libération ; les 8 profils légitimes du test CHEAT20 n'atteignent jamais le seuil.
+Revue indépendante : 2 défauts moyens corrigés — (1) la tâche horaire ne peut plus créditer une retenue annulée par une exclusion concurrente (`p_only_held`) ; (2) une séance antidatée hors des 100 séances notées est retenue par prudence au lieu d'être créditée sans contrôle. Tests ajoutés et mutations vérifiées. Défaut faible (message de retenue périmé en cache local) au backlog. Remarque : `sql/tests/300_social.sql` (existant) échoue pendant les 20 premières minutes qui suivent minuit à Paris (22:00–22:20 UTC), y compris sur la base d'avant ce lot ; à rendre indépendant de l'heure.
+
+Limites assumées : le score est calculé à chaque enregistrement (fenêtre 120 jours, 100 séances) ; une séance antidatée hors des 100 plus récentes est retenue par prudence (24 h) ; la valeur affichée en local (XP de la séance) reste 0 jusqu'au prochain rechargement du journal après libération ; les 8 profils légitimes du test CHEAT20 n'atteignent jamais le seuil.
 
 ## BLOQUANT À CORRIGER MAINTENANT
 Aucun connu.
