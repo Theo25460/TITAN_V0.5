@@ -65,8 +65,7 @@ end $$;
 
 -- Decisions: refused cases first.
 do $$ declare p1 uuid:=current_setting('titan.mq_p1')::uuid; a uuid:=current_setting('titan.mq_a')::uuid;
-  b uuid:=current_setting('titan.mq_b')::uuid; ok boolean; begin
-  foreach ok in array array[true] loop
+  b uuid:=current_setting('titan.mq_b')::uuid; begin
     begin perform public.titan_moderation_decide_v1(p1,'ban','QA reason'); assert false,'permanent ban refused';
     exception when others then assert sqlerrm='UNKNOWN_DECISION',sqlerrm; end;
     begin perform public.titan_moderation_decide_v1(p1,'watch','  '); assert false,'reason required';
@@ -79,7 +78,6 @@ do $$ declare p1 uuid:=current_setting('titan.mq_p1')::uuid; a uuid:=current_set
     exception when others then assert sqlerrm='ACCOUNT_NOT_FOUND',sqlerrm; end;
     begin perform public.titan_moderation_decide_v1(p1,'restore','QA not suspended'); assert false,'restore needs a suspension';
     exception when others then assert sqlerrm='NOT_SUSPENDED',sqlerrm; end;
-  end loop;
 end $$;
 
 -- Graduated decisions: watch, suspend, revert.
@@ -122,17 +120,59 @@ end $$;
 reset role;
 select set_config('request.jwt.claims','{"role":"service_role"}',true);
 select public.titan_log_suspicious_action(current_setting('titan.mq_p1')::uuid,'training_log.flagged','medium','TRAINING_FREQUENCY_HIGH','{}');
+update public.titan_suspicious_actions set status='confirmed'
+  where id=(select id from public.titan_suspicious_actions where user_id=current_setting('titan.mq_p1')::uuid
+    and reason='TRAINING_REVIEW_RECOMMENDED' order by created_at,id limit 1);
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.mq_a'),'role','authenticated')::text,true);
-do $$ declare p1 uuid:=current_setting('titan.mq_p1')::uuid; q jsonb; begin
+do $$ declare p1 uuid:=current_setting('titan.mq_p1')::uuid; q jsonb; r jsonb; begin
   q:=public.titan_moderation_queue_v1(10);
   assert (select (x->>'score')::int=3 from jsonb_array_elements(q->'entries') x where x->>'user_id'=p1::text),
     'only signals raised after the dismissal count';
-  -- Reverting the dismissal reopens exactly the signals it closed; the later one was never closed.
-  perform public.titan_moderation_revert_v1(current_setting('titan.mq_dismiss')::bigint,'QA finalement non');
+  -- Reverting the dismissal reopens the signals it closed, and says so when another tool changed some since.
+  r:=public.titan_moderation_revert_v1(current_setting('titan.mq_dismiss')::bigint,'QA finalement non');
+  assert (r->>'expected')::int=6 and (r->>'reopened')::int=5,'the revert reports 5 of 6 reopened';
   q:=public.titan_moderation_queue_v1(10);
   assert (select (x->>'score')::int=47 from jsonb_array_elements(q->'entries') x where x->>'user_id'=p1::text),
     'the reopened signals count again: 20 + 24 + 3';
+end $$;
+
+-- A revert never overwrites a change made elsewhere, nor touches an administrator or the caller.
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+update public.profiles set is_suspended=true where id=current_setting('titan.mq_p3')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.mq_a'),'role','authenticated')::text,true);
+do $$ declare p2 uuid:=current_setting('titan.mq_p2')::uuid; p3 uuid:=current_setting('titan.mq_p3')::uuid; a uuid:=current_setting('titan.mq_a')::uuid; s jsonb; begin
+  -- A legacy account suspended through is_suspended alone can be restored from the queue.
+  begin perform public.titan_moderation_decide_v1(p3,'suspend','QA already'); assert false,'already suspended';
+  exception when others then assert sqlerrm='ALREADY_SUSPENDED',sqlerrm; end;
+  perform public.titan_moderation_decide_v1(p3,'restore','QA legacy restore');
+  assert (select status='active' and not is_suspended from public.profiles where id=p3),'the legacy suspension is lifted';
+  -- Suspend p2, then another tool bans it: reverting the suspension must not lift the ban.
+  s:=public.titan_moderation_decide_v1(p2,'suspend','QA susp p2');
+  perform set_config('titan.mq_susp2',s->>'decision_id',true);
+end $$;
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+update public.profiles set status='banned' where id=current_setting('titan.mq_p2')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.mq_a'),'role','authenticated')::text,true);
+do $$ declare p2 uuid:=current_setting('titan.mq_p2')::uuid; begin
+  begin perform public.titan_moderation_revert_v1(current_setting('titan.mq_susp2')::bigint,'QA blind');
+    assert false,'blind revert'; exception when others then assert sqlerrm='ACCOUNT_STATE_CHANGED',sqlerrm; end;
+  assert (select status='banned' from public.profiles where id=p2),'the ban set elsewhere is untouched';
+  begin perform public.titan_moderation_decide_v1(p2,'restore','QA ban via queue'); assert false,'ban not liftable from the queue';
+  exception when others then assert sqlerrm='NOT_SUSPENDED',sqlerrm; end;
+end $$;
+reset role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+update public.profiles set status='suspended',role='admin' where id=current_setting('titan.mq_p2')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.mq_a'),'role','authenticated')::text,true);
+do $$ begin
+  begin perform public.titan_moderation_revert_v1(current_setting('titan.mq_susp2')::bigint,'QA promoted');
+    assert false,'revert on a promoted admin'; exception when others then assert sqlerrm='CANNOT_MODERATE_ADMIN',sqlerrm; end;
 end $$;
 
 -- Decisions are immutable and invisible to API roles.

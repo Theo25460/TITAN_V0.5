@@ -41,11 +41,12 @@ do $$ declare f text; begin
     assert has_function_privilege('authenticated',f,'execute') and not has_function_privilege('anon',f,'execute'),
       'signed-in administrators only: '||f;
   end loop;
-  foreach f in array array['private.titan_moderation_signals(uuid)','private.titan_moderation_level(integer)',
+  foreach f in array array['private.titan_moderation_signals(uuid)','private.titan_moderation_level(integer)','private.titan_moderation_weight(text)',
     'private.titan_moderation_require_admin()','private.titan_moderation_decisions_guard()'] loop
     assert not has_function_privilege('authenticated',f,'execute') and not has_function_privilege('anon',f,'execute'),
       'internal helper not callable: '||f;
   end loop;
+  assert (select count(*)=1 from pg_indexes where indexname='titan_suspicious_actions_open_user_idx'),'one open-signal index';
   assert not has_table_privilege('authenticated','private.titan_moderation_decisions','select,insert,update,delete'),
     'decisions are invisible to API roles';
   assert not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace

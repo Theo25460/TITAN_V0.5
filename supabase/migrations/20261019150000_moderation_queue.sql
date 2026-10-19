@@ -4,11 +4,11 @@
 -- rankings. A permanent ban is deliberately not an available decision (BOT07).
 -- The score is computed on demand from open rows of titan_suspicious_actions raised in the last 30 days.
 -- Per distinct reason it is weight(highest severity) x min(occurrences, 3), with weights low 1, medium 3,
--- high 8, critical 20, so a heavy trainer who trips the same soft signal fifty times weighs three points.
+-- high 8, critical 20 (private.titan_moderation_weight), so a heavy trainer who trips the same soft signal fifty times weighs three points.
 -- Levels: low < 8 <= watch < 20 <= review < 40 <= urgent.
 -- Only administrators (private.titan_is_admin, read from the profile) can read the queue or decide.
 -- The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: docs/CDC_WEB_MODERATION_QUEUE_HANDOFF_2026-10-19.md.
+-- Rollback: docs/CDC_WEB_MODERATION_QUEUE_HANDOFF_2026-10-19.md (section "Retour arrière").
 
 create table if not exists private.titan_moderation_decisions (
   id bigint generated always as identity primary key,
@@ -65,6 +65,17 @@ begin
   perform set_config('lock_timeout', previous_lock_timeout, true);
 end $$;
 
+-- One severity, one weight; used by every score so the displayed severity and points cannot drift apart.
+create or replace function private.titan_moderation_weight(p_severity text)
+returns integer
+language sql
+immutable
+set search_path = ''
+as $function$
+  select case p_severity when 'critical' then 20 when 'high' then 8 when 'medium' then 3 else 1 end;
+$function$;
+revoke all on function private.titan_moderation_weight(text) from public, anon, authenticated;
+
 -- One line per account and reason, with the points it adds.
 create or replace function private.titan_moderation_signals(p_user uuid default null)
 returns table (user_id uuid, reason text, severity text, occurrences integer, points integer, first_at timestamptz, last_at timestamptz)
@@ -74,11 +85,9 @@ security definer
 set search_path = ''
 as $function$
   select s.user_id, s.reason,
-    (array_agg(s.severity order by case s.severity when 'critical' then 4 when 'high' then 3 when 'medium' then 2 else 1 end desc))[1],
+    (array_agg(s.severity order by private.titan_moderation_weight(s.severity) desc))[1],
     count(*)::integer,
-    (case max(case s.severity when 'critical' then 20 when 'high' then 8 when 'medium' then 3 else 1 end) when null then 0
-      else max(case s.severity when 'critical' then 20 when 'high' then 8 when 'medium' then 3 else 1 end) end
-      * least(count(*), 3))::integer,
+    (max(private.titan_moderation_weight(s.severity)) * least(count(*), 3))::integer,
     min(s.created_at), max(s.created_at)
   from public.titan_suspicious_actions s
   where s.status = 'open' and s.user_id is not null
@@ -87,6 +96,10 @@ as $function$
   group by s.user_id, s.reason;
 $function$;
 revoke all on function private.titan_moderation_signals(uuid) from public, anon, authenticated;
+
+-- Keeps the 30-day aggregation of open signals cheap as the table grows.
+create index if not exists titan_suspicious_actions_open_user_idx
+  on public.titan_suspicious_actions (user_id, created_at desc) where status = 'open';
 
 create or replace function private.titan_moderation_level(p_score integer)
 returns text
@@ -168,22 +181,24 @@ as $function$
 declare
   v_profile record;
   v_score integer;
+  v_signals jsonb;
 begin
   perform private.titan_moderation_require_admin();
   select id, username, status, is_suspended into v_profile from public.profiles where id = p_user;
   if not found then
     raise exception 'ACCOUNT_NOT_FOUND' using errcode = 'P0002';
   end if;
-  select coalesce(sum(g.points), 0)::integer into v_score from private.titan_moderation_signals(p_user) g;
+  select coalesce(sum(g.points), 0)::integer,
+    coalesce(jsonb_agg(jsonb_build_object('reason', g.reason, 'severity', g.severity, 'count', g.occurrences,
+      'points', g.points, 'first_at', g.first_at, 'last_at', g.last_at) order by g.points desc, g.reason), '[]'::jsonb)
+  into v_score, v_signals from private.titan_moderation_signals(p_user) g;
   return jsonb_build_object(
     'version', 1,
     'user', jsonb_build_object('id', v_profile.id, 'username', v_profile.username, 'status', v_profile.status,
       'is_suspended', v_profile.is_suspended),
     'score', v_score,
     'level', private.titan_moderation_level(v_score),
-    'signals', coalesce((select jsonb_agg(jsonb_build_object('reason', g.reason, 'severity', g.severity,
-      'count', g.occurrences, 'points', g.points, 'first_at', g.first_at, 'last_at', g.last_at) order by g.points desc, g.reason)
-      from private.titan_moderation_signals(p_user) g), '[]'::jsonb),
+    'signals', v_signals,
     'signals_recent', coalesce((select jsonb_agg(jsonb_build_object('id', r.id, 'at', r.created_at, 'action_type', r.action_type,
       'severity', r.severity, 'reason', r.reason, 'status', r.status, 'payload', r.payload) order by r.created_at desc, r.id)
       from (select * from public.titan_suspicious_actions s where s.user_id = p_user
@@ -234,7 +249,8 @@ begin
     v_snapshot := jsonb_build_object('prev_status', v_profile.status);
     perform public.titan_admin_update_profile_v1(p_user, jsonb_build_object('status', 'suspended'), v_reason);
   elsif p_decision = 'restore' then
-    if v_profile.status <> 'suspended' then
+    -- Same notion of "suspended" as the suspend decision; a ban is lifted by an administrator, not from the queue.
+    if v_profile.status = 'banned' or not (coalesce(v_profile.is_suspended, false) or v_profile.status = 'suspended') then
       raise exception 'NOT_SUSPENDED' using errcode = '23514';
     end if;
     v_snapshot := jsonb_build_object('prev_status', v_profile.status);
@@ -267,6 +283,8 @@ declare
   v_target private.titan_moderation_decisions%rowtype;
   v_profile record;
   v_id bigint;
+  v_reopened integer := 0;
+  v_expected integer := 0;
 begin
   if char_length(v_reason) < 3 then
     raise exception 'REASON_REQUIRED' using errcode = '22023';
@@ -281,30 +299,48 @@ begin
   if v_target.user_id is null then
     raise exception 'ACCOUNT_NOT_FOUND' using errcode = 'P0002';
   end if;
-  select id, status into v_profile from public.profiles where id = v_target.user_id for update;
+  select id, status, is_suspended into v_profile from public.profiles where id = v_target.user_id for update;
   if not found then
     raise exception 'ACCOUNT_NOT_FOUND' using errcode = 'P0002';
+  end if;
+  if v_target.user_id = v_admin then
+    raise exception 'CANNOT_MODERATE_SELF' using errcode = '42501';
+  end if;
+  if private.titan_is_admin(v_target.user_id) then
+    raise exception 'CANNOT_MODERATE_ADMIN' using errcode = '42501';
   end if;
   if v_target.id <> (select max(d.id) from private.titan_moderation_decisions d where d.user_id = v_target.user_id) then
     raise exception 'NOT_LATEST_DECISION' using errcode = '23514';
   end if;
 
+  -- The account must still be in the state the decision left it in; otherwise another tool changed it since
+  -- and a blind revert would overwrite that change.
   if v_target.decision = 'suspend' then
+    if v_profile.status <> 'suspended' then
+      raise exception 'ACCOUNT_STATE_CHANGED' using errcode = '23514';
+    end if;
     perform public.titan_admin_update_profile_v1(v_target.user_id,
       jsonb_build_object('status', coalesce(v_target.snapshot ->> 'prev_status', 'active')), v_reason);
   elsif v_target.decision = 'restore' then
+    if v_profile.status <> 'active' or coalesce(v_profile.is_suspended, false) then
+      raise exception 'ACCOUNT_STATE_CHANGED' using errcode = '23514';
+    end if;
     perform public.titan_admin_update_profile_v1(v_target.user_id, jsonb_build_object('status', 'suspended'), v_reason);
   elsif v_target.decision = 'dismiss' then
     update public.titan_suspicious_actions s
       set status = 'open', reviewed_at = null, reviewed_by = null, review_note = null
       where s.user_id = v_target.user_id and s.status = 'reviewed'
         and s.id in (select (jsonb_array_elements_text(v_target.snapshot -> 'action_ids'))::uuid);
+    get diagnostics v_reopened = row_count;
+    v_expected := jsonb_array_length(coalesce(v_target.snapshot -> 'action_ids', '[]'::jsonb));
   end if;
 
   insert into private.titan_moderation_decisions(user_id, admin_id, decision, reason, reverts, snapshot)
-  values (v_target.user_id, v_admin, 'revert', v_reason, v_target.id, jsonb_build_object('of', v_target.decision))
+  values (v_target.user_id, v_admin, 'revert', v_reason, v_target.id,
+    jsonb_build_object('of', v_target.decision, 'reopened', v_reopened, 'expected', v_expected))
   returning id into v_id;
-  return jsonb_build_object('version', 1, 'decision_id', v_id, 'decision', 'revert', 'reverts', v_target.id);
+  return jsonb_build_object('version', 1, 'decision_id', v_id, 'decision', 'revert', 'reverts', v_target.id,
+    'reopened', v_reopened, 'expected', v_expected);
 end;
 $function$;
 
