@@ -95,6 +95,7 @@ test('personal targets: current server goals agree in mission, details and guard
   assert.match(await page.getByRole('dialog').textContent(),/Mission : 2 jours actifs et 70 minutes/);
   assert.doesNotMatch(await page.getByRole('dialog').textContent(),/150 minutes/);
   await page.keyboard.press('Escape');
+  if(process.env.TITAN_QA_SCREENSHOTS){await page.evaluate(()=>{document.activeElement?.blur();scrollTo(0,0);});await page.screenshot({path:`/tmp/titan-personal-targets-${width}.png`,fullPage:true,animations:'disabled'});}
   assert.match(await page.locator('[data-personal-target]').textContent(),/28 jours.*figée/);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
  }finally{await context.close();}}

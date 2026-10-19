@@ -27,7 +27,7 @@
 
 ### Task 1: Contrat serveur et lecture client
 
-**Files:** nouvelle migration CLI ; sql/tests/300_adventure_personal_targets.sql ; sql/tests/300_z_adventure_personal_migration.sql ; tests/e2e/rpg-personal-targets.e2e.mjs ; js/app/aventure.js ; js/renaissance-engine.js ; tools/build-public-site.mjs et sorties ; adventure.html ; package.json ; tests SQL existants liés.
+**Files:** nouvelle migration CLI ; sql/tests/300_adventure_personal_targets.sql ; sql/tests/300_z_adventure_personal_migration.sql ; tests/e2e/rpg-server-quests.e2e.mjs ; js/app/aventure.js ; js/renaissance-engine.js ; tools/build-public-site.mjs et sorties ; pages consommatrices hors Profil (cache) ; tests SQL existants liés.
 
 **Interfaces:** Consumes private.titan_adventure_quest_profile(anchor,timezone), profile daysTarget/effortTarget. Produces main_objective {version,days,effort,frozen_at}, snapshot v4 target/effort_target identiques au claim.
 
