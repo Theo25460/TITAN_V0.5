@@ -32,7 +32,7 @@
     { id: "communaute", label: "Communauté", href: "/social", icon: "group" },
     { id: "coaching", label: "Coaching", href: "/coaching", icon: "shield" },
     { id: "atelier", label: "Atelier", href: "/boutique", icon: "sparkle" },
-    { id: "aide", label: "Aide", href: "/service", icon: "help" },
+    { id: "aide", label: "Assistance", href: "/service", icon: "help" },
   ];
   /* Pages of a territory; a page opts in with <nav class="asc-subnav" data-subnav></nav>. */
   const SUBNAV = {
@@ -82,16 +82,22 @@
     };
   }
 
-  /* Equipped cosmetics as last confirmed by the server (titan_atelier / profile row). Display only:
-     TITAN+ pieces fall back to the default look as soon as the local status says the plan ended. */
+  /* Server-resolved appearance is distinct from the raw profile preference. Permanent purchases
+     remain visible after Titan+ ends; temporary access expires. Old servers use a conservative fallback. */
   const PLUS_PIECES = new Set(["frame-aegis", "frame-frost", "map-aurora", "card-obsidian"]);
   function look() {
-    const a = window.state?.user?.appearance || {};
+    const u = window.state?.user || {};
+    const access = window.titanAppearanceAccess?.owner === u.id ? window.titanAppearanceAccess : null;
+    const a = access?.appearance || u.appearance || {};
+    const ends = access ? access.endsAt : u.elite_ends_at;
+    const plus = u.is_elite === true && !u.elite_refunded_at && (!ends || Date.parse(ends) > Date.now()) && (!access || access.plusActive);
     const out = {};
     for (const k of ["frame", "map", "card"]) {
       const v = String(a[k] || "");
       if (!/^[a-z]+-[a-z]+$/.test(v) || v.endsWith("-default") || v === "frame-standard") continue;
-      if (PLUS_PIECES.has(v) && window.state?.user?.is_elite !== true) continue;
+      if (access) {
+        if (!access.permanent.includes(v) && !(plus && access.temporary.includes(v))) continue;
+      } else if (PLUS_PIECES.has(v) && !plus) continue;
       out[k] = v;
     }
     return out;
@@ -115,6 +121,21 @@
     return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Nouvelle séance" : t.label}</span></a>`;
   }
 
+  // Restore only the exact navigation destination whose node this render replaces.
+  function retainNavigationFocus() {
+    const active = document.activeElement;
+    const region = active?.closest(".asc-rail, .asc-topbar, .asc-tabbar, [data-subnav]");
+    const selector = active?.matches("a[href]") ? "a[href]" : active?.matches("[data-shell-more]") ? "[data-shell-more]" : null;
+    if (!region || !selector) return () => {};
+    const href = active.getAttribute("href");
+    const peers = () => [...region.querySelectorAll(selector)].filter(el => el.getAttribute("href") === href);
+    const position = peers().indexOf(active);
+    return () => {
+      if (active.isConnected || document.activeElement !== document.body || document.querySelector("dialog[open]")) return;
+      peers()[position]?.focus({ preventScroll: true });
+    };
+  }
+
   function render() {
     const root = document.body;
     if (!root.classList.contains("asc")) return;
@@ -129,6 +150,7 @@
       }
       return;
     }
+    const restoreFocus = retainNavigationFocus();
     const u = user();
     syncState = computeSync();
     const title = document.body.dataset.title || document.title.split("—")[0].trim();
@@ -160,7 +182,7 @@
     top.innerHTML = `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
       ${isHome ? '<span style="flex:1"></span>' : ""}
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Aide"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Assistance"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
       <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
         <span class="asc-sync" data-state="${syncState.state}"></span>
         <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>
@@ -196,6 +218,7 @@
       t.setAttribute("aria-live", "polite");
       root.append(t);
     }
+    restoreFocus();
   }
 
   let renderQueued = false;
@@ -233,6 +256,7 @@
 
   /* ---------- Sheets ---------- */
   function sheet({ title = "", eyebrow = "", body = "", onClose } = {}) {
+    const restoreFocus = retainNavigationFocus();
     const d = document.createElement("dialog");
     d.className = "asc-sheet";
     d.setAttribute("aria-label", title);
@@ -247,6 +271,7 @@
     d.addEventListener("close", () => {
       d.remove();
       onClose?.();
+      restoreFocus();
     });
     document.body.append(d);
     d.showModal();
@@ -256,27 +281,48 @@
   /** Accessible confirmation; resolves true only on an explicit confirm. `action` may be async and throw. */
   function confirm({ title = "", message = "", detail = "", confirmLabel = "Confirmer", danger = false, action } = {}) {
     return new Promise((resolve) => {
-      let done = false;
+      let done = false, pending = false;
       const body = document.createElement("div");
       body.className = "asc-stack";
-      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small" role="alert" data-error></p>
+      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small asc-muted" role="status" data-progress></p><p class="asc-small" role="alert" data-error></p>
         <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="button" class="asc-btn ${danger ? "asc-btn-danger" : "asc-btn-primary"}" data-ok>${esc(confirmLabel)}</button></div>`;
       const d = sheet({ title, body, onClose: () => !done && resolve(false) });
-      body.querySelector("[data-cancel]").addEventListener("click", () => d.close());
+      const cancel = body.querySelector("[data-cancel]");
+      cancel.addEventListener("click", () => d.close());
       const ok = body.querySelector("[data-ok]");
+      const close = d.querySelector("[data-close]");
+      const progress = body.querySelector("[data-progress]");
+      const errorText = body.querySelector("[data-error]");
+      const setPending = value => {
+        pending = value;
+        d.setAttribute("aria-busy", String(value));
+        ok.disabled = cancel.disabled = close.disabled = value;
+        progress.textContent = value ? "Action en cours…" : "";
+      };
+      // Block user dismissal only. Account guards must still be able to call close().
+      d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+      d.addEventListener("click", e => {
+        if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
       ok.addEventListener("click", async () => {
-        ok.disabled = true;
+        if (pending || done || !d.open) return;
+        errorText.textContent = "";
+        setPending(true);
         try {
           if (action) await action();
           done = true;
           resolve(true);
           d.close();
         } catch (error) {
-          body.querySelector("[data-error]").textContent = error?.message || "Action impossible pour le moment.";
-          ok.disabled = false;
+          errorText.textContent = error?.message || "Action impossible pour le moment.";
+          setPending(false);
+          if (d.open) ok.focus();
         }
       });
-      setTimeout(() => ok.focus(), 30);
+      (danger ? cancel : ok).focus();
     });
   }
 
