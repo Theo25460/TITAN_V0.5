@@ -16,7 +16,7 @@ Comportement réel de Capacitor sur l'origine, la session Supabase et le service
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
-Aucun Critical/Important. Décision humaine : Q-001 reste le prérequis de toute publication.
+Aucun Critical. Décision humaine : Q-001 reste le prérequis de toute publication. Point de conformité relevé par la revue (pas un blocage de ce lot) : dans la coque, seul l'Atelier masque le bouton d'achat TITAN+, par une heuristique `localStorage` (`titan_twa`) partagée avec Chrome ; `openEliteCheckout` n'est gardé nulle part (voir l'ADR). À traiter par WORK/Codex avec la décision de facturation (GP01).
 
 ## NON BLOQUANT / BACKLOG FINITION
 
@@ -25,6 +25,10 @@ Aucun Critical/Important. Décision humaine : Q-001 reste le prérequis de toute
 ## EXIGENCE OU MACRO-BLOC À ATTAQUER ENSUITE
 
 Réponse de Théo à Q-001 et au principe de l'ADR ; ensuite l'étude de faisabilité (AND01-AND03 selon le résultat) ou la couche « sources d'activité » (AND17), qui est indépendante de la coque. Q-002 et CHEAT14/15 restent à trancher.
+
+## Revue
+
+Revue de code unique : 6 familles de remarques, traitées dans l'ADR — affirmations non vérifiées reformulées en « attendu », description exacte du masquage de l'achat, détecteur de plateforme pour Capacitor, origine à autoriser (Supabase, Paddle), bascule TWA → Capacitor (gratuite avant publication seulement : même paquet, clé de signature, `versionCode`, perte des données locales), notifications, lecture Health Connect en arrière-plan et déclaration Google Play, mots « rejetée » / « bascule » nuancés.
 
 ## Retour arrière
 
