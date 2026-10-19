@@ -28,7 +28,7 @@ La revue indépendante Astra élevée porte sur l'intégration et le parcours AC
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
-Avant remise : vérifier les trois jobs sur la tête finale et traiter seulement les Critical/Important confirmés de la revue en une passe RED→GREEN. Aucun succès global présumé par les résultats séparés des deux sources.
+Revue indépendante : aucun Critical, un Important corrigé. Rétablir les fonctionsv3 déplacerait les cibles activesv4, même sans restaurer les données. Le plan réserve désormais cette opération à une fenêtre de maintenance avant toute ouverture de chapitrev4 ; sinon migration compensatrice préservant objectifs,preuves et récompenses. Test documentaire RED→GREEN. La remise exige les trois jobs verts sur la tête finale, jamais les seuls résultats séparés des sources.
 
 ## NON BLOQUANT – BACKLOG FINITION
 
@@ -37,3 +37,18 @@ Backlogs des lots sources maintenus : ancien libellé du gardien, concurrence d'
 ## EXIGENCE OU MACRO-BLOC SUIVANT
 
 À partir de la revue ACT09, choisir les trois principales frictions utilisateur (ACT01/ACT02/ACT04 selon preuves), dans un petit nombre de PR ciblées. Pas de nouvelle boucle de finitions isolées. ACT09 reste partiel avant la recette humaine/compte réel ; A08 reste partiel pour le type-check statique, QA05 pour Android et appareils réels.
+
+
+## Revue ACT09 : expérience réellement parcourue
+
+Astra à raisonnement élevé a parcouru le site local à390px : vitrine, formulaire d'inscription sans envoi, quatre étapes d'onboarding, première séance réelle en découverte (course5km/30min), résultat, nouvelle page de retour, statistiques et Aventure. Séance conservée, aucune erreur JavaScript. Deuxième visite et statistiques expliquent honnêtement les données insuffisantes. Pas de compte réel créé ni de synchronisation ou compréhension humaine certifiée.
+
+Trois frictions fonctionnelles préexistantes, priorisées pour le prochain lot :
+
+1. **ACT02 : première balise promise et campagne non démarrée.** L'onboarding promet le déblocage après la première séance ; après l'enregistrement, Aventure reste0/9. Démarrer la campagne ensuite laisse0/1jour, puisque la séance est antérieure au départ. Aligner la préparation de campagne et la promesse, sans crédit rétroactif inventé.
+2. **ACT04 : invitation à créer un compte sans action directe.** Le résultat découverte propose cette conservation mais ses boutons ne sont que Terminé/Journal. Le lien existe au QG, plus tard ; rendre l'action concrète là où elle est proposée, sans changer les gains.
+3. **ACT01 : disponibilité et valeur payante ambiguës.** Quatre mondes gratuits, accroche «ouvre plus de monde» et bénéfices en attente de mise à jour serveur rendent difficile la réponse «qu'est-ce qui est utilisable maintenant gratuitement ?». Clarifier l'offre actuelle en conservant les limites de contrat réellement déployé.
+
+Ces trois points ne sont pas des régressions d'intégration et ne sont pas maquillés par les résultats automatisés. Ils composent un lot d'activation cohérent, sans lancer trois séries de micro-polissage.
+
+La revue a aussi vérifié11/11contrats production/release et8/8navigateurs RPG. Les suites des deux sources sont réunies sans perte. Les douze différences HTML par rapport àPR101 correspondent uniquement à training-store300.1 hérité de Claude. Jugements production, inscription réelle, synchronisation interappareils, Android et attrait humain réservés à leur recette effective.
