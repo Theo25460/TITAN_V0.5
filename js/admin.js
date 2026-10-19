@@ -23,6 +23,7 @@
         { id: 'dashboard', label: 'Dashboard', icon: 'ri-dashboard-3-line', custom: 'dashboard' },
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
         { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
+        { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -834,6 +835,7 @@
             if (item.custom === 'dashboard') await renderDashboard(force);
             else if (item.custom === 'users') await renderUsers(force);
             else if (item.custom === 'moderation') await renderModeration(force);
+            else if (item.custom === 'appeals') await renderAppeals(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1416,6 +1418,12 @@
                 return;
             }
             await openModerationCase(typed.toLowerCase());
+            return;
+        }
+
+        const appealDecide = event.target.closest('[data-appeal-decide]');
+        if (appealDecide) {
+            await decideAppeal(appealDecide.dataset.appealId, appealDecide.dataset.appealDecide === 'accept');
             return;
         }
 
@@ -2107,6 +2115,88 @@
             `,
             actions
         });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Appeals (CHEAT19): players contest an excluded session or a suspension; a human accepts or declines with a note
+    // the player can read (titan_appeal_*_v1). Accepting lifts the exclusion / suspension through the audited RPCs.
+    // ---------------------------------------------------------------------------------------------
+    const APPEAL_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique une note d’au moins 3 caractères : le joueur la lira.',
+        APPEAL_NOT_FOUND: 'Ce recours n’existe plus.',
+        APPEAL_CLOSED: 'Ce recours a déjà été traité.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas traiter ton propre recours.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        USE_ADMIN_PROFILE_TOOL: 'Un bannissement ou un compte supprimé ne se lève pas depuis cette file : utilise l’outil de profil, ou refuse le recours.',
+        STATE_CHANGED: 'Il n’y a plus rien à lever (l’état a changé depuis le dépôt) : refuse le recours avec une note.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.'
+    };
+
+    function appealErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(APPEAL_ERRORS).find((key) => message.includes(key));
+        return code ? APPEAL_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    async function renderAppeals() {
+        const head = sectionHead('Recours', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_appeal_list_v1', { p_status: 'open', p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de recours n’est pas disponible sur ce serveur : applique la migration 20261019230000_appeals.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const appeals = Array.isArray(data && data.appeals) ? data.appeals : [];
+        if (!appeals.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>`;
+            return;
+        }
+        const rows = appeals.map((appeal) => {
+            const target = appeal.kind === 'session'
+                ? `Séance ${escapeHtml((appeal.session && appeal.session.sport) || '')} du ${escapeHtml(formatDate(appeal.session && appeal.session.date))}${appeal.session && appeal.session.excluded === false ? ' <small>(déjà rétablie)</small>' : ''}`
+                : 'Suspension du compte';
+            const id = escapeHtml(appeal.id);
+            return `
+            <tr data-appeal-row="${id}">
+                <td><small>${escapeHtml(shortId(appeal.userId))}</small><br><small>${escapeHtml(formatDate(appeal.createdAt))}</small></td>
+                <td>${target}</td>
+                <td><div class="json-preview">${escapeHtml(appeal.message)}</div></td>
+                <td>${buttonMarkup('Accepter', 'ri-check-line', 'primary', `data-appeal-decide="accept" data-appeal-id="${id}" aria-label="Accepter le recours ${id}"`)}
+                    ${buttonMarkup('Refuser', 'ri-close-line', 'secondary', `data-appeal-decide="decline" data-appeal-id="${id}" aria-label="Refuser le recours ${id}"`)}</td>
+            </tr>`;
+        }).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-appeal-queue aria-label="Recours en attente">
+                <thead><tr><th>Joueur</th><th>Objet</th><th>Message du joueur</th><th>Décision</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+        `;
+    }
+
+    async function decideAppeal(appealId, accept) {
+        const id = Number(appealId);
+        if (!Number.isSafeInteger(id)) return;
+        const reason = await moderationAsk(
+            accept ? 'Accepter ce recours' : 'Refuser ce recours',
+            accept ? 'L’exclusion ou la suspension est levée. Le joueur lira ta note.' : 'L’état reste inchangé. Le joueur lira ta note et pourra redéposer un recours après 7 jours.',
+            accept ? 'Accepter' : 'Refuser',
+            false);
+        if (!reason) return;
+        const { error } = await state.client.rpc('titan_appeal_decide_v1', { p_id: id, p_accept: accept, p_note: reason });
+        if (error) notify('Décision refusée', appealErrorText(error), 'danger');
+        else notify('Recours traité', accept ? 'Accepté' : 'Refusé', 'success');
+        // The decision is recorded when this runs: repaint only if the administrator is still on this screen.
+        if (state.currentView !== 'appeals') return;
+        try { await renderAppeals(); } catch (e) {
+            console.error('[TITAN ADMIN APPEALS]', e);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file.', 'warning');
+        }
     }
 
     async function moderationAsk(title, message, actionLabel, danger) {
