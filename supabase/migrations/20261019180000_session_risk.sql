@@ -20,44 +20,52 @@ as $function$
 declare
   v_out jsonb;
 begin
-  with s as (
+  with s as materialized (
     select l.id, l.sport, l.date, l.val, l.unit, l.is_suspicious,
       coalesce(coalesce(nullif(public.titan_jsonb_numeric(l.details, 'val2'), 0),
                         nullif(public.titan_jsonb_numeric(l.details, 'duration'), 0)), 0) as dur,
       coalesce(l.details ->> 'historical', 'false') = 'true' as hist
     from public.training_logs l
-    where l.user_id = p_user and l.archived_at is null and l.date > now() - interval '120 days'
+    where l.user_id = p_user and l.archived_at is null
+      and l.date > now() - interval '120 days' and l.date <= now() + interval '1 day'
     order by l.date desc
     limit 1000
   ),
-  recent as (select * from s order by date desc limit greatest(1, least(coalesce(p_limit, 30), 100))),
-  overlap as (
-    select r.id,
-      max(least(
-        extract(epoch from (least(r.date, o.date) - greatest(r.date - r.dur * interval '1 minute', o.date - o.dur * interval '1 minute'))) / 60,
-        extract(epoch from (least(r.date + r.dur * interval '1 minute', o.date + o.dur * interval '1 minute') - greatest(r.date, o.date))) / 60
-      ) / nullif(least(r.dur, o.dur), 0)) as ratio,
-      max(least(
-        extract(epoch from (least(r.date, o.date) - greatest(r.date - r.dur * interval '1 minute', o.date - o.dur * interval '1 minute'))) / 60,
-        extract(epoch from (least(r.date + r.dur * interval '1 minute', o.date + o.dur * interval '1 minute') - greatest(r.date, o.date))) / 60
-      )) as minutes
-    from recent r join s o on o.id <> r.id and not o.hist and o.dur > 0
-    where not r.hist and r.dur > 0
-    group by r.id
+  recent as materialized (select * from s order by date desc limit greatest(1, least(coalesce(p_limit, 30), 100))),
+  -- One row per PAIR of sessions, severity decided on that pair alone, then the worst pair per session.
+  pairs as materialized (
+    select r.id as rid, o.id as oid, m.minutes, m.minutes / nullif(least(r.dur, o.dur), 0) as ratio,
+      (r.date = o.date and r.sport is distinct from o.sport) as same_instant
+    from recent r
+    join s o on o.id <> r.id and not o.hist and o.dur > 0
+    cross join lateral (select least(
+      extract(epoch from (least(r.date, o.date) - greatest(r.date - r.dur * interval '1 minute', o.date - o.dur * interval '1 minute'))) / 60,
+      extract(epoch from (least(r.date + r.dur * interval '1 minute', o.date + o.dur * interval '1 minute') - greatest(r.date, o.date))) / 60
+    ) as minutes) m
+    where not r.hist and r.dur > 0 and m.minutes > 0
   ),
-  speed as (
-    select r.id, (r.val / (r.dur / 60.0)) as kmh,
-      (select percentile_cont(0.5) within group (order by o.val / (o.dur / 60.0))
-         from s o where o.id <> r.id and o.sport = r.sport and o.unit = 'km' and not o.hist
-          and o.dur >= 5 and o.val > 0 and o.date < r.date) as median_kmh,
-      (select count(*) from s o where o.id <> r.id and o.sport = r.sport and o.unit = 'km' and not o.hist
-          and o.dur >= 5 and o.val > 0 and o.date < r.date) as prior
-    from recent r where r.unit = 'km' and r.dur > 0 and r.val > 0 and not r.hist
+  overlap as materialized (
+    select distinct on (rid) rid as id, minutes, ratio,
+      case when ratio >= 0.9 and minutes >= 20 and not same_instant then 'high'
+           when ratio >= 0.5 and minutes >= 10 then 'medium' end as severity
+    from pairs
+    where (ratio >= 0.9 and minutes >= 20) or (ratio >= 0.5 and minutes >= 10)
+    order by rid, (case when ratio >= 0.9 and minutes >= 20 and not same_instant then 2 else 1 end) desc, minutes desc
   ),
-  day_total as (
-    select r.id, (select coalesce(sum(o.dur), 0) from s o
-      where not o.hist and (o.date at time zone 'utc')::date = (r.date at time zone 'utc')::date) as minutes
-    from recent r where not r.hist
+  speed as materialized (
+    select r.id, (r.val / (r.dur / 60.0)) as kmh, b.median_kmh, b.prior
+    from recent r
+    cross join lateral (
+      select percentile_cont(0.5) within group (order by o.val / (o.dur / 60.0)) as median_kmh, count(*) as prior
+      from s o where o.id <> r.id and o.sport = r.sport and o.unit = 'km' and not o.hist
+        and o.dur >= 5 and o.val > 0 and o.date < r.date) b
+    where r.unit = 'km' and r.dur >= 10 and r.val > 0 and not r.hist
+  ),
+  day_total as materialized (
+    select r.id, d.minutes from recent r
+    cross join lateral (select coalesce(sum(o.dur), 0) as minutes from s o
+      where not o.hist and (o.date at time zone 'utc')::date = (r.date at time zone 'utc')::date) d
+    where not r.hist
   ),
   sig as (
     select r.id, x.code, x.severity, x.detail
@@ -66,8 +74,7 @@ begin
     left join speed sp on sp.id = r.id
     left join day_total dt on dt.id = r.id
     cross join lateral (values
-      ('overlap', case when ov.ratio >= 0.9 and ov.minutes >= 20 then 'high'
-                       when ov.ratio >= 0.5 and ov.minutes >= 10 then 'medium' end,
+      ('overlap', ov.severity,
         jsonb_build_object('overlapMinutes', round(coalesce(ov.minutes, 0)::numeric, 1), 'shareOfShorter', round(coalesce(ov.ratio, 0)::numeric, 2))),
       ('speed_jump', case when sp.prior >= 5 and sp.median_kmh > 0 and sp.kmh / sp.median_kmh >= 2 then 'high'
                           when sp.prior >= 5 and sp.median_kmh > 0 and sp.kmh / sp.median_kmh >= 1.5 then 'medium' end,

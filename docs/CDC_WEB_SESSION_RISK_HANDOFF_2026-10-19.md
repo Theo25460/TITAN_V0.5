@@ -10,7 +10,7 @@ Chantier AUTRE — Claude Code, 19/10/2026, au-dessus de `82b78a8`. Aucune fusio
 | CHEAT13 — états de séance | `[~]` | États calculés : normal (< 3), à surveiller (3-7), à examiner (8-19), critique (≥ 20). L'« exclusion temporaire des récompenses/classements » existe déjà (`training_logs.is_suspicious`, respecté par classements et récompenses) : elle est **rapportée** (`excludedFromRankings`), jamais posée automatiquement. |
 | CHEAT06 — chevauchements impossibles | `[~]` | Signal `overlap` : moyen si ≥ 50 % de la plus courte séance et ≥ 10 min, haut si ≥ 90 % et ≥ 20 min. `date` pouvant être un début ou une fin, seul le chevauchement valable **dans les deux lectures** est retenu (un test le verrouille). |
 
-Signaux additionnels du score : `speed_jump` (km/h ≥ 1,5× moyen, ≥ 2× haut, par rapport à la médiane du joueur sur le même sport, au moins 5 séances antérieures : CHEAT08 partiel) et `day_volume` (≥ 12 h moyen, ≥ 16 h haut déclarées le même jour UTC : CHEAT07 partiel). Séances historiques et archivées exclues ; séances d'autres comptes jamais comparées. Poids communs avec la modération (1/3/8/20).
+Signaux additionnels du score : `speed_jump` (km/h ≥ 1,5× moyen, ≥ 2× haut, par rapport à la médiane du joueur sur le même sport, au moins 5 séances antérieures : CHEAT08 partiel) et `day_volume` (≥ 12 h moyen, ≥ 16 h haut déclarées le même jour UTC : CHEAT07 partiel). Le chevauchement est jugé paire par paire (la pire paire décide) ; deux séances à l'instant exact d'enregistrement avec des sports différents sont plafonnées à « moyen » ; `speed_jump` ignore les séances de moins de 10 min ; séances historiques, archivées et datées de plus d'un jour dans le futur exclues ; séances d'autres comptes jamais comparées. Poids communs avec la modération (1/3/8/20).
 
 ## Fichiers
 
@@ -21,6 +21,7 @@ Signaux additionnels du score : `speed_jump` (km/h ≥ 1,5× moyen, ≥ 2× haut
 - RED avant migration (fonction absente). Banc PostgreSQL 16, deux voies : suites vertes, rejeu transactionnel (deux fois), aucune ligne existante modifiée, droits (anon refusé, fonction privée fermée).
 - Mutations détectées : historique compté dans les chevauchements, chevauchement haut supprimé, saut de vitesse haut supprimé, séances archivées comptées, contrôle administrateur retiré.
 - Le test vérifie aussi qu'une séance, un signal ou un profil n'est jamais modifié par l'appel.
+- Une revue de code unique : 7 remarques, toutes traitées avec un test qui échoue contre la première version : lenteur (11 s pour 1000 séances → sous 3 s, CTE matérialisées), chevauchement « haut » obtenu en combinant deux partenaires différents (jugement par paire), séances horodatées au même instant, séances futures qui chassent les vraies, vitesse sur séances très courtes, fuseau du test, commentaire erroné.
 
 ## BLOQUANT À CORRIGER MAINTENANT
 

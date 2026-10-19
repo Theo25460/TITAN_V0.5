@@ -3,14 +3,15 @@
 begin;
 do $$
 declare a uuid:=gen_random_uuid(); m uuid:=gen_random_uuid(); x uuid:=gen_random_uuid(); y uuid:=gen_random_uuid();
-  z uuid:=gen_random_uuid(); w uuid:=gen_random_uuid(); v uuid:=gen_random_uuid(); i int; base timestamptz:=date_trunc('day', now() - interval '8 days') + interval '10 hours';
-  day5 timestamptz:=date_trunc('day', now() - interval '5 days');
+  z uuid:=gen_random_uuid(); w uuid:=gen_random_uuid(); v uuid:=gen_random_uuid(); i int; base timestamptz:=(date_trunc('day', (now() - interval '8 days') at time zone 'utc') + interval '10 hours') at time zone 'utc';
+  day5 timestamptz:=date_trunc('day', (now() - interval '5 days') at time zone 'utc') at time zone 'utc';
+  u1 uuid:=gen_random_uuid(); u2 uuid:=gen_random_uuid(); u3 uuid:=gen_random_uuid(); u4 uuid:=gen_random_uuid(); u5 uuid:=gen_random_uuid();
   t text;
 begin
   perform set_config('titan.sr_a',a::text,true); perform set_config('titan.sr_m',m::text,true);
   perform set_config('titan.sr_x',x::text,true); perform set_config('titan.sr_y',y::text,true);
   perform set_config('titan.sr_z',z::text,true); perform set_config('titan.sr_w',w::text,true);
-  insert into auth.users(id,raw_user_meta_data) values(a,'{}'),(m,'{}'),(x,'{}'),(y,'{}'),(z,'{}'),(w,'{}'),(v,'{}');
+  insert into auth.users(id,raw_user_meta_data) values(a,'{}'),(m,'{}'),(x,'{}'),(y,'{}'),(z,'{}'),(w,'{}'),(v,'{}'),(u1,'{}'),(u2,'{}'),(u3,'{}'),(u4,'{}'),(u5,'{}');
   update public.profiles set role='admin' where id=a;
   update public.profiles set role='moderator' where id=m;
   set local session_replication_role = replica;
@@ -42,16 +43,43 @@ begin
   insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
   values (y,'cycling','cardio',30,'min',0,base,'{"duration":60,"historical":true}'),
          (w,'cycling','cardio',30,'min',5,base,'{"duration":60}');
-  -- z: four 300-minute sessions in one UTC day = 1200 minutes, 4 sessions spaced 6h apart; one flagged for exclusion.
+  -- z: four 240-minute sessions in one UTC day = 960 minutes (the high boundary), spaced 6h apart; one flagged for exclusion.
   for i in 0..3 loop
     insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details,is_suspicious)
     values (gen_random_uuid(),z,'padel','team',240,'min',5,day5 + interval '5 hours' + i * interval '6 hours','{"duration":240}', i = 0);
   end loop;
-  -- v: overlaps under one reading of `date` only (end time) but not under the other: never flagged.
+  -- v: 10 minutes overlap under one reading of `date` and 30 under the other, 0.33 of the shorter: never flagged.
   perform set_config('titan.sr_v', v::text, true);
   insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
     (v,'cycling','cardio',30,'min',5,base,'{"duration":30}'),
     (v,'cycling','cardio',30,'min',5,base + interval '20 minutes','{"duration":60}');
+  -- u1: no single pair qualifies as high, only the worst pair counts (5 min of 60 fully inside, 30 min of 60 at half).
+  perform set_config('titan.sr_u1', u1::text, true); perform set_config('titan.sr_mixed', gen_random_uuid()::text, true);
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details) values
+    (current_setting('titan.sr_mixed')::uuid,u1,'cycling','cardio',30,'min',5,base,'{"duration":60}'),
+    (gen_random_uuid(),u1,'cycling','cardio',5,'min',5,base,'{"duration":5}'),
+    (gen_random_uuid(),u1,'cycling','cardio',30,'min',5,base + interval '30 minutes','{"duration":60}');
+  -- u2: two entries stamped at the same instant for different sports are capped at medium, never a duplicate.
+  perform set_config('titan.sr_u2', u2::text, true);
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+    (u2,'yoga','mobility',30,'min',5,base,'{"duration":30}'),(u2,'cycling','cardio',30,'min',5,base,'{"duration":30}');
+  -- u3: future-dated rows never crowd out real sessions.
+  perform set_config('titan.sr_u3', u3::text, true);
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+    select u3,'running','cardio',5,'km',5, now() + interval '3 days' + g * interval '1 minute','{"duration":30}' from generate_series(1,120) g;
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values (u3,'running','cardio',5,'km',5, now() - interval '2 days','{"duration":30}');
+  -- u4: a short fast piece is not a speed jump.
+  perform set_config('titan.sr_u4', u4::text, true); perform set_config('titan.sr_short', gen_random_uuid()::text, true);
+  for i in 1..6 loop
+    insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+    values (u4,'running','cardio',10,'km',10, now() - (20 - i) * interval '1 day','{"duration":60}');
+  end loop;
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details)
+  values (current_setting('titan.sr_short')::uuid,u4,'running','cardio',2,'km',2, now() - interval '3 days','{"duration":6}');
+  -- u5: a thousand sessions stay fast.
+  perform set_config('titan.sr_u5', u5::text, true);
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+    select u5,'running','cardio',8+(g%5),'km',5, now() - g * interval '2 hours','{"duration":45}' from generate_series(1,1000) g;
   set local session_replication_role = origin;
 end $$;
 
@@ -77,7 +105,7 @@ do $$ declare who text; ok boolean; begin
 end $$;
 
 do $$
-declare r jsonb; e jsonb; sess jsonb;
+declare r jsonb; e jsonb; sess jsonb; t0 timestamptz;
 begin
   perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.sr_a'),'role','authenticated')::text,true);
 
@@ -124,6 +152,28 @@ begin
   r:=public.titan_session_risk_v1(current_setting('titan.sr_v')::uuid, 50);
   assert jsonb_array_length(r->'sessions')=2 and not exists(select 1 from jsonb_array_elements(r->'sessions') s where s->>'state'<>'normal'),
     'an overlap that exists under only one reading of the date is not flagged';
+
+  -- u1: the worst single pair decides.
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u1')::uuid, 50);
+  e:=(select s from jsonb_array_elements(r->'sessions') s where s->>'id'=current_setting('titan.sr_mixed'));
+  assert e#>>'{signals,0,severity}'='medium' and (e#>>'{signals,0,detail,overlapMinutes}')::numeric=30 and (e#>>'{signals,0,detail,shareOfShorter}')::numeric=0.5,
+    'two different partners never combine into a high overlap: '||e::text;
+  -- u2: same instant, different sports: watched, not reviewed.
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u2')::uuid, 50);
+  assert (select count(*) from jsonb_array_elements(r->'sessions') s where s->>'state'='watch')=2
+     and not exists(select 1 from jsonb_array_elements(r->'sessions') s where s->>'state' in ('review','critical')),'same-instant entries are capped at medium';
+  -- u3: the real session is listed even with 120 future-dated rows.
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u3')::uuid, 100);
+  assert jsonb_array_length(r->'sessions')=1,'future-dated rows are not listed or compared';
+  -- u4: a 6-minute piece at 20 km/h is not a speed jump.
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u4')::uuid, 50);
+  e:=(select s from jsonb_array_elements(r->'sessions') s where s->>'id'=current_setting('titan.sr_short'));
+  assert e->>'state'='normal','short pieces are not judged on speed';
+  -- u5: a thousand sessions, bounded time.
+  t0:=clock_timestamp();
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u5')::uuid, 100);
+  assert jsonb_array_length(r->'sessions')=100,'limit applies';
+  assert clock_timestamp()-t0 < interval '3 seconds','a thousand sessions answer within 3 seconds, took '||(clock_timestamp()-t0)::text;
 
   -- a single session has no history to compare with. history for a speed signal.
   r:=public.titan_session_risk_v1(current_setting('titan.sr_w')::uuid, 50);
