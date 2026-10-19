@@ -45,6 +45,10 @@ begin
           execute 'reset role';
           perform set_config('request.jwt.claims','{"role":"service_role"}',true);
           delete from public.training_logs where user_id=owner;
+          -- Advance the private ingestion clock with this privileged four-day fixture.
+          -- Native API calls still consume the durable quota; no production exemption.
+          update private.titan_training_rate_state s set times=array(
+            select t-interval '4 days' from unnest(s.times) t) where s.user_id=owner;
           update public.adventure_progress set started_at=now()-interval '4 days' where user_id=owner and world_id=world;
           perform set_config('request.jwt.claims',json_build_object('sub',owner,'role','authenticated')::text,true);
           execute 'set local role authenticated';
