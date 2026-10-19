@@ -59,10 +59,12 @@
   function goStep() {
     const first = picked[0];
     return `<p class="asc-eyebrow cy">4 · C’est parti</p>
-      <h1>Ta première séance débloque ta première balise.</h1>
-      <p class="asc-lead">${guest() ? "Tu es en mode découverte : tes séances restent sur cet appareil et pourront rejoindre un compte plus tard." : "Ton compte est prêt."} Enregistre une séance récente, même courte : la vallée de l’Aube s’allume avec tes jours actifs.</p>
+      <h1>Ta première séance pose ton premier repère.</h1>
+      <p class="asc-lead">${guest() ? "Tu es en mode découverte : tes séances restent sur cet appareil et pourront rejoindre un compte plus tard." : "Ton compte est prêt."} Enregistre une séance récente, même courte, pour retrouver tes mesures et commencer ton suivi.</p>
+      <p class="asc-small asc-muted">L’aventure est facultative : démarre une campagne avant ta prochaine séance pour y faire compter tes jours actifs.</p>
       <div class="asc-stack-sm ob-go">
         <a class="asc-btn asc-btn-primary asc-btn-block" data-finish href="/training${first ? `?sport=${encodeURIComponent(first)}` : ""}">${icon("plus")} ${first ? `Enregistrer une séance de ${esc(SP().label(first).toLowerCase())}` : "Enregistrer ma première séance"}</a>
+        <a class="asc-btn asc-btn-secondary asc-btn-block" data-finish href="/adventure">${icon("compass")} Démarrer mon aventure d’abord</a>
         <a class="asc-btn asc-btn-ghost asc-btn-block" data-finish href="/aujourdhui">Découvrir mon QG d’abord</a>
       </div>`;
   }
