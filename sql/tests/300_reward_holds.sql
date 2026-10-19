@@ -150,6 +150,9 @@ begin
   set local role authenticated;
   select * into r from public.titan_submit_training_session('yoga','mobility',30,'min',jsonb_build_object('duration',30,'client_event_id',gen_random_uuid()),now()-interval '20 days');
   assert r.reward_held,'a back-dated session outside the scored window is held';
+  -- CHEAT11: a sport without any comparable record has no per-sport cap: a huge count is accepted by the real RPC and not held.
+  select * into r from public.titan_submit_training_session('curling','precision',18500,'pts',jsonb_build_object('duration',40,'client_event_id',gen_random_uuid()),now()-interval '4 hours');
+  assert r.log_id is not null and not coalesce(r.reward_held,false),'a sport with no reference record is accepted without an arbitrary cap';
   reset role;
 end $$;
 rollback;

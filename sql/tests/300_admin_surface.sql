@@ -9,7 +9,7 @@ begin
     select p.oid::regprocedure::text as sig
       from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public'
-       and p.proname ~ '^titan_(admin|moderation|appeal|session_exclusion|session_risk)'
+       and p.proname ~ '^(titan_(admin|moderation|appeal|session_exclusion|session_risk|economy_journal)|is_admin$|check_if_admin$)'
        and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('public', p.oid, 'execute'))
   loop bad := bad || r.sig; end loop;
   assert cardinality(bad) = 0, 'administration functions reachable without an account: ' || array_to_string(bad, ', ');
@@ -40,5 +40,16 @@ begin
                      or has_table_privilege('authenticated', c.oid, 'select,insert,update,delete'))))
   loop bad := bad || ('table ' || r.rel); end loop;
   assert cardinality(bad) = 0, 'private tables open or without row security: ' || array_to_string(bad, ', ');
+
+  -- 3. Administration / moderation / audit tables of the public schema keep row security and give anon nothing.
+  for r in
+    select c.oid::regclass::text as rel
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm')
+       and c.relname ~ '(^admin|_admin|moderation|audit|^reports$)'
+       and ((c.relkind in ('r', 'p') and not c.relrowsecurity)
+            or has_table_privilege('anon', c.oid, 'select,insert,update,delete'))
+  loop bad := bad || ('public ' || r.rel); end loop;
+  assert cardinality(bad) = 0, 'public administration tables open or without row security: ' || array_to_string(bad, ', ');
 end $$;
 rollback;

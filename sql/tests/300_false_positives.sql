@@ -62,13 +62,13 @@ begin
         (u,'strength','strength',45,'min',8, day0 + interval '6 hours','{"duration":45}'),
         (u,'cycling','cardio',30,'km',12, day0 + interval '12 hours','{"duration":80}');
     elsif label = 'near_record' then
-      -- CHEAT04: a personal record (+25 % on the usual pace) is a performance, not an anomaly.
+      -- CHEAT04: a personal record (+45 % on the usual pace, right under the 1.5 signal threshold) is a performance, not an anomaly.
       for i in 0..5 loop
         insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
         values (u,'running','cardio',12,'km',5, day0 + i * interval '1 day','{"duration":60}');
       end loop;
       insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
-      values (u,'running','cardio',15,'km',9, day0 + interval '7 days','{"duration":60}');
+      values (u,'running','cardio',17.4,'km',9, day0 + interval '7 days','{"duration":60}'); -- x1.45, just under the 1.5 threshold
     elsif label = 'multisport_elite' then
       -- CHEAT10: a high-level multisport athlete; each sport is judged against its own history, not against the others.
       for i in 0..5 loop
@@ -77,8 +77,14 @@ begin
           (u,'cycling','cardio',48,'km',12, day0 + i * interval '1 day' + interval '3 hours','{"duration":90}'),
           (u,'swimming','cardio',2.6,'km',10, day0 + i * interval '1 day' + interval '6 hours','{"duration":45}');
       end loop;
+      -- and a personal best in every sport on the same day (+20 %): each against its own history.
+      insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+        (u,'running','cardio',18,'km',10, day0 + interval '7 days','{"duration":60}'),
+        (u,'cycling','cardio',57.6,'km',12, day0 + interval '7 days' + interval '3 hours','{"duration":90}'),
+        (u,'swimming','cardio',3.1,'km',10, day0 + interval '7 days' + interval '6 hours','{"duration":45}');
     elsif label = 'no_reference' then
-      -- CHEAT11: a sport with no comparable world record is judged on the player's own history only; large counts are no cap.
+      -- CHEAT11: a sport with no comparable world record gets no per-sport cap: only the volume of the day applies (no speed or
+      -- distance rule reads these units); the real RPC accepts the same kind of entry in 300_reward_holds.sql.
       for i in 0..9 loop
         insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
         values (u,'curling','precision', 5000 + i * 1500,'pts',5, day0 + i * interval '1 day','{"duration":40}');
@@ -88,7 +94,7 @@ begin
     r := private.titan_session_risk(u, 100);
     select coalesce(max((s->>'score')::int), 0) into worst from jsonb_array_elements(r) s;
     assert worst < 8, label || ': a legitimate profile reached human review (score ' || worst || ', ' || r::text || ')';
-    assert worst <= worst_allowed[k] + 0, label || ': score ' || worst || ' above its ceiling ' || worst_allowed[k];
+    assert worst <= worst_allowed[k], label || ': score ' || worst || ' above its ceiling ' || worst_allowed[k];
   end loop;
 end $$;
 rollback;
