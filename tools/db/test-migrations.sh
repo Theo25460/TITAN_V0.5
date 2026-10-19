@@ -21,6 +21,12 @@ PSQL=("$PGBIN/psql" -h "$DIR" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -q -X)
 "${PSQL[@]}" -d postgres -c "create database $DB" >/dev/null
 trap '"${PSQL[@]}" -d postgres -c "drop database if exists $DB" >/dev/null 2>&1 || true' EXIT
 
+TITAN_PG_VERSION_NUM="$("${PSQL[@]}" -d "$DB" -At -c "show server_version_num")"
+echo "Disposable PostgreSQL server_version_num=$TITAN_PG_VERSION_NUM"
+if [[ -n "${TITAN_EXPECT_PG_VERSION_NUM:-}" && "$TITAN_PG_VERSION_NUM" != "$TITAN_EXPECT_PG_VERSION_NUM" ]]; then
+  echo "Unexpected PostgreSQL version: expected $TITAN_EXPECT_PG_VERSION_NUM, got $TITAN_PG_VERSION_NUM"; exit 1
+fi
+
 run() { echo "  · $(basename "$1")"; "${PSQL[@]}" -d "$DB" -f "$1"; }
 echo "Baseline (production structure, no data)"
 run "$ROOT/tools/db/supabase-shim.sql"
