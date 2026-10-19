@@ -6,7 +6,8 @@
 --   * guilds owned by the account: before any cascade, ownership passes to the oldest other member, as
 --     titan_leave_guild() does (members without a guild_members row are found through profiles.guild_id).
 --     A guild nobody else belongs to is still removed by the existing owner_id cascade.
--- Constraints that already have the right rule are left untouched, so reapplying takes no table lock.
+-- Constraints that already have the right rule are left untouched, so reapplying takes no lock. A first
+-- application briefly locks auth.users (foreign keys onto it) under the 5s lock_timeout set below.
 -- No row is rewritten; delete_own_account() and its grants are unchanged.
 -- The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: docs/CDC_WEB_ACCOUNT_DELETION_HANDOFF_2026-10-11.md.
@@ -28,7 +29,9 @@ begin
         where p.guild_id = v_guild and p.id <> old.id order by p.created_at asc limit 1))
     into v_next;
     if v_next is not null then
-      update public.guild_members set role = 'owner' where guild_id = v_guild and user_id = v_next;
+      -- A successor known only through profiles.guild_id gets the membership row it lacks.
+      insert into public.guild_members(guild_id, user_id, role) values (v_guild, v_next, 'owner')
+        on conflict (user_id) do update set guild_id = excluded.guild_id, role = 'owner';
       update public.guilds set owner_id = v_next, updated_at = pg_catalog.now() where id = v_guild;
     end if;
   end loop;

@@ -98,6 +98,17 @@ test('owner drafts are erased even when durable storage fails or is missing',asy
  assert.equal(missing.TitanQueue,undefined);missing.titanForgetOwnerDrafts('alice');
  assert.deepEqual([...missing.storage.keys()],['titan_seance_draft_v3:bob']);
 });
+test('blocked localStorage cannot stop the queue and history purge',async()=>{
+ const db=new IDBFactory(),e=environment(db);
+ await e.TitanQueue.put({key:'alice:event',ownerId:'alice',status:'pending',payload:{details:{client_event_id:'a'}}});
+ await e.TitanQueue.saveHistory('alice',[{id:'a'}]);
+ const blocked=environment(db);blocked.storage.set('titan_seance_draft_v3:alice','x');
+ blocked.storage.delete=()=>{throw new Error('storage blocked')};
+ await blocked.TitanQueue.deleteOwner('alice');
+ const reopened=environment(db);reopened.window.state.user.id='alice';
+ assert.equal((await reopened.TitanQueue.refresh()).length,0,'the pending queue is purged');
+ assert.equal((await reopened.TitanQueue.readHistory('alice')).length,0,'the history is purged');
+});
 test('legacy migration is repeatable and preserves its event id',async()=>{
  const e=environment(),legacy=[{key:'old',ownerId:'guest_test',payload:{details:{client_event_id:'stable'},val:4}}];
  e.storage.set('titan_pending_training_logs_v1',JSON.stringify(legacy));await e.TitanQueue.migrate();

@@ -154,6 +154,8 @@ begin
   assert (select owner_id=c from public.guilds where code='QALEG1')
     and (select guild_id=(select id from public.guilds where code='QALEG1') from public.profiles where id=c),
     'a legacy member known only through its profile inherits the guild';
+  assert (select role='owner' from public.guild_members gm join public.guilds g on g.id=gm.guild_id
+    where g.code='QALEG1' and gm.user_id=c),'the successor gets the membership row and owner role it lacked';
   assert not exists(select 1 from public.titan_moment_cheers where moment_id=current_setting('titan.del_moment_b')::uuid),
     'cheers given by A disappear with A';
 end $$;

@@ -26,7 +26,7 @@ begin
   for c in
     select conrelid::regclass as tbl, conname from pg_constraint
     where not convalidated
-      and conrelid in ('public.profiles'::regclass, 'public.shop_history'::regclass)
+      and conrelid in (select oid from pg_class where oid in (to_regclass('public.profiles'), to_regclass('public.shop_history')))
       and conname in ('profiles_credits_minimum_check', 'profiles_xp_minimum_check',
         'profiles_level_minimum_check', 'profiles_role_control_check', 'profiles_status_control_check',
         'shop_history_amounts_nonnegative_check')
@@ -45,7 +45,7 @@ create table if not exists private.titan_economy_journal (
   user_id uuid references auth.users(id) on delete set null,
   actor_id uuid references auth.users(id) on delete set null,
   actor_role text,
-  db_role text not null default current_user,
+  db_role text not null default session_user,
   kind text not null check (kind in ('economy', 'entitlement', 'moderation')),
   changes jsonb not null check (jsonb_typeof(changes) = 'object' and changes <> '{}'::jsonb)
 );
@@ -102,8 +102,8 @@ end;
 $function$;
 revoke all on function private.titan_journal_profile_change() from public, anon, authenticated;
 
--- Append-only. The single permitted update is the foreign-key release that detaches an entry from a
--- deleted account (user_id / actor_id set to NULL); everything else, deletion and truncation included, is refused.
+-- Append-only. The single permitted update is the foreign-key release that detaches an entry from an
+-- account that has been deleted (user_id / actor_id set to NULL); everything else, deletion and truncation included, is refused.
 create or replace function private.titan_economy_journal_guard()
 returns trigger
 language plpgsql
@@ -111,10 +111,14 @@ security definer
 set search_path = ''
 as $function$
 begin
+  -- Detachment is allowed only for an account that no longer exists, which is exactly the foreign-key
+  -- release that follows its deletion: it cannot be used to hide the entries of a live account.
   if tg_op = 'UPDATE'
      and (to_jsonb(new) - 'user_id' - 'actor_id') = (to_jsonb(old) - 'user_id' - 'actor_id')
-     and (new.user_id is null or new.user_id = old.user_id)
-     and (new.actor_id is null or new.actor_id = old.actor_id) then
+     and (new.user_id is not distinct from old.user_id
+       or (new.user_id is null and not exists (select 1 from auth.users u where u.id = old.user_id)))
+     and (new.actor_id is not distinct from old.actor_id
+       or (new.actor_id is null and not exists (select 1 from auth.users u where u.id = old.actor_id))) then
     return new;
   end if;
   raise exception 'JOURNAL_APPEND_ONLY' using errcode = '42501';

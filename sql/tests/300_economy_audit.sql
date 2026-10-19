@@ -71,6 +71,13 @@ do $$ declare a uuid:=current_setting('titan.aud_a')::uuid; begin
   exception when others then assert sqlerrm='JOURNAL_APPEND_ONLY',sqlerrm; end;
   begin delete from private.titan_economy_journal where user_id=a; assert false,'entries cannot be erased';
   exception when others then assert sqlerrm='JOURNAL_APPEND_ONLY',sqlerrm; end;
+  begin update private.titan_economy_journal set user_id=null where user_id=a;
+    assert false,'a live account cannot be detached from its entries';
+  exception when others then assert sqlerrm='JOURNAL_APPEND_ONLY',sqlerrm; end;
+  assert (select count(*)>0 from private.titan_economy_journal where user_id=a),'entries still point to the live account';
+  assert not exists(select 1 from private.titan_economy_journal where db_role is null)
+    and (select db_role from private.titan_economy_journal where user_id=a order by id limit 1)=session_user,
+    'the connection role is recorded, not the function owner';
   begin truncate private.titan_economy_journal; assert false,'the journal cannot be truncated';
   exception when others then assert sqlerrm='JOURNAL_APPEND_ONLY',sqlerrm; end;
 end $$;

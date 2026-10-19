@@ -148,8 +148,13 @@
   };
   // Drafts kept by titanSafeClearCache: legacy key, then the session draft/timer of js/app/seance.js.
   root.titanForgetOwnerDrafts = (ownerId) => {
-    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`])
-      localStorage.removeItem(key);
+    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`]) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Blocked storage must not stop the queue and history purge that follows.
+      }
+    }
   };
   if (!root.indexedDB) return;
   let connection,

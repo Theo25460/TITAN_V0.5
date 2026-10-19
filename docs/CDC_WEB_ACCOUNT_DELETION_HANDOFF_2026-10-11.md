@@ -1,5 +1,7 @@
 # Handoff — suppression de compte web (LEG10, LEG09/LEG11 associés)
 
+> **Reprise du 19/10/2026 sur la PR #100** : voir `docs/CDC_WEB_ECONOMY_SECURITY_HANDOFF_2026-10-19.md`. Ne sont plus portés : l'avertissement TITAN+ du Profil et le test navigateur (fichiers réservés à Codex). Le défaut n°4 reste couvert par `deleteOwner`. La passation de guilde crée aussi la ligne de membre manquante d'un successeur hérité.
+
 Chantier AUTRE — Claude Code, 11/10/2026. Branche `claude/titan-cahier-charges-0k7cdn`, construite sur la PR #36 prête, ouverte et non fusionnée : parent `c425e7b4877e575cba48a60354dae29231dd05e3`, arbre `6c23a6ee8a079d867cd338194910c2483605c41c`. Aucune fusion, aucun déploiement, aucune migration appliquée à un projet réel. Le [cahier des charges](https://docs.google.com/document/d/1zCzsHyIlSFxa_6Y8x6LbPWbvOhUiSue3u4yAPvFsl8M) n'a pas pu être édité depuis cet environnement (connecteur Drive en lecture seule) : la déclaration, les statuts et la question à reporter sont rédigés en fin de document.
 
 ## Résultat du lot
