@@ -1048,6 +1048,7 @@
                 ${statusAction}
                 <button class="icon-button" title="Activites" data-user-action="activities" data-user-id="${id}"><i class="ri-run-line"></i></button>
                 <button class="icon-button" title="Logs" data-user-action="logs" data-user-id="${id}"><i class="ri-file-list-3-line"></i></button>
+                <button class="icon-button" title="Dossier de moderation" aria-label="Dossier de moderation" data-moderation-open="${id}"><i class="ri-shield-user-line"></i></button>
             </div>
         `;
     }
@@ -1401,6 +1402,16 @@
         const moderationOpen = event.target.closest('[data-moderation-open]');
         if (moderationOpen) {
             await openModerationCase(moderationOpen.dataset.moderationOpen);
+            return;
+        }
+
+        if (event.target.closest('[data-moderation-lookup-submit]')) {
+            const typed = String(($('[data-moderation-lookup] [name=user]') || {}).value || '').trim();
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(typed)) {
+                notify('Identifiant invalide', 'Colle l\u2019identifiant complet du compte (format 8-4-4-4-12).', 'warning');
+                return;
+            }
+            await openModerationCase(typed.toLowerCase());
             return;
         }
 
@@ -1898,6 +1909,11 @@
         return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
     }
 
+    function moderationPayloadText(payload) {
+        const text = JSON.stringify(payload || {}, null, 2);
+        return text.length > 1200 ? `${text.slice(0, 1200)}\n… (tronqué, ${text.length - 1200} caractères de plus)` : text;
+    }
+
     function moderationSignalLine(signal) {
         return `<li><code>${escapeHtml(signal.reason)}</code> · ${escapeHtml(signal.severity)} · ×${escapeHtml(signal.count)} · +${escapeHtml(signal.points)} pt</li>`;
     }
@@ -1905,7 +1921,14 @@
     async function renderModeration() {
         const head = sectionHead('Modération', 'Comptes ayant des signaux ouverts, classés par risque. Aucune action n’est automatique : chaque décision est humaine, motivée et annulable.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
-        ]);
+        ]) + `
+            <form class="panel" data-moderation-lookup onsubmit="return false">
+                <label class="form-field full">
+                    <span>Retrouver un dossier par identifiant de compte (par exemple pour annuler une décision d’un compte sorti de la file)</span>
+                    <input class="admin-input" name="user" type="text" autocomplete="off" spellcheck="false" placeholder="00000000-0000-0000-0000-000000000000" aria-label="Identifiant du compte">
+                </label>
+                ${buttonMarkup('Ouvrir le dossier', 'ri-folder-user-line', 'secondary', 'data-moderation-lookup-submit')}
+            </form>`;
         const { data, error } = await state.client.rpc('titan_moderation_queue_v1', { p_limit: 100 });
         if (error) {
             let message;
@@ -1946,7 +1969,8 @@
         }
         state.moderationUser = userId;
         const user = data.user || {};
-        const suspended = user.is_suspended === true || user.status === 'suspended';
+        const banned = user.status === 'banned';
+        const suspended = !banned && (user.is_suspended === true || user.status === 'suspended');
         const decisions = Array.isArray(data.decisions) ? data.decisions : [];
         const latest = decisions[0];
         const signals = (data.signals || []).map((signal) => `
@@ -1955,17 +1979,20 @@
             <div class="panel">
                 <p><strong>${escapeHtml(signal.action_type)}</strong> · ${escapeHtml(signal.severity)} · ${badge(signal.status)} · ${escapeHtml(formatDate(signal.at))}</p>
                 <p><code>${escapeHtml(signal.reason)}</code></p>
-                <div class="json-preview">${escapeHtml(JSON.stringify(signal.payload || {}, null, 2).slice(0, 1200))}</div>
+                <div class="json-preview">${escapeHtml(moderationPayloadText(signal.payload))}</div>
             </div>`).join('') || '<p><small>Aucun signal enregistré.</small></p>';
         const history = decisions.map((decision) => `
             <li>${escapeHtml(MODERATION_DECISION_LABELS[decision.decision] || decision.decision)} · ${escapeHtml(formatDate(decision.at))} · <em>${escapeHtml(decision.reason)}</em></li>`).join('') || '<li><small>Aucune décision.</small></li>';
         const actions = [
             buttonMarkup('Classer sans suite', 'ri-check-double-line', 'secondary', 'data-moderation-decide="dismiss"'),
-            buttonMarkup('Surveiller', 'ri-eye-line', 'secondary', 'data-moderation-decide="watch"'),
-            suspended
-                ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
-                : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"')
+            buttonMarkup('Surveiller', 'ri-eye-line', 'secondary', 'data-moderation-decide="watch"')
         ];
+        // A ban is a decision taken elsewhere: neither suspending nor restoring it makes sense from this file.
+        if (!banned) {
+            actions.push(suspended
+                ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
+                : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"'));
+        }
         if (latest && latest.decision !== 'revert') {
             actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
         }
@@ -1975,6 +2002,7 @@
             body: `
                 <div class="panel">
                     <p>Score <strong>${escapeHtml(data.score)}</strong> · ${moderationLevelBadge(data.level)} · statut ${badge(user.status || 'active')}</p>
+                    ${banned ? '<p><small>Compte banni : le bannissement se lève hors de cette file. Tu peux toujours classer, surveiller ou annuler une décision.</small></p>' : ''}
                     <p><small>Score = somme, par raison, du poids de la gravité la plus haute (faible 1, moyenne 3, haute 8, critique 20) × min(occurrences, 3). Il ne dépend pas du volume d’entraînement. Seuls les signaux ouverts des 30 derniers jours comptent.</small></p>
                 </div>
                 <h3>Signaux qui composent le score</h3>
@@ -2011,8 +2039,20 @@
         const { error } = await state.client.rpc('titan_moderation_decide_v1', { p_user: userId, p_decision: decision, p_reason: reason });
         if (error) notify('Décision refusée', moderationErrorText(error), 'danger');
         else notify('Décision enregistrée', MODERATION_DECISION_LABELS[decision] || decision, 'success');
-        await renderModeration();
-        await openModerationCase(userId);
+        await refreshModeration(userId);
+    }
+
+    // The decision is already recorded when this runs: a failed refresh must say so, not hide it, and must not
+    // repaint a screen the administrator has since left.
+    async function refreshModeration(userId) {
+        if (state.currentView !== 'moderation') return;
+        try {
+            await renderModeration();
+            await openModerationCase(userId);
+        } catch (error) {
+            console.error('[TITAN ADMIN MODERATION]', error);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file pour voir son effet.', 'warning');
+        }
     }
 
     async function revertModeration(decisionId) {
@@ -2042,6 +2082,11 @@
     }
 
     function closeModal() {
+        if (state.pendingConfirm) {
+            const settle = state.pendingConfirm;
+            state.pendingConfirm = null;
+            settle(false);
+        }
         $('#admin-modal').hidden = true;
         $('#modal-body').innerHTML = '';
         $('#modal-actions').innerHTML = '';
@@ -2049,6 +2094,8 @@
 
     function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false }) {
         return new Promise((resolve) => {
+            // Closing the dialog any other way (cross, backdrop) is a cancellation, never a pending promise.
+            state.pendingConfirm = resolve;
             openModal({
                 title,
                 kicker: 'Confirmation',
@@ -2068,7 +2115,6 @@
             });
             $('[data-confirm-cancel]').onclick = () => {
                 closeModal();
-                resolve(false);
             };
             $('[data-confirm-ok]').onclick = () => {
                 const reason = $('[data-confirm-reason]').value.trim();
@@ -2076,6 +2122,7 @@
                     notify('Raison requise', 'Indique une raison avant de confirmer.', 'warning');
                     return;
                 }
+                state.pendingConfirm = null;
                 closeModal();
                 resolve(reason);
             };

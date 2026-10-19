@@ -39,15 +39,18 @@ after(async () => {
 
 const P1 = "00000000-0000-4000-8000-0000000000a1";
 const P2 = "00000000-0000-4000-8000-0000000000a2";
+const P3 = "00000000-0000-4000-8000-0000000000a3";
 const evil = '<img src=x onerror="window.pwned=1">';
 
 // Installed before any page script; config.js cannot replace the stub.
 function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
-  return ({ admin, mode, P1, P2, evil }) => {
+  return ({ admin, mode, P1, P2, P3, evil }) => {
     const calls = [];
     const db = {
-      status: { [P1]: "active", [P2]: "active" },
-      decisions: { [P1]: [], [P2]: [] },
+      status: { [P1]: "active", [P2]: "active", [P3]: "banned" },
+      decisions: { [P1]: [], [P2]: [], [P3]: [] },
+      dismissed: {},
+      queueCalls: 0,
       next: 100,
     };
     const level = (s) => (s >= 40 ? "urgent" : s >= 20 ? "review" : s >= 8 ? "watch" : "low");
@@ -63,15 +66,15 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
         { user_id: P2, username: "Sam", status: db.status[P2], score: 3, level: level(3),
           signals: [{ reason: "TRAINING_FREQUENCY_HIGH", severity: "low", count: 50, points: 3, first_at: "2026-10-10T08:00:00Z", last_at: "2026-10-19T09:00:00Z" }],
           last_decision: null },
-      ].filter((e) => mode !== "empty"),
+      ].filter((e) => mode !== "empty" && !db.dismissed[e.user_id]),
     });
     const caseFile = (id) => ({
       version: 1,
-      user: { id, username: id === P1 ? `Alex ${evil}` : "Sam", status: db.status[id], is_suspended: db.status[id] === "suspended" },
+      user: { id, username: id === P1 ? `Alex ${evil}` : id === P3 ? "Robin" : "Sam", status: db.status[id], is_suspended: db.status[id] === "suspended" },
       score: id === P1 ? 44 : 3, level: id === P1 ? "urgent" : "low",
-      signals: queue().entries.find((e) => e.user_id === id).signals,
+      signals: id === P3 || db.dismissed[id] ? [] : queue().entries.find((e) => e.user_id === id).signals,
       signals_recent: [
-        { id: "s1", at: "2026-10-19T09:00:00Z", action_type: "training_log.flagged", severity: "high", reason: "TRAINING_REVIEW_RECOMMENDED", status: "open", payload: { note: evil, distance: 42.2 } },
+        { id: "s1", at: "2026-10-19T09:00:00Z", action_type: "training_log.flagged", severity: "high", reason: "TRAINING_REVIEW_RECOMMENDED", status: "open", payload: { note: evil, distance: 42.2, filler: "x".repeat(1500) } },
       ],
       decisions: db.decisions[id].map((d) => ({ id: d.id, at: d.at, admin_id: "adm", decision: d.decision, reason: d.reason, reverts: d.reverts || null })),
     });
@@ -87,11 +90,16 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
       from: () => { throw new Error("direct table access is not expected"); },
       rpc: async (name, params = {}) => {
         calls.push({ name, params });
+        if (name === "titan_admin_list_profiles_v1") return { data: [{ id: P2, username: "Sam", status: "active", role: "user", created_at: "2026-10-01T00:00:00Z" }], error: null };
         if (name === "titan_admin_get_context_v1") return { data: { isAdmin: admin, role: admin ? "admin" : "user" }, error: null };
         if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
         if (mode === "oldserver") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
         if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
-        if (name === "titan_moderation_queue_v1") return { data: queue(), error: null };
+        if (name === "titan_moderation_queue_v1") {
+          db.queueCalls++;
+          if (mode === "refresh-fails" && db.queueCalls > 1) return fail("upstream 503", "503");
+          return { data: queue(), error: null };
+        }
         if (name === "titan_moderation_case_v1") return { data: caseFile(params.p_user), error: null };
         if (name === "titan_moderation_decide_v1") {
           if (mode === "refuse-admin") return fail("CANNOT_MODERATE_ADMIN", "42501");
@@ -99,6 +107,7 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
           db.decisions[params.p_user].unshift({ id, decision: params.p_decision, reason: params.p_reason, at: "2026-10-19T10:05:00Z" });
           if (params.p_decision === "suspend") db.status[params.p_user] = "suspended";
           if (params.p_decision === "restore") db.status[params.p_user] = "active";
+          if (params.p_decision === "dismiss") db.dismissed[params.p_user] = true;
           return { data: { version: 1, decision_id: id, decision: params.p_decision, user_id: params.p_user }, error: null };
         }
         if (name === "titan_moderation_revert_v1") {
@@ -107,9 +116,11 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
           const id = db.next++;
           for (const uid of Object.keys(db.decisions)) if (db.decisions[uid].includes(target)) {
             if (target.decision === "suspend") db.status[uid] = "active";
+            if (target.decision === "dismiss") db.dismissed[uid] = false;
             db.decisions[uid].unshift({ id, decision: "revert", reason: params.p_reason, reverts: target.id, at: "2026-10-19T10:06:00Z" });
           }
-          return { data: { version: 1, decision_id: id, decision: "revert", reverts: target.id, reopened: 0, expected: 0 }, error: null };
+          const partial = target.decision === "dismiss";
+          return { data: { version: 1, decision_id: id, decision: "revert", reverts: target.id, reopened: partial ? 1 : 0, expected: partial ? 2 : 0 }, error: null };
         }
         return fail("unknown");
       },
@@ -118,14 +129,14 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
   };
 }
 
-async function open(width, opts = {}) {
+async function open(width, opts = {}, hash = "moderation") {
   const context = await browser.newContext({ viewport: { width, height: width > 900 ? 900 : 844 }, serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.addInitScript(installFakeAdmin(opts), { admin: opts.admin ?? true, mode: opts.mode ?? "ok", P1, P2, evil });
-  await page.goto(BASE + "/admin#moderation", { waitUntil: "load" });
+  await page.addInitScript(installFakeAdmin(opts), { admin: opts.admin ?? true, mode: opts.mode ?? "ok", P1, P2, P3, evil });
+  await page.goto(BASE + "/admin#" + hash, { waitUntil: "load" });
   return { page, context, errors };
 }
 const calls = (page) => page.evaluate(() => window.__mod.calls.map((c) => c.name + ":" + JSON.stringify(c.params)));
@@ -225,5 +236,71 @@ test("moderation screen: usable at 360 px without horizontal overflow", async ()
   await page.locator('#admin-modal [data-moderation-decide="watch"]').waitFor();
   const box = await page.locator("#admin-modal .modal-card").boundingBox();
   assert.ok(box.x >= 0 && box.x + box.width <= 360 + 1, `the case file fits the screen: ${JSON.stringify(box)} modalScroll=${await page.evaluate(() => document.querySelector("#admin-modal").scrollWidth)}`);
+  await context.close();
+});
+
+test("moderation: a dismissed account stays reachable by identifier and its decision can be reverted", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="dismiss"]').click();
+  await page.locator("[data-confirm-reason]").fill("Faux positif confirmé");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.dismissed["00000000-0000-4000-8000-0000000000a1"] === true);
+  await page.locator("#modal-close").click();
+  await page.locator(`[data-moderation-user="${P1}"]`).waitFor({ state: "detached" });
+  const before = (await calls(page)).filter((c) => c.startsWith("titan_moderation_case_v1")).length;
+  await page.locator("[data-moderation-lookup] [name=user]").fill("not-an-id");
+  await page.locator("[data-moderation-lookup-submit]").click();
+  await page.locator("#admin-toast-stack").getByText(/Identifiant invalide/).waitFor();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_moderation_case_v1")).length, before, "an invalid identifier asks the server nothing");
+  await page.locator("[data-moderation-lookup] [name=user]").fill(P1.toUpperCase());
+  await page.locator("[data-moderation-lookup-submit]").click();
+  await page.locator("#admin-modal [data-moderation-revert]").click();
+  await page.locator("[data-confirm-reason]").fill("Finalement non");
+  await page.locator("[data-confirm-ok]").click();
+  await page.locator("#admin-toast-stack").getByText(/1 signal\(aux\) rouvert\(s\) sur 2/).waitFor();
+  await page.locator(`[data-moderation-user="${P1}"]`).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("moderation: closing the confirmation with the cross cancels it and returns to the case file", async () => {
+  const { page, context } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="suspend"]').click();
+  await page.locator("[data-confirm-reason]").waitFor();
+  await page.locator("#modal-close").click();
+  await page.locator('#admin-modal [data-moderation-decide="suspend"]').waitFor();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_moderation_decide_v1")).length, 0);
+  await context.close();
+});
+
+test("moderation: a banned account offers no suspension, truncated evidence says so, and users link to the file", async () => {
+  const { page, context } = await open(1280);
+  await page.locator("[data-moderation-lookup] [name=user]").fill(P3);
+  await page.locator("[data-moderation-lookup-submit]").click();
+  const modal = page.locator("#admin-modal");
+  await modal.getByText(/Compte banni/).waitFor();
+  assert.equal(await modal.locator('[data-moderation-decide="suspend"], [data-moderation-decide="restore"]').count(), 0);
+  await modal.locator('[data-moderation-decide="watch"]').waitFor();
+  await page.locator(`[data-moderation-open="${P1}"]`).waitFor({ state: "attached" });
+  await page.locator("#modal-close").click();
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  await modal.getByText(/tronqué/).waitFor();
+  await page.locator("#modal-close").click();
+  await page.goto(BASE + "/admin#users", { waitUntil: "load" });
+  await page.locator(`[data-moderation-open="${P2}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="watch"]').waitFor();
+  await context.close();
+});
+
+test("moderation: a failed refresh after a recorded decision is reported, not hidden", async () => {
+  const { page, context } = await open(1280, { mode: "refresh-fails" });
+  await page.locator(`[data-moderation-open="${P2}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="watch"]').click();
+  await page.locator("[data-confirm-reason]").fill("Surveillance");
+  await page.locator("[data-confirm-ok]").click();
+  await page.locator("#admin-toast-stack").getByText(/La décision est enregistrée/).waitFor();
+  assert.equal(await page.evaluate(() => window.__mod.db.decisions["00000000-0000-4000-8000-0000000000a2"].length), 1);
   await context.close();
 });

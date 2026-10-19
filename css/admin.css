@@ -595,6 +595,8 @@ a {
 
 .modal-card {
     width: min(860px, calc(100% - 26px));
+    min-width: 0;
+    max-width: 100%;
     max-height: min(86vh, 920px);
     display: flex;
     flex-direction: column;
@@ -609,6 +611,7 @@ a {
     inset: 0;
     z-index: 100;
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* a wide table scrolls inside the dialog, never widens it */
     place-items: center;
     padding: 20px;
     background: rgba(0, 0, 0, 0.72);
@@ -628,6 +631,7 @@ a {
 }
 
 .modal-body {
+    min-width: 0;
     overflow: auto;
     padding: 18px;
 }
@@ -818,7 +822,3 @@ a {
 #modal-body h3 { margin: 16px 0 8px; font-size: 1rem; }
 #modal-body .json-preview { max-height: 220px; overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }
 #modal-actions { flex-wrap: wrap; }
-/* A wide table must scroll inside the dialog, never widen it past the screen. */
-.admin-modal { grid-template-columns: minmax(0, 1fr); }
-.modal-card { min-width: 0; max-width: 100%; }
-.modal-body { min-width: 0; overflow: auto; }
