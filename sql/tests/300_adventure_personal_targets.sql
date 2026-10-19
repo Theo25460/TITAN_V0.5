@@ -23,10 +23,18 @@ begin
   begin perform public.titan_adventure_action('claim','aube','rhythm',null,(s->>'revision')::int,9,'UTC');
   exception when others then rejected:=sqlerrm='QUEST_INCOMPLETE'; end;
   assert rejected and (select count(*)=0 from public.adventure_rewards where user_id=owner),'one huge day cannot win';
+  update public.training_logs set val=15,details='{"serverReward":true,"duration":15}' where user_id=owner;
   insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at)
-    values(owner,'yoga','training',15,'min',now(),'{"serverReward":true,"duration":15}',clock_timestamp());
+    values(owner,'yoga','training',14,'min',now(),'{"serverReward":true,"duration":14}',clock_timestamp());
+  rejected:=false;
+  begin perform public.titan_adventure_action('claim','aube','rhythm',null,(s->>'revision')::int,9,'UTC');
+  exception when others then rejected:=sqlerrm='GUARDIAN_EFFORT_INCOMPLETE'; end;
+  assert rejected,'two days still need the displayed30 minutes';
+  update public.training_logs set val=15,details='{"serverReward":true,"duration":15}' where user_id=owner and sport='yoga';
   select xp,credits into xp0,coins0 from public.profiles where id=owner;
+  execute 'set local role authenticated';
   s:=public.titan_adventure_action('claim','aube','rhythm',null,(s->>'revision')::int,9,'UTC');
+  execute 'reset role';
   assert (select chapter=10 from public.adventure_progress where user_id=owner),'same displayed targets accepted';
   assert jsonb_array_length(s->'rewards')=1 and (s->>'xp')::int=xp0 and (s->>'credits')::int=coins0,'cosmetic reward only';
   -- A regular high-volume history is bounded; its removal cannot move the active target.

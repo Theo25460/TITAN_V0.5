@@ -33,6 +33,14 @@
   const effortRule = () => (A()?.snapshot?.campaigns || []).some((c) => c.effort_target != null);
   const SOON = "L’épreuve d’effort du gardien (150 minutes, 90 au plus par jour) arrive avec la prochaine mise à jour du serveur.";
 
+  const personalServer = () => !isGuest() && (A()?.snapshot?.version || 1) >= 4;
+  function personalTargetHtml(p) {
+    if (!personalServer() || !p.main_objective || p.chapter < 1 || p.chapter > 9) return "";
+    return `<p class="asc-small asc-muted" data-personal-target>${p.main_objective.version === 0
+      ? "Chapitre déjà commencé : ses conditions sont conservées jusqu’à sa validation."
+      : "Cible adaptée à tes 28 jours admissibles précédents, figée au départ de ce chapitre. Le serveur confirme les preuves ; aucun record à battre, aucune échéance."}</p>`;
+  }
+
   function campaign(world) {
     const s = A().snapshot;
     return s?.campaigns?.find((c) => c.id === world.id) || { id: world.id, chapter: 0, evidence: { days: 0, source_ids: [] }, target: 0 };
@@ -103,6 +111,7 @@
       <div class="av-track"><div class="asc-between"><span>${p.route === "journal" ? "Jours avec une séance annotée" : "Jours actifs"}</span><strong class="asc-num">${days} / ${p.target}</strong></div><span class="asc-ascent"><span style="--p:${Math.round((days / Math.max(1, p.target)) * 100)}%"></span></span></div>
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
+      ${personalTargetHtml(p)}
       <p class="asc-small" data-rpg-remaining>${esc(remaining)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
@@ -160,7 +169,7 @@
     return `<section class="av-guardian" style="--world:${world.color}">
       <img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="${esc(world.guardian)}" width="256" height="256" loading="lazy" decoding="async">
       <div><p class="asc-eyebrow">Le gardien de la région</p><h2 class="asc-h2">${esc(world.guardian)}</h2>
-        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend trois jours actifs${effortRule() ? " et 150 minutes d’effort. Pas plus de 90 par jour : il mesure ta constance, pas une journée héroïque" : ""}.`}</p></div>
+        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend ${p.chapter === 9 ? `${p.target} jours actifs${p.effort_target ? ` et ${p.effort_target} minutes d’effort` : ""}. 90 minutes au plus par jour` : personalServer() ? "une cible personnelle fixée au départ de ce chapitre, sur au moins deux jours distincts" : `trois jours actifs${effortRule() ? " et 150 minutes d’effort, 90 au plus par jour" : ""}`}.`}</p></div>
     </section>`;
   }
 
@@ -199,7 +208,7 @@
       ${questSouvenirsHtml(world, s)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
-        <p>${effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
+        <p>${personalServer() ? "Les nouveaux chapitres adaptent leurs cibles à tes 28 derniers jours admissibles, puis les gardent figées jusqu’à validation. Le gardien demande au moins deux jours distincts et l’effort indiqué, 90 minutes au plus par jour. Les conditions des chapitres déjà commencés sont conservées." : effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour. Ces conditions fixes restent celles du mode découverte et de cet ancien contrat." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
       <p class="asc-small" role="status" id="av-error"></p>`;
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
@@ -259,7 +268,7 @@
     body.innerHTML = `<div class="av-mission-head">${badge(world, index, earned)}<p class="asc-small asc-muted">${earned ? "Balise allumée" : current ? "Étape en cours" : "À découvrir"}</p></div>
       <p>${esc(ch.story)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
-      <p class="asc-small">Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss && effortRule() ? " et 150 minutes d’effort (90 max par jour)" : ""}. Insigne : <strong>${esc(ch.title)}</strong>.</p>
+      <p class="asc-small">${current ? `Mission : ${p.target} jour${p.target > 1 ? "s" : ""} actif${p.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${p.effort_target ? ` et ${p.effort_target} minutes d’effort (90 max par jour)` : ""}.` : earned ? "Chapitre validé ; ses conditions ne sont pas recalculées." : personalServer() ? "La cible personnelle sera fixée au départ de ce chapitre." : `Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss && effortRule() ? " et 150 minutes d’effort (90 max par jour)" : ""}.`} Insigne : <strong>${esc(ch.title)}</strong>.</p>
       ${ids.length ? `<div class="asc-stack-sm"><p class="asc-eyebrow">Séances qui ont compté</p><div class="asc-list">${ids
         .map((id) => {
           const l = logs.find((x) => String(x.id) === String(id) || x.client_event_id === id);

@@ -343,7 +343,7 @@
       AUTH_REQUIRED: "Reconnecte-toi pour retrouver ta progression.",
       QUEST_INCOMPLETE: "La mission n’est pas encore terminée.",
       GUARDIAN_EFFORT_INCOMPLETE:
-        "Le gardien attend encore de l’effort : 150 minutes depuis le début du chapitre, 90 au plus par jour.",
+        "Le gardien attend encore de l’effort : consulte l’objectif affiché pour ce chapitre, 90 minutes au plus comptées par jour.",
       AVATAR_LOCKED: "Ce personnage se débloque à un prochain niveau.",
     })[error?.message] ||
     "La progression n’a pas pu être confirmée. Tes séances restent conservées. Réessaie dans un instant.";
