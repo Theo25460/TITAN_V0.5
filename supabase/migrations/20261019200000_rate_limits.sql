@@ -3,7 +3,7 @@
 -- write by an authenticated session is covered as well. Only an authenticated session is limited (auth.uid() set):
 -- service role, the billing worker, administration and SQL-editor maintenance are never throttled.
 -- Ceilings are generous for an honest player and only stop scripts:
---   own guild join/leave 10/h, purchases 120/h, edits/archives of own sessions 60/h.
+--   own guild membership changes 20/h (a guild switch is two changes), purchases 120/h, edits/archives of own sessions 120/h.
 -- Friend requests, moment shares/cheers and social challenges already have their own limits (titan_social_rate_limit): untouched.
 -- At 75 % of a ceiling one 'rate_limit.near' signal is logged (visible in the moderation queue); at the ceiling the write
 -- fails with RATE_LIMITED (SQLSTATE PT429) and nothing is changed. The rejected attempt itself cannot be logged: it rolls back.
@@ -30,7 +30,7 @@ begin
   if p_user is null then return; end if;
   -- Serialise concurrent attempts of one user on one bucket so two parallel scripts cannot both pass the check.
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user::text || ':' || p_bucket, 0));
-  delete from private.titan_rate_events where user_id = p_user and bucket = p_bucket and at < now() - interval '1 day';
+  delete from private.titan_rate_events where user_id = p_user and at < now() - interval '1 day';
   select count(*) into v_count from private.titan_rate_events
    where user_id = p_user and bucket = p_bucket and at > now() - p_window;
   if v_count >= p_max then
@@ -60,12 +60,16 @@ begin
   if v_uid is null or pg_trigger_depth() > 1 then return case when TG_OP = 'DELETE' then old else new end; end if;
   if TG_TABLE_NAME = 'guild_members' then
     -- Only the caller's own membership counts: a guild disbanding many rows is one action.
-    if (v_row ->> 'user_id')::uuid = v_uid then perform private.titan_rate_limit(v_uid, 'guild_membership', 10); end if;
+    -- Re-joining the guild already joined (an ON CONFLICT retry or a double tap) is not a membership change.
+    if (v_row ->> 'user_id')::uuid = v_uid and not (TG_OP = 'INSERT' and exists (
+         select 1 from public.guild_members m where m.user_id = new.user_id and m.guild_id = new.guild_id)) then
+      perform private.titan_rate_limit(v_uid, 'guild_membership', 20);
+    end if;
   elsif TG_TABLE_NAME = 'shop_history' and TG_OP = 'INSERT' then
     if (v_row ->> 'user_id')::uuid = v_uid then perform private.titan_rate_limit(v_uid, 'purchase', 120); end if;
   elsif TG_TABLE_NAME = 'training_logs' and TG_OP = 'UPDATE' then
-    if new.user_id = v_uid and (new.val, new.date, new.details, new.archived_at) is distinct from (old.val, old.date, old.details, old.archived_at) then
-      perform private.titan_rate_limit(v_uid, 'training_change', 60);
+    if new.user_id = v_uid and (new.val, new.unit, new.date, new.details, new.archived_at) is distinct from (old.val, old.unit, old.date, old.details, old.archived_at) then
+      perform private.titan_rate_limit(v_uid, 'training_change', 120);
     end if;
   end if;
   return case when TG_OP = 'DELETE' then old else new end;

@@ -33,14 +33,22 @@ begin
   delete from public.guild_members where guild_id=g;  -- deletes 12 rows, only one is the caller's own: not 12 events
   assert (select count(*) from private.titan_rate_events where user_id=targ[4] and bucket='guild_membership')=1,'a disbanding delete counts the caller own row once';
   perform set_config('request.jwt.claims',json_build_object('sub',p,'role','authenticated')::text,true);
-  for i in 1..5 loop
+  for i in 1..10 loop
     insert into public.guild_members(guild_id,user_id,role) values (g2,p,'member');
     delete from public.guild_members where guild_id=g2 and user_id=p;
   end loop;
   ok:=false;
   begin insert into public.guild_members(guild_id,user_id,role) values (g2,p,'member');
   exception when others then ok:=(sqlerrm='RATE_LIMITED'); end;
-  assert ok,'the 11th own join/leave action in an hour is refused';
+  assert ok,'the 21st own membership change in an hour is refused';
+  -- re-joining the guild already joined (retry, double tap) is not a change and costs nothing.
+  delete from private.titan_rate_events where user_id=p;
+  insert into public.guild_members(guild_id,user_id,role) values (g2,p,'member');
+  for i in 1..30 loop
+    insert into public.guild_members(guild_id,user_id,role) values (g2,p,'member')
+      on conflict (user_id) do update set guild_id=excluded.guild_id;
+  end loop;
+  assert (select count(*) from private.titan_rate_events where user_id=p and bucket='guild_membership')=1,'30 same-guild retries cost nothing after the first join';
 
   -- training edits: only real changes count, 60 per hour.
   perform set_config('request.jwt.claims','{"role":"service_role"}',true);
@@ -48,12 +56,15 @@ begin
   perform set_config('request.jwt.claims',json_build_object('sub',q,'role','authenticated')::text,true);
   delete from private.titan_rate_events where user_id=q;
   for i in 1..10 loop update public.training_logs set admin_note='same' where id=lg; end loop;  -- not a content change
-  assert (select count(*) from private.titan_rate_events where user_id=q and bucket='training_change')=0,'an update that changes nothing counts nothing';
-  for i in 1..60 loop update public.training_logs set val=5+i where id=lg; end loop;
+  update public.training_logs set unit='mi' where id=lg; update public.training_logs set unit='km' where id=lg;
+  assert (select count(*) from private.titan_rate_events where user_id=q and bucket='training_change')=2,'a unit change counts, a note does not';
+  delete from private.titan_rate_events where user_id=q;
+  
+  for i in 1..120 loop update public.training_logs set val=5+i where id=lg; end loop;
   ok:=false;
   begin update public.training_logs set val=1 where id=lg; exception when others then ok:=(sqlerrm='RATE_LIMITED'); end;
-  assert ok,'the 61st content change in an hour is refused';
-  assert (select val from public.training_logs where id=lg)=65,'the refused edit changed nothing';
+  assert ok,'the 121st content change in an hour is refused';
+  assert (select val from public.training_logs where id=lg)=125,'the refused edit changed nothing';
   perform set_config('request.jwt.claims','{"role":"service_role"}',true);
   update public.training_logs set val=7 where id=lg;
   assert (select val from public.training_logs where id=lg)=7,'service writes are never throttled';

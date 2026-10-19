@@ -6,8 +6,8 @@ Chantier AUTRE — Claude Code, 19/10/2026, au-dessus de `dbdc91d`. Aucune fusio
 
 | Point | Statut proposé | Ce qui le justifie |
 |---|---|---|
-| CHEAT17 — rate limits adaptés aux endpoints sensibles | `[~]` | Trois chemins d'écriture sans limite en ont maintenant une, côté base (déclencheurs `BEFORE`, donc aussi pour une écriture directe d'un joueur connecté) : entrées/sorties de guilde de son propre compte (10/h), lignes d'achat (120/h), modifications de ses séances (60/h). Déjà limités avant ce lot et laissés intacts : séances (12/h, 40/j), demandes d'ami (25/j), partages et encouragements, défis, messages, assistance. Restent sans limite : sauvegarde d'état de profil (légitimement fréquente), carte publique, apparence. |
-| CHEAT16 — spam création/suppression/recréation de séances | `[~]` | Création : limites déjà en place (12/h, 40/j). Nouveau : modification ou archivage répétés d'une séance (60 changements de contenu/h). Une écriture qui ne change rien (même valeur) ne compte pas. Pas de détection de motif « créer puis effacer puis recréer » en tant que tel. |
+| CHEAT17 — rate limits adaptés aux endpoints sensibles | `[~]` | Trois chemins d'écriture sans limite en ont maintenant une, côté base (déclencheurs `BEFORE`, donc aussi pour une écriture directe d'un joueur connecté) : changements d'appartenance à une guilde de son propre compte (20/h ; changer de guilde en coûte deux ; se ré-inscrire à la guilde déjà rejointe ne coûte rien), lignes d'achat (120/h), modifications de ses séances (120/h, unité comprise). Déjà limités avant ce lot et laissés intacts : séances (12/h, 40/j), demandes d'ami (25/j), partages et encouragements, défis, messages, assistance. Restent sans limite : sauvegarde d'état de profil (légitimement fréquente), carte publique, apparence. |
+| CHEAT16 — spam création/suppression/recréation de séances | `[~]` | Création : limites déjà en place (12/h, 40/j). Nouveau : modification ou archivage répétés d'une séance (120 changements de contenu/h). Une écriture qui ne change rien (même valeur) ne compte pas. Pas de détection de motif « créer puis effacer puis recréer » en tant que tel. |
 | SEC10 — attaques logiques (boutique, publicité récompensée, Premium, séances) | `[~]` | Cadence d'achats et de modifications désormais bornée et testée ; publicité récompensée non couverte par ce lot. |
 
 ## Fonctionnement
@@ -25,7 +25,7 @@ Chantier AUTRE — Claude Code, 19/10/2026, au-dessus de `dbdc91d`. Aucune fusio
 
 - RED avant migration. Banc PostgreSQL 16, deux voies, suites vertes dont suppression de compte, achats, séances. Mutations détectées : comptage de toutes les lignes d'une guilde dissoute, toute mise à jour comptée, aucun refus, aucun signal d'approche, règle d'imbrication retirée (suppression de compte cassée). Un mutant « service limité » est équivalent (l'identité nulle ne correspond à aucune ligne) : la garde reste en défense.
 - Rejeu transactionnel deux fois : aucune ligne modifiée, un déclencheur de chaque type, droits fermés.
-- `pnpm run verify` : voir clôture. Revue de code unique : voir ci-dessous.
+- `pnpm run verify` : 235/235. Revue de code unique : 4 remarques, traitées : plafond de guilde trop serré (changer de guilde coûte deux changements, un réessai `ON CONFLICT` sur la même guilde comptait) → 20/h et ré-inscription non comptée ; édition/archivage d'un historique importé → 120/h ; unité non comptée dans le contenu ; purge des anciens événements de tous les seaux de l'utilisateur. Non traité : purge globale pour comptes dormants (au plus ~120 lignes par compte, bornées) et message client pour `RATE_LIMITED` (voir backlog).
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
