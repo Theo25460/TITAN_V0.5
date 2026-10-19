@@ -16,7 +16,7 @@ Comportement réel de Capacitor sur l'origine, la session Supabase et le service
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
-Aucun Critical. Décision humaine : Q-001 reste le prérequis de toute publication. Point de conformité relevé par la revue (pas un blocage de ce lot) : dans la coque, seul l'Atelier masque le bouton d'achat TITAN+, par une heuristique `localStorage` (`titan_twa`) partagée avec Chrome ; `openEliteCheckout` n'est gardé nulle part (voir l'ADR). À traiter par WORK/Codex avec la décision de facturation (GP01).
+Aucun Critical. Q-001 est levée (`fr.titanapp.app`, voir `docs/CDC_WEB_ANDROID_PACKAGE_HANDOFF_2026-10-19.md` : cette passation l'avait d'abord traitée comme ouverte, à tort). Point de conformité relevé par la revue (pas un blocage de ce lot) : dans la coque, seul l'Atelier masque le bouton d'achat TITAN+, par une heuristique `localStorage` (`titan_twa`) partagée avec Chrome ; `openEliteCheckout` n'est gardé nulle part (voir l'ADR). À traiter par WORK/Codex avec la décision de facturation (GP01).
 
 ## NON BLOQUANT / BACKLOG FINITION
 
@@ -24,7 +24,7 @@ Aucun Critical. Décision humaine : Q-001 reste le prérequis de toute publicati
 
 ## EXIGENCE OU MACRO-BLOC À ATTAQUER ENSUITE
 
-Réponse de Théo à Q-001 et au principe de l'ADR ; ensuite l'étude de faisabilité (AND01-AND03 selon le résultat) ou la couche « sources d'activité » (AND17), qui est indépendante de la coque. Q-002 et CHEAT14/15 restent à trancher.
+Validation du principe de l'ADR par la revue finale ; ensuite l'étude de faisabilité (AND01-AND03 selon le résultat) ou la couche « sources d'activité » (AND17), qui est indépendante de la coque. Q-002 et CHEAT14/15 restent à trancher.
 
 ## Revue
 

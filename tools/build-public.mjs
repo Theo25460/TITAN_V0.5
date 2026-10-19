@@ -119,7 +119,7 @@ writeFileSync(swPath, readFileSync(swPath, 'utf8').replace('[/* PRECACHE */]', J
 const twaFingerprints = String(process.env.TWA_SHA256_FINGERPRINTS || '').split(',').map((f) => f.trim().toUpperCase()).filter((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f));
 if (twaFingerprints.length) {
   mkdirSync(join(dist, '.well-known'), { recursive: true });
-  writeFileSync(join(dist, '.well-known', 'assetlinks.json'), JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.TWA_PACKAGE_ID || 'fr.titanapp.twa', sha256_cert_fingerprints: twaFingerprints } }], null, 2));
+  writeFileSync(join(dist, '.well-known', 'assetlinks.json'), JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.TWA_PACKAGE_ID || 'fr.titanapp.app', sha256_cert_fingerprints: twaFingerprints } }], null, 2));
 }
 
 failIfBlocked();

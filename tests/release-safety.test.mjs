@@ -62,7 +62,7 @@ test('placeholders: test ad units, sandbox tokens and demo content are found, re
 });
 
 const manifest = () => ({
-  packageId: 'fr.titanapp.twa', host: 'titan-app.fr', enableNotifications: false, features: {},
+  packageId: 'fr.titanapp.app', host: 'titan-app.fr', enableNotifications: false, features: {},
   signingKey: { path: './android.keystore', alias: 'titan' }, alphaDependencies: { enabled: false },
   additionalTrustedOrigins: [], fallbackType: 'customtabs',
 });
