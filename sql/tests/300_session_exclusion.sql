@@ -107,6 +107,25 @@ begin
   assert seen=1,'the owner still sees the excluded session';
 end $$;
 reset role;
+-- A suspended owner and a session whose status is neither valid nor suspicious are handled; a flagged row whose status
+-- drifted back to valid is reconciled instead of reported as unchanged.
+do $$
+declare r jsonb; l1 uuid:=gen_random_uuid(); l2 uuid:=gen_random_uuid(); n int;
+begin
+  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+  update public.profiles set status='suspended', is_suspended=true where id=current_setting('titan.se_p')::uuid;
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details,status) values
+    (l1,current_setting('titan.se_p')::uuid,'running','cardio',5,'km',10,now()-interval '2 days','{"duration":30}','rejected');
+  insert into public.training_logs(id,user_id,sport,category,val,unit,xp,date,details,status,is_suspicious) values
+    (l2,current_setting('titan.se_p')::uuid,'running','cardio',5,'km',10,now()-interval '3 days','{"duration":30}','valid',true);
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.se_a'),'role','authenticated')::text,true);
+  r:=public.titan_session_exclusion_v1(l1,true,'propriétaire suspendu et statut rejeté');
+  assert (r->>'changed')::boolean and (select is_suspicious and status='rejected' from public.training_logs where id=l1),'a rejected session keeps its status, the flag toggles, even for a suspended owner';
+  r:=public.titan_session_exclusion_v1(l1,false,'rétablie');
+  assert (select not is_suspicious and status='rejected' from public.training_logs where id=l1),'restored, status untouched';
+  r:=public.titan_session_exclusion_v1(l2,true,'réconciliation du statut');
+  assert (r->>'changed')::boolean and (select status='suspicious' from public.training_logs where id=l2),'flag and status are reconciled';
+end $$;
 -- Row security aside (table owner), the guard itself refuses the marker for a non-administrator.
 do $$
 declare ok boolean;

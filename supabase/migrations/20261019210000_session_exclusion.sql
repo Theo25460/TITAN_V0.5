@@ -159,7 +159,8 @@ begin
   if private.titan_is_admin(v_log.user_id) then
     raise exception 'CANNOT_MODERATE_ADMIN' using errcode = '42501';
   end if;
-  if coalesce(v_log.is_suspicious, false) = p_excluded then
+  if coalesce(v_log.is_suspicious, false) = p_excluded
+     and (v_log.status not in ('valid', 'suspicious') or (v_log.status = 'suspicious') = p_excluded) then
     return jsonb_build_object('session', p_session, 'excluded', p_excluded, 'changed', false);
   end if;
 

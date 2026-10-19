@@ -30,7 +30,7 @@ Administrateurs seulement (rôle lu sur le profil) ; motif de 3 à 500 caractèr
 
 - RED avant migration et avant interface. Banc PostgreSQL 16 deux voies vertes, rejeu transactionnel. Mutations détectées : contrôle administrateur retiré de la garde, exemption élargie à toutes les colonnes, marqueur non effacé, cible administrateur autorisée, non-idempotence.
 - 15 parcours navigateur de l'écran de modération verts (motif obligatoire, annulation par la croix, exclusion puis rétablissement, refus serveur expliqué).
-- `pnpm run verify` : voir clôture. Revue de code unique : voir ci-dessous.
+- `pnpm run verify` : 242/242. Revue de code unique : aucun défaut bloquant ; garde identique à v300 hors exemption (diff vérifié), marqueur non posable par un client, exemption inatteignable hors RPC. Deux suites mineures traitées : une ligne marquée exclue dont le statut était revenu à `valid` est réconciliée (au lieu d'être jugée « inchangée »), et un test couvre propriétaire suspendu et statut `rejected` (conservé). Non traité : la révision de la séance n'est pas incrémentée par l'exclusion (le propriétaire ne peut pas modifier sa ligne côté API) ; si l'on ouvre un autre dossier pendant la confirmation, l'ancien dossier se rouvre (sans effet sur les données).
 
 ## BLOQUANT À CORRIGER MAINTENANT
 
