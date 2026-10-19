@@ -20,8 +20,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Recuperer le depot
+      - name: Recuperer le depot (historique complet pour la recherche de secrets)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Installer pnpm
         uses: pnpm/action-setup@v4
@@ -41,10 +43,13 @@ jobs:
       - name: Verifier, tester et construire
         run: pnpm run verify
 
+      - name: Rechercher des secrets dans tout l'historique git
+        run: pnpm run history-scan
+
   e2e:
     name: Parcours navigateur (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
