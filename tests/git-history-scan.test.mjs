@@ -70,3 +70,39 @@ test('history scan: a secret on another branch or a deleted file is still found'
     assert.match(r.stdout, /LEAK\s+leak\.env:1/);
   } finally { rmSync(d, { recursive: true, force: true }); }
 });
+
+test('history scan: identical content under several paths is found under all of them, and the FIRST commit is reported', () => {
+  const d = repo();
+  try {
+    writeFileSync(join(d, 'config.js'), `const key = "${FAKE}";\n`);
+    commit(d, 'first leak');
+    const first = git(d, 'rev-parse', '--short', 'HEAD').toString().trim();
+    // Same bytes, new path inside tests/, original removed: rev-list --objects alone would keep only the tests/ path.
+    mkdirSync(join(d, 'tests'));
+    writeFileSync(join(d, 'tests', 'fixture.js'), `const key = "${FAKE}";\n`);
+    git(d, 'rm', '-q', 'config.js');
+    commit(d, 'move to tests');
+    // Re-added later: the report must still point at the first appearance.
+    writeFileSync(join(d, 'again.js'), `const key = "${FAKE}";\n`);
+    commit(d, 're-add');
+    const r = scan(d);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /LEAK[^\n]*config\.js/, 'the original path is reported');
+    assert.match(r.stdout, /LEAK[^\n]*tests\/fixture\.js/, 'the renamed path is reported too');
+    assert.ok(r.stdout.includes(`first seen in commit ${first}`), `first commit ${first} expected: ${r.stdout}`);
+    assert.ok(!r.stdout.includes(FAKE));
+  } finally { rmSync(d, { recursive: true, force: true }); }
+});
+
+test('history scan: a shallow clone is refused, not reported as clean', () => {
+  const d = repo();
+  const c = join(mkdtempSync(join(tmpdir(), 'titan-shallow-')), 'clone');
+  try {
+    writeFileSync(join(d, 'a.txt'), '1\n'); commit(d, 'one');
+    writeFileSync(join(d, 'a.txt'), '2\n'); commit(d, 'two');
+    execFileSync('git', ['clone', '-q', '--depth', '1', `file://${d}`, c], { stdio: 'pipe' });
+    const r = scan(c);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /shallow clone/);
+  } finally { rmSync(d, { recursive: true, force: true }); rmSync(join(c, '..'), { recursive: true, force: true }); }
+});
