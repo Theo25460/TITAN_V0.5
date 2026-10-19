@@ -366,3 +366,7 @@ test("adventure mutation: a failed action leaves its overlapping successful read
   assert.equal(A.snapshot.rewards.length, 1);
   assert.equal(A.status, "ready");
 });
+
+test('legacy adventure paywall refusal explains the free-region server update',()=>{
+ const {A}=env({browser:true});assert.match(A.message(Error('TITAN_PLUS_REQUIRED')),/mise à jour du serveur/);
+});

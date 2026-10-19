@@ -47,6 +47,16 @@ test('version3 missing or malformed quests never fall back to invented account t
  assert.equal(api().plan({campaign:{...serverCampaign,quests:{...serverCampaign.quests,items:serverCampaign.quests.items.map(q=>({...q,target:-1}))}},serverVersion:3}),null);
 });
 test('server quests cover all campaign regions and clamp displayed progress without mutating inputs',()=>{
- const c=structuredClone(serverCampaign);c.id='forge';c.quests.items[0].value=999;const before=JSON.stringify(c);
+ const c=structuredClone(serverCampaign);c.id='forge';c.quests.items[0].value=999;c.quests.items[0].complete=true;const before=JSON.stringify(c);
  const p=api().plan({campaign:c,serverVersion:3});assert.ok(p);assert.equal(p.quests[0].value,2);assert.equal(JSON.stringify(c),before);
+});
+test('server quests fail closed on null entries, malformed profiles and contradictory completion',()=>{
+ const variants=[
+  q=>{q.items[0]=null;},q=>{q.profile={};},q=>{q.profile=[];},
+  q=>{q.items[1]={id:'effort',target:1,value:0,complete:true};},
+  q=>{q.items[0].complete=true;},q=>{q.items[1].target=20;},
+  q=>{q.profile.daysTarget=1.5;},q=>{q.profile.frozen_at='invalid';},
+  q=>{q.items[2].id='days';},q=>{q.items[1].value=NaN;}
+ ];
+ for(const corrupt of variants){const c=structuredClone(serverCampaign);corrupt(c.quests);assert.equal(api().plan({campaign:c,serverVersion:3}),null);}
 });

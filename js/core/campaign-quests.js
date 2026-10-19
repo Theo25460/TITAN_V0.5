@@ -20,11 +20,15 @@
   function rewardName(id){return rewards[id]||null;}
   function serverPlan(c){
     const data=c.quests,profile=data?.profile;
-    if(data?.version!==1||!profile||!Array.isArray(data.items)||data.items.length!==3)return null;
+    if(data?.version!==1||!profile||typeof profile!=='object'||Array.isArray(profile)||!Array.isArray(data.items)||data.items.length!==3)return null;
+    if(!Number.isInteger(profile.days)||profile.days<0||!Number.isInteger(profile.daysTarget)||profile.daysTarget<1||profile.daysTarget>3||
+      !Number.isInteger(profile.effortTarget)||profile.effortTarget<15||profile.effortTarget>45||profile.effortTarget%5!==0||
+      profile.windowDays!==28||!Number.isFinite(Date.parse(profile.frozen_at))||
+      data.items.some(q=>!q||typeof q!=='object'||Array.isArray(q)))return null;
     const quests=[];
     for(const id of ['days','effort','note']){
-      const q=data.items.find(q=>q.id===id),max=id==='days'?3:id==='effort'?45:1;
-      if(!q||!Number.isFinite(q.target)||q.target<1||q.target>max||!Number.isFinite(q.value)||q.value<0||typeof q.complete!=='boolean')return null;
+      const q=data.items.find(q=>q.id===id),target=id==='days'?profile.daysTarget:id==='effort'?profile.effortTarget:1;
+      if(!q||q.target!==target||!Number.isFinite(q.value)||q.value<0||q.complete!==(q.value>=target))return null;
       quests.push({id,name:names[id][0],unit:names[id][1],value:Math.min(q.target,q.value),target:q.target,available:true,complete:q.complete,reward:rewards[id]});
     }
     const completed=quests.filter(q=>q.complete).length;

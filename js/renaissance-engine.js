@@ -339,7 +339,7 @@
       ADVENTURE_CONFLICT:
         "Ta progression a changé sur un autre écran. Actualise puis réessaie.",
       TITAN_PLUS_REQUIRED:
-        "Cette campagne fait partie de TITAN+. Les deux premières restent gratuites.",
+        "L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.",
       AUTH_REQUIRED: "Reconnecte-toi pour retrouver ta progression.",
       QUEST_INCOMPLETE: "La mission n’est pas encore terminée.",
       GUARDIAN_EFFORT_INCOMPLETE:

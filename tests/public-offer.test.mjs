@@ -49,6 +49,16 @@ test("committed landing and prices are reproducible from the offer generator", (
   }
 });
 
+test('campaign access offer follows four free regions with an explicit server rollout',()=>{
+ for(const name of ['index.html','tarifs.html','aventures-sportives.html']){
+  const html=generated(name);assert.match(html,/quatre campagnes|Quatre campagnes/);
+  assert.doesNotMatch(html,/2 campagnes de plus|deux campagnes supplémentaires|campagnes TITAN\+ ne peuvent plus être poursuivies|viennent avec TITAN\+|sont gratuits : 18 chapitres/);
+ }
+ const atelier=readFileSync(join(root,'js/app/atelier.js'),'utf8');
+ assert.doesNotMatch(atelier,/2 campagnes en plus|deux premières campagnes/);
+ assert.match(atelier,/quatre campagnes/);
+});
+
 test("generated report offer explains aggregated CSV, provisional periods and free journal exports", () => {
   const html = generated("tarifs.html");
   const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];

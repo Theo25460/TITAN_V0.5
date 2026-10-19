@@ -47,6 +47,7 @@ test('server quests: frozen targets and planned souvenirs at both widths',async(
   const panel=page.locator('[data-rpg-quests]');await panel.locator('summary').click();
   assert.match(await panel.textContent(),/figées/);assert.match(await panel.textContent(),/35/);assert.match(await panel.textContent(),/Éclat de constance/);
   assert.equal(await page.locator('[data-quest-souvenir]').count(),0);
+  if(process.env.TITAN_QA_SCREENSHOTS)await page.screenshot({path:`/tmp/titan-server-quests-${width}.png`,fullPage:true,animations:'disabled'});
   const before=await panel.textContent();await page.evaluate(()=>{window.state.history=[];dispatchEvent(new Event('titan:history-updated'));});assert.equal(await panel.textContent(),before);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
  }finally{await context.close();}}
@@ -73,5 +74,13 @@ test('server quests: forge is free and uses server quests, legacy server explain
   await page.evaluate(()=>{const a=window.TitanAdventure;a.snapshot.version=2;a.snapshot.campaigns.find(c=>c.id==='forge').chapter=0;dispatchEvent(new Event('titan:adventure-updated'));});
   await page.getByText('L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.').waitFor();
   assert.match(await page.locator('.av-panel').first().textContent(),/mise à jour du serveur/);assert.equal(await page.locator('[data-start]').count(),0);assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+test('server quests: a malformed server contract leaves the campaign usable without invented rewards',async()=>{
+ const {page,context,errors}=await accountPage();try{
+  await page.locator('[data-rpg-quests]').waitFor();
+  await page.evaluate(()=>{window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='aube').quests.items[0]=null;dispatchEvent(new Event('titan:adventure-updated'));});
+  await page.waitForFunction(()=>!document.querySelector('[data-rpg-quests]'));
+  assert.equal(await page.locator('[data-claim="2"]').isVisible(),true);assert.equal(await page.locator('[data-quest-souvenir]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });

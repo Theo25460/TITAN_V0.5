@@ -1,6 +1,6 @@
 # Quêtes de campagne — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Confirmer les mini-quêtes adaptées et leurs souvenirs côté serveur, avec quatre campagnes gratuites.
 
@@ -32,11 +32,11 @@
 
 **Interfaces:** public.titan_adventure_quests(p_world text)->jsonb ; campaigns[].quests et quest_rewards du snapshot version3 selon spec. private.titan_adventure_action signature inchangée.
 
-- [ ] Écrire le contrat SQL : version3, quatre tier=free, profils figés1/15 et3/45, source annotée, gains uniques et soldes inchangés, RLS et legacy.
-- [ ] Constater RED sur la migration parent via runner jetable/CI ; si PostgreSQL local indisponible, documenter et utiliser la CI sur tête exacte sans prétendre RED local.
-- [ ] Créer la migration par CLI ; ajouter profil, trigger, table protégée et helper invoker ; remplacer snapshot/action sans retirer leurs gardes.
-- [ ] Ajouter le contrat deux connexions avec refus d’une base non titan_test_, observer le verrou réel, conflit de la seconde révision et unicité après commit.
-- [ ] Rejouer les deux voies de migrations ; vérifier tous les contrats verts et commit des seuls fichiers du lot.
+- [x] Écrire le contrat SQL : version3, quatre tier=free, profils figés1/15 et3/45, source annotée, gains uniques et soldes inchangés, RLS et legacy.
+- [x] Constater RED sur la migration parent via runner jetable/CI ; si PostgreSQL local indisponible, documenter et utiliser la CI sur tête exacte sans prétendre RED local.
+- [x] Créer la migration par CLI ; ajouter profil, trigger, table protégée et helper invoker ; remplacer snapshot/action sans retirer leurs gardes.
+- [x] Ajouter le contrat deux connexions avec refus d’une base non titan_test_, observer le verrou réel, conflit de la seconde révision et unicité après commit.
+- [x] Rejouer les deux voies de migrations ; vérifier tous les contrats verts et commit des seuls fichiers du lot.
 
 ### Task2 — Lecture visible et gratuité
 
@@ -44,17 +44,17 @@
 
 **Interfaces:** TitanCampaignQuests.plan({...existing,serverVersion=0})->modèle existant enrichi authority='server' et reward ; questRewardName(id)->string. Snapshot racine quest_rewards lu uniquement au propriétaire courant.
 
-- [ ] Écrire/run RED : profil serveur indépendant de history, champ incomplet refusé en version3, valeurs bornées, découverte libreforge/aurores.
-- [ ] Lire les missions version3 et rendre leur gain prévu puis les souvenirs réellement confirmés dans le carnet. Garder le fallback antérieur explicitement indicatif ; retirer le paywall des quatre campagnes en cohérence avec le serveur.
-- [ ] Ajouter/run navigateur : cible serveur stable après changementhistory, gain prévu distinct d’acquis, refus ne crée rien, succès/rafraîchissement montre un souvenir sans doublon, propriétaire/transition, quatre régions gratuites, ancien serveur explicite ;360/1280.
-- [ ] Run pnpm verify puis parcours ciblés (jamais en parallèle du build) ; commit ciblé.
+- [x] Écrire/run RED : profil serveur indépendant de history, champ incomplet refusé en version3, valeurs bornées, découverte libreforge/aurores.
+- [x] Lire les missions version3 et rendre leur gain prévu puis les souvenirs réellement confirmés dans le carnet. Garder le fallback antérieur explicitement indicatif ; retirer le paywall des quatre campagnes en cohérence avec le serveur.
+- [x] Ajouter/run navigateur : cible serveur stable après changementhistory, gain prévu distinct d’acquis, refus ne crée rien, succès/rafraîchissement montre un souvenir sans doublon, propriétaire/transition, quatre régions gratuites, ancien serveur explicite ;360/1280.
+- [x] Run pnpm verify puis parcours ciblés (jamais en parallèle du build) ; commit ciblé.
 
 ### Task3 — Revue et livraison
 
 **Files:** docs/CDC_WEB_RPG_SERVER_QUESTS_HANDOFF_2026-10-19.md et ce plan.
 
-- [ ] Revue indépendante unique de la branche selon executing-plans ; corriger Critical/Important confirmés.
-- [ ] Publier un arbre GitHub identique au local, PR vers main pour recette agrégée des lots96–99 ; lire les résultats CI exacts.
-- [ ] Handoff avec les trois rubriques CDC, preuves et limites ; mettre à jour le cahier sans changer ses307formulations, libérer le claim et vérifier le readback.
+- [x] Revue indépendante unique de la branche selon executing-plans ; corriger Critical/Important confirmés.
+- [x] Publier un arbre GitHub identique au local, PR vers main pour recette agrégée des lots96–99 ; lire les résultats CI exacts.
+- [x] Handoff avec les trois rubriques CDC, preuves et limites ; mettre à jour le cahier sans changer ses307formulations, libérer le claim et vérifier le readback.
 
 Self-review : les contrats, compatibilité, gratuité, préservation et cinq risques sont couverts. Exécution inline selon l’autonomie demandée ; pas de nouvelle demande d’approbation.
