@@ -82,7 +82,7 @@
             : "Gardée sur cet appareil, sans XP. Le serveur acceptera les séances de plus de 30 jours avec sa prochaine mise à jour ; elle partira alors d’elle-même.",
       };
     const est = P().effortOf(log);
-    if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Estimation du mode découverte. Crée ton compte pour rendre ta progression officielle : tes séances te suivent." };
+    if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Séance conservée sur cet appareil. XP estimés ; tu pourras ajouter tes séances à ton compte après inscription." };
     if (log.syncStatus === "confirmed" && r) {
       const capped = Number(r.requested_xp) > Number(r.xp);
       const lines = [];
@@ -149,7 +149,8 @@
       ${adventureHtml(log)}
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
-        <button type="button" class="asc-btn asc-btn-primary" data-moment="done">Terminé</button>
+        ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer mon compte</a>` : ""}
+        <button type="button" class="asc-btn ${isGuest() ? "asc-btn-ghost" : "asc-btn-primary"}" data-moment="done">Terminé</button>
         <a class="asc-btn asc-btn-secondary" href="/journal">${icon("journal")} Voir dans le journal</a>
       </div>
     </div>`;
