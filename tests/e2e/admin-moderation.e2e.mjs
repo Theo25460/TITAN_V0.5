@@ -1,0 +1,229 @@
+// TITAN 300 — moderation screen of the admin control center, driven in Chromium against dist/.
+// The administration client is replaced by a recorder: nothing here reaches a real project.
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import { after, before, test } from "node:test";
+import { chromium } from "playwright";
+
+const ROOT = new URL("../..", import.meta.url).pathname;
+let server;
+let browser;
+let BASE;
+
+const freePort = () =>
+  new Promise((ok) => {
+    const s = createServer();
+    s.listen(0, () => {
+      const { port } = s.address();
+      s.close(() => ok(port));
+    });
+  });
+
+before(async () => {
+  const port = await freePort();
+  BASE = `http://127.0.0.1:${port}`;
+  server = spawn(process.execPath, ["tools/serve-public.mjs", String(port)], { cwd: ROOT, stdio: "ignore" });
+  for (let i = 0; i < 50; i++) {
+    try {
+      if ((await fetch(BASE + "/")).ok) break;
+    } catch {}
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  browser = await chromium.launch();
+});
+after(async () => {
+  await browser?.close();
+  server?.kill();
+});
+
+const P1 = "00000000-0000-4000-8000-0000000000a1";
+const P2 = "00000000-0000-4000-8000-0000000000a2";
+const evil = '<img src=x onerror="window.pwned=1">';
+
+// Installed before any page script; config.js cannot replace the stub.
+function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
+  return ({ admin, mode, P1, P2, evil }) => {
+    const calls = [];
+    const db = {
+      status: { [P1]: "active", [P2]: "active" },
+      decisions: { [P1]: [], [P2]: [] },
+      next: 100,
+    };
+    const level = (s) => (s >= 40 ? "urgent" : s >= 20 ? "review" : s >= 8 ? "watch" : "low");
+    const queue = () => ({
+      version: 1, limit: 50, generated_at: "2026-10-19T10:00:00Z",
+      entries: [
+        { user_id: P1, username: `Alex ${evil}`, status: db.status[P1], score: 44, level: level(44),
+          signals: [
+            { reason: "TRAINING_REVIEW_RECOMMENDED", severity: "high", count: 5, points: 24, first_at: "2026-10-18T08:00:00Z", last_at: "2026-10-19T09:00:00Z" },
+            { reason: "TRAINING_FREQUENCY_OUT_OF_RANGE", severity: "critical", count: 1, points: 20, first_at: "2026-10-19T07:00:00Z", last_at: "2026-10-19T07:00:00Z" },
+          ],
+          last_decision: db.decisions[P1][0] ? { id: db.decisions[P1][0].id, decision: db.decisions[P1][0].decision, at: db.decisions[P1][0].at } : null },
+        { user_id: P2, username: "Sam", status: db.status[P2], score: 3, level: level(3),
+          signals: [{ reason: "TRAINING_FREQUENCY_HIGH", severity: "low", count: 50, points: 3, first_at: "2026-10-10T08:00:00Z", last_at: "2026-10-19T09:00:00Z" }],
+          last_decision: null },
+      ].filter((e) => mode !== "empty"),
+    });
+    const caseFile = (id) => ({
+      version: 1,
+      user: { id, username: id === P1 ? `Alex ${evil}` : "Sam", status: db.status[id], is_suspended: db.status[id] === "suspended" },
+      score: id === P1 ? 44 : 3, level: id === P1 ? "urgent" : "low",
+      signals: queue().entries.find((e) => e.user_id === id).signals,
+      signals_recent: [
+        { id: "s1", at: "2026-10-19T09:00:00Z", action_type: "training_log.flagged", severity: "high", reason: "TRAINING_REVIEW_RECOMMENDED", status: "open", payload: { note: evil, distance: 42.2 } },
+      ],
+      decisions: db.decisions[id].map((d) => ({ id: d.id, at: d.at, admin_id: "adm", decision: d.decision, reason: d.reason, reverts: d.reverts || null })),
+    });
+    const fail = (message, code) => ({ data: null, error: { message, code } });
+    window.__mod = { calls, db };
+    const client = {
+      auth: {
+        getUser: async () => ({ data: { user: { id: "adm", email: "admin@example.test" } }, error: null }),
+        signOut: async () => ({ error: null }),
+        getSession: async () => ({ data: { session: null } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      },
+      from: () => { throw new Error("direct table access is not expected"); },
+      rpc: async (name, params = {}) => {
+        calls.push({ name, params });
+        if (name === "titan_admin_get_context_v1") return { data: { isAdmin: admin, role: admin ? "admin" : "user" }, error: null };
+        if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
+        if (mode === "oldserver") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
+        if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
+        if (name === "titan_moderation_queue_v1") return { data: queue(), error: null };
+        if (name === "titan_moderation_case_v1") return { data: caseFile(params.p_user), error: null };
+        if (name === "titan_moderation_decide_v1") {
+          if (mode === "refuse-admin") return fail("CANNOT_MODERATE_ADMIN", "42501");
+          const id = db.next++;
+          db.decisions[params.p_user].unshift({ id, decision: params.p_decision, reason: params.p_reason, at: "2026-10-19T10:05:00Z" });
+          if (params.p_decision === "suspend") db.status[params.p_user] = "suspended";
+          if (params.p_decision === "restore") db.status[params.p_user] = "active";
+          return { data: { version: 1, decision_id: id, decision: params.p_decision, user_id: params.p_user }, error: null };
+        }
+        if (name === "titan_moderation_revert_v1") {
+          const list = Object.values(db.decisions).flat();
+          const target = list.find((d) => d.id === params.p_decision_id);
+          const id = db.next++;
+          for (const uid of Object.keys(db.decisions)) if (db.decisions[uid].includes(target)) {
+            if (target.decision === "suspend") db.status[uid] = "active";
+            db.decisions[uid].unshift({ id, decision: "revert", reason: params.p_reason, reverts: target.id, at: "2026-10-19T10:06:00Z" });
+          }
+          return { data: { version: 1, decision_id: id, decision: "revert", reverts: target.id, reopened: 0, expected: 0 }, error: null };
+        }
+        return fail("unknown");
+      },
+    };
+    Object.defineProperty(window, "waitForTitanSupabase", { configurable: true, get: () => async () => client, set() {} });
+  };
+}
+
+async function open(width, opts = {}) {
+  const context = await browser.newContext({ viewport: { width, height: width > 900 ? 900 : 844 }, serviceWorkers: "block" });
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort("internetdisconnected"));
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(installFakeAdmin(opts), { admin: opts.admin ?? true, mode: opts.mode ?? "ok", P1, P2, evil });
+  await page.goto(BASE + "/admin#moderation", { waitUntil: "load" });
+  return { page, context, errors };
+}
+const calls = (page) => page.evaluate(() => window.__mod.calls.map((c) => c.name + ":" + JSON.stringify(c.params)));
+
+test("moderation queue: ranked accounts, explained signals, safe text, no raw payload", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.getByRole("heading", { name: "Modération" }).first().waitFor();
+  const rows = page.locator("[data-moderation-user]");
+  await rows.first().waitFor();
+  assert.equal(await rows.count(), 2);
+  assert.equal(await rows.first().getAttribute("data-moderation-user"), P1, "highest risk first");
+  const first = await rows.first().innerText();
+  assert.match(first, /44/);
+  assert.match(first, /urgent/i);
+  assert.match(first, /TRAINING_REVIEW_RECOMMENDED/);
+  assert.match(first, /×\s?5|5 fois|5 occurrences/);
+  assert.match(await rows.nth(1).innerText(), /50/, "the real number of occurrences stays visible");
+  assert.equal(await page.locator("#admin-view img").count(), 0, "account names and signals are escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  assert.doesNotMatch(await page.locator("#admin-view").innerText(), /distance|payload/i, "raw payloads stay out of the queue");
+  assert.match(await page.locator("#admin-view").innerText(), /aucune action n.est automatique/i);
+  assert.ok((await calls(page)).some((c) => c.startsWith("titan_moderation_queue_v1:")));
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("moderation queue: empty, old server and forbidden states are explained", async () => {
+  for (const [mode, pattern] of [["empty", /Aucun compte à examiner/], ["oldserver", /migration 20261019150000/], ["forbidden", /réservée aux administrateurs/]]) {
+    const { page, context, errors } = await open(1280, { mode });
+    await page.locator("#admin-view").getByText(pattern).waitFor();
+    assert.equal(await page.locator("[data-moderation-user]").count(), 0, mode);
+    assert.deepEqual(errors, [], mode);
+    await context.close();
+  }
+});
+
+test("moderation screen: a non-administrator never reaches the moderation functions", async () => {
+  const { page, context } = await open(1280, { admin: false });
+  await page.locator("#gate-message").getByText(/refus/i).waitFor();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_moderation_")).length, 0);
+  await context.close();
+});
+
+test("moderation case: explained score, raw signals, decisions; a decision needs a reason and is reversible", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = page.locator("#admin-modal");
+  await modal.getByText(/poids de la gravité/i).waitFor();
+  const text = await modal.innerText();
+  assert.match(text, /min\(occurrences, 3\)|au plus 3/i, "the scoring rule is explained");
+  assert.match(text, /TRAINING_FREQUENCY_OUT_OF_RANGE/);
+  assert.match(text, /distance/, "the case file shows the raw signal");
+  assert.equal(await modal.locator("img").count(), 0, "payload text is escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+
+  // No reason, no request.
+  await modal.locator('[data-moderation-decide="suspend"]').click();
+  await page.locator("[data-confirm-ok]").click();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_moderation_decide_v1")).length, 0, "empty reason sends nothing");
+  await page.locator("[data-confirm-reason]").fill("Séances impossibles répétées");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.status["00000000-0000-4000-8000-0000000000a1"] === "suspended");
+  const decide = (await calls(page)).find((c) => c.startsWith("titan_moderation_decide_v1"));
+  assert.match(decide, /"p_decision":"suspend"/);
+  assert.match(decide, /Séances impossibles répétées/);
+  assert.ok(decide.includes(P1));
+
+  // The case file now offers the way back: restore, and revert of the latest decision.
+  await modal.locator('[data-moderation-decide="restore"]').waitFor();
+  assert.equal(await modal.locator('[data-moderation-decide="suspend"]').count(), 0, "no second suspension offered");
+  await modal.locator("[data-moderation-revert]").first().click();
+  await page.locator("[data-confirm-reason]").fill("Erreur de jugement");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.status["00000000-0000-4000-8000-0000000000a1"] === "active");
+  await modal.locator('[data-moderation-decide="suspend"]').waitFor();
+  assert.equal(await modal.locator("[data-moderation-revert]").count(), 0, "a revert cannot itself be reverted");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("moderation decisions: server refusals are explained in French and nothing is applied", async () => {
+  const { page, context } = await open(1280, { mode: "refuse-admin" });
+  await page.locator(`[data-moderation-open="${P2}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="watch"]').click();
+  await page.locator("[data-confirm-reason]").fill("Surveillance");
+  await page.locator("[data-confirm-ok]").click();
+  await page.locator("#admin-toast-stack").getByText(/administrateur/i).waitFor();
+  assert.equal(await page.evaluate(() => window.__mod.db.decisions["00000000-0000-4000-8000-0000000000a2"].length), 0);
+  await context.close();
+});
+
+test("moderation screen: usable at 360 px without horizontal overflow", async () => {
+  const { page, context } = await open(360);
+  await page.locator("[data-moderation-user]").first().waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, "page overflow");
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  await page.locator('#admin-modal [data-moderation-decide="watch"]').waitFor();
+  const box = await page.locator("#admin-modal .modal-card").boundingBox();
+  assert.ok(box.x >= 0 && box.x + box.width <= 360 + 1, `the case file fits the screen: ${JSON.stringify(box)} modalScroll=${await page.evaluate(() => document.querySelector("#admin-modal").scrollWidth)}`);
+  await context.close();
+});

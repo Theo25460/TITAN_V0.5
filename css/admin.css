@@ -811,3 +811,14 @@ a {
         margin: 0 auto;
     }
 }
+
+/* Moderation screen */
+.compact-list { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.compact-list li { overflow-wrap: anywhere; }
+#modal-body h3 { margin: 16px 0 8px; font-size: 1rem; }
+#modal-body .json-preview { max-height: 220px; overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }
+#modal-actions { flex-wrap: wrap; }
+/* A wide table must scroll inside the dialog, never widen it past the screen. */
+.admin-modal { grid-template-columns: minmax(0, 1fr); }
+.modal-card { min-width: 0; max-width: 100%; }
+.modal-body { min-width: 0; overflow: auto; }

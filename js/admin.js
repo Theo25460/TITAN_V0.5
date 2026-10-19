@@ -22,6 +22,7 @@
     const NAV = [
         { id: 'dashboard', label: 'Dashboard', icon: 'ri-dashboard-3-line', custom: 'dashboard' },
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
+        { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -828,6 +829,7 @@
         try {
             if (item.custom === 'dashboard') await renderDashboard(force);
             else if (item.custom === 'users') await renderUsers(force);
+            else if (item.custom === 'moderation') await renderModeration(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1396,6 +1398,24 @@
             return;
         }
 
+        const moderationOpen = event.target.closest('[data-moderation-open]');
+        if (moderationOpen) {
+            await openModerationCase(moderationOpen.dataset.moderationOpen);
+            return;
+        }
+
+        const moderationDecide = event.target.closest('[data-moderation-decide]');
+        if (moderationDecide) {
+            await decideModeration(moderationDecide.dataset.moderationDecide);
+            return;
+        }
+
+        const moderationRevert = event.target.closest('[data-moderation-revert]');
+        if (moderationRevert) {
+            await revertModeration(moderationRevert.dataset.moderationRevert);
+            return;
+        }
+
         const userAction = event.target.closest('[data-user-action]');
         if (userAction) {
             await handleUserAction(userAction.dataset.userAction, userAction.dataset.userId);
@@ -1833,6 +1853,182 @@
             }
         });
         return payload;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Moderation: review queue, case file and human decisions (titan_moderation_*_v1).
+    // Nothing here is automatic. The server decides who may read or act; this screen only displays and asks.
+    // ---------------------------------------------------------------------------------------------
+    const MODERATION_DECISION_LABELS = {
+        dismiss: 'Classé sans suite',
+        watch: 'Surveillance',
+        suspend: 'Suspension',
+        restore: 'Rétablissement',
+        revert: 'Annulation'
+    };
+    const MODERATION_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique un motif d’au moins 3 caractères.',
+        UNKNOWN_DECISION: 'Décision inconnue.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas modérer ton propre compte.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        ACCOUNT_NOT_FOUND: 'Ce compte n’existe plus.',
+        ALREADY_SUSPENDED: 'Ce compte est déjà suspendu.',
+        NOT_SUSPENDED: 'Ce compte n’est pas suspendu (un bannissement ne se lève pas depuis cette file).',
+        NOT_LATEST_DECISION: 'Seule la dernière décision d’un compte peut être annulée.',
+        NOT_REVERTIBLE: 'Cette décision ne peut pas être annulée.',
+        DECISION_NOT_FOUND: 'Décision introuvable.',
+        ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
+    };
+
+    function moderationErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(MODERATION_ERRORS).find((key) => message.includes(key));
+        return code ? MODERATION_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    function moderationUnavailable(error) {
+        const message = String((error && error.message) || '');
+        return error && (error.code === 'PGRST202' || error.code === '42883' || /could not find the function/i.test(message));
+    }
+
+    function moderationLevelBadge(level) {
+        const labels = { urgent: 'Urgent', review: 'À examiner', watch: 'À surveiller', low: 'Faible' };
+        const cls = level === 'urgent' ? 'badge-danger' : (level === 'review' || level === 'watch') ? 'badge-warning' : '';
+        return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
+    }
+
+    function moderationSignalLine(signal) {
+        return `<li><code>${escapeHtml(signal.reason)}</code> · ${escapeHtml(signal.severity)} · ×${escapeHtml(signal.count)} · +${escapeHtml(signal.points)} pt</li>`;
+    }
+
+    async function renderModeration() {
+        const head = sectionHead('Modération', 'Comptes ayant des signaux ouverts, classés par risque. Aucune action n’est automatique : chaque décision est humaine, motivée et annulable.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_moderation_queue_v1', { p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de modération n’est pas disponible sur ce serveur : applique la migration 20261019150000_moderation_queue.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const entries = Array.isArray(data && data.entries) ? data.entries : [];
+        state.rows.moderation = new Map(entries.map((entry) => [String(entry.user_id), entry]));
+        if (!entries.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun compte à examiner : aucun signal ouvert ces 30 derniers jours.</p></div>`;
+            return;
+        }
+        const rows = entries.map((entry) => `
+            <tr data-moderation-user="${escapeHtml(entry.user_id)}">
+                <td><strong>${escapeHtml(entry.username || 'Sans nom')}</strong><br><small>${escapeHtml(shortId(entry.user_id))} · ${badge(entry.status || 'active')}</small></td>
+                <td>${moderationLevelBadge(entry.level)}</td>
+                <td><strong>${escapeHtml(entry.score)}</strong></td>
+                <td><ul class="compact-list">${(entry.signals || []).map(moderationSignalLine).join('')}</ul></td>
+                <td>${entry.last_decision ? `${escapeHtml(MODERATION_DECISION_LABELS[entry.last_decision.decision] || entry.last_decision.decision)}<br><small>${escapeHtml(formatDate(entry.last_decision.at))}</small>` : '<small>Aucune</small>'}</td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(entry.user_id)}" aria-label="Ouvrir le dossier de ${escapeHtml(entry.username || 'ce compte')}"`)}</td>
+            </tr>`).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-moderation-queue aria-label="Comptes à examiner">
+                <thead><tr><th>Compte</th><th>Niveau</th><th>Score</th><th>Signaux (raison · gravité · occurrences · points)</th><th>Dernière décision</th><th>Actions</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+        `;
+    }
+
+    async function openModerationCase(userId) {
+        const { data, error } = await state.client.rpc('titan_moderation_case_v1', { p_user: userId });
+        if (error) {
+            notify('Dossier indisponible', moderationErrorText(error), 'danger');
+            return;
+        }
+        state.moderationUser = userId;
+        const user = data.user || {};
+        const suspended = user.is_suspended === true || user.status === 'suspended';
+        const decisions = Array.isArray(data.decisions) ? data.decisions : [];
+        const latest = decisions[0];
+        const signals = (data.signals || []).map((signal) => `
+            <tr><td><code>${escapeHtml(signal.reason)}</code></td><td>${escapeHtml(signal.severity)}</td><td>${escapeHtml(signal.count)}</td><td>${escapeHtml(signal.points)}</td><td>${escapeHtml(formatDate(signal.last_at))}</td></tr>`).join('');
+        const recent = (data.signals_recent || []).map((signal) => `
+            <div class="panel">
+                <p><strong>${escapeHtml(signal.action_type)}</strong> · ${escapeHtml(signal.severity)} · ${badge(signal.status)} · ${escapeHtml(formatDate(signal.at))}</p>
+                <p><code>${escapeHtml(signal.reason)}</code></p>
+                <div class="json-preview">${escapeHtml(JSON.stringify(signal.payload || {}, null, 2).slice(0, 1200))}</div>
+            </div>`).join('') || '<p><small>Aucun signal enregistré.</small></p>';
+        const history = decisions.map((decision) => `
+            <li>${escapeHtml(MODERATION_DECISION_LABELS[decision.decision] || decision.decision)} · ${escapeHtml(formatDate(decision.at))} · <em>${escapeHtml(decision.reason)}</em></li>`).join('') || '<li><small>Aucune décision.</small></li>';
+        const actions = [
+            buttonMarkup('Classer sans suite', 'ri-check-double-line', 'secondary', 'data-moderation-decide="dismiss"'),
+            buttonMarkup('Surveiller', 'ri-eye-line', 'secondary', 'data-moderation-decide="watch"'),
+            suspended
+                ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
+                : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"')
+        ];
+        if (latest && latest.decision !== 'revert') {
+            actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
+        }
+        openModal({
+            title: user.username || 'Compte',
+            kicker: `Dossier de modération · ${data.level || ''}`,
+            body: `
+                <div class="panel">
+                    <p>Score <strong>${escapeHtml(data.score)}</strong> · ${moderationLevelBadge(data.level)} · statut ${badge(user.status || 'active')}</p>
+                    <p><small>Score = somme, par raison, du poids de la gravité la plus haute (faible 1, moyenne 3, haute 8, critique 20) × min(occurrences, 3). Il ne dépend pas du volume d’entraînement. Seuls les signaux ouverts des 30 derniers jours comptent.</small></p>
+                </div>
+                <h3>Signaux qui composent le score</h3>
+                ${signals ? tableShell(`<table class="admin-table"><thead><tr><th>Raison</th><th>Gravité</th><th>Occurrences</th><th>Points</th><th>Dernier</th></tr></thead><tbody>${signals}</tbody></table>`) : '<p><small>Aucun signal ouvert.</small></p>'}
+                <h3>Derniers signaux bruts</h3>
+                ${recent}
+                <h3>Décisions</h3>
+                <ul class="compact-list">${history}</ul>
+            `,
+            actions
+        });
+    }
+
+    async function moderationAsk(title, message, actionLabel, danger) {
+        const reason = await confirmSensitive({ title, message, actionLabel, danger, requireReason: true });
+        return reason || null;
+    }
+
+    async function decideModeration(decision) {
+        const userId = state.moderationUser;
+        const labels = {
+            dismiss: ['Classer sans suite', 'Les signaux ouverts de ce compte seront marqués comme examinés. Tu pourras annuler.', false],
+            watch: ['Surveiller ce compte', 'Une surveillance est consignée. Elle ne change rien pour le joueur.', false],
+            suspend: ['Suspendre ce compte', 'Le joueur ne pourra plus enregistrer de séance ni acheter. Sa progression n’est pas modifiée et tu pourras rétablir le compte.', true],
+            restore: ['Rétablir ce compte', 'Le compte retrouve son fonctionnement normal.', false]
+        };
+        const [title, message, danger] = labels[decision] || [];
+        if (!userId || !title) return;
+        const reason = await moderationAsk(title, message, title, danger);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_moderation_decide_v1', { p_user: userId, p_decision: decision, p_reason: reason });
+        if (error) notify('Décision refusée', moderationErrorText(error), 'danger');
+        else notify('Décision enregistrée', MODERATION_DECISION_LABELS[decision] || decision, 'success');
+        await renderModeration();
+        await openModerationCase(userId);
+    }
+
+    async function revertModeration(decisionId) {
+        const userId = state.moderationUser;
+        if (!userId || !decisionId) return;
+        const reason = await moderationAsk('Annuler la dernière décision', 'Le compte revient à l’état d’avant cette décision, si rien ne l’a modifié depuis. L’annulation est elle-même consignée.', 'Annuler la décision', false);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_moderation_revert_v1', { p_decision_id: Number(decisionId), p_reason: reason });
+        if (error) notify('Annulation refusée', moderationErrorText(error), 'danger');
+        else if (data && Number(data.expected) > Number(data.reopened)) notify('Décision annulée en partie', `${data.reopened} signal(aux) rouvert(s) sur ${data.expected} : les autres ont été modifiés ailleurs.`, 'warning');
+        else notify('Décision annulée', 'L’annulation est consignée.', 'success');
+        await renderModeration();
+        await openModerationCase(userId);
     }
 
     function openModal({ title, kicker = 'TITAN OS', body = '', actions = [] }) {
