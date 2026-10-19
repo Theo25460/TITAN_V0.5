@@ -8,36 +8,41 @@ Relevé du **comportement réel du code** au 19/10/2026 (branche `claude/titan-c
 |---|---|---|---|---|---|
 | Netlify | hébergement du site et des fonctions | navigateur, fonctions | toujours | adresse IP et requêtes HTTP (journaux d'hébergement) | à confirmer (paramètres du site) |
 | Supabase (projet `oubmftfufwwzwpgvrcag`) | authentification, base de données, temps réel | navigateur | pages avec compte, synchronisation | compte, séances, profil, économie, social, assistance, mesure d'audience (§3) | région `eu-west-1` (Irlande), établie par l'API du projet |
-| Paddle | paiement TITAN+ (marchand officiel à confirmer, LEG25) | navigateur, webhook | seulement à l'ouverture du paiement (script chargé à la demande) ; le webhook appelle nos fonctions | identité de paiement côté Paddle ; chez nous : identifiants d'événement, d'offre, d'abonnement (`titan_billing_events`) | à confirmer |
+| Paddle | paiement TITAN+ (marchand officiel à confirmer, LEG25) | navigateur, webhook | seulement à l'ouverture du paiement : `cdn.paddle.com` (script chargé à la demande), puis le cadre et les appels de paiement vers des sous-domaines `*.paddle.com` autorisés par la CSP ; les hôtes joints par `paddle.js` lui-même ne sont pas énumérables depuis le dépôt ; le webhook appelle nos fonctions | **l'identifiant de compte TITAN est transmis à Paddle** (`customData.user_id`) ; identité de paiement côté Paddle ; chez nous : identifiants d'événement, d'offre, d'abonnement (`titan_billing_events`) | à confirmer |
 | Resend | envoi des e-mails d'assistance | fonctions seulement | demande d'assistance (si le service est activé) | adresse de réponse et texte saisis par la personne | à confirmer |
 | GitHub | code source, intégration continue | développeurs | jamais par le navigateur du joueur | aucune donnée de joueur | — |
+| Images de contenu | images `cover_image_url` des pages dynamiques et `image_url` des monstres, boss et créatures, lues dans la base | navigateur | à l'affichage de ces contenus | l'hébergeur de l'image voit l'adresse IP et le référent ; la CSP autorise `img-src https:` (toute origine HTTPS) | selon le contenu saisi par l'administration : **à auditer** |
+| Google Search Console | fichier de vérification `googleb8fedd43e28cf7d4.html` | aucun | aucune requête depuis le site | — | — |
 | Discord | lien communautaire | clic du joueur | seulement s'il clique | — | hors du site |
 | Adcash (`acscdn.com`) | régie publicitaire **désactivée** | — | jamais : `adsEnabled` est faux et l'hôte n'est pas dans la CSP | — | — |
 
-Aucun autre script, pixel, SDK d'analyse ou de publicité tiers n'est chargé : polices et icônes sont **hébergées sur le site** (`css/fonts`), le client Supabase est embarqué (`js/vendor`). Aucune page ne contacte un tiers au chargement hors Supabase (test), après retrait de trois préconnexions inutiles vers `cdn.jsdelivr.net` (`admin.html`, `dynamic-page.html`, `sys_core_override_99.html`).
+Aucun autre script, pixel, SDK d'analyse ou de publicité tiers n'est chargé **par le code livré** (les images de contenu ci-dessus dépendent de la base) : polices et icônes sont **hébergées sur le site** (`css/fonts`), le client Supabase est embarqué (`js/vendor`). Aucune page ne contacte un tiers au chargement par une balise de la page hors Supabase (test) — hors images de contenu venues de la base, après retrait de trois préconnexions inutiles vers `cdn.jsdelivr.net` (`admin.html`, `dynamic-page.html`, `sys_core_override_99.html`).
 
 **Recommandation (non appliquée, en-tête de production)** : la CSP de `netlify.toml` autorise encore `cdn.jsdelivr.net`, `unpkg.com`, `fonts.googleapis.com` et `fonts.gstatic.com` alors que rien ne s'y charge ; les retirer réduit la surface d'injection de scripts et évite tout contact involontaire avec ces hôtes. À faire dans un lot de déploiement dédié avec contrôle des pages en navigateur. La CSP n'autorise pas non plus le script Adcash : activer les publicités demandera un changement de CSP **et** du consentement (ADS03, LEG41).
 
 ## 2. Stockages locaux et cookies (LEG40)
 
-**Aucun cookie** n'est posé ou lu par le code (`document.cookie` absent). Tout se trouve dans `localStorage`, `sessionStorage`, `IndexedDB` et le cache du service worker, sur l'appareil.
+**Aucun cookie n'est posé ou lu par le code du site, des fonctions et des bibliothèques embarquées** (`document.cookie` absent, aucun `Set-Cookie` dans `netlify.toml` ni les fonctions). Les cookies que Netlify ou les cadres de Paddle poseraient sur leurs propres origines ne sont pas visibles depuis le dépôt (à confirmer). Tout le reste se trouve dans `localStorage`, `sessionStorage`, `IndexedDB` et le cache du service worker, sur l'appareil.
 
 | Clé / stockage | Contenu | Finalité | Nécessaire au service demandé ? |
 |---|---|---|---|
 | `titan_supabase_auth_v1` | session d'authentification | rester connecté | oui (compte demandé) |
 | `titan_os_v12_save`, `titan_data_cache_v2`, `titan_progression_snapshot_v1` | copie locale de l'état de jeu et de la progression | fonctionnement, hors ligne | oui |
-| `titan_pending_training_logs_v1`, IndexedDB `titan-training` | séances en attente d'envoi, brouillons et séances invité | ne pas perdre une séance hors ligne | oui |
+| `titan_pending_training_logs_v1`, IndexedDB `titan-training` (magasins de l'historique et de la file d'envoi) | séances en attente d'envoi, brouillons et séances invité | ne pas perdre une séance hors ligne | oui |
 | `titan_seance_draft_v3:<compte>`, `titan_seance_timer_v3:<compte>` | brouillon et chronomètre de séance | reprise après fermeture | oui |
 | `titan_guest_device_id_v1`, `titan_guest_imported_v1` | identifiant d'appareil invité aléatoire, marqueur d'import | séances invité et import vers le compte | oui |
 | `titan_journal_prefs_v3`, `titan_goals_v1:<compte>`, `titan_adventure_v1:<compte>` | préférences et objectifs locaux | confort d'usage | oui (préférences) |
-| `titan_first_run_guide_*`, `titan_last_news_version`, `titan_twa` | marqueurs d'affichage (guide vu, nouveautés vues, coque Android) | ne pas répéter une aide | oui |
-| `titan_checkout_started_v3:<compte>` | marqueur d'ouverture du paiement | réconcilier un paiement interrompu | oui |
-| `titan_privacy_v1` | choix de consentement (mesure d'audience) | mémoriser le choix | oui (preuve du choix) |
-| `titan_analytics_once_v1` | marqueurs « événement déjà envoyé » | éviter les doublons de mesure | lié à la mesure : seulement avec consentement accordé (à confirmer dans le code avant publication) |
+| `titan_first_run_guide_v1`, `titan_force_first_run_guide`, `titan_last_news_version`, `titan_twa`, `titan_sw_dev` (option de développement), `titan_last_ad_timestamp` (ancien marqueur, seulement supprimé) | marqueurs d'affichage (guide vu, nouveautés vues, coque Android) | ne pas répéter une aide | oui |
+| `titan_training_draft_<compte>` | brouillon de séance (ancien format) | reprise après fermeture | oui |
+| `sessionStorage` : `titan_duplicate_session` (`{compte, séance complète}`), `titan_enter_discovery` | transfert d'une séance dupliquée vers l'écran de saisie ; entrée en mode découverte | fonctionnement d'un parcours, effacé à la fermeture de l'onglet | oui |
+| `supabase.gotrue-js.locks.debug` | lu par le client d'authentification embarqué | débogage | oui |
+| `titan_checkout_started_v3:<compte>` (et anciennes `_v2:<compte>`, `_v1`) | marqueur d'ouverture du paiement | réconcilier un paiement interrompu | oui |
+| `titan_privacy_v1` | préférence de mesure d'audience (accordée / refusée) | mémoriser le choix | oui (préférence) ; ce n'est pas une preuve horodatée du consentement (LEG41) |
+| `titan_analytics_once_v1` | marqueurs `<compte ou anon>:<événement>` (contient l'identifiant de compte) | éviter les doublons de mesure | lié à la mesure ; écrit seulement quand un événement unique est effectivement envoyé |
 | `titan_front_errors_v1`, `titan_front_perf_v1`, `titan_profile_sync_diag_v1`, `titan_training_sync_diag_v1` | diagnostics locaux d'erreurs et de performance | aide au support ; **restent sur l'appareil** (aucun envoi automatique relevé ; un rapport d'assistance volontaire peut en reprendre des extraits, à confirmer) | à confirmer |
 | Cache du service worker (`titan-os-v300-ascension`) | pages et ressources du site | fonctionnement hors ligne | oui |
 
-Les clés suffixées par un compte (`:<compte>`) contiennent l'identifiant du compte, donc des données de ce compte sur l'appareil. À la suppression de compte, `titanForgetOwnerDrafts` efface les brouillons et chronomètres de séance et la file d'envoi du compte ; **les autres clés suffixées (objectifs, aventure, marqueur de paiement) ne sont pas toutes effacées par ce chemin : à vérifier avant d'affirmer l'effacement complet de l'appareil (LEG10, LEG41).**
+Les clés suffixées par un compte (`:<compte>`) contiennent l'identifiant du compte, donc des données de ce compte sur l'appareil. À la suppression de compte, `titanForgetOwnerDrafts` efface les trois brouillons et chronomètres de séance, puis `TitanQueue.deleteOwner` purge la file d'envoi et l'historique local du compte ; **les autres clés suffixées (`titan_goals_v1:`, `titan_adventure_v1:`, marqueurs de paiement), l'entrée `titan_duplicate_session` et la session d'authentification ne sont pas toutes effacées par ce chemin : à vérifier avant d'affirmer l'effacement complet de l'appareil (LEG10, LEG41).** À l'inverse, `titanSafeClearCache` vide tout sauf les brouillons, la file d'envoi et les clés invité, et efface `sessionStorage` : c'est un nettoyage de cache, pas une suppression de compte.
 
 ## 3. Données collectées côté serveur (LEG03, LEG26)
 
@@ -50,12 +55,14 @@ Les durées de conservation **ne sont pas fixées** dans le dépôt (Q-002, LEG3
 | Économie et achats | `shop_history`, `shop_items`, `premium_access`, `titan_economy_journal` (journal immuable), `titan_billing_events` (événements Paddle) | boutique, TITAN+, sécurité de l'économie | à décider ; le journal est immuable par conception |
 | Social | `friendships`, `guilds`, `guild_members`, `guild_messages`, `messages`, `titan_moments`, `titan_challenges`, `titan_public_cards` | fonctions sociales, carte publique | à décider |
 | Coaching | `coach_links`, `coach_assignments` (partage choisi des détails et des notes) | relation coach / athlète | à décider |
-| Mesure d'audience | `analytics_events` (nom, page, source, métadonnées minimales ; contrat dans `docs/ANALYTICS_EVENTS_V300.md`) | amélioration du produit ; envoi seulement après consentement accordé | à décider |
+| Mesure d'audience | `analytics_events` (nom, page, source, métadonnées minimales ; contrat dans `docs/ANALYTICS_EVENTS_V300.md`) | amélioration du produit | à décider. **Refus : rien n'est envoyé. Aucun choix encore : un comptage anonyme (sans compte ni référent) est envoyé. Accordé : événement rattaché au compte, `utm_source` conservé comme source.** Le comptage avant tout choix est à faire qualifier (LEG42 : mesure exemptée de consentement à prouver) |
 | Assistance | `titan_support_requests` (privée), `contact_messages` et `bug_reports` (tables présentes dans le schéma ; usage actuel à confirmer : nom, e-mail, message, captures éventuelles) | répondre aux demandes | à décider (LEG15) |
 | Sécurité et modération | `titan_suspicious_actions`, `titan_moderation_decisions`, `titan_rate_events`, `titan_admin_audit`, `audit_logs`, `admin_logs` | prévention de la fraude, traçabilité des actions d'administration | à décider |
 | Concours et prospection | `contest_entries`, `contest_draws`, `influencers` (**nom, e-mail de contact de personnes externes**), `referrals` | opérations promotionnelles (LEG50, LEG51) | à décider ; `influencers` concerne des tiers non joueurs |
 
-Points d'attention pour la revue humaine : le tracé GPS et le dénivelé sont des données de localisation et d'activité (LEG14, LEG36) ; `influencers` contient des données de personnes qui n'ont pas de compte ; `audit_logs` conserve des copies de lignes (`old_data`, `new_data`) qui peuvent contenir des données personnelles ; l'anonymisation d'un compte supprimé conserve volontairement des historiques d'administration sans identité du joueur.
+Le client Supabase envoie aussi un en-tête `x-client-info` portant la version de l'application.
+
+Points d'attention pour la revue humaine : **le comptage anonyme envoyé avant tout choix de consentement** ; le tracé GPS et le dénivelé sont des données de localisation et d'activité (LEG14, LEG36) ; `influencers` contient des données de personnes qui n'ont pas de compte ; `audit_logs` conserve des copies de lignes (`old_data`, `new_data`) qui peuvent contenir des données personnelles ; l'anonymisation d'un compte supprimé conserve volontairement des historiques d'administration sans identité du joueur.
 
 ## 4. Ce qui n'est pas établi ici
 

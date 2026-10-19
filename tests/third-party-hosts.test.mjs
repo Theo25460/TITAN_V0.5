@@ -5,15 +5,19 @@ import { readFileSync } from 'node:fs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(`${ROOT}${p}`, 'utf8');
-const inventory = JSON.parse(read('docs/third-party-hosts.json')).hosts;
+const inventoryFile = JSON.parse(read('docs/third-party-hosts.json'));
+const inventory = inventoryFile.hosts;
 const known = new Map(inventory.map((h) => [h.host, h]));
 
 // What ships: pages, scripts, styles, functions, configuration. Not docs, tests, tools or vendored libraries.
 const shipped = execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' }).split('\n')
-  .filter((f) => /^(js|css|functions|netlify)\//.test(f) || /^[^/]+\.(html|json|js|mjs|webmanifest|toml)$/.test(f))
-  .filter((f) => !/vendor\/|^package|^pnpm|^sitemap/.test(f));
+  .filter((f) => /^(js|css|functions|netlify|android|assets)\//.test(f) || /^[^/]+\.(html|json|js|mjs|webmanifest|toml|txt)$/.test(f) || f === '_redirects')
+  .filter((f) => !/vendor\/|^package|^pnpm|^sitemap|\.(png|jpe?g|webp|ico|woff2?|keystore)$/i.test(f));
 
-const hostsIn = (text) => [...text.matchAll(/https?:\/\/([a-zA-Z0-9._-]+\.[a-zA-Z]{2,})/g)].map((m) => m[1]);
+// http, https, ws, wss, any case, wildcard hosts (*.paddle.com), IPv4 and localhost; template placeholders are skipped.
+const hostsIn = (text) => [...text.matchAll(/(?:https?|wss?):\/\/(\*\.)?([a-z0-9][a-z0-9._-]*)/gi)]
+  .map((m) => `${m[1] || ''}${m[2]}`.toLowerCase().replace(/[._-]+$/, ''))
+  .filter((h) => /\.[a-z]{2,}$|^[0-9.]+$|^localhost$/.test(h.replace(/^\*\./, '')));
 
 test('every external host named in a shipped file is inventoried, and no inventory entry is stale', () => {
   const found = new Map();
@@ -45,4 +49,25 @@ test('a disabled advertising host stays disabled: ads are off and the CSP does n
   assert.match(config, /adsEnabled:\s*false/, 'adsEnabled must be false while the inventory says the ad host is disabled');
   const toml = read('netlify.toml');
   assert.ok(!toml.includes('acscdn.com'), 'the CSP must not allow the ad script while ads are disabled');
+});
+
+test('the Content-Security-Policy matches the inventory: every host and every scheme-only allowance is documented', () => {
+  const policies = [...read('netlify.toml').matchAll(/Content-Security-Policy\s*=\s*"([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(policies.length > 0, 'a CSP is configured');
+  const documented = new Set(inventory.map((h) => h.host.toLowerCase()));
+  const documentedOpen = new Set((inventoryFile.openAllowances || []).map((a) => `${a.directive} ${a.value}`));
+  const cspHosts = new Set();
+  const cspOpen = new Set();
+  for (const policy of policies) {
+    for (const directive of policy.split(';').map((d) => d.trim()).filter(Boolean)) {
+      const [name, ...sources] = directive.split(/\s+/);
+      for (const source of sources) {
+        if (/^(https?|wss?):$/i.test(source)) cspOpen.add(`${name} ${source.toLowerCase()}`);
+        else for (const host of hostsIn(source)) cspHosts.add(host);
+        if (/unsafe-eval/.test(source)) assert.fail("the CSP must not allow 'unsafe-eval'");
+      }
+    }
+  }
+  assert.deepEqual([...cspHosts].filter((h) => !documented.has(h)), [], 'CSP hosts missing from docs/third-party-hosts.json');
+  assert.deepEqual([...cspOpen].sort(), [...documentedOpen].sort(), 'scheme-only CSP allowances must equal "openAllowances" in docs/third-party-hosts.json');
 });
