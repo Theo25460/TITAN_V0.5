@@ -113,3 +113,40 @@ test("the policy no longer allows any HTTPS image, and names no host nothing use
     assert.ok(!POLICY.includes(host), `${host} must not be allowed`);
   }
 });
+
+test("under the production policy the shell's delegated actions still work (menu, profile link, avatar fallback)", async () => {
+  const context = await browser.newContext({ serviceWorkers: "block", viewport: { width: 360, height: 900 } });
+  await context.route("**/*", async (route) => {
+    if (new URL(route.request().url()).hostname !== "127.0.0.1") return route.abort("internetdisconnected");
+    const response = await route.fetch();
+    const headers = { ...response.headers() };
+    if (route.request().resourceType() === "document") headers["content-security-policy"] = POLICY;
+    await route.fulfill({ response, headers });
+  });
+  const page = await context.newPage();
+  const violations = [];
+  await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => (window.__v = [...(window.__v || []), e.violatedDirective])));
+  await page.goto(BASE + "/stats");
+  await page.waitForFunction(() => typeof window.titanToggleMobileMenu === "function");
+  // ui.js markup carries data-act: the delegated listener replaces the former inline onclick.
+  await page.evaluate(() => {
+    document.body.insertAdjacentHTML("beforeend", '<button id="t-close" data-act="close-menu">x</button><div id="t-go" data-act="goto" data-href="/profile">p</div>');
+    window.__closed = 0;
+    window.titanSetMobileMenu = () => {};
+  });
+  // A broken avatar falls back to the logo without any inline onerror.
+  const src = await page.evaluate(() => new Promise((resolve) => {
+    const img = document.createElement("img");
+    img.dataset.imgFallback = "./image/logo.png";
+    img.addEventListener("load", () => resolve(img.src), { once: true });
+    img.src = "/missing-avatar.png";
+    document.body.appendChild(img);
+  }));
+  assert.match(src, /\/image\/logo\.png$/);
+  await page.locator("#t-go").click();
+  await page.waitForURL(/profile/);
+  assert.deepEqual([...violations, ...(await page.evaluate(() => window.__v || []))], []);
+  await page.waitForLoadState("load");
+  await context.unrouteAll({ behavior: "ignoreErrors" });
+  await context.close();
+});

@@ -982,31 +982,36 @@ window.initDevTools = function() {
             <div>
                 <div style="color: #22c55e; margin-bottom: 8px; border-bottom: 1px dashed #22c55e; padding-bottom: 3px;">[ ECONOMY ]</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="devAdd('credits', 10000)" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+10k CR</button>
-                    <button onclick="devAdd('xp', 5000)" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+5k XP</button>
-                    <button onclick="devMaxCharge()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">MAX BATTERY</button>
+                    <button data-dev="devAdd" data-args='["credits", 10000]' style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+10k CR</button>
+                    <button data-dev="devAdd" data-args='["xp", 5000]' style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+5k XP</button>
+                    <button data-dev="devMaxCharge" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">MAX BATTERY</button>
                 </div>
             </div>
 
             <div>
                 <div style="color: #ef4444; margin-bottom: 8px; border-bottom: 1px dashed #ef4444; padding-bottom: 3px;">[ COMBAT ]</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="devKill()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">KILL MOB</button>
-                    <button onclick="devForceBoss()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">SPAWN BOSS</button>
-                    <button onclick="devGiveGrenades()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">+10 ALL GRENADES</button>
+                    <button data-dev="devKill" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">KILL MOB</button>
+                    <button data-dev="devForceBoss" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">SPAWN BOSS</button>
+                    <button data-dev="devGiveGrenades" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">+10 ALL GRENADES</button>
                 </div>
             </div>
 
             <div>
                 <div style="color: #38bdf8; margin-bottom: 8px; border-bottom: 1px dashed #38bdf8; padding-bottom: 3px;">[ SYSTEM ]</div>
                 <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
-                    <button onclick="devToggleElite()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">TOGGLE ELITE</button>
-                    <button onclick="devResetShop()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">RESET SHOP LIMITS</button>
-                    <button onclick="devCaptureState()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">CAPTURE STATE</button>
+                    <button data-dev="devToggleElite" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">TOGGLE ELITE</button>
+                    <button data-dev="devResetShop" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">RESET SHOP LIMITS</button>
+                    <button data-dev="devCaptureState" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">CAPTURE STATE</button>
                 </div>
             </div>
         </div>
     `;
+    devUI.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-dev]');
+        const fn = btn && window[btn.dataset.dev];
+        if (typeof fn === 'function' && /^dev[A-Z]\w*$/.test(btn.dataset.dev)) fn(...JSON.parse(btn.dataset.args || '[]'));
+    });
 
     // Le bouton pour ouvrir/fermer le panneau
     const toggleBtn = document.createElement('div');

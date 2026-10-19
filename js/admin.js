@@ -782,6 +782,10 @@
     function bindEvents() {
         if (bindEvents.ready) return;
         bindEvents.ready = true;
+        // The lookup form has no inline onsubmit (CSP): Enter must not navigate; the button handles the lookup.
+        document.addEventListener('submit', (event) => {
+            if (event.target.closest && event.target.closest('[data-moderation-lookup]')) event.preventDefault();
+        });
 
         $('#admin-refresh').addEventListener('click', () => renderCurrentView(true));
         $('#admin-signout').addEventListener('click', async () => {
@@ -2006,7 +2010,7 @@
         const head = sectionHead('Modération', 'Comptes ayant des signaux ouverts, classés par risque. Aucune action n’est automatique : chaque décision est humaine, motivée et annulable.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]) + `
-            <form class="panel" data-moderation-lookup onsubmit="return false">
+            <form class="panel" data-moderation-lookup>
                 <label class="form-field full">
                     <span>Retrouver un dossier par identifiant de compte (par exemple pour annuler une décision d’un compte sorti de la file)</span>
                     <input class="admin-input" name="user" type="text" autocomplete="off" spellcheck="false" placeholder="00000000-0000-0000-0000-000000000000" aria-label="Identifiant du compte">
