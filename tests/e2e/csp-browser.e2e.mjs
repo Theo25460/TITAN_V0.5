@@ -72,6 +72,8 @@ test("the production CSP blocks nothing on any page, and its allowed hosts are o
     for (const v of [...seen, ...consoleCsp]) violations.push(`${path}: ${v}`);
     await page.close();
   }
+  // LEG41: merely opening any page (no click, no consent) contacts only the first-party backend; Paddle waits for the checkout.
+  assert.deepEqual([...contacted].sort(), ["oubmftfufwwzwpgvrcag.supabase.co"], "a page load contacted a third party other than the project backend");
   // The Paddle checkout script is injected on click in production: the policy must let it through (the host is unreachable
   // here, so a network failure is expected; a CSP violation is not).
   const probe = await context.newPage();

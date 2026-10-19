@@ -67,3 +67,9 @@ Points d'attention pour la revue humaine : **le comptage anonyme envoyé avant t
 ## 4. Ce qui n'est pas établi ici
 
 Localisation exacte de l'hébergement Netlify, de Paddle et de Resend ; contrats de sous-traitance ; base légale de chaque traitement ; durées de conservation ; statut de marchand officiel ; usage réel des anciennes tables (`contact_messages`, `friends`, `items`…) ; contenu des variables d'environnement. Ces points restent à traiter par une personne compétente et à répercuter dans la politique de confidentialité (LEG28).
+
+## LEG41 — constat technique sur le consentement (19/10/2026)
+
+- À l'ouverture de n'importe quelle page du site (49 pages rejouées sans clic ni consentement), le navigateur ne contacte que le projet Supabase du produit : aucun script, pixel, police ou SDK tiers. Paddle n'est chargé qu'au clic d'ouverture du paiement. Garde automatique : `tests/e2e/csp-browser.e2e.mjs` (liste exacte des hôtes contactés) et `tests/third-party-hosts.test.mjs`.
+- Aucun cookie (voir §2). Les mesures d'usage sont internes, minimales et soumises au choix de la personne (`js/app/analytics.js` : refus = rien n'est envoyé).
+- Conséquence technique : il n'existe aujourd'hui aucun traceur tiers à bloquer avant consentement, donc aucun bandeau CMP à construire pour ce périmètre. **Ce n'est pas une qualification juridique** : la nécessité d'un bandeau reste à confirmer par une personne compétente (Q-002). Toute future régie, mesure d'audience tierce ou intégration externe devra être refusée par défaut tant que le consentement n'est pas recueilli ; le test de la liste exacte d'hôtes échouera si l'un d'eux apparaît.
