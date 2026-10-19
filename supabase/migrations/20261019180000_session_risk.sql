@@ -22,8 +22,10 @@ declare
 begin
   with s as materialized (
     select l.id, l.sport, l.date, l.val, l.unit, l.is_suspicious,
-      coalesce(coalesce(nullif(public.titan_jsonb_numeric(l.details, 'val2'), 0),
-                        nullif(public.titan_jsonb_numeric(l.details, 'duration'), 0)), 0) as dur,
+      -- A session cannot last more than a day (the training guard refuses it on insert): clamp so that an
+      -- impossible stored value can never overflow the interval arithmetic below and abort an analysis.
+      least(greatest(coalesce(coalesce(nullif(public.titan_jsonb_numeric(l.details, 'val2'), 0),
+                        nullif(public.titan_jsonb_numeric(l.details, 'duration'), 0)), 0), 0), 1440) as dur,
       coalesce(l.details ->> 'historical', 'false') = 'true' as hist
     from public.training_logs l
     where l.user_id = p_user and l.archived_at is null

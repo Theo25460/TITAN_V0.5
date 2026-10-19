@@ -2,7 +2,7 @@
 -- changes an account or a session. Synthetic identities, fixtures with triggers bypassed, full rollback.
 begin;
 do $$
-declare a uuid:=gen_random_uuid(); p uuid:=gen_random_uuid(); q uuid:=gen_random_uuid(); r uuid:=gen_random_uuid(); w uuid:=gen_random_uuid();
+declare a uuid:=gen_random_uuid(); p uuid:=gen_random_uuid(); q uuid:=gen_random_uuid(); r uuid:=gen_random_uuid(); w uuid:=gen_random_uuid(); c uuid:=gen_random_uuid(); bad uuid:=gen_random_uuid();
   base timestamptz:=(date_trunc('day', (now() - interval '3 days') at time zone 'utc') + interval '10 hours') at time zone 'utc';
   i int; dup1 uuid:=gen_random_uuid(); dup2 uuid:=gen_random_uuid();
 begin
@@ -78,6 +78,52 @@ begin
   assert (select count(*) from jsonb_array_elements(q->'entries') x where x->>'user_id'=current_setting('titan.ra_q'))=0,'the steady account is not queued';
 end $$;
 reset role;
+
+-- Critical path, escalation, failure isolation, absurd durations and the single-run lock.
+do $$
+declare c uuid:=gen_random_uuid(); iso uuid:=gen_random_uuid(); h uuid:=gen_random_uuid(); i int; res jsonb; sid text; n int;
+  d timestamptz:=(date_trunc('day', (now() - interval '3 days') at time zone 'utc') + interval '10 hours') at time zone 'utc';
+  day0 timestamptz:=(date_trunc('day', (now() - interval '3 days') at time zone 'utc')) at time zone 'utc';
+begin
+  insert into auth.users(id,raw_user_meta_data) values(c,'{}'),(iso,'{}'),(h,'{}');
+  perform set_config('titan.ra_iso',iso::text,true);
+  set local session_replication_role = replica;
+  for i in 1..5 loop
+    insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+    values (c,'running','cardio',10,'km',10, d - (i + 1) * interval '1 day','{"duration":60}');
+  end loop;
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+    (c,'running','cardio',20,'km',10,d,'{"duration":60}'),(c,'running','cardio',20,'km',10,d,'{"duration":60}'),
+    (c,'hiking','cardio',480,'min',10,day0 + interval '6 hours','{"duration":480}'),
+    (c,'hiking','cardio',480,'min',10,day0 + interval '23 hours 30 minutes','{"duration":480}');
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values (iso,'rowing','cardio',30,'min',5,d,'{"duration":60}');
+  -- an impossible stored duration (clamped to 24 h) must not abort the run; a 24 h day is itself worth a look
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+    (h,'rowing','cardio',30,'min',5,d,'{"duration":9000000000000000}');
+  set local session_replication_role = origin;
+
+  -- one analysis account fails: the others still get their signals
+  alter function private.titan_session_risk(uuid,integer) rename to titan_session_risk_real;
+  create function private.titan_session_risk(p_user uuid, p_limit integer default 30) returns jsonb language plpgsql as $f$
+  begin
+    if p_user = current_setting('titan.ra_iso')::uuid then raise exception 'boom'; end if;
+    return private.titan_session_risk_real(p_user, p_limit);
+  end $f$;
+  -- a human already looked at one of c's sessions at the lower state: a later "critical" is a new signal
+  select (l.id)::text into sid from public.training_logs l where l.user_id=c and l.val=20 limit 1;
+  insert into public.titan_suspicious_actions(user_id,action_type,severity,reason,payload)
+    values (c,'session_risk.review','high','SESSION_RISK_REVIEW',jsonb_build_object('session',sid,'state','review'));
+  res := private.titan_run_risk_analysis(24, 100);
+  assert (res->>'failed')::int = 1,'exactly the failing account is skipped: '||res::text;
+  select count(*) into n from public.titan_suspicious_actions where user_id=c and action_type='session_risk.review' and reason='SESSION_RISK_CRITICAL' and severity='critical' and (payload->>'score')::int >= 20;
+  assert n=2,'both duplicated runs are critical (overlap + speed + day volume), got '||n;
+  assert exists(select 1 from public.titan_suspicious_actions where user_id=c and payload->>'session'=sid and reason='SESSION_RISK_REVIEW') and
+         exists(select 1 from public.titan_suspicious_actions where user_id=c and payload->>'session'=sid and reason='SESSION_RISK_CRITICAL'),'a session that worsens from review to critical is signalled again';
+  assert not exists(select 1 from public.titan_suspicious_actions where user_id=iso and action_type='session_risk.review'),'the failed account raises nothing';
+  assert exists(select 1 from public.titan_suspicious_actions where user_id=h and action_type='session_risk.review' and payload->'signals'->0->>'code'='day_volume'),'an impossible duration is analysed (clamped), not fatal, and flagged as a full day';
+  assert exists(select 1 from pg_locks where locktype='advisory' and pid=pg_backend_pid()),'the run holds its single-run advisory lock until the transaction ends';
+  assert (private.titan_run_risk_analysis(24, 100)->>'signals')::int = 0,'nothing is signalled twice';
+end $$;
 
 -- Closed to the API roles.
 do $$ begin

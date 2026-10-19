@@ -80,6 +80,14 @@ begin
   perform set_config('titan.sr_u5', u5::text, true);
   insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
     select u5,'running','cardio',8+(g%5),'km',5, now() - g * interval '2 hours','{"duration":45}' from generate_series(1,1000) g;
+  -- u6: an impossible stored duration is clamped to 24 h instead of overflowing the interval arithmetic.
+  perform set_config('titan.sr_u6', gen_random_uuid()::text, true);
+  set local session_replication_role = origin;
+  insert into auth.users(id,raw_user_meta_data) values (current_setting('titan.sr_u6')::uuid,'{}');
+  set local session_replication_role = replica;
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+    (current_setting('titan.sr_u6')::uuid,'rowing','cardio',30,'min',5,base,'{"duration":9000000000000000}'),
+    (current_setting('titan.sr_u6')::uuid,'rowing','cardio',30,'min',5,base - interval '1 day','{"duration":60}');
   set local session_replication_role = origin;
 end $$;
 
@@ -174,6 +182,10 @@ begin
   r:=public.titan_session_risk_v1(current_setting('titan.sr_u5')::uuid, 100);
   assert jsonb_array_length(r->'sessions')=100,'limit applies';
   assert clock_timestamp()-t0 < interval '3 seconds','a thousand sessions answer within 3 seconds, took '||(clock_timestamp()-t0)::text;
+
+  r:=public.titan_session_risk_v1(current_setting('titan.sr_u6')::uuid, 50);
+  assert jsonb_array_length(r->'sessions')=2 and (select max((x->>'durationMin')::numeric) from jsonb_array_elements(r->'sessions') x)=1440,
+    'an impossible duration is clamped to 1440 minutes and does not abort the analysis';
 
   -- a single session has no history to compare with. history for a speed signal.
   r:=public.titan_session_risk_v1(current_setting('titan.sr_w')::uuid, 50);
