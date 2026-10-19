@@ -155,6 +155,19 @@
         // Blocked storage must not stop the queue and history purge that follows.
       }
     }
+    // The legacy pending-session blob is kept by titanSafeClearCache until migrate() moves it to IndexedDB: drop this
+    // owner's entries from it so a later migration cannot bring a deleted account's sessions back. Unreadable content is left alone.
+    try {
+      const raw = localStorage.getItem("titan_pending_training_logs_v1");
+      const old = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(old)) {
+        const kept = old.filter((item) => item && (item.ownerId || "unassigned") !== ownerId);
+        if (kept.length === 0) localStorage.removeItem("titan_pending_training_logs_v1");
+        else if (kept.length !== old.length) localStorage.setItem("titan_pending_training_logs_v1", JSON.stringify(kept));
+      }
+    } catch {
+      // Same rule: storage or content problems never stop the purge.
+    }
   };
   if (!root.indexedDB) return;
   let connection,

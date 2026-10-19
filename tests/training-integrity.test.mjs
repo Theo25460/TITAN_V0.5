@@ -127,3 +127,15 @@ test('CSV neutralizes spreadsheet formulas and preserves quotes, accents and mul
  const result=csv([{date:'2026-09-11',sport:'running',val:5,unit:'km',details:{note:'Ligne "une"\nDeuxième'}}]);
  assert.ok(result.startsWith('\ufeff'));assert.ok(result.includes('"Ligne ""une""\nDeuxième"'));assert.ok(result.includes('Sur cet appareil'));
 });
+test('the legacy pending-session blob loses the deleted owner entries only, and an unreadable blob is left alone',async()=>{
+ const LEGACY='titan_pending_training_logs_v1';
+ const e=environment(new IDBFactory());
+ e.storage.set(LEGACY,JSON.stringify([{ownerId:'alice',key:'a1',payload:{val:1}},{ownerId:'bob',key:'b1',payload:{val:2}},{key:'orphan',payload:{val:3}},null]));
+ e.titanForgetOwnerDrafts('alice');
+ const kept=JSON.parse(e.storage.get(LEGACY));
+ assert.deepEqual(kept.map(i=>i.key),['b1','orphan'],'only the deleted owner entries (and empty junk) are removed');
+ e.titanForgetOwnerDrafts('bob');e.titanForgetOwnerDrafts('unassigned');
+ assert.equal(e.storage.has(LEGACY),false,'an emptied blob is removed');
+ e.storage.set(LEGACY,'{not json');e.titanForgetOwnerDrafts('alice');
+ assert.equal(e.storage.get(LEGACY),'{not json','an unreadable blob is not rewritten');
+});

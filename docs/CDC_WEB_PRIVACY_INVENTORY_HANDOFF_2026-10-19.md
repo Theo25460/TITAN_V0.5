@@ -28,7 +28,7 @@ Aucun Critical/Important connu ouvert.
 ## NON BLOQUANT / BACKLOG FINITION
 
 - **CSP** (`netlify.toml`) : retirer `cdn.jsdelivr.net`, `unpkg.com`, `fonts.googleapis.com`, `fonts.gstatic.com` (rien n'y est chargé) lors d'un lot de déploiement dédié, avec contrôle en navigateur des pages d'administration et de contenu dynamique.
-- **Effacement à la suppression de compte** : `titanForgetOwnerDrafts` n'efface que les brouillons de séance ; les clés suffixées par le compte (`titan_goals_v1:`, `titan_adventure_v1:`, marqueur de paiement) restent sur l'appareil. À corriger dans `js/training-store.js` (fichier lié au lot suppression de compte déjà livré) ou à documenter.
+- **Effacement à la suppression de compte** : *corrigé le 19/10/2026* — ma remarque initiale (clés suffixées qui resteraient) était fausse : `titanSafeClearCache` supprime toutes les clés hors brouillons, file d'envoi et clés invité ; la seule fuite réelle était l'ancien lot `titan_pending_training_logs_v1` (voir `docs/CDC_WEB_DELETION_WIPE_RETENTION_HANDOFF_2026-10-19.md`).
 - **À qualifier par un humain : le comptage anonyme envoyé avant tout choix de consentement** (`js/app/analytics.js`, état « aucune réponse »), et l'identifiant de compte transmis à Paddle.
 - Images de contenu : `img-src https:` laisse tout hôte d'image voir l'IP ; auditer `dynamic_pages.cover_image_url` et les `image_url` des tables de jeu, puis resserrer.
 - Production : la base annonce PostgreSQL 17.6 alors que le banc de migrations tourne en PostgreSQL 16 : à aligner pour la répétition de mise en production.
