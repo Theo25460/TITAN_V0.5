@@ -38,9 +38,12 @@ begin
   assert (select chapter=10 from public.adventure_progress where user_id=owner),'same displayed targets accepted';
   assert jsonb_array_length(s->'rewards')=1 and (s->>'xp')::int=xp0 and (s->>'credits')::int=coins0,'cosmetic reward only';
   -- A regular high-volume history is bounded; its removal cannot move the active target.
+  -- This backdated ADMIN fixture is not nineteen API submissions at the same instant.
+  perform set_config('request.jwt.claims','{"role":"service_role"}',true);
   insert into public.training_logs(user_id,sport,category,val,unit,date,details,created_at)
     select owner,'running','training',120,'min',now()-make_interval(days=>i),'{"serverReward":true,"duration":120}',now()-make_interval(days=>i)
     from generate_series(2,20) i;
+  perform set_config('request.jwt.claims',json_build_object('sub',owner,'role','authenticated')::text,true);
   s:=public.titan_adventure_action('start','forge','rhythm',null,(s->>'revision')::int,null,'UTC');
   update public.adventure_progress set chapter=9 where user_id=owner and world_id='forge';
   s:=public.titan_adventure_snapshot();
