@@ -554,6 +554,7 @@ async function purchaseShopItemOnServer(item) {
             const msg = `${error.code || ''} ${error.message || ''}`.toUpperCase();
             if (error.code === 'PGRST202' || msg.includes('FUNCTION') || msg.includes('TITAN_PURCHASE_SHOP_ITEM')) return null;
             if (msg.includes('NO_FUNDS')) throw new Error('NO_FUNDS');
+            if (msg.includes('RATE_LIMITED') || error.code === 'PT429') throw new Error('TROP_RAPIDE');
             if (msg.includes('DAILY')) throw new Error('LIMITE_ATTEINTE');
             if (msg.includes('WEEKLY')) throw new Error('LIMITE_HEBDO');
             if (msg.includes('LIMIT') || msg.includes('ONCE')) throw new Error('STOCK_EPUISE');
@@ -562,7 +563,7 @@ async function purchaseShopItemOnServer(item) {
         }
         return Array.isArray(data) ? (data[0] || null) : (data || null);
     } catch (err) {
-        if (err && ['NO_FUNDS', 'LIMITE_ATTEINTE', 'LIMITE_HEBDO', 'STOCK_EPUISE', 'ACCOUNT_SUSPENDED'].includes(err.message)) throw err;
+        if (err && ['NO_FUNDS', 'LIMITE_ATTEINTE', 'LIMITE_HEBDO', 'STOCK_EPUISE', 'ACCOUNT_SUSPENDED', 'TROP_RAPIDE'].includes(err.message)) throw err;
         console.warn('[TITAN SHOP] Achat serveur indisponible:', err);
         return null;
     }
@@ -664,6 +665,7 @@ window.buyItem = async function(itemId, options = {}) {
         if (err.message === "LIMITE_ATTEINTE") { title = 'LIMITE'; msg = 'Reviens dans 24h.'; }
         else if (err.message === "LIMITE_HEBDO") { title = 'LIMITE SEMAINE'; msg = `Max ${item.cooldown ? (item.cooldown.max || 3) : 3} par semaine.`; }
         else if (err.message === "STOCK_EPUISE") { title = 'STOCK'; msg = 'Limite atteinte.'; }
+        else if (err.message === "TROP_RAPIDE") { title = 'TROP RAPIDE'; msg = 'Beaucoup d’achats en peu de temps. Réessaie dans un moment.'; }
         else if (err.message === "NO_FUNDS") { title = 'FOND INSUFFISANTS'; msg = `Manque ${item.price - window.state.user.credits} Crédits.`; }
         else if (err.message === "LEVEL_REQ") { title = 'VERROUILLÉ'; msg = 'Niveau précédent requis.'; }
         else if (err.message === "ELITE_REQ") { title = 'TITAN+ REQUIS'; msg = 'Ce cosmétique appartient à la collection TITAN+.'; }

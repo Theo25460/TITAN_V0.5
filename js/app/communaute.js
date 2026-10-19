@@ -57,6 +57,7 @@
     INVALID_FRIEND_CODE: "Un code ami ressemble à TN-AB12.",
     CANNOT_ADD_SELF: "C’est ton propre code.",
     SOCIAL_RATE_LIMIT: "Beaucoup d’actions en peu de temps. Réessaie un peu plus tard.",
+    RATE_LIMITED: "Beaucoup de changements de guilde en peu de temps. Réessaie dans un moment.",
     CHALLENGE_INVITEES: "Invite au moins un ami (10 au plus).",
     CHALLENGE_INVALID: "Vérifie la mesure, la cible et la durée du défi.",
     EXPEDITION_CLOSED: "Cette expédition est terminée.",

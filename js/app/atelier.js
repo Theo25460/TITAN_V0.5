@@ -43,6 +43,7 @@
     const m = String(e?.message || "");
     if (missing(e)) return "L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.";
     if (m.includes("NO_FUNDS")) return "Il te manque des crédits pour cette pièce. Ils viennent de tes séances.";
+    if (m.includes("RATE_LIMITED")) return "Beaucoup d’achats en peu de temps. Réessaie dans un moment.";
     if (m.includes("PURCHASE_LIMIT_ONCE")) return "Cette pièce est déjà dans ta collection.";
     if (m.includes("NOT_FOR_SALE")) return "Cette pièce ne s’achète pas : elle se mérite par le rang ou vient avec TITAN+.";
     if (m.includes("NOT_OWNED")) return "Cette pièce n’est pas encore dans ta collection.";
