@@ -83,8 +83,9 @@ export function scanHistory(cwd) {
     }
   }
   for (const f of findings) {
-    const first = git(cwd, ['log', '--all', '-m', '--reverse', '--format=%h', `--find-object=${f.blob}`]).split('\n').find(Boolean);
-    f.commit = first || 'unknown';
+    // The first commit is only worth a full-history search for a real leak, not for a quotation in docs or tests.
+    const first = f.illustrative ? null : git(cwd, ['log', '--all', '-m', '--reverse', '--format=%h', `--find-object=${f.blob}`]).split('\n').find(Boolean);
+    f.commit = first || (f.illustrative ? 'not searched' : 'unknown');
     f.blob = f.blob.slice(0, 10);
   }
   return { scannedBlobs: scanned, findings, skipped };

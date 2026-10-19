@@ -14,7 +14,7 @@ try {
 const real = result.findings.filter((f) => !f.illustrative);
 const quoted = result.findings.filter((f) => f.illustrative);
 for (const f of real) console.log(`LEAK  ${f.paths.join(', ')}:${f.line} (${f.kind}) first seen in commit ${f.commit}, content ${f.blob}`);
-for (const f of quoted) console.log(`quote ${f.paths.join(', ')}:${f.line} (${f.kind}) in docs/tests, commit ${f.commit}`);
+for (const f of quoted) console.log(`quote ${f.paths.join(', ')}:${f.line} (${f.kind}) in docs/tests`);
 if (real.length) {
   console.error(`History scan FAILED: ${real.length} server secret(s) found in ${result.scannedBlobs} file versions. Rotate them: docs/SECRETS_ROTATION_PLAN.md.`);
   process.exit(1);
