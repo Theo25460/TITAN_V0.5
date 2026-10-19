@@ -146,6 +146,16 @@
     }
     sessionStorage.clear();
   };
+  // Drafts kept by titanSafeClearCache: legacy key, then the session draft/timer of js/app/seance.js.
+  root.titanForgetOwnerDrafts = (ownerId) => {
+    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`]) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Blocked storage must not stop the queue and history purge that follows.
+      }
+    }
+  };
   if (!root.indexedDB) return;
   let connection,
     cache = [];
@@ -243,11 +253,11 @@
     remove,
     migrate,
     deleteOwner: async (ownerId) => {
+      root.titanForgetOwnerDrafts(ownerId);
       const all = await transaction("readonly", (s) => s.getAll());
       for (const item of all.filter((i) => i.ownerId === ownerId))
         await remove(item.key);
       await transaction("readwrite", (s) => s.delete(ownerId), "history");
-      localStorage.removeItem(`titan_training_draft_${ownerId}`);
     },
     saveHistory: (ownerId, logs) =>
       transaction("readwrite", (s) => s.put({ ownerId, logs }), "history"),

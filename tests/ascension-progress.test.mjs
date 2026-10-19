@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 function load() {
   const window = { SPORTS_CONFIG: {
@@ -42,6 +43,55 @@ test("cadence holds a week by active days, ignores rest and pause weeks", () => 
   assert.equal(c.remaining, 1);
   assert.equal(c.reachable, true);
   assert.equal(c.weeks.length, 8);
+});
+
+test("cadence keeps every local week across spring clock changes", () => {
+  for (const anchor of ["2026-03-30T12:00:00", "2026-03-09T12:00:00"]) {
+    const now = new Date(anchor);
+    const previous = new Date(now);
+    previous.setDate(previous.getDate() - 7);
+    const paused = new Date(now);
+    paused.setDate(paused.getDate() - 14);
+    const key = (d) => W.TitanFormat.dateKey(d);
+    const c = P.cadence([log(previous.toISOString())], { now, target: 1, pauses: [key(paused)], window: 3 });
+    assert.deepEqual(Array.from(c.weeks, (w) => w.start), [key(paused), key(previous), key(now)]);
+    assert.equal(c.weeks[0].state, "pause");
+    assert.equal(c.weeks[1].state, "held");
+  }
+});
+
+test("cadence calendar regressions pass in UTC, Paris and American time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^cadence holds|^cadence keeps", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
+});
+
+test("weekly recap keeps Sunday and excludes Monday across clock changes", () => {
+  for (const [now, monday, sunday, next] of [
+    ["2026-03-30T12:00:00", "2026-03-23", "2026-03-29", "2026-03-30"],
+    ["2026-10-26T12:00:00", "2026-10-19", "2026-10-25", "2026-10-26"],
+    ["2026-03-09T12:00:00", "2026-03-02", "2026-03-08", "2026-03-09"],
+    ["2026-11-02T12:00:00", "2026-10-26", "2026-11-01", "2026-11-02"],
+  ]) {
+    const logs = [log(`${monday}T00:00:00`), log(`${sunday}T23:30:00`), log(`${next}T00:00:00`)];
+    const r = P.recap(logs, { now: new Date(now) });
+    assert.equal(W.TitanFormat.dateKey(r.from), monday);
+    assert.equal(W.TitanFormat.dateKey(r.to), sunday);
+    assert.equal(r.week.sessions, 2, `${now}: the two sessions belong to the completed week`);
+  }
+});
+
+test("weekly recap compares the same local weekday and hour", () => {
+  const logs = [log("2026-03-25T17:30:00"), log("2026-03-25T18:30:00")];
+  const r = P.recap(logs, { now: new Date("2026-04-01T18:00:00"), current: true });
+  assert.equal(r.baseline.weeks, 1);
+  assert.equal(r.baseline.sessions, 1, "18:30 last Wednesday is later than 18:00 this Wednesday");
+});
+
+test("weekly recap calendar boundaries pass in four time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^weekly recap keeps|^weekly recap compares", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
 });
 
 test("mastery needs both practice hours and practised weeks", () => {
@@ -159,4 +209,31 @@ test("a planned session for today becomes a recommendation until something is re
   assert.match(p.why, /semaine type/);
   const done = P.insights({ logs: [log("2026-10-07T07:00:00", { sport: "yoga", unit: "min", val: 30 })], now: NOW, plan });
   assert.equal(done.find((i) => i.id === "plan-today"), undefined);
+});
+
+test('campaign objectives require both active days and guardian effort', () => {
+  assert.equal(typeof P.campaignProgress, 'function', 'shared campaign objective reader exists');
+  const c = { chapter: 9, target: 3, effort_target: 150, evidence: { days: 3, effort: 40 } };
+  const p = P.campaignProgress(c);
+  assert.equal(p.ready, false);
+  assert.equal(p.percent, 27);
+  assert.equal(p.objectives[1].remaining, 110);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 2, effort: 150 } }).ready, false);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 3, effort: 150 } }).ready, true);
+});
+test('campaign objectives preserve legacy day-only and annotated routes', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  const p = P.campaignProgress({ chapter: 9, target: 3, route: 'journal', evidence: { days: 3 } });
+  assert.equal(p.ready, true);
+  assert.equal(p.objectives.length, 1);
+  assert.match(p.objectives[0].label, /annotée/);
+});
+test('campaign objectives distinguish departure and completion without phantom targets', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  assert.equal(P.campaignProgress({ chapter: 0 }).status, 'not_started');
+  assert.equal(P.campaignProgress({ chapter: 10 }).status, 'complete');
+  assert.equal(P.campaignProgress({ chapter: 1, target: 0 }).ready, false);
+  const p = P.campaignProgress({ chapter: 1, target: 2, evidence: { days: 9 } });
+  assert.equal(p.objectives[0].value, 2);
+  assert.equal(p.percent, 100);
 });
