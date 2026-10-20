@@ -12,6 +12,20 @@
     return all().find((l) => idOf(l) === key || String(l.id) === key) || null;
   }
 
+  /** Source links can address sessions older than the bounded device history. No cache write. */
+  async function resolve(id) {
+    const owner = window.state?.user?.id;
+    const local = find(id);
+    if (local && (!local.user_id || local.user_id === owner)) return local;
+    if (!owner || isGuest() || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(id))) return null;
+    if (!navigator.onLine || !window.titanClient) throw new Error("Hors ligne : ouvre cette séance une fois la connexion revenue.");
+    const { data, error } = await window.titanClient.from("training_logs").select("*").eq("id", id).eq("user_id", owner).maybeSingle();
+    if (window.state?.user?.id !== owner) return null;
+    if (error) throw new Error("La séance n’a pas répondu. Réessaie dans un instant.");
+    if (!data || data.user_id !== owner || data.id !== id) return null;
+    return { ...data, cat: data.category || data.cat, syncStatus: "confirmed" };
+  }
+
   function place(row) {
     const key = idOf(row);
     window.state.history = (window.state.history || []).filter((l) => idOf(l) !== key && l.id !== row.id);
@@ -75,6 +89,8 @@
     RIR_INVALID: "Le RIR va de 0 à 10, ou reste vide.",
     DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
     EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
+    RATE_LIMITED: "Beaucoup de modifications en peu de temps. Réessaie dans un moment.",
+    TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",
   };
   function humanize(error) {
     const raw = String(error?.message || error || "");
@@ -85,6 +101,8 @@
   async function update(log, patch) {
     const owner = window.state?.user?.id;
     if (!owner) throw new Error("Session indisponible.");
+    if (window.titanAccountTransition?.active || (log.user_id && log.user_id !== owner))
+      throw new Error("Le compte a changé. Rouvre la séance depuis son journal.");
     if (isGuest()) {
       const row = applyLocally(log, patch);
       await window.TitanQueue.saveGuestSession(owner, row);
@@ -126,5 +144,5 @@
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
   }
 
-  window.TitanSessions = { idOf, find, update, archive, restore, duplicate, previousOf, applyLocally, humanize };
+  window.TitanSessions = { idOf, find, resolve, update, archive, restore, duplicate, previousOf, applyLocally, humanize };
 })();

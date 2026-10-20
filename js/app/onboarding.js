@@ -12,9 +12,11 @@
   let picked = [];
   let target = 3;
   let analytics = false;
+  let consentSaveFailed = false;
   let query = "";
   let limitHit = false;
   let root = null;
+  let operation = null;
 
   const guest = () => String(window.state?.user?.id || "").startsWith("guest_");
 
@@ -39,7 +41,7 @@
     return `<p class="asc-eyebrow cy">2 · Ton rythme</p>
       <h1>Combien de jours actifs par semaine ?</h1>
       <p class="asc-lead">C’est ta cadence. Une semaine où tu l’atteins est une semaine tenue. Pas de série à casser : une semaine calme ne t’enlève rien.</p>
-      <div class="ob-target" role="radiogroup" aria-label="Jours actifs par semaine">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-target="${n}" aria-checked="${target === n}">${n}</button>`).join("")}</div>
+      <div class="ob-target" role="radiogroup" aria-label="Jours actifs par semaine">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-target="${n}" aria-checked="${target === n}" tabindex="${target === n ? 0 : -1}">${n}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${target <= 2 ? "Un départ solide, facile à tenir dans une semaine chargée." : target <= 4 ? "Le rythme le plus courant pour progresser durablement." : "Un rythme soutenu : pense aux jours de récupération."} Modifiable à tout moment depuis le QG.</p>`;
   }
 
@@ -57,20 +59,40 @@
   function goStep() {
     const first = picked[0];
     return `<p class="asc-eyebrow cy">4 · C’est parti</p>
-      <h1>Ta première séance débloque ta première balise.</h1>
-      <p class="asc-lead">${guest() ? "Tu es en mode découverte : tes séances restent sur cet appareil et pourront rejoindre un compte plus tard." : "Ton compte est prêt."} Enregistre une séance récente, même courte : la vallée de l’Aube s’allume avec tes jours actifs.</p>
+      <h1>Ta première séance pose ton premier repère.</h1>
+      <p class="asc-lead">${guest() ? "Tu es en mode découverte : tes séances restent sur cet appareil et pourront rejoindre un compte plus tard." : "Ton compte est prêt."} Enregistre une séance récente, même courte, pour retrouver tes mesures et commencer ton suivi.</p>
+      <p class="asc-small asc-muted">L’aventure est facultative : démarre une campagne avant ta prochaine séance pour y faire compter tes jours actifs.</p>
       <div class="asc-stack-sm ob-go">
         <a class="asc-btn asc-btn-primary asc-btn-block" data-finish href="/training${first ? `?sport=${encodeURIComponent(first)}` : ""}">${icon("plus")} ${first ? `Enregistrer une séance de ${esc(SP().label(first).toLowerCase())}` : "Enregistrer ma première séance"}</a>
+        <a class="asc-btn asc-btn-secondary asc-btn-block" data-finish href="/adventure">${icon("compass")} Démarrer mon aventure d’abord</a>
         <a class="asc-btn asc-btn-ghost asc-btn-block" data-finish href="/aujourdhui">Découvrir mon QG d’abord</a>
       </div>`;
   }
 
   function render() {
     if (!root) return;
+    const focusedTarget = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"][data-target]')?.dataset.target : null;
     const body = [sportsStep, rhythmStep, privacyStep, goStep][step]();
     root.innerHTML = `${progress()}<div class="ob-body">${body}</div>
       ${step < STEPS.length - 1 ? `<div class="ob-nav">${step > 0 ? `<button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button>` : '<span></span>'}<button type="button" class="asc-btn asc-btn-primary" data-next>${step === 0 && !picked.length ? "Passer" : "Continuer"}</button></div>` : step > 0 ? `<div class="ob-nav"><button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button><span></span></div>` : ""}`;
     root.querySelector("h1")?.setAttribute("tabindex", "-1");
+    if (focusedTarget && document.activeElement === document.body) root.querySelector(`[data-target="${focusedTarget}"]`)?.focus({ preventScroll: true });
+  }
+
+  function onRadioKey(e) {
+    if (operation || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) return;
+    const radio = e.target.closest('[role="radio"][data-target]');
+    if (!radio || !root.contains(radio) || radio.disabled) return;
+    e.preventDefault();
+    if (e.key === " ") {
+      if (radio.getAttribute("aria-checked") !== "true") radio.click();
+      return;
+    }
+    const radios = [...radio.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]')];
+    const direction = ["ArrowRight", "ArrowDown"].includes(e.key) ? 1 : -1;
+    const next = radios[(radios.indexOf(radio) + direction + radios.length) % radios.length];
+    next.focus();
+    next.click();
   }
 
   function finish() {
@@ -80,10 +102,68 @@
     u.weeklyGoalSessions = target;
     u.onboardedAt = new Date().toISOString();
     u.onboardingComplete = true; // kept by every server version
-    window.TitanAnalytics?.setConsent(analytics);
+    consentSaveFailed = window.TitanAnalytics?.setConsent(analytics) !== true;
     const saved = window.saveState?.({ forceCloud: true });
     window.TitanAnalytics?.track("onboarding_completed", { count: picked.length });
     return saved;
+  }
+
+  function restore(task) {
+    task.controls.forEach((disabled, control) => { control.disabled = disabled; });
+    task.links.forEach((attrs, link) => {
+      for (const [name, value] of attrs) {
+        if (value === null) link.removeAttribute(name);
+        else link.setAttribute(name, value);
+      }
+    });
+    if (task.busy === null) root.removeAttribute("aria-busy");
+    else root.setAttribute("aria-busy", task.busy);
+    task.notice.remove();
+    if (operation === task) operation = null;
+  }
+
+  async function complete(source) {
+    if (operation) return;
+    const task = { source, href: source.getAttribute("href"), controls: new Map(), links: new Map(), busy: root.getAttribute("aria-busy") };
+    operation = task;
+    root.querySelectorAll(".ob-finish-error").forEach(el => el.remove());
+    root.querySelectorAll("button, input, select, textarea").forEach(control => {
+      task.controls.set(control, control.disabled);
+      control.disabled = true;
+    });
+    root.querySelectorAll("[data-finish]").forEach(link => {
+      task.links.set(link, ["aria-disabled", "tabindex"].map(name => [name, link.getAttribute(name)]));
+      link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+    });
+    root.setAttribute("aria-busy", "true");
+    const notice = document.createElement("p");
+    notice.className = "asc-small asc-muted";
+    notice.setAttribute("role", "status");
+    notice.textContent = "Préparation en cours…";
+    root.after(notice); // Outside the busy live region so the wait can be announced now.
+    task.notice = notice;
+    try {
+      const saved = finish(); // Includes synchronous local writes, which can throw.
+      task.consentFailed = consentSaveFailed;
+      // The local journey can continue after a cloud failure or the existing 2.5 s cap.
+      await Promise.race([Promise.resolve(saved).catch(() => {}), new Promise(resolve => { task.timer = setTimeout(resolve, 2500); })]);
+      if (!task.consentFailed) { location.href = task.href; return; }
+      restore(task);
+      source.insertAdjacentHTML("beforebegin", `<p class="asc-note" role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p>`);
+      root.querySelectorAll("[data-finish]").forEach(link => link.removeAttribute("data-finish"));
+      source.textContent = "Continuer";
+    } catch {
+      restore(task);
+      const error = document.createElement("p");
+      error.className = "asc-note ob-finish-error";
+      error.setAttribute("role", "alert");
+      error.textContent = "La préparation n’a pas pu se terminer. Réessaie.";
+      source.before(error);
+    } finally {
+      clearTimeout(task.timer);
+      if (!operation && source.isConnected && document.activeElement === document.body) source.focus();
+    }
   }
 
   function start() {
@@ -100,7 +180,9 @@
     target = Math.min(7, Math.max(1, parseInt(u.weeklyGoalSessions, 10) || 3));
     analytics = window.TitanAnalytics?.consent() === "granted";
     render();
+    root.addEventListener("keydown", onRadioKey);
     root.addEventListener("input", (e) => {
+      if (operation) return;
       if (e.target.id !== "ob-q") return;
       query = e.target.value;
       render();
@@ -109,18 +191,19 @@
       q.setSelectionRange(q.value.length, q.value.length);
     });
     root.addEventListener("change", (e) => {
+      if (operation) return;
       if (e.target.matches("[data-analytics]")) analytics = e.target.checked;
     });
     root.addEventListener("click", (e) => {
+      if (operation) { e.preventDefault(); return; }
       const fin = e.target.closest("[data-finish]");
       if (fin) {
         e.preventDefault();
-        // Local state is saved synchronously; wait for the cloud save (2.5 s at most) before leaving.
-        Promise.race([Promise.resolve(finish()).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]).finally(() => (location.href = fin.getAttribute("href")));
+        if (fin.getAttribute("aria-disabled") !== "true") complete(fin);
         return;
       }
       const b = e.target.closest("button");
-      if (!b) return;
+      if (!b || b.disabled) return;
       if (b.dataset.pick) {
         const id = b.dataset.pick;
         limitHit = false;

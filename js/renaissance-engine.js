@@ -273,8 +273,6 @@
         next.avatar = a.id;
       } else {
         if (!c) throw new Error("INVALID_WORLD");
-        if (["start", "claim"].includes(action) && c.tier === "plus")
-          throw new Error("TITAN_PLUS_REQUIRED");
         if (action === "start" && !c.chapter) {
           c.chapter = 1;
           c.target = C.worlds.find((w) => w.id === c.id).chapters[0].target;
@@ -312,7 +310,8 @@
       publish(next);
       return next;
     }
-    ++sequence; // discard an older in-flight snapshot after a mutation
+    ++sequence; // discard an older in-flight snapshot when the mutation starts
+    pending = null; // invalidated reads must not absorb a later normal refresh
     const next = await rpc(
       "titan_adventure_action",
       {
@@ -326,6 +325,10 @@
       },
       id,
     );
+    // A read started while the action was pending can still carry the old revision.
+    // Only a successful confirmation closes that read generation; errors leave it usable.
+    ++sequence;
+    pending = null;
     publish(next);
     return next;
   };
@@ -336,11 +339,11 @@
       ADVENTURE_CONFLICT:
         "Ta progression a changé sur un autre écran. Actualise puis réessaie.",
       TITAN_PLUS_REQUIRED:
-        "Cette campagne fait partie de TITAN+. Les deux premières restent gratuites.",
+        "L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.",
       AUTH_REQUIRED: "Reconnecte-toi pour retrouver ta progression.",
       QUEST_INCOMPLETE: "La mission n’est pas encore terminée.",
       GUARDIAN_EFFORT_INCOMPLETE:
-        "Le gardien attend encore de l’effort : 150 minutes depuis le début du chapitre, 90 au plus par jour.",
+        "Le gardien attend encore de l’effort : consulte l’objectif affiché pour ce chapitre, 90 minutes au plus comptées par jour.",
       AVATAR_LOCKED: "Ce personnage se débloque à un prochain niveau.",
     })[error?.message] ||
     "La progression n’a pas pu être confirmée. Tes séances restent conservées. Réessaie dans un instant.";
