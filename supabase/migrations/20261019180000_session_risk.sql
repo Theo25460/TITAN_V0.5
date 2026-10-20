@@ -25,7 +25,7 @@ revoke all on table private.titan_sport_limits from public, anon, authenticated;
 insert into private.titan_sport_limits(sport, max_kmh, min_minutes, reference) values
   ('running', 30, 15, 'World records: 5 000 m 12:35 (23.8 km/h), 10 000 m 26:11 (22.9 km/h); bound 30 km/h over 15 minutes or more'),
   ('walking', 20, 15, 'Race walking: 20 km about 1:16 (15.8 km/h), indoor 5 000 m about 18:05 (16.6 km/h); bound 20 km/h over 15 minutes or more'),
-  ('swimming', 7, 15, 'World records: 800 m 7:32 (6.4 km/h), 1 500 m 14:30 (6.2 km/h); bound 7 km/h over 15 minutes or more')
+  ('swimming', 9, 15, 'World records: 800 m 7:32 (6.4 km/h), 1 500 m 14:30 (6.2 km/h); bound 9 km/h (generous: current, tide, fins) over 15 minutes or more')
 on conflict (sport) do nothing;
 
 create or replace function private.titan_session_risk(p_user uuid, p_limit integer default 30)

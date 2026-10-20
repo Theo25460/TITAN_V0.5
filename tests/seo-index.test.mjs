@@ -11,7 +11,10 @@ const publicFiles = new Set(routes.map((r) => (r === "/" ? "index.html" : `${r.r
 // Verification file of the search console and the retired console page (blocked in robots.txt and answered 404).
 const EXEMPT = new Set(["googleb8fedd43e28cf7d4.html", "sys_core_override_99.html"]);
 const pages = readdirSync(root).filter((f) => f.endsWith(".html"));
-const noindex = (file) => /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(readFileSync(`${root}${file}`, "utf8"));
+const noindex = (file) => {
+  const html = readFileSync(`${root}${file}`, "utf8");
+  return [...html.matchAll(/<meta\b[^>]*>/gi)].some((m) => /name=["']robots["']/i.test(m[0]) && /content=["'][^"']*noindex/i.test(m[0]));
+};
 
 test("the sitemap lists existing, indexable pages only", () => {
   assert.ok(routes.length >= 20, "sitemap read");

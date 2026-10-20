@@ -14,8 +14,8 @@ begin
     (gen_random_uuid(),u,'cycling','cardio',50,'km',1, now() - interval '5 hours','{"duration":60}'),
     (gen_random_uuid(),u,'walking','cardio',5,'km',1, now() - interval '7 hours','{"duration":60}'),
     (gen_random_uuid(),u,'swimming','cardio',4,'km',1, now() - interval '9 hours','{"duration":60}'),
-    (gen_random_uuid(),u,'swimming','cardio',8,'km',1, now() - interval '11 hours','{"duration":60}'),
-    (gen_random_uuid(),u,'swimming','pool',8000,'m',1, now() - interval '17 hours','{"duration":60}'),
+    (gen_random_uuid(),u,'swimming','cardio',10,'km',1, now() - interval '11 hours','{"duration":60}'),
+    (gen_random_uuid(),u,'swimming','pool',10000,'m',1, now() - interval '17 hours','{"duration":60}'),
     (gen_random_uuid(),u,'swimming','pool',2500,'m',1, now() - interval '19 hours','{"duration":60}'),
     (gen_random_uuid(),u,'walking','cardio',22,'km',1, now() - interval '13 hours','{"duration":60}'),
     (gen_random_uuid(),u,'running','cardio',6,'km',1, now() - interval '15 hours','{"duration":10}');
@@ -26,8 +26,8 @@ begin
     code := (select string_agg(s->>'code', ',') from jsonb_array_elements(e->'signals') s);
     if (e->>'sport') = 'running' and (e->>'value')::numeric = 40 then
       assert code like '%beyond_human%' and e->>'state' = 'review', '40 km/h running is beyond human: '||coalesce(code,'none');
-    elsif (e->>'sport') = 'swimming' and (e->>'value')::numeric in (8, 8000) then
-      assert code like '%beyond_human%', '8 km/h swimming for an hour is beyond human';
+    elsif (e->>'sport') = 'swimming' and (e->>'value')::numeric in (10, 10000) then
+      assert code like '%beyond_human%', '10 km/h swimming for an hour is beyond human';
     elsif (e->>'sport') = 'walking' and (e->>'value')::numeric = 22 then
       assert code like '%beyond_human%', '22 km/h walking for an hour is beyond human';
     else
@@ -46,7 +46,7 @@ begin
   assert (select count(*) from jsonb_array_elements(private.titan_session_risk(u, 50)) x, jsonb_array_elements(x->'signals') s where s->>'code'='beyond_human')=0, 'a sport without a limit row is not judged on pace';
   insert into private.titan_sport_limits(sport,max_kmh,min_minutes,reference) values ('hiking',9,15,'test row');
   assert (select count(*) from jsonb_array_elements(private.titan_session_risk(u, 50)) x, jsonb_array_elements(x->'signals') s where s->>'code'='beyond_human')=1, 'a new row takes effect without code change';
-  assert (select count(*) from private.titan_sport_limits where sport in ('running','walking','swimming'))=3 and not has_table_privilege('authenticated','private.titan_sport_limits','select'), 'seeded rows exist and the table is closed';
+  assert (select count(*) from private.titan_sport_limits where sport in ('running','walking','swimming'))=3 and not has_table_privilege('authenticated','private.titan_sport_limits','select,insert,update,delete') and not has_table_privilege('anon','private.titan_sport_limits','select,insert,update,delete'), 'seeded rows exist and the table is closed to both API roles';
 
   -- 2. Series: 10 steady 10 km/h runs, then three runs at 16 km/h within 14 days -> the third is a series.
   u := gen_random_uuid(); insert into auth.users(id,raw_user_meta_data) values (u,'{}');
