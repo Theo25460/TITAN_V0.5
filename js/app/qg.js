@@ -183,7 +183,7 @@
     if (!s || !C) return "";
     const c = (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9);
     if (!c)
-      return `<a class="asc-row" href="/adventure"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">Commencer l’aventure</span><span class="asc-row-sub">Ton premier monde attend tes jours actifs.</span></span>${icon("chevron")}</a>`;
+      return `<a class="asc-row" href="/adventure"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">Commencer l’aventure</span><span class="asc-row-sub">Démarre une campagne avant ta prochaine séance pour y faire compter tes jours actifs.</span></span>${icon("chevron")}</a>`;
     const world = C.worlds.find((w) => w.id === c.id);
     if (c.chapter > 9)
       return `<a class="asc-row" href="/adventure"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(world?.name || "Monde")} terminé</span><span class="asc-row-sub">Choisis ton prochain horizon.</span></span>${icon("chevron")}</a>`;
