@@ -19,7 +19,6 @@ before(async () => {
 after(async () => { await browser?.close(); server?.kill(); });
 
 // The administration console is a desktop tool, not a player screen.
-const KNOWN = new Set(["/profile @320"]);
 const SKIP = /^(admin|sys_core_override_99)\.html$/;
 const PAGES = readdirSync(`${ROOT}dist`).filter((f) => f.endsWith(".html") && !SKIP.test(f)).map((f) => (f === "index.html" ? "/" : `/${f.slice(0, -5)}`));
 // Small phone, common phone, large phone with high density, tablet portrait, desktop.
@@ -53,7 +52,5 @@ test("no public page scrolls sideways on any tested screen (AND06, AND07)", asyn
     }
     await context.close();
   }
-  // Known and reported, not hidden: /profile overflows by 40px at 320px (a profile form row); the Profil page is claimed by Codex.
-  assert.deepEqual(problems.filter((p) => !KNOWN.has(p.split(" (")[0].replace(/: \+\d+px$/, ""))), []);
-  assert.ok(problems.every((p) => !p.startsWith("/boutique")), "the Atelier page no longer overflows");
+  assert.deepEqual(problems, []);
 });
