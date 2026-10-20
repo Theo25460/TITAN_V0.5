@@ -20,8 +20,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Recuperer le depot
+      - name: Recuperer le depot (historique complet pour la recherche de secrets)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Installer pnpm
         uses: pnpm/action-setup@v4
@@ -41,10 +43,13 @@ jobs:
       - name: Verifier, tester et construire
         run: pnpm run verify
 
+      - name: Rechercher des secrets dans tout l'historique git
+        run: pnpm run history-scan
+
   e2e:
     name: Parcours navigateur (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -63,10 +68,23 @@ jobs:
         run: pnpm run test:e2e
 
   database:
-    name: Migrations sur une replique vide (Postgres 16)
+    name: Migrations sur une replique vide (Postgres 17.6)
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    container:
+      image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    env:
+      PGBIN: /usr/lib/postgresql/17/bin
+      TITAN_EXPECT_PG_VERSION_NUM: '170006'
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Installer Python pour les contrats concurrents
+        run: apt-get update && apt-get install -y --no-install-recommends python3
       - name: Rejouer les migrations en attente et les tests SQL
-        run: sudo -E bash tools/db/test-migrations.sh
+        run: bash tools/db/test-migrations.sh
+      - name: Verifier le bundle historique et ses migrations correctives
+        if: ${{ !cancelled() }}
+        run: env RELEASE_SQL=supabase/release-300.sql bash tools/db/test-migrations.sh

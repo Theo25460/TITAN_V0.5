@@ -14,7 +14,6 @@ const E = W.TitanEffort || sandbox.TitanEffort;
 
 const SITE = "https://titan-app.fr";
 const V = "300.0";
-const TODAY = "2026-10-05";
 const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 
 /* ---------- Facts computed from the real rules ---------- */
@@ -63,7 +62,7 @@ const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub
   <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
   <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
   <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
-  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Aide et contact</a></nav></div>
+  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Assistance</a></nav></div>
 </div><small>© 2026 TITAN · Sans publicité · Paiements TITAN+ opérés par Paddle</small></div></footer>`;
 
 // Each scrollable table is a focusable region with its own name (WCAG: keyboard access, unique landmarks).
@@ -94,7 +93,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${SITE}/image/og-titan.jpg">
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=${V}"><link rel="stylesheet" href="/css/public.css?v=${V}">
+<link rel="stylesheet" href="/css/ascension.css?v=${V}"><link rel="stylesheet" href="/css/public.css?v=300.1">
 <script src="/js/pwa.js?v=${V}" defer></script>
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>
@@ -114,4 +113,4 @@ const finalCta = (image = "archipelago") => `<section class="pub-section"><div c
 const cards = (list, cols = 3) => `<div class="pub-grid cols-${cols}">${list.map(([ic, t, d, link]) => `<${link ? `a href="${link}"` : "article"} class="pub-card pub-feature">${icon(ic)}<h3>${t}</h3><p>${d}</p></${link ? "a" : "article"}>`).join("")}</div>`;
 
 
-export { W, C, E, SITE, V, TODAY, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };
+export { W, C, E, SITE, V, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };

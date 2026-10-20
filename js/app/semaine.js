@@ -21,7 +21,7 @@
     const now = new Date();
     if (k === 0) return P().recap(logs(), { now, goals: goalsCache, current: true });
     // recap() describes the week before `now`: point `now` inside the week after the one we want.
-    const anchor = new Date(F().weekStart(now).getTime() - (k - 1) * 7 * DAY + DAY);
+    const anchor = F().addDays(F().weekStart(now), -(k - 1) * 7 + 1);
     return P().recap(logs(), { now: anchor, goals: goalsCache });
   }
 
@@ -52,7 +52,7 @@
     const per = Array.from({ length: 7 }, () => ({ minutes: 0, sessions: 0 }));
     for (const l of P().activeLogs(logs())) {
       const t = new Date(l.date).getTime();
-      if (t < from || t >= from + 7 * DAY) continue;
+      if (t < from || t > r.to.getTime()) continue;
       const i = (new Date(l.date).getDay() + 6) % 7;
       per[i].minutes += P().minutesOf(l).minutes || 0;
       per[i].sessions++;
@@ -67,7 +67,7 @@
     const today = offset === 0 ? (new Date().getDay() + 6) % 7 : -1;
     return `<div class="wk-days" role="list" aria-label="Minutes par jour">${per
       .map((d, i) => {
-        const date = new Date(from + i * DAY);
+        const date = F().addDays(r.from, i);
         const label = `${date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} : ${d.sessions ? `${d.sessions} séance${d.sessions > 1 ? "s" : ""}, ${F().duration(d.minutes)}` : "repos"}`;
         return `<div class="wk-day${i === today ? " is-today" : ""}${i > today && today >= 0 ? " is-future" : ""}" role="listitem" aria-label="${esc(label)}"><span class="wk-bar"><span style="--h:${Math.round((d.minutes / max) * 100)}%"${d.sessions ? ' data-on="true"' : ""}></span></span><span class="wk-day-l">${DAYS[i]}</span></div>`;
       })
@@ -81,10 +81,10 @@
     const max = firstWeekOffset();
     const range = offset === 0 ? "Cette semaine" : offset === 1 ? "La semaine dernière" : `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
     return `<section class="asc-hero wk-hero" aria-labelledby="wk-title">
-      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
+      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-previous" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
         <div><p class="asc-eyebrow cy">${esc(range)}</p><p class="asc-small asc-muted">${esc(r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} – ${esc(r.to.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p></div>
-        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
-      <h2 id="wk-title" class="wk-title">${esc(h.title)}</h2>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-next" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
+      <h2 id="wk-title" class="wk-title" tabindex="-1">${esc(h.title)}</h2>
       <p class="asc-lead">${esc(h.text)}</p>
       <dl class="wk-stats">
         <div><dt>Jours actifs</dt><dd class="asc-num">${w.activeDays}<small>/${settings.target}</small></dd></div>
@@ -224,12 +224,18 @@
 
   function render() {
     if (!root) return;
+    const active = document.activeElement;
+    const focusId = root.contains(active) && ["wk-title", "wk-previous", "wk-next"].includes(active.id) ? active.id : null;
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
     root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
+    if (focusId) {
+      const target = document.getElementById(focusId);
+      (target?.disabled ? root.querySelector("#wk-title") : target)?.focus();
+    }
   }
 
   async function loadGoals() {

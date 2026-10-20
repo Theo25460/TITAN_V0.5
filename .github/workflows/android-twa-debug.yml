@@ -1,0 +1,93 @@
+name: Android (TWA, essai sans secret)
+
+# Builds a TEST APK of the Trusted Web Activity with a throwaway signing key generated on the runner.
+# It needs no repository secret and its output must never be published: use it to check that the Bubblewrap project
+# builds from android/twa-manifest.json (AND03) and to try the shell on a phone. The real, signed bundle comes from
+# the "Android (TWA)" workflow with the upload key (docs/ANDROID.md).
+on:
+  workflow_dispatch:
+  # Also runs on a pull request that touches the Android project, so the trial build is exercised without anyone
+  # clicking: it needs no secret, so it is safe for pull requests.
+  pull_request:
+    paths:
+      - "android/**"
+      - "image/logo-*.png"
+      - ".github/workflows/android-twa-debug.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bubblewrap
+        run: npm install --global @bubblewrap/cli@1.23.0
+      - name: Mot de passe jetable (tiré au hasard, masqué, propre à cette exécution)
+        run: |
+          password=$(openssl rand -hex 16)
+          echo "::add-mask::$password"
+          echo "THROWAWAY_PASSWORD=$password" >> "$GITHUB_ENV"
+      - name: Clé jetable et projet Android
+        working-directory: android
+        run: |
+          keytool -genkeypair -keystore android.keystore -alias titan -keyalg RSA -keysize 2048 -validity 30 \
+            -storepass "$THROWAWAY_PASSWORD" -keypass "$THROWAWAY_PASSWORD" -dname "CN=TITAN essai, O=TITAN, C=FR"
+          # Bubblewrap downloads the icons from the deployed site: an icon added in this branch but not published yet falls
+          # back to the published launcher icon for this trial only (the warning names it).
+          for key in iconUrl maskableIconUrl; do
+            url=$(node -e "console.log(require('./twa-manifest.json').$key)")
+            if ! curl -fsI "$url" > /dev/null; then
+              echo "::warning::$key $url is not published yet: using the published launcher icon for this trial"
+              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='https://titan-app.fr/image/logo-512.png';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+            fi
+          done
+          # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.
+          cmdline=$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/* | sort -V | tail -1)
+          sudo mkdir -p "$ANDROID_SDK_ROOT/tools" && sudo ln -sfn "$cmdline/bin" "$ANDROID_SDK_ROOT/tools/bin"
+          mkdir -p ~/.bubblewrap && printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_SDK_ROOT" > ~/.bubblewrap/config.json
+          yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
+      - name: Construire l'APK d'essai
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
+        run: bubblewrap build --skipPwaValidation
+      - name: Permissions déclarées par l'APK (SEC09)
+        working-directory: android
+        run: |
+          aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
+          # TITAN a besoin d'Internet et de rien d'autre : toute autre permission doit être justifiée avant release.
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
+      - name: Cible et liens d'application de l'APK (AND05, AND09)
+        working-directory: android
+        run: |
+          aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$aapt2" dump badging app-release-signed.apk | grep -E "^(package|sdkVersion|targetSdkVersion)" | tee badging.txt
+          target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
+          # Google Play exige un niveau d'API cible récent : seuil minimal vérifié ici, à relever selon la règle en vigueur à la publication.
+          if [ -z "$target" ] || [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
+          "$aapt2" dump xmltree --file AndroidManifest.xml app-release-signed.apk > manifest-tree.txt
+          # L'hôte du lien est une ressource de chaîne : on contrôle autoVerify dans le manifeste, puis l'hôte dans les chaînes de l'APK.
+          grep -q "autoVerify.*=true" manifest-tree.txt || { echo "::error::autoVerify absent du manifeste"; exit 1; }
+          "$aapt2" dump strings app-release-signed.apk | grep -q "titan-app.fr" || { echo "::error::titan-app.fr absent des chaînes de l'APK"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: titan-android-essai-NE-PAS-PUBLIER
+          path: android/app-release-signed.apk
+          retention-days: 3
+          if-no-files-found: error
