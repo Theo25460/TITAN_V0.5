@@ -138,6 +138,7 @@
       if (
         !key.startsWith("titan_training_draft_") &&
         !key.startsWith("titan_seance_draft_") &&
+        !key.startsWith("titan_seance_timer_") &&
         key !== "titan_pending_training_logs_v1" &&
         key !== "titan_guest_device_id_v1" &&
         key !== "titan_guest_imported_v1"
