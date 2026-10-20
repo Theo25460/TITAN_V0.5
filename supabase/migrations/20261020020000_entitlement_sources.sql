@@ -117,6 +117,19 @@ revoke all on function public.titan_apply_entitlement_v1(uuid, text, text, boole
 grant execute on function public.titan_apply_entitlement_v1(uuid, text, text, boolean, text, text, timestamptz, text, text, text,
   timestamptz, timestamptz, timestamptz, timestamptz) to service_role;
 
+-- Server notifications from Google name only a purchase token: this finds the account it was linked to.
+create or replace function public.titan_entitlement_owner_v1(p_source text, p_external_id text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select user_id from private.titan_entitlements where source = p_source and external_id = p_external_id;
+$$;
+revoke all on function public.titan_entitlement_owner_v1(text, text) from public, anon, authenticated;
+grant execute on function public.titan_entitlement_owner_v1(text, text) to service_role;
+
 -- The Paddle webhook keeps its function and signature; it now records a Paddle source row.
 create or replace function public.titan_apply_paddle_entitlement_v87(
   p_user_id uuid,

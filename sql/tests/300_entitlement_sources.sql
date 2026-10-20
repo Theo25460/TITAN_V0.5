@@ -47,6 +47,10 @@ begin
   assert denied, 'a token already used by another account is refused';
   assert (select is_elite from public.profiles where id=b) is not true, 'the second account gained nothing';
 
+  -- 7b. The owner of a token can be looked up by the server (Google notifications name only the token).
+  assert public.titan_entitlement_owner_v1('google_play','gp-token-AAA')=a, 'owner lookup finds the linked account';
+  assert public.titan_entitlement_owner_v1('google_play','never-seen') is null, 'unknown token has no owner';
+
   -- 8. Malformed calls are refused.
   denied:=false; begin perform public.titan_apply_entitlement_v1(b,'apple','x',true,'a','e',now()); exception when others then denied:=true; end; assert denied, 'unknown source refused';
   denied:=false; begin perform public.titan_apply_entitlement_v1(b,'google_play','',true,'a','e',now()); exception when others then denied:=true; end; assert denied, 'empty id refused';
@@ -64,6 +68,8 @@ begin
   assert denied, 'a player cannot grant themselves access';
   denied:=false; begin perform public.titan_apply_paddle_entitlement_v87(a,true,'active','x',now(),'s','o','p','v',null,null,null,null); exception when others then denied:=true; end;
   assert denied, 'the paddle function is not callable by players';
+  denied:=false; begin perform public.titan_entitlement_owner_v1('google_play','gp-token-AAA'); exception when others then denied:=true; end;
+  assert denied, 'players cannot look up who owns a token';
   denied:=false; begin perform count(*) from private.titan_entitlements; exception when others then denied:=true; end;
   assert denied, 'the table is private';
 end $$;
