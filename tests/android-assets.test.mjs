@@ -37,7 +37,9 @@ function decode(path) {
 }
 const pixel = (img, x, y) => [...img.pixels.subarray((y * img.width + x) * img.bpp, (y * img.width + x) * img.bpp + img.bpp)];
 
-for (const [label, url] of [["launcher icon", twa.iconUrl], ["maskable icon", twa.maskableIconUrl]]) {
+// The launcher icon is judged on the W3C safe circle (80 %); the maskable one becomes the 108 dp adaptive foreground, whose
+// guaranteed-visible circle is 66 dp, about 61 % of the icon: it gets its own, smaller glyph.
+for (const [label, url, safe] of [["launcher icon", twa.iconUrl, 0.4], ["maskable icon", twa.maskableIconUrl, 0.305]]) {
   test(`${label} meets the Play and adaptive-icon rules`, () => {
     const path = local(url);
     assert.ok(statSync(path).size <= 1024 * 1024, "at most 1 MB");
@@ -53,9 +55,23 @@ for (const [label, url] of [["launcher icon", twa.iconUrl], ["maskable icon", tw
       }
     }
     assert.ok(farthest > 50, "the glyph is present");
-    assert.ok(farthest <= 0.4 * 512, `the glyph stays inside the safe circle (80 % of the icon): ${Math.round(farthest)} px from the centre`);
+    assert.ok(farthest <= safe * 512, `the glyph stays inside the safe circle (${Math.round(safe * 200)} % of the icon): ${Math.round(farthest)} px from the centre, limit ${Math.round(safe * 512)}`);
   });
 }
+
+test("the manifest maskable icons are the padded variants and share the background", () => {
+  const manifest = JSON.parse(readFileSync(`${root}manifest.json`, "utf8"));
+  const maskable = manifest.icons.filter((i) => /maskable/.test(i.purpose || ""));
+  assert.ok(maskable.length >= 2);
+  const bg = pixel(decode(local(twa.iconUrl)), 2, 2).join();
+  for (const icon of maskable) {
+    assert.match(icon.src, /logo-maskable-/, `${icon.src} is a dedicated maskable icon`);
+    const img = decode(`${root}${icon.src.replace(/^\//, "")}`);
+    assert.equal(img.width, Number(icon.sizes.split("x")[0]), `${icon.src} has the declared size`);
+    assert.equal(pixel(img, 1, 1).join(), bg, `${icon.src} shares the launcher background`);
+  }
+  assert.equal(new URL(twa.maskableIconUrl).pathname, "/image/logo-maskable-512.png");
+});
 
 test("the splash and system colours match the icon background", () => {
   const img = decode(local(twa.iconUrl));

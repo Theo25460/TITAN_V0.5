@@ -14,7 +14,7 @@
   "enableNotifications": false,
   "startUrl": "/aujourdhui?source=twa",
   "iconUrl": "https://titan-app.fr/image/logo-512.png",
-  "maskableIconUrl": "https://titan-app.fr/image/logo-512.png",
+  "maskableIconUrl": "https://titan-app.fr/image/logo-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": { "path": "./android.keystore", "alias": "titan" },
   "appVersionName": "300.0",
