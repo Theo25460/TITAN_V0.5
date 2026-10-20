@@ -7,14 +7,19 @@ const root = new URL("..", import.meta.url).pathname;
 const release = readFileSync(`${root}.github/workflows/android-twa.yml`, "utf8");
 const trial = readFileSync(`${root}.github/workflows/android-twa-debug.yml`, "utf8");
 
-test("both workflows are manual only, least-privilege, with a time limit", () => {
+test("the release workflow is manual only; both are least-privilege with a time limit", () => {
   for (const [name, text] of [["release", release], ["trial", trial]]) {
     assert.match(text, /^on:\s*(?:#[^\n]*)?\n(?:\s*#[^\n]*\n)*\s+workflow_dispatch:/m, `${name}: manual trigger`);
-    assert.doesNotMatch(text, /^\s+(push|pull_request|schedule):/m, `${name}: no automatic trigger`);
+    assert.doesNotMatch(text, /^\s+(push|schedule|pull_request_target):/m, `${name}: no push, schedule or privileged pull-request trigger`);
     assert.match(text, /^permissions:\s*\n(?:\s+[a-z-]+: (?:read|none)\n)*\s+contents: read/m, `${name}: read-only token`);
     assert.doesNotMatch(text, /^\s+[a-z-]+: write\s*$/m, `${name}: no write permission`);
     assert.match(text, /timeout-minutes:\s*\d+/, `${name}: timeout`);
   }
+});
+
+test("only the secret-free trial may run on pull requests, and only for Android changes", () => {
+  assert.doesNotMatch(release, /^\s+pull_request:/m, "the release workflow never runs on a pull request");
+  assert.match(trial, /^\s+pull_request:\s*\n\s+paths:/m, "the trial is limited to Android paths");
 });
 
 test("the same pinned toolchain builds the trial and the release bundle", () => {
