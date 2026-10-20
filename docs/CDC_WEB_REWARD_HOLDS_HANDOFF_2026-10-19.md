@@ -17,6 +17,6 @@ Limites assumées : le score est calculé à chaque enregistrement (fenêtre 120
 ## BLOQUANT À CORRIGER MAINTENANT
 Aucun connu.
 ## NON BLOQUANT – BACKLOG FINITION
-Rafraîchir l'XP locale à la libération ; notification au joueur à la libération ; seuil et durée réglables ; indicateur de retenues en cours dans le dossier de modération ; test de concurrence à deux connexions (exclusion pendant la libération).
+Rafraîchir l'XP locale à la libération ; notification au joueur à la libération ; seuil et durée réglables ; indicateur de retenues en cours dans le dossier de modération ; (test de concurrence à deux connexions livré le 20/10 : `tools/db/test-reward-appeal-concurrency.py`, branché au banc ; retirer l'ordre `p_only_held` de la tâche fait donner sa récompense à une séance exclue, le test devient rouge).
 ## EXIGENCE OU MACRO-BLOC À ATTAQUER ENSUITE
 Vérifier la tâche pg_cron après application réelle (BOT01 et ici) ; premier build Android après stabilisation web.

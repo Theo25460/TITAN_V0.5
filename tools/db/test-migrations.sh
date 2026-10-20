@@ -84,4 +84,10 @@ if guard=$(python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]
 fi
 [[ "$guard" == "Refused: training rate concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Reward hold and appeal concurrency contracts (real overlapping connections)"
+if guard=$(python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "reward/appeal runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: reward and appeal concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."
