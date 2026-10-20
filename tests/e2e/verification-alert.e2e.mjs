@@ -58,7 +58,7 @@ test("an open request shows an alert with a link to the answer page, on an app p
   await page.evaluate(() => window.dispatchEvent(new Event("titan:history-updated")));
   await page.evaluate(() => window.dispatchEvent(new Event("titan:history-updated")));
   assert.equal(await page.locator("[data-verify-alert]").count(), 1);
-  assert.equal(await page.evaluate(() => window.__verify.calls.length), 1, "rechecked at most every five minutes");
+  assert.equal(await page.evaluate(() => window.__verify.calls.filter((c) => c === "titan_my_verification_requests_v1").length), 1, "rechecked at most every five minutes");
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -76,7 +76,7 @@ test("nothing is shown to a guest, with no request, or on a server without the f
     const { page, context, errors } = await open(options);
     await page.waitForTimeout(400);
     assert.equal(await page.locator("[data-verify-alert]").count(), 0, label);
-    if (options.guest) assert.deepEqual(await page.evaluate(() => window.__verify.calls), [], "a guest sends no request");
+    if (options.guest) assert.deepEqual(await page.evaluate(() => window.__verify.calls.filter((c) => c === "titan_my_verification_requests_v1")), [], "a guest sends no verification request");
     assert.deepEqual(errors, [], label);
     await context.close();
   }

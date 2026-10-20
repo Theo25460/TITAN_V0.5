@@ -24,6 +24,7 @@
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
         { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
         { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
+        { id: 'flags', label: 'Drapeaux', icon: 'ri-toggle-line', custom: 'flags' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -836,6 +837,7 @@
             else if (item.custom === 'users') await renderUsers(force);
             else if (item.custom === 'moderation') await renderModeration(force);
             else if (item.custom === 'appeals') await renderAppeals(force);
+            else if (item.custom === 'flags') await renderFlags(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1447,6 +1449,12 @@
         const verifyClose = event.target.closest('[data-verify-close]');
         if (verifyClose) {
             await closeVerification(verifyClose.dataset.verifyClose);
+            return;
+        }
+
+        const flagSave = event.target.closest('[data-flag-save]');
+        if (flagSave) {
+            await saveFlag(flagSave.closest('[data-flag-row]'));
             return;
         }
 
@@ -2282,6 +2290,83 @@
             </tr>`).join('');
         return `<h3>Réponses à des demandes de vérification</h3>${tableShell(`<table class="admin-table" data-verification-answers aria-label="Réponses de vérification à lire">
             <thead><tr><th>Joueur</th><th>Demande</th><th>Réponse</th><th>Suite</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    // Feature flags (IDEA10, ADS17): switch an ad network, format, placement or a progressive roll-out on or off without a release.
+    // The server returns each flag resolved per player; nothing in the app consumes a flag until a feature asks for one.
+    const FLAG_ERRORS = {
+        KEY_INVALID: 'Clé invalide : 3 à 49 caractères, minuscules, chiffres, point, tiret ou souligné, en commençant par une lettre.',
+        ROLLOUT_INVALID: 'Le pourcentage doit être compris entre 0 et 100.',
+        DESCRIPTION_TOO_LONG: 'La description fait au plus 200 caractères.',
+        STATE_REQUIRED: 'Choisis activé ou désactivé.',
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.'
+    };
+
+    async function renderFlags() {
+        const head = sectionHead('Drapeaux de fonctionnalité', 'Active ou coupe une fonctionnalité sans nouvelle version. Un drapeau désactivé l’emporte sur la valeur par défaut de l’application ; un pourcentage inférieur à 100 ne concerne que des joueurs connectés, toujours les mêmes. Les clés sont publiques : n’y mets rien de sensible. Chaque changement est consigné.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_admin_feature_flags_v1');
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Les drapeaux ne sont pas disponibles sur ce serveur : applique la migration 20261020050000_feature_flags.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const flags = Array.isArray(data && data.flags) ? data.flags.filter((flag) => flag && typeof flag === 'object') : [];
+        const row = (flag) => `
+            <tr data-flag-row data-flag-key="${escapeHtml(flag.key)}">
+                <td><code>${escapeHtml(flag.key)}</code><br><small>${escapeHtml(flag.description || '')}</small></td>
+                <td><label><input type="checkbox" name="enabled"${flag.enabled ? ' checked' : ''} aria-label="Activé : ${escapeHtml(flag.key)}"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="${escapeHtml(flag.rollout)}" aria-label="Pourcentage de joueurs : ${escapeHtml(flag.key)}"> %</td>
+                <td>${buttonMarkup('Enregistrer', 'ri-save-line', 'primary', `data-flag-save aria-label="Enregistrer le drapeau ${escapeHtml(flag.key)}"`)}</td>
+            </tr>`;
+        const create = `
+            <tr data-flag-row data-flag-new>
+                <td><input class="admin-input" name="key" type="text" autocomplete="off" spellcheck="false" placeholder="ads.web" aria-label="Clé du nouveau drapeau"><br>
+                    <input class="admin-input" name="description" type="text" maxlength="200" placeholder="Description (facultatif)" aria-label="Description du nouveau drapeau"></td>
+                <td><label><input type="checkbox" name="enabled" aria-label="Activé : nouveau drapeau"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="100" aria-label="Pourcentage de joueurs : nouveau drapeau"> %</td>
+                <td>${buttonMarkup('Créer', 'ri-add-line', 'secondary', 'data-flag-save aria-label="Créer le drapeau"')}</td>
+            </tr>`;
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-flag-table aria-label="Drapeaux de fonctionnalité">
+                <thead><tr><th>Drapeau</th><th>État</th><th>Joueurs concernés</th><th>Action</th></tr></thead>
+                <tbody>${flags.map(row).join('')}${create}</tbody></table>`)}
+            ${flags.length ? '' : '<p><small>Aucun drapeau pour l’instant : l’application garde ses valeurs par défaut.</small></p>'}
+        `;
+    }
+
+    async function saveFlag(row) {
+        if (!row) return;
+        const isNew = row.hasAttribute('data-flag-new');
+        const key = isNew ? String((row.querySelector('[name=key]') || {}).value || '').trim() : row.dataset.flagKey;
+        const rolloutText = String((row.querySelector('[name=rollout]') || {}).value || '').trim();
+        const rollout = Number(rolloutText);
+        if (!key) { notify('Clé requise', FLAG_ERRORS.KEY_INVALID, 'warning'); return; }
+        if (rolloutText === '' || !Number.isInteger(rollout) || rollout < 0 || rollout > 100) { notify('Pourcentage invalide', FLAG_ERRORS.ROLLOUT_INVALID, 'warning'); return; }
+        const description = isNew ? String((row.querySelector('[name=description]') || {}).value || '').trim() : null;
+        const { error } = await state.client.rpc('titan_admin_feature_flag_set_v1', {
+            p_key: key,
+            p_enabled: Boolean(row.querySelector('[name=enabled]').checked),
+            p_rollout: rollout,
+            p_description: description || null
+        });
+        if (error) {
+            const message = String((error && error.message) || '');
+            const code = Object.keys(FLAG_ERRORS).find((candidate) => message.includes(candidate));
+            notify('Drapeau refusé', code ? FLAG_ERRORS[code] : (message || 'Erreur inconnue.'), 'danger');
+            return;
+        }
+        notify('Drapeau enregistré', 'Le changement est consigné dans le journal d’audit.', 'success');
+        if (state.currentView !== 'flags') return;
+        try { await renderFlags(); } catch (e) {
+            console.error('[TITAN ADMIN FLAGS]', e);
+            notify('Actualisation impossible', 'Le changement est enregistré ; actualise la page.', 'warning');
+        }
     }
 
     async function decideAppeal(appealId, accept) {
