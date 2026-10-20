@@ -1984,12 +1984,6 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
-/* Seven square 44 px buttons need 344 px: on the narrowest phones keep the 44 px height and let the width follow the column. */
-@media (max-width: 359px) {
-  .ob-target button {
-    aspect-ratio: auto;
-  }
-}
 .ob-target button {
   aspect-ratio: 1;
   min-height: 44px;
