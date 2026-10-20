@@ -13,7 +13,7 @@ const french = (r) => `${r.keep} ${r.unit === 'months' ? 'mois' : 'jours'}`;
 const canon = (t) => t.replace(/ /g, ' ');
 
 test('the migration declares the rules the matrix is about', () => {
-  assert.equal(rules.length, 17, 'seventeen rules');
+  assert.equal(rules.length, 18, 'eighteen rules');
   assert.equal(new Set(rules.map((r) => r.id)).size, rules.length, 'unique ids');
 });
 

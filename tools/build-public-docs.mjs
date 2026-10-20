@@ -78,9 +78,9 @@ ${table(["Donnée", "Durée"], [
   ["Messages de discussion", "48 à 72 heures selon l’espace"],
   ["Statistiques d’usage", "13 mois"],
   ["Demandes d’assistance", "6 mois ; 13 mois pour un paiement ou un remboursement ; 12 mois pour l’exercice de tes droits"],
-  ["Copie technique des événements de facturation (le paiement lui-même est chez Paddle)", "13 mois, sans coordonnées ; vidée de son contenu si tu supprimes ton compte"],
+  ["Copie technique des événements de facturation (le paiement lui-même est chez Paddle)", "13 mois ; le contenu de l’événement est vidé si tu supprimes ton compte"],
   ["Journaux d’administration et d’audit, signaux anti-triche, signalements traités", "12 mois"],
-  ["Décisions de modération et recours tranchés", "24 mois, sans ton identité si tu as supprimé ton compte"],
+  ["Décisions de modération et recours tranchés", "24 mois ; si tu as supprimé ton compte, ton identité et le détail des signalements sont retirés (le motif écrit par l’équipe est conservé)"],
   ["Retenues de récompenses réglées", "3 mois"],
   ["Sauvegardes techniques", "Chez le fournisseur de base de données, selon son propre calendrier"],
 ])}

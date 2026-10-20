@@ -9,7 +9,7 @@ begin
 
   -- 1. The rules are exactly the ones the published matrix lists.
   select array_agg(id order by id) into ids from private.titan_retention_rules;
-  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_log','support_general','support_payment','support_rights','suspicious_actions'], 'rule ids: '||array_to_string(ids,',');
+  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_log','support_general','support_payment','support_rights','suspicious_actions','verification_requests'], 'rule ids: '||array_to_string(ids,',');
   assert (select keep from private.titan_retention_rules where id='analytics')=interval '13 months' and (select keep from private.titan_retention_rules where id='support_general')=interval '6 months'
     and (select keep from private.titan_retention_rules where id='support_rights')=interval '12 months' and (select keep from private.titan_retention_rules where id='billing_events')=interval '13 months', 'documented durations';
 
@@ -40,7 +40,11 @@ begin
   insert into private.titan_moderation_decisions(at,user_id,decision,reason,reverts) values(young_ts,w,'revert','qa the revert',d_old);
   insert into private.titan_moderation_decisions(at,user_id,decision,reason) values(old_ts,w,'suspend','qa suspend lifted'),(young_ts,w,'restore','qa restore'),(old_ts,x,'suspend','qa suspend still active');
 
+  insert into private.titan_verification_requests(created_at,user_id,message,status,closed_at) values
+    (old_ts,w,'qa vérification close ancienne','closed',old_ts),(old_ts,x,'qa vérification ouverte ancienne','open',null),(young_ts,w,'qa vérification close récente','closed',young_ts);
+
   counts := private.titan_purge_expired_data_v1();
+  assert not exists(select 1 from private.titan_verification_requests where message='qa vérification close ancienne') and exists(select 1 from private.titan_verification_requests where message='qa vérification ouverte ancienne') and exists(select 1 from private.titan_verification_requests where message='qa vérification close récente'), 'verification requests: closed ones expire 12 months after closing, open ones stay';
   assert not exists(select 1 from public.admin_logs where action='qa_old') and exists(select 1 from public.admin_logs where action='qa_young'), 'legacy admin journal 12 months (no caller identity needed)';
   assert not exists(select 1 from public.reports where description='qa_old_done') and exists(select 1 from public.reports where description='qa_old_pending') and exists(select 1 from public.reports where description='qa_young_done'), 'legacy reports: processed ones expire, pending ones stay';
   assert not exists(select 1 from public.audit_logs where record_id='qa-old-audit') and exists(select 1 from public.audit_logs where record_id='qa-young-audit'), 'audit journal 12 months';

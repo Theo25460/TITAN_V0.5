@@ -26,6 +26,7 @@ Décision de Théo du 20/10/2026 (Q-002) : déterminer les durées **les plus co
 | `moderation_reports` | signalements traités | 12 mois après création, seulement s'ils sont résolus ou rejetés | un signalement ouvert n'expire pas | texte libre vidé, identités détachées |
 | `reports_legacy` | anciens signalements traités (statut autre que en attente, nouveau, ouvert) | 12 mois | ancienne table ; un signalement en attente n'expire pas | auteur, cible et texte libre vidés (aucune clé étrangère : le déclencheur le fait) |
 | `reward_holds` | retenues de récompenses réglées | 3 mois après le règlement | trace utile au support récent | supprimées avec le compte |
+| `verification_requests` | demandes de vérification closes et réponses du joueur | 12 mois après la clôture ; une demande ouverte ou seulement répondue n'expire pas | preuve que la vérification a eu lieu en cas de recours | supprimées avec le compte |
 | `social_action_log` | journal des actions sociales | 90 jours | limitation de débit et diagnostic | identité détachée |
 
 ## Conservé volontairement, sans purge
