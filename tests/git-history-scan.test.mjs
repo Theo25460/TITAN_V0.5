@@ -106,3 +106,27 @@ test('history scan: a shallow clone is refused, not reported as clean', () => {
     assert.match(r.stderr, /shallow clone/);
   } finally { rmSync(d, { recursive: true, force: true }); rmSync(join(c, '..'), { recursive: true, force: true }); }
 });
+
+test('history scan: a reviewed non-secret is acknowledged by its exact content, any other content of the file still fails', () => {
+  const d = repo();
+  try {
+    writeFileSync(join(d, 'config.js'), `const key = "${FAKE}";\n`);
+    commit(d, 'add key');
+    const blob = execFileSync('git', ['hash-object', 'config.js'], { cwd: d }).toString().trim().slice(0, 10);
+    mkdirSync(join(d, 'tools'), { recursive: true });
+    writeFileSync(join(d, 'tools', 'history-scan-known.json'), JSON.stringify({ known: [{ blob, reason: 'reviewed: test fixture' }] }));
+    commit(d, 'acknowledge');
+    const ok = scan(d);
+    assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+    assert.match(ok.stdout, /known\s+config\.js:1/);
+    // The same file with a different (real-looking) secret is a new content: not covered by the entry.
+    writeFileSync(join(d, 'config.js'), `const key = "${FAKE.replace('Zq8', 'Yt4')}";\n`);
+    commit(d, 'another key');
+    const bad = scan(d);
+    assert.equal(bad.status, 1);
+    // An entry without a reason is ignored.
+    writeFileSync(join(d, 'tools', 'history-scan-known.json'), JSON.stringify({ known: [{ blob }] }));
+    commit(d, 'entry without reason');
+    assert.equal(scan(d).status, 1);
+  } finally { rmSync(d, { recursive: true, force: true }); }
+});
