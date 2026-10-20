@@ -41,6 +41,9 @@ test("a 503 from the server keeps the session queued and the retry sends it once
     window.savedEvent = log.client_event_id;
   });
   await page.waitForFunction(() => window.TitanQueue.list().length === 1);
+  // Let the automatic send started by the save finish against the failing server before the server comes back.
+  const failed = await page.evaluate(() => window.flushPendingTrainingLogs());
+  assert.deepEqual({ sent: failed.sent, remaining: failed.remaining }, { sent: 0, remaining: 1 });
   const kept = await page.evaluate(() => ({ queued: window.TitanQueue.list().length, status: window.state.history.at(-1).syncStatus }));
   assert.deepEqual(kept, { queued: 1, status: "pending" });
   healthy = true;
