@@ -492,6 +492,17 @@ to = "/legal_mentions.html"
 status = 200
 
 [[redirects]]
+from = "/supprimer-mon-compte.html"
+to = "/supprimer-mon-compte"
+status = 301
+force = true
+
+[[redirects]]
+from = "/supprimer-mon-compte"
+to = "/supprimer-mon-compte.html"
+status = 200
+
+[[redirects]]
 from = "/legal_privacy.html"
 to = "/legal_privacy"
 status = 301

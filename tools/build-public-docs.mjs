@@ -9,7 +9,7 @@ import { icon, SITE, E, typical, page, faq, finalCta, cards, esc } from "./lib/p
 const UPDATED = "5 octobre 2026";
 const SUPPORT = "titanteam.app@gmail.com";
 
-const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexable = true, image = "forge" }) =>
+const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexable = true, image = "forge", updated = UPDATED }) =>
   writeFileSync(
     file,
     page({
@@ -18,11 +18,11 @@ const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexabl
       description,
       image,
       indexable,
-      body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1>${ref ? `<p class="pub-fine">${ref} · mise à jour le ${UPDATED}</p>` : ""}</div></header>
+      body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1>${ref ? `<p class="pub-fine">${ref} · mise à jour le ${updated}</p>` : ""}</div></header>
         <div class="pub-wrap"><div class="pub-doc">${body}</div></div>`,
     }),
   );
-const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a></nav>`;
+const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a><a href="/supprimer-mon-compte">Supprimer mon compte</a></nav>`;
 const table = (head, rows) => `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
 /* ---------------------------------------------------------------- Privacy */
@@ -32,7 +32,8 @@ doc({
   title: "Politique de confidentialité | TITAN",
   h1: "Politique de confidentialité",
   eyebrow: "Confiance",
-  ref: "Version 5",
+  ref: "Version 6",
+  updated: "20 octobre 2026",
   description: "Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité.",
   body: `${legalNav}
 <h2>1. En bref</h2>
@@ -75,9 +76,15 @@ ${table(["Donnée", "Durée"], [
   ["Inscription jamais confirmée et vide", "30 jours"],
   ["Compte sans aucune activité (connexion, session, séance)", "3 ans, sauf abonnement TITAN+ en cours"],
   ["Messages de discussion", "48 à 72 heures selon l’espace"],
-  ["Statistiques d’usage", "13 mois au plus"],
-  ["Données de facturation", "Chez Paddle, selon ses obligations légales"],
+  ["Statistiques d’usage", "13 mois"],
+  ["Demandes d’assistance", "6 mois ; 13 mois pour un paiement ou un remboursement ; 12 mois pour l’exercice de tes droits"],
+  ["Copie technique des événements de facturation (le paiement lui-même est chez Paddle)", "13 mois, sans coordonnées ; vidée de son contenu si tu supprimes ton compte"],
+  ["Journaux d’administration et d’audit, signaux anti-triche, signalements traités", "12 mois"],
+  ["Décisions de modération et recours tranchés", "24 mois, sans ton identité si tu as supprimé ton compte"],
+  ["Retenues de récompenses réglées", "3 mois"],
+  ["Sauvegardes techniques", "Chez le fournisseur de base de données, selon son propre calendrier"],
 ])}
+<p>Ces durées sont appliquées automatiquement chaque jour. Quand tu supprimes ton compte, ce que tu as produit (séances, objectifs, messages, signalements de bug, demandes) est effacé et ce qui doit rester pour la sécurité ne garde plus ton identité. Détail et marche à suivre : <a href="/supprimer-mon-compte">Supprimer mon compte</a>.</p>
 <h2>9. Stockage sur ton appareil</h2>
 <p>TITAN conserve sur ton appareil : ta session, les séances en attente d’envoi (pour le mode hors ligne), tes brouillons, tes préférences et tes choix de confidentialité. Aucun traceur publicitaire. Effacer les données du site supprime cette copie locale, pas les données de ton compte ; les séances non envoyées seraient perdues.</p>
 <h2>10. Tes droits</h2>
@@ -139,6 +146,39 @@ doc({
 <h2>Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>. Contact RGPD : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
 });
 
+/* ---------------------------------------------------------------- Account deletion (public, required by Google Play) */
+doc({
+  route: "/supprimer-mon-compte",
+  file: "supprimer-mon-compte.html",
+  title: "Supprimer mon compte et mes données | TITAN",
+  h1: "Supprimer mon compte TITAN",
+  eyebrow: "Confiance",
+  ref: "Version 1",
+  updated: "20 octobre 2026",
+  description: "Comment supprimer ton compte TITAN et tes données depuis l’application ou par e-mail, ce qui est effacé tout de suite, ce qui est conservé et combien de temps.",
+  body: `${legalNav}
+<h2>Depuis l’application ou le site</h2>
+<ol><li>Connecte-toi à TITAN (application Android ou <a href="/login">titan-app.fr</a>).</li><li>Ouvre <strong>Profil</strong>, puis la section <strong>Compte et données</strong>.</li><li>Si tu veux garder une copie, choisis d’abord <strong>Exporter toutes mes données</strong>.</li><li>Choisis <strong>Supprimer mon compte</strong>, écris <strong>SUPPRIMER</strong> pour confirmer, puis valide.</li></ol>
+<p>La suppression est immédiate et définitive : elle ne peut pas être annulée.</p>
+<h2>Si tu ne peux plus te connecter</h2>
+<p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> <strong>depuis l’adresse e-mail du compte</strong>, avec l’objet « Suppression de compte ». Nous supprimons le compte et te confirmons par e-mail, au plus tard sous un mois.</p>
+<h2>Si tu es abonné à TITAN+</h2>
+<p>Supprimer le compte ne résilie pas l’abonnement. Résilie-le d’abord, pour ne plus être facturé : lien de gestion de l’e-mail de reçu Paddle, ou Google Play si tu t’es abonné dans l’application Android.</p>
+<h2>Ce qui est effacé tout de suite</h2>
+<ul><li>Ton profil, tes séances, tes objectifs, ta progression, tes achats et ta collection.</li><li>Tes amitiés, tes défis, tes messages et ton appartenance à une guilde (si tu en étais le chef, elle passe au membre le plus ancien).</li><li>Tes demandes d’assistance, tes recours, tes signalements de bug et tes messages de contact.</li><li>Les copies techniques de tes messages dans le journal d’audit.</li><li>Les données de ton compte conservées sur ton appareil.</li></ul>
+<h2>Ce qui est conservé, sans ton identité, et combien de temps</h2>
+${table(["Donnée", "Ce qui reste", "Durée"], [
+  ["Statistiques d’usage", "événements anonymes", "13 mois"],
+  ["Copie technique des événements de facturation", "identifiants techniques, sans coordonnées ni contenu", "13 mois"],
+  ["Décisions de modération", "type et date de la décision, sans identité ni détail", "24 mois"],
+  ["Journaux d’administration, signaux anti-triche, signalements traités", "traces sans identité", "12 mois"],
+  ["Journal d’équilibre du jeu (montants, types d’opération)", "sans identité ni texte", "conservé : garantit l’équité du jeu pour les autres joueurs"],
+])}
+<p>Ces durées sont appliquées automatiquement chaque jour. Les sauvegardes techniques du fournisseur de base de données expirent selon son propre calendrier. Le paiement d’un abonnement relève de Paddle, qui conserve ses données selon ses propres obligations légales.</p>
+<h2>Tes autres droits</h2>
+<p>Accès, export, rectification, opposition : voir la <a href="/legal_privacy">politique de confidentialité</a>. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).</p>`,
+});
+
 /* ---------------------------------------------------------------- Trust centre */
 doc({
   route: "/legal_hub",
@@ -154,7 +194,7 @@ ${cards([
   ["eye", "Pas de publicité", "Aucun script publicitaire, aucune revente de données."],
   ["download", "Tes données, à toi", "Export JSON et CSV, suppression du compte en un geste depuis Profil."],
 ], 2)}
-<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li></ul>
+<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li><li><a href="/supprimer-mon-compte">Supprimer mon compte</a> — comment, et ce qui est effacé ou conservé.</li></ul>
 <h2>Nous écrire</h2><p>Question, demande RGPD, signalement d’un contenu ou d’une faille : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
 });
 

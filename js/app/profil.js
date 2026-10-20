@@ -422,7 +422,9 @@
     let pending = false, serverDeleted = false;
     const body = document.createElement("form");
     body.className = "asc-stack";
+    const plusActive = Boolean(A()?.snapshot?.plus || window.state?.user?.is_elite);
     body.innerHTML = `<p>Ton compte, tes séances, tes objectifs et ta progression seront supprimés définitivement. Exporte d’abord tes données si tu veux les garder.</p>
+      ${plusActive ? `<p class="asc-note" data-delete-plus>${icon("info")}<span>Ton abonnement TITAN+ n’est pas résilié automatiquement par la suppression du compte. Résilie-le d’abord (lien du reçu Paddle, ou Google Play si tu t’es abonné dans l’application) pour ne plus être facturé.</span></p>` : ""}
       <label class="asc-field"><span>Écris SUPPRIMER pour confirmer</span><input class="asc-input" name="confirm" autocomplete="off" autocapitalize="characters"></label>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <p class="asc-small asc-muted" role="status" data-delete-progress></p>
