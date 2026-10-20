@@ -39,7 +39,7 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 |---|---|---|
 | Contient des publicités (GP04) | **Non** | `adsEnabled` est faux, aucune régie chargée, CSP sans hôte publicitaire. À repasser sur **Oui** avant toute activation (ADS03). |
 | Application gratuite / payante | Gratuite | — |
-| Achats via l'application | **Non** dans l'application Android (la coque `?source=twa` masque le bouton et renvoie vers le site ; prouvé par `tests/e2e/twa-no-checkout.e2e.mjs`). **Risque à trancher avant publication** : TITAN+ est un abonnement numérique. Les règles Google sur les paiements changent en 2026 et varient selon la région (programmes « Alternative Billing » et « External Content Links » aux États-Unis, régimes distincts dans l'EEE et au Royaume-Uni, frais et déclarations en évolution selon des sources tierces contradictoires). Inviter à payer sur le site depuis l'application peut relever de ces règles. Options : (1) ne rien mentionner du paiement dans l'application Android (aucune note, aucun lien) ; (2) s'inscrire au programme de liens externes de la région ; (3) intégrer Google Play Billing. Décision de Théo, après lecture de la page Google « Payments » à jour (PREM12). | Atelier |
+| Achats via l'application | **Oui, une fois la phase 5 d'`docs/adr/ADR-004-google-play-billing-titan-plus.md` réussie** : décision de Théo du 20/10/2026, TITAN+ s'achète dans l'application par Google Play Billing (abonnement). Tant que le drapeau `TITAN_PLAY_BILLING.enabled` est faux, l'application n'affiche aucun achat (prouvé par `tests/e2e/twa-no-checkout.e2e.mjs`) : ne déclarer « oui » qu'au moment d'envoyer la version qui l'active. Cosmétiques : jamais contre de l'argent réel (`tests/no-currency-purchase.test.mjs`). | Atelier |
 | Accès à l'application | Compte nécessaire pour la plupart des fonctions ; fournir à Google un compte de test si la revue le demande (créer un compte dédié, ne pas réutiliser un vrai compte). | — |
 | Public cible | 13+ ou 18+ : **décision à prendre** (modération, social, messages). Éviter « moins de 13 ans » (règles familles). | à décider |
 | Application d'actualités / de santé | Non à « actualités ». Santé : l'application n'est pas un dispositif médical et ne donne pas de conseil médical ; déclarer « suivi de forme physique » si le formulaire le propose. | à confirmer |
@@ -83,3 +83,17 @@ Pour les comptes **personnels créés après le 13 novembre 2023**, l'aide Googl
 ## 8. Ce qui reste humain
 
 Création/vérification du compte, frais, e-mail public, choix du public cible (§3), validation de la politique de confidentialité et des durées (Q-002, LEG), décision sur les achats dans l'application Android, captures d'écran, clé d'envoi et secrets, soumission de chaque formulaire.
+
+## 9. Ordre exact des actions humaines (checklist)
+
+Chaque ligne dépend de la précédente. Les parties techniques sont déjà dans le dépôt ; ce qui suit ne peut pas être fait par Claude.
+
+1. **Compte développeur** Play Console (identité, frais, e-mail public). Noter si le compte est personnel ou d'organisation (§7).
+2. **Clé d'envoi** et secrets GitHub `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` (`docs/ANDROID.md`, « Une seule fois »). Ne jamais les écrire dans une conversation.
+3. **Play App Signing** activé ; relever l'empreinte SHA-256 de la clé de signature ; variable Netlify `TWA_SHA256_FINGERPRINTS` (clé d'envoi + clé Play) ; redéployer ; vérifier `https://titan-app.fr/.well-known/assetlinks.json`.
+4. **Actions › Android (TWA)** avec un `version_code` croissant ; télécharger le `.aab` et l'APK.
+5. **Fiche** : coller §2, §3 (Sécurité des données §4, classification §5), politique de confidentialité, suppression de compte, captures (à faire sur l'application installée).
+6. **Test interne** : envoyer le `.aab`, ajouter des testeurs, essayer sur téléphone (icônes, démarrage, clavier, bouton retour, session, hors ligne, suppression de compte).
+7. **Si compte personnel : test fermé** avec au moins 12 testeurs pendant 14 jours (§7). À lancer le plus tôt possible.
+8. **TITAN+ par Google Play** (ADR-004 phase 5), dans l'ordre : créer le produit d'abonnement ; créer le compte de service et lui donner l'accès aux abonnements ; secrets Netlify `PLAY_PRODUCT_IDS`, `PLAY_SERVICE_ACCOUNT_JSON`, `PLAY_RTDN_TOKEN`, `PLAY_PACKAGE_NAME` si différent ; sujet Pub/Sub et abonnement « push » vers `https://titan-app.fr/.netlify/functions/play-notifications?token=<PLAY_RTDN_TOKEN>` ; **appliquer la migration 24 selon le plan de production** ; relire les pages Google officielles (chemins et champs de l'API écrits de mémoire) ; passer `PLAY_BILLING_ENABLED` à `true` et `TITAN_PLAY_BILLING.enabled` à `true` ; essayer avec un compte testeur de licence ; seulement ensuite déclarer les achats dans l'application.
+9. **Production** : demander l'accès (si exigé), publier, puis ajouter le lien Google Play dans Titan et sur le site (GP12, GP13).
