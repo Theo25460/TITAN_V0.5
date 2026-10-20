@@ -8,6 +8,8 @@ Livré :
 
 Limites : pas de lien direct depuis le journal (le client ne connaît pas l'exclusion d'une séance) ; pas de notification quand l'équipe répond (la réponse se lit sur la page).
 
+Vérifications : e2e complet 710 tests, un seul échec — le test existant « every shell consumer » comptait 14 pages à coque commune et la nouvelle page porte le compte à 15 (attendu mis à jour, la page elle-même y passe). Revue indépendante : aucun défaut grave ; corrigés (mineurs) : verrou d'envoi remis à zéro seulement par l'envoi qui l'a posé, confirmation insérée seulement si le rechargement a réussi et pour le même compte, focus (confirmation, erreur, retour au bouton à l'annulation), `aria-describedby` vers l'erreur, un seul chargement au démarrage. Non traité : après un délai dépassé, la requête a pu aboutir (un nouvel essai renvoie « déjà en cours »).
+
 ## BLOQUANT À CORRIGER MAINTENANT
 Aucun.
 ## NON BLOQUANT – BACKLOG FINITION

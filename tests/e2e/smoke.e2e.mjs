@@ -3441,7 +3441,7 @@ test("assistance labels: every shell consumer bypasses the previous cached label
     for (const version of ['300.0', '300.2', '300.3']) await cache.put('/js/app/shell.js?v=' + version, new Response(stale, { headers: { 'content-type': 'text/javascript' } }));
   }, shell);
   const consumers = readdirSync(ROOT).filter(name => name.endsWith('.html') && /src="\/js\/app\/shell\.js\?/.test(readFileSync(ROOT + '/' + name, 'utf8')));
-  assert.equal(consumers.length, 14, 'all current shell consumers are exercised');
+  assert.equal(consumers.length, 15, 'all current shell consumers are exercised');
   for (const filename of consumers) {
     const path = '/' + filename.replace(/\.html$/, '') + (filename === 'onboarding.html' ? '?again=1' : '');
     await page.goto(BASE + path, { waitUntil: 'load' });

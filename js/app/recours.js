@@ -19,6 +19,9 @@
   const root = () => document.getElementById("recours");
   let token = 0;
   let busy = false;
+  let sendId = 0;
+  let loadedOnce = false;
+  let opener = null;
 
   const context = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
   const same = (a, b) => !!a.owner && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch;
@@ -73,7 +76,7 @@
     html += sessions.length ? `<ul class="asc-list">${sessions.map(sessionLine).join("")}</ul>` : "<p>Aucune de tes séances n’est exclue.</p>";
     html += '</section><div data-appeal-form></div><section aria-labelledby="rec-reponses"><h2 id="rec-reponses">Tes recours</h2>';
     html += list.length ? `<ul class="asc-list">${list.map(appealLine).join("")}</ul>` : "<p>Tu n’as déposé aucun recours.</p>";
-    html += "</section>";
+    html += '</section><p class="asc-note" role="status" tabindex="-1" data-appeal-live></p>';
     show(html);
   }
 
@@ -81,31 +84,34 @@
     return `<form class="asc-form" data-appeal-send data-kind="${esc(kind)}" data-session="${esc(session || "")}" novalidate>
       <h2>${kind === "session" ? "Contester cette séance" : "Contester la suspension"}</h2>
       <label for="appeal-message">Ce qui s’est passé (10 à 500 caractères)</label>
-      <textarea id="appeal-message" name="message" rows="5" maxlength="500" required aria-describedby="appeal-help"></textarea>
+      <textarea id="appeal-message" name="message" rows="5" maxlength="500" required aria-describedby="appeal-help appeal-error"></textarea>
       <p id="appeal-help" class="asc-note">Reste factuel : ton matériel, le contexte, ce qui explique la séance. Ne mets pas de données de santé.</p>
-      <p class="asc-note" role="alert" data-appeal-error hidden></p>
+      <p class="asc-note" id="appeal-error" role="alert" tabindex="-1" data-appeal-error hidden></p>
       <div class="asc-row-flex"><button type="submit" class="asc-btn asc-btn-primary">Envoyer le recours</button><button type="button" class="asc-btn asc-btn-ghost" data-appeal-cancel>Annuler</button></div>
     </form>`;
   }
 
   async function load() {
+    loadedOnce = true;
     const run = ++token;
     const ctx = context();
     const el = root();
-    if (!el) return;
+    if (!el) return false;
     if (isGuest(ctx.owner) || !ctx.client) {
       show('<p class="asc-note" role="status">Connecte-toi pour contester une décision. <a href="/login">Se connecter</a></p>');
-      return;
+      return false;
     }
     try {
       const [state, appeals] = await withTimeout(Promise.all([ctx.client.rpc("titan_my_review_state_v1"), ctx.client.rpc("titan_my_appeals_v1")]));
-      if (run !== token || !same(ctx, context())) return;
+      if (run !== token || !same(ctx, context())) return false;
       if (state.error || appeals.error) throw state.error || appeals.error;
       render(state.data, appeals.data);
+      return true;
     } catch (error) {
-      if (run !== token || !same(ctx, context())) return;
+      if (run !== token || !same(ctx, context())) return false;
       const old = /could not find the function|PGRST202/i.test(String(error?.message || "")) || error?.code === "PGRST202";
       show(`<p class="asc-note" role="alert">${old ? "Le service de recours n’est pas encore disponible." : "Impossible de charger tes recours pour le moment."} <button type="button" class="asc-btn asc-btn-secondary" data-appeal-retry>Réessayer</button></p>`);
+      return false;
     }
   }
 
@@ -115,7 +121,8 @@
     const message = String(form.elements.message.value || "").trim();
     const error = form.querySelector("[data-appeal-error]");
     const button = form.querySelector('[type="submit"]');
-    const fail = (text) => { error.textContent = text; error.hidden = false; };
+    const mine = ++sendId;
+    const fail = (text) => { error.textContent = text; error.hidden = false; error.focus(); };
     error.hidden = true;
     if (message.length < 10 || message.length > 500) { fail(ERRORS.MESSAGE_REQUIRED); form.elements.message.focus(); return; }
     busy = true;
@@ -127,16 +134,17 @@
       if (!same(ctx, context())) return;
       if (rpcError) throw rpcError;
       busy = false;
-      await load();
-      const live = root();
-      if (live) live.insertAdjacentHTML("afterbegin", '<p class="asc-note" role="status">Recours envoyé. Tu verras la réponse ici.</p>');
+      if (await load() && same(ctx, context())) {
+        const live = root()?.querySelector("[data-appeal-live]");
+        if (live) { live.textContent = "Recours envoyé. Tu verras la réponse ici."; live.focus(); }
+      }
     } catch (e) {
       if (!same(ctx, context())) return;
       fail(e && e.message === "TIMEOUT" ? "Le serveur ne répond pas. Ton texte est conservé : réessaie." : errorText(e));
       button.disabled = false;
       button.textContent = "Envoyer le recours";
     } finally {
-      busy = false;
+      if (mine === sendId) busy = false;
     }
   }
 
@@ -146,12 +154,13 @@
     el.addEventListener("click", (event) => {
       const open = event.target.closest("[data-appeal-open]");
       if (open) {
+        opener = open;
         const slot = el.querySelector("[data-appeal-form]");
         slot.innerHTML = formHtml(open.dataset.appealOpen, open.dataset.session);
         slot.querySelector("textarea").focus();
         return;
       }
-      if (event.target.closest("[data-appeal-cancel]")) { el.querySelector("[data-appeal-form]").innerHTML = ""; return; }
+      if (event.target.closest("[data-appeal-cancel]")) { el.querySelector("[data-appeal-form]").innerHTML = ""; if (opener && opener.isConnected) opener.focus(); return; }
       if (event.target.closest("[data-appeal-retry]")) load();
     });
     el.addEventListener("submit", (event) => {
@@ -163,10 +172,10 @@
     load();
   }
 
-  window.addEventListener("titan:account-changing", () => { token++; busy = false; const el = root(); if (el) { el.innerHTML = ""; el.setAttribute("aria-busy", "true"); } });
+  window.addEventListener("titan:account-changing", () => { token++; sendId++; busy = false; loadedOnce = false; const el = root(); if (el) { el.innerHTML = ""; el.setAttribute("aria-busy", "true"); } });
   window.addEventListener("titan:account-changed", () => load());
   let first = true;
-  window.addEventListener("titan:history-updated", () => { if (first) { first = false; load(); } });
+  window.addEventListener("titan:history-updated", () => { if (first) { first = false; if (!loadedOnce) load(); } });
   const boot = () => setTimeout(start, 0);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
