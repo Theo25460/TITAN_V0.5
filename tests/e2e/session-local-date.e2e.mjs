@@ -141,3 +141,19 @@ test("session date: a cleared Hier time keeps the existing 18h fallback", async 
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test("session save: a double tap and a slow durable write store the session once (AND14)", async () => {
+  const { page, context, errors } = await sessionPage("2026-10-17T12:00:00Z");
+  try {
+    await page.evaluate(() => {
+      const log = window.logActivity;
+      window.logActivity = async (...args) => { await new Promise(resolve => setTimeout(resolve, 400)); return log(...args); };
+    });
+    await page.evaluate(() => { const save = document.querySelector('[data-act="save"]'); save.click(); save.click(); save.click(); });
+    await page.locator("dialog.asc-sheet[open]").waitFor();
+    await page.waitForTimeout(1000); // a second write, if any, would land within the slow-write delay
+    const stored = await page.evaluate(() => ({ calls: window.dateSubmissions.length, history: window.state.history.length, ids: new Set(window.state.history.map(l => l.client_event_id)).size }));
+    assert.deepEqual(stored, { calls: 1, history: 1, ids: 1 });
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
