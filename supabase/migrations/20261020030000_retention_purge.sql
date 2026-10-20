@@ -39,7 +39,7 @@ insert into private.titan_retention_rules (id, relation, time_column, keep, extr
   ('reports_legacy',       'public.reports',                            'created_at', interval '12 months', 'coalesce(status, '''') not in (''pending'', ''new'', ''open'')', 'anciens signalements traités'),
   ('reward_holds',         'private.titan_reward_holds',                'settled_at', interval '3 months',  'settled_at is not null', 'retenues de récompenses réglées'),
   ('social_action_log',    'public.titan_social_action_log',            'created_at', interval '90 days',   null, 'journal des actions sociales'),
-  ('verification_requests','private.titan_verification_requests',       'closed_at',  interval '12 months', 'closed_at is not null', 'demandes de vérification closes')
+  ('verification_requests','private.titan_verification_requests',       'created_at', interval '12 months', null, 'demandes de vérification et réponses')
 on conflict (id) do update
   set relation = excluded.relation, time_column = excluded.time_column, keep = excluded.keep,
       extra_where = excluded.extra_where, purpose = excluded.purpose;

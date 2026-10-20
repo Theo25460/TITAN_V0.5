@@ -2123,10 +2123,14 @@
 
     async function closeVerification(id) {
         const userId = state.moderationUser;
-        if (!userId || !id) return;
+        if (!id || (!userId && $('#admin-modal').hidden === false)) return;
         const { error } = await state.client.rpc('titan_verification_close_v1', { p_id: Number(id) });
         if (error) notify('Clôture refusée', moderationErrorText(error), 'danger');
         else notify('Demande close', 'La clôture est consignée dans le journal d’audit.', 'success');
+        if ($('#admin-modal').hidden && state.currentView === 'appeals') {
+            try { await renderAppeals(); } catch (e) { notify('Actualisation impossible', 'La clôture est enregistrée ; actualise la file.', 'warning'); }
+            return;
+        }
         await openModerationCase(userId);
     }
 
@@ -2219,7 +2223,7 @@
     }
 
     async function renderAppeals() {
-        const head = sectionHead('Recours', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
+        const head = sectionHead('Recours et vérifications', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
         const { data, error } = await state.client.rpc('titan_appeal_list_v1', { p_status: 'open', p_limit: 100 });
@@ -2232,8 +2236,9 @@
             return;
         }
         const appeals = Array.isArray(data && data.appeals) ? data.appeals : [];
+        const answered = await answeredVerificationsMarkup();
         if (!appeals.length) {
-            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>`;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>${answered}`;
             return;
         }
         const rows = appeals.map((appeal) => {
@@ -2255,7 +2260,28 @@
             ${tableShell(`<table class="admin-table" data-appeal-queue aria-label="Recours en attente">
                 <thead><tr><th>Joueur</th><th>Objet</th><th>Message du joueur</th><th>Décision</th></tr></thead>
                 <tbody>${rows}</tbody></table>`)}
+            ${answered}
         `;
+    }
+
+    // Players' answers to verification requests wait here until an administrator has read them and closes the request.
+    async function answeredVerificationsMarkup() {
+        let result;
+        try { result = await state.client.rpc('titan_verification_list_v1', { p_status: 'answered', p_user: null, p_limit: 100 }); }
+        catch (error) { result = { error }; }
+        if (result.error) return '<h3>Réponses à des demandes de vérification</h3><p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        const list = Array.isArray(result.data && result.data.requests) ? result.data.requests.filter((request) => request && typeof request === 'object') : [];
+        if (!list.length) return '<h3>Réponses à des demandes de vérification</h3><div class="panel empty-state"><p>Aucune réponse à lire.</p></div>';
+        const rows = list.map((request) => `
+            <tr data-verification="${escapeHtml(request.id)}">
+                <td><small>${escapeHtml(shortId(request.userId))}</small><br><small>${escapeHtml(formatDate(request.answeredAt))}</small></td>
+                <td><div class="json-preview">${escapeHtml(request.message)}</div></td>
+                <td><div class="json-preview">${escapeHtml(request.answer)}</div></td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(request.userId)}" aria-label="Ouvrir le dossier de ce joueur"`)}
+                    ${buttonMarkup('Clore', 'ri-check-double-line', 'primary', `data-verify-close="${escapeHtml(request.id)}" aria-label="Clore la demande ${escapeHtml(request.id)}"`)}</td>
+            </tr>`).join('');
+        return `<h3>Réponses à des demandes de vérification</h3>${tableShell(`<table class="admin-table" data-verification-answers aria-label="Réponses de vérification à lire">
+            <thead><tr><th>Joueur</th><th>Demande</th><th>Réponse</th><th>Suite</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
     }
 
     async function decideAppeal(appealId, accept) {

@@ -52,7 +52,7 @@ test("an open request shows an alert with a link to the answer page, on an app p
   await alert.waitFor();
   assert.equal(await alert.getAttribute("role"), "alert");
   assert.match(await alert.innerText(), /Une vérification t’est demandée par l’équipe TITAN/);
-  assert.match(await alert.innerText(), /Rien n’est décidé/);
+  assert.match(await alert.innerText(), /Aucune sanction automatique/);
   assert.equal(await alert.locator("a").getAttribute("href"), "/recours#verification");
   assert.equal(await page.locator("[data-verify-alert]").count(), 1, "one alert only, even after several refreshes");
   await page.evaluate(() => window.dispatchEvent(new Event("titan:history-updated")));

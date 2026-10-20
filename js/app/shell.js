@@ -363,7 +363,7 @@
       el.setAttribute("data-verify-alert", "");
       main.prepend(el);
     }
-    const text = `${open > 1 ? "Des vérifications te sont demandées" : "Une vérification t’est demandée"} par l’équipe TITAN. Rien n’est décidé : lis la demande et réponds.`;
+    const text = `${open > 1 ? "Des vérifications te sont demandées" : "Une vérification t’est demandée"} par l’équipe TITAN. Aucune sanction automatique : lis la demande et réponds.`;
     el.innerHTML = `${icon("info")}<span>${esc(text)}</span><a class="asc-btn asc-btn-secondary" href="/recours#verification">Lire et répondre</a>`;
   }
   async function checkVerification(force) {

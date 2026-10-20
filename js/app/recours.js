@@ -14,7 +14,7 @@
     APPEAL_COOLDOWN: "Ton dernier recours a été refusé il y a moins de 7 jours : tu pourras en déposer un nouveau ensuite.",
     AUTH_REQUIRED: "Connecte-toi pour déposer un recours.",
     ANSWER_REQUIRED: "Écris entre 3 et 500 caractères.",
-    REQUEST_NOT_OPEN: "Tu as déjà répondu à cette demande.",
+    REQUEST_NOT_OPEN: "Cette demande n’attend plus de réponse (déjà répondue, ou close par l’équipe).",
     REQUEST_NOT_FOUND: "Cette demande n’existe plus.",
   };
   const VERIFY_STATUS = { open: "À traiter", answered: "Réponse envoyée", closed: "Clôturée" };
@@ -79,7 +79,7 @@
   function verifySection(verification) {
     const list = Array.isArray(verification?.requests) ? verification.requests : [];
     if (!list.length) return "";
-    return `<section id="verification" aria-labelledby="rec-verif"><h2 id="rec-verif">Vérifications demandées</h2><p class="asc-note">Une personne de l’équipe te demande de confirmer quelque chose. Répondre ne déclenche aucune sanction : ta réponse est relue par une personne.</p><ul class="asc-list">${list.map(verifyLine).join("")}</ul></section>`;
+    return `<section id="verification" aria-labelledby="rec-verif"><h2 id="rec-verif">Vérifications demandées</h2><p class="asc-note">Une personne de l’équipe te demande de confirmer quelque chose. Répondre ne déclenche aucune sanction automatique : ta réponse est relue par une personne de l’équipe.</p><ul class="asc-list">${list.map(verifyLine).join("")}</ul></section>`;
   }
 
   function render(state, appeals, verification) {

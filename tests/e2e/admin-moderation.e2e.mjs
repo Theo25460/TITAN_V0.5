@@ -138,6 +138,7 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
         if (name === "titan_verification_list_v1") {
           if (mode === "oldserver" || mode === "no-verif") return fail("Could not find the function public.titan_verification_list_v1 in the schema cache", "PGRST202");
           db.verif = db.verif || { [P1]: [{ id: 5, message: `Merci de confirmer ta séance ${evil}`, status: "answered", createdAt: "2026-10-18T08:00:00Z", answer: `Oui, c’était moi ${evil}`, answeredAt: "2026-10-18T09:00:00Z", closedAt: null }] };
+          if (!params.p_user) return { data: { version: 1, requests: Object.entries(db.verif).flatMap(([uid, list]) => list.filter((r) => r.status === params.p_status).map((r) => ({ ...r, userId: uid }))) }, error: null };
           return { data: { version: 1, requests: (db.verif[params.p_user] || []) }, error: null };
         }
         if (name === "titan_verification_request_v1") {
@@ -590,4 +591,19 @@ test("verification requests: a refusal is explained and an older server hides th
   assert.equal(await modal.locator("[data-verify-request]").count(), 0, "no request button without the function");
   assert.match(await modal.innerText(), /Signaux qui composent le score/, "the case file still opens");
   await r.context.close();
+});
+
+test("appeals screen: players' answers to verification requests wait there, escaped, until an administrator closes them", async () => {
+  const { page, context, errors } = await open(1280, {}, "appeals");
+  const table = page.locator("[data-verification-answers]");
+  await table.waitFor();
+  assert.match(await table.innerText(), /Oui, c’était moi/);
+  assert.equal(await table.locator("img").count(), 0, "message and answer are escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  assert.ok((await calls(page)).some((c) => c.startsWith("titan_verification_list_v1") && c.includes('"p_status":"answered"') && c.includes('"p_user":null')));
+  await table.locator("[data-verify-close]").click();
+  await page.waitForFunction(() => window.__mod.db.verif["00000000-0000-4000-8000-0000000000a1"].find((r) => r.id === 5).status === "closed");
+  await page.locator("#admin-view").getByText(/Aucune réponse à lire/).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
 });

@@ -66,7 +66,7 @@ begin
 end;
 $function$;
 
--- Administrator: close a request (answered or not) with a note kept in the audit trail only.
+-- Administrator: close a request (answered or not); the closing is recorded in the audit trail.
 create or replace function public.titan_verification_close_v1(p_id bigint)
 returns jsonb
 language plpgsql
