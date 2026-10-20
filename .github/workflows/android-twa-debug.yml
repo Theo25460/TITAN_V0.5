@@ -65,6 +65,14 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
         run: bubblewrap build --skipPwaValidation
+      - name: Permissions déclarées par l'APK (SEC09)
+        working-directory: android
+        run: |
+          aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
+          # TITAN a besoin d'Internet et de rien d'autre : toute autre permission doit être justifiée avant release.
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           name: titan-android-essai-NE-PAS-PUBLIER
