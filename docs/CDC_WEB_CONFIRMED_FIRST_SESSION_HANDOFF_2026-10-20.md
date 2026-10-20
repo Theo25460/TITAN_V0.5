@@ -21,3 +21,7 @@ Ces preuves ne certifient pas un compte réel, une compréhension humaine, un ap
 Bloquant avant PR prête : revue bornée, deux voies SQL17.6 et suites CI complètes, build Android d'essai si déclenché. Non bloquant : recette réelle/humaine et limites ci-dessus. ACT04/QA05 restent partiels ; ACT08 peut avancer en partiel pour les parcours automatiques, jamais être fermé par ces seules preuves.
 
 Prochain macro-bloc : première utilisation sans RPG obligatoire et reprise de l'onboarding (ACT03), en fonction des frictions observées après intégration ; vérifier auparavant les claims. Profil/smoke restent réservés (modification source Claude de smoke reprise sans intervention). Aucun merge main, migration réelle ou déploiement.
+
+## Contrôle final du raccordement CI
+
+La première CI complète a passé722navigateurs,277tests, deux voies SQL17.6 et le build Android d'essai. Le contrôle d'inventaire a ensuite révélé que recours.e2e.mjs, pourtant livré et5/5vert localement, était absent de la commande du parentClaude. Aucun autre fichier .e2e.mjs n'était omis. La suite est ajoutée à test:e2e et un contrat générique exige que chaque suite livrée soit enregistrée exactement une fois. Contrat RED sur la commande précédente (recours manquant), GREEN après raccordement ; ces cinq tests passent explicitement. La PR repasse en brouillon et la nouvelle tête doit repasser la CI complète avant d'être déclarée prête. Aucun code produit ni migration modifié par cette correction.
