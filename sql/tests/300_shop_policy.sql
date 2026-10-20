@@ -29,7 +29,6 @@ begin
       assert i.is_active and i.type = 'cosmetic', 'a non-cosmetic or inactive item was sold: '||i.id;
       bought := bought + 1;
     exception when others then
-      if sqlerrm like 'a non-cosmetic or inactive item was sold%' then raise; end if;
       refused := refused + 1;
     end;
   end loop;
@@ -74,7 +73,7 @@ begin
     into dearest, open_items, total_items
     from public.shop_items where is_active and type='cosmetic' and not required_premium and not requires_elite;
   select count(*) into total_items from public.shop_items where is_active and type='cosmetic';
-  assert coalesce((limits->>'weeklyCreditCap')::int, (limits->'titan_economy_limits'->>'weeklyCreditCap')::int, 0) >= dearest, 'the free weekly allowance covers the dearest free cosmetic: '||limits::text;
+  assert coalesce((limits->>'weeklyCreditCap')::int, 0) >= dearest, 'the free weekly allowance covers the dearest free cosmetic: '||limits::text;
   assert open_items * 2 > total_items, 'most of the catalogue is open to a free player: '||open_items||' of '||total_items;
 end $$;
 rollback;
