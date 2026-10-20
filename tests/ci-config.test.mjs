@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
 const job = (name) => {
@@ -10,6 +10,13 @@ const job = (name) => {
   const next = rest.slice(1).search(/\n  [a-z][a-z0-9_-]*:\n/);
   return next < 0 ? rest : rest.slice(0, next + 1);
 };
+
+test('every delivered browser suite is included once in the CI command',()=>{
+ const command=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).scripts['test:e2e'];
+ const registered=command.match(/tests\/e2e\/[\w.-]+\.e2e\.mjs/g)||[];
+ const delivered=readdirSync(new URL('./e2e/',import.meta.url)).filter(name=>name.endsWith('.e2e.mjs')).map(name=>'tests/e2e/'+name);
+ assert.deepEqual(registered.slice().sort(),delivered.sort(),'no delivered suite may silently be absent or duplicated');
+});
 
 test('CI checks the whole git history for secrets: full clone, then pnpm run history-scan', () => {
   const verify = job('verify');
