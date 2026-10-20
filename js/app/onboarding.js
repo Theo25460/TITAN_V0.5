@@ -17,6 +17,51 @@
   let limitHit = false;
   let root = null;
   let operation = null;
+  let view = null;
+  let draftSaveFailed = false;
+  const DRAFT_PREFIX = "titan_onboarding_draft_v1:";
+  const DRAFT_AGE = 48 * 3600000;
+
+  function current(context = view) {
+    return !!context && context === view && context.owner === window.state?.user?.id
+      && context.client === window.titanClient && context.epoch === window.titanAccountTransition?.epoch
+      && !window.titanAccountTransition?.active;
+  }
+  function forgetDraft(context) {
+    try { localStorage.removeItem(DRAFT_PREFIX + context.owner); }
+    catch { draftSaveFailed = true; }
+  }
+  function readDraft(context) {
+    try {
+      const raw = localStorage.getItem(DRAFT_PREFIX + context.owner);
+      if (!raw) return null;
+      const d = JSON.parse(raw), age = Date.now() - d.updatedAt;
+      if (d.version !== 1 || d.ownerId !== context.owner || d.basis !== context.basis
+          || !Number.isFinite(d.updatedAt) || age < -300000 || age >= DRAFT_AGE
+          || !Number.isInteger(d.step) || d.step < 0 || d.step >= STEPS.length
+          || !Number.isInteger(d.target) || d.target < 1 || d.target > 7
+          || !Array.isArray(d.sports) || d.sports.length > 5 || new Set(d.sports).size !== d.sports.length
+          || !d.sports.every(s => typeof s === "string" && Object.hasOwn(window.SPORTS_CONFIG, s))) {
+        forgetDraft(context); return null;
+      }
+      return d;
+    } catch {
+      // A malformed draft is disposable; denied storage must still leave a usable journey.
+      forgetDraft(context); return null;
+    }
+  }
+  function saveDraft() {
+    if (!current()) return;
+    try {
+      localStorage.setItem(DRAFT_PREFIX + view.owner, JSON.stringify({ version: 1, ownerId: view.owner,
+        basis: view.basis, updatedAt: Date.now(), step, sports: picked, target }));
+      draftSaveFailed = false;
+    } catch { draftSaveFailed = true; }
+  }
+  function acceptEvent(event) {
+    if (current()) return true;
+    event.preventDefault(); start(); return false;
+  }
 
   const guest = () => String(window.state?.user?.id || "").startsWith("guest_");
 
@@ -73,7 +118,7 @@
     if (!root) return;
     const focusedTarget = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"][data-target]')?.dataset.target : null;
     const body = [sportsStep, rhythmStep, privacyStep, goStep][step]();
-    root.innerHTML = `${progress()}<div class="ob-body">${body}</div>
+    root.innerHTML = `${progress()}${draftSaveFailed ? '<p class="asc-note" role="status">Tes choix restent sur cette page. Leur reprise sur cet appareil est indisponible.</p>' : ''}<div class="ob-body">${body}</div>
       ${step < STEPS.length - 1 ? `<div class="ob-nav">${step > 0 ? `<button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button>` : '<span></span>'}<button type="button" class="asc-btn asc-btn-primary" data-next>${step === 0 && !picked.length ? "Passer" : "Continuer"}</button></div>` : step > 0 ? `<div class="ob-nav"><button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button><span></span></div>` : ""}`;
     root.querySelector("h1")?.setAttribute("tabindex", "-1");
     if (focusedTarget && document.activeElement === document.body) root.querySelector(`[data-target="${focusedTarget}"]`)?.focus({ preventScroll: true });
@@ -109,6 +154,7 @@
   }
 
   function restore(task) {
+    if (task.view !== view || operation !== task || !current(task.view)) return;
     task.controls.forEach((disabled, control) => { control.disabled = disabled; });
     task.links.forEach((attrs, link) => {
       for (const [name, value] of attrs) {
@@ -123,8 +169,9 @@
   }
 
   async function complete(source) {
-    if (operation) return;
-    const task = { source, href: source.getAttribute("href"), controls: new Map(), links: new Map(), busy: root.getAttribute("aria-busy") };
+    if (operation || !current()) return;
+    const task = { view, source, href: source.getAttribute("href"), controls: new Map(), links: new Map(), busy: root.getAttribute("aria-busy") };
+    task.cancelled = new Promise(resolve => { task.cancel = resolve; });
     operation = task;
     root.querySelectorAll(".ob-finish-error").forEach(el => el.remove());
     root.querySelectorAll("button, input, select, textarea").forEach(control => {
@@ -147,13 +194,21 @@
       const saved = finish(); // Includes synchronous local writes, which can throw.
       task.consentFailed = consentSaveFailed;
       // The local journey can continue after a cloud failure or the existing 2.5 s cap.
-      await Promise.race([Promise.resolve(saved).catch(() => {}), new Promise(resolve => { task.timer = setTimeout(resolve, 2500); })]);
-      if (!task.consentFailed) { location.href = task.href; return; }
+      await Promise.race([Promise.resolve(saved).catch(() => {}), task.cancelled, new Promise(resolve => { task.timer = setTimeout(resolve, 2500); })]);
+      if (!current(task.view) || operation !== task) {
+        if (task.view === view && !current(task.view)) start();
+        return;
+      }
+      if (!task.consentFailed) { forgetDraft(task.view); location.href = task.href; return; }
       restore(task);
       source.insertAdjacentHTML("beforebegin", `<p class="asc-note" role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p>`);
       root.querySelectorAll("[data-finish]").forEach(link => link.removeAttribute("data-finish"));
       source.textContent = "Continuer";
     } catch {
+      if (!current(task.view) || operation !== task) {
+        if (task.view === view && !current(task.view)) start();
+        return;
+      }
       restore(task);
       const error = document.createElement("p");
       error.className = "asc-note ob-finish-error";
@@ -162,26 +217,46 @@
       source.before(error);
     } finally {
       clearTimeout(task.timer);
-      if (!operation && source.isConnected && document.activeElement === document.body) source.focus();
+      if (current(task.view) && !operation && source.isConnected && document.activeElement === document.body) source.focus();
     }
   }
 
   function start() {
     root = document.getElementById("onboarding");
     if (!root || !window.state?.user || !window.TitanSports) return;
-    if (root.dataset.ready) return;
+    if (root.dataset.ready && current()) return;
+    if (operation) {
+      clearTimeout(operation.timer); operation.notice?.remove(); operation.cancel(); operation = null;
+    }
+    root.querySelectorAll('a').forEach(link => link.removeAttribute('href'));
+    root.querySelectorAll('button,input').forEach(control => { control.disabled = true; });
+    root.removeAttribute('aria-busy');
+    view = null;
+    if (window.titanAccountTransition?.active) {
+      root.innerHTML = '<p class="asc-note" role="status">Changement de compte en cours…</p>'; return;
+    }
     // Already set up (e.g. "Commencer" clicked again from the public site): straight to the QG.
-    if ((window.state.user.onboardedAt || window.state.user.onboardingComplete) && !new URLSearchParams(location.search).has("again")) return location.replace("/aujourdhui");
+    if ((window.state.user.onboardedAt || window.state.user.onboardingComplete) && !new URLSearchParams(location.search).has("again")) {
+      forgetDraft({owner:window.state.user.id}); return location.replace("/aujourdhui");
+    }
     root.dataset.ready = "1";
     document.querySelectorAll("[data-mark]").forEach((el) => (el.innerHTML = window.titanMark?.() || ""));
     SP().ensure();
     const u = window.state.user;
+    view = {owner:u.id,client:window.titanClient,epoch:window.titanAccountTransition?.epoch,basis:String(u.onboardedAt || '')};
+    draftSaveFailed = false;
+    const draft = readDraft(view);
+    step = draft?.step ?? 0; query = ''; limitHit = false;
     picked = Array.isArray(u.favoriteSports) ? u.favoriteSports.filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 5) : [];
     target = Math.min(7, Math.max(1, parseInt(u.weeklyGoalSessions, 10) || 3));
+    if (draft) { picked = draft.sports; target = draft.target; }
     analytics = window.TitanAnalytics?.consent() === "granted";
     render();
-    root.addEventListener("keydown", onRadioKey);
+    if (root.dataset.bound) return;
+    root.dataset.bound = '1';
+    root.addEventListener("keydown", e => { if (acceptEvent(e)) onRadioKey(e); });
     root.addEventListener("input", (e) => {
+      if (!acceptEvent(e)) return;
       if (operation) return;
       if (e.target.id !== "ob-q") return;
       query = e.target.value;
@@ -191,10 +266,12 @@
       q.setSelectionRange(q.value.length, q.value.length);
     });
     root.addEventListener("change", (e) => {
+      if (!acceptEvent(e)) return;
       if (operation) return;
       if (e.target.matches("[data-analytics]")) analytics = e.target.checked;
     });
     root.addEventListener("click", (e) => {
+      if (!acceptEvent(e)) return;
       if (operation) { e.preventDefault(); return; }
       const fin = e.target.closest("[data-finish]");
       if (fin) {
@@ -211,26 +288,32 @@
         else if (picked.length < 5) picked.push(id);
         else limitHit = true;
         query = "";
+        saveDraft();
         return render();
       }
       if (b.dataset.target) {
         target = Number(b.dataset.target);
+        saveDraft();
         return render();
       }
       if (b.hasAttribute("data-next")) {
         step = Math.min(STEPS.length - 1, step + 1);
+        saveDraft();
         render();
         root.querySelector("h1")?.focus();
         return;
       }
       if (b.hasAttribute("data-back")) {
         step = Math.max(0, step - 1);
+        saveDraft();
         render();
         root.querySelector("h1")?.focus();
       }
     });
   }
   window.addEventListener("titan:history-updated", () => setTimeout(start, 0));
+  window.addEventListener("titan:account-changing", start);
+  window.addEventListener("titan:account-changed", start);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
