@@ -139,6 +139,7 @@
         !key.startsWith("titan_training_draft_") &&
         !key.startsWith("titan_seance_draft_") &&
         !key.startsWith("titan_seance_timer_") &&
+        !key.startsWith("titan_onboarding_draft_v1:") &&
         key !== "titan_pending_training_logs_v1" &&
         key !== "titan_guest_device_id_v1" &&
         key !== "titan_guest_imported_v1"
@@ -149,7 +150,7 @@
   };
   // Drafts kept by titanSafeClearCache: legacy key, then the session draft/timer of js/app/seance.js.
   root.titanForgetOwnerDrafts = (ownerId) => {
-    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`]) {
+    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`, `titan_onboarding_draft_v1:${ownerId}`]) {
       try {
         localStorage.removeItem(key);
       } catch {
