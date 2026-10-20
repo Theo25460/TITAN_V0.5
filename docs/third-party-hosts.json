@@ -22,6 +22,21 @@
       "note": "Assistance e-mail delivery from functions/assistance.mjs only."
     },
     {
+      "host": "androidpublisher.googleapis.com",
+      "kind": "server-side",
+      "note": "Google Play Developer API: verification of a TITAN+ subscription purchase from functions/play-billing.mjs only (disabled unless PLAY_BILLING_ENABLED=true; ADR-004). Never contacted by the browser."
+    },
+    {
+      "host": "oauth2.googleapis.com",
+      "kind": "server-side",
+      "note": "Service-account token exchange for the Google Play Developer API, functions/play-billing.mjs only (ADR-004)."
+    },
+    {
+      "host": "www.googleapis.com",
+      "kind": "reference",
+      "note": "OAuth scope identifier string (https://www.googleapis.com/auth/androidpublisher) in functions/play-billing.mjs; no request is made to this address."
+    },
+    {
       "host": "discord.gg",
       "kind": "link",
       "note": "Community link in js/config.js; the player leaves the site by clicking."
