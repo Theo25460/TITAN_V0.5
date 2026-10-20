@@ -3,6 +3,8 @@
 -- The public function returns only the RESOLVED value for the caller (a boolean per key), never the rollout percentage
 -- or the description. Writing is for administrators and is audited. The caller owns the transaction.
 -- Rollback: drop the three functions and the table.
+-- A change carries the updated_at the administrator was looking at (FLAG_CHANGED if someone else changed it since); a creation
+-- refuses an existing key (FLAG_EXISTS).
 create table if not exists private.titan_feature_flags (
   key text primary key check (key ~ '^[a-z][a-z0-9_.-]{2,48}$'),
   enabled boolean not null default false,
@@ -56,7 +58,8 @@ begin
 end;
 $function$;
 
-create or replace function public.titan_admin_feature_flag_set_v1(p_key text, p_enabled boolean, p_rollout integer default 100, p_description text default null)
+create or replace function public.titan_admin_feature_flag_set_v1(p_key text, p_enabled boolean, p_rollout integer default 100, p_description text default null,
+  p_expected_updated_at timestamptz default null, p_create boolean default false)
 returns jsonb
 language plpgsql
 security definer
@@ -81,7 +84,15 @@ begin
     raise exception 'DESCRIPTION_TOO_LONG' using errcode = '22023';
   end if;
   perform pg_advisory_xact_lock(hashtextextended('titan_flag:' || v_key, 0));
-  select enabled, rollout into v_before from private.titan_feature_flags where key = v_key;
+  select enabled, rollout, updated_at into v_before from private.titan_feature_flags where key = v_key;
+  -- Creating must not overwrite a flag that exists; changing must start from the state the administrator was looking at, so a
+  -- stale page cannot silently undo somebody else's switch-off.
+  if p_create and v_before is not null then
+    raise exception 'FLAG_EXISTS' using errcode = '23505';
+  end if;
+  if not p_create and p_expected_updated_at is not null and v_before.updated_at is distinct from p_expected_updated_at then
+    raise exception 'FLAG_CHANGED' using errcode = '23514';
+  end if;
   insert into private.titan_feature_flags(key, enabled, rollout, description, updated_at, updated_by)
   values (v_key, p_enabled, p_rollout::smallint, v_description, now(), v_admin)
   on conflict (key) do update
@@ -96,9 +107,9 @@ $function$;
 
 revoke all on function public.titan_feature_flags_v1() from public;
 revoke all on function public.titan_admin_feature_flags_v1() from public, anon;
-revoke all on function public.titan_admin_feature_flag_set_v1(text, boolean, integer, text) from public, anon;
+revoke all on function public.titan_admin_feature_flag_set_v1(text, boolean, integer, text, timestamptz, boolean) from public, anon;
 grant execute on function public.titan_feature_flags_v1() to anon, authenticated;
 grant execute on function public.titan_admin_feature_flags_v1() to authenticated;
-grant execute on function public.titan_admin_feature_flag_set_v1(text, boolean, integer, text) to authenticated;
+grant execute on function public.titan_admin_feature_flag_set_v1(text, boolean, integer, text, timestamptz, boolean) to authenticated;
 
 notify pgrst, 'reload schema';

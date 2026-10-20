@@ -414,29 +414,49 @@
     if (input && typeof input === "object") for (const [k, v] of Object.entries(input)) if (typeof v === "boolean" && /^[a-z][a-z0-9_.-]{2,48}$/.test(k)) out[k] = v;
     return out;
   }
-  async function refreshFlags(force) {
+  let flagsInFlight = null;
+  const FLAGS_RETRY_MS = 60 * 1000;
+  function refreshFlags(force) {
+    // One request at a time; a failure is not retried before a minute, so a server without the function is not hammered.
+    if (flagsInFlight && !force) return flagsInFlight;
+    flagsInFlight = doRefreshFlags(force).finally(() => { flagsInFlight = null; });
+    return flagsInFlight;
+  }
+  async function doRefreshFlags(force) {
     const id = flagsIdentity();
     if (flagsOwner !== id) {
       flagsOwner = id;
       const cached = readFlagsCache(id);
+      const before = JSON.stringify(flagValues);
       flagValues = cached ? cleanFlags(cached.flags) : {};
       flagsAt = cached ? cached.at : 0;
-      window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+      if (JSON.stringify(flagValues) !== before) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
     }
     if (!force && Date.now() - flagsAt < FLAGS_TTL_MS) return;
     const run = ++flagsRun;
+    const retryLater = () => { if (run === flagsRun) flagsAt = Math.max(flagsAt, Date.now() - FLAGS_TTL_MS + FLAGS_RETRY_MS); };
     try {
       const client = window.titanClient || (typeof window.waitForTitanSupabase === "function" ? await window.waitForTitanSupabase() : null);
-      if (!client || typeof client.rpc !== "function") return;
+      if (!client || typeof client.rpc !== "function") return retryLater();
+      // The server resolves the flags for the session it receives: a signed-in identity without a session yet would be
+      // answered as a visitor and that answer must not be cached under the account.
+      if (id && client.auth && typeof client.auth.getSession === "function") {
+        const session = await client.auth.getSession();
+        if (!session?.data?.session) return retryLater();
+      }
       const { data, error } = await client.rpc("titan_feature_flags_v1");
       if (run !== flagsRun || flagsIdentity() !== id) return;
       // An older server without the function keeps what the device already has; the caller's default applies otherwise.
-      if (error || !data || typeof data !== "object") return;
-      flagValues = cleanFlags(data.flags);
+      if (error || !data || typeof data !== "object") return retryLater();
+      const next = cleanFlags(data.flags);
+      const changed = JSON.stringify(next) !== JSON.stringify(flagValues);
+      flagValues = next;
       flagsAt = Date.now();
       try { localStorage.setItem(flagsCacheKey(id), JSON.stringify({ at: flagsAt, flags: flagValues })); } catch {}
-      window.dispatchEvent(new CustomEvent("titan:flags-updated"));
-    } catch {}
+      if (changed) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+    } catch {
+      retryLater();
+    }
   }
   window.titanFlags = {
     enabled: (key, fallback = false) => (typeof flagValues[key] === "boolean" ? flagValues[key] : Boolean(fallback)),

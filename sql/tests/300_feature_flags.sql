@@ -6,7 +6,7 @@ declare a uuid:=gen_random_uuid(); m uuid:=gen_random_uuid();
 begin
   assert to_regprocedure('public.titan_feature_flags_v1()') is not null,'public RPC exists';
   assert to_regprocedure('public.titan_admin_feature_flags_v1()') is not null,'admin list RPC exists';
-  assert to_regprocedure('public.titan_admin_feature_flag_set_v1(text,boolean,integer,text)') is not null,'admin set RPC exists';
+  assert to_regprocedure('public.titan_admin_feature_flag_set_v1(text,boolean,integer,text,timestamptz,boolean)') is not null,'admin set RPC exists';
   assert not exists(select 1 from private.titan_feature_flags),'no flag is seeded: nothing changes until an administrator sets one';
   insert into auth.users(id,raw_user_meta_data) values(a,'{}'),(m,'{}');
   update public.profiles set role='admin' where id=a;
@@ -45,6 +45,12 @@ begin
   assert exists(select 1 from public.titan_admin_audit where action='flag.set' and payload->>'key'='ads.web' and payload->'was'->>'enabled'='true' and (payload->>'enabled')='false'),'switch-off audited with the previous state';
   perform public.titan_admin_feature_flag_set_v1('ads.web',true,100,null);
 
+  -- A creation refuses an existing key; a change from a stale list is refused; one from the current list is accepted.
+  ok:=false; begin perform public.titan_admin_feature_flag_set_v1('ads.web',false,100,null,null,true); exception when others then ok:=sqlerrm='FLAG_EXISTS'; end; assert ok,'a creation refuses an existing key';
+  ok:=false; begin perform public.titan_admin_feature_flag_set_v1('ads.web',false,100,null,'2000-01-01T00:00:00Z'::timestamptz,false); exception when others then ok:=sqlerrm='FLAG_CHANGED'; end; assert ok,'a change from a stale list is refused';
+  assert (select (e->>'enabled')::boolean from jsonb_array_elements(public.titan_admin_feature_flags_v1()->'flags') e where e->>'key'='ads.web'),'the refusals changed nothing';
+  perform public.titan_admin_feature_flag_set_v1('ads.web',true,100,null,(select (e->>'updatedAt')::timestamptz from jsonb_array_elements(public.titan_admin_feature_flags_v1()->'flags') e where e->>'key'='ads.web'),false);
+
   -- What a visitor and a player see: resolved booleans only.
   perform set_config('request.jwt.claims','{"role":"anon"}',true);
   r:=public.titan_feature_flags_v1();
@@ -81,6 +87,14 @@ begin
   perform public.titan_admin_feature_flag_set_v1('ads.web',false,100,null);
   assert public.titan_feature_flags_v1()->'flags'='{"ads.web": false, "rpg.rollout": false, "screens.new": false}'::jsonb,'everything switched off: every flag is false and wins over any default';
   assert public.titan_feature_flags_v1()->'flags' ? 'ads.web' and not (public.titan_feature_flags_v1()->'flags' ? 'unknown.flag'),'an unknown flag is absent so the client keeps its default';
+end $$;
+set local role anon;
+do $$
+declare ok boolean;
+begin
+  ok:=false; begin perform public.titan_admin_feature_flag_set_v1('ads.web',true,100,null,null,false); exception when insufficient_privilege then ok:=true; end; assert ok,'the anonymous role has no execute right on the write function';
+  ok:=false; begin perform public.titan_admin_feature_flags_v1(); exception when insufficient_privilege then ok:=true; end; assert ok,'nor on the admin list';
+  perform public.titan_feature_flags_v1();
 end $$;
 reset role;
 -- Deleting the administrator keeps the flag and detaches it.

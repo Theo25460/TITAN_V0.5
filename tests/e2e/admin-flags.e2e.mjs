@@ -42,6 +42,7 @@ function installFake({ mode, evil }) {
       }
       if (name === "titan_admin_feature_flag_set_v1") {
         if (mode === "refuse") return fail("KEY_INVALID", "22023");
+        if (mode === "stale") return fail("FLAG_CHANGED", "23514");
         const i = db.flags.findIndex((f) => f.key === params.p_key);
         const next = { key: params.p_key, enabled: params.p_enabled, rollout: params.p_rollout, description: params.p_description || (i >= 0 ? db.flags[i].description : null), updatedAt: "2026-10-20T09:00:00Z" };
         if (i >= 0) db.flags[i] = next; else db.flags.push(next);
@@ -75,7 +76,7 @@ test("flags page: listed with escaped text; a switch-off is one click and is sen
   await row.locator("[data-flag-save]").click();
   await page.waitForFunction(() => window.__flags.db.flags.find((f) => f.key === "ads.web").enabled === false);
   const sent = (await calls(page, "titan_admin_feature_flag_set_v1"))[0];
-  assert.deepEqual(sent, { p_key: "ads.web", p_enabled: false, p_rollout: 100, p_description: null });
+  assert.deepEqual(sent, { p_key: "ads.web", p_enabled: false, p_rollout: 100, p_description: null, p_expected_updated_at: "2026-10-20T08:00:00Z", p_create: false });
   await page.locator('[data-flag-key="ads.web"] [name=enabled]:not(:checked)').waitFor();
   assert.deepEqual(errors, []);
   await context.close();
@@ -96,7 +97,7 @@ test("flags page: a new flag needs a key and a valid percentage; nothing is sent
   await fresh.locator("[name=enabled]").check();
   await fresh.locator("[data-flag-save]").click();
   await page.waitForFunction(() => window.__flags.db.flags.some((f) => f.key === "screens.new"));
-  assert.deepEqual((await calls(page, "titan_admin_feature_flag_set_v1"))[0], { p_key: "screens.new", p_enabled: true, p_rollout: 25, p_description: "Nouvel écran de récompenses" });
+  assert.deepEqual((await calls(page, "titan_admin_feature_flag_set_v1"))[0], { p_key: "screens.new", p_enabled: true, p_rollout: 25, p_description: "Nouvel écran de récompenses", p_expected_updated_at: null, p_create: true });
   await page.locator('[data-flag-key="screens.new"]').waitFor();
   await context.close();
 });
@@ -117,4 +118,16 @@ test("flags page: server refusal, empty list, old server and non-administrator a
   r = await open("forbidden");
   await r.page.getByText(/réservée aux administrateurs/).waitFor();
   await r.context.close();
+});
+
+test("flags page: a save from a stale list is refused, explained, and the list is refreshed", async () => {
+  const { page, context } = await open("stale");
+  const row = page.locator('[data-flag-key="ads.web"]');
+  await row.waitFor();
+  const before = (await calls(page, "titan_admin_feature_flags_v1")).length;
+  await row.locator("[name=enabled]").uncheck();
+  await row.locator("[data-flag-save]").click();
+  await page.getByText(/modifié entre-temps/).first().waitFor();
+  await page.waitForFunction((n) => window.__flags.calls.filter((c) => c.name === "titan_admin_feature_flags_v1").length > n, before);
+  await context.close();
 });

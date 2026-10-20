@@ -2299,6 +2299,8 @@
         ROLLOUT_INVALID: 'Le pourcentage doit être compris entre 0 et 100.',
         DESCRIPTION_TOO_LONG: 'La description fait au plus 200 caractères.',
         STATE_REQUIRED: 'Choisis activé ou désactivé.',
+        FLAG_EXISTS: 'Ce drapeau existe déjà : modifie-le dans la liste.',
+        FLAG_CHANGED: 'Ce drapeau a été modifié entre-temps : la liste est actualisée, vérifie puis recommence.',
         ADMIN_ONLY: 'Cette action est réservée aux administrateurs.'
     };
 
@@ -2317,7 +2319,7 @@
         }
         const flags = Array.isArray(data && data.flags) ? data.flags.filter((flag) => flag && typeof flag === 'object') : [];
         const row = (flag) => `
-            <tr data-flag-row data-flag-key="${escapeHtml(flag.key)}">
+            <tr data-flag-row data-flag-key="${escapeHtml(flag.key)}" data-flag-updated="${escapeHtml(flag.updatedAt || '')}">
                 <td><code>${escapeHtml(flag.key)}</code><br><small>${escapeHtml(flag.description || '')}</small></td>
                 <td><label><input type="checkbox" name="enabled"${flag.enabled ? ' checked' : ''} aria-label="Activé : ${escapeHtml(flag.key)}"> Activé</label></td>
                 <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="${escapeHtml(flag.rollout)}" aria-label="Pourcentage de joueurs : ${escapeHtml(flag.key)}"> %</td>
@@ -2353,12 +2355,15 @@
             p_key: key,
             p_enabled: Boolean(row.querySelector('[name=enabled]').checked),
             p_rollout: rollout,
-            p_description: description || null
+            p_description: description || null,
+            p_expected_updated_at: isNew ? null : (row.dataset.flagUpdated || null),
+            p_create: isNew
         });
         if (error) {
             const message = String((error && error.message) || '');
             const code = Object.keys(FLAG_ERRORS).find((candidate) => message.includes(candidate));
             notify('Drapeau refusé', code ? FLAG_ERRORS[code] : (message || 'Erreur inconnue.'), 'danger');
+            if (code === 'FLAG_CHANGED' && state.currentView === 'flags') { try { await renderFlags(); } catch (e) { console.error('[TITAN ADMIN FLAGS]', e); } }
             return;
         }
         notify('Drapeau enregistré', 'Le changement est consigné dans le journal d’audit.', 'success');

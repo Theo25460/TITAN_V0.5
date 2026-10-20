@@ -36,6 +36,7 @@ async function install(page, mode, user) {
     const calls = [];
     window.__flags = { calls, answer: { "ads.web": false, "rpg.rollout": true, "bad key": true, "ads.android": "yes" } };
     window.titanClient = {
+      auth: { getSession: async () => ({ data: { session: mode === "nosession" ? null : { user: { id: user } } } }) },
       rpc: async (name) => {
         calls.push(name);
         if (name === "titan_verification_requests_v1" || name === "titan_my_verification_requests_v1") return { data: { open: 0, requests: [] }, error: null };
@@ -94,6 +95,18 @@ test("a server without the function changes nothing", async () => {
   await page.waitForFunction(() => window.__flags.calls.includes("titan_feature_flags_v1"));
   assert.equal(await enabled(page, "ads.web", true), true);
   assert.equal(await enabled(page, "ads.web", false), false);
+  for (let i = 0; i < 4; i++) await page.evaluate(() => window.dispatchEvent(new Event("titan:history-updated")));
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => window.__flags.calls.filter((c) => c === "titan_feature_flags_v1").length), 1, "a failing server is asked once, not on every update");
   assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("a signed-in account whose session is not ready yet is not answered as a visitor and cached", async () => {
+  const { page, context } = await open("nosession");
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => window.__flags.calls.filter((c) => c === "titan_feature_flags_v1").length), 0, "no request without a session");
+  assert.equal(await page.evaluate((id) => localStorage.getItem("titan_flags_v1:" + id), A), null, "nothing cached for the account");
+  assert.equal(await enabled(page, "rpg.rollout", true), true, "the default applies meanwhile");
   await context.close();
 });
