@@ -157,3 +157,23 @@ test("session save: a double tap and a slow durable write store the session once
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test("session save: offline, the session is kept on the device and survives a reload (AND13)", async () => {
+  const { page, context, errors } = await sessionPage("2026-10-17T12:00:00Z");
+  try {
+    await context.setOffline(true);
+    await page.locator('[data-act="save"]').click();
+    await page.locator("dialog.asc-sheet[open]").waitFor();
+    const kept = await page.evaluate(() => ({ history: window.state.history.length, pending: window.TitanQueue.list().length, status: window.state.history[0].syncStatus }));
+    assert.equal(kept.history, 1);
+    assert.ok(kept.pending <= 1 && ["pending", "local"].includes(kept.status), JSON.stringify(kept));
+    await context.setOffline(false); // the service worker is blocked in tests, so the page itself needs the network to reload
+    await page.reload();
+    await page.waitForFunction(() => window.state?.history?.length === 1);
+    assert.equal(await page.evaluate(() => window.state.history[0].sport), "running");
+    // The durable device store, not only the saved page state, holds the session.
+    const durable = await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length + window.TitanQueue.list().length);
+    assert.ok(durable >= 1, "session present in the IndexedDB store");
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
