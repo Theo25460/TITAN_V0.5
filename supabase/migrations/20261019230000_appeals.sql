@@ -188,11 +188,43 @@ begin
 end;
 $function$;
 
+-- What the player can contest: the account state and their own excluded sessions (nothing about anyone else, no reason text
+-- written by staff, no score). Read-only.
+create or replace function public.titan_my_review_state_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_user uuid := auth.uid();
+  v_profile record;
+begin
+  if v_user is null then
+    raise exception 'AUTH_REQUIRED' using errcode = '42501';
+  end if;
+  select status, is_suspended into v_profile from public.profiles where id = v_user;
+  return jsonb_build_object('version', 1,
+    'account', jsonb_build_object(
+      'suspended', coalesce(v_profile.is_suspended, false) or coalesce(v_profile.status, 'active') in ('suspended', 'banned'),
+      'banned', coalesce(v_profile.status, 'active') = 'banned'),
+    'excludedSessions', coalesce((
+      select jsonb_agg(jsonb_build_object('id', l.id, 'sport', l.sport, 'date', l.date, 'value', l.val, 'unit', l.unit,
+        'hasOpenAppeal', exists (select 1 from private.titan_appeals a where a.session_id = l.id and a.user_id = v_user and a.status = 'open'))
+        order by l.date desc)
+      from (select * from public.training_logs where user_id = v_user and is_suspicious is true and archived_at is null
+            order by date desc limit 50) l), '[]'::jsonb));
+end;
+$function$;
+
 revoke all on function public.titan_appeal_submit_v1(text, uuid, text) from public, anon;
 revoke all on function public.titan_my_appeals_v1() from public, anon;
 revoke all on function public.titan_appeal_list_v1(text, integer) from public, anon;
 revoke all on function public.titan_appeal_decide_v1(bigint, boolean, text) from public, anon;
 grant execute on function public.titan_appeal_submit_v1(text, uuid, text) to authenticated;
 grant execute on function public.titan_my_appeals_v1() to authenticated;
+revoke all on function public.titan_my_review_state_v1() from public, anon;
+grant execute on function public.titan_my_review_state_v1() to authenticated;
 grant execute on function public.titan_appeal_list_v1(text, integer) to authenticated;
 grant execute on function public.titan_appeal_decide_v1(bigint, boolean, text) to authenticated;

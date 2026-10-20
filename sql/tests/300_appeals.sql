@@ -7,6 +7,7 @@ declare a uuid:=gen_random_uuid(); m uuid:=gen_random_uuid(); p uuid:=gen_random
 begin
   assert to_regprocedure('public.titan_appeal_submit_v1(text,uuid,text)') is not null,'submit RPC exists';
   assert to_regprocedure('public.titan_my_appeals_v1()') is not null,'player list RPC exists';
+  assert to_regprocedure('public.titan_my_review_state_v1()') is not null,'player review-state RPC exists';
   assert to_regprocedure('public.titan_appeal_list_v1(text,integer)') is not null,'admin list RPC exists';
   assert to_regprocedure('public.titan_appeal_decide_v1(bigint,boolean,text)') is not null,'decide RPC exists';
   insert into auth.users(id,raw_user_meta_data) values(a,'{}'),(m,'{}'),(p,'{}'),(q,'{}');
@@ -67,6 +68,17 @@ begin
   assert (select bool_and((e->>'sessionId')::uuid in (current_setting('titan.ap_s1')::uuid,current_setting('titan.ap_s2')::uuid,current_setting('titan.ap_s3')::uuid)) from jsonb_array_elements(r->'appeals') e),'only own sessions listed';
   perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_q'),'role','authenticated')::text,true);
   assert jsonb_array_length(public.titan_my_appeals_v1()->'appeals')=0,'other player sees none';
+
+  -- The player sees their own excluded sessions and account state, and which already have an open appeal; nobody else's.
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_p'),'role','authenticated')::text,true);
+  r:=public.titan_my_review_state_v1();
+  assert jsonb_array_length(r->'excludedSessions')=3,'the three excluded sessions of the player are listed: '||r::text;
+  assert (select count(*) from jsonb_array_elements(r->'excludedSessions') e where (e->>'hasOpenAppeal')::boolean)=3,'three already have an open appeal';
+  assert not (r->'account'->>'suspended')::boolean,'account is not suspended';
+  assert not (r::text like '%'||current_setting('titan.ap_sq')||'%'),'another player''s session is not exposed';
+  perform set_config('request.jwt.claims','{"role":"anon"}',true);
+  ok:=false; begin perform public.titan_my_review_state_v1(); exception when others then ok:=true; end; assert ok,'anonymous refused';
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ap_p'),'role','authenticated')::text,true);
 
   -- Direct table access is closed.
   ok:=false; begin perform 1 from private.titan_appeals; exception when insufficient_privilege then ok:=true; end;

@@ -24,7 +24,7 @@ do $$ begin
   assert (select count(*) from qa_ap_transaction_marker)=1,'caller transaction preserved';
   assert not exists((select kind,row from qa_ap_rows_before) except
     (select 'profile',to_jsonb(p) from public.profiles p union all select 'log',to_jsonb(l) from public.training_logs l)),'no existing row changed';
-  assert (select count(*) from pg_proc where proname in ('titan_appeal_submit_v1','titan_my_appeals_v1','titan_appeal_list_v1','titan_appeal_decide_v1'))=4,'one of each function after two runs';
+  assert (select count(*) from pg_proc where proname in ('titan_appeal_submit_v1','titan_my_appeals_v1','titan_my_review_state_v1','titan_appeal_list_v1','titan_appeal_decide_v1'))=5,'one of each function after two runs';
   assert not has_function_privilege('anon','public.titan_appeal_submit_v1(text,uuid,text)','execute') and not has_function_privilege('anon','public.titan_appeal_decide_v1(bigint,boolean,text)','execute'),'anon cannot execute';
   assert has_function_privilege('authenticated','public.titan_appeal_submit_v1(text,uuid,text)','execute'),'authenticated may call; each function checks the caller';
   assert not has_table_privilege('authenticated','private.titan_appeals','select'),'table closed to API roles';
