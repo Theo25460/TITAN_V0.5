@@ -354,7 +354,7 @@
       ${never}
       <a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
       ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
-      ${window.titanInAndroidApp?.() ? `<p class="asc-note">${icon("info")}<span>TITAN+ se souscrit depuis le site titan-app.fr, dans ton navigateur. L’abonnement s’applique ensuite partout, application comprise.</span></p>` : `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>`}
+      ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.titanInAndroidApp?.() ? `<p class="asc-note">${icon("info")}<span>TITAN+ se souscrit depuis le site titan-app.fr, dans ton navigateur. L’abonnement s’applique ensuite partout, application comprise.</span></p>` : `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>`}
       ${guest() ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
       <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les quatre campagnes (après mise à jour serveur) et la Communauté restent gratuits, sans limite de durée.</p></section>`;
   }
@@ -457,6 +457,51 @@
     });
   }
 
+  /* ADR-004: inside the Android app, when the flag is on and the browser exposes the Digital Goods and Payment Request APIs. */
+  const PLAY_BILLING = "https://play.google.com/billing";
+  function playBillingOffered() {
+    return window.TITAN_PLAY_BILLING?.enabled === true && window.titanInAndroidApp?.() === true
+      && typeof window.getDigitalGoodsService === "function" && typeof window.PaymentRequest === "function";
+  }
+  let playBusy = false;
+  async function playCheckout(btn) {
+    const context = accountContext();
+    if (playBusy || guest() || !accountCurrent(context) || !playBillingOffered()) return;
+    playBusy = true;
+    btn.disabled = true;
+    const sku = window.TITAN_PLAY_BILLING.productId;
+    let response = null;
+    try {
+      const service = await window.getDigitalGoodsService(PLAY_BILLING);
+      const [details] = await service.getDetails([sku]);
+      if (!details?.price) throw new Error("PLAY_PRODUCT_UNAVAILABLE");
+      const request = new PaymentRequest([{ supportedMethods: PLAY_BILLING, data: { sku } }], { total: { label: details.title || "TITAN+", amount: { currency: details.price.currency, value: details.price.value } } });
+      response = await request.show();
+      const purchaseToken = response?.details?.purchaseToken;
+      if (typeof purchaseToken !== "string" || !purchaseToken) throw new Error("PLAY_NO_TOKEN");
+      // The server asks Google itself: the token alone grants nothing.
+      const session = (await context.client.auth.getSession())?.data?.session;
+      if (!session?.access_token || !accountCurrent(context)) throw new Error("ACCOUNT_CHANGED");
+      const answer = await fetch("/functions/play-billing", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ purchase_token: purchaseToken, product_id: sku }) });
+      const result = await answer.json().catch(() => ({}));
+      if (!answer.ok) {
+        const known = { purchase_already_used: "Cet achat est déjà rattaché à un autre compte TITAN.", authentication_required: "Reconnecte-toi pour finaliser l’achat.", product_not_allowed: "Cet abonnement n’est pas reconnu." };
+        throw Object.assign(new Error("PLAY_SERVER_REFUSED"), { playMessage: known[result?.error] || "Ton achat est enregistré chez Google mais n’a pas pu être confirmé ici pour le moment. Réessaie dans un instant : tu n’es pas débité deux fois." });
+      }
+      await response.complete("success");
+      response = null;
+      window.titanShell.toast({ type: "ok", title: result.active ? "TITAN+ activé" : "Achat reçu", message: result.active ? "Merci de soutenir TITAN." : "Ton abonnement n’est pas actif pour le moment." });
+      if (accountCurrent(context)) await load(true);
+    } catch (error) {
+      if (response) await response.complete("fail").catch(() => {});
+      // Closing the Google Play sheet is a choice, not an error.
+      if (error?.name !== "AbortError" && accountCurrent(context)) window.titanShell.toast({ type: "warn", title: "Achat non terminé", message: error?.playMessage || (String(error?.message).includes("ACCOUNT_CHANGED") ? messageOf(error) : "L’achat n’a pas pu aboutir. Rien n’est facturé tant que Google ne l’a pas confirmé.") });
+    } finally {
+      playBusy = false;
+      if (btn.isConnected) btn.disabled = false;
+    }
+  }
+
   async function checkout(btn) {
     const context = accountContext();
     const consent = window.TitanAnalytics?.consentSnapshot?.() ?? null;
@@ -506,6 +551,7 @@
     if (b.dataset.buy) return buy(b.dataset.buy);
     if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
+    if (b.hasAttribute("data-play-checkout")) return playCheckout(b);
     if (b.hasAttribute("data-retry")) {
       if (b.disabled) return;
       return load(true);

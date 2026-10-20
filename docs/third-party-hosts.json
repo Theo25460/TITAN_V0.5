@@ -37,6 +37,11 @@
       "note": "OAuth scope identifier string (https://www.googleapis.com/auth/androidpublisher) in functions/play-billing.mjs; no request is made to this address."
     },
     {
+      "host": "play.google.com",
+      "kind": "reference",
+      "note": "Payment-method identifier https://play.google.com/billing used with the Digital Goods and Payment Request APIs in js/app/atelier.js (ADR-004). It is not a URL the page fetches: the Google Play sheet is opened by the Android app. Off unless TITAN_PLAY_BILLING.enabled."
+    },
+    {
       "host": "discord.gg",
       "kind": "link",
       "note": "Community link in js/config.js; the player leaves the site by clicking."

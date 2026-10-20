@@ -54,6 +54,12 @@ window.TITAN_PADDLE = {
     clientToken: "live_afddf554625dd67ecb8a03be847",
     elitePriceId: "pri_01ks2mt9tspkhweawb55w7w8nd"
 };
+// ADR-004: TITAN+ through Google Play Billing inside the Android app. Off until the Play Console product, the server
+// secrets and a licence-tester trial exist; the web (Paddle) path is unchanged either way.
+window.TITAN_PLAY_BILLING = {
+    enabled: false,
+    productId: "titan_plus"
+};
 window.TITAN_EXTERNAL_URLS = {
     supportEmail: "titanteam.app@gmail.com",
     supportMailto: "mailto:titanteam.app@gmail.com?subject=Feedback%20TITAN%20OS",
