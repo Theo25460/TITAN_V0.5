@@ -8,6 +8,10 @@ TITAN est publié sur Android comme **Trusted Web Activity** : une coque Android
 - `tools/build-public.mjs` : écrit `/.well-known/assetlinks.json` quand la variable `TWA_SHA256_FINGERPRINTS` est définie (sinon rien : aucune empreinte inventée).
 - `.github/workflows/android-twa.yml` : workflow manuel qui construit et signe l'App Bundle (`.aab`) et un APK de test, en artefacts.
 
+## Essai sans aucun secret (AND03)
+
+Actions › **Android (TWA, essai sans secret)** › *Run workflow* : construit un APK de test avec une clé jetable générée sur le moteur d'exécution (aucun secret du dépôt), pour vérifier que le projet Bubblewrap se construit à partir de `android/twa-manifest.json` et essayer la coque sur un téléphone. Le fichier produit est étiqueté « NE-PAS-PUBLIER » et conservé 3 jours ; la barre d'adresse y apparaîtra tant que les empreintes de la vraie clé ne sont pas dans `assetlinks.json`. **Jamais exécuté depuis l'environnement de développement** (le SDK Android n'est pas téléchargeable ici) : le premier lancement est à surveiller. Les deux workflows utilisent les mêmes versions (Bubblewrap épinglé, Java 17, Node 22), vérifié par `tests/android-workflows.test.mjs`.
+
 ## Une seule fois
 
 1. **Clé d'envoi** (à garder hors du dépôt, sauvegardée en lieu sûr) :
