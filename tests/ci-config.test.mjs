@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
 const job = (name) => {
@@ -34,4 +38,28 @@ test('database CI uses the immutable production PostgreSQL17.6 image and verifie
  assert.match(database,/postgres:17\.6-bookworm@sha256:[a-f0-9]{64}/,'an immutable exact production image, not runner default');
  assert.match(database,/TITAN_EXPECT_PG_VERSION_NUM:\s*["']?170006["']?/,'the bench must reject another server version');
  assert.match(database,/PGBIN:\s*\/usr\/lib\/postgresql\/17\/bin/,'use binaries from the pinned image');
+});
+
+// Exercise the actual checker configuration on a disposable damaged copy.
+test('static sport gate rejects a wrong XP return from the JavaScript implementation', () => {
+  const root = new URL('../', import.meta.url);
+  const temp = mkdtempSync(join(tmpdir(), 'titan-sport-typecheck-'));
+  try {
+    const config = JSON.parse(readFileSync(new URL('tsconfig.sport-core.json', root), 'utf8'));
+    writeFileSync(join(temp, 'tsconfig.sport-core.json'), JSON.stringify(config));
+    for (const path of config.files) {
+      let content = readFileSync(new URL(path, root), 'utf8');
+      if (path === 'js/core/effort.js') {
+        const damaged = content.replace(/(\n\s+xp:\s+)[^\n]+/, '$1"invalid XP type",');
+        assert.notEqual(damaged, content, 'the mutation must target the real XP return');
+        content = damaged;
+      }
+      mkdirSync(dirname(join(temp, path)), {recursive:true});
+      writeFileSync(join(temp, path), content);
+    }
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL('node_modules/typescript/bin/tsc', root)), '--project', join(temp, 'tsconfig.sport-core.json')], {encoding:'utf8', timeout:15000});
+    assert.ifError(result.error);
+    assert.notEqual(result.status, 0, 'a wrong runtime implementation must fail, even if declarations look valid');
+    assert.match(result.stdout + result.stderr, /effort\.js.*TS2322.*string.*number/);
+  } finally { rmSync(temp, {recursive:true, force:true}); }
 });
