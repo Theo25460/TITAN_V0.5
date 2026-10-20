@@ -19,6 +19,7 @@
   "signingKey": { "path": "./android.keystore", "alias": "titan" },
   "appVersionName": "300.0",
   "appVersionCode": 300,
+  "minSdkVersion": 24,
   "shortcuts": [
     { "name": "Nouvelle séance", "shortName": "Séance", "url": "/training?source=shortcut", "chosenIconUrl": "https://titan-app.fr/image/logo-192.png" },
     { "name": "Ma semaine", "shortName": "Semaine", "url": "/stats?source=shortcut", "chosenIconUrl": "https://titan-app.fr/image/logo-192.png" }
