@@ -21,3 +21,10 @@ test('the browser job has room for the whole suite', () => {
   const minutes = Number(/timeout-minutes:\s*(\d+)/.exec(job('e2e'))?.[1]);
   assert.ok(minutes >= 25, `timeout is ${minutes} minutes`);
 });
+
+test('database CI uses the immutable production PostgreSQL17.6 image and verifies the server version',()=>{
+ const database=job('database');
+ assert.match(database,/postgres:17\.6-bookworm@sha256:[a-f0-9]{64}/,'an immutable exact production image, not runner default');
+ assert.match(database,/TITAN_EXPECT_PG_VERSION_NUM:\s*["']?170006["']?/,'the bench must reject another server version');
+ assert.match(database,/PGBIN:\s*\/usr\/lib\/postgresql\/17\/bin/,'use binaries from the pinned image');
+});
