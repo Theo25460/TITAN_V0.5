@@ -1946,13 +1946,15 @@
         return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
     }
 
-    const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour' };
+    const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour', beyond_human: 'Allure au-delà du possible', extraordinary_series: 'Série de performances extraordinaires' };
     function sessionSignalText(signal) {
         const d = signal.detail && typeof signal.detail === 'object' ? signal.detail : {};
         const n = (value) => escapeHtml(value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? '?' : Number(value));
         let detail = '';
         if (signal.code === 'overlap') detail = `${n(d.overlapMinutes)} min en commun (${n(Math.round(Number(d.shareOfShorter) * 100))} % de la plus courte)`;
         else if (signal.code === 'speed_jump') detail = `${n(d.kmh)} km/h contre ${n(d.medianKmh)} km/h habituels (${n(d.priorSessions)} séances)`;
+        else if (signal.code === 'beyond_human') detail = `${n(d.kmh)} km/h tenus plus de 15 minutes (${escapeHtml(d.sport || '')}) : au-delà des records connus`;
+        else if (signal.code === 'extraordinary_series') detail = `${n(d.sessionsInFourteenDays)} séances à plus de 1,5 fois l’allure habituelle en 14 jours`;
         else if (signal.code === 'day_volume') detail = `${n(d.minutesThatDay)} min déclarées ce jour-là`;
         const label = SESSION_SIGNAL_LABELS[signal.code] || signal.code;
         return `<strong>${escapeHtml(label)}</strong> · ${escapeHtml(signal.severity)} · ${n(signal.points)} pt${detail ? ` · ${detail}` : ''}`;

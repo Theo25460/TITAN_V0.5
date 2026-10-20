@@ -63,6 +63,32 @@ begin
         and o.dur >= 5 and o.val > 0 and o.date < r.date) b
     where r.unit = 'km' and r.dur >= 10 and r.val > 0 and not r.hist
   ),
+  -- CHEAT05: a pace beyond what any human sustains over that duration (well above the corresponding world records:
+  -- running 5-10 km about 23-24 km/h, race walking about 14 km/h, swimming 1500 m about 6.2 km/h). Only sports whose
+  -- speed cannot be motor-assisted are listed; the ceilings are generous on purpose and never reject anything.
+  superhuman as materialized (
+    select r.id from recent r
+    where not r.hist and r.unit = 'km' and r.val > 0 and r.dur >= 15
+      and (r.val / (r.dur / 60.0)) > case r.sport when 'running' then 30 when 'walking' then 16 when 'swimming' then 7 end
+  ),
+  -- CHEAT09: three or more distinct sessions of one sport within 14 days, each at least 1.5 x that sport's own median
+  -- pace (median over the window, at least 8 sessions): a run of extraordinary performances, not one lucky day.
+  sport_median as materialized (
+    select o.sport, percentile_cont(0.5) within group (order by o.val / (o.dur / 60.0)) as median_kmh, count(*) as n
+    from s o where o.unit = 'km' and not o.hist and o.dur >= 10 and o.val > 0
+    group by o.sport having count(*) >= 8
+  ),
+  fast as materialized (
+    select o.id, o.sport, o.date from s o join sport_median m on m.sport = o.sport
+    where o.unit = 'km' and not o.hist and o.dur >= 10 and o.val > 0
+      and (o.val / (o.dur / 60.0)) >= 1.5 * m.median_kmh
+  ),
+  series as materialized (
+    select r.id, count(*) as n
+    from recent r join fast f on f.sport = r.sport and f.date <= r.date and f.date > r.date - interval '14 days'
+    where r.id in (select id from fast)
+    group by r.id
+  ),
   day_total as materialized (
     select r.id, d.minutes from recent r
     cross join lateral (select coalesce(sum(o.dur), 0) as minutes from s o
@@ -75,12 +101,18 @@ begin
     left join overlap ov on ov.id = r.id
     left join speed sp on sp.id = r.id
     left join day_total dt on dt.id = r.id
+    left join superhuman sh on sh.id = r.id
+    left join series se on se.id = r.id
     cross join lateral (values
       ('overlap', ov.severity,
         jsonb_build_object('overlapMinutes', round(coalesce(ov.minutes, 0)::numeric, 1), 'shareOfShorter', round(coalesce(ov.ratio, 0)::numeric, 2))),
       ('speed_jump', case when sp.prior >= 5 and sp.median_kmh > 0 and sp.kmh / sp.median_kmh >= 2 then 'high'
                           when sp.prior >= 5 and sp.median_kmh > 0 and sp.kmh / sp.median_kmh >= 1.5 then 'medium' end,
         jsonb_build_object('kmh', round(coalesce(sp.kmh, 0)::numeric, 1), 'medianKmh', round(coalesce(sp.median_kmh, 0)::numeric, 1), 'priorSessions', coalesce(sp.prior, 0))),
+      ('beyond_human', case when sh.id is not null then 'high' end,
+        jsonb_build_object('kmh', round(coalesce(r.val / nullif(r.dur / 60.0, 0), 0)::numeric, 1), 'sport', r.sport)),
+      ('extraordinary_series', case when se.n >= 3 then 'high' end,
+        jsonb_build_object('sessionsInFourteenDays', coalesce(se.n, 0))),
       ('day_volume', case when dt.minutes >= 960 then 'high' when dt.minutes >= 720 then 'medium' end,
         jsonb_build_object('minutesThatDay', round(coalesce(dt.minutes, 0)::numeric, 0)))
     ) as x(code, severity, detail)
