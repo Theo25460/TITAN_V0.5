@@ -22,6 +22,7 @@ function device(initial) {
 test("sign-out cache cleaning keeps pending sessions, drafts and guest markers, and removes the rest", () => {
   const kept = {
     titan_pending_training_logs_v1: "[]",
+    "titan_onboarding_draft_v1:user-a": "{\"step\":2}",
     "titan_seance_draft_v3:user-a": "{}",
     "titan_seance_timer_v3:user-a": "{}",
     titan_training_draft_user_a: "{}",
