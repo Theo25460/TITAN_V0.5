@@ -10,6 +10,24 @@
 -- Additive: new private function and one admin RPC. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop function public.titan_session_risk_v1(uuid, integer); drop function private.titan_session_risk(uuid, integer);
 
+-- CHEAT02 / CHEAT03: per-sport reference limits, data not code. A row says: this sport is powered by the athlete alone, and
+-- no human sustains more than max_kmh over min_minutes or more (a generous bound far above the official world records, with the
+-- record that justifies it). Sports without a row get no pace ceiling and no series signal: only their own history
+-- and the day volume are judged (CHEAT11). Adding a discipline = inserting a row. Never used to reject anything.
+create table if not exists private.titan_sport_limits (
+  sport text primary key,
+  max_kmh numeric not null check (max_kmh > 0),
+  min_minutes integer not null default 15 check (min_minutes between 1 and 120),
+  reference text not null
+);
+alter table private.titan_sport_limits enable row level security;
+revoke all on table private.titan_sport_limits from public, anon, authenticated;
+insert into private.titan_sport_limits(sport, max_kmh, min_minutes, reference) values
+  ('running', 30, 15, 'World records: 5 000 m 12:35 (23.8 km/h), 10 000 m 26:11 (22.9 km/h); bound 30 km/h over 15 minutes or more'),
+  ('walking', 20, 15, 'Race walking: 20 km about 1:16 (15.8 km/h), indoor 5 000 m about 18:05 (16.6 km/h); bound 20 km/h over 15 minutes or more'),
+  ('swimming', 7, 15, 'World records: 800 m 7:32 (6.4 km/h), 1 500 m 14:30 (6.2 km/h); bound 7 km/h over 15 minutes or more')
+on conflict (sport) do nothing;
+
 create or replace function private.titan_session_risk(p_user uuid, p_limit integer default 30)
 returns jsonb
 language plpgsql
@@ -69,17 +87,17 @@ begin
   -- running 5-10 km about 23-24 km/h, race walking about 14 km/h, swimming 1500 m about 6.2 km/h). Only sports whose
   -- speed cannot be motor-assisted are listed; the ceilings are generous on purpose and never reject anything.
   superhuman as materialized (
-    select r.id from recent r
-    where not r.hist and r.dist_km > 0 and r.dur >= 15
-      and (r.dist_km / (r.dur / 60.0)) > case r.sport when 'running' then 30 when 'walking' then 16 when 'swimming' then 7 end
+    select r.id from recent r join private.titan_sport_limits lim on lim.sport = r.sport
+    where not r.hist and r.dist_km > 0 and r.dur >= lim.min_minutes
+      and (r.dist_km / (r.dur / 60.0)) > lim.max_kmh
   ),
   -- CHEAT09: three or more distinct sessions (distinct dates) of one human-powered sport within 14 days, each at least
-  -- 1.5 x that sport's own median pace (median over the window, at least 8 sessions, sessions of 20 minutes or more). A
+  -- 1.5 x that sport's own median pace (median over the window, at least 8 sessions, sessions of 20 minutes or more; only the human-powered sports listed in private.titan_sport_limits). A
   -- watch-level signal on its own (medium): it reaches human review only together with another signal, so a returning
   -- or fast-improving athlete is looked at, never held for it. Motor-assisted sports (cycling, skiing) are left out.
   sport_median as materialized (
     select o.sport, percentile_cont(0.5) within group (order by o.dist_km / (o.dur / 60.0)) as median_kmh
-    from s o where o.sport in ('running', 'walking', 'swimming') and o.dist_km > 0 and not o.hist and o.dur >= 20
+    from s o where o.sport in (select sport from private.titan_sport_limits) and o.dist_km > 0 and not o.hist and o.dur >= 20
     group by o.sport having count(*) >= 8
   ),
   fast as materialized (

@@ -52,7 +52,9 @@ declare p uuid:=current_setting('titan.cw_p')::uuid; l uuid:=current_setting('ti
     format('insert into public.titan_moderation_reports(reporter_id,reason,status,resolved_by,resolution_note) values (%L,''forged'',''resolved'',%L,''forged'')',p,p),
     format('insert into public.titan_moderation_reports(reporter_id,reason,resolved_at) values (%L,''forged'',now())',p),
     format('update public.titan_moderation_reports set status=''resolved'' where reporter_id=%L',p),
-    format('update public.contest_entries set is_eligible=true, excluded_reason=null where user_id=%L',p)
+    format('update public.contest_entries set is_eligible=true, excluded_reason=null where user_id=%L',p),
+    format('insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values (%L,''running'',''cardio'',5,''km'',25000,now(),''{"effort":{"effort_minutes":9999}}'')',p),
+    format('delete from public.training_logs where id=%L',l)
   ];
 begin
   perform set_config('request.jwt.claims',json_build_object('sub',p,'role','authenticated')::text,true);
@@ -82,6 +84,7 @@ begin
    where b.r is distinct from n.r and exists (select 1 from jsonb_each(b.r) e(key,value) where n.r->key is distinct from e.value and key not in ('updated_at'));
   assert diff is null, 'direct client writes changed protected values: '||diff;
   assert not exists(select 1 from public.shop_history where user_id=current_setting('titan.cw_p')::uuid),'no forged purchase or refund';
+  assert (select count(*) from public.training_logs where user_id=current_setting('titan.cw_p')::uuid)=1,'no session can be inserted or deleted directly: only the server records a performance';
   assert not exists(select 1 from public.premium_access where user_id=current_setting('titan.cw_p')::uuid),'no forged Premium';
   assert not exists(select 1 from public.inventory where user_id=current_setting('titan.cw_p')::uuid),'no forged inventory row';
   assert not exists(select 1 from public.user_achievements where achievement_id='forged'),'no forged achievement';
