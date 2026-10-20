@@ -77,7 +77,7 @@ async function openComparison(width = 360) {
 }
 const focusId = page => page.evaluate(() => document.activeElement?.id);
 async function hold(page) {
-  await page.evaluate(() => { window.titanClient.rpc = (name, params) => { window.compareCalls.push(params); return new Promise(resolve => { window.releaseComparison = mode => resolve(mode === 'error' ? { error: { message: 'Network failed' } } : mode === 'missing' ? { error: { code: 'PGRST202' } } : mode === 'free' ? { data: { version: 1, owner: window.state.user.id, available: false, reason: 'premium_required' } } : mode === 'invalid' ? { data: {} } : { data: window.makeComparison(params) }); }); }; });
+  await page.evaluate(() => { window.titanClient.rpc = (name, params) => { if (name !== 'titan_compare_periods') return Promise.resolve({ error: { code: 'PGRST202' } }); window.compareCalls.push(params); return new Promise(resolve => { window.releaseComparison = mode => resolve(mode === 'error' ? { error: { message: 'Network failed' } } : mode === 'missing' ? { error: { code: 'PGRST202' } } : mode === 'free' ? { data: { version: 1, owner: window.state.user.id, available: false, reason: 'premium_required' } } : mode === 'invalid' ? { data: {} } : { data: window.makeComparison(params) }); }); }; });
 }
 async function settle(page, mode = 'ok') {
   await page.evaluate(mode => window.releaseComparison(mode), mode);

@@ -438,12 +438,6 @@
     try {
       const client = window.titanClient || (typeof window.waitForTitanSupabase === "function" ? await window.waitForTitanSupabase() : null);
       if (!client || typeof client.rpc !== "function") return retryLater();
-      // The server resolves the flags for the session it receives: a signed-in identity without a session yet would be
-      // answered as a visitor and that answer must not be cached under the account.
-      if (id && client.auth && typeof client.auth.getSession === "function") {
-        const session = await client.auth.getSession();
-        if (!session?.data?.session) return retryLater();
-      }
       const { data, error } = await client.rpc("titan_feature_flags_v1");
       if (run !== flagsRun || flagsIdentity() !== id) return;
       // An older server without the function keeps what the device already has; the caller's default applies otherwise.
@@ -494,6 +488,6 @@
   );
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render);
   else render();
-  setTimeout(() => checkVerification(false), 0);
-  setTimeout(() => refreshFlags(false), 0);
+  // A signed-in account is served after its session is ready (account-changed / history-updated); only a visitor needs an initial read.
+  setTimeout(() => { if (!flagsIdentity()) refreshFlags(false); }, 0);
 })();

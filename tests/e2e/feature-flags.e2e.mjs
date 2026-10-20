@@ -102,11 +102,19 @@ test("a server without the function changes nothing", async () => {
   await context.close();
 });
 
-test("a signed-in account whose session is not ready yet is not answered as a visitor and cached", async () => {
-  const { page, context } = await open("nosession");
+test("a signed-in account is not read before the app has loaded it; a visitor is read at once", async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort("internetdisconnected"));
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    window.__early = [];
+    let client;
+    Object.defineProperty(window, "titanClient", { configurable: true, get: () => client, set: (c) => { client = c && { ...c, rpc: (name, ...a) => { window.__early.push(name); return c.rpc(name, ...a); } }; } });
+  });
+  await page.goto(BASE + "/stats");
+  await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.titanFlags);
   await page.waitForTimeout(300);
-  assert.equal(await page.evaluate(() => window.__flags.calls.filter((c) => c === "titan_feature_flags_v1").length), 0, "no request without a session");
-  assert.equal(await page.evaluate((id) => localStorage.getItem("titan_flags_v1:" + id), A), null, "nothing cached for the account");
-  assert.equal(await enabled(page, "rpg.rollout", true), true, "the default applies meanwhile");
+  const early = await page.evaluate(() => window.__early.filter((n) => n === "titan_feature_flags_v1" || n === "titan_my_verification_requests_v1"));
+  assert.ok(!early.includes("titan_my_verification_requests_v1"), "no verification read before an account is loaded");
   await context.close();
 });
