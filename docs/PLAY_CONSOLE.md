@@ -30,7 +30,7 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 - **Catégorie** : Santé et remise en forme. **Étiquettes** : à choisir dans la console.
 - **Coordonnées** : e-mail de contact public (à fournir par Théo), site `https://titan-app.fr`.
 - **Politique de confidentialité** : `https://titan-app.fr/legal_privacy` — doit être publique, sans connexion, et cohérente avec la section Sécurité des données ci-dessous.
-- **Suppression de compte** (formulaire « Suppression de compte » de la console) : suppression depuis l'application (Profil › Supprimer mon compte) ; une URL web de demande de suppression est à renseigner : page d'assistance `https://titan-app.fr/service` (à confirmer qu'elle accepte une demande sans être connecté, sinon créer la page avant la soumission).
+- **Suppression de compte** (formulaire « Suppression de compte » de la console) : suppression depuis l'application (Profil › Supprimer mon compte) ; URL web à renseigner : `https://titan-app.fr/supprimer-mon-compte` (page publique créée le 20/10/2026 : marche à suivre dans l'application, demande par e-mail depuis l'adresse du compte si l'accès est perdu, ce qui est effacé et conservé avec ses durées). **Elle n'est vraie qu'une fois la migration 25 appliquée en production** : ne la soumettre à Google qu'après.
 - **Visuels** (GP03, à produire à partir de l'application réelle) : icône 512×512 (`image/logo-512.png`), image de présentation 1024×500, captures téléphone (2 à 8, 16:9 ou 9:16, côté 320–3 840 px). Le dépôt ne contient pas encore de captures Play : à faire sur l'appli installée.
 
 ## 3. Déclarations de l'application

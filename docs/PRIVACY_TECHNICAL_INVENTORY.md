@@ -47,19 +47,19 @@ Les clés suffixées par un compte (`:<compte>`) contiennent l'identifiant du co
 
 ## 3. Données collectées côté serveur (LEG03, LEG26)
 
-Les durées de conservation **ne sont pas fixées** dans le dépôt (Q-002, LEG31) ; la colonne est donc volontairement vide de chiffres.
+Les durées de conservation sont celles de `docs/DATA_RETENTION.md` (Q-002, LEG31, décision de Théo du 20/10/2026) : chaque durée citée ci-dessous est **exécutée par le code** (migration `20261020030000_retention_purge.sql`, non appliquée en production tant que le plan de production n'est pas déroulé). Validation juridique humaine : LEG13.
 
 | Catégorie | Tables principales | Finalité | Conservation |
 |---|---|---|---|
-| Compte et profil | `auth.users`, `profiles` (pseudo, avatar, code ami, niveau, XP, crédits, statut, vie privée) | compte, jeu, social | à décider (Q-002) |
-| Séances sportives | `training_logs`, `training_revisions`, `training_receipts`, `sport_goals` ; le champ `details` peut contenir durée, distance, dénivelé, **tracé GPS** (`gpxPath`) et notes | fonction principale, statistiques, progression | à décider (Q-002) |
-| Économie et achats | `shop_history`, `shop_items`, `premium_access`, `titan_economy_journal` (journal immuable), `titan_billing_events` (événements Paddle) | boutique, TITAN+, sécurité de l'économie | à décider ; le journal est immuable par conception |
-| Social | `friendships`, `guilds`, `guild_members`, `guild_messages`, `messages`, `titan_moments`, `titan_challenges`, `titan_public_cards` | fonctions sociales, carte publique | à décider |
-| Coaching | `coach_links`, `coach_assignments` (partage choisi des détails et des notes) | relation coach / athlète | à décider |
-| Mesure d'audience | `analytics_events` (nom, page, source, métadonnées minimales ; contrat dans `docs/ANALYTICS_EVENTS_V300.md`) | amélioration du produit | à décider. **Refus : rien n'est envoyé. Aucun choix encore : un comptage anonyme (sans compte ni référent) est envoyé. Accordé : événement rattaché au compte, `utm_source` conservé comme source.** Le comptage avant tout choix est à faire qualifier (LEG42 : mesure exemptée de consentement à prouver) |
-| Assistance | `titan_support_requests` (privée), `contact_messages` et `bug_reports` (tables présentes dans le schéma ; usage actuel à confirmer : nom, e-mail, message, captures éventuelles) | répondre aux demandes | à décider (LEG15) |
-| Sécurité et modération | `titan_suspicious_actions`, `titan_moderation_decisions`, `titan_rate_events`, `titan_admin_audit`, `audit_logs`, `admin_logs` | prévention de la fraude, traçabilité des actions d'administration | à décider |
-| Concours et prospection | `contest_entries`, `contest_draws`, `influencers` (**nom, e-mail de contact de personnes externes**), `referrals` | opérations promotionnelles (LEG50, LEG51) | à décider ; `influencers` concerne des tiers non joueurs |
+| Compte et profil | `auth.users`, `profiles` (pseudo, avatar, code ami, niveau, XP, crédits, statut, vie privée) | compte, jeu, social | tant que le compte existe ; effacé à la suppression |
+| Séances sportives | `training_logs`, `training_revisions`, `training_receipts`, `sport_goals` ; le champ `details` peut contenir durée, distance, dénivelé, **tracé GPS** (`gpxPath`) et notes | fonction principale, statistiques, progression | tant que le compte existe ; effacées à la suppression |
+| Économie et achats | `shop_history`, `shop_items`, `premium_access`, `titan_economy_journal` (journal immuable), `titan_billing_events` (événements Paddle) | boutique, TITAN+, sécurité de l'économie | achats effacés avec le compte ; événements de facturation 13 mois (contenu vidé à la suppression) ; journal d'économie immuable, sans identité une fois le compte supprimé |
+| Social | `friendships`, `guilds`, `guild_members`, `guild_messages`, `messages`, `titan_moments`, `titan_challenges`, `titan_public_cards` | fonctions sociales, carte publique | tant que le compte existe ; messages : 48 à 72 heures ; effacés à la suppression |
+| Coaching | `coach_links`, `coach_assignments` (partage choisi des détails et des notes) | relation coach / athlète | tant que le compte existe ; effacés à la suppression |
+| Mesure d'audience | `analytics_events` (nom, page, source, métadonnées minimales ; contrat dans `docs/ANALYTICS_EVENTS_V300.md`) | amélioration du produit | 13 mois, purge exécutée. **Refus : rien n'est envoyé. Aucun choix encore : un comptage anonyme (sans compte ni référent) est envoyé. Accordé : événement rattaché au compte, `utm_source` conservé comme source.** Le comptage avant tout choix est à faire qualifier (LEG42 : mesure exemptée de consentement à prouver) |
+| Assistance | `titan_support_requests` (privée), `contact_messages` et `bug_reports` (tables présentes dans le schéma ; usage actuel à confirmer : nom, e-mail, message, captures éventuelles) | répondre aux demandes | demandes d'assistance 6 mois (paiement 13 mois, droits 12 mois) ; anciennes tables 12 mois ; effacées à la suppression du compte |
+| Sécurité et modération | `titan_suspicious_actions`, `titan_moderation_decisions`, `titan_rate_events`, `titan_admin_audit`, `audit_logs`, `admin_logs` | prévention de la fraude, traçabilité des actions d'administration | signaux 12 mois ; journaux d'administration et d'audit 12 mois ; décisions et recours 24 mois ; limites de débit 24 h |
+| Concours et prospection | `contest_entries`, `contest_draws`, `influencers` (**nom, e-mail de contact de personnes externes**), `referrals` | opérations promotionnelles (LEG50, LEG51) | **sans durée ni purge** : `influencers` concerne des tiers non joueurs (nom, e-mail) et n'a pas de règle de conservation — point ouvert pour LEG44/LEG50 ; `referrals` et `contest_draws` : identité détachée à la suppression |
 
 Le client Supabase envoie aussi un en-tête `x-client-info` portant la version de l'application.
 
