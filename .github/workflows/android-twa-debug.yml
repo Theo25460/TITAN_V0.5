@@ -26,10 +26,13 @@ jobs:
           node-version: 22
       - name: Bubblewrap
         run: npm install --global @bubblewrap/cli@1.23.0
+      - name: Mot de passe jetable (tiré au hasard, masqué, propre à cette exécution)
+        run: |
+          password=$(openssl rand -hex 16)
+          echo "::add-mask::$password"
+          echo "THROWAWAY_PASSWORD=$password" >> "$GITHUB_ENV"
       - name: Clé jetable et projet Android
         working-directory: android
-        env:
-          THROWAWAY_PASSWORD: titan-throwaway-not-a-secret
         run: |
           keytool -genkeypair -keystore android.keystore -alias titan -keyalg RSA -keysize 2048 -validity 30 \
             -storepass "$THROWAWAY_PASSWORD" -keypass "$THROWAWAY_PASSWORD" -dname "CN=TITAN essai, O=TITAN, C=FR"
@@ -38,8 +41,8 @@ jobs:
       - name: Construire l'APK d'essai
         working-directory: android
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: titan-throwaway-not-a-secret
-          BUBBLEWRAP_KEY_PASSWORD: titan-throwaway-not-a-secret
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ env.THROWAWAY_PASSWORD }}
         run: bubblewrap build --skipPwaValidation
       - uses: actions/upload-artifact@v4
         with:

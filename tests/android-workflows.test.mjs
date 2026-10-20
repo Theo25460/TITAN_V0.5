@@ -34,4 +34,6 @@ test("the release workflow needs the upload key secrets and the trial build uses
   assert.doesNotMatch(trial, /\$\{\{\s*secrets\./, "trial uses no repository secret");
   assert.match(trial, /NE-PAS-PUBLIER/, "the trial artifact says it must not be published");
   assert.match(trial, /keytool -genkeypair/, "the trial key is generated on the runner");
+  assert.match(trial, /openssl rand -hex/, "its password is drawn at random for each run, not written in the file");
+  assert.match(trial, /::add-mask::/, "and masked in the logs");
 });
