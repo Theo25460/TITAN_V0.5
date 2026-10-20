@@ -163,15 +163,15 @@ test("shell focus: removing a destination does not focus a different link", asyn
 test("shell focus: updated consumers bypass the previous script resource", async () => {
   const consumers = readdirSync(ROOT).filter(name => name.endsWith(".html") && name !== "profile.html" && readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v='));
   assert.ok(consumers.length > 0);
-  for (const name of consumers) assert.ok(readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v=300.6'), name);
+  for (const name of consumers) assert.ok(readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v=300.7'), name);
   const { page, context } = await newPage();
   try {
     let staleRequests = 0;
-    await page.route("**/js/app/shell.js?v=300.5", route => { staleRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousShellFocus = true;" }); });
+    await page.route("**/js/app/shell.js?v=300.6", route => { staleRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousShellFocus = true;" }); });
     await page.goto(BASE + "/stats");
     await page.locator("[data-shell-more]").waitFor();
     assert.equal(staleRequests, 0);
     assert.equal(await page.evaluate(() => Boolean(window.previousShellFocus)), false);
-    assert.equal(await page.locator('script[src="/js/app/shell.js?v=300.6"]').count(), 1);
+    assert.equal(await page.locator('script[src="/js/app/shell.js?v=300.7"]').count(), 1);
   } finally { await context.close(); }
 });

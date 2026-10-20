@@ -79,6 +79,7 @@ begin
   r:=public.titan_verification_list_v1('answered',current_setting('titan.vr_p')::uuid,10);
   assert jsonb_array_length(r->'requests')=1 and r->'requests'->0->>'answer' like 'Oui, séance faite%','administrator reads the answer';
   assert jsonb_array_length(public.titan_verification_list_v1('open',null,10)->'requests')=0,'nothing open';
+  assert jsonb_array_length(public.titan_verification_list_v1('any',current_setting('titan.vr_p')::uuid,10)->'requests')=1,'any state, one player';
   ok:=false; begin perform public.titan_verification_list_v1('inconnu',null,10); exception when others then ok:=sqlerrm='UNKNOWN_STATUS'; end; assert ok,'unknown status';
   ok:=false; begin perform public.titan_verification_close_v1(-1); exception when others then ok:=sqlerrm='REQUEST_NOT_FOUND'; end; assert ok,'unknown request';
   r:=public.titan_verification_close_v1(current_setting('titan.vr_id1')::bigint); assert r->>'status'='closed','closed';

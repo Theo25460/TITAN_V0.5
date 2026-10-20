@@ -45,6 +45,10 @@ async function open({ signedIn = true, mode = "ok" } = {}) {
           { id: 2, kind: "session", sessionId: "s0", status: "declined", createdAt: "2026-10-01T08:00:00Z", decisionNote: `Chevauchement avéré ${evil}` },
         ],
         suspended: mode === "suspended",
+        verifications: mode === "verify"
+          ? [{ id: 7, message: `Peux-tu confirmer ta séance de dimanche ? ${evil}`, status: "open", createdAt: "2026-10-19T08:00:00Z", answer: null },
+             { id: 6, message: "Ancienne demande déjà traitée.", status: "closed", createdAt: "2026-09-01T08:00:00Z", answer: "Oui, c’était bien moi." }]
+          : [],
       };
       const calls = [];
       window.__recours = { calls, db };
@@ -55,6 +59,16 @@ async function open({ signedIn = true, mode = "ok" } = {}) {
           if (mode === "old") return fail("Could not find the function public." + name, "PGRST202");
           if (name === "titan_my_review_state_v1") return { data: { version: 1, account: { suspended: db.suspended, banned: false }, excludedSessions: db.sessions }, error: null };
           if (name === "titan_my_appeals_v1") return { data: { version: 1, appeals: db.appeals }, error: null };
+          if (name === "titan_my_verification_requests_v1") {
+            if (mode === "verify") return { data: { version: 1, open: db.verifications.filter((v) => v.status === "open").length, requests: db.verifications }, error: null };
+            return { data: { version: 1, open: 0, requests: [] }, error: null };
+          }
+          if (name === "titan_verification_answer_v1") {
+            if (mode === "verify" && params.p_answer.includes("déjà")) return fail("REQUEST_NOT_OPEN", "23514");
+            const row = db.verifications.find((v) => v.id === params.p_id);
+            row.status = "answered"; row.answer = params.p_answer;
+            return { data: { version: 1, id: row.id, status: "answered" }, error: null };
+          }
           if (name === "titan_appeal_submit_v1") {
             if (mode === "cooldown") return fail("APPEAL_COOLDOWN", "23514");
             if (params.p_kind === "session") db.sessions.find((s) => s.id === params.p_session).hasOpenAppeal = true;
@@ -141,5 +155,44 @@ test("a suspended account can be contested, and an old server is explained", asy
   await r.context.close();
   r = await open({ mode: "old" });
   await r.page.locator("#recours").getByText(/pas encore disponible/).waitFor();
+  await r.context.close();
+});
+
+test("a verification request from the team is shown, escaped, and answered once", async () => {
+  const { page, context, errors } = await open({ mode: "verify" });
+  await page.locator("#verification").waitFor();
+  const text = await page.locator("#verification").innerText();
+  assert.match(text, /Peux-tu confirmer ta séance de dimanche/);
+  assert.match(text, /À traiter/);
+  assert.match(text, /Ta réponse : Oui, c’était bien moi/);
+  assert.match(text, /aucune sanction/);
+  assert.equal(await page.locator("#verification img").count(), 0, "the administrator's text is escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  assert.equal(await page.locator("[data-verify-send]").count(), 1, "only the open request can be answered");
+  const form = page.locator("[data-verify-send]");
+  await form.locator("textarea").fill("ok");
+  await form.locator('[type="submit"]').click();
+  await form.locator("[data-verify-error]").getByText(/3 et 500/).waitFor();
+  assert.ok(!(await calls(page)).includes("titan_verification_answer_v1"), "a too short answer sends nothing");
+  await form.locator("textarea").fill("Oui, séance faite avec ma montre dimanche matin.");
+  await form.locator('[type="submit"]').click();
+  await page.locator("#recours").getByText(/Réponse envoyée\. Merci/).waitFor();
+  const sent = await page.evaluate(() => window.__recours.calls.filter((c) => c.name === "titan_verification_answer_v1"));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].params.p_id, 7);
+  assert.match(sent[0].params.p_answer, /séance faite avec ma montre/);
+  assert.equal(await page.locator("[data-verify-send]").count(), 0, "answered once, the form is gone");
+  assert.match(await page.locator("#verification").innerText(), /Ta réponse : Oui, séance faite/);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("without any request the page has no verification section, and an old server changes nothing", async () => {
+  let r = await open();
+  await r.page.locator("#recours").getByText("Séances exclues").waitFor();
+  assert.equal(await r.page.locator("#verification").count(), 0);
+  await r.context.close();
+  r = await open({ mode: "ok" });
+  await r.page.locator("#recours").getByText("Ton compte").first().waitFor();
   await r.context.close();
 });

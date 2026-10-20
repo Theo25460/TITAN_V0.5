@@ -90,7 +90,7 @@ begin
 end;
 $function$;
 
--- Administrator: requests by state, for one player or for everybody.
+-- Administrator: requests by state ('any' for all), for one player or for everybody.
 create or replace function public.titan_verification_list_v1(p_status text default 'answered', p_user uuid default null, p_limit integer default 50)
 returns jsonb
 language plpgsql
@@ -100,14 +100,14 @@ set search_path = ''
 as $function$
 begin
   perform private.titan_moderation_require_admin();
-  if p_status is null or p_status not in ('open', 'answered', 'closed') then
+  if p_status is null or p_status not in ('open', 'answered', 'closed', 'any') then
     raise exception 'UNKNOWN_STATUS' using errcode = '22023';
   end if;
   return jsonb_build_object('version', 1, 'requests', coalesce((
     select jsonb_agg(jsonb_build_object('id', r.id, 'userId', r.user_id, 'message', r.message, 'status', r.status,
       'createdAt', r.created_at, 'answer', r.answer, 'answeredAt', r.answered_at, 'closedAt', r.closed_at) order by r.id)
     from (select * from private.titan_verification_requests
-          where status = p_status and (p_user is null or user_id = p_user)
+          where (p_status = 'any' or status = p_status) and (p_user is null or user_id = p_user)
           order by id limit greatest(1, least(coalesce(p_limit, 50), 100))) r), '[]'::jsonb));
 end;
 $function$;

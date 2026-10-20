@@ -1439,6 +1439,17 @@
             return;
         }
 
+        if (event.target.closest('[data-verify-request]')) {
+            await requestVerification();
+            return;
+        }
+
+        const verifyClose = event.target.closest('[data-verify-close]');
+        if (verifyClose) {
+            await closeVerification(verifyClose.dataset.verifyClose);
+            return;
+        }
+
         const moderationRevert = event.target.closest('[data-moderation-revert]');
         if (moderationRevert) {
             await revertModeration(moderationRevert.dataset.moderationRevert);
@@ -1926,6 +1937,12 @@
         DECISION_NOT_FOUND: 'Décision introuvable.',
         SESSION_NOT_FOUND: 'Cette séance n’existe plus.',
         EXCLUSION_REQUIRED: 'Choisis d’exclure ou de rétablir la séance.',
+        MESSAGE_REQUIRED: 'Le message doit faire entre 10 et 500 caractères.',
+        REQUEST_ALREADY_OPEN: 'Une demande de vérification est déjà ouverte pour ce joueur.',
+        REQUEST_LIMIT: 'Trois demandes ont déjà été envoyées à ce joueur cette semaine.',
+        REQUEST_CLOSED: 'Cette demande est déjà close.',
+        REQUEST_NOT_FOUND: 'Cette demande n’existe plus.',
+        USER_NOT_FOUND: 'Ce compte n’existe plus.',
         ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
     };
 
@@ -2059,10 +2076,65 @@
         `;
     }
 
+    // BOT06: a verification request is a message to the player (alert in Titan) with one answer; it changes nothing on the account.
+    async function loadVerifications(userId) {
+        try {
+            const { data, error } = await state.client.rpc('titan_verification_list_v1', { p_status: 'any', p_user: userId, p_limit: 20 });
+            if (error) return { available: false, requests: [], error };
+            return { available: true, requests: Array.isArray(data && data.requests) ? data.requests.filter((request) => request && typeof request === 'object') : [] };
+        } catch (error) {
+            return { available: false, requests: [], error };
+        }
+    }
+
+    const VERIFICATION_STATUS_LABELS = { open: 'En attente de réponse', answered: 'Réponse reçue', closed: 'Close' };
+
+    function verificationMarkup(verifications) {
+        if (!verifications.available) return '<p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        if (!verifications.requests.length) return '<p><small>Aucune demande.</small></p>';
+        return `<ul class="compact-list">${verifications.requests.map((request) => `
+            <li data-verification="${escapeHtml(request.id)}">
+                <strong>${escapeHtml(VERIFICATION_STATUS_LABELS[request.status] || request.status)}</strong> · ${escapeHtml(formatDate(request.createdAt))}
+                <p>${escapeHtml(request.message)}</p>
+                ${request.answer ? `<p><em>Réponse du joueur (${escapeHtml(formatDate(request.answeredAt))}) : ${escapeHtml(request.answer)}</em></p>` : ''}
+                ${request.status === 'closed' ? '' : buttonMarkup('Clore', 'ri-check-double-line', 'secondary', `data-verify-close="${escapeHtml(request.id)}"`)}
+            </li>`).join('')}</ul>`;
+    }
+
+    async function requestVerification() {
+        const userId = state.moderationUser;
+        if (!userId) return;
+        const message = await confirmSensitive({
+            title: 'Demander une vérification',
+            message: 'Le joueur verra ce message comme une alerte dans Titan et pourra y répondre une fois. Rien n’est décidé et son compte ne change pas. Ne mets pas de donnée de santé.',
+            actionLabel: 'Envoyer la demande',
+            requireReason: true,
+            fieldLabel: 'Message au joueur (10 à 500 caractères)'
+        });
+        if (!message) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_verification_request_v1', { p_user: userId, p_message: message });
+        if (error) notify('Demande refusée', moderationErrorText(error), 'danger');
+        else notify('Demande envoyée', 'Le joueur la verra dans Titan. L’envoi est consigné dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
+    async function closeVerification(id) {
+        const userId = state.moderationUser;
+        if (!userId || !id) return;
+        const { error } = await state.client.rpc('titan_verification_close_v1', { p_id: Number(id) });
+        if (error) notify('Clôture refusée', moderationErrorText(error), 'danger');
+        else notify('Demande close', 'La clôture est consignée dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
     async function openModerationCase(userId) {
-        const [{ data, error }, risk] = await Promise.all([
+        const [{ data, error }, risk, verifications] = await Promise.all([
             state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
-            loadSessionRisk(userId)
+            loadSessionRisk(userId),
+            loadVerifications(userId)
         ]);
         if (error) {
             notify('Dossier indisponible', moderationErrorText(error), 'danger');
@@ -2094,6 +2166,9 @@
                 ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
                 : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"'));
         }
+        if (verifications.available && !verifications.requests.some((request) => request.status === 'open')) {
+            actions.push(buttonMarkup('Demander une vérification', 'ri-question-answer-line', 'secondary', 'data-verify-request'));
+        }
         if (latest && latest.decision !== 'revert') {
             actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
         }
@@ -2114,6 +2189,8 @@
                 ${recent}
                 <h3>Décisions</h3>
                 <ul class="compact-list">${history}</ul>
+                <h3>Demandes de vérification</h3>
+                <div data-verification-list>${verificationMarkup(verifications)}</div>
             `,
             actions
         });
@@ -2301,7 +2378,7 @@
         $('#modal-actions').innerHTML = '';
     }
 
-    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false }) {
+    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false, fieldLabel = 'Raison' }) {
         return new Promise((resolve) => {
             // Closing the dialog any other way (cross, backdrop) is a cancellation, never a pending promise.
             state.pendingConfirm = resolve;
@@ -2312,7 +2389,7 @@
                     <div class="panel">
                         <p>${escapeHtml(message)}</p>
                         <label class="form-field full">
-                            <span>Raison</span>
+                            <span>${escapeHtml(fieldLabel)}</span>
                             <textarea class="admin-textarea" data-confirm-reason placeholder="${requireReason ? 'Obligatoire' : 'Optionnelle'}"></textarea>
                         </label>
                     </div>

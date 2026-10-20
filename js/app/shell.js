@@ -342,6 +342,51 @@
     if (e.target.closest("[data-shell-more]")) openMore();
   });
 
+  /* ---------- Verification request alert (BOT06) ----------
+     An administrator can ask a player to confirm something; the request stays readable on /recours. While one is open
+     this alert is shown on every app page. It informs and links; it never blocks or decides anything. */
+  const VERIFY_RECHECK_MS = 5 * 60 * 1000;
+  let verifyCheckedAt = 0;
+  let verifyOwner = null;
+  let verifyRun = 0;
+  function showVerifyAlert(open) {
+    const main = document.querySelector("main");
+    let el = document.querySelector("[data-verify-alert]");
+    if (!open || !main) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "asc-verify-alert";
+      el.setAttribute("role", "alert");
+      el.setAttribute("data-verify-alert", "");
+      main.prepend(el);
+    }
+    const text = `${open > 1 ? "Des vérifications te sont demandées" : "Une vérification t’est demandée"} par l’équipe TITAN. Rien n’est décidé : lis la demande et réponds.`;
+    el.innerHTML = `${icon("info")}<span>${esc(text)}</span><a class="asc-btn asc-btn-secondary" href="/recours#verification">Lire et répondre</a>`;
+  }
+  async function checkVerification(force) {
+    const u = user();
+    const client = window.titanClient;
+    if (u.guest || !u.id || !client || typeof client.rpc !== "function" || document.body?.dataset?.shell === "none") return;
+    if (verifyOwner !== u.id) { verifyOwner = u.id; verifyCheckedAt = 0; showVerifyAlert(0); }
+    if (!force && Date.now() - verifyCheckedAt < VERIFY_RECHECK_MS) return;
+    verifyCheckedAt = Date.now();
+    const run = ++verifyRun;
+    try {
+      const { data, error } = await client.rpc("titan_my_verification_requests_v1");
+      if (run !== verifyRun || user().id !== u.id) return;
+      // An older server without this function simply shows nothing.
+      showVerifyAlert(error ? 0 : Math.max(0, Number(data?.open) || 0));
+    } catch {
+      if (run === verifyRun) showVerifyAlert(0);
+    }
+  }
+  window.titanRefreshVerificationAlert = () => checkVerification(true);
+  window.addEventListener("titan:account-changing", () => { verifyRun++; verifyOwner = null; verifyCheckedAt = 0; showVerifyAlert(0); });
+  ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => checkVerification(ev === "titan:account-changed")));
+
   /* ---------- Legacy compatibility ---------- */
   window.titanShell = { refresh, toast, sheet, confirm, user, look, territories: TERRITORIES, esc };
   window.injectSidebar = refresh;
@@ -371,4 +416,5 @@
   );
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render);
   else render();
+  setTimeout(() => checkVerification(false), 0);
 })();

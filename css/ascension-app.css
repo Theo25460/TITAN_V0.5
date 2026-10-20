@@ -3686,3 +3686,7 @@
 #views-draft-form { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
 #views-draft-form input { width: 100%; }
 .view-confirm { margin-top: 12px; }
+
+/* BOT06: alert shown while an administrator's verification request is open (informs and links, never blocks). */
+.asc-verify-alert { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0 0 1rem; padding: 0.75rem 1rem; border: 1px solid var(--am-line); border-radius: 0.75rem; background: var(--am-soft); color: var(--tx); }
+.asc-verify-alert > span { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
