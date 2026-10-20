@@ -18,13 +18,13 @@ Décision de Théo du 20/10/2026 (Q-002) : déterminer les durées **les plus co
 | `contact_messages` | anciens messages de contact | 12 mois | idem | supprimés à la suppression du compte |
 | `billing_events` | copie locale des événements de facturation Paddle | 13 mois | réconciliation d'un abonnement et délai de signalement d'une opération de paiement non autorisée (13 mois) ; Paddle est marchand officiel (**à confirmer, LEG25** : si TITAN était vendeur, l'obligation comptable serait bien plus longue et cette règle devrait changer) | contenu (`payload`) vidé, identifiant joueur détaché ; ligne purgée à 13 mois |
 | `admin_audit` | journal d'audit administrateur | 12 mois | traçabilité des actions d'administration ; aligné sur la conservation d'un an des données d'identification des hébergeurs (**à confirmer**) | contenu vidé pour la cible, identité détachée |
-| `admin_logs` | ancien journal administrateur | 12 mois | idem ; usage actuel à confirmer | identité détachée |
-| `audit_logs` | journal d'audit générique (copies de lignes) | 12 mois | idem | copies nommant le compte supprimées (déclencheur après suppression) |
-| `moderation_decisions` | décisions de modération | 24 mois | délai raisonnable pour contester une sanction ; choix technique | `snapshot` vidé, identité détachée |
+| `admin_logs` | ancien journal administrateur | 12 mois | idem ; usage actuel à confirmer | cible, anciennes et nouvelles valeurs vidées (aucune clé étrangère : le déclencheur le fait) |
+| `audit_logs` | journal d'audit générique (copies de lignes) | 12 mois | idem | copies des messages, de l'inventaire, des signalements et de l'ancien journal nommant le compte supprimées (déclencheur après suppression) ; les autres copies expirent à 12 mois |
+| `moderation_decisions` | décisions de modération | 24 mois | délai raisonnable pour contester une sanction ; choix technique. Une décision annulée par une plus récente, ou une suspension encore en vigueur (pas de restauration ni d'annulation postérieure), n'expire pas | `snapshot` vidé, identité détachée ; le motif écrit par l'administrateur reste |
 | `appeals` | recours tranchés | 24 mois après la décision | même raison ; un recours ouvert n'expire jamais | supprimés avec le compte |
 | `suspicious_actions` | signaux anti-triche | 12 mois | utilité de détection limitée dans le temps | supprimés à la suppression du compte |
 | `moderation_reports` | signalements traités | 12 mois après création, seulement s'ils sont résolus ou rejetés | un signalement ouvert n'expire pas | texte libre vidé, identités détachées |
-| `reports_legacy` | anciens signalements | 12 mois | ancienne table | identité détachée |
+| `reports_legacy` | anciens signalements traités (statut autre que en attente, nouveau, ouvert) | 12 mois | ancienne table ; un signalement en attente n'expire pas | auteur, cible et texte libre vidés (aucune clé étrangère : le déclencheur le fait) |
 | `reward_holds` | retenues de récompenses réglées | 3 mois après le règlement | trace utile au support récent | supprimées avec le compte |
 | `social_action_log` | journal des actions sociales | 90 jours | limitation de débit et diagnostic | identité détachée |
 

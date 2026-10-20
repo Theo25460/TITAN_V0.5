@@ -169,8 +169,8 @@ doc({
 <h2>Ce qui est conservé, sans ton identité, et combien de temps</h2>
 ${table(["Donnée", "Ce qui reste", "Durée"], [
   ["Statistiques d’usage", "événements anonymes", "13 mois"],
-  ["Copie technique des événements de facturation", "identifiants techniques, sans coordonnées ni contenu", "13 mois"],
-  ["Décisions de modération", "type et date de la décision, sans identité ni détail", "24 mois"],
+  ["Copie technique des événements de facturation", "identifiants techniques ; le contenu de l’événement est vidé quand le compte est supprimé", "13 mois"],
+  ["Décisions de modération", "type et date de la décision et motif écrit par l’administrateur, sans ton identité", "24 mois"],
   ["Journaux d’administration, signaux anti-triche, signalements traités", "traces sans identité", "12 mois"],
   ["Journal d’équilibre du jeu (montants, types d’opération)", "sans identité ni texte", "conservé : garantit l’équité du jeu pour les autres joueurs"],
 ])}

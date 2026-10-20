@@ -22,18 +22,20 @@ test('every rule appears in docs/DATA_RETENTION.md with the same duration', () =
   for (const rule of rules) {
     const row = doc.split('\n').find((line) => line.startsWith(`| \`${rule.id}\``));
     assert.ok(row, `rule ${rule.id} missing from the matrix`);
-    assert.ok(row.includes(`| ${french(rule)}`) || row.includes(french(rule)), `duration of ${rule.id}: expected ${french(rule)} in "${row.slice(0, 120)}"`);
+    const cells = row.split('|').map((c) => c.trim());
+    assert.ok(cells[3] === french(rule) || cells[3].startsWith(`${french(rule)} après`) || cells[3].startsWith(`${french(rule)} (`), `duration cell of ${rule.id}: expected ${french(rule)}, found "${cells[3]}"`);
   }
 });
 
 test('the privacy policy and the deletion page state the executed durations and nothing longer', () => {
   const privacy = canon(read('legal_privacy.html')), page = canon(read('supprimer-mon-compte.html'));
-  for (const text of ['6 mois', '13 mois', '12 mois', '24 mois', '3 mois']) assert.ok(privacy.includes(text), `privacy policy states ${text}`);
-  for (const text of ['13 mois', '24 mois', '12 mois']) assert.ok(page.includes(text), `deletion page states ${text}`);
+  const has = (text, d) => new RegExp(`(^|[^0-9])${d.replace(' ', '[  ]')}`).test(text);
+  for (const text of ['6 mois', '13 mois', '12 mois', '24 mois', '3 mois']) assert.ok(has(privacy, text), `privacy policy states ${text}`);
+  for (const text of ['13 mois', '24 mois', '12 mois']) assert.ok(has(page, text), `deletion page states ${text}`);
   const kept = new Set(rules.map((r) => french(r)));
-  for (const found of new Set([...(privacy + page).matchAll(/(\d+) (mois|jours)/g)].map((m) => m[0]))) {
-    // "30 jours" (unconfirmed sign-ups) and "un mois" (answer time) belong to older rules and to the rights procedure
-    assert.ok(kept.has(found) || ['30 jours', '1 mois'].includes(found), `a published duration is not executed by a rule: ${found}`);
+  for (const found of new Set([...(privacy + page).matchAll(/(\d+) (mois|jours|ans?|heures?|semaines?)/g)].map((m) => m[0]))) {
+    // "30 jours" (unconfirmed sign-ups), "3 ans" (inactive accounts), "72 heures" (breach notification), "15 ans" (minimum age) and "un mois" (answer time) belong to older rules and to the rights procedure
+    assert.ok(kept.has(found) || ['30 jours', '1 mois', '3 ans', '72 heures', '15 ans'].includes(found), `a published duration is not executed by a rule: ${found}`);
   }
 });
 
