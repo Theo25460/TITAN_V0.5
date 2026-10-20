@@ -82,8 +82,9 @@ jobs:
           # Google Play exige un niveau d'API cible récent : seuil minimal vérifié ici, à relever selon la règle en vigueur à la publication.
           if [ -z "$target" ] || [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
           "$aapt2" dump xmltree --file AndroidManifest.xml app-release-signed.apk > manifest-tree.txt
-          grep -E "autoVerify|host=|scheme=" manifest-tree.txt | tee links.txt
-          grep -q "titan-app.fr" links.txt || { echo "::error::aucun lien d'application vers titan-app.fr dans le manifeste"; exit 1; }
+          # L'hôte du lien est une ressource de chaîne : on contrôle autoVerify dans le manifeste, puis l'hôte dans les chaînes de l'APK.
+          grep -q "autoVerify.*=true" manifest-tree.txt || { echo "::error::autoVerify absent du manifeste"; exit 1; }
+          "$aapt2" dump strings app-release-signed.apk | grep -q "titan-app.fr" || { echo "::error::titan-app.fr absent des chaînes de l'APK"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: titan-android-essai-NE-PAS-PUBLIER
