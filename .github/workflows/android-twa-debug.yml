@@ -54,6 +54,9 @@ jobs:
               node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='https://titan-app.fr/image/logo-512.png';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
             fi
           done
+          # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.
+          cmdline=$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/* | sort -V | tail -1)
+          sudo mkdir -p "$ANDROID_SDK_ROOT/tools" && sudo ln -sfn "$cmdline/bin" "$ANDROID_SDK_ROOT/tools/bin"
           mkdir -p ~/.bubblewrap && printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_SDK_ROOT" > ~/.bubblewrap/config.json
           yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
       - name: Construire l'APK d'essai
