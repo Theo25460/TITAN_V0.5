@@ -22,6 +22,8 @@ declare
 begin
   with s as materialized (
     select l.id, l.sport, l.date, l.val, l.unit, l.is_suspicious,
+      -- distance in km whatever the unit of record (swimming and open water are stored in metres)
+      case when l.unit = 'km' then l.val when l.unit = 'm' then l.val / 1000.0 end as dist_km,
       -- A session cannot last more than a day (the training guard refuses it on insert): clamp so that an
       -- impossible stored value can never overflow the interval arithmetic below and abort an analysis.
       least(greatest(coalesce(coalesce(nullif(public.titan_jsonb_numeric(l.details, 'val2'), 0),
@@ -55,33 +57,36 @@ begin
     order by rid, (case when ratio >= 0.9 and minutes >= 20 and not same_instant then 2 else 1 end) desc, minutes desc
   ),
   speed as materialized (
-    select r.id, (r.val / (r.dur / 60.0)) as kmh, b.median_kmh, b.prior
+    select r.id, (r.dist_km / (r.dur / 60.0)) as kmh, b.median_kmh, b.prior
     from recent r
     cross join lateral (
-      select percentile_cont(0.5) within group (order by o.val / (o.dur / 60.0)) as median_kmh, count(*) as prior
-      from s o where o.id <> r.id and o.sport = r.sport and o.unit = 'km' and not o.hist
-        and o.dur >= 5 and o.val > 0 and o.date < r.date) b
-    where r.unit = 'km' and r.dur >= 10 and r.val > 0 and not r.hist
+      select percentile_cont(0.5) within group (order by o.dist_km / (o.dur / 60.0)) as median_kmh, count(*) as prior
+      from s o where o.id <> r.id and o.sport = r.sport and o.dist_km is not null and not o.hist
+        and o.dur >= 5 and o.dist_km > 0 and o.date < r.date) b
+    where r.dist_km is not null and r.dur >= 10 and r.dist_km > 0 and not r.hist
   ),
   -- CHEAT05: a pace beyond what any human sustains over that duration (well above the corresponding world records:
   -- running 5-10 km about 23-24 km/h, race walking about 14 km/h, swimming 1500 m about 6.2 km/h). Only sports whose
   -- speed cannot be motor-assisted are listed; the ceilings are generous on purpose and never reject anything.
   superhuman as materialized (
     select r.id from recent r
-    where not r.hist and r.unit = 'km' and r.val > 0 and r.dur >= 15
-      and (r.val / (r.dur / 60.0)) > case r.sport when 'running' then 30 when 'walking' then 16 when 'swimming' then 7 end
+    where not r.hist and r.dist_km > 0 and r.dur >= 15
+      and (r.dist_km / (r.dur / 60.0)) > case r.sport when 'running' then 30 when 'walking' then 16 when 'swimming' then 7 end
   ),
-  -- CHEAT09: three or more distinct sessions of one sport within 14 days, each at least 1.5 x that sport's own median
-  -- pace (median over the window, at least 8 sessions): a run of extraordinary performances, not one lucky day.
+  -- CHEAT09: three or more distinct sessions (distinct dates) of one human-powered sport within 14 days, each at least
+  -- 1.5 x that sport's own median pace (median over the window, at least 8 sessions, sessions of 20 minutes or more). A
+  -- watch-level signal on its own (medium): it reaches human review only together with another signal, so a returning
+  -- or fast-improving athlete is looked at, never held for it. Motor-assisted sports (cycling, skiing) are left out.
   sport_median as materialized (
-    select o.sport, percentile_cont(0.5) within group (order by o.val / (o.dur / 60.0)) as median_kmh, count(*) as n
-    from s o where o.unit = 'km' and not o.hist and o.dur >= 10 and o.val > 0
+    select o.sport, percentile_cont(0.5) within group (order by o.dist_km / (o.dur / 60.0)) as median_kmh
+    from s o where o.sport in ('running', 'walking', 'swimming') and o.dist_km > 0 and not o.hist and o.dur >= 20
     group by o.sport having count(*) >= 8
   ),
   fast as materialized (
-    select o.id, o.sport, o.date from s o join sport_median m on m.sport = o.sport
-    where o.unit = 'km' and not o.hist and o.dur >= 10 and o.val > 0
-      and (o.val / (o.dur / 60.0)) >= 1.5 * m.median_kmh
+    select distinct on (o.sport, o.date) o.id, o.sport, o.date from s o join sport_median m on m.sport = o.sport
+    where o.dist_km > 0 and not o.hist and o.dur >= 20
+      and (o.dist_km / (o.dur / 60.0)) >= 1.5 * m.median_kmh
+    order by o.sport, o.date, o.id
   ),
   series as materialized (
     select r.id, count(*) as n
@@ -110,8 +115,8 @@ begin
                           when sp.prior >= 5 and sp.median_kmh > 0 and sp.kmh / sp.median_kmh >= 1.5 then 'medium' end,
         jsonb_build_object('kmh', round(coalesce(sp.kmh, 0)::numeric, 1), 'medianKmh', round(coalesce(sp.median_kmh, 0)::numeric, 1), 'priorSessions', coalesce(sp.prior, 0))),
       ('beyond_human', case when sh.id is not null then 'high' end,
-        jsonb_build_object('kmh', round(coalesce(r.val / nullif(r.dur / 60.0, 0), 0)::numeric, 1), 'sport', r.sport)),
-      ('extraordinary_series', case when se.n >= 3 then 'high' end,
+        jsonb_build_object('kmh', round(coalesce(r.dist_km / nullif(r.dur / 60.0, 0), 0)::numeric, 1), 'sport', r.sport)),
+      ('extraordinary_series', case when se.n >= 3 then 'medium' end,
         jsonb_build_object('sessionsInFourteenDays', coalesce(se.n, 0))),
       ('day_volume', case when dt.minutes >= 960 then 'high' when dt.minutes >= 720 then 'medium' end,
         jsonb_build_object('minutesThatDay', round(coalesce(dt.minutes, 0)::numeric, 0)))

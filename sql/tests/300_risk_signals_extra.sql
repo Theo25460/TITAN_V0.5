@@ -15,6 +15,8 @@ begin
     (gen_random_uuid(),u,'walking','cardio',5,'km',1, now() - interval '7 hours','{"duration":60}'),
     (gen_random_uuid(),u,'swimming','cardio',4,'km',1, now() - interval '9 hours','{"duration":60}'),
     (gen_random_uuid(),u,'swimming','cardio',8,'km',1, now() - interval '11 hours','{"duration":60}'),
+    (gen_random_uuid(),u,'swimming','pool',8000,'m',1, now() - interval '17 hours','{"duration":60}'),
+    (gen_random_uuid(),u,'swimming','pool',2500,'m',1, now() - interval '19 hours','{"duration":60}'),
     (gen_random_uuid(),u,'walking','cardio',20,'km',1, now() - interval '13 hours','{"duration":60}'),
     (gen_random_uuid(),u,'running','cardio',6,'km',1, now() - interval '15 hours','{"duration":10}');
   set local session_replication_role = origin;
@@ -23,7 +25,7 @@ begin
     code := (select string_agg(s->>'code', ',') from jsonb_array_elements(e->'signals') s);
     if (e->>'sport') = 'running' and (e->>'value')::numeric = 40 then
       assert code like '%beyond_human%' and e->>'state' = 'review', '40 km/h running is beyond human: '||coalesce(code,'none');
-    elsif (e->>'sport') = 'swimming' and (e->>'value')::numeric = 8 then
+    elsif (e->>'sport') = 'swimming' and (e->>'value')::numeric in (8, 8000) then
       assert code like '%beyond_human%', '8 km/h swimming for an hour is beyond human';
     elsif (e->>'sport') = 'walking' and (e->>'value')::numeric = 20 then
       assert code like '%beyond_human%', '20 km/h walking for an hour is beyond human';
@@ -48,11 +50,26 @@ begin
   set local session_replication_role = origin;
   r := private.titan_session_risk(u, 50);
   e := (select x from jsonb_array_elements(r) x order by x->>'date' desc limit 1);
-  assert exists(select 1 from jsonb_array_elements(e->'signals') s where s->>'code'='extraordinary_series' and s->>'severity'='high'), 'a third extraordinary run in 14 days is a series: '||e::text;
+  assert exists(select 1 from jsonb_array_elements(e->'signals') s where s->>'code'='extraordinary_series' and s->>'severity'='medium'), 'a third extraordinary run in 14 days is a series: '||e::text;
+  assert e->>'state' <> 'critical' and not exists(select 1 from jsonb_array_elements(e->'signals') s where s->>'code'='extraordinary_series' and s->>'severity'='high'), 'a series alone is a watch-level signal';
   e := (select x from jsonb_array_elements(r) x order by x->>'date' asc limit 1 offset 10);
   assert not exists(select 1 from jsonb_array_elements(e->'signals') s where s->>'code'='extraordinary_series'), 'the first extraordinary run alone is not a series';
 
-  -- 3. Two extraordinary runs are not a series; a steady improver (pace rises 3 %/week) is never one.
+  -- 2b. A returning athlete (slow for months, then +50 % in a few weeks) is only ever looked at, never held.
+  u := gen_random_uuid(); insert into auth.users(id,raw_user_meta_data) values (u,'{}');
+  set local session_replication_role = replica;
+  for i in 1..9 loop
+    insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details)
+    values (u,'running','cardio',6,'km',1, day0 + i * interval '2 days','{"duration":60}');
+  end loop;
+  insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details) values
+    (u,'running','cardio',9.2,'km',1, now() - interval '9 days','{"duration":60}'),
+    (u,'running','cardio',9.2,'km',1, now() - interval '6 days','{"duration":60}'),
+    (u,'running','cardio',9.2,'km',1, now() - interval '3 days','{"duration":60}');
+  set local session_replication_role = origin;
+  assert (select max((x->>'score')::int) from jsonb_array_elements(private.titan_session_risk(u, 50)) x) < 8, 'a returning athlete never reaches human review';
+
+  -- 3. Two extraordinary runs are not a series; a steady improver (pace rises 3 % every 3 days, about +25 % overall) is never one.
   u := gen_random_uuid(); insert into auth.users(id,raw_user_meta_data) values (u,'{}');
   set local session_replication_role = replica;
   for i in 1..10 loop

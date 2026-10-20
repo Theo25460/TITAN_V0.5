@@ -22,7 +22,7 @@ grant select on qa_cw_before to authenticated;
 
 set local role authenticated;
 do $$
-declare p uuid:=current_setting('titan.cw_p')::uuid; l uuid:=current_setting('titan.cw_l')::uuid; stmt text; attempted int:=0;
+declare p uuid:=current_setting('titan.cw_p')::uuid; l uuid:=current_setting('titan.cw_l')::uuid; stmt text; attempted int:=0; refused int:=0;
   stmts text[] := array[
     format('update public.profiles set credits=999999 where id=%L',p),
     format('update public.profiles set xp=999999, total_xp=999999 where id=%L',p),
@@ -46,7 +46,13 @@ declare p uuid:=current_setting('titan.cw_p')::uuid; l uuid:=current_setting('ti
     format('insert into public.user_achievements(user_id,achievement_id) values (%L,''forged'')',p),
     format('insert into public.titan_billing_events(event_id,event_name,user_id) values (''forged'',''subscription.activated'',%L)',p),
     format('insert into public.titan_suspicious_actions(user_id,action_type,severity,reason) values (%L,''x'',''low'',''forged'')',p),
-    format('delete from public.titan_suspicious_actions where user_id=%L',p)
+    format('delete from public.titan_suspicious_actions where user_id=%L',p),
+    format('insert into public.contest_entries(user_id,is_eligible,excluded_reason) values (%L,false,''forged'')',p),
+    format('insert into public.contest_entries(user_id,excluded_reason) values (%L,''forged'')',p),
+    format('insert into public.titan_moderation_reports(reporter_id,reason,status,resolved_by,resolution_note) values (%L,''forged'',''resolved'',%L,''forged'')',p,p),
+    format('insert into public.titan_moderation_reports(reporter_id,reason,resolved_at) values (%L,''forged'',now())',p),
+    format('update public.titan_moderation_reports set status=''resolved'' where reporter_id=%L',p),
+    format('update public.contest_entries set is_eligible=true, excluded_reason=null where user_id=%L',p)
   ];
 begin
   perform set_config('request.jwt.claims',json_build_object('sub',p,'role','authenticated')::text,true);
@@ -56,11 +62,12 @@ begin
       attempted := attempted + 1;
     exception when others then
       -- a refusal is fine, a broken statement (unknown column or table, syntax) would make this test vacuous
-      assert sqlstate not in ('42703','42P01','42601','42883'), 'invalid test statement: '||stmt||' => '||sqlerrm;
-      attempted := attempted + 1;
+      assert sqlstate not in ('42703','42P01','42601','42883','23502','22P02','23503'), 'invalid test statement: '||stmt||' => '||sqlerrm;
+      attempted := attempted + 1; refused := refused + 1;
     end;
   end loop;
   assert attempted = cardinality(stmts), 'every attempt was made';
+  assert refused >= 10, 'most attempts are refused outright, not merely ignored: '||refused;
 end $$;
 
 reset role;
@@ -80,5 +87,8 @@ begin
   assert not exists(select 1 from public.user_achievements where achievement_id='forged'),'no forged achievement';
   assert not exists(select 1 from public.titan_billing_events where event_id='forged'),'no forged billing event';
   assert not exists(select 1 from public.titan_suspicious_actions where reason='forged'),'no forged sanction signal';
+  assert not exists(select 1 from public.contest_entries where excluded_reason='forged' or user_id=current_setting('titan.cw_p')::uuid and not is_eligible),'no forged contest eligibility';
+  assert not exists(select 1 from public.titan_moderation_reports where reason='forged'),'no pre-resolved report';
+
 end $$;
 rollback;
