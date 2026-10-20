@@ -39,7 +39,7 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 |---|---|---|
 | Contient des publicités (GP04) | **Non** | `adsEnabled` est faux, aucune régie chargée, CSP sans hôte publicitaire. À repasser sur **Oui** avant toute activation (ADS03). |
 | Application gratuite / payante | Gratuite | — |
-| Achats via l'application | **Non** dans l'application Android (la coque `?source=twa` masque l'achat et renvoie vers le site). Les règles de facturation Google Play s'appliquent aux biens numériques vendus dans l'application : **à faire valider avant publication** (voir `docs/ANDROID.md`). | Atelier |
+| Achats via l'application | **Non** dans l'application Android (la coque `?source=twa` masque le bouton et renvoie vers le site ; prouvé par `tests/e2e/twa-no-checkout.e2e.mjs`). **Risque à trancher avant publication** : TITAN+ est un abonnement numérique. Les règles Google sur les paiements changent en 2026 et varient selon la région (programmes « Alternative Billing » et « External Content Links » aux États-Unis, régimes distincts dans l'EEE et au Royaume-Uni, frais et déclarations en évolution selon des sources tierces contradictoires). Inviter à payer sur le site depuis l'application peut relever de ces règles. Options : (1) ne rien mentionner du paiement dans l'application Android (aucune note, aucun lien) ; (2) s'inscrire au programme de liens externes de la région ; (3) intégrer Google Play Billing. Décision de Théo, après lecture de la page Google « Payments » à jour (PREM12). | Atelier |
 | Accès à l'application | Compte nécessaire pour la plupart des fonctions ; fournir à Google un compte de test si la revue le demande (créer un compte dédié, ne pas réutiliser un vrai compte). | — |
 | Public cible | 13+ ou 18+ : **décision à prendre** (modération, social, messages). Éviter « moins de 13 ans » (règles familles). | à décider |
 | Application d'actualités / de santé | Non à « actualités ». Santé : l'application n'est pas un dispositif médical et ne donne pas de conseil médical ; déclarer « suivi de forme physique » si le formulaire le propose. | à confirmer |
@@ -78,7 +78,7 @@ Questionnaire IARC : catégorie utilitaire / santé et forme. Réponses probable
 
 ## 7. Test fermé obligatoire (GP07 — à vérifier)
 
-Pour les comptes **personnels créés récemment**, Google exigeait un test fermé avec un nombre minimal de testeurs pendant une durée minimale avant de pouvoir demander l'accès à la production (chiffres connus : 12 testeurs, 14 jours — **à revérifier dans la console**, la règle évolue). Les comptes d'organisation n'y sont pas soumis. Conséquence pratique : recruter les testeurs et lancer le test fermé le plus tôt possible, car cela ne dépend pas du code.
+Pour les comptes **personnels créés après le 13 novembre 2023**, l'aide Google exige un test fermé avec **au moins 12 testeurs inscrits en continu pendant au moins 14 jours** avant de pouvoir demander l'accès à la production (page d'aide Play Console « 14151465 », consultée le 20/10/2026 ; des guides tiers ajoutent que le compteur repart de zéro si le nombre de testeurs passe sous 12 : non confirmé par Google, à surveiller). Production et pré-enregistrement restent désactivés tant que la condition n'est pas remplie. Les comptes d'organisation n'y sont pas soumis. Conséquence pratique : recruter les testeurs et lancer le test fermé le plus tôt possible, car cela ne dépend pas du code.
 
 ## 8. Ce qui reste humain
 
