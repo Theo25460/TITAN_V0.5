@@ -31,7 +31,7 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 - **Coordonnées** : e-mail de contact public (à fournir par Théo), site `https://titan-app.fr`.
 - **Politique de confidentialité** : `https://titan-app.fr/legal_privacy` — doit être publique, sans connexion, et cohérente avec la section Sécurité des données ci-dessous.
 - **Suppression de compte** (formulaire « Suppression de compte » de la console) : suppression depuis l'application (Profil › Supprimer mon compte) ; URL web à renseigner : `https://titan-app.fr/supprimer-mon-compte` (page publique créée le 20/10/2026 : marche à suivre dans l'application, demande par e-mail depuis l'adresse du compte si l'accès est perdu, ce qui est effacé et conservé avec ses durées). **Elle n'est vraie qu'une fois la migration 25 appliquée en production** : ne la soumettre à Google qu'après.
-- **Visuels** (GP03, à produire à partir de l'application réelle) : icône 512×512 (`image/logo-512.png`), image de présentation 1024×500, captures téléphone (2 à 8, 16:9 ou 9:16, côté 320–3 840 px). Le dépôt ne contient pas encore de captures Play : à faire sur l'appli installée.
+- **Visuels** (GP03) : générés depuis l'application réelle, avec des données synthétiques, dans `docs/play-store/` (6 captures téléphone 1080×1920 et l'image de présentation 1024×500, détail dans `docs/play-store/README.md`). Régénérer : `node tools/build-public.mjs && node tools/play-screenshots.mjs`. Icône 512×512 : `image/logo-512.png`. **Reste à faire par Théo** : les téléverser dans la Play Console (fiche principale) ; produire des captures tablette seulement si la fiche tablette est voulue (non générées).
 
 ## 3. Déclarations de l'application
 
