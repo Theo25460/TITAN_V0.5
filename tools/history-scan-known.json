@@ -1,0 +1,19 @@
+{
+  "known": [
+    {
+      "blob": "44fabdf9f2",
+      "kind": "server secret assigned a literal",
+      "reason": "Trial Android workflow, commit ec1036d: a throwaway keystore password written in clear (titan-throwaway-not-a-secret) for a key generated on the CI runner and discarded; it protected nothing and never signed a published build. The workflow now draws a random masked password per run. Reviewed 20/10/2026."
+    },
+    {
+      "blob": "65a732aa41",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex on 21/10/2026: false positive in a separate branch workflow, line 122. Shell parameter expansion references existing environment variables with a fallback; no credential literal. Exact content hash only; the Android branch is not integrated into WEB."
+    },
+    {
+      "blob": "5c3e70420d",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex on 21/10/2026: false positive in a separate branch workflow, line 122. Shell parameter expansion references existing environment variables with a fallback; no credential literal. Exact content hash only; the Android branch is not integrated into WEB."
+    }
+  ]
+}

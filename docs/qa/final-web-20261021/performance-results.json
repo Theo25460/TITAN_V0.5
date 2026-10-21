@@ -1,0 +1,293 @@
+{
+  "scope": "Historical initial union a74e3b4 app tree f8de10d; local static copy, Lighthouse12.8.2, Chromium141, third parties blocked. Not production or final candidate signoff.",
+  "runs": [
+    {
+      "run": "accueil-desktop-run1",
+      "url": "http://127.0.0.1:4187/",
+      "score": 99,
+      "lcp_ms": 754,
+      "tbt_ms": 31,
+      "cls": 0.0002,
+      "benchmark": 942.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "accueil-desktop-run2",
+      "url": "http://127.0.0.1:4187/",
+      "score": 71,
+      "lcp_ms": 979,
+      "tbt_ms": 595,
+      "cls": 0.0002,
+      "benchmark": 676.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "accueil-desktop-run3",
+      "url": "http://127.0.0.1:4187/",
+      "score": 95,
+      "lcp_ms": 867,
+      "tbt_ms": 140,
+      "cls": 0.0002,
+      "benchmark": 173,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "accueil-mobile-run1",
+      "url": "http://127.0.0.1:4187/",
+      "score": 73,
+      "lcp_ms": 2663,
+      "tbt_ms": 897,
+      "cls": 0,
+      "benchmark": 453,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "accueil-mobile-run2",
+      "url": "http://127.0.0.1:4187/",
+      "score": 90,
+      "lcp_ms": 2579,
+      "tbt_ms": 257,
+      "cls": 0,
+      "benchmark": 592.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "accueil-mobile-run3",
+      "url": "http://127.0.0.1:4187/",
+      "score": 70,
+      "lcp_ms": 2965,
+      "tbt_ms": 1085,
+      "cls": 0,
+      "benchmark": 734.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "fonctionnalites-desktop-run1",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 100,
+      "lcp_ms": 537,
+      "tbt_ms": 0,
+      "cls": 0.0001,
+      "benchmark": 399,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "fonctionnalites-desktop-run2",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 100,
+      "lcp_ms": 485,
+      "tbt_ms": 60,
+      "cls": 0.0001,
+      "benchmark": 912,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "fonctionnalites-desktop-run3",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 99,
+      "lcp_ms": 554,
+      "tbt_ms": 25,
+      "cls": 0.0001,
+      "benchmark": 34,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "fonctionnalites-mobile-run1",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 98,
+      "lcp_ms": 2151,
+      "tbt_ms": 19,
+      "cls": 0,
+      "benchmark": 371,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "fonctionnalites-mobile-run2",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 27,
+      "lcp_ms": 9960,
+      "tbt_ms": 3705,
+      "cls": 0,
+      "benchmark": 110.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "fonctionnalites-mobile-run3",
+      "url": "http://127.0.0.1:4187/fonctionnalites",
+      "score": 99,
+      "lcp_ms": 2129,
+      "tbt_ms": 0,
+      "cls": 0,
+      "benchmark": 175.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "login-desktop-run1",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 97,
+      "lcp_ms": 1005,
+      "tbt_ms": 0,
+      "cls": 0.0078,
+      "benchmark": 645.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "login-desktop-run2",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 99,
+      "lcp_ms": 774,
+      "tbt_ms": 0,
+      "cls": 0.0126,
+      "benchmark": 810,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "login-desktop-run3",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 99,
+      "lcp_ms": 788,
+      "tbt_ms": 0,
+      "cls": 0.0126,
+      "benchmark": 731,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "login-mobile-run1",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 67,
+      "lcp_ms": 4211,
+      "tbt_ms": 440,
+      "cls": 0.0393,
+      "benchmark": 320.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "login-mobile-run2",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 37,
+      "lcp_ms": 4892,
+      "tbt_ms": 4146,
+      "cls": 0.0393,
+      "benchmark": 280.5,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "login-mobile-run3",
+      "url": "http://127.0.0.1:4187/login",
+      "score": 59,
+      "lcp_ms": 4429,
+      "tbt_ms": 726,
+      "cls": 0.0393,
+      "benchmark": 676,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "tarifs-desktop-run1",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 100,
+      "lcp_ms": 594,
+      "tbt_ms": 56,
+      "cls": 0.0001,
+      "benchmark": 887.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "tarifs-desktop-run2",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 100,
+      "lcp_ms": 612,
+      "tbt_ms": 37,
+      "cls": 0.0001,
+      "benchmark": 302.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "tarifs-desktop-run3",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 98,
+      "lcp_ms": 653,
+      "tbt_ms": 89,
+      "cls": 0.0001,
+      "benchmark": 27.5,
+      "runtime_error": null,
+      "warnings": []
+    },
+    {
+      "run": "tarifs-mobile-run1",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 93,
+      "lcp_ms": 2118,
+      "tbt_ms": 227,
+      "cls": 0,
+      "benchmark": 202,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "tarifs-mobile-run2",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 79,
+      "lcp_ms": 2142,
+      "tbt_ms": 837,
+      "cls": 0,
+      "benchmark": 407,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    },
+    {
+      "run": "tarifs-mobile-run3",
+      "url": "http://127.0.0.1:4187/tarifs",
+      "score": 93,
+      "lcp_ms": 2114,
+      "tbt_ms": 267,
+      "cls": 0,
+      "benchmark": 376,
+      "runtime_error": null,
+      "warnings": [
+        "L'appareil testé semble avoir un processeur plus lent qu'attendu par Lighthouse. Cela peut avoir des répercussions négatives sur votre score lié aux performances. En savoir plus sur le [calibrage d'un multiplicateur de ralentissement de processeur adapté](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)"
+      ]
+    }
+  ]
+}

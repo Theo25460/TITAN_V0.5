@@ -138,6 +138,8 @@
       if (
         !key.startsWith("titan_training_draft_") &&
         !key.startsWith("titan_seance_draft_") &&
+        !key.startsWith("titan_seance_timer_") &&
+        !key.startsWith("titan_onboarding_draft_v1:") &&
         key !== "titan_pending_training_logs_v1" &&
         key !== "titan_guest_device_id_v1" &&
         key !== "titan_guest_imported_v1"
@@ -145,6 +147,29 @@
         localStorage.removeItem(key);
     }
     sessionStorage.clear();
+  };
+  // Drafts kept by titanSafeClearCache: legacy key, then the session draft/timer of js/app/seance.js.
+  root.titanForgetOwnerDrafts = (ownerId) => {
+    for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`, `titan_onboarding_draft_v1:${ownerId}`]) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Blocked storage must not stop the queue and history purge that follows.
+      }
+    }
+    // The legacy pending-session blob is kept by titanSafeClearCache until migrate() moves it to IndexedDB: drop this
+    // owner's entries from it so a later migration cannot bring a deleted account's sessions back. Unreadable content is left alone.
+    try {
+      const raw = localStorage.getItem("titan_pending_training_logs_v1");
+      const old = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(old)) {
+        const kept = old.filter((item) => item && (item.ownerId || "unassigned") !== ownerId);
+        if (kept.length === 0) localStorage.removeItem("titan_pending_training_logs_v1");
+        else if (kept.length !== old.length) localStorage.setItem("titan_pending_training_logs_v1", JSON.stringify(kept));
+      }
+    } catch {
+      // Same rule: storage or content problems never stop the purge.
+    }
   };
   if (!root.indexedDB) return;
   let connection,
@@ -243,11 +268,11 @@
     remove,
     migrate,
     deleteOwner: async (ownerId) => {
+      root.titanForgetOwnerDrafts(ownerId);
       const all = await transaction("readonly", (s) => s.getAll());
       for (const item of all.filter((i) => i.ownerId === ownerId))
         await remove(item.key);
       await transaction("readwrite", (s) => s.delete(ownerId), "history");
-      localStorage.removeItem(`titan_training_draft_${ownerId}`);
     },
     saveHistory: (ownerId, logs) =>
       transaction("readwrite", (s) => s.put({ ownerId, logs }), "history"),
