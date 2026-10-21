@@ -97,3 +97,17 @@ Chaque ligne dépend de la précédente. Les parties techniques sont déjà dans
 7. **Si compte personnel : test fermé** avec au moins 12 testeurs pendant 14 jours (§7). À lancer le plus tôt possible.
 8. **TITAN+ par Google Play** (ADR-004 phase 5), dans l'ordre : créer le produit d'abonnement ; créer le compte de service et lui donner l'accès aux abonnements ; secrets Netlify `PLAY_PRODUCT_IDS`, `PLAY_SERVICE_ACCOUNT_JSON`, `PLAY_RTDN_TOKEN`, `PLAY_PACKAGE_NAME` si différent ; sujet Pub/Sub et abonnement « push » vers `https://titan-app.fr/.netlify/functions/play-notifications?token=<PLAY_RTDN_TOKEN>` ; **appliquer la migration 24 selon le plan de production** ; relire les pages Google officielles (chemins et champs de l'API écrits de mémoire) ; passer `PLAY_BILLING_ENABLED` à `true` et `TITAN_PLAY_BILLING.enabled` à `true` ; essayer avec un compte testeur de licence ; seulement ensuite déclarer les achats dans l'application.
 9. **Production** : demander l'accès (si exigé), publier, puis ajouter le lien Google Play dans Titan et sur le site (GP12, GP13).
+
+
+## 10. Activer le lien Google Play sur le site (GP12 à GP15, SEO09)
+
+Le code est prêt et **éteint** : tant que `tools/data/play-store.json` contient `"url": ""`, aucune page ne contient de lien, de balise ni de script Google Play (un bouton cassé ne peut donc pas partir en ligne, GP13).
+
+Quand la fiche est **publique** et que l'adresse fonctionne :
+
+1. Mettre dans `tools/data/play-store.json` l'adresse exacte `https://play.google.com/store/apps/details?id=fr.titanapp.app` (rien d'autre n'est accepté : ni autre application, ni paramètre).
+2. `node tools/build-public-site.mjs && node tools/build-public-docs.mjs`, relire `git diff`, lancer `pnpm run verify` puis `pnpm run test:e2e`.
+3. Résultat : un lien « Télécharger sur Google Play » dans le pied de page de toutes les pages publiques, la déclaration `MobileApplication` (sans note, avis ni prix inventés) sur l'accueil, et sur un téléphone Android dans un navigateur une fine bande « TITAN existe aussi sur Android » que l'on peut fermer (mémorisé 14 jours). Rien n'apparaît dans l'application Android ni dans une PWA installée (GP14).
+4. Le lien porte `referrer=utm_source=titan-site&utm_medium=web&utm_campaign=<page>` : les installations par page se lisent dans Play Console (acquisition), sans aucune donnée personnelle.
+5. Après la mise en ligne, demander une réindexation dans la Search Console ; Google ne change pas son aperçu instantanément (SEO11).
+6. Le logo officiel « Disponible sur Google Play » est volontairement remplacé par un lien texte : si tu veux le badge, prends-le dans le kit officiel de Google et respecte ses règles d'usage.
