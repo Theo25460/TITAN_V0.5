@@ -79,7 +79,7 @@ jobs:
           "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
           # TITAN a besoin d'Internet, plus de la permission d'achat de Google Play Billing (décision du 21/10/2026 : l'abonnement ne se crée dans
           # Play Console qu'avec un bundle qui la contient ; les achats restent coupés côté application) : toute autre permission doit être justifiée.
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           grep -q "com.android.vending.BILLING" permissions.txt || { echo "::error::la permission com.android.vending.BILLING est absente : Play Console ne débloquera pas les abonnements"; exit 1; }
       - name: Cible et liens d'application de l'APK (AND05, AND09)

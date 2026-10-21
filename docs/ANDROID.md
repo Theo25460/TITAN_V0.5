@@ -43,6 +43,7 @@ Actions › **Android (TWA, essai sans secret)** › *Run workflow* : construit 
 - Règles de confidentialité : `https://titan-app.fr/legal_privacy`.
 - Sécurité des données : e-mail et identifiant (compte), activité sportive saisie (fonction de l'app), statistiques d'usage seulement avec accord ; aucune donnée vendue ni partagée à des fins publicitaires ; suppression du compte depuis l'application.
 - Achats : décision du 21/10/2026 — Paddle est désactivé et aucun paiement n'est proposé sur le web. TITAN+ est « bientôt disponible » ; à son ouverture il s'achètera uniquement dans l'application Android, via Google Play Billing (intégration native activée dans le bundle, achats encore coupés côté application : `TITAN_PLAY_BILLING.enabled` à `false`). Vérifier les règles de facturation Google Play en vigueur avant l'ouverture.
+- Permissions du bundle : Internet, état du réseau, `com.android.vending.BILLING` et `POST_NOTIFICATIONS`. Cette dernière est imposée par Bubblewrap dès que Play Billing est activé (délégation de notifications) ; Android 13+ ne la demande à l'utilisateur que si l'app envoie une notification, ce qu'elle ne fait pas aujourd'. À mentionner dans la fiche Play Console si elle pose la question.
 
 ## Non vérifié ici
 

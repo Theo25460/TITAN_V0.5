@@ -75,7 +75,7 @@ jobs:
         run: |
           aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
           "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           grep -q "com.android.vending.BILLING" permissions.txt || { echo "::error::permission BILLING absente : Play Console ne débloquera pas les abonnements"; exit 1; }
           mkdir -p dex && unzip -o -q app-release-bundle.aab 'base/dex/*.dex' -d dex
