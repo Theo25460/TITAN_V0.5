@@ -389,6 +389,7 @@ const INDEXABLE = [
   ["/legal_cgu", 0.3],
   ["/legal_mentions", 0.3],
   ["/legal_hub", 0.2],
+  ["/regles-communaute", 0.3],
   ["/supprimer-mon-compte", 0.3],
 ];
 // lastmod is optional. Omit it until significant changes can be dated per page;

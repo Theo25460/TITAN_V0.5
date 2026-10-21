@@ -22,7 +22,7 @@ const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexabl
         <div class="pub-wrap"><div class="pub-doc">${body}</div></div>`,
     }),
   );
-const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a><a href="/supprimer-mon-compte">Supprimer mon compte</a></nav>`;
+const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a><a href="/regles-communaute">Règles de la communauté</a><a href="/supprimer-mon-compte">Supprimer mon compte</a></nav>`;
 const table = (head, rows) => `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
 /* ---------------------------------------------------------------- Privacy */
@@ -146,6 +146,42 @@ doc({
 <h2>Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>. Contact RGPD : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
 });
 
+/* ---------------------------------------------------------------- Community rules and moderation (LEG47) */
+doc({
+  route: "/regles-communaute",
+  file: "regles-communaute.html",
+  title: "Règles de la communauté et modération | TITAN",
+  h1: "Règles de la communauté et modération",
+  eyebrow: "Confiance",
+  ref: "Version 1",
+  updated: "21 octobre 2026",
+  description: "Ce qui est interdit dans la communauté TITAN, comment signaler, ce que l’équipe peut décider, ce qui est automatique ou non, et comment contester une décision.",
+  body: `${legalNav}
+<div class="pub-note"><strong>En une phrase.</strong> La communauté TITAN est faite pour s’encourager à bouger. Une personne de l’équipe décide de toute sanction, la motive, et tu peux la contester.</div>
+<h2>Ce qui est interdit</h2>
+<ul><li>Le harcèlement, les menaces et les propos haineux ou discriminatoires.</li><li>Les contenus illégaux.</li><li>L’usurpation d’identité : se faire passer pour une autre personne ou pour l’équipe.</li><li>La fraude et la triche : séances fictives, automatisation, exploitation d’une faille (voir les <a href="/legal_cgu">conditions d’utilisation</a>, article 6).</li><li>Le spam.</li><li>Les informations personnelles de tiers.</li></ul>
+<p>Cela vaut pour ce que tu écris ou choisis d’afficher : nom affiché, Moments, messages de guilde et de discussion, intitulés de défis. Tu peux à tout moment bloquer une personne.</p>
+<h2>Signaler un contenu ou un comportement</h2>
+<p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> en indiquant où tu as vu le problème (espace, date, nom affiché). Une personne de l’équipe lit chaque signalement. TITAN est un projet indépendant : nous ne garantissons pas de délai de réponse, et un signalement abusif peut lui-même être sanctionné.</p>
+<h2>Ce que l’équipe peut décider</h2>
+${table(["Mesure", "Ce qu’elle change", "Ce qu’elle ne change pas"], [
+  ["Retirer ou masquer un contenu", "Le message ou le contenu signalé n’est plus visible des autres.", "Ton compte."],
+  ["Demander une vérification", "Une alerte s’affiche dans TITAN ; tu lis la demande et tu réponds une fois depuis la page <a href=\"/recours\">Recours</a>.", "Rien d’automatique : répondre ne déclenche aucune sanction."],
+  ["Mettre une séance à l’écart", "La séance reste dans ton journal mais ne compte plus dans les classements ni les récompenses compétitives.", "Les XP et crédits déjà acquis."],
+  ["Suspendre le compte", "Tu ne peux plus enregistrer de séance ni acheter. Aucune durée n’est fixée d’avance : la suspension dure jusqu’à ce que l’équipe la lève, par exemple après un recours accepté.", "Ta progression, tes données et ton droit d’exporter ou de supprimer ton compte."],
+  ["Bloquer le compte", "Réservé aux cas graves, décidé par une personne de l’équipe.", "Tes droits sur tes données."],
+])}
+<h2>Ce qui est automatique, et ce qui ne l’est pas</h2>
+<p>Un calcul automatique repère des séances inhabituelles (par exemple une vitesse impossible, deux séances qui se chevauchent ou une fréquence hors norme). Il sert à <strong>classer les comptes à examiner</strong> et à expliquer pourquoi, point par point, à la personne qui les examine. Il peut aussi <strong>retenir au plus 24 heures</strong> les XP et crédits d’une séance à risque élevé : sans décision de l’équipe, ils sont crédités ensuite, et rien de ce qui est déjà acquis n’est jamais repris. Ce calcul peut se tromper.</p>
+<p>Il ne suspend ni ne bloque aucun compte. Toute suspension, tout blocage et toute mise à l’écart d’une séance sont décidés par une personne, avec un motif écrit, enregistrés avec son auteur et annulables.</p>
+<h2>Contester une décision</h2>
+<p>Si une séance est mise à l’écart ou si ton compte est suspendu, ouvre la page <a href="/recours">Recours</a> (connecté) et explique ce qui s’est passé, entre 10 et 500 caractères. Une personne de l’équipe relit ta demande et te répond avec une note que tu peux lire. Tu peux avoir cinq recours en attente ; après un refus, un nouveau recours sur le même objet est possible au bout de 7 jours. Accepter un recours lève la mise à l’écart ou la suspension.</p>
+<h2>Combien de temps c’est conservé</h2>
+<p>Les décisions de modération et les recours tranchés sont conservés 24 mois, sans ton identité si tu as supprimé ton compte (voir <a href="/legal_privacy">confidentialité</a> et <a href="/supprimer-mon-compte">suppression du compte</a>).</p>
+<h2>Autres recours</h2>
+<p>Tu peux aussi écrire à <a href="mailto:${SUPPORT}">${SUPPORT}</a>, ou introduire une réclamation auprès de la CNIL (cnil.fr) pour tes données personnelles.</p>`,
+});
+
 /* ---------------------------------------------------------------- Account deletion (public, required by Google Play) */
 doc({
   route: "/supprimer-mon-compte",
@@ -194,7 +230,7 @@ ${cards([
   ["eye", "Pas de publicité", "Aucun script publicitaire, aucune revente de données."],
   ["download", "Tes données, à toi", "Export JSON et CSV, suppression du compte en un geste depuis Profil."],
 ], 2)}
-<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li><li><a href="/supprimer-mon-compte">Supprimer mon compte</a> — comment, et ce qui est effacé ou conservé.</li></ul>
+<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li><li><a href="/regles-communaute">Règles de la communauté</a> — ce qui est interdit, comment signaler, ce que l’équipe peut faire, comment contester.</li><li><a href="/supprimer-mon-compte">Supprimer mon compte</a> — comment, et ce qui est effacé ou conservé.</li></ul>
 <h2>Nous écrire</h2><p>Question, demande RGPD, signalement d’un contenu ou d’une faille : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
 });
 
