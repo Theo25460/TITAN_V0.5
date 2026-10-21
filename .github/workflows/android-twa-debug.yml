@@ -46,13 +46,19 @@ jobs:
           # Same type and size as the real upload key (PKCS12, RSA 4096), so this trial proves the real key format works with Bubblewrap.
           keytool -genkeypair -keystore android.keystore -storetype PKCS12 -alias titan -keyalg RSA -keysize 4096 -validity 30 \
             -storepass "$THROWAWAY_PASSWORD" -keypass "$THROWAWAY_PASSWORD" -dname "CN=TITAN essai, O=TITAN, C=FR"
-          # Bubblewrap downloads the icons from the deployed site: an icon added in this branch but not published yet falls
-          # back to the published launcher icon for this trial only (the warning names it).
+          # Bubblewrap downloads the icons from the deployed site. An icon added in this branch and not published yet is served from this
+          # checkout on the runner instead (the warning names it): the launcher icons built into the app are then the real ones.
           for key in iconUrl maskableIconUrl; do
             url=$(node -e "console.log(require('./twa-manifest.json').$key)")
             if ! curl -fsI "$url" > /dev/null; then
-              echo "::warning::$key $url is not published yet: using the published launcher icon for this trial"
-              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='https://titan-app.fr/image/logo-512.png';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+              file=$(basename "$url")
+              test -f "../image/$file" || { echo "::error::$key $url is not published and ../image/$file does not exist"; exit 1; }
+              if ! curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1; then
+                (cd ../image && nohup python3 -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &)
+                for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1 && break; sleep 1; done
+              fi
+              echo "::warning::$key $url is not published yet: using ../image/$file from this checkout"
+              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='http://127.0.0.1:8765/$file';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
             fi
           done
           # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.

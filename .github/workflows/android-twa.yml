@@ -44,6 +44,21 @@ jobs:
           test -n "$KEYSTORE_B64" || { echo "Secret ANDROID_KEYSTORE_BASE64 manquant (voir docs/ANDROID.md)"; exit 1; }
           echo "$KEYSTORE_B64" | base64 --decode > android.keystore
           node -e "const f='twa-manifest.json';const m=require('./'+f);m.appVersionCode=Number('${{ inputs.version_code }}');m.appVersionName=m.appVersion='${{ inputs.version_name }}';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+          # Bubblewrap downloads the icons from the deployed site. An icon added in this branch and not published yet is served from this
+          # checkout on the runner instead (the warning names it): the launcher icons built into the app are then the real ones.
+          for key in iconUrl maskableIconUrl; do
+            url=$(node -e "console.log(require('./twa-manifest.json').$key)")
+            if ! curl -fsI "$url" > /dev/null; then
+              file=$(basename "$url")
+              test -f "../image/$file" || { echo "::error::$key $url is not published and ../image/$file does not exist"; exit 1; }
+              if ! curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1; then
+                (cd ../image && nohup python3 -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &)
+                for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1 && break; sleep 1; done
+              fi
+              echo "::warning::$key $url is not published yet: using ../image/$file from this checkout"
+              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='http://127.0.0.1:8765/$file';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+            fi
+          done
           # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.
           cmdline=$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/* | sort -V | tail -1)
           sudo mkdir -p "$ANDROID_SDK_ROOT/tools" && sudo ln -sfn "$cmdline/bin" "$ANDROID_SDK_ROOT/tools/bin"
