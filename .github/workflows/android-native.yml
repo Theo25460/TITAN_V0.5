@@ -35,6 +35,11 @@ on:
         required: false
         default: true
         type: boolean
+      e2e_post_migrations:
+        description: "Rejouer aussi le parcours sur une réplique où les migrations de la candidate Web (PR #115) sont déjà appliquées"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -181,13 +186,25 @@ jobs:
           if-no-files-found: error
 
   e2e:
-    name: Parcours réel sur émulateur Android (réplique locale du backend)
+    name: Parcours réel sur émulateur Android (réplique locale du backend, schéma ${{ matrix.schema }})
     needs: checks
     if: github.event_name != 'workflow_dispatch' || inputs.e2e
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # "production" = what is live today; "after-migrations" = the same plus the pending migrations of the Web candidate.
+        schema: ${{ fromJSON(inputs.e2e_post_migrations && '["production","after-migrations"]' || '["production"]') }}
     steps:
       - uses: actions/checkout@v4
+      - name: Migrations de la candidate Web (PR #115)
+        if: matrix.schema == 'after-migrations'
+        uses: actions/checkout@v4
+        with:
+          ref: codex/final-web-rc-20261021
+          path: web-rc
+          sparse-checkout: supabase/migrations
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -209,6 +226,8 @@ jobs:
           restore-keys: gradle-${{ runner.os }}-
       - run: npm ci
       - name: Réplique locale du backend (structure de production + migrations, comptes de test)
+        env:
+          E2E_PENDING_MIGRATIONS_DIR: ${{ matrix.schema == 'after-migrations' && format('{0}/web-rc/supabase/migrations', github.workspace) || '' }}
         run: e2e/setup-backend.sh
       - name: Application de test (x86_64, pointe vers la réplique locale)
         env:
@@ -246,6 +265,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: titan-android-e2e-preuves
+          name: titan-android-e2e-preuves-${{ matrix.schema }}
           path: e2e-out/
           retention-days: 30

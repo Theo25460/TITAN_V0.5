@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Local replica of the TITAN production backend for the emulator tests (CI only, never touches the real project):
 # Supabase stack (Postgres 17, GoTrue, PostgREST, Kong) + production structure snapshot (tools/db/baseline) +
-# the same migrations as production up to 20261005230000. Writes the API keys to $GITHUB_ENV.
+# the same migrations as production up to 20261005230000 (plus, on request, the pending ones). Writes the API keys to $GITHUB_ENV.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="${RUNNER_TEMP:-/tmp}/titan-supabase"
@@ -23,6 +23,15 @@ for f in "$ROOT"/supabase/migrations/*.sql; do
   [[ "$v" < "20261005150000" || "$v" > "$PROD_HEAD" ]] && continue
   echo "  · $(basename "$f")"; psql_ -f "$f"
 done
+# Optional: also apply the migrations that are NOT in production yet (the Web candidate's), to prove the app still works after them.
+if [ -n "${E2E_PENDING_MIGRATIONS_DIR:-}" ]; then
+  echo "Pending migrations of the Web candidate (after the production head)"
+  for f in "$E2E_PENDING_MIGRATIONS_DIR"/*.sql; do
+    v="$(basename "$f" | cut -d_ -f1)"
+    [[ "$v" > "$PROD_HEAD" ]] || continue
+    echo "  · $(basename "$f")"; psql_ -f "$f"
+  done
+fi
 psql_ -c "notify pgrst, 'reload schema';"
 sleep 2
 
