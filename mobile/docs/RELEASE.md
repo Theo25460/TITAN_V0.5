@@ -1,5 +1,7 @@
 # Publier TITAN Android sur Google Play
 
+> **Marche à suivre détaillée et à jour : [`PUBLIER_PLAY_CONSOLE.md`](PUBLIER_PLAY_CONSOLE.md).** Cette page reste la référence technique de la clé et du build.
+
 Application : **fr.titanapp.app** (fiche Play existante). La TWA de test interne utilisait `versionCode 300` : l'application
 native part de **1000** et chaque build CI augmente (`1000 + numéro d'exécution`, ou valeur saisie au lancement manuel).
 

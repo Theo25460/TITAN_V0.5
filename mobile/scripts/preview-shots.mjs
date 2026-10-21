@@ -8,6 +8,10 @@ import { createRequire } from "node:module";
 import { extname, join, resolve } from "node:path";
 
 const [dist, out, ...only] = process.argv.slice(2);
+// PLAY_STORE=1: 1080×2160 phone screenshots (Play Console accepts at most a 2:1 ratio); otherwise 412×915 dp at density 2.
+const PLAY = process.env.PLAY_STORE === "1";
+const VIEW = PLAY ? { width: 412, height: 824 } : { width: 412, height: 915 };
+const DSF = PLAY ? 1080 / 412 : 2;
 if (!dist || !out) throw new Error("usage: preview-shots.mjs <exportDir> <outDir> [Screen ...]");
 // Playwright lives in the website's dev dependencies (repository root).
 const require = createRequire(resolve(process.cwd(), "../package.json"));
@@ -37,7 +41,7 @@ const errors = [];
 for (const spec of only.length ? only : SCREENS) {
   // "Screen|click=Visible text" taps that text first (e.g. to show a confirmation or a reward).
   const [screen, click] = spec.split("|click=");
-  const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: DSF });
   page.on("pageerror", (e) => errors.push(`${screen}: ${e.message}`));
   await page.goto(`http://127.0.0.1:${port}/#${screen}`);
   await page.waitForSelector("body[data-preview-ready]", { timeout: 20000 }).catch(() => errors.push(`${screen}: not ready`));
@@ -48,10 +52,12 @@ for (const spec of only.length ? only : SCREENS) {
   }
   const name = (screen + (click ? `-${click.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 20)}` : "")).replace(/[?&=]/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
   await page.screenshot({ path: join(out, `${name}.png`) });
-  // The whole screen too (tall viewport), so below-the-fold content is reviewed.
-  await page.setViewportSize({ width: 412, height: 2400 });
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: join(out, `${name}-long.png`) });
+  if (!PLAY) {
+    // The whole screen too (tall viewport), so below-the-fold content is reviewed.
+    await page.setViewportSize({ width: 412, height: 2400 });
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: join(out, `${name}-long.png`) });
+  }
   await page.close();
 }
 await browser.close();
