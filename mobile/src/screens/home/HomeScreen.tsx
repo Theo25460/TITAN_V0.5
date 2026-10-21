@@ -19,6 +19,7 @@ import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
+import { useAfterPaint } from "../../lib/deferred";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
@@ -45,7 +46,9 @@ export function HomeScreen() {
     [active, goals.data, prefs, adventure.data, queue.items, planToday],
   );
   const action = useMemo(() => Progress.nextAction(ctx), [ctx]);
-  const insights = useMemo(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]);
+  // The secondary markers sit below the fold and cost as much as the main action (nextAction calls insights itself):
+  // they are computed once the first frame is on screen.
+  const insights = useAfterPaint(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]) ?? [];
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const week = useMemo(() => Progress.summarize(Progress.weekLogs(active, new Date())), [active]);
 
