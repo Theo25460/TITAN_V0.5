@@ -25,6 +25,7 @@ export type SessionDraft = {
   climbing: ClimbingDraft;
   rpe: number | null;
   note: string;
+  gpx?: { movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; points: number } | null;
 };
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
@@ -131,6 +132,10 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     data.val1 = km ?? undefined;
     const elev = num(d.elevation);
     if (elev !== null) data.elevation = Math.min(12000, Math.max(0, elev));
+    if (d.gpx) {
+      data.hasGpx = true;
+      data.gpxStats = { movingMinutes: d.gpx.movingMinutes || 0, elapsedMinutes: d.gpx.elapsedMinutes || 0, ascent: d.gpx.ascent || 0, descent: d.gpx.descent || 0, points: d.gpx.points || 0 };
+    }
   } else if (form === "swim") {
     const m = num(d.meters);
     if (!(m !== null && m > 0)) fail("Indique la distance nagée.", "meters");
@@ -277,6 +282,16 @@ export function sanitizeDetails(details: SessionDetails, sport: string, now = Da
   out.note = String(details.note || "").replace(/\s+/g, " ").trim().slice(0, noteLimit(plus));
   out.tags = [];
   out.extras = sanitizeExtras(details.extras, sport);
+  if (details.gpxStats) {
+    const clamp = (v: unknown, max: number) => Math.max(0, Math.min(toNumber(v, 0), max));
+    out.gpxStats = {
+      movingMinutes: clamp(details.gpxStats.movingMinutes, 1440),
+      elapsedMinutes: clamp(details.gpxStats.elapsedMinutes, 1440),
+      ascent: clamp(details.gpxStats.ascent, 12000),
+      descent: clamp(details.gpxStats.descent, 12000),
+      points: Math.min(parseInt(String(details.gpxStats.points || 0), 10) || 0, plus ? 900 : 320),
+    };
+  }
   return out;
 }
 

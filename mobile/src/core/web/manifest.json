@@ -14,6 +14,7 @@
     "renaissance-engine.js": "d8063fdbb3a11cedeb41e50710fc954955302d3dda598f97c892c00299c0979b",
     "campaign-quests.js": "28fc3d4f3c956014ce729f5bd24449d05717e7edd1a13576f43dd60bcdd599d5",
     "campaign-encounters.js": "da166444603fa30f68a6e7f580833a977642e21bd14818e3b4bfd8eef09a6734",
-    "sport-navigation.js": "162ddec28dcfc6438e683b184832a6d034c771d659dd457f2013438064449ab4"
+    "sport-navigation.js": "162ddec28dcfc6438e683b184832a6d034c771d659dd457f2013438064449ab4",
+    "gpx.js": "9f3606092348b779f18dc08487f2bac920d0abe2059096da28055778dfec33e4"
   }
 }

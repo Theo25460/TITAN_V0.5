@@ -1,4 +1,6 @@
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { usePreventRemove } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -14,7 +16,7 @@ import { Section } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { EffortRules, Format, Sports } from "../../core";
+import { EffortRules, Format, Gpx, Sports } from "../../core";
 import { BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
@@ -154,6 +156,32 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     });
   }
 
+  /** GPX import, same analysis as the website (distance, moving time, ascent with 3 m hysteresis, glitches ignored). */
+  async function importGpx() {
+    try {
+      const pick = await DocumentPicker.getDocumentAsync({ type: ["application/gpx+xml", "application/xml", "text/xml", "application/octet-stream"], copyToCacheDirectory: true });
+      if (pick.canceled || !pick.assets?.[0]) return;
+      const file = pick.assets[0];
+      if ((file.size ?? 0) > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+      const r = Gpx.analyse(await FileSystem.readAsStringAsync(file.uri));
+      if (!r.ok) return toast({ kind: "warn", title: "GPX illisible", message: r.error });
+      const mins = r.movingMinutes || r.elapsedMinutes;
+      const secs = mins ? Math.round(mins * 60) : 0;
+      const start = r.start ? new Date(r.start) : null;
+      setDraft((d) => ({
+        ...d,
+        gpx: { movingMinutes: r.movingMinutes, elapsedMinutes: r.elapsedMinutes, ascent: r.ascent, descent: r.descent, points: r.points },
+        distance: String(r.distanceKm).replace(".", ","),
+        ...(secs ? { durH: secs >= 3600 ? String(Math.floor(secs / 3600)) : "", durM: String(Math.floor((secs % 3600) / 60)), durS: secs % 60 ? String(secs % 60) : "" } : {}),
+        ...(r.ascent ? { elevation: String(r.ascent) } : {}),
+        ...(start && start.getTime() <= Date.now() ? { when: "other" as const, date: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`, time: `${pad(start.getHours())}:${pad(start.getMinutes())}` } : {}),
+      }));
+      toast({ kind: "ok", title: "Trace importée", message: `${Format.distance(r.distanceKm)} · ${r.points} points${r.ignoredPoints ? `, ${r.ignoredPoints} aberrants ignorés` : ""}.` });
+    } catch {
+      toast({ kind: "warn", title: "GPX illisible", message: "Le fichier n’a pas pu être lu. Réessaie." });
+    }
+  }
+
   async function save() {
     if (record.isPending) return;
     const b = buildSession(draft);
@@ -251,6 +279,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
+            <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
             <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
             {durationBlock("Durée", true)}
             {km && dur ? (

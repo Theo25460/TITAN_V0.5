@@ -17,6 +17,7 @@ require("./web/renaissance-engine.js");
 require("./web/campaign-quests.js");
 require("./web/campaign-encounters.js");
 require("./web/sport-navigation.js");
+require("./web/gpx.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,3 +140,6 @@ export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; 
 export const AdventureRules = g.TitanAdventure as { weeklyQuests(logs: TrainingLog[], goal?: number, now?: Date): { id: string; name: string; text: string; value: number; target: number; unit: string; icon: string; href: string }[] };
 
 export const CampaignEncounters = g.TitanCampaignEncounters as { describe(c: unknown, progress: CampaignProgress): unknown };
+
+export type GpxResult = { ok: true; points: number; ignoredPoints: number; distanceKm: number; movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; start: string | null } | { ok: false; error: string; points: number };
+export const Gpx = g.TitanGpx as { analyse(text: string): GpxResult };

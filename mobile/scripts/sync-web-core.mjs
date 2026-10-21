@@ -26,6 +26,7 @@ export const MODULES = [
   "js/core/campaign-quests.js",
   "js/core/campaign-encounters.js",
   "js/core/sport-navigation.js",
+  "js/core/gpx.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };
