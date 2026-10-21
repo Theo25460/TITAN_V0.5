@@ -73,7 +73,7 @@ export function PlanScreen() {
           </View>
         </Card>
         <Card tone="flat" style={{ gap: space.s2 }}>
-          <T variant="bodyStrong">{paused ? "Cette semaine est en pause" : "Semaine difficile ?"}</T>
+          <T variant="bodyStrong">{paused ? "Cette semaine est en pause" : "Semaine difficile ?"}</T>
           <T variant="small">Vacances, blessure, imprévu : une semaine en pause sort de ta cadence au lieu de compter comme manquée.</T>
           <Button small kind="secondary" label={paused ? "Reprendre cette semaine" : "Mettre cette semaine en pause"} disabled={!online} onPress={() => persist({ cadencePauses: paused ? prefs.cadencePauses.filter((p) => p !== thisWeek) : [...prefs.cadencePauses, thisWeek].slice(-52) }, paused ? "Semaine reprise" : "Semaine en pause")} />
         </Card>

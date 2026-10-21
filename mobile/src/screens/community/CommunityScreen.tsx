@@ -178,7 +178,7 @@ export function CommunityScreen() {
                     <>
                       <Chip label={`${m.cheers} encouragement${m.cheers > 1 ? "s" : ""}`} icon="heart" />
                       <View style={{ flex: 1 }} />
-                      <Tap onPress={() => Alert.alert("Retirer ce moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
+                      <Tap onPress={() => Alert.alert("Retirer ce moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
                         <Icon name="trash" size={18} color={colors.tx3} />
                       </Tap>
                     </>
@@ -306,7 +306,7 @@ function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; o
           </Card>
         ))}
       </Section>
-      <Button kind="ghost" label="Quitter la guilde" onPress={() => Alert.alert("Quitter la guilde ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Quitter", style: "destructive", onPress: () => onAct("gl", () => api.guildLeave(), "Guilde quittée") }])} />
+      <Button kind="ghost" label="Quitter la guilde" onPress={() => Alert.alert("Quitter la guilde ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Quitter", style: "destructive", onPress: () => onAct("gl", () => api.guildLeave(), "Guilde quittée") }])} />
     </>
   );
 }

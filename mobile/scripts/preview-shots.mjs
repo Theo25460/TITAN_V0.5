@@ -14,7 +14,7 @@ const require = createRequire(resolve(process.cwd(), "../package.json"));
 const { chromium } = require("playwright");
 
 export const SCREENS = [
-  "Welcome", "Login", "Signup", "Onboarding",
+  "Welcome", "Login", "Signup", "Onboarding&state=new",
   "QG", "QG&state=empty", "Progress", "Progress&state=empty", "Record", "SessionForm?sport=running", "SessionForm?sport=muscu_gym",
   "SessionResult?eventId=record", "SessionResult?eventId=levelup", "SessionDetail?id=p0000000-0000-4000-8000-000000000001",
   "Journal", "Records", "Goals", "Plan",

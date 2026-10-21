@@ -8,7 +8,8 @@ export const AUTH_SCREENS = ["Welcome", "Login", "Signup", "Forgot"];
 export const previewState = {
   route: (route.split("&")[0] || "QG") as string,
   params: params as Record<string, string>,
-  empty: state === "empty",
+  empty: state === "empty" || state === "new",
+  fresh: state === "new", // account never onboarded
   loading: state === "loading",
   signedOut: AUTH_SCREENS.includes(route.split("&")[0]),
 };

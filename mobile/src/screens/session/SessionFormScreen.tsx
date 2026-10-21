@@ -103,7 +103,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   // Android back: leaving keeps the draft on the device; say so instead of losing the input silently.
   usePreventRemove(dirty.current, ({ data }) => {
     if (saved.current) return navigation.dispatch(data.action);
-    Alert.alert("Quitter la saisie ?", "Ton brouillon reste sur ce téléphone : tu pourras le reprendre depuis l’onglet Séance.", [
+    Alert.alert("Quitter la saisie ?", "Ton brouillon reste sur ce téléphone : tu pourras le reprendre depuis l’onglet Séance.", [
       { text: "Continuer la saisie", style: "cancel" },
       { text: "Quitter", onPress: () => navigation.dispatch(data.action) },
     ]);

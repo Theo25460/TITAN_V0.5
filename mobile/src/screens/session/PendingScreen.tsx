@@ -58,7 +58,7 @@ export function PendingScreen() {
                   label="Supprimer"
                   style={{ flex: 1 }}
                   onPress={() =>
-                    Alert.alert("Supprimer cette séance ?", "Elle n’a pas été envoyée : elle disparaîtra définitivement de ce téléphone.", [
+                    Alert.alert("Supprimer cette séance ?", "Elle n’a pas été envoyée : elle disparaîtra définitivement de ce téléphone.", [
                       { text: "Garder", style: "cancel" },
                       { text: "Supprimer", style: "destructive", onPress: () => discard(owner, i.key) },
                     ])

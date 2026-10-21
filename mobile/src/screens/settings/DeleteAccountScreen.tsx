@@ -54,7 +54,7 @@ export function DeleteAccountScreen() {
       {queue.items.length ? <T variant="small" tone="warn">{Format.plural(queue.items.length, "séance non envoyée sera aussi effacée", "séances non envoyées seront aussi effacées")} de ce téléphone.</T> : null}
       <Field label="Pour confirmer, écris SUPPRIMER" value={confirm} onChangeText={setConfirm} autoCapitalize="characters" autoCorrect={false} />
       {error ? <T variant="small" tone="err" accessibilityRole="alert">{error}</T> : null}
-      <Button kind="danger" label="Supprimer mon compte" icon="trash" loading={busy} disabled={!online || confirm.trim().toUpperCase() !== "SUPPRIMER"} onPress={() => Alert.alert("Dernière confirmation", "Supprimer définitivement ton compte TITAN ?", [{ text: "Annuler", style: "cancel" }, { text: "Supprimer", style: "destructive", onPress: run }])} />
+      <Button kind="danger" label="Supprimer mon compte" icon="trash" loading={busy} disabled={!online || confirm.trim().toUpperCase() !== "SUPPRIMER"} onPress={() => Alert.alert("Dernière confirmation", "Supprimer définitivement ton compte TITAN ?", [{ text: "Annuler", style: "cancel" }, { text: "Supprimer", style: "destructive", onPress: run }])} />
       {!online ? <T variant="caption" tone="warn">La suppression demande une connexion.</T> : null}
       <View>
         <Button kind="ghost" label="Une question avant ? Écrire à l’équipe" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("TITAN — Suppression de compte")}`)} />

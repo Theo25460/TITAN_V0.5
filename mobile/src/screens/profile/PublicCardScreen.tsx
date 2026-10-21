@@ -76,7 +76,7 @@ export function PublicCardScreen() {
                   kind="secondary"
                   label="Nouveau lien"
                   disabled={!online || busy}
-                  onPress={() => Alert.alert("Créer un nouveau lien ?", "L’ancien lien cessera immédiatement de fonctionner.", [{ text: "Annuler", style: "cancel" }, { text: "Nouveau lien", onPress: () => update(true, c.show, true) }])}
+                  onPress={() => Alert.alert("Créer un nouveau lien ?", "L’ancien lien cessera immédiatement de fonctionner.", [{ text: "Annuler", style: "cancel" }, { text: "Nouveau lien", onPress: () => update(true, c.show, true) }])}
                   style={{ flex: 1 }}
                 />
               </View>

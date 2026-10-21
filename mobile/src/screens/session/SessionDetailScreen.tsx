@@ -40,7 +40,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   function archive() {
     if (!log) return;
     const toArchive = !log.archived_at;
-    Alert.alert(toArchive ? "Archiver cette séance ?" : "Restaurer cette séance ?", toArchive ? "Elle quitte ton journal et tes statistiques. L’XP déjà gagnée reste acquise. Tu peux la restaurer depuis le journal." : "Elle revient dans ton journal et tes statistiques.", [
+    Alert.alert(toArchive ? "Archiver cette séance ?" : "Restaurer cette séance ?", toArchive ? "Elle quitte ton journal et tes statistiques. L’XP déjà gagnée reste acquise. Tu peux la restaurer depuis le journal." : "Elle revient dans ton journal et tes statistiques.", [
       { text: "Annuler", style: "cancel" },
       {
         text: toArchive ? "Archiver" : "Restaurer",

@@ -40,7 +40,7 @@ export function ProfileScreen() {
   function logout() {
     const pending = queue.items.length;
     Alert.alert(
-      "Se déconnecter ?",
+      "Se déconnecter ?",
       pending ? `${Format.plural(pending, "séance n’a", "séances n’ont")} pas encore été ${pending > 1 ? "envoyées" : "envoyée"}. Elles restent sur ce téléphone et partiront à ta prochaine connexion avec ce compte.` : "Tes données restent sur ton compte TITAN. Les informations affichées sur ce téléphone seront effacées.",
       [
         { text: "Annuler", style: "cancel" },

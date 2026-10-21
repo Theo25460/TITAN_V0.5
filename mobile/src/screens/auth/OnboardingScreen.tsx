@@ -71,7 +71,7 @@ export function OnboardingScreen() {
             <T variant="eyebrow" tone="accent">
               1 · Tes sports
             </T>
-            <T variant="h1">Qu’est-ce que tu pratiques ?</T>
+            <T variant="h1">Qu’est-ce que tu pratiques ?</T>
             <T tone="muted">Choisis jusqu’à 5 sports. Ils seront en tête quand tu enregistres une séance.</T>
             <SportSearch onPick={toggle} selected={picked} />
             <SportGrid ids={popular} selected={picked} onPick={toggle} />
@@ -85,7 +85,7 @@ export function OnboardingScreen() {
             <T variant="eyebrow" tone="accent">
               2 · Ton rythme
             </T>
-            <T variant="h1">Combien de jours actifs par semaine ?</T>
+            <T variant="h1">Combien de jours actifs par semaine ?</T>
             <T tone="muted">C’est ta cadence. Une semaine où tu l’atteins est une semaine tenue. Pas de série à casser : une semaine calme ne t’enlève rien.</T>
             <View style={styles.targets} accessibilityRole="radiogroup">
               {[1, 2, 3, 4, 5, 6, 7].map((n) => (

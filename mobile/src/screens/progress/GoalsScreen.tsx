@@ -94,7 +94,7 @@ export function GoalsScreen() {
   }
 
   function toggleArchive(g: Goal) {
-    Alert.alert(g.archived_at ? "Restaurer cet objectif ?" : "Archiver cet objectif ?", g.archived_at ? "Il revient dans tes objectifs en cours." : "Il quitte la liste et reste dans les archives, avec sa progression.", [
+    Alert.alert(g.archived_at ? "Restaurer cet objectif ?" : "Archiver cet objectif ?", g.archived_at ? "Il revient dans tes objectifs en cours." : "Il quitte la liste et reste dans les archives, avec sa progression.", [
       { text: "Annuler", style: "cancel" },
       {
         text: g.archived_at ? "Restaurer" : "Archiver",

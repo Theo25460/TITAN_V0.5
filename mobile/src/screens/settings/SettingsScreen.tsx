@@ -42,7 +42,7 @@ export function SettingsScreen() {
           onPress={
             online
               ? () =>
-                  Alert.alert("Actualiser les données ?", "Les données affichées sont rechargées depuis ton compte. Les séances en attente restent sur ce téléphone.", [
+                  Alert.alert("Actualiser les données ?", "Les données affichées sont rechargées depuis ton compte. Les séances en attente restent sur ce téléphone.", [
                     { text: "Annuler", style: "cancel" },
                     {
                       text: "Actualiser",

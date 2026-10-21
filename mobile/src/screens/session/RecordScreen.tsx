@@ -37,7 +37,7 @@ export function RecordScreen() {
           <T variant="eyebrow" tone="accent">
             Séance
           </T>
-          <T variant="h1">Qu’as-tu fait ?</T>
+          <T variant="h1">Qu’as-tu fait ?</T>
           <T tone="muted">Choisis ton sport : le formulaire s’adapte à ce qui se mesure.</T>
         </View>
         {draft ? (

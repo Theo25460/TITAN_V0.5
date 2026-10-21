@@ -6,13 +6,13 @@ import { previewState } from "../state";
 
 export * from "../../src/data/hooks";
 
-const { empty, loading } = previewState;
+const { empty, loading, fresh } = previewState;
 const noop = () => {};
 const q = <T,>(data: T) => ({ data: loading ? undefined : data, isLoading: loading, isRefetching: false, isError: false, error: null, refetch: noop, isSuccess: !loading });
 const mutation = () => ({ mutate: noop, mutateAsync: async () => ({}), isPending: false, reset: noop });
 
 const list = empty || loading ? [] : logs;
-const emptyProfile = { ...profile, level: 1, xp: 0, credits: 0, game_state: { user: { onboardedAt: profile.game_state?.user?.onboardedAt, weeklyGoalSessions: 3, favoriteSports: [] }, meta: {} } };
+const emptyProfile = { ...profile, level: 1, xp: 0, credits: 0, game_state: { user: { onboardedAt: fresh ? undefined : profile.game_state?.user?.onboardedAt, weeklyGoalSessions: 3, favoriteSports: [] }, meta: {} } };
 
 export const useProfile = () => q(empty ? emptyProfile : profile);
 export const usePrefs = () => actual.prefsOf(empty ? emptyProfile : profile);

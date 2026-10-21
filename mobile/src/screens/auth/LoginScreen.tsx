@@ -56,7 +56,7 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </T>
       ) : null}
       <Button label={busy ? "Connexion…" : "Se connecter"} loading={busy} onPress={submit} testID="login-submit" />
-      <Button label="Mot de passe oublié ?" kind="ghost" onPress={() => navigation.navigate("Forgot", { email })} />
+      <Button label="Mot de passe oublié ?" kind="ghost" onPress={() => navigation.navigate("Forgot", { email })} />
       <Button label="Créer un compte" kind="secondary" onPress={() => navigation.replace("Signup")} />
     </Screen>
   );
