@@ -367,7 +367,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         </T>
       </Section>
 
-      <Field label="Note (facultatif)" value={draft.note} onChangeText={(note) => setDraft({ note: note.slice(0, noteLimit(profile?.is_elite)) })} placeholder="Sensations, conditions, ce que tu veux retrouver…" multiline style={{ minHeight: 84, textAlignVertical: "top" }} hint={`${draft.note.length}/${noteLimit(profile?.is_elite)}`} />
+      <Field testID="session-note" label="Note (facultatif)" value={draft.note} onChangeText={(note) => setDraft({ note: note.slice(0, noteLimit(profile?.is_elite)) })} placeholder="Sensations, conditions, ce que tu veux retrouver…" multiline style={{ minHeight: 84, textAlignVertical: "top" }} hint={`${draft.note.length}/${noteLimit(profile?.is_elite)}`} />
 
       {preview ? (
         <Card tone="accent" style={{ gap: 6 }}>

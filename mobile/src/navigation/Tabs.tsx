@@ -41,11 +41,11 @@ export function Tabs() {
       })}
       screenListeners={{ tabPress: () => haptic("selection") }}
     >
-      <Tab.Screen name="QG" component={HomeScreen} options={{ title: "QG", tabBarAccessibilityLabel: "QG, accueil" }} />
-      <Tab.Screen name="Progress" component={ProgressScreen} options={{ title: "Progrès", tabBarBadge: pending ? pending : undefined, tabBarBadgeStyle: { backgroundColor: colors.warn, color: "#1D1302", fontFamily: fonts.textBold } }} />
-      <Tab.Screen name="Record" component={RecordScreen} options={{ title: "Séance", tabBarAccessibilityLabel: "Enregistrer une séance" }} />
-      <Tab.Screen name="Adventure" component={AdventureScreen} options={{ title: "Aventure" }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: "Profil" }} />
+      <Tab.Screen name="QG" component={HomeScreen} options={{ title: "QG", tabBarAccessibilityLabel: "QG, accueil", tabBarButtonTestID: "tab-qg" }} />
+      <Tab.Screen name="Progress" component={ProgressScreen} options={{ title: "Progrès", tabBarButtonTestID: "tab-progress", tabBarBadge: pending ? pending : undefined, tabBarBadgeStyle: { backgroundColor: colors.warn, color: "#1D1302", fontFamily: fonts.textBold } }} />
+      <Tab.Screen name="Record" component={RecordScreen} options={{ title: "Séance", tabBarAccessibilityLabel: "Enregistrer une séance", tabBarButtonTestID: "tab-record" }} />
+      <Tab.Screen name="Adventure" component={AdventureScreen} options={{ title: "Aventure", tabBarButtonTestID: "tab-adventure" }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: "Profil", tabBarButtonTestID: "tab-profile" }} />
     </Tab.Navigator>
   );
 }

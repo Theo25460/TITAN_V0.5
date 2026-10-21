@@ -75,7 +75,7 @@ export function AdventureScreen() {
                 const cp = c ? Progress.campaignProgress(c) : null;
                 const chapter = c?.chapter ?? 0;
                 return (
-                  <Tap key={w.id} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à venir" : ""}`} style={styles.worldTap}>
+                  <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à venir" : ""}`} style={styles.worldTap}>
                     <Image source={worldImages[w.image]} style={styles.worldImg} resizeMode="cover" />
                     <View style={styles.worldShade} />
                     <View style={styles.worldBody}>

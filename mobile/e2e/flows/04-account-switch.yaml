@@ -1,0 +1,52 @@
+appId: fr.titanapp.app
+name: Déconnexion et changement de compte sans fuite de données
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-profile"
+    timeout: 30000
+- tapOn:
+    id: "tab-profile"
+- takeScreenshot: 19-profil
+- scrollUntilVisible:
+    element:
+      id: "logout"
+    direction: DOWN
+- tapOn:
+    id: "logout"
+- tapOn: "(?i)se déconnecter"
+- extendedWaitUntil:
+    visible:
+      id: "welcome-login"
+    timeout: 20000
+- tapOn:
+    id: "welcome-login"
+- tapOn:
+    id: "login-email"
+- inputText: "e2e-b@titan.test"
+- tapOn:
+    id: "login-password"
+- inputText: "TitanE2E-b-2026"
+- hideKeyboard
+- tapOn:
+    id: "login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-next"
+    timeout: 30000
+- tapOn:
+    id: "onboarding-next"
+- tapOn:
+    id: "onboarding-next"
+- tapOn:
+    id: "onboarding-finish"
+- extendedWaitUntil:
+    visible: ".*Athlete B.*"
+    timeout: 20000
+- assertVisible: "Ta première séance"
+- assertNotVisible: ".*Athlete A.*"
+- tapOn:
+    id: "tab-progress"
+- assertVisible: "Tes statistiques commencent ici"
+- takeScreenshot: 20-compte-b-vide

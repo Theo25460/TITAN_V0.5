@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
 import { Button } from "../../components/Button";
 import { CadenceNotches } from "../../components/Cadence";
@@ -15,12 +16,10 @@ import { SessionRow } from "../../components/SessionRow";
 import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
-import { avatarImages } from "../../core/images";
 import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space } from "../../theme/tokens";
-import { Image } from "react-native";
 
 const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -79,7 +78,7 @@ export function HomeScreen() {
             <T variant="caption" tone="muted">
               Niv. {level}
             </T>
-            <Image source={avatarImages[snap?.avatar ?? "scout"] ?? avatarImages.scout} style={styles.avatar} />
+            <Avatar id={snap?.avatar} frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={34} />
           </Tap>
         </View>
         <T variant="h1">
@@ -223,7 +222,6 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingLeft: 10, borderRadius: radius.pill },
-  avatar: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, borderColor: colors.cyLine },
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   campaign: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: 12, backgroundColor: colors.bg1 },
   worldDot: { width: 12, height: 12, borderRadius: 6 },

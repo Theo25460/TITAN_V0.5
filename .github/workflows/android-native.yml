@@ -156,6 +156,11 @@ jobs:
           unzip -l "$aab" | grep -q "base/manifest/AndroidManifest.xml"
           # No WebView-based UI: the app ships its own JS bundle and must not depend on the website at launch.
           unzip -l "$apk" | grep -q "assets/index.android.bundle" || { echo "::error::bundle JavaScript absent de l'APK"; exit 1; }
+          # The published build must talk to the production Supabase only (no test replica address, no cleartext).
+          unzip -p "$apk" assets/index.android.bundle > bundle.js
+          grep -q "oubmftfufwwzwpgvrcag.supabase.co" bundle.js || { echo "::error::adresse Supabase de production absente"; exit 1; }
+          if grep -q "10.0.2.2" bundle.js; then echo "::error::adresse de test dans le bundle de production"; exit 1; fi
+          if grep -q 'usesCleartextTraffic.*true' <("$bt/aapt2" dump xmltree --file AndroidManifest.xml "$apk"); then echo "::error::trafic HTTP en clair autorisé"; exit 1; fi
           mkdir -p ../artifacts
           cp "$apk" "../artifacts/titan-$TITAN_VERSION_NAME-$TITAN_VERSION_CODE-$SIGNING_LABEL.apk"
           cp "$aab" "../artifacts/titan-$TITAN_VERSION_NAME-$TITAN_VERSION_CODE-$SIGNING_LABEL.aab"
@@ -167,3 +172,70 @@ jobs:
           path: artifacts/
           retention-days: 30
           if-no-files-found: error
+
+  e2e:
+    name: Parcours réel sur émulateur Android (réplique locale du backend)
+    needs: checks
+    if: github.event_name != 'workflow_dispatch' || inputs.e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-e2e-${{ runner.os }}-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - run: npm ci
+      - name: Réplique locale du backend (structure de production + migrations, comptes de test)
+        run: e2e/setup-backend.sh
+      - name: Application de test (x86_64, pointe vers la réplique locale)
+        env:
+          TITAN_E2E: "1"
+        run: |
+          export EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL="http://10.0.2.2:54321"
+          export EXPO_PUBLIC_TITAN_E2E_SUPABASE_ANON_KEY="$E2E_ANON_KEY"
+          npx expo prebuild --platform android --clean --no-install
+          cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+      - name: Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          "$HOME/.maestro/bin/maestro" --version
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Parcours sur émulateur (Android 14)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: mobile/e2e/run-emulator.sh
+      - name: Vérifications côté serveur (séances, XP, aventure, isolation)
+        if: always()
+        run: mkdir -p ../e2e-out && e2e/verify-backend.sh | tee ../e2e-out/server-checks.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-android-e2e-preuves
+          path: e2e-out/
+          retention-days: 30

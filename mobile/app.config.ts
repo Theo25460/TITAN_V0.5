@@ -111,6 +111,8 @@ const config: ExpoConfig = {
           targetSdkVersion: 36,
           enableMinifyInReleaseBuilds: true,
           enableShrinkResourcesInReleaseBuilds: true,
+          // Only the emulator test build talks to the local Supabase replica over http://10.0.2.2.
+          usesCleartextTraffic: process.env.TITAN_E2E === "1",
         },
       },
     ],

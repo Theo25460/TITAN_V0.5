@@ -1,0 +1,72 @@
+appId: fr.titanapp.app
+name: Statistiques, journal, campagne de l'Aventure et validation d'un chapitre côté serveur
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-progress"
+    timeout: 30000
+- tapOn:
+    id: "tab-progress"
+- extendedWaitUntil:
+    visible: "Cette semaine"
+    timeout: 20000
+- takeScreenshot: 08-progres-semaine
+- tapOn: "Tendances"
+- takeScreenshot: 09-progres-tendances
+- tapOn: "Maîtrise"
+- takeScreenshot: 10-progres-maitrise
+- tapOn: "Journal"
+- assertVisible: ".*Course à pied.*10 km.*"
+- takeScreenshot: 11-journal
+- back
+- tapOn:
+    id: "tab-adventure"
+- extendedWaitUntil:
+    visible:
+      id: "world-aube"
+    timeout: 20000
+- takeScreenshot: 12-aventure
+- tapOn:
+    id: "world-aube"
+- tapOn:
+    id: "world-start"
+- extendedWaitUntil:
+    visible: "Chapitre 1/9.*"
+    timeout: 20000
+- takeScreenshot: 13-campagne-chapitre-1
+- back
+- tapOn:
+    id: "tab-record"
+- tapOn:
+    id: "sport-running"
+- tapOn:
+    id: "distance"
+- inputText: "5"
+- tapOn:
+    id: "duration-m"
+- inputText: "30"
+- hideKeyboard
+- tapOn:
+    id: "session-save"
+- extendedWaitUntil:
+    visible: ".*XP confirmés.*"
+    timeout: 30000
+- tapOn:
+    id: "result-done"
+- tapOn:
+    id: "tab-adventure"
+- tapOn:
+    id: "world-aube"
+- extendedWaitUntil:
+    visible:
+      id: "world-claim"
+    timeout: 30000
+- takeScreenshot: 14-chapitre-pret
+- tapOn:
+    id: "world-claim"
+- extendedWaitUntil:
+    visible: "Chapitre 2/9.*"
+    timeout: 20000
+- takeScreenshot: 15-chapitre-valide
+- back

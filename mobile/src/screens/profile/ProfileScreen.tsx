@@ -1,7 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
-import { Alert, Image, Share, StyleSheet, View } from "react-native";
+import { Alert, Share, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Avatar } from "../../components/Avatar";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Group, ListRow } from "../../components/ListRow";
@@ -11,7 +12,6 @@ import { Stat, StatRow } from "../../components/Section";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Format, Progress } from "../../core";
-import { avatarImages } from "../../core/images";
 import { useAuth } from "../../data/auth";
 import { useAdventure, useLogs, usePrefs, useProfile, useSocial } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
@@ -52,7 +52,7 @@ export function ProfileScreen() {
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
       <Screen tab refreshing={profile.isRefetching} onRefresh={() => { profile.refetch(); social.refetch(); }}>
         <View style={styles.head}>
-          <Image source={avatarImages[adventure?.avatar ?? "scout"] ?? avatarImages.scout} style={styles.avatar} accessibilityIgnoresInvertColors />
+          <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={80} />
           <View style={{ flex: 1, gap: 2 }}>
             <T variant="h2" numberOfLines={1}>
               {p?.username || "Athlète"}
@@ -127,5 +127,4 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", gap: space.s4, alignItems: "center" },
-  avatar: { width: 84, height: 84, borderRadius: 42, borderWidth: 2, borderColor: colors.cy },
 });

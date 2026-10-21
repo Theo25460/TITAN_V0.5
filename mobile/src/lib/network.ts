@@ -1,5 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
-import { onlineManager } from "@tanstack/react-query";
+import { focusManager, onlineManager } from "@tanstack/react-query";
+import { AppState } from "react-native";
 import { useEffect, useState } from "react";
 
 /* One source of truth for connectivity: TanStack Query pauses requests offline and resumes them when the device
@@ -9,12 +10,18 @@ const listeners = new Set<(v: boolean) => void>();
 
 onlineManager.setEventListener((setOnline) =>
   NetInfo.addEventListener((state) => {
-    const next = state.isConnected !== false && state.isInternetReachable !== false;
+    const next = state?.isConnected !== false && state?.isInternetReachable !== false;
     online = next;
     setOnline(next);
     listeners.forEach((l) => l(next));
   }),
 );
+
+// Stale data refreshes when the app comes back to the foreground (React Query's "window focus" on mobile).
+focusManager.setEventListener((handleFocus) => {
+  const sub = AppState.addEventListener("change", (state) => handleFocus(state === "active"));
+  return () => sub.remove();
+});
 
 export const isOnline = () => online;
 
