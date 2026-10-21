@@ -4,9 +4,13 @@ TITAN est publié sur Android comme **Trusted Web Activity** : une coque Android
 
 ## Ce qui est prêt dans le dépôt
 
-- `android/twa-manifest.json` : identifiant `fr.titanapp.twa`, couleurs Ascension, icônes 512 px (maskable), raccourcis Séance et Semaine, version 300.
+- `android/twa-manifest.json` : identifiant `fr.titanapp.app` (décision du 19/10/2026 : c'est le paquet déjà créé dans Play Console, il ne change plus), couleurs Ascension, icônes 512 px (maskable), raccourcis Séance et Semaine, version 300.
 - `tools/build-public.mjs` : écrit `/.well-known/assetlinks.json` quand la variable `TWA_SHA256_FINGERPRINTS` est définie (sinon rien : aucune empreinte inventée).
 - `.github/workflows/android-twa.yml` : workflow manuel qui construit et signe l'App Bundle (`.aab`) et un APK de test, en artefacts.
+
+## Essai sans aucun secret (AND03)
+
+Actions › **Android (TWA, essai sans secret)** › *Run workflow* : construit un APK de test avec une clé jetable et mot de passe tirés au hasard sur le moteur d’exécution (aucun secret du dépôt), pour vérifier que le projet Bubblewrap se construit à partir de `android/twa-manifest.json` et essayer la coque sur un téléphone. Le fichier produit est étiqueté « NE-PAS-PUBLIER » et conservé 3 jours ; la barre d'adresse y apparaîtra tant que les empreintes de la vraie clé ne sont pas dans `assetlinks.json`. **Jamais exécuté depuis l'environnement de développement** (le SDK Android n'est pas téléchargeable ici) : le premier lancement est à surveiller. Les deux workflows utilisent les mêmes versions (Bubblewrap épinglé, Java 17, Node 22), vérifié par `tests/android-workflows.test.mjs`.
 
 ## Une seule fois
 

@@ -91,11 +91,12 @@ declare b uuid := current_setting('titan.qa_b')::uuid;
 begin
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   -- now() is frozen inside a transaction: open the challenge an hour earlier, record the sessions
-  -- ten minutes before joining the expedition.
+  -- ten minutes before joining the expedition. Both sessions carry the same date: the per-day cap is computed on the
+  -- Paris calendar day, so two dates a few minutes apart would straddle midnight (22:00-22:20 UTC) and split the day.
   update public.titan_challenges set starts_at = now() - interval '1 hour' where id = current_setting('titan.qa_challenge')::uuid;
   insert into public.training_logs(user_id, sport, category, val, unit, xp, date, details, client_event_id, created_at)
   values (b, 'running', 'cardio', 20, 'km', 0, now() - interval '20 minutes', '{"effort":{"effort_minutes":150},"historical":false}', gen_random_uuid(), now() - interval '10 minutes'),
-         (b, 'yoga', 'mobility', 30, 'min', 0, now() - interval '15 minutes', '{"effort":{"effort_minutes":30},"historical":false}', gen_random_uuid(), now() - interval '10 minutes');
+         (b, 'yoga', 'mobility', 30, 'min', 0, now() - interval '20 minutes', '{"effort":{"effort_minutes":30},"historical":false}', gen_random_uuid(), now() - interval '10 minutes');
   insert into public.titan_expeditions(id, title, story, guardian, starts_at, ends_at, collective_goal, reward_title)
   values ('qa-expedition', 'QA expédition', 'Une expédition de test, annulée à la fin.', 'Le Testeur', now() - interval '1 day', now() + interval '6 days', 600, 'Testeur');
 end $$;

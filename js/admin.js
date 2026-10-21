@@ -22,6 +22,8 @@
     const NAV = [
         { id: 'dashboard', label: 'Dashboard', icon: 'ri-dashboard-3-line', custom: 'dashboard' },
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
+        { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
+        { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -781,6 +783,10 @@
     function bindEvents() {
         if (bindEvents.ready) return;
         bindEvents.ready = true;
+        // The lookup form has no inline onsubmit (CSP): Enter must not navigate; the button handles the lookup.
+        document.addEventListener('submit', (event) => {
+            if (event.target.closest && event.target.closest('[data-moderation-lookup]')) event.preventDefault();
+        });
 
         $('#admin-refresh').addEventListener('click', () => renderCurrentView(true));
         $('#admin-signout').addEventListener('click', async () => {
@@ -828,6 +834,8 @@
         try {
             if (item.custom === 'dashboard') await renderDashboard(force);
             else if (item.custom === 'users') await renderUsers(force);
+            else if (item.custom === 'moderation') await renderModeration(force);
+            else if (item.custom === 'appeals') await renderAppeals(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1046,6 +1054,7 @@
                 ${statusAction}
                 <button class="icon-button" title="Activites" data-user-action="activities" data-user-id="${id}"><i class="ri-run-line"></i></button>
                 <button class="icon-button" title="Logs" data-user-action="logs" data-user-id="${id}"><i class="ri-file-list-3-line"></i></button>
+                <button class="icon-button" title="Dossier de moderation" aria-label="Dossier de moderation" data-moderation-open="${id}"><i class="ri-shield-user-line"></i></button>
             </div>
         `;
     }
@@ -1393,6 +1402,46 @@
 
         if (event.target.closest('[data-refresh-current]')) {
             renderCurrentView(true);
+            return;
+        }
+
+        const moderationOpen = event.target.closest('[data-moderation-open]');
+        if (moderationOpen) {
+            await openModerationCase(moderationOpen.dataset.moderationOpen);
+            return;
+        }
+
+        if (event.target.closest('[data-moderation-lookup-submit]')) {
+            const typed = String(($('[data-moderation-lookup] [name=user]') || {}).value || '').trim();
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(typed)) {
+                notify('Identifiant invalide', 'Colle l\u2019identifiant complet du compte (format 8-4-4-4-12).', 'warning');
+                return;
+            }
+            await openModerationCase(typed.toLowerCase());
+            return;
+        }
+
+        const appealDecide = event.target.closest('[data-appeal-decide]');
+        if (appealDecide) {
+            await decideAppeal(appealDecide.dataset.appealId, appealDecide.dataset.appealDecide === 'accept');
+            return;
+        }
+
+        const moderationDecide = event.target.closest('[data-moderation-decide]');
+        if (moderationDecide) {
+            await decideModeration(moderationDecide.dataset.moderationDecide);
+            return;
+        }
+
+        const sessionExclude = event.target.closest('[data-session-exclude]');
+        if (sessionExclude) {
+            await excludeSession(sessionExclude.dataset.sessionExclude, sessionExclude.dataset.excluded === 'true');
+            return;
+        }
+
+        const moderationRevert = event.target.closest('[data-moderation-revert]');
+        if (moderationRevert) {
+            await revertModeration(moderationRevert.dataset.moderationRevert);
             return;
         }
 
@@ -1816,6 +1865,19 @@
         `;
     }
 
+    // The Content-Security-Policy only lets images come from this site and the project's storage: say so at save time
+    // instead of leaving a silently broken picture on a public page.
+    const IMAGE_FIELDS = new Set(['image_url', 'cover_image_url']);
+    function imageUrlProblem(value) {
+        const url = String(value ?? '').trim();
+        if (!url) return null;
+        const project = String(window.TITAN_SUPABASE_URL || '').replace(/\/+$/, '');
+        const own = project && url.startsWith(`${project}/storage/`);
+        const local = (url.startsWith('/') && !url.startsWith('//')) || url.startsWith('./') || /^[a-z0-9_-][a-z0-9_./-]*$/i.test(url);
+        return own || local ? null : 'Image : utilise un chemin du site (/image/…) ou le stockage du projet ; les autres hôtes sont bloqués par la politique de sécurité.';
+    }
+    window.titanAdminValidators = { imageUrlProblem };
+
     function readFormPayload(fields) {
         const payload = {};
         fields.forEach((field) => {
@@ -1829,10 +1891,393 @@
                 const raw = el.value.trim();
                 payload[field.key] = raw ? JSON.parse(raw) : {};
             } else {
+                if (IMAGE_FIELDS.has(field.key)) {
+                    const problem = imageUrlProblem(el.value);
+                    if (problem) throw new Error(problem);
+                }
                 payload[field.key] = el.value.trim() === '' ? null : el.value.trim();
             }
         });
         return payload;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Moderation: review queue, case file and human decisions (titan_moderation_*_v1).
+    // Nothing here is automatic. The server decides who may read or act; this screen only displays and asks.
+    // ---------------------------------------------------------------------------------------------
+    const MODERATION_DECISION_LABELS = {
+        dismiss: 'Classé sans suite',
+        watch: 'Surveillance',
+        suspend: 'Suspension',
+        restore: 'Rétablissement',
+        revert: 'Annulation'
+    };
+    const MODERATION_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique un motif d’au moins 3 caractères.',
+        UNKNOWN_DECISION: 'Décision inconnue.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas modérer ton propre compte.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        ACCOUNT_NOT_FOUND: 'Ce compte n’existe plus.',
+        ALREADY_SUSPENDED: 'Ce compte est déjà suspendu.',
+        NOT_SUSPENDED: 'Ce compte n’est pas suspendu (un bannissement ne se lève pas depuis cette file).',
+        NOT_LATEST_DECISION: 'Seule la dernière décision d’un compte peut être annulée.',
+        NOT_REVERTIBLE: 'Cette décision ne peut pas être annulée.',
+        DECISION_NOT_FOUND: 'Décision introuvable.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.',
+        EXCLUSION_REQUIRED: 'Choisis d’exclure ou de rétablir la séance.',
+        ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
+    };
+
+    function moderationErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(MODERATION_ERRORS).find((key) => message.includes(key));
+        return code ? MODERATION_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    function moderationUnavailable(error) {
+        const message = String((error && error.message) || '');
+        return error && (error.code === 'PGRST202' || error.code === '42883' || /could not find the function/i.test(message));
+    }
+
+    function moderationLevelBadge(level) {
+        const labels = { urgent: 'Urgent', review: 'À examiner', watch: 'À surveiller', low: 'Faible' };
+        const cls = level === 'urgent' ? 'badge-danger' : (level === 'review' || level === 'watch') ? 'badge-warning' : '';
+        return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
+    }
+
+    const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour', beyond_human: 'Allure au-delà du possible', extraordinary_series: 'Série de performances extraordinaires' };
+    function sessionSignalText(signal) {
+        const d = signal.detail && typeof signal.detail === 'object' ? signal.detail : {};
+        const n = (value) => escapeHtml(value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? '?' : Number(value));
+        let detail = '';
+        if (signal.code === 'overlap') detail = `${n(d.overlapMinutes)} min en commun (${n(Math.round(Number(d.shareOfShorter) * 100))} % de la plus courte)`;
+        else if (signal.code === 'speed_jump') detail = `${n(d.kmh)} km/h contre ${n(d.medianKmh)} km/h habituels (${n(d.priorSessions)} séances)`;
+        else if (signal.code === 'beyond_human') detail = `${n(d.kmh)} km/h tenus plus de 15 minutes (${escapeHtml(d.sport || '')}) : au-delà des records connus`;
+        else if (signal.code === 'extraordinary_series') detail = `${n(d.sessionsInFourteenDays)} séances à plus de 1,5 fois l’allure habituelle en 14 jours`;
+        else if (signal.code === 'day_volume') detail = `${n(d.minutesThatDay)} min déclarées ce jour-là`;
+        const label = SESSION_SIGNAL_LABELS[signal.code] || signal.code;
+        return `<strong>${escapeHtml(label)}</strong> · ${escapeHtml(signal.severity)} · ${n(signal.points)} pt${detail ? ` · ${detail}` : ''}`;
+    }
+
+    // Advisory only: this lists sessions whose own history looks inconsistent; nothing is excluded from here.
+    // Advisory data must never hold the case file back: a throw, a rejection or a stall becomes a short note.
+    async function loadSessionRisk(userId) {
+        let timer;
+        const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve({ data: null, error: { timedOut: true, message: 'timeout' } }), 8000); });
+        try {
+            return await Promise.race([Promise.resolve(state.client.rpc('titan_session_risk_v1', { p_user: userId, p_limit: 50 })), timeout]);
+        } catch (e) {
+            return { data: null, error: (e && typeof e === 'object') ? e : { message: String(e || 'unavailable') } };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function sessionRiskMarkup(risk, error) {
+        try {
+            return sessionRiskMarkupUnsafe(risk, error);
+        } catch (e) {
+            return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        }
+    }
+
+    function sessionRiskMarkupUnsafe(risk, error) {
+        if (error) {
+            const why = moderationUnavailable(error)
+                ? 'migration 20261019180000_session_risk.sql non appliquée'
+                : error.timedOut ? 'délai dépassé' : moderationErrorText(error);
+            return `<p><small>Analyse des séances indisponible (${escapeHtml(why)}).</small></p>`;
+        }
+        if (!risk || !Array.isArray(risk.sessions)) return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        const all = risk.sessions.filter((session) => session && typeof session === 'object');
+        const flagged = all.filter((session) => session.state && session.state !== 'normal');
+        const rule = risk?.rule ? `<p><small>${escapeHtml(risk.rule)}</small></p>` : '';
+        const head = `<p><small>${escapeHtml(all.length)} séances analysées, ${escapeHtml(flagged.length)} à examiner ou surveiller.</small></p>`;
+        if (!flagged.length) return `${head}${rule}<p>Aucune séance à examiner.</p>`;
+        const rows = flagged.map((session) => `
+            <tr>
+                <td>${escapeHtml(session.sport)} · ${escapeHtml(session.value)} ${escapeHtml(session.unit)}<br><small>${escapeHtml(formatDate(session.date))}</small></td>
+                <td>${moderationLevelBadge(session.state === 'critical' ? 'urgent' : session.state)}</td>
+                <td>${escapeHtml(session.score)}</td>
+                <td>${(Array.isArray(session.signals) ? session.signals.filter((signal) => signal && typeof signal === 'object') : []).map(sessionSignalText).join('<br>')}</td>
+                <td>${session.excludedFromRankings ? 'Exclue des classements' : '—'}</td>
+                <td>${session.id ? buttonMarkup(session.excludedFromRankings ? 'Rétablir dans les classements' : 'Exclure des classements', session.excludedFromRankings ? 'ri-arrow-go-back-line' : 'ri-forbid-line', 'secondary', `data-session-exclude="${escapeHtml(session.id)}" data-excluded="${session.excludedFromRankings ? 'true' : 'false'}"`) : ''}</td>
+            </tr>`).join('');
+        return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    function moderationPayloadText(payload) {
+        const text = JSON.stringify(payload || {}, null, 2);
+        return text.length > 1200 ? `${text.slice(0, 1200)}\n… (tronqué, ${text.length - 1200} caractères de plus)` : text;
+    }
+
+    function moderationSignalLine(signal) {
+        return `<li><code>${escapeHtml(signal.reason)}</code> · ${escapeHtml(signal.severity)} · ×${escapeHtml(signal.count)} · +${escapeHtml(signal.points)} pt</li>`;
+    }
+
+    async function renderModeration() {
+        const head = sectionHead('Modération', 'Comptes ayant des signaux ouverts, classés par risque. Aucune action n’est automatique : chaque décision est humaine, motivée et annulable.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]) + `
+            <form class="panel" data-moderation-lookup>
+                <label class="form-field full">
+                    <span>Retrouver un dossier par identifiant de compte (par exemple pour annuler une décision d’un compte sorti de la file)</span>
+                    <input class="admin-input" name="user" type="text" autocomplete="off" spellcheck="false" placeholder="00000000-0000-0000-0000-000000000000" aria-label="Identifiant du compte">
+                </label>
+                ${buttonMarkup('Ouvrir le dossier', 'ri-folder-user-line', 'secondary', 'data-moderation-lookup-submit')}
+            </form>`;
+        const { data, error } = await state.client.rpc('titan_moderation_queue_v1', { p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de modération n’est pas disponible sur ce serveur : applique la migration 20261019150000_moderation_queue.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const entries = Array.isArray(data && data.entries) ? data.entries : [];
+        state.rows.moderation = new Map(entries.map((entry) => [String(entry.user_id), entry]));
+        if (!entries.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun compte à examiner : aucun signal ouvert ces 30 derniers jours.</p></div>`;
+            return;
+        }
+        const rows = entries.map((entry) => `
+            <tr data-moderation-user="${escapeHtml(entry.user_id)}">
+                <td><strong>${escapeHtml(entry.username || 'Sans nom')}</strong><br><small>${escapeHtml(shortId(entry.user_id))} · ${badge(entry.status || 'active')}</small></td>
+                <td>${moderationLevelBadge(entry.level)}</td>
+                <td><strong>${escapeHtml(entry.score)}</strong></td>
+                <td><ul class="compact-list">${(entry.signals || []).map(moderationSignalLine).join('')}</ul></td>
+                <td>${entry.last_decision ? `${escapeHtml(MODERATION_DECISION_LABELS[entry.last_decision.decision] || entry.last_decision.decision)}<br><small>${escapeHtml(formatDate(entry.last_decision.at))}</small>` : '<small>Aucune</small>'}</td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(entry.user_id)}" aria-label="Ouvrir le dossier de ${escapeHtml(entry.username || 'ce compte')}"`)}</td>
+            </tr>`).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-moderation-queue aria-label="Comptes à examiner">
+                <thead><tr><th>Compte</th><th>Niveau</th><th>Score</th><th>Signaux (raison · gravité · occurrences · points)</th><th>Dernière décision</th><th>Actions</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+        `;
+    }
+
+    async function openModerationCase(userId) {
+        const [{ data, error }, risk] = await Promise.all([
+            state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
+            loadSessionRisk(userId)
+        ]);
+        if (error) {
+            notify('Dossier indisponible', moderationErrorText(error), 'danger');
+            return;
+        }
+        state.moderationUser = userId;
+        const user = data.user || {};
+        const banned = user.status === 'banned';
+        const suspended = !banned && (user.is_suspended === true || user.status === 'suspended');
+        const decisions = Array.isArray(data.decisions) ? data.decisions : [];
+        const latest = decisions[0];
+        const signals = (data.signals || []).map((signal) => `
+            <tr><td><code>${escapeHtml(signal.reason)}</code></td><td>${escapeHtml(signal.severity)}</td><td>${escapeHtml(signal.count)}</td><td>${escapeHtml(signal.points)}</td><td>${escapeHtml(formatDate(signal.last_at))}</td></tr>`).join('');
+        const recent = (data.signals_recent || []).map((signal) => `
+            <div class="panel">
+                <p><strong>${escapeHtml(signal.action_type)}</strong> · ${escapeHtml(signal.severity)} · ${badge(signal.status)} · ${escapeHtml(formatDate(signal.at))}</p>
+                <p><code>${escapeHtml(signal.reason)}</code></p>
+                <div class="json-preview">${escapeHtml(moderationPayloadText(signal.payload))}</div>
+            </div>`).join('') || '<p><small>Aucun signal enregistré.</small></p>';
+        const history = decisions.map((decision) => `
+            <li>${escapeHtml(MODERATION_DECISION_LABELS[decision.decision] || decision.decision)} · ${escapeHtml(formatDate(decision.at))} · <em>${escapeHtml(decision.reason)}</em></li>`).join('') || '<li><small>Aucune décision.</small></li>';
+        const actions = [
+            buttonMarkup('Classer sans suite', 'ri-check-double-line', 'secondary', 'data-moderation-decide="dismiss"'),
+            buttonMarkup('Surveiller', 'ri-eye-line', 'secondary', 'data-moderation-decide="watch"')
+        ];
+        // A ban is a decision taken elsewhere: neither suspending nor restoring it makes sense from this file.
+        if (!banned) {
+            actions.push(suspended
+                ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
+                : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"'));
+        }
+        if (latest && latest.decision !== 'revert') {
+            actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
+        }
+        openModal({
+            title: user.username || 'Compte',
+            kicker: `Dossier de modération · ${data.level || ''}`,
+            body: `
+                <div class="panel">
+                    <p>Score <strong>${escapeHtml(data.score)}</strong> · ${moderationLevelBadge(data.level)} · statut ${badge(user.status || 'active')}</p>
+                    ${banned ? '<p><small>Compte banni : le bannissement se lève hors de cette file. Tu peux toujours classer, surveiller ou annuler une décision.</small></p>' : ''}
+                    <p><small>Score = somme, par raison, du poids de la gravité la plus haute (faible 1, moyenne 3, haute 8, critique 20) × min(occurrences, 3). Il ne dépend pas du volume d’entraînement. Seuls les signaux ouverts des 30 derniers jours comptent.</small></p>
+                </div>
+                <h3>Signaux qui composent le score</h3>
+                ${signals ? tableShell(`<table class="admin-table"><thead><tr><th>Raison</th><th>Gravité</th><th>Occurrences</th><th>Points</th><th>Dernier</th></tr></thead><tbody>${signals}</tbody></table>`) : '<p><small>Aucun signal ouvert.</small></p>'}
+                <h3>Séances à examiner</h3>
+                <div data-session-risk>${sessionRiskMarkup(risk && risk.data, risk && risk.error ? risk.error : (!risk || !risk.data ? { message: 'empty' } : null))}</div>
+                <h3>Derniers signaux bruts</h3>
+                ${recent}
+                <h3>Décisions</h3>
+                <ul class="compact-list">${history}</ul>
+            `,
+            actions
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Appeals (CHEAT19): players contest an excluded session or a suspension; a human accepts or declines with a note
+    // the player can read (titan_appeal_*_v1). Accepting lifts the exclusion / suspension through the audited RPCs.
+    // ---------------------------------------------------------------------------------------------
+    const APPEAL_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique une note d’au moins 3 caractères : le joueur la lira.',
+        APPEAL_NOT_FOUND: 'Ce recours n’existe plus.',
+        APPEAL_CLOSED: 'Ce recours a déjà été traité.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas traiter ton propre recours.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        USE_ADMIN_PROFILE_TOOL: 'Un bannissement ou un compte supprimé ne se lève pas depuis cette file : utilise l’outil de profil, ou refuse le recours.',
+        STATE_CHANGED: 'Il n’y a plus rien à lever (l’état a changé depuis le dépôt) : refuse le recours avec une note.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.'
+    };
+
+    function appealErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(APPEAL_ERRORS).find((key) => message.includes(key));
+        return code ? APPEAL_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    async function renderAppeals() {
+        const head = sectionHead('Recours', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_appeal_list_v1', { p_status: 'open', p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de recours n’est pas disponible sur ce serveur : applique la migration 20261019230000_appeals.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const appeals = Array.isArray(data && data.appeals) ? data.appeals : [];
+        if (!appeals.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>`;
+            return;
+        }
+        const rows = appeals.map((appeal) => {
+            const target = appeal.kind === 'session'
+                ? `Séance ${escapeHtml((appeal.session && appeal.session.sport) || '')} du ${escapeHtml(formatDate(appeal.session && appeal.session.date))}${appeal.session && appeal.session.excluded === false ? ' <small>(déjà rétablie)</small>' : ''}`
+                : 'Suspension du compte';
+            const id = escapeHtml(appeal.id);
+            return `
+            <tr data-appeal-row="${id}">
+                <td><small>${escapeHtml(shortId(appeal.userId))}</small><br><small>${escapeHtml(formatDate(appeal.createdAt))}</small></td>
+                <td>${target}</td>
+                <td><div class="json-preview">${escapeHtml(appeal.message)}</div></td>
+                <td>${buttonMarkup('Accepter', 'ri-check-line', 'primary', `data-appeal-decide="accept" data-appeal-id="${id}" aria-label="Accepter le recours ${id}"`)}
+                    ${buttonMarkup('Refuser', 'ri-close-line', 'secondary', `data-appeal-decide="decline" data-appeal-id="${id}" aria-label="Refuser le recours ${id}"`)}</td>
+            </tr>`;
+        }).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-appeal-queue aria-label="Recours en attente">
+                <thead><tr><th>Joueur</th><th>Objet</th><th>Message du joueur</th><th>Décision</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+        `;
+    }
+
+    async function decideAppeal(appealId, accept) {
+        const id = Number(appealId);
+        if (!Number.isSafeInteger(id)) return;
+        const reason = await moderationAsk(
+            accept ? 'Accepter ce recours' : 'Refuser ce recours',
+            accept ? 'L’exclusion ou la suspension est levée. Le joueur lira ta note.' : 'L’état reste inchangé. Le joueur lira ta note et pourra redéposer un recours après 7 jours.',
+            accept ? 'Accepter' : 'Refuser',
+            false);
+        if (!reason) return;
+        const { error } = await state.client.rpc('titan_appeal_decide_v1', { p_id: id, p_accept: accept, p_note: reason });
+        if (error) notify('Décision refusée', appealErrorText(error), 'danger');
+        else notify('Recours traité', accept ? 'Accepté' : 'Refusé', 'success');
+        // The decision is recorded when this runs: repaint only if the administrator is still on this screen.
+        if (state.currentView !== 'appeals') return;
+        try { await renderAppeals(); } catch (e) {
+            console.error('[TITAN ADMIN APPEALS]', e);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file.', 'warning');
+        }
+    }
+
+    async function moderationAsk(title, message, actionLabel, danger) {
+        const reason = await confirmSensitive({ title, message, actionLabel, danger, requireReason: true });
+        return reason || null;
+    }
+
+    async function decideModeration(decision) {
+        const userId = state.moderationUser;
+        const labels = {
+            dismiss: ['Classer sans suite', 'Les signaux ouverts de ce compte seront marqués comme examinés. Tu pourras annuler.', false],
+            watch: ['Surveiller ce compte', 'Une surveillance est consignée. Elle ne change rien pour le joueur.', false],
+            suspend: ['Suspendre ce compte', 'Le joueur ne pourra plus enregistrer de séance ni acheter. Sa progression n’est pas modifiée et tu pourras rétablir le compte.', true],
+            restore: ['Rétablir ce compte', 'Le compte retrouve son fonctionnement normal.', false]
+        };
+        const [title, message, danger] = labels[decision] || [];
+        if (!userId || !title) return;
+        const reason = await moderationAsk(title, message, title, danger);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_moderation_decide_v1', { p_user: userId, p_decision: decision, p_reason: reason });
+        if (error) notify('Décision refusée', moderationErrorText(error), 'danger');
+        else notify('Décision enregistrée', MODERATION_DECISION_LABELS[decision] || decision, 'success');
+        await refreshModeration(userId);
+    }
+
+    // The decision is already recorded when this runs: a failed refresh must say so, not hide it, and must not
+    // repaint a screen the administrator has since left.
+    async function refreshModeration(userId) {
+        if (state.currentView !== 'moderation') return;
+        try {
+            await renderModeration();
+            await openModerationCase(userId);
+        } catch (error) {
+            console.error('[TITAN ADMIN MODERATION]', error);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file pour voir son effet.', 'warning');
+        }
+    }
+
+    // A human decision on one session: it stays visible to its owner, only rankings and competitive rewards skip it.
+    async function excludeSession(sessionId, currentlyExcluded) {
+        const userId = state.moderationUser;
+        if (!userId || !sessionId) return;
+        const exclude = !currentlyExcluded;
+        const reason = await moderationAsk(
+            exclude ? 'Exclure cette séance des classements' : 'Rétablir cette séance dans les classements',
+            exclude
+                ? 'La séance reste visible du joueur ; elle ne compte plus dans les classements ni les récompenses compétitives le temps de la vérification. Ses XP et crédits déjà acquis ne changent pas. Tu pourras la rétablir.'
+                : 'La séance recompte dans les classements et les récompenses compétitives.',
+            exclude ? 'Exclure' : 'Rétablir',
+            exclude
+        );
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_session_exclusion_v1', { p_session: sessionId, p_excluded: exclude, p_reason: reason });
+        if (error) notify('Action refusée', moderationErrorText(error), 'danger');
+        else if (data && data.changed === false) notify('Aucun changement', 'La séance était déjà dans cet état.', 'info');
+        else notify(exclude ? 'Séance exclue' : 'Séance rétablie', 'L’action est consignée dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
+    async function revertModeration(decisionId) {
+        const userId = state.moderationUser;
+        if (!userId || !decisionId) return;
+        const reason = await moderationAsk('Annuler la dernière décision', 'Le compte revient à l’état d’avant cette décision, si rien ne l’a modifié depuis. L’annulation est elle-même consignée.', 'Annuler la décision', false);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_moderation_revert_v1', { p_decision_id: Number(decisionId), p_reason: reason });
+        if (error) notify('Annulation refusée', moderationErrorText(error), 'danger');
+        else if (data && Number(data.expected) > Number(data.reopened)) notify('Décision annulée en partie', `${data.reopened} signal(aux) rouvert(s) sur ${data.expected} : les autres ont été modifiés ailleurs.`, 'warning');
+        else notify('Décision annulée', 'L’annulation est consignée.', 'success');
+        await renderModeration();
+        await openModerationCase(userId);
     }
 
     function openModal({ title, kicker = 'TITAN OS', body = '', actions = [] }) {
@@ -1846,6 +2291,11 @@
     }
 
     function closeModal() {
+        if (state.pendingConfirm) {
+            const settle = state.pendingConfirm;
+            state.pendingConfirm = null;
+            settle(false);
+        }
         $('#admin-modal').hidden = true;
         $('#modal-body').innerHTML = '';
         $('#modal-actions').innerHTML = '';
@@ -1853,6 +2303,8 @@
 
     function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false }) {
         return new Promise((resolve) => {
+            // Closing the dialog any other way (cross, backdrop) is a cancellation, never a pending promise.
+            state.pendingConfirm = resolve;
             openModal({
                 title,
                 kicker: 'Confirmation',
@@ -1872,7 +2324,6 @@
             });
             $('[data-confirm-cancel]').onclick = () => {
                 closeModal();
-                resolve(false);
             };
             $('[data-confirm-ok]').onclick = () => {
                 const reason = $('[data-confirm-reason]').value.trim();
@@ -1880,6 +2331,7 @@
                     notify('Raison requise', 'Indique une raison avant de confirmer.', 'warning');
                     return;
                 }
+                state.pendingConfirm = null;
                 closeModal();
                 resolve(reason);
             };
