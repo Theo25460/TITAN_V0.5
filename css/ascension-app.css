@@ -2026,8 +2026,7 @@
   display: flex;
   justify-content: space-between;
   gap: var(--s3);
-  position: sticky;
-  bottom: calc(var(--s3) + var(--safe-b));
+  position: relative;
   padding-top: var(--s3);
 }
 .ob-nav [data-next] {

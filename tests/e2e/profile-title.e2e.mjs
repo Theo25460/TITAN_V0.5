@@ -72,6 +72,9 @@ async function profilePage({ holdTitle = false } = {}) {
 test('an earned insignia or expedition title can be worn, shown on the profile and taken off', async () => {
   const { page, context, errors } = await profilePage();
   try {
+    const plus = page.locator('#profil a').filter({has:page.locator('.asc-row-title', {hasText:/^TITAN\+$/})});
+    assert.equal(await plus.getAttribute('href'), '/titan-plus', 'inactive TITAN+ opens the coming-soon page');
+    assert.doesNotMatch(await plus.textContent(), /campagnes/);
     const block = page.locator('[data-title-block]');
     await block.waitFor();
     assert.ok(await page.locator('#profil a[href="/service"]').count() >= 1, 'Assistance is reachable from the profile settings (UX12)');

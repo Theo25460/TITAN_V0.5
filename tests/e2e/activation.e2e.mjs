@@ -91,3 +91,20 @@ for(const width of [360,1280]){
   }finally{await context.unrouteAll({behavior:'wait'});await context.close();}
  });
 }
+
+for (const width of [360, 390, 1280]) {
+ test(`activation: onboarding navigation never covers the sport selection status at ${width}px`, async () => {
+  const {context, page} = await fixture(width);
+  try {
+   await page.setViewportSize({width, height:844});
+   await page.goto(BASE+'/onboarding?again=1');
+   const status=page.getByText('Aucun sport choisi pour l’instant.', {exact:true});
+   await status.waitFor();
+   const note=await status.boundingBox(), next=await page.locator('[data-next]').boundingBox();
+   assert.ok(note && next);
+   assert.ok(next.y >= note.y + note.height, 'navigation must follow the full status text');
+   await page.locator('[data-next]').click();
+   await page.getByRole('heading', {name:/Combien de jours actifs/i}).waitFor();
+  } finally {await context.unrouteAll({behavior:'wait'});await context.close();}
+ });
+}

@@ -86,8 +86,19 @@ begin
         product_id = excluded.product_id, variant_id = excluded.variant_id, renews_at = excluded.renews_at, ends_at = excluded.ends_at,
         trial_ends_at = excluded.trial_ends_at, refunded_at = excluded.refunded_at, last_event_at = excluded.last_event_at,
         updated_at = now()
-    where e.last_event_at <= excluded.last_event_at
+    where e.user_id = excluded.user_id and e.last_event_at <= excluded.last_event_at
   returning true into v_applied;
+
+  -- A concurrent insert may win after the initial owner read saw no row.
+  -- The conflicting row remains locked by the UPSERT, including when its WHERE
+  -- clause refuses the update; recheck ownership before touching any profile.
+  if not coalesce(v_applied, false) then
+    select user_id into v_owner from private.titan_entitlements
+      where source = p_source and external_id = p_external_id;
+    if v_owner is distinct from p_user_id then
+      raise exception 'ENTITLEMENT_OWNED_BY_OTHER' using errcode = '42501';
+    end if;
+  end if;
 
   select coalesce(bool_or(is_active), false) into v_active from private.titan_entitlements where user_id = p_user_id;
   select * into v_latest from private.titan_entitlements where user_id = p_user_id order by last_event_at desc, source limit 1;
