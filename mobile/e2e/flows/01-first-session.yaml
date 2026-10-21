@@ -40,6 +40,9 @@ appId: fr.titanapp.app
 - tapOn:
     id: "distance"
 - inputText: "10"
+- waitForAnimationToEnd
+- tapOn:
+    id: "duration-m"
 - tapOn:
     id: "duration-m"
 - inputText: "55"

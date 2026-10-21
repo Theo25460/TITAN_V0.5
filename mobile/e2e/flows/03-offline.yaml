@@ -19,6 +19,9 @@ appId: fr.titanapp.app
     direction: DOWN
 - tapOn:
     id: "sport-yoga"
+- waitForAnimationToEnd
+- tapOn:
+    id: "duration-m"
 - tapOn:
     id: "duration-m"
 - inputText: "20"
