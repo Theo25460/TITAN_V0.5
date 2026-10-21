@@ -78,7 +78,7 @@ const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub
   <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
   <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
   <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/regles-communaute">Règles de la communauté</a><a href="/service">Assistance</a></nav></div>
-</div>${playFooter(PLAY)}<small>© 2026 TITAN · Sans publicité · Paiements TITAN+ opérés par Paddle</small></div></footer>`;
+</div>${playFooter(PLAY)}<small>© 2026 TITAN · Sans publicité</small></div></footer>`;
 
 // Each scrollable table is a focusable region with its own name (WCAG: keyboard access, unique landmarks).
 const numberTables = (html) => {

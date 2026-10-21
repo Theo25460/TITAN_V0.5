@@ -54,6 +54,11 @@ window.TITAN_PADDLE = {
     clientToken: "live_afddf554625dd67ecb8a03be847",
     elitePriceId: "pri_01ks2mt9tspkhweawb55w7w8nd"
 };
+// Founder decision of 21/10/2026: Paddle stays disabled and no purchase is offered on the web. The Paddle code and its history are
+// kept; this switch (off) keeps the web checkout unreachable even if a button reappears. Do not turn it on without a new decision.
+window.TITAN_PAYMENTS = {
+    webCheckout: false
+};
 // ADR-004: TITAN+ through Google Play Billing inside the Android app. Off until the Play Console product, the server
 // secrets and a licence-tester trial exist; the web (Paddle) path is unchanged either way.
 window.TITAN_PLAY_BILLING = {

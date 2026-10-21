@@ -41,6 +41,9 @@ after(async () => {
 async function newPage(width = 390) {
   const context = await browser.newContext({ viewport: { width, height: width > 900 ? 900 : 844 }, serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort("internetdisconnected"));
+  // Founder decision of 21/10/2026: the web checkout is off in js/config.js. The dormant Paddle path (kept for history) is still covered by
+  // these tests, so they force the switch the same way other tests stub config.
+  await context.addInitScript(() => Object.defineProperty(window, "TITAN_PAYMENTS", { configurable: true, get: () => ({ webCheckout: true }), set() {} }));
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));

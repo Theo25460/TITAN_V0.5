@@ -16,9 +16,11 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
-async function atelier(url) {
+async function atelier(url, { webCheckout = false } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => route.abort("internetdisconnected"));
+  // The dormant Paddle path can only be exercised by forcing the switch, the way tests stub other config.
+  if (webCheckout) await context.addInitScript(() => Object.defineProperty(window, "TITAN_PAYMENTS", { configurable: true, get: () => ({ webCheckout: true }), set() {} }));
   const page = await context.newPage();
   await page.goto(BASE + url);
   await page.locator("#plus").waitFor();
@@ -27,10 +29,15 @@ async function atelier(url) {
   return result;
 }
 
-test("inside the Android app the Atelier shows no checkout button and points to the website", async () => {
+test("inside the Android app the Atelier shows no checkout button and says TITAN+ is coming through Google Play", async () => {
   assert.deepEqual(await atelier("/boutique?source=twa"), { checkout: 0, note: 1 });
 });
 
-test("on the web the Atelier keeps its TITAN+ checkout button", async () => {
-  assert.deepEqual(await atelier("/boutique"), { checkout: 1, note: 0 });
+test("founder decision 21/10/2026: on the web the Atelier shows no checkout button, only that TITAN+ is coming soon", async () => {
+  assert.deepEqual(await atelier("/boutique"), { checkout: 0, note: 1 });
+});
+
+test("the dormant web checkout only appears when the switch is forced on, never inside the Android app", async () => {
+  assert.deepEqual(await atelier("/boutique", { webCheckout: true }), { checkout: 1, note: 0 });
+  assert.deepEqual(await atelier("/boutique?source=twa", { webCheckout: true }), { checkout: 0, note: 1 });
 });
