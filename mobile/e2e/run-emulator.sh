@@ -17,6 +17,16 @@ cd "$OUT"
 status=0
 "$HOME/.maestro/bin/maestro" test "$ROOT/mobile/e2e/flows" --format junit --output "$OUT/maestro-report.xml" --test-output-dir "$OUT/maestro" || status=$?
 adb shell dumpsys meminfo fr.titanapp.app > "$OUT/meminfo.txt" 2>&1 || true
+# On failure, print what the device was showing and the app's errors, so the cause is readable in the job log itself.
+if [ "$status" -ne 0 ]; then
+  echo "::group::Diagnostic : écran de l'appareil et erreurs de l'application"
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
+  echo "--- éléments visibles (texte, identifiant, description) ---"
+  adb shell cat /sdcard/ui.xml 2>/dev/null | sed 's/></>\n</g' | grep -oE '(text|resource-id|content-desc)="[^"]+"' | sort -u | head -80 || true
+  echo "--- journal de l'application ---"
+  grep -E "ReactNativeJS|AndroidRuntime|ReactNative|fr\.titanapp" "$OUT/logcat.txt" | grep -vE "chatty|ActivityManager" | tail -70 || true
+  echo "::endgroup::"
+fi
 kill "$LOGCAT" 2>/dev/null || true
 # A crash or an uncaught JavaScript error fails the run even if every screen was reached.
 if grep -E "FATAL EXCEPTION|AndroidRuntime: Process: fr.titanapp.app|ReactNativeJS.*(TypeError|ReferenceError|Unhandled)" "$OUT/logcat.txt" > "$OUT/crashes.txt"; then

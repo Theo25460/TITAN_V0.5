@@ -34,11 +34,11 @@ export const Field = forwardRef<TextInput, Props>(function Field({ label, hint, 
             setFocused(false);
             rest.onBlur?.(e);
           }}
-          style={[styles.input, style]}
+          style={[styles.input, compact && styles.inputCompact, style]}
           {...rest}
         />
         {suffix ? (
-          <T variant="caption" tone="faint" style={{ paddingRight: 14 }}>
+          <T variant="caption" tone="faint" style={{ paddingRight: compact ? 10 : 14 }}>
             {suffix}
           </T>
         ) : null}
@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
   box: { flexDirection: "row", alignItems: "center", minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, backgroundColor: colors.bg1 },
   focused: { borderColor: colors.cy },
   error: { borderColor: colors.err },
-  input: { flex: 1, color: colors.tx, fontFamily: fonts.textSemi, fontSize: 16, paddingHorizontal: 14, paddingVertical: 12 },
+  input: { flex: 1, minWidth: 0, color: colors.tx, fontFamily: fonts.textSemi, fontSize: 16, paddingHorizontal: 14, paddingVertical: 12 },
+  inputCompact: { paddingHorizontal: 10 },
   eye: { width: TOUCH, height: TOUCH, alignItems: "center", justifyContent: "center", borderRadius: TOUCH },
 });
