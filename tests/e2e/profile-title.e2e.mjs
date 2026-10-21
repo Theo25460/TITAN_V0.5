@@ -71,6 +71,7 @@ test('an earned insignia or expedition title can be worn, shown on the profile a
   try {
     const block = page.locator('[data-title-block]');
     await block.waitFor();
+    assert.ok(await page.locator('#profil a[href="/service"]').count() >= 1, 'Assistance is reachable from the profile settings (UX12)');
     assert.match(await block.locator('[data-worn-title]').innerText(), /Aucun titre porté/);
     const buttons = block.locator('[data-wear-title]:not([data-wear-title=""])');
     assert.equal(await buttons.count(), 2, 'one insignia and one expedition title');
