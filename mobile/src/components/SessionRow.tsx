@@ -16,13 +16,13 @@ export function sessionHeadline(log: TrainingLog) {
   return `${Format.number(Number(log.val))} ${log.unit || ""}`.trim();
 }
 
-export function SessionRow({ log, onPress }: { log: TrainingLog; onPress: () => void }) {
+export function SessionRow({ log, onPress, record = false }: { log: TrainingLog; onPress: () => void; record?: boolean }) {
   const fam = Sports.familyOf(log.sport);
   const m = Progress.minutesOf(log);
   const pending = log.syncStatus && log.syncStatus !== "confirmed";
   const detail = [m.minutes ? `${Format.duration(m.minutes)}${m.estimated ? " est." : ""}` : null, log.syncStatus === "confirmed" && log.xp ? `+${log.xp} XP` : null].filter(Boolean).join(" · ");
   return (
-    <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${pending ? ", en attente d’envoi" : ""}`} style={styles.tap}>
+    <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${record ? ", record actuel" : ""}${pending ? ", en attente d’envoi" : ""}`} style={styles.tap}>
       <View style={styles.row}>
         <View style={[styles.icon, { backgroundColor: `${familyColors[fam]}22` }]}>
           <Icon name={Sports.FAMILY_ICON[fam]} size={20} color={familyColors[fam]} />
@@ -36,6 +36,7 @@ export function SessionRow({ log, onPress }: { log: TrainingLog; onPress: () => 
             {detail ? ` · ${detail}` : ""}
           </T>
         </View>
+        {record ? <Icon name="trophy" size={18} color={colors.am} /> : null}
         {pending ? <Icon name={log.syncStatus === "error" ? "alert" : "offline"} size={18} color={log.syncStatus === "error" ? colors.err : colors.warn} /> : null}
         <Icon name="chevron" size={18} color={colors.tx4} />
       </View>

@@ -1,4 +1,4 @@
-# TITAN Android — inventaire des fonctionnalités (21/10/2026)
+# TITAN Android — inventaire des fonctionnalités (mis à jour le 21/10/2026, lot de finition)
 
 Référence : Web V1 consolidé (`codex/final-web-rc-20261021`, commit `a74e3b4`) et
 base Supabase de production (`oubmftfufwwzwpgvrcag`, migrations jusqu’à
@@ -33,15 +33,16 @@ sur un appareil réel ni sur émulateur.
 | Isolation | Cache, brouillons et file d’attente rangés par compte ; changement de compte sans fuite | U (file), E2E (compte B : 0 séance) |
 | Premier lancement | Accueil en 3 étapes : sports favoris, cadence, rappels ; enregistré dans `game_state.user` | R, E2E (sport favori vérifié en base) |
 | Séances | Saisie par sport (durée, distance, dénivelé, séries/exercices, voies d’escalade, RPE, note), chronomètre, date passée, import GPX | U (construction, nettoyage, GPX), R, E2E |
+| Moment après séance | Mêmes règles que le site (`js/app/moment.js`) : mesures (allure, volume, cotation), XP confirmés qui défilent, crédits, plafond de fair-play, montée de niveau, records battus avec la valeur précédente, semaine, maîtrise du sport, chapitre en cours | U (mesures, records), R, E2E (« XP confirmés », « Gardée sur ce téléphone ») |
 | Hors ligne | File durable par compte, envoi automatique au retour du réseau, idempotence par `client_event_id`, écran « En attente » (réessayer, abandonner) | U (file), E2E (mode avion → envoi unique vérifié en base) |
 | Édition | Modifier, archiver une séance (contrôle de révision serveur) | TS, R |
 | XP | Calcul serveur ; règle d’effort du site embarquée à l’identique | U : parité 12/12 avec `titan_effort_v300` (prod, lecture) ; E2E (XP profil = somme du journal) |
 | Journal | Historique complet (liste virtualisée, chargement serveur par pages de 500), filtre par sport, détail, refaire une séance, archiver/restaurer | R |
-| Statistiques | Semaine, tendances 8 semaines (graphique), répartition par sport, maîtrises | R |
+| Statistiques | Semaine ; « Tes questions » du site (volume comparé au mois d’avant, répartition du temps, allure médiane mensuelle, charge maximale, cotation d’escalade, charge de la semaine, semaines tenues) ; tendances sur 6 mois ou 1 an avec moyenne ; maîtrises | U (libellés d’axes), R |
 | Records | Records par sport, calculés par les règles du site | R |
 | Objectifs | Création, modification, suivi (`sport_goals`, contrôle de révision) | R |
 | Planification | Semaine type par jour, cadence hebdomadaire, pauses | R |
-| Aventure | 4 mondes, 9 chapitres, deux chemins, gardiens, insignes, personnages débloqués par niveau, quêtes hebdomadaires | R, E2E (départ + validation du chapitre 1 en base) |
+| Aventure | 4 mondes, chemin des 9 chapitres, obstacles narratifs et phases du gardien (`campaign-encounters` du site), deux chemins, révélation de l’insigne à la validation, collection de 36 médailles, personnages débloqués par niveau, quêtes hebdomadaires | R, E2E (départ, validation du chapitre 1 et révélation de l’insigne, contrôlés en base) |
 | Atelier | Cosmétiques achetés avec les crédits gagnés (aucun paiement réel), équipement cadre/carte/fond | TS, R |
 | Communauté | Amis par code, demandes, moments + encouragements, défis (création, réponse), expédition, guilde (création, rejoindre, quitter, objectif de la semaine) | TS, R |
 | Carte publique | Activation, choix des informations visibles, lien de partage | TS, R |

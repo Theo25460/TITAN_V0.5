@@ -7,6 +7,7 @@ import { SessionRow } from "../../components/SessionRow";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Format, Sports } from "../../core";
+import { recordHolders } from "../../core/moment";
 import type { TrainingLog } from "../../core/types";
 import { useLogs } from "../../data/hooks";
 import type { RootParams } from "../../navigation/types";
@@ -23,6 +24,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
     for (const l of q.logs) count.set(l.sport, (count.get(l.sport) || 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
   }, [q.logs]);
+  const holders = useMemo(() => recordHolders(q.logs), [q.logs]);
   const sections = useMemo(() => {
     const list = source.filter((l) => !sport || l.sport === sport).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const groups = new Map<string, TrainingLog[]>();
@@ -73,7 +75,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
         )}
         renderItem={({ item }) => (
           <View style={{ marginBottom: space.s2 }}>
-            <SessionRow log={item} onPress={() => navigation.navigate("SessionDetail", { id: item.id })} />
+            <SessionRow log={item} record={holders.has(item.id)} onPress={() => navigation.navigate("SessionDetail", { id: item.id })} />
           </View>
         )}
         ListEmptyComponent={

@@ -138,7 +138,8 @@ describe("with account data", () => {
     show(<S.Result {...props({ eventId: logs[0].client_event_id })} />);
     expect(screen.getByText("10 km")).toBeTruthy();
     show(<S.Detail {...props({ id: logs[1].id })} />);
-    expect(screen.getByText("Squat")).toBeTruthy();
+    expect(screen.getAllByText(/Squat/).length).toBeGreaterThanOrEqual(2); // exercise + the record it set
+    expect(screen.getByText(/Records? établis? ce jour-là/)).toBeTruthy();
     show(<S.Edit {...props({ id: logs[0].id })} />);
     expect(screen.getByText("Enregistrer la correction")).toBeTruthy();
     show(<S.Pending />);

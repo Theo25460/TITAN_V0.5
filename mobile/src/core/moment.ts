@@ -1,5 +1,5 @@
 /* The "moment" after a session, same rules as the website (js/app/moment.js): what was done, the records it set. */
-import { Format, Progress, Sports, Training, type RecordEntry } from ".";
+import { Format, Insights, Progress, Sports, Training, type RecordEntry } from ".";
 import type { TrainingLog } from "./types";
 
 const idOf = (l: TrainingLog) => l.client_event_id || (l.details?.client_event_id as string | undefined) || l.id;
@@ -58,3 +58,10 @@ export function sessionRecords(logs: TrainingLog[], log: TrainingLog, now = Date
 }
 
 export const recordText = (r: RecordEntry, value: number | string = r.value) => Format.recordValue(r.unit, Number(value));
+
+/** Sessions that hold one of the athlete's current records (one pass of the website's record rules). */
+export function recordHolders(logs: TrainingLog[], now = Date.now()): Set<string> {
+  const ids = new Set<string>();
+  for (const r of Insights.records(Progress.activeLogs(logs, now), "all", now)) if (r.kind !== "duration") ids.add(r.log.id);
+  return ids;
+}

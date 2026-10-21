@@ -6,10 +6,12 @@ import { Chip } from "../../components/Chip";
 import { Screen } from "../../components/Screen";
 import { Section, Stat, StatRow } from "../../components/Section";
 import { sessionHeadline } from "../../components/SessionRow";
+import { Icon } from "../../components/Icon";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Format, Progress, Sports, Training } from "../../core";
+import { recordText, sessionRecords } from "../../core/moment";
 import { RPE_TEXT } from "../../core/session";
 import { useLogs, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
@@ -36,6 +38,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   const confirmed = log.syncStatus === "confirmed";
   const ex = d.exercises || [];
   const extras = (d.extras || {}) as Record<string, unknown>;
+  const records = confirmed && !log.archived_at ? sessionRecords(logs, log) : [];
 
   function archive() {
     if (!log) return;
@@ -75,7 +78,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         </View>
       </View>
 
-      <StatRow>
+      <StatRow flat>
         <Stat label="durée" value={minutes ? Format.duration(minutes) : effort.estimated ? `≈ ${Format.duration(effort.minutes)}` : "—"} />
         {log.unit === "km" && minutes ? <Stat label={Sports.paceMode(log.sport) === "pace" ? "allure" : "vitesse"} value={Sports.paceMode(log.sport) === "pace" ? Format.pace(Number(log.val), minutes) : Format.speed(Number(log.val), minutes)} /> : <Stat label="min d’effort" value={String(Math.round(effort.effortMinutes))} />}
         <Stat label={confirmed ? "XP confirmée" : "XP estimée"} value={confirmed ? Format.number(log.xp) : `≈ ${Format.number(effort.xp)}`} tone="accent" />
@@ -94,8 +97,32 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         </Card>
       ) : null}
 
+      {records.length ? (
+        <Card tone="amber" style={{ gap: space.s2 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <T variant="eyebrow" tone="amber">
+              {records.length > 1 ? "Records établis ce jour-là" : "Record établi ce jour-là"}
+            </T>
+            <Icon name="trophy" size={18} color={colors.am} />
+          </View>
+          {records.map((r) => (
+            <View key={r.id} style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
+              <T variant="small" tone="default" style={{ flex: 1 }}>
+                {r.label}
+              </T>
+              <T variant="bodyStrong" tone="amber">
+                {recordText(r)}
+              </T>
+              <T variant="caption" tone="faint">
+                {r.previous ? `avant ${recordText(r, r.previous.value)}` : "premier repère"}
+              </T>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+
       {d.elevation || d.bio?.rpe ? (
-        <StatRow>
+        <StatRow flat>
           {d.elevation ? <Stat label="dénivelé" value={`${Format.number(Number(d.elevation))} m`} /> : null}
           {d.bio?.rpe ? <Stat label={RPE_TEXT[Number(d.bio.rpe)] ?? "RPE"} value={`${d.bio.rpe}/10`} /> : null}
         </StatRow>
