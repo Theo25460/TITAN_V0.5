@@ -29,3 +29,10 @@ Liste unique, tenue à partir du comportement réel du code et des documents de 
 1. La personne compétente lit la ligne et le document cité.
 2. Elle tranche ; la décision est écrite dans le cahier (question Q-XXX résolue) avec la date.
 3. Si la décision change le comportement, un lot de développement l'applique, avec ses tests ; sinon la ligne est retirée de ce tableau.
+
+
+## Ajouts du 21/10/2026
+
+- **LEG52 — accessibilité** (`docs/ACCESSIBILITY_ASSESSMENT.md`) : confirmer que l'exemption des microentreprises de services s'applique à un éditeur personne physique non immatriculé, et décider si une déclaration d'accessibilité est publiée malgré l'exemption.
+- **LEG47 — règles de la communauté** (`/regles-communaute`) : relire les mesures décrites (retirer un contenu, demander une vérification, mettre une séance à l'écart, suspendre, bloquer), la mention « pas de délai de réponse garanti » et la retenue automatique de 24 heures des récompenses à risque élevé, qui doit rester vraie au moment de la mise en ligne (migrations 19 à 26 appliquées avant la page).
+- **GP12 à GP15 — lien Google Play** : valider que le lien texte remplace le badge officiel, et la bande « TITAN existe aussi sur Android » sur le web mobile Android.
