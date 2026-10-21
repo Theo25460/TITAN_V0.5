@@ -13,10 +13,11 @@ import { logs } from "./fixtures";
 import { previewState } from "./state";
 
 // #SessionResult?eventId=record (or =levelup): the longest run, with the server receipt it would get.
-if (previewState.route === "SessionResult" && ["record", "levelup"].includes(previewState.params.eventId)) {
+if (previewState.route === "SessionResult" && ["record", "levelup", "held"].includes(previewState.params.eventId)) {
   const run = logs.filter((l) => l.sport === "running").sort((a, b) => Number(b.val) - Number(a.val))[0];
   const up = previewState.params.eventId === "levelup";
-  rememberReceipt(run.client_event_id ?? run.id, { log_id: run.id, xp: run.xp, credits: Math.floor(run.xp / 10), credits_after: 2380, xp_after: up ? 240 : 1850, level_after: up ? 8 : 7, level_bonus: 0, leveled_up: up ? 1 : 0, requested_xp: run.xp, requested_credits: Math.floor(run.xp / 10), weekly_xp_remaining: 4000, weekly_credits_remaining: 400, server_version: "preview" });
+  const held = previewState.params.eventId === "held";
+  rememberReceipt(run.client_event_id ?? run.id, { log_id: run.id, xp: run.xp, credits: Math.floor(run.xp / 10), credits_after: 2380, xp_after: up ? 240 : 1850, level_after: up ? 8 : 7, level_bonus: 0, leveled_up: up ? 1 : 0, requested_xp: run.xp, requested_credits: Math.floor(run.xp / 10), weekly_xp_remaining: 4000, weekly_credits_remaining: 400, server_version: "preview", ...(held ? { reward_held: true, held_xp: run.xp, held_credits: Math.floor(run.xp / 10), release_at: new Date(Date.now() + 6 * 3600000).toISOString() } : {}) });
   previewState.params.eventId = run.client_event_id ?? run.id;
 }
 

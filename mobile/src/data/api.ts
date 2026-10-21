@@ -123,6 +123,11 @@ export type SubmitReceipt = {
   weekly_xp_remaining: number;
   weekly_credits_remaining: number;
   server_version: string;
+  /* Since migration 20261020000000_reward_holds (not yet in production): a high-risk session's reward waits 24 h at most. */
+  reward_held?: boolean;
+  held_xp?: number;
+  held_credits?: number;
+  release_at?: string;
 };
 
 /** Idempotent: the server keeps a receipt per client_event_id and replays it for an identical retry. */

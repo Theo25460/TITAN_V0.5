@@ -146,7 +146,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
         <Reveal order={1}>
           <Card tone={status === "confirmed" ? "accent" : "flat"} style={{ gap: space.s3 }}>
-            {status === "confirmed" && !historical ? (
+            {status === "confirmed" && receipt?.reward_held ? (
+              <View style={{ flexDirection: "row", gap: space.s3, alignItems: "center" }}>
+                <Icon name="clock" size={22} color={colors.warn} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T variant="bodyStrong" accessibilityLiveRegion="polite">
+                    Récompense en vérification
+                  </T>
+                  <T variant="small">
+                    {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits sont retenus par précaution, au plus{" "}
+                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h : ils arrivent d’eux-mêmes si rien n’est trouvé. Ta séance est bien enregistrée.
+                  </T>
+                </View>
+              </View>
+            ) : status === "confirmed" && !historical ? (
               <>
                 <View style={styles.rewardRow}>
                   <CountUp value={xp} format={(n) => `+${Format.number(n)}`} style={styles.xp} tone="accent" delay={350} />
