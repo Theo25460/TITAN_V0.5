@@ -65,7 +65,12 @@ appId: fr.titanapp.app
 - tapOn:
     id: "world-claim"
 - extendedWaitUntil:
+    visible: "Insigne obtenu"
+    timeout: 20000
+- takeScreenshot: 15-insigne-revele
+- tapOn: "Continuer l’aventure"
+- extendedWaitUntil:
     visible: "Chapitre 2/9.*"
     timeout: 20000
-- takeScreenshot: 15-chapitre-valide
+- takeScreenshot: 15b-chapitre-valide
 - back

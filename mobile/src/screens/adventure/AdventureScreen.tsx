@@ -7,6 +7,7 @@ import { Icon } from "../../components/Icon";
 import { ProgressBar } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
+import { Shade } from "../../components/Shade";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { ErrorState, LoadingCards } from "../../components/States";
@@ -77,7 +78,7 @@ export function AdventureScreen() {
                 return (
                   <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à venir" : ""}`} style={styles.worldTap}>
                     <Image source={worldImages[w.image]} style={styles.worldImg} resizeMode="cover" />
-                    <View style={styles.worldShade} />
+                    <Shade from={0.1} start={0.15} to={0.9} />
                     <View style={styles.worldBody}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <View style={[styles.dot, { backgroundColor: w.color }]} />
@@ -124,23 +125,31 @@ export function AdventureScreen() {
             </Section>
 
             <Section title="Collection">
-              <Card style={{ gap: 6 }}>
-                <T variant="bodyStrong">
-                  {s.rewards.length} insigne{s.rewards.length > 1 ? "s" : ""} de chapitre
-                </T>
-                <View style={styles.badges}>
-                  {s.rewards.slice(0, 18).map((r) => {
-                    const w = Codex.worlds.find((x) => x.id === r.world);
-                    return (
-                      <View key={`${r.world}-${r.chapter}`} style={[styles.badge, { borderColor: w?.color ?? colors.cy }]} accessible accessibilityLabel={`${w?.chapters[r.chapter - 1]?.title ?? "Insigne"}, ${w?.name ?? ""}`}>
-                        <T variant="caption" color={w?.color}>
-                          {r.chapter}
-                        </T>
-                      </View>
-                    );
-                  })}
+              <Card style={{ gap: space.s4 }}>
+                <View style={styles.between}>
+                  <T variant="bodyStrong">
+                    {s.rewards.length} insigne{s.rewards.length > 1 ? "s" : ""} sur {Codex.worlds.length * 9}
+                  </T>
+                  <Icon name="medal" size={20} color={colors.am} />
                 </View>
-                {!s.rewards.length ? <T variant="small">Chaque chapitre validé t’offre un insigne et un titre.</T> : null}
+                {Codex.worlds.map((w) => {
+                  const got = new Set(s.rewards.filter((r) => r.world === w.id).map((r) => r.chapter));
+                  return (
+                    <View key={w.id} style={{ gap: 6 }} accessible accessibilityLabel={`${w.name} : ${got.size} insigne${got.size > 1 ? "s" : ""} sur 9`}>
+                      <T variant="caption" tone={got.size ? "default" : "faint"}>
+                        {w.name}
+                      </T>
+                      <View style={styles.medals}>
+                        {w.chapters.map((ch) => (
+                          <View key={ch.id} style={[styles.medal, got.has(ch.index) ? { backgroundColor: `${w.color}22`, borderColor: w.color } : null, ch.boss && styles.medalBoss]}>
+                            {got.has(ch.index) ? <Icon name={ch.boss ? "crown" : "medal"} size={14} color={w.color} /> : <View style={styles.medalDot} />}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
+                {!s.rewards.length ? <T variant="small">Chaque chapitre validé t’offre un insigne et un titre. Le premier ne demande qu’un jour actif.</T> : null}
               </Card>
             </Section>
           </>
@@ -189,11 +198,13 @@ const styles = StyleSheet.create({
   avatar: { width: 76, height: 76, borderRadius: 38, borderWidth: 2, borderColor: colors.cy },
   worldTap: { height: 156, borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line2 },
   worldImg: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
-  worldShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(5,7,10,0.55)" },
   worldBody: { flex: 1, justifyContent: "flex-end", padding: space.s4, gap: 4 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  badges: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  badge: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg1 },
+  between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  medals: { flexDirection: "row", gap: 6 },
+  medal: { flex: 1, aspectRatio: 1, maxWidth: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg1 },
+  medalBoss: { borderStyle: "dashed" },
+  medalDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.line3 },
   avatarRow: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bg1 },
   avatarSmall: { width: 52, height: 52, borderRadius: 26 },
 });

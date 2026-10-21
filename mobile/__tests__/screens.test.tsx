@@ -143,12 +143,17 @@ describe("with account data", () => {
   });
   test("Aventure et monde (chapitre en cours, gardien, région à venir)", () => {
     show(<S.Adventure />);
-    expect(screen.getByText(/La vallée de l’Aube/)).toBeTruthy();
+    expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(2); // world card + collection row
     expect(screen.getAllByText(/Accès gratuit/).length).toBe(2);
+    expect(screen.getByText("2 insignes sur 36")).toBeTruthy();
     show(<S.World {...props({ id: "aube" })} />);
     expect(screen.getByText(/Chapitre 3\/9/)).toBeTruthy();
+    expect(screen.getByText("Les ronces du passeur")).toBeTruthy(); // the chapter's narrative obstacle
+    expect(screen.getByText("Insigne · Bâtisseur de ponts")).toBeTruthy(); // earned step on the path
     show(<S.World {...props({ id: "marees" })} />);
-    expect(screen.getAllByText(/min d’effort/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("La Gardienne des courants").length).toBe(2); // hero + guardian encounter
+    expect(screen.getByText("Traverser le courant")).toBeTruthy(); // guardian phase
+    expect(screen.getByText("Enregistrer une séance")).toBeTruthy(); // the way forward is a real session
     show(<S.World {...props({ id: "forge" })} />);
     expect(screen.getByText("Région à venir")).toBeTruthy();
   });

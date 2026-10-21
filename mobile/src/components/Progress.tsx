@@ -4,14 +4,16 @@ import Svg, { Circle } from "react-native-svg";
 import { useReducedMotion } from "../lib/motion";
 import { colors, radius } from "../theme/tokens";
 
-export function ProgressBar({ value, color = colors.cy, height = 8, track = colors.bg4, accessibilityLabel }: { value: number; color?: string; height?: number; track?: string; accessibilityLabel?: string }) {
-  const ratio = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+/** `from` is where the fill starts on first display (e.g. the XP before this session), so the gain itself is what moves. */
+export function ProgressBar({ value, from = 0, delay = 0, color = colors.cy, height = 8, track = colors.bg4, accessibilityLabel }: { value: number; from?: number; delay?: number; color?: string; height?: number; track?: string; accessibilityLabel?: string }) {
+  const clamp = (v: number) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 0));
+  const ratio = clamp(value);
   const reduced = useReducedMotion();
-  const anim = useRef(new Animated.Value(reduced ? ratio : 0)).current;
+  const anim = useRef(new Animated.Value(reduced ? ratio : clamp(from))).current;
   useEffect(() => {
     if (reduced) anim.setValue(ratio);
-    else Animated.timing(anim, { toValue: ratio, duration: 520, useNativeDriver: false }).start();
-  }, [ratio, reduced, anim]);
+    else Animated.timing(anim, { toValue: ratio, duration: 620, delay, useNativeDriver: false }).start();
+  }, [ratio, reduced, anim, delay]);
   return (
     <View
       accessible

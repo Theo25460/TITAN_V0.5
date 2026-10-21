@@ -42,12 +42,15 @@
     "react-native-url-polyfill": "^2.0.0"
   },
   "devDependencies": {
+    "@expo/metro-runtime": "~57.0.17",
     "@resvg/resvg-js": "^2.6.2",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
     "jest": "^29.7.0",
     "jest-expo": "~57.0.6",
+    "react-dom": "19.2.3",
+    "react-native-web": "~0.21.0",
     "react-test-renderer": "^19.2.3",
     "typescript": "~6.0.3"
   },

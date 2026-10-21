@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "a74e3b480f2e2ac4ee80a3bdb96ea069ce4ed26e",
+  "sha": "ba9d05f4529b8cc56a8dcc5d97b4c884116cb87c",
   "files": {
     "format.js": "247df5d27fb1e0117029cdf9b5dd8455b102093ed26bf85156c3b8832932c0ac",
     "training-store.js": "dabae2832a1b1ff502c81189a1c5cc7f9bcf6b6a5980ff6525770b38013515a5",
@@ -13,7 +13,7 @@
     "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
     "renaissance-engine.js": "d8063fdbb3a11cedeb41e50710fc954955302d3dda598f97c892c00299c0979b",
     "campaign-quests.js": "28fc3d4f3c956014ce729f5bd24449d05717e7edd1a13576f43dd60bcdd599d5",
-    "campaign-encounters.js": "da166444603fa30f68a6e7f580833a977642e21bd14818e3b4bfd8eef09a6734",
+    "campaign-encounters.js": "e3f6d81cb1cb665933702536048d0bf92dd254846cb5ff12fb4be669f4c2d1e2",
     "sport-navigation.js": "162ddec28dcfc6438e683b184832a6d034c771d659dd457f2013438064449ab4",
     "gpx.js": "9f3606092348b779f18dc08487f2bac920d0abe2059096da28055778dfec33e4"
   }

@@ -128,6 +128,7 @@ export const Progress = g.TitanProgress as {
   insights(ctx: { logs?: TrainingLog[]; goals?: Goal[]; now?: Date; cadenceTarget?: number; pauses?: string[]; adventure?: unknown; pending?: unknown[]; plan?: unknown }): Insight[];
   nextAction(ctx: { logs?: TrainingLog[]; goals?: Goal[]; now?: Date; cadenceTarget?: number; pauses?: string[]; adventure?: unknown; pending?: unknown[]; plan?: { sport?: string } | null }): Insight;
   campaignProgress(c: unknown): CampaignProgress;
+  newRecords(logs: TrainingLog[], from: number, to: number, now?: number | Date): RecordEntry[];
 };
 
 export const Questions = g.TitanQuestions as {
@@ -139,7 +140,9 @@ export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; 
 
 export const AdventureRules = g.TitanAdventure as { weeklyQuests(logs: TrainingLog[], goal?: number, now?: Date): { id: string; name: string; text: string; value: number; target: number; unit: string; icon: string; href: string }[] };
 
-export const CampaignEncounters = g.TitanCampaignEncounters as { describe(c: unknown, progress: CampaignProgress): unknown };
+export type EncounterPhase = { id: string; name: string; value: number; target: number; unit: string; complete: boolean; state: "done" | "active" | "waiting" };
+export type Encounter = { kind: "obstacle" | "guardian"; name: string; text: string; phases: EncounterPhase[]; percent: number; ready: boolean; state: "ready" | "active" };
+export const CampaignEncounters = g.TitanCampaignEncounters as { describe(c: unknown, progress: CampaignProgress): Encounter | null };
 
 export type GpxResult = { ok: true; points: number; ignoredPoints: number; distanceKm: number; movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; start: string | null } | { ok: false; error: string; points: number };
 export const Gpx = g.TitanGpx as { analyse(text: string): GpxResult };
