@@ -14,6 +14,25 @@ import { colors, space } from "../../theme/tokens";
 
 const KIND_LABEL: Record<RecordEntry["kind"], string> = { distance: "Distance", time: "Temps sur distance", duration: "Durée", strength: "Force", climbing: "Escalade" };
 
+/** Standard cautions of the record rules: shown once under the list instead of under every card. A changed wording just stays on its card. */
+const NOTES: { text: string; label: string }[] = [
+  { text: "Un repère historique, pas une recommandation de durée.", label: "La durée est un repère de ton historique, pas une recommandation." },
+  { text: "Ce n’est pas un 1RM estimé.", label: "La charge est la plus élevée que tu as déclarée, pas un 1RM estimé." },
+  { text: "Ce n’est pas un temps de segment GPS.", label: "Les temps sur distance viennent de séances de cette distance (à ±1 %), pas d’un segment GPS." },
+  { text: "Distance totale de la séance, selon la saisie ou le fichier importé.", label: "La distance est celle de la séance entière, selon ta saisie ou le fichier importé." },
+];
+
+/** The card keeps what is specific to this record; the standard cautions go to the notes below. */
+export function specific(context: string, used: Set<string>) {
+  let rest = context;
+  for (const n of NOTES)
+    if (rest.includes(n.text)) {
+      rest = rest.replace(n.text, "");
+      used.add(n.label);
+    }
+  return rest.replace(/\s+/g, " ").replace(/^[\s.·]+|[\s·]+$/g, "").trim();
+}
+
 /** Records only between comparable values, always linked to the source session (same rules as the website). */
 export function RecordsScreen() {
   const navigation = useNavigation();
@@ -30,6 +49,9 @@ export function RecordsScreen() {
     }
     return [...m.entries()];
   }, [shown]);
+
+  const notes = new Set<string>();
+  const details = new Map(shown.map((r) => [r.id, specific(r.context, notes)]));
 
   if (!records.length)
     return (
@@ -49,7 +71,7 @@ export function RecordsScreen() {
       {grouped.map(([s, list]) => (
         <Section key={s} title={Sports.label(s)}>
           {list.map((r) => (
-            <Card key={r.id} tone={r.kind === "strength" || r.kind === "climbing" ? "default" : "default"} onPress={() => navigation.navigate("SessionDetail", { id: r.log.id })} accessibilityLabel={`${r.label} : ${typeof r.value === "number" ? Format.recordValue(r.unit, r.value) : r.value}. Ouvrir la séance du ${Format.longDate(r.log.date)}`} style={{ gap: 6 }}>
+            <Card key={r.id} onPress={() => navigation.navigate("SessionDetail", { id: r.log.id })} accessibilityLabel={`${r.label} : ${typeof r.value === "number" ? Format.recordValue(r.unit, r.value) : r.value}. Ouvrir la séance du ${Format.longDate(r.log.date)}`} style={{ gap: 6 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
                 <Icon name="trophy" size={20} color={colors.am} />
                 <View style={{ flex: 1 }}>
@@ -63,12 +85,23 @@ export function RecordsScreen() {
                 </T>
               </View>
               <T variant="caption" tone="faint">
-                {Format.longDate(r.log.date)} · {r.context}
+                {Format.longDate(r.log.date)}
+                {details.get(r.id) ? ` · ${details.get(r.id)}` : ""}
               </T>
             </Card>
           ))}
         </Section>
       ))}
+      {notes.size ? (
+        <Card tone="flat" style={{ gap: 6 }}>
+          <T variant="eyebrow">À savoir</T>
+          {[...notes].map((n) => (
+            <T key={n} variant="caption" tone="muted">
+              {n}
+            </T>
+          ))}
+        </Card>
+      ) : null}
     </Screen>
   );
 }
