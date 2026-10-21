@@ -6,6 +6,9 @@ OUT="$ROOT/e2e-out"
 mkdir -p "$OUT"
 APK="$ROOT/mobile/android/app/build/outputs/apk/release/app-release.apk"
 adb wait-for-device
+# The CI emulator is slow right after boot: Android may show "Pixel Launcher isn't responding" over the app and hide it from the test.
+adb shell settings put global hide_error_dialogs 1 || true
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true
 adb install -r "$APK"
 adb logcat -c
 adb logcat -v time > "$OUT/logcat.txt" 2>&1 &
