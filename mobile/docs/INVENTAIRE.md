@@ -14,6 +14,13 @@ Légende des preuves :
   (`mobile/e2e/verify-backend.sh`).
 - **Prod (lecture)** : comparaison en lecture seule avec la base de production.
 
+Preuve E2E de référence : run CI [39627402252](https://github.com/Theo25460/TITAN_V0.5/actions/runs/39627402252)
+du 21/10/2026, 4/4 parcours Maestro réussis dans l’ordre, puis contrôles SQL :
+compte A = 3 séances, 3 `client_event_id` distincts, 1 050 XP au journal et au
+profil, accueil enregistré (sport favori course), récompense du chapitre 1 de
+l’Aube, séance hors ligne présente une seule fois ; compte B = 0 séance. Aucun
+crash ni erreur JavaScript dans le logcat.
+
 Une ligne « Fait » sans E2E signifie : codé et rendu en test, pas encore exercé
 sur un appareil réel ni sur émulateur.
 
