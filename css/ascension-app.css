@@ -1676,6 +1676,7 @@
   scrollbar-width: none;
   margin: 0 calc(-1 * var(--s4)) var(--s4);
   padding: 0 var(--s4) var(--s1);
+  scroll-padding-inline: var(--s4);
   scroll-snap-type: x proximity;
 }
 .pv-week::-webkit-scrollbar {
