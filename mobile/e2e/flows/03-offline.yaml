@@ -10,13 +10,22 @@ appId: fr.titanapp.app
 - tapOn:
     id: "tab-record"
 - extendedWaitUntil:
-    visible: "Hors ligne.*"
+    visible:
+      id: "offline-banner"
     timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "sport-yoga"
+    direction: DOWN
 - tapOn:
     id: "sport-yoga"
 - tapOn:
     id: "duration-m"
 - inputText: "20"
+- scrollUntilVisible:
+    element:
+      id: "session-note"
+    direction: DOWN
 - tapOn:
     id: "session-note"
 - inputText: "E2E hors ligne"

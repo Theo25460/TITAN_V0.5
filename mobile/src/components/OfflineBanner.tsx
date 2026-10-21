@@ -8,7 +8,7 @@ export function OfflineBanner() {
   const online = useOnline();
   if (online) return null;
   return (
-    <View style={styles.bar} accessibilityRole="alert" accessibilityLiveRegion="polite">
+    <View style={styles.bar} accessibilityRole="alert" accessibilityLiveRegion="polite" testID="offline-banner">
       <Icon name="offline" size={16} color={colors.warn} />
       <T variant="caption" color={colors.warn} style={{ flex: 1 }}>
         Hors ligne : tes séances sont gardées sur ce téléphone et partiront au retour du réseau.
