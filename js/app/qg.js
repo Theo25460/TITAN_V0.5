@@ -112,10 +112,13 @@
     const pct = Math.max(0, Math.min(100, Math.round((p.xp / Math.max(1, p.next)) * 100)));
     const left = Math.max(0, p.next - p.xp);
     const nextRank = p.nextRank ? `Prochain rang : <strong>${esc(p.nextRank.name)}</strong> au niveau ${p.nextRank.level}.` : "Tu as atteint le dernier rang. La progression continue.";
+    const u = window.titanShell?.user?.();
+    const ring = p.guest || p.confirmed ? pct : 0;
+    const portrait = u ? `<span class="qg-portrait" style="--p:${ring}%" aria-hidden="true"><img src="/assets/renaissance/${esc(u.avatar)}-s.webp" alt="" width="64" height="64" decoding="async"></span>` : "";
     return `<section class="asc-section qg-ascent asc-appear" aria-labelledby="qg-ascent">
       <div class="asc-section-head"><h2 id="qg-ascent">Ascension</h2><a class="asc-link asc-small" href="/profile">Profil ${icon("chevron")}</a></div>
       <div class="qg-rank">
-        <div><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
+        ${portrait}<div class="qg-rank-main"><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
         <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
       </div>
       ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>

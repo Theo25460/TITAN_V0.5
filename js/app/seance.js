@@ -262,7 +262,7 @@
     for (const s of S_().all().sort((a, b) => (window.SPORTS_CONFIG[a.id]?.sortOrder ?? 999) - (window.SPORTS_CONFIG[b.id]?.sortOrder ?? 999)))
       if (byFam[s.family] && byFam[s.family].length < 8 && !byFam[s.family].includes(s.id)) byFam[s.family].push(s.id);
     return `
-      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait ?</h1></div></header>
+      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait&#8239;?</h1></div></header>
       <nav class="asc-subnav" data-subnav></nav>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>

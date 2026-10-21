@@ -34,8 +34,8 @@ test('the privacy policy and the deletion page state the executed durations and 
   for (const text of ['13 mois', '24 mois', '12 mois']) assert.ok(has(page, text), `deletion page states ${text}`);
   const kept = new Set(rules.map((r) => french(r)));
   for (const found of new Set([...(privacy + page).matchAll(/(\d+) (mois|jours|ans?|heures?|semaines?)/g)].map((m) => m[0]))) {
-    // "30 jours" (unconfirmed sign-ups), "3 ans" (inactive accounts), "72 heures" (breach notification), "15 ans" (minimum age) and "un mois" (answer time) belong to older rules and to the rights procedure
-    assert.ok(kept.has(found) || ['30 jours', '1 mois', '3 ans', '72 heures', '15 ans'].includes(found), `a published duration is not executed by a rule: ${found}`);
+    // "30 jours" (unconfirmed sign-ups), "3 ans" (inactive accounts), "72 heures" (breach notification), "13 ans" (minimum age) and "un mois" (answer time) belong to older rules and to the rights procedure
+    assert.ok(kept.has(found) || ['30 jours', '1 mois', '3 ans', '72 heures', '13 ans'].includes(found), `a published duration is not executed by a rule: ${found}`);
   }
 });
 
