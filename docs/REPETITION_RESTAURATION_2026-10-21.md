@@ -102,3 +102,46 @@ validées (Q-002) avant l'application.**
    transcription).
 5. Déploiement Netlify du **même lot** juste après (le site ancien affiche des XP « retenus » comme crédités).
 6. Recette §5 du plan avec un compte de test ; au moindre écart : arrêt, retour arrière du dernier fichier seulement.
+
+## 7. Journal de l'application en production (21/10/2026, 20:00–21:30 UTC) — INTERROMPU À 5/29
+
+Feu vert du fondateur reçu à 19:45 (âge 13 ans avec accord d'un adulte pour les mineurs ; effets produit validés ;
+reste reporté en V1.1). Texte légal mis à jour (`c035968`). Sauvegarde fraîche à 20:00:34 UTC, préflight 21/21,
+photo de 82 tables (1 586 lignes) prises juste avant.
+
+Méthode : chaque fichier est exécuté par un bloc qui **vérifie d'abord son empreinte md5**, l'exécute, puis inscrit sa
+version exacte et son texte dans `supabase_migrations.schema_migrations` dans la même transaction (validé sur le banc
+local : 29/29, empreinte de structure identique à la répétition).
+
+| # | Fichier | État en production |
+|---|---|---|
+| 1 | `20261008110220_web_security_contracts` | **appliqué** |
+| 2 | `20261008113411_web_economy_bounds` | **appliqué** (contraintes NOT VALID) |
+| 3 | `20261008120931_web_cosmetic_fairness` | **appliqué** : les 4 cosmétiques sont achetables avec des crédits (800–1 400) |
+| 4 | `20261008180429_advanced_comparisons_v300` | **appliqué** |
+| 5 | `20261009205151_practice_reports_v300` | **appliqué** |
+| 6 à 29 | `20261009212850_analysis_views_v300` … `20261021020000_abuse_limits_profile_surface` | **non appliqués** |
+
+Historique en production : 51 versions, tête `20261009205151`. Aucune table ni fonction résiduelle (vérifié).
+
+**Cause de l'arrêt.** Le fichier 6 fait expirer l'outil d'exécution SQL à 60 s, sans aucune activité visible côté base
+(aucune session, aucun verrou). Isolé par essais à blanc : le blocage apparaît dès que la fonction
+`titan_mutate_analysis_view` contient son bloc `delete from private.titan_analysis_views` ; la même instruction dans une
+autre fonction ou dans une chaîne passe. Les descriptions des outils `execute_sql` et `apply_migration` précisent que
+« les instructions destructrices peuvent exiger la confirmation de l'utilisateur » : c'est l'explication la plus
+cohérente, **non prouvée**. Aucun contournement n'a été tenté (encodage, découpage) : la confirmation est une décision
+du fondateur.
+
+**État sûr.** Les fichiers 1 à 5 sont additifs ou ciblés ; l'ancien site fonctionne avec cet état (aucune fonction
+remplacée n'est utilisée par lui, sauf `titan_atelier` qui renvoie désormais les cosmétiques au prix de crédits).
+Retour arrière des fichiers 1 à 5 : tableau du §2 du plan de publication ; les 4 lignes de `shop_items` d'avant sont dans
+la sauvegarde de 20:00.
+
+**Suite.** Appliquer les fichiers 6 à 29, dans l'ordre, avec la même garde, puis `postflight-production.sql`, l'empreinte
+de structure (`structure-fingerprint.sql`, doit coïncider avec la copie répétée), la vérification des 4 tâches `pg_cron`,
+puis le déploiement du site. Le déploiement Netlify n'est pas exécutable depuis la session de l'agent (politique réseau :
+`api.netlify.com`, `netlify-mcp.netlify.app` et `titan-app.fr` refusés).
+
+**Test instable (hors lot).** `smoke.e2e.mjs` › « public card actions: bearer stays A during SDK rollover » échoue de
+façon intermittente : 3/42 sur la candidate #115 d'origine, 7/42 sur la branche de finition (écart non significatif).
+Attente de 3 s de l'écriture, déjà présente avant le lot.
