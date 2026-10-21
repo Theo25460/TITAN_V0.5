@@ -26,7 +26,7 @@ const SKIP = /^(admin|sys_core_override_99|googleb8fedd43e28cf7d4|dynamic-page|n
 const PAGES = readdirSync(`${ROOT}dist`).filter((f) => f.endsWith(".html") && !SKIP.test(f)).map((f) => (f === "index.html" ? "/" : `/${f.slice(0, -5)}`));
 
 test("no WCAG 2.0/2.1 A or AA violation found by axe-core on any player or public page", async () => {
-  assert.ok(PAGES.length > 30, "the whole site is audited");
+  assert.ok(PAGES.length >= 41, `the whole site is audited (${PAGES.length} pages)`);
   const problems = [];
   for (const path of PAGES) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block", locale: "fr-FR" });
