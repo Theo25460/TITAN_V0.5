@@ -71,6 +71,17 @@
       if (focused?.id === "athlete-retry" && !document.querySelector('dialog[open]')
         && [focused, document.body, root].includes(document.activeElement)) root.querySelector("#athlete-retry")?.focus();
     }
+    /* The worn title is a second, best-effort read: a card is complete without it and an older server simply has none. */
+    async function showTitle(client, s) {
+      try {
+        const { data, error } = await client.rpc("titan_public_card_title", { p_slug: s });
+        if (error || !data?.key || slug() !== s || window.titanClient !== client) return;
+        const name = window.TitanTitles?.label(data.key, { catalog: window.TitanCodex, serverLabel: data.label });
+        const heading = root.querySelector("h1.pf-name");
+        if (!name || !heading || root.querySelector("[data-pf-title]")) return;
+        heading.insertAdjacentHTML("afterend", `<p class="pf-title" data-pf-title>${icon("star")} ${esc(name)}</p>`);
+      } catch {}
+    }
     async function load(user = false) {
       if (pending) return;
       const s = slug(), client = window.titanClient;
@@ -97,7 +108,7 @@
         if (error?.code === "PGRST202") unavailable(false, true);
         else if (error) throw error;
         else if (!data) unavailable();
-        else { render(root, data); status.textContent = "Carte chargée."; }
+        else { render(root, data); status.textContent = "Carte chargée."; showTitle(client, s); }
       } catch (error) {
         if (!current()) return;
         unavailable(false, false, true, error?.message === "ATHLETE_TIMEOUT" ? "Le serveur n’a pas répondu en 12 secondes. Tu peux réessayer." : "Lecture impossible. Tu peux réessayer.");
