@@ -27,7 +27,8 @@ begin
       perform private.titan_rate_limit(v_uid, 'public_card', 60);
     end if;
   elsif TG_TABLE_NAME = 'profiles' then
-    if new.id = v_uid and new.appearance is distinct from old.appearance then perform private.titan_rate_limit(v_uid, 'appearance', 60); end if;
+    -- Wearing a title (migration 28) has its own counter: only a change of the look itself counts here.
+    if new.id = v_uid and (new.appearance - 'title') is distinct from (old.appearance - 'title') then perform private.titan_rate_limit(v_uid, 'appearance', 60); end if;
   end if;
   return new;
 end;

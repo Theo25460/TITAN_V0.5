@@ -32,4 +32,5 @@ Plan de production et préflight mis à jour (lignes 28 et 29). Les deux voies d
 1. Appliquer les 29 migrations dans l'ordre sur la copie restaurée, puis en production, **avant** de publier le site (plan de production).
 2. Retirer les ~66 mentions « après mise à jour serveur » des pages publiques et de l'application une fois la production migrée : elles deviennent fausses et sont du jargon pour le grand public.
 3. Activer le formulaire d'assistance intégré : définir `TITAN_SUPPORT_ENABLED` et les clés e-mail côté Netlify, puis passer `data-support-enabled` à `true` dans `service.html` et `social.html` (le repli par e-mail reste actif d'ici là).
-4. Relecture juridique humaine (LEG13), recette sur appareils réels et suite navigateur complète en CI sur la tête finale : aucune ne peut être remplacée par un test synthétique.
+4. Migration 29 : `ADD CONSTRAINT` verrouille brièvement `shop_history` et `CREATE TRIGGER` verrouille brièvement `profiles` en écriture ; `lock_timeout` de 5 s, donc en cas de trafic elle échoue entièrement (rien n'est appliqué) et se rejoue sans risque (idempotente). L'appliquer à un moment calme.
+5. Relecture juridique humaine (LEG13), recette sur appareils réels et suite navigateur complète en CI sur la tête finale : aucune ne peut être remplacée par un test synthétique.

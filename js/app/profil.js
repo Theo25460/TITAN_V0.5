@@ -104,7 +104,7 @@
   async function wearTitle(key) {
     if (wornTask || cardTask || !worn || !cardContextValid(bitsContext)) return false;
     const context = bitsContext;
-    const job = { context, focus: key ? `[data-wear-title="${key}"]` : "[data-wear-title='']" };
+    const job = { context, focus: key ? `[data-wear-title="${CSS.escape(key)}"]` : "[data-wear-title='']" };
     wornTask = job;
     render();
     try {
@@ -362,6 +362,7 @@
       ${guest() ? `<div class="asc-note">${icon("cloudUp")}<span>Crée un compte pour sauvegarder ta progression et la retrouver partout. Tes séances de découverte pourront le rejoindre en un geste.</span></div><div class="asc-row-flex pf-actions"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-secondary" href="/login">J’ai déjà un compte</a></div>` : `<div class="asc-list">
         <a class="asc-row" href="/boutique"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Confort, campagnes et cosmétiques. Jamais de progression achetée."}</span></span>${icon("chevron")}</a>
         <a class="asc-row" href="/recours"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Séances contrôlées et recours</span><span class="asc-row-sub">Voir une séance mise de côté et contester la décision.</span></span>${icon("chevron")}</a>
+        <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
         <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
       </div>`}
       <div class="asc-list pf-data">

@@ -1246,9 +1246,9 @@ button.asc-row:hover {
   }
 }
 /* Same calm experience when the user asks for it in TITAN, whatever the system setting says. */
-html[data-motion="reduced"] .asc *,
-html[data-motion="reduced"] .asc *::before,
-html[data-motion="reduced"] .asc *::after {
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;

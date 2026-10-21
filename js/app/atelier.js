@@ -317,11 +317,14 @@
   function upcomingHtml() {
     const level = Number(data.level) || 1;
     const credits = Number(data.credits) || 0;
+    const perSession = creditsPerSession();
     const rows = (data.items || [])
-      .filter((i) => !permanent(i) && (i.unlock === "credits" || (i.unlock === "rank" && Number(i.min_level) > level)))
-      .map((i) => i.unlock === "credits"
-        ? { item: i, order: Math.max(0, Math.ceil((i.price - credits) / creditsPerSession())), text: i.price <= credits ? "Tu peux le débloquer maintenant." : `Environ ${Math.ceil((i.price - credits) / creditsPerSession())} séance${Math.ceil((i.price - credits) / creditsPerSession()) > 1 ? "s" : ""} à ton rythme actuel.` }
-        : { item: i, order: 1000 + i.min_level - level, text: `Au niveau ${i.min_level} (rang ${RANKS[i.min_level] || i.min_level}), encore ${i.min_level - level} niveau${i.min_level - level > 1 ? "x" : ""}.` })
+      .filter((i) => !permanent(i) && ((i.unlock === "credits" && Number.isFinite(Number(i.price))) || (i.unlock === "rank" && Number.isFinite(Number(i.min_level)) && Number(i.min_level) > level)))
+      .map((i) => {
+        if (i.unlock !== "credits") return { item: i, order: 1000 + i.min_level - level, text: `Au niveau ${i.min_level} (rang ${RANKS[i.min_level] || i.min_level}), encore ${i.min_level - level} niveau${i.min_level - level > 1 ? "x" : ""}.` };
+        const need = Math.max(0, Math.ceil((i.price - credits) / perSession));
+        return { item: i, order: need, text: i.price <= credits ? "Tu peux le débloquer maintenant." : `Environ ${need} séance${need > 1 ? "s" : ""} à ton rythme actuel.` };
+      })
       .sort((a, b) => a.order - b.order || (Number(a.item.price) || 0) - (Number(b.item.price) || 0))
       .slice(0, 3);
     if (!rows.length) return "";
