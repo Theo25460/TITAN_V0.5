@@ -43,7 +43,8 @@ jobs:
       - name: Clé jetable et projet Android
         working-directory: android
         run: |
-          keytool -genkeypair -keystore android.keystore -alias titan -keyalg RSA -keysize 2048 -validity 30 \
+          # Same type and size as the real upload key (PKCS12, RSA 4096), so this trial proves the real key format works with Bubblewrap.
+          keytool -genkeypair -keystore android.keystore -storetype PKCS12 -alias titan -keyalg RSA -keysize 4096 -validity 30 \
             -storepass "$THROWAWAY_PASSWORD" -keypass "$THROWAWAY_PASSWORD" -dname "CN=TITAN essai, O=TITAN, C=FR"
           # Bubblewrap downloads the icons from the deployed site: an icon added in this branch but not published yet falls
           # back to the published launcher icon for this trial only (the warning names it).
