@@ -125,7 +125,7 @@ export function GoalsScreen() {
           </T>
         </View>
         <ProgressBar value={p.ratio} color={p.complete ? colors.ok : colors.cy} accessibilityLabel={`${g.title} : ${Math.round(p.ratio * 100)} %`} />
-        {p.complete ? <T variant="small" tone="ok">Objectif atteint.</T> : g.metric === "minutes" && p.measured < p.sources.length ? <T variant="caption" tone="faint">{p.sources.length - p.measured} séance(s) sans durée ne comptent pas.</T> : null}
+        {p.complete ? <T variant="small" tone="ok">Objectif atteint.</T> : g.metric === "minutes" && p.measured < p.sources.length ? <T variant="caption" tone="faint">{Format.plural(p.sources.length - p.measured, "séance sans durée ne compte", "séances sans durée ne comptent")} pas.</T> : null}
         <View style={{ flexDirection: "row", gap: space.s2 }}>
           {!g.archived_at ? <Button small kind="secondary" icon="edit" label="Ajuster" onPress={() => openEdit(g)} style={{ flex: 1 }} /> : null}
           <Button small kind="ghost" icon={g.archived_at ? "restore" : "archive"} label={g.archived_at ? "Restaurer" : "Archiver"} onPress={() => toggleArchive(g)} style={{ flex: 1 }} disabled={!online} />

@@ -8,41 +8,65 @@ import { T } from "./Text";
 
 export type BarDatum = { label: string; value: number; detail?: string; highlight?: boolean };
 
-export function BarChart({ data, height = 160, unit = "", color = colors.cy, accessibilityLabel }: { data: BarDatum[]; height?: number; unit?: string; color?: string; accessibilityLabel: string }) {
+const LABEL_SPACE = 40; // px a label needs so neighbours never touch
+
+/** Which bar indexes get an axis label: evenly spaced for the available width, always the last one. */
+export function labelIndexes(count: number, width: number): Set<number> {
+  if (count <= 0 || width <= 0) return new Set();
+  const step = Math.max(1, Math.ceil((count * LABEL_SPACE) / width));
+  const out = new Set<number>();
+  for (let i = count - 1; i >= 0; i -= step) out.add(i);
+  return out;
+}
+
+export function BarChart({ data, height = 160, unit = "", color = colors.cy, format, average = false, accessibilityLabel }: { data: BarDatum[]; height?: number; unit?: string; color?: string; format?: (v: number) => string; average?: boolean; accessibilityLabel: string }) {
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const fmt = format ?? ((v: number) => `${Math.round(v)} ${unit}`.trim());
   const max = Math.max(1, ...data.map((d) => d.value));
-  const gap = data.length > 20 ? 2 : 6;
+  const gap = data.length > 20 ? 2 : data.length > 12 ? 4 : 6;
   const barW = width > 0 ? Math.max(3, (width - gap * (data.length - 1)) / Math.max(1, data.length)) : 0;
   const chartH = height - 22;
+  const top = 14; // room for the maximum label
   const sel = selected !== null ? data[selected] : null;
+  const labels = labelIndexes(data.length, width);
+  const filled = data.filter((d) => d.value > 0);
+  const avg = average && filled.length >= 2 ? data.reduce((n, d) => n + d.value, 0) / data.length : null;
+  const yOf = (v: number) => chartH - (v / max) * (chartH - top);
   return (
-    <View accessible accessibilityLabel={`${accessibilityLabel}. ${data.map((d) => `${d.label} : ${Math.round(d.value)} ${unit}`).join(", ")}`}>
+    <View accessible accessibilityLabel={`${accessibilityLabel}. ${data.map((d) => `${d.detail ?? d.label} : ${fmt(d.value)}`).join(", ")}`}>
       <View style={styles.readout}>
-        <T variant="caption" tone="muted" numberOfLines={1}>
-          {sel ? `${sel.detail ?? sel.label} · ${Math.round(sel.value)} ${unit}` : "Touche une barre pour le détail"}
+        <T variant="caption" tone={sel ? "default" : "muted"} numberOfLines={1}>
+          {sel ? `${sel.detail ?? sel.label} · ${fmt(sel.value)}` : avg !== null ? `Moyenne ${fmt(avg)} · touche une barre pour le détail` : "Touche une barre pour le détail"}
         </T>
       </View>
       <View onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
         {width > 0 ? (
           <Svg width={width} height={height}>
             <Line x1={0} x2={width} y1={chartH} y2={chartH} stroke={colors.line2} strokeWidth={1} />
+            <SvgText x={0} y={10} fill={colors.tx4} fontSize={10} fontFamily={fonts.textSemi}>
+              {fmt(max)}
+            </SvgText>
+            <Line x1={0} x2={width} y1={top} y2={top} stroke={colors.line} strokeWidth={1} />
             {data.map((d, i) => {
-              const h = d.value > 0 ? Math.max(3, (d.value / max) * (chartH - 6)) : 0;
+              const h = d.value > 0 ? Math.max(3, chartH - yOf(d.value)) : 0;
               const x = i * (barW + gap);
               const on = selected === i;
+              const anchor = i === 0 ? "start" : i === data.length - 1 ? "end" : "middle";
+              const lx = anchor === "start" ? x : anchor === "end" ? x + barW : x + barW / 2;
               return (
                 <G key={i}>
-                  <Rect x={x} y={0} width={barW} height={chartH} fill="transparent" onPress={() => { haptic("selection"); setSelected(on ? null : i); }} />
-                  <Rect x={x} y={chartH - h} width={barW} height={h} rx={Math.min(4, barW / 2)} fill={on || d.highlight ? colors.cy2 : color} opacity={selected === null || on ? 1 : 0.45} onPress={() => { haptic("selection"); setSelected(on ? null : i); }} />
-                  {data.length <= 12 || i % Math.ceil(data.length / 8) === 0 ? (
-                    <SvgText x={x + barW / 2} y={height - 6} fill={colors.tx3} fontSize={10} fontFamily={fonts.textSemi} textAnchor="middle">
+                  <Rect x={x} y={0} width={barW + gap} height={chartH} fill="transparent" onPress={() => { haptic("selection"); setSelected(on ? null : i); }} />
+                  <Rect x={x} y={chartH - h} width={barW} height={h} rx={Math.min(4, barW / 2)} fill={on ? colors.cy2 : d.highlight ? colors.am : color} opacity={selected === null || on ? (d.highlight || on ? 1 : 0.85) : 0.35} onPress={() => { haptic("selection"); setSelected(on ? null : i); }} />
+                  {labels.has(i) ? (
+                    <SvgText x={lx} y={height - 6} fill={d.highlight ? colors.am : colors.tx3} fontSize={10} fontFamily={fonts.textSemi} textAnchor={anchor}>
                       {d.label}
                     </SvgText>
                   ) : null}
                 </G>
               );
             })}
+            {avg !== null ? <Line x1={0} x2={width} y1={yOf(avg)} y2={yOf(avg)} stroke={colors.tx2} strokeWidth={1} strokeDasharray="4 4" opacity={0.7} /> : null}
           </Svg>
         ) : null}
       </View>

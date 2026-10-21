@@ -132,7 +132,7 @@ export const Progress = g.TitanProgress as {
 };
 
 export const Questions = g.TitanQuestions as {
-  weeklySeries(logs: TrainingLog[], opts?: { weeks?: number; now?: Date }): { start: string; sessions: number; minutes: number; distance?: number; effortMinutes?: number }[];
+  weeklySeries(logs: TrainingLog[], opts?: { weeks?: number; now?: Date }): { start: Date; sessions: number; minutes: number; activeDays: number; current: boolean }[];
   familyShare(logs: TrainingLog[], opts?: { now?: Date; days?: number }): unknown;
 };
 

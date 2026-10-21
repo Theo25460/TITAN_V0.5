@@ -45,14 +45,15 @@ function RecapCard({ recap, title }: { recap: Recap; title: string }) {
         <T variant="small">Aucune séance sur cette période. Une semaine calme ne t’enlève rien.</T>
       ) : (
         <>
-          <StatRow>
-            <Stat label="séances" value={String(w.sessions)} sub={delta(recap.deltaSessions, (v) => Format.number(v, 1))} />
+          <StatRow flat>
             <Stat label="de pratique" value={Format.duration(w.minutes)} sub={delta(recap.deltaMinutes, (v) => Format.duration(v))} />
-          </StatRow>
-          <StatRow>
+            <Stat label="séances" value={String(w.sessions)} sub={delta(recap.deltaSessions, (v) => Format.number(v, 1))} />
             <Stat label="jours actifs" value={String(w.activeDays)} />
+          </StatRow>
+          <StatRow flat>
             {w.distance ? <Stat label="parcourus" value={Format.distance(w.distance)} /> : <Stat label="min d’effort" value={String(w.effortMinutes)} />}
-            <Stat label="XP" value={Format.number(w.xp)} tone="accent" />
+            <Stat label="XP gagnés" value={Format.number(w.xp)} tone="accent" />
+            <View style={{ flex: 1 }} />
           </StatRow>
           {recap.topSport ? (
             <T variant="small">
@@ -158,15 +159,16 @@ export function ProgressScreen() {
               <Card style={{ gap: space.s3 }}>
                 <Segmented value={range} onChange={setRange} options={[{ value: "12", label: "12 sem." }, { value: "26", label: "6 mois" }, { value: "52", label: "1 an" }]} accessibilityLabel="Période" />
                 <BarChart
-                  data={series.map((w) => ({ label: new Date(`${w.start}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" }), detail: `Semaine du ${new Date(`${w.start}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`, value: w.minutes }))}
-                  unit="min"
+                  data={series.map((w) => ({ label: w.current ? "Sem." : w.start.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" }), detail: w.current ? "Cette semaine" : `Semaine du ${w.start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`, value: w.minutes, highlight: w.current }))}
+                  format={(v) => Format.duration(v)}
+                  average
                   accessibilityLabel="Minutes de pratique par semaine"
                 />
               </Card>
             </Section>
             <Section title="30 derniers jours">
               <Card style={{ gap: space.s3 }}>
-                <StatRow>
+                <StatRow flat>
                   <Stat label="séances" value={String(month.sessions)} />
                   <Stat label="de pratique" value={Format.duration(month.minutes)} />
                   {month.distance ? <Stat label="parcourus" value={Format.distance(month.distance)} /> : null}
@@ -174,10 +176,10 @@ export function ProgressScreen() {
                 <BarChart
                   data={Training.chartBuckets(month.buckets, 30).map((b) => ({ label: String(new Date(`${b.date}T12:00:00`).getDate()), detail: new Date(`${b.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }), value: b.minutes }))}
                   height={120}
-                  unit="min"
+                  format={(v) => Format.duration(v)}
                   accessibilityLabel="Minutes de pratique par jour sur 30 jours"
                 />
-                {month.measured < month.sessions ? <T variant="caption" tone="faint">{month.sessions - month.measured} séance(s) sans durée renseignée ne comptent pas dans ce graphique.</T> : null}
+                {month.measured < month.sessions ? <T variant="caption" tone="faint">{Format.plural(month.sessions - month.measured, "séance sans durée renseignée ne compte", "séances sans durée renseignée ne comptent")} pas dans ce graphique.</T> : null}
               </Card>
             </Section>
             {dna.families.length ? (

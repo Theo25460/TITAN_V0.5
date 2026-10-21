@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
+import { Icon } from "../../components/Icon";
 import { Group, ListRow } from "../../components/ListRow";
 import { ProgressBar } from "../../components/Progress";
 import { Screen } from "../../components/Screen";
@@ -15,7 +16,7 @@ import { EffortRules, Format, Progress, Sports } from "../../core";
 import { useAuth } from "../../data/auth";
 import { useAdventure, useLogs, usePrefs, useProfile, useSocial } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
-import { colors, space } from "../../theme/tokens";
+import { colors, familyColors, space } from "../../theme/tokens";
 
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -40,7 +41,7 @@ export function ProfileScreen() {
     const pending = queue.items.length;
     Alert.alert(
       "Se déconnecter ?",
-      pending ? `${pending} séance(s) n’ont pas encore été envoyées. Elles restent sur ce téléphone et partiront à ta prochaine connexion avec ce compte.` : "Tes données restent sur ton compte TITAN. Les informations affichées sur ce téléphone seront effacées.",
+      pending ? `${Format.plural(pending, "séance n’a", "séances n’ont")} pas encore été ${pending > 1 ? "envoyées" : "envoyée"}. Elles restent sur ce téléphone et partiront à ta prochaine connexion avec ce compte.` : "Tes données restent sur ton compte TITAN. Les informations affichées sur ce téléphone seront effacées.",
       [
         { text: "Annuler", style: "cancel" },
         { text: "Se déconnecter", style: "destructive", onPress: () => signOut().catch(() => toast({ kind: "err", title: "Déconnexion impossible" })) },
@@ -80,26 +81,47 @@ export function ProfileScreen() {
           </View>
           <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
         </View>
-        <StatRow>
+        <StatRow flat>
           <Stat label="séances" value={Format.number(dna.sessions)} />
           <Stat label="de pratique" value={Format.hours(dna.minutes)} />
           <Stat label="semaines tenues" value={String(cadence.lifetimeHeld)} />
           <Stat label="crédits" value={Format.number(adventure?.credits ?? p?.credits ?? 0)} tone="amber" />
         </StatRow>
         {dna.masteries.length ? (
-          <Card tone="flat" style={{ gap: 6 }} onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel="Voir mes maîtrises">
-            <T variant="eyebrow">Maîtrises</T>
-            {dna.masteries.slice(0, 3).map((m) => (
-              <T key={m.sport} variant="small" tone="default">
-                {m.label} · maîtrise {m.level} ({m.name}) · {Format.number(m.hours, 1)} h
-              </T>
-            ))}
+          <Card style={{ gap: space.s3 }} onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel="Voir mes maîtrises">
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <T variant="eyebrow">Maîtrises</T>
+              <Icon name="chevron" size={16} color={colors.tx4} />
+            </View>
+            {dna.masteries.slice(0, 3).map((m) => {
+              const tint = familyColors[m.family] ?? colors.cy;
+              return (
+                <View key={m.sport} style={styles.mastery}>
+                  <View style={[styles.level, { borderColor: tint }]}>
+                    <T variant="bodyStrong" color={tint}>
+                      {m.level}
+                    </T>
+                  </View>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+                      <T variant="small" tone="default" numberOfLines={1} style={{ flex: 1 }}>
+                        {m.label}
+                      </T>
+                      <T variant="caption" color={tint}>
+                        {m.name}
+                      </T>
+                    </View>
+                    <ProgressBar value={m.progress} color={tint} height={4} accessibilityLabel={`${m.label}, maîtrise ${m.level}`} />
+                  </View>
+                </View>
+              );
+            })}
           </Card>
         ) : null}
 
         <Group title="Progression et communauté">
           <ListRow icon="star" title="Atelier" subtitle="Cosmétiques gagnés avec tes crédits" onPress={() => navigation.navigate("Atelier")} />
-          <ListRow icon="group" title="Communauté" subtitle={social.data?.requests_in.length ? `${social.data.requests_in.length} demande(s) d’ami en attente` : "Amis, moments, défis et guilde"} onPress={() => navigation.navigate("Community")} />
+          <ListRow icon="group" title="Communauté" subtitle={social.data?.requests_in.length ? `${social.data.requests_in.length} demande${social.data.requests_in.length > 1 ? "s" : ""} d’ami en attente` : "Amis, moments, défis et guilde"} onPress={() => navigation.navigate("Community")} />
           <ListRow icon="qr" title="Carte publique" subtitle="Partager une carte de ton parcours" onPress={() => navigation.navigate("PublicCard")} />
           <ListRow icon="crown" title="TITAN+" subtitle="Bientôt disponible" onPress={() => navigation.navigate("TitanPlus")} last />
         </Group>
@@ -128,4 +150,6 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", gap: space.s4, alignItems: "center" },
+  mastery: { flexDirection: "row", alignItems: "center", gap: space.s3 },
+  level: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });

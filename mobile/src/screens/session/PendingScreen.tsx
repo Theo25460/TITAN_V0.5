@@ -26,7 +26,7 @@ export function PendingScreen() {
   async function sendAll() {
     for (const i of items) if (i.status === "error") await retryItem(owner, i.key);
     const r = await syncNow(qc, owner);
-    toast(r.remaining ? { kind: "warn", title: `${r.sent} envoyée(s), ${r.remaining} restante(s)` } : { kind: "ok", title: "Toutes les séances sont synchronisées" });
+    toast(r.remaining ? { kind: "warn", title: `${Format.plural(r.sent, "envoyée", "envoyées")}, ${Format.plural(r.remaining, "restante", "restantes")}` } : { kind: "ok", title: "Toutes les séances sont synchronisées" });
   }
 
   return (

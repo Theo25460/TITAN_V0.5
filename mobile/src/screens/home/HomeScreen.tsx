@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
@@ -8,7 +8,7 @@ import { Button } from "../../components/Button";
 import { CadenceNotches } from "../../components/Cadence";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
-import { ProgressBar } from "../../components/Progress";
+import { Ring } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section, Stat, StatRow } from "../../components/Section";
@@ -18,6 +18,7 @@ import { T } from "../../components/Text";
 import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
+import { avatarImages, worldImages } from "../../core/images";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space } from "../../theme/tokens";
 
@@ -143,38 +144,43 @@ export function HomeScreen() {
                 <T variant="caption" tone="muted">
                   {cadence.remaining === 0 ? "Semaine tenue. Le repos fait aussi partie de la progression." : cadence.reachable ? `Encore ${cadence.remaining} jour${cadence.remaining > 1 ? "s" : ""} actif${cadence.remaining > 1 ? "s" : ""} pour tenir la semaine (${cadence.daysLeftInWeek} jour${cadence.daysLeftInWeek > 1 ? "s" : ""} restant${cadence.daysLeftInWeek > 1 ? "s" : ""}).` : "Pas de série à casser : une semaine calme ne t’enlève rien."}
                 </T>
+                <StatRow flat>
+                  <Stat label="séances" value={String(week.sessions)} />
+                  <Stat label="de pratique" value={Format.duration(week.minutes)} />
+                  <Stat label="XP gagnés" value={Format.number(week.xp)} tone="accent" />
+                </StatRow>
               </Card>
-              <StatRow>
-                <Stat label="séances" value={String(week.sessions)} />
-                <Stat label="de pratique" value={Format.duration(week.minutes)} />
-                <Stat label="XP cette semaine" value={Format.number(week.xp)} tone="accent" />
-              </StatRow>
             </Section>
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
-              <Card style={{ gap: space.s3 }}>
+              <Card style={{ gap: space.s4 }}>
                 <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
+                  <Ring value={xp / Math.max(1, need)} size={76} stroke={5}>
+                    <Image source={avatarImages[snap?.avatar ?? "scout"] ?? avatarImages.scout} style={styles.portrait} accessibilityIgnoresInvertColors />
+                  </Ring>
+                  <View style={{ flex: 1, gap: 2 }}>
                     <T variant="h3">
                       Niveau {level} · {rank.name}
+                    </T>
+                    <T variant="caption" tone="muted">
+                      {Format.number(xp)} / {Format.number(need)} XP · encore {Format.number(Math.max(0, need - xp))}
                     </T>
                     <T variant="caption" tone="faint">
                       {nextRank ? `${nextRank.name} au niveau ${nextRank.level}` : "Rang maximal atteint"}
                     </T>
                   </View>
-                  <T variant="caption" tone="muted">
-                    {Format.number(xp)} / {Format.number(need)} XP
-                  </T>
                 </View>
-                <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
                 {world && cp ? (
                   <Tap onPress={() => navigation.navigate("World", { id: world.id })} accessibilityLabel={`${world.name}, chapitre ${campaign!.chapter}`} style={styles.campaign}>
-                    <View style={[styles.worldDot, { backgroundColor: world.color }]} />
-                    <View style={{ flex: 1 }}>
-                      <T variant="bodyStrong" numberOfLines={1}>
+                    <Image source={worldImages[world.image]} style={styles.worldThumb} />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <T variant="caption" color={world.color} numberOfLines={1}>
                         {world.name} · chapitre {Math.min(9, campaign!.chapter)}
                       </T>
-                      <T variant="caption" tone={cp.ready ? "accent" : "faint"}>
+                      <T variant="bodyStrong" numberOfLines={1}>
+                        {world.chapters[Math.min(9, campaign!.chapter) - 1]?.name}
+                      </T>
+                      <T variant="caption" tone={cp.ready ? "accent" : "faint"} numberOfLines={1}>
                         {cp.status === "complete" ? "Monde terminé" : cp.ready ? "Chapitre prêt à être validé" : cp.objectives.map((o) => `${Math.round(o.value)}/${o.target} ${o.label}`).join(" · ")}
                       </T>
                     </View>
@@ -223,6 +229,7 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingLeft: 10, borderRadius: radius.pill },
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
-  campaign: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: 12, backgroundColor: colors.bg1 },
-  worldDot: { width: 12, height: 12, borderRadius: 6 },
+  campaign: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s2, paddingRight: space.s3, borderRadius: 14, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
+  worldThumb: { width: 56, height: 56, borderRadius: 10 },
+  portrait: { width: 62, height: 62, borderRadius: 31 },
 });

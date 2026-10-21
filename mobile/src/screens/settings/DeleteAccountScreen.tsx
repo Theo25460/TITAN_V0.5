@@ -7,6 +7,7 @@ import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
 import { deleteOwnAccount } from "../../data/api";
 import { useAuth } from "../../data/auth";
+import { Format } from "../../core";
 import { useQueue } from "../../data/queue";
 import { SUPPORT_EMAIL } from "../../lib/config";
 import { errorMessage } from "../../lib/errors";
@@ -50,7 +51,7 @@ export function DeleteAccountScreen() {
         <T variant="small">• les données de ce téléphone liées au compte.</T>
         <T variant="small">Elle est irréversible. Pense à exporter ton journal avant (Compte › Mes données).</T>
       </Card>
-      {queue.items.length ? <T variant="small" tone="warn">{queue.items.length} séance(s) non envoyée(s) seront aussi effacées de ce téléphone.</T> : null}
+      {queue.items.length ? <T variant="small" tone="warn">{Format.plural(queue.items.length, "séance non envoyée sera aussi effacée", "séances non envoyées seront aussi effacées")} de ce téléphone.</T> : null}
       <Field label="Pour confirmer, écris SUPPRIMER" value={confirm} onChangeText={setConfirm} autoCapitalize="characters" autoCorrect={false} />
       {error ? <T variant="small" tone="err" accessibilityRole="alert">{error}</T> : null}
       <Button kind="danger" label="Supprimer mon compte" icon="trash" loading={busy} disabled={!online || confirm.trim().toUpperCase() !== "SUPPRIMER"} onPress={() => Alert.alert("Dernière confirmation", "Supprimer définitivement ton compte TITAN ?", [{ text: "Annuler", style: "cancel" }, { text: "Supprimer", style: "destructive", onPress: run }])} />

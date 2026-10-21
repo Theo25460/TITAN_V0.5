@@ -46,7 +46,7 @@ for (const spec of only.length ? only : SCREENS) {
     await page.getByText(click, { exact: true }).first().click().catch((e) => errors.push(`${spec}: ${e.message.split("\n")[0]}`));
     await page.waitForTimeout(1600);
   }
-  const name = (screen + (click ? "-clic" : "")).replace(/[?&=]/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
+  const name = (screen + (click ? `-${click.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 20)}` : "")).replace(/[?&=]/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
   await page.screenshot({ path: join(out, `${name}.png`) });
   // The whole screen too (tall viewport), so below-the-fold content is reviewed.
   await page.setViewportSize({ width: 412, height: 2400 });

@@ -204,7 +204,7 @@ export function CommunityScreen() {
                 </T>
                 {exp.me.joined ? (
                   <T variant="small" tone="accent">
-                    Ta contribution : {exp.me.minutes ?? 0} min sur {exp.me.days ?? 0} jour(s){exp.me.personal_done ? ` · titre « ${exp.reward_title} » obtenu` : ` · objectif perso ${exp.personal_days} jours et ${exp.personal_minutes} min`}
+                    Ta contribution : {exp.me.minutes ?? 0} min sur {Format.plural(exp.me.days ?? 0, "jour", "jours")}{exp.me.personal_done ? ` · titre « ${exp.reward_title} » obtenu` : ` · objectif perso ${exp.personal_days} jours et ${exp.personal_minutes} min`}
                   </T>
                 ) : exp.status !== "ended" ? (
                   <Button small label="Rejoindre l’expédition" loading={busy === "exp"} onPress={() => act("exp", () => api.expeditionJoin(exp.id), "Expédition rejointe")} />
