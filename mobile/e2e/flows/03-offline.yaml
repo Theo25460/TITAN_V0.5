@@ -1,0 +1,58 @@
+# Séance hors ligne, conservation après fermeture de l'application, envoi unique au retour du réseau
+appId: fr.titanapp.app
+---
+- launchApp
+- runFlow:
+    when:
+        visible: ".*isn't responding.*"
+    commands:
+      - tapOn: "Wait"
+- extendedWaitUntil:
+    visible:
+      id: "tab-record"
+    timeout: 30000
+- setAirplaneMode: enabled
+- tapOn:
+    id: "tab-record"
+- extendedWaitUntil:
+    visible:
+      id: "offline-banner"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "sport-yoga"
+    direction: DOWN
+- tapOn:
+    id: "sport-yoga"
+- waitForAnimationToEnd
+- tapOn:
+    id: "duration-m"
+- tapOn:
+    id: "duration-m"
+- inputText: "20"
+- scrollUntilVisible:
+    element:
+      id: "session-note"
+    direction: DOWN
+- tapOn:
+    id: "session-note"
+- inputText: "E2E hors ligne"
+- tapOn:
+    id: "session-save"
+- extendedWaitUntil:
+    visible: "Gardée sur ce téléphone"
+    timeout: 30000
+- takeScreenshot: 16-hors-ligne-garde
+- tapOn:
+    id: "result-done"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ".*en attente d’envoi.*"
+    timeout: 30000
+- takeScreenshot: 17-relance-en-attente
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible: ".*en attente d’envoi.*"
+    timeout: 90000
+- takeScreenshot: 18-synchronise

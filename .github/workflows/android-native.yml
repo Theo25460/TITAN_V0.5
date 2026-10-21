@@ -1,0 +1,270 @@
+name: Android natif (React Native)
+
+# Native TITAN Android application (mobile/, Expo SDK prebuild + Gradle). Builds a release APK and a Play App Bundle.
+# - Push / pull request: test build signed with a THROWAWAY key generated on the runner (artifact marked NE-PAS-PUBLIER).
+# - Manual run with "signing = upload": signs with the Play upload key kept in the repository secrets
+#   ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD (alias "titan", see mobile/docs/RELEASE.md).
+# Nothing is ever uploaded to Google Play by this workflow.
+on:
+  push:
+    branches: [claude/tender-faraday-89ijgk]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/android-native.yml"
+  pull_request:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/android-native.yml"
+  workflow_dispatch:
+    inputs:
+      signing:
+        description: "Clé de signature : throwaway (essai) ou upload (clé d'envoi Play, secrets requis)"
+        required: true
+        default: throwaway
+        type: choice
+        options: [throwaway, upload]
+      version_code:
+        description: "versionCode (vide = 1000 + numéro d'exécution ; doit dépasser 300, version TWA du test interne)"
+        required: false
+      version_name:
+        description: "versionName"
+        required: false
+        default: "1.0.0"
+      e2e:
+        description: "Lancer le parcours sur émulateur Android"
+        required: false
+        default: true
+        type: boolean
+      e2e_post_migrations:
+        description: "Rejouer aussi le parcours sur une réplique où les migrations de la candidate Web (PR #115) sont déjà appliquées"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  # A manual (signed) build never cancels, and is never cancelled by, the push/PR checks.
+  group: android-native-${{ github.event_name == 'workflow_dispatch' && 'dispatch' || 'checks' }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  checks:
+    name: Types et tests unitaires
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test -- --ci
+      - name: Bundle JavaScript Android (Metro, production)
+        run: npx expo export:embed --platform android --dev false --entry-file index.ts --bundle-output /tmp/index.android.bundle --assets-dest /tmp/assets && ls -la /tmp/index.android.bundle
+
+  build:
+    name: APK et AAB release
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      version_code: ${{ steps.version.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - run: npm ci
+      - name: Version
+        id: version
+        env:
+          INPUT_CODE: ${{ inputs.version_code }}
+          INPUT_NAME: ${{ inputs.version_name }}
+        run: |
+          code="${INPUT_CODE:-$((1000 + GITHUB_RUN_NUMBER))}"
+          name="${INPUT_NAME:-1.0.0}"
+          if [ "$code" -le 300 ]; then echo "::error::versionCode $code doit dépasser 300 (TWA du test interne)"; exit 1; fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "TITAN_VERSION_CODE=$code" >> "$GITHUB_ENV"
+          echo "TITAN_VERSION_NAME=$name" >> "$GITHUB_ENV"
+          echo "versionCode=$code versionName=$name"
+      - name: Clé de signature
+        env:
+          SIGNING: ${{ inputs.signing || 'throwaway' }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          store="$RUNNER_TEMP/titan-signing.p12"
+          if [ "$SIGNING" = "upload" ]; then
+            if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::secret ANDROID_KEYSTORE_BASE64 absent : impossible de signer avec la clé d'envoi"; exit 1; fi
+            echo "$KEYSTORE_BASE64" | base64 -d > "$store"
+            echo "TITAN_UPLOAD_STORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "TITAN_UPLOAD_KEY_PASSWORD=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}" >> "$GITHUB_ENV"
+            echo "SIGNING_LABEL=upload" >> "$GITHUB_ENV"
+          else
+            password=$(openssl rand -hex 16)
+            echo "::add-mask::$password"
+            keytool -genkeypair -noprompt -keystore "$store" -storetype PKCS12 -alias titan -keyalg RSA -keysize 4096 -validity 30 \
+              -storepass "$password" -keypass "$password" -dname "CN=TITAN essai, O=TITAN, C=FR"
+            echo "TITAN_UPLOAD_STORE_PASSWORD=$password" >> "$GITHUB_ENV"
+            echo "TITAN_UPLOAD_KEY_PASSWORD=$password" >> "$GITHUB_ENV"
+            echo "SIGNING_LABEL=essai-NE-PAS-PUBLIER" >> "$GITHUB_ENV"
+          fi
+          echo "TITAN_UPLOAD_STORE_FILE=$store" >> "$GITHUB_ENV"
+          echo "TITAN_UPLOAD_KEY_ALIAS=titan" >> "$GITHUB_ENV"
+      - name: Projet natif (expo prebuild)
+        run: |
+          npx expo prebuild --platform android --clean --no-install
+          scripts/install-ndk.sh
+      - name: Gradle assembleRelease bundleRelease
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+      - name: Contrôles du paquet (identifiant, versions, permissions, signature)
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          aab=android/app/build/outputs/bundle/release/app-release.aab
+          test -s "$apk" && test -s "$aab"
+          bt=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/* | sort -V | tail -1)
+          "$bt/aapt2" dump badging "$apk" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|launchable-activity)" | tee badging.txt
+          grep -q "package: name='fr.titanapp.app'" badging.txt || { echo "::error::identifiant inattendu"; exit 1; }
+          grep -q "versionCode='$TITAN_VERSION_CODE'" badging.txt || { echo "::error::versionCode inattendu"; exit 1; }
+          target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
+          if [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
+          "$bt/aapt2" dump permissions "$apk" | tee permissions.txt
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
+          if grep -q "BILLING\|AD_ID" permissions.txt; then echo "::error::facturation ou identifiant publicitaire présent"; exit 1; fi
+          "$bt/apksigner" verify --print-certs "$apk" | tee signature.txt
+          # An upload build must carry the registered upload key, or Play Console rejects the bundle.
+          if [ "$SIGNING_LABEL" = "upload" ] && ! grep -q "SHA-256 digest: 8e359edea72e48f0760d1b7ff66494439bba4b5f7385de44c7cfa5929dec205c" signature.txt; then
+            echo "::error::la clé fournie n'est pas la clé d'envoi enregistrée (SHA-256 8E:35:…:20:5C)"; exit 1
+          fi
+          unzip -l "$aab" | grep -q "base/manifest/AndroidManifest.xml"
+          # No WebView-based UI: the app ships its own JS bundle and must not depend on the website at launch.
+          unzip -l "$apk" | grep -q "assets/index.android.bundle" || { echo "::error::bundle JavaScript absent de l'APK"; exit 1; }
+          # The published build must talk to the production Supabase only (no test replica address, no cleartext).
+          unzip -p "$apk" assets/index.android.bundle > bundle.js
+          grep -q "oubmftfufwwzwpgvrcag.supabase.co" bundle.js || { echo "::error::adresse Supabase de production absente"; exit 1; }
+          if grep -q "10.0.2.2" bundle.js; then echo "::error::adresse de test dans le bundle de production"; exit 1; fi
+          if grep -q 'usesCleartextTraffic.*true' <("$bt/aapt2" dump xmltree --file AndroidManifest.xml "$apk"); then echo "::error::trafic HTTP en clair autorisé"; exit 1; fi
+          mkdir -p ../artifacts
+          cp "$apk" "../artifacts/titan-$TITAN_VERSION_NAME-$TITAN_VERSION_CODE-$SIGNING_LABEL.apk"
+          cp "$aab" "../artifacts/titan-$TITAN_VERSION_NAME-$TITAN_VERSION_CODE-$SIGNING_LABEL.aab"
+          cp badging.txt permissions.txt signature.txt ../artifacts/
+          sha256sum ../artifacts/*.apk ../artifacts/*.aab | tee ../artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: titan-android-${{ steps.version.outputs.code }}-${{ env.SIGNING_LABEL }}
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: error
+
+  e2e:
+    name: Parcours réel sur émulateur Android (réplique locale du backend, schéma ${{ matrix.schema }})
+    needs: checks
+    if: github.event_name != 'workflow_dispatch' || inputs.e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # "production" = what is live today; "after-migrations" = the same plus the pending migrations of the Web candidate.
+        schema: ${{ fromJSON(inputs.e2e_post_migrations && '["production","after-migrations"]' || '["production"]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Migrations de la candidate Web (PR #115)
+        if: matrix.schema == 'after-migrations'
+        uses: actions/checkout@v4
+        with:
+          ref: codex/final-web-rc-20261021
+          path: web-rc
+          sparse-checkout: supabase/migrations
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-e2e-${{ runner.os }}-${{ hashFiles('mobile/package-lock.json') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - run: npm ci
+      - name: Réplique locale du backend (structure de production + migrations, comptes de test)
+        env:
+          E2E_PENDING_MIGRATIONS_DIR: ${{ matrix.schema == 'after-migrations' && format('{0}/web-rc/supabase/migrations', github.workspace) || '' }}
+        run: e2e/setup-backend.sh
+      - name: Application de test (x86_64, pointe vers la réplique locale)
+        env:
+          TITAN_E2E: "1"
+        run: |
+          export EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL="http://10.0.2.2:54321"
+          export EXPO_PUBLIC_TITAN_E2E_SUPABASE_ANON_KEY="$E2E_ANON_KEY"
+          npx expo prebuild --platform android --clean --no-install
+          scripts/install-ndk.sh
+          cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+      - name: Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          "$HOME/.maestro/bin/maestro" --version
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Parcours sur émulateur (Android 14)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: mobile/e2e/run-emulator.sh
+      - name: Vérifications côté serveur (séances, XP, aventure, isolation)
+        if: always()
+        # bash (not the default sh -e) adds pipefail: a failed check must fail the step despite tee.
+        shell: bash
+        run: mkdir -p ../e2e-out && e2e/verify-backend.sh | tee ../e2e-out/server-checks.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-android-e2e-preuves-${{ matrix.schema }}
+          path: e2e-out/
+          retention-days: 30

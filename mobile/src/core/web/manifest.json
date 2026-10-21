@@ -1,0 +1,20 @@
+{
+  "source": "Theo25460/TITAN_V0.5",
+  "sha": "ba9d05f4529b8cc56a8dcc5d97b4c884116cb87c",
+  "files": {
+    "format.js": "247df5d27fb1e0117029cdf9b5dd8455b102093ed26bf85156c3b8832932c0ac",
+    "training-store.js": "dabae2832a1b1ff502c81189a1c5cc7f9bcf6b6a5980ff6525770b38013515a5",
+    "effort.js": "93aca58be0b1b4f8648ca058f7eab929f6ef3cdea802e9e02f4e7a34accfd122",
+    "sports-catalog.js": "d42505aa960c752960fdc256704e6a02e9e9f7af61b3513c3d11fddabaf0d3a1",
+    "sports.js": "adb90873f71db48f65fbf34c2aa70a0d4b10cbbaa7cfd5a55308135bf2825205",
+    "sport-insights.js": "dd53e45193e78e146071113126c3d9bbb416f3049ef0dffead2e532307fe1918",
+    "progress.js": "e2734fbd957ff7af06d0de805f03ef1e69aa0eaa05a613685874f29b532bb462",
+    "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
+    "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
+    "renaissance-engine.js": "d8063fdbb3a11cedeb41e50710fc954955302d3dda598f97c892c00299c0979b",
+    "campaign-quests.js": "28fc3d4f3c956014ce729f5bd24449d05717e7edd1a13576f43dd60bcdd599d5",
+    "campaign-encounters.js": "e3f6d81cb1cb665933702536048d0bf92dd254846cb5ff12fb4be669f4c2d1e2",
+    "sport-navigation.js": "162ddec28dcfc6438e683b184832a6d034c771d659dd457f2013438064449ab4",
+    "gpx.js": "9f3606092348b779f18dc08487f2bac920d0abe2059096da28055778dfec33e4"
+  }
+}
