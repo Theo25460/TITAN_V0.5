@@ -35,7 +35,7 @@ async function campaignPage(route, campaign, width=360) {
  await page.goto(BASE+route); await page.waitForFunction(()=>window.TitanAdventure?.status==='ready');
  await page.evaluate(c=>{
   const a=window.TitanAdventure;
-  a.snapshot={...a.snapshot,selected_world:'aube',campaigns:[{id:'aube',route:'rhythm',...c}]};
+  a.snapshot={...a.snapshot,selected_world:c.id||'aube',campaigns:[{id:'aube',route:'rhythm',...c}]};
   a.refresh=async()=>{};
   dispatchEvent(new Event('titan:adventure-updated'));
  },campaign);
@@ -63,10 +63,31 @@ test('valley obstacle: current chapter evidence controls the passage and transit
  const trial=page.locator('[data-campaign-encounter]');await trial.waitFor();assert.match(await trial.textContent(),/pont/i);assert.equal(await trial.locator('[role="progressbar"]').getAttribute('aria-valuenow'),'50');assert.equal(await page.evaluate(()=>{window.titanAccountTransition={active:true};dispatchEvent(new Event('titan:account-changing'));return !!document.querySelector('[data-campaign-encounter]');}),false);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
+test('obstacles and guardians exist in every world, not only the first valley',async()=>{
+ for(const[id,obstacle,guardianName]of[['marees',/phare/i,/Gardienne des courants/],['forge',/enclume/i,/Artisan de braise/],['aurores',/givre/i,/Sentinelle du ciel/]]){
+  let f=await campaignPage('/adventure?world='+id,{id,chapter:2,target:2,evidence:{days:1,effort:20}});try{
+   const trial=f.page.locator('[data-campaign-encounter]');await trial.waitFor();assert.match(await trial.textContent(),obstacle,id);assert.equal(await trial.getAttribute('data-state'),'active');assert.deepEqual(f.errors,[]);
+  }finally{await f.context.close();}
+  f=await campaignPage('/adventure?world='+id,{...guardian,id});try{
+   const trial=f.page.locator('[data-campaign-encounter]');await trial.waitFor();assert.match(await trial.textContent(),guardianName,id);assert.equal(await trial.locator('[data-phase]').count(),3);assert.equal(await trial.locator('img').getAttribute('src'),`/assets/renaissance/guardian-${id}-s.webp`);assert.deepEqual(f.errors,[]);
+  }finally{await f.context.close();}
+ }
+});
 test('guardian phases: real discovery engine confirms the final chapter and stores its unique badge',async()=>{
  const f=await newPage();const{page,context,errors}=f;try{
  await page.goto(BASE+'/adventure');await page.waitForFunction(()=>window.TitanAdventure?.status==='ready');
  await page.evaluate(async()=>{const id=window.state.user.id;localStorage.setItem('titan_adventure_v1:'+id,JSON.stringify({owner:id,revision:1,selected_world:'aube',rewards:[],campaigns:[{id:'aube',chapter:9,route:'rhythm',started_at:'2026-10-01T00:00:00Z'}]}));window.state.history=[2,3,4].map(n=>({id:'g'+n,sport:'running',val:5,unit:'km',date:'2026-10-0'+n+'T12:00:00Z',created_at:'2026-10-0'+n+'T13:00:00Z',details:{duration:50,bio:{rpe:5}}}));await window.TitanAdventure.refresh({force:true});});
  await page.locator('[data-campaign-encounter][data-state="ready"]').waitFor();await page.locator('[data-claim="9"]').click();await page.waitForFunction(()=>window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='aube').chapter===10);assert.equal(await page.locator('[data-campaign-encounter]').count(),0);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('titan_adventure_v1:'+window.state.user.id)).rewards.filter(r=>r.world==='aube'&&r.chapter===9).length),1);assert.deepEqual(errors,[]);
  }finally{await context.close();}
+});
+test('quest log lists every started region with its chapter and stays optional and non-punitive', async () => {
+ const f=await campaignPage('/adventure',{chapter:3,target:2,evidence:{days:1,effort:10}});try{
+  const log=f.page.locator('[data-quest-log]');await log.waitFor();
+  assert.equal(await log.locator('[data-quest-log-world]').count(),1);
+  await log.locator('summary').click();
+  const text=await log.innerText();
+  assert.match(text,/Chapitre 3/);assert.match(text,/facultatif/);assert.match(text,/n’efface rien/);
+  assert.ok(!/(perdu|expire|compte à rebours|série brisée|plus que \d+ ?h)/i.test(await f.page.locator('#aventure').innerText()),'no guilt or countdown wording on the Aventure screen');
+  assert.deepEqual(f.errors,[]);
+ }finally{await f.context.close();}
 });

@@ -4488,6 +4488,18 @@ test("atelier preview: frame, ambiance and card previews do not change balance o
   await context.close();
 });
 
+test("atelier: the next rewards are listed in order of reach, never as a purchase of TITAN+", async () => {
+  const { page, context, errors } = await atelierPage(360, false, false);
+  const next = page.locator("[data-upcoming]");
+  assert.equal(await next.locator("li").count(), 3);
+  const names = await next.locator("li strong").allInnerTexts();
+  assert.deepEqual(names, ["Obsidienne", "Aurores", "Cadre Aegis"], "closest first");
+  assert.match(await next.innerText(), /Tu peux le débloquer maintenant/);
+  assert.equal(await next.locator("[data-buy], [data-checkout], [data-play-checkout]").count(), 0);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("atelier: an older server shows a catalog update notice without inventing a free price", async () => {
   const { page, context, errors } = await atelierPage(360, false, true);
   assert.match(await page.locator("#atelier").innerText(), /Mise à jour du catalogue en attente/);

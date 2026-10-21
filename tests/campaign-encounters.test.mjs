@@ -8,4 +8,18 @@ test('guardian has three phases grounded in days effort and regularity',()=>{con
 test('enough effort does not replace missing active days',()=>{const p=describe({...boss,evidence:{days:2,effort:150}});assert.equal(p.percent,67);assert.equal(p.ready,false);assert.equal(p.phases[2].state,'active');});
 test('full objectives only mark confirmation readiness and never fabricate completion',()=>{const p=describe({...boss,evidence:{days:3,effort:150}});assert.equal(p.percent,100);assert.equal(p.state,'ready');assert.equal(p.phases.every(p=>p.state==='done'),true);assert.equal(describe({...boss,chapter:10}),null);});
 test('historical day-only contract never introduces an effort phase',()=>{const p=describe({...boss,effort_target:undefined,evidence:{days:2}});assert.equal(p.phases.length,2);assert.equal(p.phases.some(p=>p.id==='effort'),false);assert.equal(p.percent,67);});
-test('encounters cover only the active valley without changing campaign input',()=>{assert.equal(describe({...boss,id:'marees'}),null);assert.equal(describe({...boss,chapter:0}),null);const before=JSON.stringify(boss);describe(boss);assert.equal(JSON.stringify(boss),before);});
+test('encounters cover the four worlds, ignore unknown ones and never change campaign input',()=>{
+  assert.equal(describe({...boss,id:'inconnu'}),null);assert.equal(describe({...boss,chapter:0}),null);
+  const before=JSON.stringify(boss);describe(boss);assert.equal(JSON.stringify(boss),before);
+  const seen=new Set();
+  for(const id of ['aube','marees','forge','aurores']){
+    for(let chapter=1;chapter<=8;chapter++){const p=describe({id,chapter,target:2,evidence:{days:1}});assert.equal(p.kind,'obstacle',`${id} ${chapter}`);assert.ok(p.name&&p.text&&p.phases.length===1);seen.add(p.name);}
+    const g=describe({...boss,id});assert.equal(g.kind,'guardian');assert.equal(g.phases.length,3);assert.equal(g.state,'active');
+  }
+  assert.equal(seen.size,32,'every obstacle has its own name');
+  assert.equal(describe({...boss,id:'forge'}).name,'L’Artisan de braise');
+});
+test('encounter wording stays non-punitive in every world',()=>{
+  const src=readFileSync(file,'utf8');
+  assert.ok(!/(perdu|échou|expire|chrono|compte à rebours|dernière chance|plus que \d+ ?h)/i.test(src));
+});

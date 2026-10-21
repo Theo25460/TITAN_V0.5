@@ -89,7 +89,7 @@ test('personal targets: current server goals agree in mission, details and guard
  for(const width of [360,1280]){const {page,context,errors}=await accountPage(width,'forge',4);try{
   await page.evaluate(()=>{const c=window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='forge');Object.assign(c,{chapter:9,target:2,effort_target:70,main_objective:{version:1,days:2,effort:70,frozen_at:'2026-10-01'},evidence:{days:1,effort:35,source_ids:[]}});dispatchEvent(new Event('titan:adventure-updated'));});
   await page.waitForFunction(()=>document.querySelector('.av-mission-head')?.textContent.includes('Chapitre 9 / 9'));
-  assert.match(await page.locator('.av-guardian').textContent(),/2 jours actifs et 70 minutes/);
+  assert.match(await page.locator('[data-campaign-encounter] [data-guardian-goal]').textContent(),/2 jours actifs et 70 minutes/);
   assert.match(await page.locator('[data-rpg-remaining]').textContent(),/1 jour.*35 min/);
   await page.getByRole('button',{name:'Détails du chapitre'}).click();
   assert.match(await page.getByRole('dialog').textContent(),/Mission : 2 jours actifs et 70 minutes/);
@@ -113,6 +113,6 @@ test('personal targets: grandfathered guardian keeps its fixed conditions visibl
  const {page,context,errors}=await accountPage(360,'forge',4);try{
   await page.evaluate(()=>{Object.assign(window.TitanAdventure.snapshot.campaigns.find(c=>c.id==='forge'),{chapter:9,target:3,effort_target:150,main_objective:{version:0,days:3,effort:150}});dispatchEvent(new Event('titan:adventure-updated'));});
   assert.match(await page.locator('[data-personal-target]').textContent(),/conditions.*conservées/);
-  assert.match(await page.locator('.av-guardian').textContent(),/3 jours actifs et 150 minutes/);assert.deepEqual(errors,[]);
+  assert.match(await page.locator('[data-campaign-encounter] [data-guardian-goal]').textContent(),/3 jours actifs et 150 minutes/);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });

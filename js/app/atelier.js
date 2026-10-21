@@ -284,7 +284,7 @@
       return wear + purchase;
     }
     if (wear) return wear;
-    if (item.unlock === "plus") return `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus>Voir TITAN+</button>`;
+    if (item.unlock === "plus") return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+ · bientôt</a>`;
     if (item.unlock === "rank") return `<span class="asc-small asc-faint">Niveau ${item.min_level}</span>`;
     const short = item.price - (Number(data.credits) || 0);
     return short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)}</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">Débloquer</button>`;
@@ -311,6 +311,22 @@
         <p class="asc-small asc-muted">Une seule monnaie, gagnée en t’entraînant : 10 % de l’XP de chaque séance. Elle ne s’achète pas.</p></div>
       <div class="at-week"><div class="asc-between"><span class="asc-small">Cette semaine</span><span class="asc-small asc-num">${F().number(week)} / ${F().number(cap)}</span></div><span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, week / cap) * 100)}%"></span></span>
         <p class="asc-small asc-faint">Le même plafond pour tout le monde, abonné ou non.</p></div></section>`;
+  }
+
+  /* The next three pieces within reach, so the reward ahead is always visible (credits or rank, never a purchase). */
+  function upcomingHtml() {
+    const level = Number(data.level) || 1;
+    const credits = Number(data.credits) || 0;
+    const rows = (data.items || [])
+      .filter((i) => !permanent(i) && (i.unlock === "credits" || (i.unlock === "rank" && Number(i.min_level) > level)))
+      .map((i) => i.unlock === "credits"
+        ? { item: i, order: Math.max(0, Math.ceil((i.price - credits) / creditsPerSession())), text: i.price <= credits ? "Tu peux le débloquer maintenant." : `Environ ${Math.ceil((i.price - credits) / creditsPerSession())} séance${Math.ceil((i.price - credits) / creditsPerSession()) > 1 ? "s" : ""} à ton rythme actuel.` }
+        : { item: i, order: 1000 + i.min_level - level, text: `Au niveau ${i.min_level} (rang ${RANKS[i.min_level] || i.min_level}), encore ${i.min_level - level} niveau${i.min_level - level > 1 ? "x" : ""}.` })
+      .sort((a, b) => a.order - b.order || (Number(a.item.price) || 0) - (Number(b.item.price) || 0))
+      .slice(0, 3);
+    if (!rows.length) return "";
+    return `<section class="asc-section" id="a-venir" data-upcoming><div class="asc-section-head"><h2>Prochaines récompenses</h2><span class="asc-small asc-muted">Estimations, sans engagement</span></div>
+      <ul class="asc-stack-sm">${rows.map(({ item, text }) => `<li class="asc-row-flex"><strong>${esc(item.name)}</strong><span class="asc-small asc-muted">${esc(text)}</span></li>`).join("")}</ul></section>`;
   }
 
   function lookHtml() {
@@ -376,7 +392,7 @@
       root.setAttribute("aria-busy", "false");
       return;
     }
-    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${plusHtml()}
+    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${upcomingHtml()}${lookHtml()}${shelfHtml()}${plusHtml()}
       <p class="asc-small asc-faint at-foot">Tous les styles du catalogue se gagnent gratuitement par les crédits ou le rang. Une pièce acquise avec tes crédits reste à toi après la fin de TITAN+. L’accès inclus par l’abonnement est temporaire : seules les pièces encore non acquises reviennent au style d’origine.</p>
       ${(data.items || []).some((i) => i.unlock === "plus") ? `<p class="asc-note">${icon("info")}<span>Mise à jour du catalogue en attente : les pièces encore marquées TITAN+ deviendront aussi accessibles avec tes crédits d’activité.</span></p>` : ""}`;
     root.setAttribute("aria-busy", "false");
@@ -550,7 +566,6 @@
     }
     if (b.dataset.preview) return openPreview(b.dataset.preview);
     if (b.dataset.buy) return buy(b.dataset.buy);
-    if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
     if (b.hasAttribute("data-play-checkout")) return playCheckout(b);
     if (b.hasAttribute("data-retry")) {
