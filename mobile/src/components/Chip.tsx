@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { colors, radius } from "../theme/tokens";
+import { colors, radius, TOUCH } from "../theme/tokens";
 import { Icon, type IconName } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
@@ -25,6 +25,6 @@ export function Chip({ label, icon, selected = false, onPress, tone = "default",
 
 const styles = StyleSheet.create({
   chip: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 5, alignSelf: "flex-start", overflow: "hidden" },
-  tappable: { minHeight: 40, paddingHorizontal: 14, justifyContent: "center", borderWidth: 1 },
+  tappable: { minHeight: TOUCH, paddingHorizontal: 14, justifyContent: "center", borderWidth: 1 },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
 });

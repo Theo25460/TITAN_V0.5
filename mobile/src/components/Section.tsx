@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import { colors, space } from "../theme/tokens";
+import { colors, space, TOUCH } from "../theme/tokens";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
 
@@ -63,7 +63,7 @@ export function StatRow({ children, flat = false }: { children: React.ReactNode;
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", minHeight: 32 },
-  action: { minHeight: 40, justifyContent: "center", paddingHorizontal: 8 },
+  action: { minHeight: TOUCH, justifyContent: "center", paddingHorizontal: 8 },
   stat: { flex: 1, minWidth: 0, gap: 2, padding: space.s3, borderRadius: 14, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
   row: { flexDirection: "row", gap: space.s2 },
   statFlat: { flex: 1, minWidth: 0, gap: 2, paddingVertical: space.s1, paddingRight: space.s2 },

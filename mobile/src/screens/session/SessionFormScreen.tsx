@@ -24,7 +24,7 @@ import { clearDraft, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../..
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, radius, space } from "../../theme/tokens";
+import { colors, familyColors, radius, space, TOUCH } from "../../theme/tokens";
 import { ExerciseEditor } from "./ExerciseEditor";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -421,8 +421,8 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   sportHead: { flexDirection: "row", alignItems: "center", gap: 8 },
   famDot: { width: 10, height: 10, borderRadius: 5 },
-  change: { minHeight: 40, paddingHorizontal: 8, justifyContent: "center" },
+  change: { minHeight: TOUCH, paddingHorizontal: 8, justifyContent: "center" },
   rpe: { flexDirection: "row", gap: 4 },
-  rpeItem: { flex: 1, height: 44, borderRadius: radius.r1, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
+  rpeItem: { flex: 1, height: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
   rpeOn: { backgroundColor: colors.cy, borderColor: colors.cy },
 });

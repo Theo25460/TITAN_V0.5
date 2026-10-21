@@ -22,7 +22,7 @@ import { useOwner } from "../../data/auth";
 import { keys, useSocial } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
-import { colors, space } from "../../theme/tokens";
+import { colors, space, TOUCH } from "../../theme/tokens";
 
 type Tab = "friends" | "moments" | "challenges" | "guild";
 const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: "minutes d’effort", active_days: "jours actifs", distance_km: "km", sessions: "séances" };
@@ -354,5 +354,5 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
-  iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
 });

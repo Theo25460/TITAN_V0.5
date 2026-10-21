@@ -20,7 +20,7 @@ import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../dat
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
 import { navigateHref } from "../../navigation/href";
-import { colors, radius, space } from "../../theme/tokens";
+import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
 const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -227,7 +227,7 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingLeft: 10, borderRadius: radius.pill },
+  me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: TOUCH, paddingLeft: 10, borderRadius: radius.pill },
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   campaign: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s2, paddingRight: space.s3, borderRadius: 14, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
   worldThumb: { width: 56, height: 56, borderRadius: 10 },

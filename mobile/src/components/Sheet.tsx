@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../lib/motion";
-import { colors, radius, space } from "../theme/tokens";
+import { colors, radius, space, TOUCH } from "../theme/tokens";
 import { Icon } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
@@ -47,5 +47,5 @@ const styles = StyleSheet.create({
   sheet: { maxHeight: "88%", backgroundColor: colors.bg2, borderTopLeftRadius: radius.r4, borderTopRightRadius: radius.r4, borderWidth: 1, borderColor: colors.line2, paddingHorizontal: space.s4 },
   grip: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line3, marginTop: 10 },
   head: { flexDirection: "row", alignItems: "center", paddingVertical: space.s2 },
-  close: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  close: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
 });

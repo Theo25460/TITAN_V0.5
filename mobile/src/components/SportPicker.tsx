@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Sports, type SportEntry } from "../core";
-import { familyColors, colors, radius, space } from "../theme/tokens";
+import { familyColors, colors, radius, space, TOUCH } from "../theme/tokens";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
 import { Tap } from "./Pressable";
@@ -50,6 +50,6 @@ export function SportGrid({ ids, selected = [], onPick }: { ids: string[]; selec
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
-  chip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, overflow: "hidden", maxWidth: "100%" },
+  chip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: TOUCH, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, overflow: "hidden", maxWidth: "100%" },
   chipOn: { backgroundColor: colors.cy, borderColor: colors.cy },
 });

@@ -7,7 +7,7 @@ import { Tap } from "../../components/Pressable";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { COMMON_EXERCISES, COMMON_MOVES, emptyExercise, emptySet, type ExerciseDraft } from "../../core/session";
-import { colors, radius, space } from "../../theme/tokens";
+import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
 /** Exercises with per-set rows (charge, répétitions, RIR) or holds in seconds, like the website. */
 export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggestions = [] }: { exercises: ExerciseDraft[]; onChange: (e: ExerciseDraft[]) => void; bodyweight: boolean; error?: boolean; suggestions?: string[] }) {
@@ -123,5 +123,5 @@ const styles = StyleSheet.create({
   colN: { width: 34, textAlign: "center" },
   col: { flex: 1 },
   colSmall: { flex: 0.7 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
 });
