@@ -18,7 +18,7 @@ export const SCREENS = [
   "QG", "QG&state=empty", "Progress", "Progress&state=empty", "Record", "SessionForm?sport=running", "SessionForm?sport=muscu_gym",
   "SessionResult?eventId=record", "SessionResult?eventId=levelup", "SessionDetail?id=p0000000-0000-4000-8000-000000000001",
   "Journal", "Records", "Goals", "Plan",
-  "Adventure", "Adventure&state=empty", "World?id=aube", "World?id=aube|click=Valider le chapitre 3", "World?id=marees", "World?id=forge",
+  "Adventure", "Adventure&state=empty", "World?id=aube", "World?id=aube|click=Allumer la balise du chapitre 3", "World?id=marees", "World?id=forge",
   "Profile", "Atelier", "Community", "PublicCard", "Settings", "Account", "Privacy", "Notifications", "Sports", "Help", "TitanPlus", "DeleteAccount",
 ];
 

@@ -60,10 +60,10 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
       const next = world.chapters[ch.index];
       setReveal({
         color: world.color,
-        eyebrow: ch.boss ? `${world.guardian} te reconnaît` : `Chapitre ${ch.index} validé`,
+        eyebrow: ch.boss ? `${world.guardian} te reconnaît` : `Balise ${ch.index} allumée`,
         title: ch.name,
         insignia: ch.title,
-        text: ch.boss ? world.ending : "Ajouté à ta collection. Ce sont tes jours de pratique qui l’ont ouvert.",
+        text: ch.boss ? world.ending : "Ajouté à ta collection. Ce sont tes jours de pratique qui ont rallumé cette balise.",
         next: next ? `chapitre ${next.index}, ${next.name}` : null,
       });
     } catch (e) {
@@ -85,7 +85,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
             <View style={styles.pill}>
               <Icon name="medal" size={14} color={world.color} />
               <T variant="caption" tone="default">
-                {badges}/9 insignes
+                {badges}/9 balises allumées
               </T>
             </View>
             <View style={styles.pill}>
@@ -164,7 +164,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
                   )}
                   <View style={{ flex: 1, gap: 2 }}>
                     <T variant="caption" tone="faint">
-                      {current.boss ? "Gardien" : cp.ready ? "Obstacle franchi" : "Obstacle"}
+                      {current.boss ? "Gardien" : cp.ready ? "Obstacle franchi" : "Obstacle du chapitre"}
                     </T>
                     <T variant="bodyStrong">{encounter.name}</T>
                   </View>
@@ -193,7 +193,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
             ) : null}
 
             {cp.ready ? (
-              <Button label={`Valider le chapitre ${chapter}`} icon="check" loading={action.isPending} disabled={!online} onPress={() => claim(current)} testID="world-claim" />
+              <Button label={`Allumer la balise du chapitre ${chapter}`} icon="check" loading={action.isPending} disabled={!online} onPress={() => claim(current)} testID="world-claim" />
             ) : (
               <View style={{ gap: space.s3 }}>
                 <T variant="small">{current.practice}</T>
