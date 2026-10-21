@@ -30,6 +30,7 @@ import { LegalScreen } from "../screens/settings/LegalScreen";
 import { NotificationsScreen } from "../screens/settings/NotificationsScreen";
 import { PrivacyScreen } from "../screens/settings/PrivacyScreen";
 import { SettingsScreen } from "../screens/settings/SettingsScreen";
+import { SportsScreen } from "../screens/settings/SportsScreen";
 import { TitanPlusScreen } from "../screens/settings/TitanPlusScreen";
 import { Tabs } from "./Tabs";
 import type { RootParams } from "./types";
@@ -89,6 +90,7 @@ function SignedIn() {
       <Stack.Screen name="Account" component={AccountScreen} options={{ title: "Compte" }} />
       <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ title: "Confidentialité" }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Rappels" }} />
+      <Stack.Screen name="Sports" component={SportsScreen} options={{ title: "Mes sports" }} />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: "Assistance" }} />
       <Stack.Screen name="Legal" component={LegalScreen} options={{ title: "Informations légales" }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: "À propos" }} />

@@ -11,7 +11,7 @@ import { Screen } from "../../components/Screen";
 import { Stat, StatRow } from "../../components/Section";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { EffortRules, Format, Progress } from "../../core";
+import { EffortRules, Format, Progress, Sports } from "../../core";
 import { useAuth } from "../../data/auth";
 import { useAdventure, useLogs, usePrefs, useProfile, useSocial } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
@@ -106,6 +106,7 @@ export function ProfileScreen() {
 
         <Group title="Compte">
           <ListRow icon="user" title="Compte et sécurité" subtitle={email ?? undefined} onPress={() => navigation.navigate("Account")} />
+          <ListRow icon="run" title="Mes sports" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map((s) => Sports.label(s)).join(", ") : "Choisir mes sports favoris"} onPress={() => navigation.navigate("Sports")} />
           <ListRow icon="lock" title="Confidentialité" onPress={() => navigation.navigate("Privacy")} />
           <ListRow icon="bell" title="Rappels" onPress={() => navigation.navigate("Notifications")} />
           <ListRow icon="settings" title="Réglages de l’application" onPress={() => navigation.navigate("Settings")} last />

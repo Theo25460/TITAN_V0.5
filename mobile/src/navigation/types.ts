@@ -32,6 +32,7 @@ export type RootParams = {
   Account: undefined;
   Privacy: undefined;
   Notifications: undefined;
+  Sports: undefined;
   PublicCard: undefined;
   Help: undefined;
   Legal: undefined;

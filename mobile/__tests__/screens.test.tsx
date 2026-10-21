@@ -63,6 +63,7 @@ const S = {
   Card: require("../src/screens/profile/PublicCardScreen").PublicCardScreen,
   Community: require("../src/screens/community/CommunityScreen").CommunityScreen,
   Settings: require("../src/screens/settings/SettingsScreen").SettingsScreen,
+  Sports: require("../src/screens/settings/SportsScreen").SportsScreen,
   Account: require("../src/screens/settings/AccountScreen").AccountScreen,
   Privacy: require("../src/screens/settings/PrivacyScreen").PrivacyScreen,
   Help: require("../src/screens/settings/HelpScreen").HelpScreen,
@@ -173,7 +174,7 @@ describe("with account data", () => {
     expect(screen.getByText("Membres")).toBeTruthy();
   });
   test("Réglages, compte, confidentialité, aide, légal, TITAN+, suppression", () => {
-    for (const C of [S.Settings, S.Account, S.Privacy, S.Help, S.Legal, S.Plus, S.Delete]) show(<C />);
+    for (const C of [S.Settings, S.Sports, S.Account, S.Privacy, S.Help, S.Legal, S.Plus, S.Delete]) show(<C />);
     expect(screen.getByText("Supprimer définitivement ton compte")).toBeTruthy();
   });
   test("Accès : accueil, connexion, inscription, onboarding", () => {
