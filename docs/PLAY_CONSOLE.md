@@ -30,8 +30,8 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 - **Catégorie** : Santé et remise en forme. **Étiquettes** : à choisir dans la console.
 - **Coordonnées** : e-mail de contact public (à fournir par Théo), site `https://titan-app.fr`.
 - **Politique de confidentialité** : `https://titan-app.fr/legal_privacy` — doit être publique, sans connexion, et cohérente avec la section Sécurité des données ci-dessous.
-- **Suppression de compte** (formulaire « Suppression de compte » de la console) : suppression depuis l'application (Profil › Supprimer mon compte) ; une URL web de demande de suppression est à renseigner : page d'assistance `https://titan-app.fr/service` (à confirmer qu'elle accepte une demande sans être connecté, sinon créer la page avant la soumission).
-- **Visuels** (GP03, à produire à partir de l'application réelle) : icône 512×512 (`image/logo-512.png`), image de présentation 1024×500, captures téléphone (2 à 8, 16:9 ou 9:16, côté 320–3 840 px). Le dépôt ne contient pas encore de captures Play : à faire sur l'appli installée.
+- **Suppression de compte** (formulaire « Suppression de compte » de la console) : suppression depuis l'application (Profil › Supprimer mon compte) ; URL web à renseigner : `https://titan-app.fr/supprimer-mon-compte` (page publique créée le 20/10/2026 : marche à suivre dans l'application, demande par e-mail depuis l'adresse du compte si l'accès est perdu, ce qui est effacé et conservé avec ses durées). **Elle n'est vraie qu'une fois la migration 25 appliquée en production** : ne la soumettre à Google qu'après.
+- **Visuels** (GP03) : générés depuis l'application réelle, avec des données synthétiques, dans `docs/play-store/` (6 captures téléphone 1080×1920 et l'image de présentation 1024×500, détail dans `docs/play-store/README.md`). Régénérer : `node tools/build-public.mjs && node tools/play-screenshots.mjs`. Icône 512×512 : `image/logo-512.png`. **Reste à faire par Théo** : les téléverser dans la Play Console (fiche principale) ; produire des captures tablette seulement si la fiche tablette est voulue (non générées).
 
 ## 3. Déclarations de l'application
 
@@ -39,7 +39,7 @@ Préparé le 20/10/2026. **Rien n'a été saisi dans la Play Console** : le comp
 |---|---|---|
 | Contient des publicités (GP04) | **Non** | `adsEnabled` est faux, aucune régie chargée, CSP sans hôte publicitaire. À repasser sur **Oui** avant toute activation (ADS03). |
 | Application gratuite / payante | Gratuite | — |
-| Achats via l'application | **Non** dans l'application Android (la coque `?source=twa` masque l'achat et renvoie vers le site). Les règles de facturation Google Play s'appliquent aux biens numériques vendus dans l'application : **à faire valider avant publication** (voir `docs/ANDROID.md`). | Atelier |
+| Achats via l'application | **Oui, une fois la phase 5 d'`docs/adr/ADR-004-google-play-billing-titan-plus.md` réussie** : décision de Théo du 20/10/2026, TITAN+ s'achète dans l'application par Google Play Billing (abonnement). Tant que le drapeau `TITAN_PLAY_BILLING.enabled` est faux, l'application n'affiche aucun achat (prouvé par `tests/e2e/twa-no-checkout.e2e.mjs`) : ne déclarer « oui » qu'au moment d'envoyer la version qui l'active. Cosmétiques : jamais contre de l'argent réel (`tests/no-currency-purchase.test.mjs`). | Atelier |
 | Accès à l'application | Compte nécessaire pour la plupart des fonctions ; fournir à Google un compte de test si la revue le demande (créer un compte dédié, ne pas réutiliser un vrai compte). | — |
 | Public cible | 13+ ou 18+ : **décision à prendre** (modération, social, messages). Éviter « moins de 13 ans » (règles familles). | à décider |
 | Application d'actualités / de santé | Non à « actualités ». Santé : l'application n'est pas un dispositif médical et ne donne pas de conseil médical ; déclarer « suivi de forme physique » si le formulaire le propose. | à confirmer |
@@ -59,9 +59,9 @@ Principes : décrire ce que **l'application et ses services** collectent ; chaqu
 | Photos et vidéos | Photos (avatar) | Oui si l'utilisateur en ajoute | Non | Facultative | Personnalisation |
 | Activité dans l'application | Interactions, pages vues | **Uniquement avec accord** (mesure d'audience) | Non | Facultative | Analyses |
 | Infos et performances | Journaux d'erreurs | **Restent sur l'appareil** (aucun envoi automatique relevé) | — | — | — |
-| Infos financières | Historique d'achats | Côté site via Paddle (identifiants d'événement, d'offre, d'abonnement) ; pas dans l'application Android | Partagé avec Paddle pour le paiement sur le site | — | à confirmer selon la réponse « achats » ci-dessus |
+| Infos financières | Historique d'achats | Aujourd'hui aucun achat n'est proposé (Paddle désactivé le 21/10/2026, TITAN+ « bientôt disponible »). À l'ouverture de l'abonnement via Google Play : identifiants d'abonnement et de jeton d'achat reçus de Google | Google Play traite le paiement ; TITAN ne reçoit que le statut | — | à reprendre au moment de l'ouverture de l'abonnement et selon la réponse « achats » ci-dessus |
 
-Tiers à déclarer comme prestataires de traitement : Supabase (hébergement des données, région `eu-west-1`), Netlify (hébergement), Paddle (paiement sur le site), Resend (e-mails d'assistance). Les durées de conservation ne sont **pas fixées** (Q-002) : ne rien affirmer de précis dans la politique tant que la décision n'est pas prise. Toute modification de collecte impose de remettre ce formulaire à jour **avant** la version concernée.
+Tiers à déclarer comme prestataires de traitement : Supabase (hébergement des données, région `eu-west-1`), Netlify (hébergement), Resend (e-mails d'assistance) ; Google Play pour le paiement dans l'application à l'ouverture de l'abonnement (Paddle désactivé depuis le 21/10/2026). Les durées de conservation ne sont **pas fixées** (Q-002) : ne rien affirmer de précis dans la politique tant que la décision n'est pas prise. Toute modification de collecte impose de remettre ce formulaire à jour **avant** la version concernée.
 
 ## 5. Classification du contenu (GP06)
 
@@ -78,8 +78,36 @@ Questionnaire IARC : catégorie utilitaire / santé et forme. Réponses probable
 
 ## 7. Test fermé obligatoire (GP07 — à vérifier)
 
-Pour les comptes **personnels créés récemment**, Google exigeait un test fermé avec un nombre minimal de testeurs pendant une durée minimale avant de pouvoir demander l'accès à la production (chiffres connus : 12 testeurs, 14 jours — **à revérifier dans la console**, la règle évolue). Les comptes d'organisation n'y sont pas soumis. Conséquence pratique : recruter les testeurs et lancer le test fermé le plus tôt possible, car cela ne dépend pas du code.
+Pour les comptes **personnels créés après le 13 novembre 2023**, l'aide Google exige un test fermé avec **au moins 12 testeurs inscrits en continu pendant au moins 14 jours** avant de pouvoir demander l'accès à la production (page d'aide Play Console « 14151465 », consultée le 20/10/2026 ; des guides tiers ajoutent que le compteur repart de zéro si le nombre de testeurs passe sous 12 : non confirmé par Google, à surveiller). Production et pré-enregistrement restent désactivés tant que la condition n'est pas remplie. Les comptes d'organisation n'y sont pas soumis. Conséquence pratique : recruter les testeurs et lancer le test fermé le plus tôt possible, car cela ne dépend pas du code.
 
 ## 8. Ce qui reste humain
 
 Création/vérification du compte, frais, e-mail public, choix du public cible (§3), validation de la politique de confidentialité et des durées (Q-002, LEG), décision sur les achats dans l'application Android, captures d'écran, clé d'envoi et secrets, soumission de chaque formulaire.
+
+## 9. Ordre exact des actions humaines (checklist)
+
+Chaque ligne dépend de la précédente. Les parties techniques sont déjà dans le dépôt ; ce qui suit ne peut pas être fait par Claude.
+
+1. **Compte développeur** Play Console (identité, frais, e-mail public). Noter si le compte est personnel ou d'organisation (§7).
+2. **Clé d'envoi** et secrets GitHub `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` (`docs/ANDROID.md`, « Une seule fois »). Ne jamais les écrire dans une conversation.
+3. **Play App Signing** activé ; relever l'empreinte SHA-256 de la clé de signature ; variable Netlify `TWA_SHA256_FINGERPRINTS` (clé d'envoi + clé Play) ; redéployer ; vérifier `https://titan-app.fr/.well-known/assetlinks.json`.
+4. **Actions › Android (TWA)** avec un `version_code` croissant ; télécharger le `.aab` et l'APK.
+5. **Fiche** : coller §2, §3 (Sécurité des données §4, classification §5), politique de confidentialité, suppression de compte, captures (à faire sur l'application installée).
+6. **Test interne** : envoyer le `.aab`, ajouter des testeurs, essayer sur téléphone (icônes, démarrage, clavier, bouton retour, session, hors ligne, suppression de compte).
+7. **Si compte personnel : test fermé** avec au moins 12 testeurs pendant 14 jours (§7). À lancer le plus tôt possible.
+8. **TITAN+ par Google Play** (ADR-004 phase 5), dans l'ordre : créer le produit d'abonnement ; créer le compte de service et lui donner l'accès aux abonnements ; secrets Netlify `PLAY_PRODUCT_IDS`, `PLAY_SERVICE_ACCOUNT_JSON`, `PLAY_RTDN_TOKEN`, `PLAY_PACKAGE_NAME` si différent ; sujet Pub/Sub et abonnement « push » vers `https://titan-app.fr/.netlify/functions/play-notifications?token=<PLAY_RTDN_TOKEN>` ; **appliquer la migration 24 selon le plan de production** ; relire les pages Google officielles (chemins et champs de l'API écrits de mémoire) ; passer `PLAY_BILLING_ENABLED` à `true` et `TITAN_PLAY_BILLING.enabled` à `true` ; essayer avec un compte testeur de licence ; seulement ensuite déclarer les achats dans l'application.
+9. **Production** : demander l'accès (si exigé), publier, puis ajouter le lien Google Play dans Titan et sur le site (GP12, GP13).
+
+
+## 10. Activer le lien Google Play sur le site (GP12 à GP15, SEO09)
+
+Le code est prêt et **éteint** : tant que `tools/data/play-store.json` contient `"url": ""`, aucune page ne contient de lien, de balise ni de script Google Play (un bouton cassé ne peut donc pas partir en ligne, GP13).
+
+Quand la fiche est **publique** et que l'adresse fonctionne :
+
+1. Mettre dans `tools/data/play-store.json` l'adresse exacte `https://play.google.com/store/apps/details?id=fr.titanapp.app` (rien d'autre n'est accepté : ni autre application, ni paramètre).
+2. `node tools/build-public-site.mjs && node tools/build-public-docs.mjs`, relire `git diff`, lancer `pnpm run verify` puis `pnpm run test:e2e`.
+3. Résultat : un lien « Télécharger sur Google Play » dans le pied de page de toutes les pages publiques, la déclaration `MobileApplication` (sans note, avis ni prix inventés) sur l'accueil, et sur un téléphone Android dans un navigateur une fine bande « TITAN existe aussi sur Android » que l'on peut fermer (mémorisé 14 jours). Rien n'apparaît dans l'application Android ni dans une PWA installée (GP14).
+4. Le lien porte `referrer=utm_source=titan-site&utm_medium=web&utm_campaign=<page>` : les installations par page se lisent dans Play Console (acquisition), sans aucune donnée personnelle.
+5. Après la mise en ligne, demander une réindexation dans la Search Console ; Google ne change pas son aperçu instantanément (SEO11).
+6. Le logo officiel « Disponible sur Google Play » est volontairement remplacé par un lien texte : si tu veux le badge, prends-le dans le kit officiel de Google et respecte ses règles d'usage.

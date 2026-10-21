@@ -23,4 +23,6 @@
   <url><loc>https://titan-app.fr/legal_cgu</loc><priority>0.3</priority></url>
   <url><loc>https://titan-app.fr/legal_mentions</loc><priority>0.3</priority></url>
   <url><loc>https://titan-app.fr/legal_hub</loc><priority>0.2</priority></url>
+  <url><loc>https://titan-app.fr/regles-communaute</loc><priority>0.3</priority></url>
+  <url><loc>https://titan-app.fr/supprimer-mon-compte</loc><priority>0.3</priority></url>
 </urlset>

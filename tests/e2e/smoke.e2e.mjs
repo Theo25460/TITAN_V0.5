@@ -41,6 +41,9 @@ after(async () => {
 async function newPage(width = 390) {
   const context = await browser.newContext({ viewport: { width, height: width > 900 ? 900 : 844 }, serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort("internetdisconnected"));
+  // Founder decision of 21/10/2026: the web checkout is off in js/config.js. The dormant Paddle path (kept for history) is still covered by
+  // these tests, so they force the switch the same way other tests stub config.
+  await context.addInitScript(() => Object.defineProperty(window, "TITAN_PAYMENTS", { configurable: true, get: () => ({ webCheckout: true }), set() {} }));
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -4950,6 +4953,17 @@ test("account deletion context: confirmed deletion cleans only A without a dynam
   assert.deepEqual(f.effects.map(e => e.kind), ["queue", "cache"]);
   assert.match(f.effects[0].owner, /111$/);
   assert.equal(await f.page.evaluate(() => localStorage.getItem("sb-deletion-fixture-auth-token")), null);
+});
+
+test("account deletion: an active TITAN+ subscription is mentioned before deleting, and only then", async t => {
+  const f = await deleteAccountPage(t);
+  await f.page.locator('[data-delete]').click();
+  assert.equal(await f.page.locator("dialog[open] [data-delete-plus]").count(), 0, "no warning without a subscription");
+  await f.page.locator("dialog[open] [data-cancel]").click();
+  await f.page.evaluate(() => { window.state.user.is_elite = true; });
+  await f.page.locator('[data-delete]').click();
+  assert.match(await f.page.locator("dialog[open] [data-delete-plus]").innerText(), /pas résilié automatiquement/);
+  assert.equal(f.deletions.length, 0, "opening the dialog sends nothing");
 });
 
 test("account deletion context: validation prevents any request", async t => {

@@ -858,6 +858,8 @@ window.initTitanPaddleCheckout = async function(checkoutData) {
 };
 
 window.openEliteCheckout = async function(options = {}) {
+    // Founder decision of 21/10/2026: no web checkout (see TITAN_PAYMENTS in js/config.js).
+    if (window.TITAN_PAYMENTS?.webCheckout !== true) return false;
     const owner = window.state?.user?.id, client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
     const current = () => owner === window.state?.user?.id && client === window.titanClient
         && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;

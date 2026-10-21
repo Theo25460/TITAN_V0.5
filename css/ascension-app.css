@@ -1676,6 +1676,7 @@
   scrollbar-width: none;
   margin: 0 calc(-1 * var(--s4)) var(--s4);
   padding: 0 var(--s4) var(--s1);
+  scroll-padding-inline: var(--s4);
   scroll-snap-type: x proximity;
 }
 .pv-week::-webkit-scrollbar {
@@ -1981,7 +1982,7 @@
 }
 .ob-target {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 .ob-target button {
@@ -3269,6 +3270,7 @@
 /* ---------- Atelier ---------- */
 #atelier {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s6);
 }
 .at-wallet {
@@ -3685,3 +3687,7 @@
 #views-draft-form { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
 #views-draft-form input { width: 100%; }
 .view-confirm { margin-top: 12px; }
+
+/* BOT06: alert shown while an administrator's verification request is open (informs and links, never blocks). */
+.asc-verify-alert { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0 0 1rem; padding: 0.75rem 1rem; border: 1px solid var(--am-line); border-radius: 0.75rem; background: var(--am-soft); color: var(--tx); }
+.asc-verify-alert > span { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }

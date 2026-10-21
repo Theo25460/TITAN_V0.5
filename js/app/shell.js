@@ -342,6 +342,123 @@
     if (e.target.closest("[data-shell-more]")) openMore();
   });
 
+  /* ---------- Verification request alert (BOT06) ----------
+     An administrator can ask a player to confirm something; the request stays readable on /recours. While one is open
+     this alert is shown on every app page. It informs and links; it never blocks or decides anything. */
+  const VERIFY_RECHECK_MS = 5 * 60 * 1000;
+  let verifyCheckedAt = 0;
+  let verifyOwner = null;
+  let verifyRun = 0;
+  function showVerifyAlert(open) {
+    const main = document.querySelector("main");
+    let el = document.querySelector("[data-verify-alert]");
+    if (!open || !main) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "asc-verify-alert";
+      el.setAttribute("role", "alert");
+      el.setAttribute("data-verify-alert", "");
+      main.prepend(el);
+    }
+    const text = `${open > 1 ? "Des vérifications te sont demandées" : "Une vérification t’est demandée"} par l’équipe TITAN. Aucune sanction automatique : lis la demande et réponds.`;
+    el.innerHTML = `${icon("info")}<span>${esc(text)}</span><a class="asc-btn asc-btn-secondary" href="/recours#verification">Lire et répondre</a>`;
+  }
+  async function checkVerification(force) {
+    const u = user();
+    const client = window.titanClient;
+    if (u.guest || !u.id || !client || typeof client.rpc !== "function" || document.body?.dataset?.shell === "none") return;
+    if (verifyOwner !== u.id) { verifyOwner = u.id; verifyCheckedAt = 0; showVerifyAlert(0); }
+    if (!force && Date.now() - verifyCheckedAt < VERIFY_RECHECK_MS) return;
+    verifyCheckedAt = Date.now();
+    const run = ++verifyRun;
+    try {
+      const { data, error } = await client.rpc("titan_my_verification_requests_v1");
+      if (run !== verifyRun || user().id !== u.id) return;
+      // An older server without this function simply shows nothing.
+      showVerifyAlert(error ? 0 : Math.max(0, Number(data?.open) || 0));
+    } catch {
+      if (run === verifyRun) showVerifyAlert(0);
+    }
+  }
+  window.titanRefreshVerificationAlert = () => checkVerification(true);
+  window.addEventListener("titan:account-changing", () => { verifyRun++; verifyOwner = null; verifyCheckedAt = 0; showVerifyAlert(0); });
+  ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => checkVerification(ev === "titan:account-changed")));
+
+  /* ---------- Feature flags (IDEA10, ADS17) ----------
+     window.titanFlags.enabled("ads.web", true) answers with the server's value for this player when the flag exists, and with
+     the given default when it does not (or when the server has none yet, or is out of reach). A flag the server switched off is
+     false whatever the default, so a network, format or screen can be stopped without a release. Values are cached on the
+     device for ten minutes, per account. Nothing in the app consumes a flag yet. */
+  const FLAGS_TTL_MS = 10 * 60 * 1000;
+  let flagValues = {};
+  let flagsOwner = null;
+  let flagsAt = 0;
+  let flagsRun = 0;
+  const flagsCacheKey = (id) => "titan_flags_v1:" + (id || "anon");
+  function flagsIdentity() {
+    const u = user();
+    return u.guest || !u.id ? null : u.id;
+  }
+  function readFlagsCache(id) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(flagsCacheKey(id)) || "null");
+      if (raw && typeof raw.at === "number" && raw.flags && typeof raw.flags === "object") return raw;
+    } catch {}
+    return null;
+  }
+  function cleanFlags(input) {
+    const out = {};
+    if (input && typeof input === "object") for (const [k, v] of Object.entries(input)) if (typeof v === "boolean" && /^[a-z][a-z0-9_.-]{2,48}$/.test(k)) out[k] = v;
+    return out;
+  }
+  let flagsInFlight = null;
+  const FLAGS_RETRY_MS = 60 * 1000;
+  function refreshFlags(force) {
+    // One request at a time; a failure is not retried before a minute, so a server without the function is not hammered.
+    if (flagsInFlight && !force) return flagsInFlight;
+    flagsInFlight = doRefreshFlags(force).finally(() => { flagsInFlight = null; });
+    return flagsInFlight;
+  }
+  async function doRefreshFlags(force) {
+    const id = flagsIdentity();
+    if (flagsOwner !== id) {
+      flagsOwner = id;
+      const cached = readFlagsCache(id);
+      const before = JSON.stringify(flagValues);
+      flagValues = cached ? cleanFlags(cached.flags) : {};
+      flagsAt = cached ? cached.at : 0;
+      if (JSON.stringify(flagValues) !== before) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+    }
+    if (!force && Date.now() - flagsAt < FLAGS_TTL_MS) return;
+    const run = ++flagsRun;
+    const retryLater = () => { if (run === flagsRun) flagsAt = Math.max(flagsAt, Date.now() - FLAGS_TTL_MS + FLAGS_RETRY_MS); };
+    try {
+      const client = window.titanClient || (typeof window.waitForTitanSupabase === "function" ? await window.waitForTitanSupabase() : null);
+      if (!client || typeof client.rpc !== "function") return retryLater();
+      const { data, error } = await client.rpc("titan_feature_flags_v1");
+      if (run !== flagsRun || flagsIdentity() !== id) return;
+      // An older server without the function keeps what the device already has; the caller's default applies otherwise.
+      if (error || !data || typeof data !== "object") return retryLater();
+      const next = cleanFlags(data.flags);
+      const changed = JSON.stringify(next) !== JSON.stringify(flagValues);
+      flagValues = next;
+      flagsAt = Date.now();
+      try { localStorage.setItem(flagsCacheKey(id), JSON.stringify({ at: flagsAt, flags: flagValues })); } catch {}
+      if (changed) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+    } catch {
+      retryLater();
+    }
+  }
+  window.titanFlags = {
+    enabled: (key, fallback = false) => (typeof flagValues[key] === "boolean" ? flagValues[key] : Boolean(fallback)),
+    refresh: () => refreshFlags(true),
+  };
+  window.addEventListener("titan:account-changing", () => { flagsRun++; flagsOwner = null; flagValues = {}; flagsAt = 0; });
+  ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => refreshFlags(ev === "titan:account-changed")));
+
   /* ---------- Legacy compatibility ---------- */
   window.titanShell = { refresh, toast, sheet, confirm, user, look, territories: TERRITORIES, esc };
   window.injectSidebar = refresh;
@@ -371,4 +488,6 @@
   );
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render);
   else render();
+  // A signed-in account is served after its session is ready (account-changed / history-updated); only a visitor needs an initial read.
+  setTimeout(() => { if (!flagsIdentity()) refreshFlags(false); }, 0);
 })();

@@ -16,6 +16,17 @@ const SITE = "https://titan-app.fr";
 const V = "300.0";
 const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 
+/* ---------- Google Play link (GP12 to GP15, SEO09) ----------
+   Only a public listing of this application is accepted. While tools/data/play-store.json holds no URL, the generated pages
+   contain nothing about Google Play: no link, no meta tag, no script, so a broken button can never ship (GP13). */
+const PLAY_URL_RE = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=fr\.titanapp\.app$/;
+const playStoreUrl = (value = process.env.TITAN_PLAY_STORE_URL ?? JSON.parse(readFileSync(new URL("../data/play-store.json", import.meta.url), "utf8")).url) => {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (!PLAY_URL_RE.test(url)) throw new Error(`tools/data/play-store.json: not the public listing of fr.titanapp.app: ${url}`);
+  return url;
+};
+
 /* ---------- Facts computed from the real rules ---------- */
 const levelTotals = (() => {
   const at = {};
@@ -57,13 +68,17 @@ const header = (route) => `<a class="asc-skip" href="#contenu">Aller au contenu<
   <div class="pub-actions"><a class="asc-btn asc-btn-ghost pub-login" href="/login">Se connecter</a><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer</a>
     <details class="pub-menu"><summary aria-label="Menu">${icon("menu")}</summary><nav aria-label="Menu">${NAV.map(([h, l]) => `<a href="${h}">${l}</a>`).join("")}<a href="/debuter-titan">Bien démarrer</a><a href="/comprendre-mes-donnees">Comprendre mes données</a><a href="/login">Se connecter</a></nav></details></div>
 </div></header>`;
+const PLAY = playStoreUrl();
+// Hidden until js/play-store.js has confirmed that the visitor is not already inside the Android app and has added the tracking
+// parameter; without scripts the link stays hidden rather than appearing where it should not.
+const playFooter = (url) => (url ? `<p class="pub-fine"><a data-play-store hidden href="${esc(url)}" rel="noopener">Télécharger sur Google Play</a></p>` : "");
 const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
   <div><a class="pub-brand" href="/">${mark()}TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
   <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
   <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
   <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
-  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/service">Assistance</a></nav></div>
-</div><small>© 2026 TITAN · Sans publicité · Paiements TITAN+ opérés par Paddle</small></div></footer>`;
+  <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/regles-communaute">Règles de la communauté</a><a href="/service">Assistance</a></nav></div>
+</div>${playFooter(PLAY)}<small>© 2026 TITAN · Sans publicité</small></div></footer>`;
 
 // Each scrollable table is a focusable region with its own name (WCAG: keyboard access, unique landmarks).
 const numberTables = (html) => {
@@ -76,6 +91,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
   const graph = [
     { "@type": "Organization", "@id": `${SITE}/#organization`, name: "TITAN", url: `${SITE}/`, logo: `${SITE}/image/logo-192.png` },
     { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@type": "WebSite", name: "TITAN", url: `${SITE}/` } },
+    ...(PLAY && route === "/" ? [{ "@type": "MobileApplication", name: "TITAN", operatingSystem: "ANDROID", applicationCategory: "HealthApplication", downloadUrl: PLAY, installUrl: PLAY, inLanguage: "fr-FR" }] : []),
     ...schema,
   ];
   return `<!doctype html>
@@ -93,8 +109,8 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${SITE}/image/og-titan.jpg">
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=${V}"><link rel="stylesheet" href="/css/public.css?v=300.1">
-<script src="/js/pwa.js?v=${V}" defer></script>
+<link rel="stylesheet" href="/css/ascension.css?v=300.1"><link rel="stylesheet" href="/css/public.css?v=300.2">
+<script src="/js/pwa.js?v=${V}" defer></script>${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>
 <body class="asc pub">${header(route)}<main id="contenu">${numberTables(body)}</main>${footer}</body>
@@ -113,4 +129,4 @@ const finalCta = (image = "archipelago") => `<section class="pub-section"><div c
 const cards = (list, cols = 3) => `<div class="pub-grid cols-${cols}">${list.map(([ic, t, d, link]) => `<${link ? `a href="${link}"` : "article"} class="pub-card pub-feature">${icon(ic)}<h3>${t}</h3><p>${d}</p></${link ? "a" : "article"}>`).join("")}</div>`;
 
 
-export { W, C, E, SITE, V, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };
+export { playStoreUrl, PLAY_URL_RE, W, C, E, SITE, V, esc, levelTotals, typical, weekXp, monthsTo, fmtMonths, MASTERY, NAV, header, footer, page, faq, finalCta, cards, mark };

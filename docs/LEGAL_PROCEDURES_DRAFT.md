@@ -4,18 +4,18 @@
 
 ## 1. Registre des activités de traitement — squelette (LEG26)
 
-Une ligne par traitement. Colonnes renseignées à partir du dépôt ; **base légale, durée et destinataires contractuels : à valider** (voir `docs/PRIVACY_TECHNICAL_INVENTORY.md` §3 pour les tables et `docs/DATA_RETENTION_PROPOSAL.md` pour les durées proposées).
+Une ligne par traitement. Colonnes renseignées à partir du dépôt ; **base légale, durée et destinataires contractuels : à valider** (voir `docs/PRIVACY_TECHNICAL_INVENTORY.md` §3 pour les tables et `docs/DATA_RETENTION.md` pour les durées proposées).
 
 | Traitement | Données | Finalité | Où | Sous-traitants | Base légale | Durée |
 |---|---|---|---|---|---|---|
 | Compte et authentification | e-mail, identifiant, mot de passe (haché par le fournisseur d'authentification) | créer et protéger le compte | Supabase (région eu-west-1, Irlande) | Supabase | à valider | à décider (Q-002) |
-| Séances sportives | sport, valeur, durée, distance, dénivelé, notes, tracé GPS éventuel | fonction principale | Supabase | Supabase | à valider | à décider |
+| Séances sportives | sport, valeur, durée, distance, dénivelé, notes, tracé GPS éventuel | fonction principale | Supabase | Supabase | à valider | tant que le compte existe ; effacées à la suppression |
 | Progression, économie, boutique | XP, crédits, niveau, achats, journal d'économie | jeu, équité | Supabase | Supabase | à valider | journal immuable : à décider |
-| Paiement TITAN+ | événements de facturation, identifiants d'abonnement | accès Premium | Supabase (copie locale) ; paiement chez Paddle | Paddle | à valider | à décider |
+| Paiement TITAN+ | événements de facturation, identifiants d'abonnement | accès Premium | Supabase (copie locale) ; paiement chez Paddle | Paddle | à valider | 13 mois (copie locale, contenu vidé à la suppression du compte) |
 | Social | amis, guildes, messages, moments, carte publique | fonctions sociales choisies | Supabase | Supabase | à valider | à décider |
-| Anti-triche et modération | signaux de risque, décisions, recours, retenues de récompense, journal d'administration | équité, sécurité | Supabase (schéma privé) | Supabase | à valider (intérêt légitime ?) | à décider |
-| Mesure d'audience | nom d'événement, page, source, métadonnées minimales | amélioration du produit | Supabase | Supabase | consentement ou refus respecté dans l'application | 13 mois au plus (annoncé) |
-| Assistance | message, catégorie, adresse de réponse | répondre aux demandes | Supabase ; envoi de l'alerte par Resend | Resend | à valider | à décider |
+| Anti-triche et modération | signaux de risque, décisions, recours, retenues de récompense, journal d'administration | équité, sécurité | Supabase (schéma privé) | Supabase | à valider (intérêt légitime ?) | signaux 12 mois ; décisions et recours 24 mois ; journal d'administration 12 mois ; retenues réglées 3 mois |
+| Mesure d'audience | nom d'événement, page, source, métadonnées minimales | amélioration du produit | Supabase | Supabase | consentement ou refus respecté dans l'application | 13 mois, purge exécutée |
+| Assistance | message, catégorie, adresse de réponse | répondre aux demandes | Supabase ; envoi de l'alerte par Resend | Resend | à valider | 6 mois (paiement 13 mois, droits 12 mois) |
 | Hébergement et diffusion | adresses IP, requêtes | servir le site | Netlify | Netlify | à valider | journaux de l'hébergeur : à confirmer |
 
 ## 2. Transferts de données hors de l'Espace économique européen (LEG30)

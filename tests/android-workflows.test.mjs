@@ -42,3 +42,25 @@ test("the release workflow needs the upload key secrets and the trial build uses
   assert.match(trial, /openssl rand -hex/, "its password is drawn at random for each run, not written in the file");
   assert.match(trial, /::add-mask::/, "and masked in the logs");
 });
+
+test("an icon that is not published yet is served from the checkout, in the trial and in the release workflow (404 on the maskable icon broke the first real build)", () => {
+  for (const [name, text] of [["release", release], ["trial", trial]]) {
+    assert.match(text, /python3 -m http\.server 8765 --bind 127\.0\.0\.1/, `${name}: local icon server`);
+    assert.match(text, /m\.\$key='http:\/\/127\.0\.0\.1:8765\/\$file'/, `${name}: icon URL rewritten to the local copy`);
+    assert.ok(!text.includes("m.$key='https://titan-app.fr/image/logo-512.png'"), `${name}: no silent fallback to the wrong icon`);
+  }
+});
+
+test("Play Billing is enabled in the Android bundle and verified before the file is offered for download (issue #112, decision 21/10/2026)", () => {
+  const manifest = JSON.parse(readFileSync(`${root}android/twa-manifest.json`, "utf8"));
+  assert.equal(manifest.features?.playBilling?.enabled, true, "native Play Billing in the TWA project");
+  assert.equal(manifest.alphaDependencies?.enabled, true, "Bubblewrap needs the alpha dependencies for it");
+  assert.equal(manifest.enableNotifications, true, "and the notifications delegation (\"Play Billing requires enableNotifications to be true\")");
+  for (const [name, text] of [["release", release], ["trial", trial]]) {
+    assert.match(text, /com\.android\.vending\.BILLING/, `${name}: the billing permission is expected`);
+    assert.match(text, /grep -q "com\.android\.vending\.BILLING" permissions\.txt/, `${name}: and required`);
+    assert.match(text, /grep -q "com\/android\/billingclient"/, `${name}: the billing library is looked for in the bundle`);
+  }
+  // Purchases themselves stay off in the application until the validation of issue #112.
+  assert.match(readFileSync(`${root}js/config.js`, "utf8"), /window\.TITAN_PLAY_BILLING = \{\s*enabled: false/);
+});

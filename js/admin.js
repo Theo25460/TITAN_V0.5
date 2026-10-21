@@ -24,6 +24,7 @@
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
         { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
         { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
+        { id: 'flags', label: 'Drapeaux', icon: 'ri-toggle-line', custom: 'flags' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -836,6 +837,7 @@
             else if (item.custom === 'users') await renderUsers(force);
             else if (item.custom === 'moderation') await renderModeration(force);
             else if (item.custom === 'appeals') await renderAppeals(force);
+            else if (item.custom === 'flags') await renderFlags(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1439,6 +1441,23 @@
             return;
         }
 
+        if (event.target.closest('[data-verify-request]')) {
+            await requestVerification();
+            return;
+        }
+
+        const verifyClose = event.target.closest('[data-verify-close]');
+        if (verifyClose) {
+            await closeVerification(verifyClose.dataset.verifyClose);
+            return;
+        }
+
+        const flagSave = event.target.closest('[data-flag-save]');
+        if (flagSave) {
+            await saveFlag(flagSave.closest('[data-flag-row]'));
+            return;
+        }
+
         const moderationRevert = event.target.closest('[data-moderation-revert]');
         if (moderationRevert) {
             await revertModeration(moderationRevert.dataset.moderationRevert);
@@ -1926,6 +1945,12 @@
         DECISION_NOT_FOUND: 'Décision introuvable.',
         SESSION_NOT_FOUND: 'Cette séance n’existe plus.',
         EXCLUSION_REQUIRED: 'Choisis d’exclure ou de rétablir la séance.',
+        MESSAGE_REQUIRED: 'Le message doit faire entre 10 et 500 caractères.',
+        REQUEST_ALREADY_OPEN: 'Une demande de vérification est déjà ouverte pour ce joueur.',
+        REQUEST_LIMIT: 'Trois demandes ont déjà été envoyées à ce joueur cette semaine.',
+        REQUEST_CLOSED: 'Cette demande est déjà close.',
+        REQUEST_NOT_FOUND: 'Cette demande n’existe plus.',
+        USER_NOT_FOUND: 'Ce compte n’existe plus.',
         ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
     };
 
@@ -2059,10 +2084,69 @@
         `;
     }
 
+    // BOT06: a verification request is a message to the player (alert in Titan) with one answer; it changes nothing on the account.
+    async function loadVerifications(userId) {
+        try {
+            const { data, error } = await state.client.rpc('titan_verification_list_v1', { p_status: 'any', p_user: userId, p_limit: 20 });
+            if (error) return { available: false, requests: [], error };
+            return { available: true, requests: Array.isArray(data && data.requests) ? data.requests.filter((request) => request && typeof request === 'object') : [] };
+        } catch (error) {
+            return { available: false, requests: [], error };
+        }
+    }
+
+    const VERIFICATION_STATUS_LABELS = { open: 'En attente de réponse', answered: 'Réponse reçue', closed: 'Close' };
+
+    function verificationMarkup(verifications) {
+        if (!verifications.available) return '<p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        if (!verifications.requests.length) return '<p><small>Aucune demande.</small></p>';
+        return `<ul class="compact-list">${verifications.requests.map((request) => `
+            <li data-verification="${escapeHtml(request.id)}">
+                <strong>${escapeHtml(VERIFICATION_STATUS_LABELS[request.status] || request.status)}</strong> · ${escapeHtml(formatDate(request.createdAt))}
+                <p>${escapeHtml(request.message)}</p>
+                ${request.answer ? `<p><em>Réponse du joueur (${escapeHtml(formatDate(request.answeredAt))}) : ${escapeHtml(request.answer)}</em></p>` : ''}
+                ${request.status === 'closed' ? '' : buttonMarkup('Clore', 'ri-check-double-line', 'secondary', `data-verify-close="${escapeHtml(request.id)}"`)}
+            </li>`).join('')}</ul>`;
+    }
+
+    async function requestVerification() {
+        const userId = state.moderationUser;
+        if (!userId) return;
+        const message = await confirmSensitive({
+            title: 'Demander une vérification',
+            message: 'Le joueur verra ce message comme une alerte dans Titan et pourra y répondre une fois. Rien n’est décidé et son compte ne change pas. Ne mets pas de donnée de santé.',
+            actionLabel: 'Envoyer la demande',
+            requireReason: true,
+            fieldLabel: 'Message au joueur (10 à 500 caractères)'
+        });
+        if (!message) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_verification_request_v1', { p_user: userId, p_message: message });
+        if (error) notify('Demande refusée', moderationErrorText(error), 'danger');
+        else notify('Demande envoyée', 'Le joueur la verra dans Titan. L’envoi est consigné dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
+    async function closeVerification(id) {
+        const userId = state.moderationUser;
+        if (!id || (!userId && $('#admin-modal').hidden === false)) return;
+        const { error } = await state.client.rpc('titan_verification_close_v1', { p_id: Number(id) });
+        if (error) notify('Clôture refusée', moderationErrorText(error), 'danger');
+        else notify('Demande close', 'La clôture est consignée dans le journal d’audit.', 'success');
+        if ($('#admin-modal').hidden && state.currentView === 'appeals') {
+            try { await renderAppeals(); } catch (e) { notify('Actualisation impossible', 'La clôture est enregistrée ; actualise la file.', 'warning'); }
+            return;
+        }
+        await openModerationCase(userId);
+    }
+
     async function openModerationCase(userId) {
-        const [{ data, error }, risk] = await Promise.all([
+        const [{ data, error }, risk, verifications] = await Promise.all([
             state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
-            loadSessionRisk(userId)
+            loadSessionRisk(userId),
+            loadVerifications(userId)
         ]);
         if (error) {
             notify('Dossier indisponible', moderationErrorText(error), 'danger');
@@ -2094,6 +2178,9 @@
                 ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
                 : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"'));
         }
+        if (verifications.available && !verifications.requests.some((request) => request.status === 'open')) {
+            actions.push(buttonMarkup('Demander une vérification', 'ri-question-answer-line', 'secondary', 'data-verify-request'));
+        }
         if (latest && latest.decision !== 'revert') {
             actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
         }
@@ -2114,6 +2201,8 @@
                 ${recent}
                 <h3>Décisions</h3>
                 <ul class="compact-list">${history}</ul>
+                <h3>Demandes de vérification</h3>
+                <div data-verification-list>${verificationMarkup(verifications)}</div>
             `,
             actions
         });
@@ -2142,7 +2231,7 @@
     }
 
     async function renderAppeals() {
-        const head = sectionHead('Recours', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
+        const head = sectionHead('Recours et vérifications', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
         const { data, error } = await state.client.rpc('titan_appeal_list_v1', { p_status: 'open', p_limit: 100 });
@@ -2155,8 +2244,9 @@
             return;
         }
         const appeals = Array.isArray(data && data.appeals) ? data.appeals : [];
+        const answered = await answeredVerificationsMarkup();
         if (!appeals.length) {
-            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>`;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>${answered}`;
             return;
         }
         const rows = appeals.map((appeal) => {
@@ -2178,7 +2268,110 @@
             ${tableShell(`<table class="admin-table" data-appeal-queue aria-label="Recours en attente">
                 <thead><tr><th>Joueur</th><th>Objet</th><th>Message du joueur</th><th>Décision</th></tr></thead>
                 <tbody>${rows}</tbody></table>`)}
+            ${answered}
         `;
+    }
+
+    // Players' answers to verification requests wait here until an administrator has read them and closes the request.
+    async function answeredVerificationsMarkup() {
+        let result;
+        try { result = await state.client.rpc('titan_verification_list_v1', { p_status: 'answered', p_user: null, p_limit: 100 }); }
+        catch (error) { result = { error }; }
+        if (result.error) return '<h3>Réponses à des demandes de vérification</h3><p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        const list = Array.isArray(result.data && result.data.requests) ? result.data.requests.filter((request) => request && typeof request === 'object') : [];
+        if (!list.length) return '<h3>Réponses à des demandes de vérification</h3><div class="panel empty-state"><p>Aucune réponse à lire.</p></div>';
+        const rows = list.map((request) => `
+            <tr data-verification="${escapeHtml(request.id)}">
+                <td><small>${escapeHtml(shortId(request.userId))}</small><br><small>${escapeHtml(formatDate(request.answeredAt))}</small></td>
+                <td><div class="json-preview">${escapeHtml(request.message)}</div></td>
+                <td><div class="json-preview">${escapeHtml(request.answer)}</div></td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(request.userId)}" aria-label="Ouvrir le dossier de ce joueur"`)}
+                    ${buttonMarkup('Clore', 'ri-check-double-line', 'primary', `data-verify-close="${escapeHtml(request.id)}" aria-label="Clore la demande ${escapeHtml(request.id)}"`)}</td>
+            </tr>`).join('');
+        return `<h3>Réponses à des demandes de vérification</h3>${tableShell(`<table class="admin-table" data-verification-answers aria-label="Réponses de vérification à lire">
+            <thead><tr><th>Joueur</th><th>Demande</th><th>Réponse</th><th>Suite</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    // Feature flags (IDEA10, ADS17): switch an ad network, format, placement or a progressive roll-out on or off without a release.
+    // The server returns each flag resolved per player; nothing in the app consumes a flag until a feature asks for one.
+    const FLAG_ERRORS = {
+        KEY_INVALID: 'Clé invalide : 3 à 49 caractères, minuscules, chiffres, point, tiret ou souligné, en commençant par une lettre.',
+        ROLLOUT_INVALID: 'Le pourcentage doit être compris entre 0 et 100.',
+        DESCRIPTION_TOO_LONG: 'La description fait au plus 200 caractères.',
+        STATE_REQUIRED: 'Choisis activé ou désactivé.',
+        FLAG_EXISTS: 'Ce drapeau existe déjà : modifie-le dans la liste.',
+        FLAG_CHANGED: 'Ce drapeau a été modifié entre-temps : la liste est actualisée, vérifie puis recommence.',
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.'
+    };
+
+    async function renderFlags() {
+        const head = sectionHead('Drapeaux de fonctionnalité', 'Active ou coupe une fonctionnalité sans nouvelle version. Un drapeau désactivé l’emporte sur la valeur par défaut de l’application ; un pourcentage inférieur à 100 ne concerne que des joueurs connectés, toujours les mêmes. Les clés sont publiques : n’y mets rien de sensible. Chaque changement est consigné.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_admin_feature_flags_v1');
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Les drapeaux ne sont pas disponibles sur ce serveur : applique la migration 20261020050000_feature_flags.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const flags = Array.isArray(data && data.flags) ? data.flags.filter((flag) => flag && typeof flag === 'object') : [];
+        const row = (flag) => `
+            <tr data-flag-row data-flag-key="${escapeHtml(flag.key)}" data-flag-updated="${escapeHtml(flag.updatedAt || '')}">
+                <td><code>${escapeHtml(flag.key)}</code><br><small>${escapeHtml(flag.description || '')}</small></td>
+                <td><label><input type="checkbox" name="enabled"${flag.enabled ? ' checked' : ''} aria-label="Activé : ${escapeHtml(flag.key)}"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="${escapeHtml(flag.rollout)}" aria-label="Pourcentage de joueurs : ${escapeHtml(flag.key)}"> %</td>
+                <td>${buttonMarkup('Enregistrer', 'ri-save-line', 'primary', `data-flag-save aria-label="Enregistrer le drapeau ${escapeHtml(flag.key)}"`)}</td>
+            </tr>`;
+        const create = `
+            <tr data-flag-row data-flag-new>
+                <td><input class="admin-input" name="key" type="text" autocomplete="off" spellcheck="false" placeholder="ads.web" aria-label="Clé du nouveau drapeau"><br>
+                    <input class="admin-input" name="description" type="text" maxlength="200" placeholder="Description (facultatif)" aria-label="Description du nouveau drapeau"></td>
+                <td><label><input type="checkbox" name="enabled" aria-label="Activé : nouveau drapeau"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="100" aria-label="Pourcentage de joueurs : nouveau drapeau"> %</td>
+                <td>${buttonMarkup('Créer', 'ri-add-line', 'secondary', 'data-flag-save aria-label="Créer le drapeau"')}</td>
+            </tr>`;
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-flag-table aria-label="Drapeaux de fonctionnalité">
+                <thead><tr><th>Drapeau</th><th>État</th><th>Joueurs concernés</th><th>Action</th></tr></thead>
+                <tbody>${flags.map(row).join('')}${create}</tbody></table>`)}
+            ${flags.length ? '' : '<p><small>Aucun drapeau pour l’instant : l’application garde ses valeurs par défaut.</small></p>'}
+        `;
+    }
+
+    async function saveFlag(row) {
+        if (!row) return;
+        const isNew = row.hasAttribute('data-flag-new');
+        const key = isNew ? String((row.querySelector('[name=key]') || {}).value || '').trim() : row.dataset.flagKey;
+        const rolloutText = String((row.querySelector('[name=rollout]') || {}).value || '').trim();
+        const rollout = Number(rolloutText);
+        if (!key) { notify('Clé requise', FLAG_ERRORS.KEY_INVALID, 'warning'); return; }
+        if (rolloutText === '' || !Number.isInteger(rollout) || rollout < 0 || rollout > 100) { notify('Pourcentage invalide', FLAG_ERRORS.ROLLOUT_INVALID, 'warning'); return; }
+        const description = isNew ? String((row.querySelector('[name=description]') || {}).value || '').trim() : null;
+        const { error } = await state.client.rpc('titan_admin_feature_flag_set_v1', {
+            p_key: key,
+            p_enabled: Boolean(row.querySelector('[name=enabled]').checked),
+            p_rollout: rollout,
+            p_description: description || null,
+            p_expected_updated_at: isNew ? null : (row.dataset.flagUpdated || null),
+            p_create: isNew
+        });
+        if (error) {
+            const message = String((error && error.message) || '');
+            const code = Object.keys(FLAG_ERRORS).find((candidate) => message.includes(candidate));
+            notify('Drapeau refusé', code ? FLAG_ERRORS[code] : (message || 'Erreur inconnue.'), 'danger');
+            if (code === 'FLAG_CHANGED' && state.currentView === 'flags') { try { await renderFlags(); } catch (e) { console.error('[TITAN ADMIN FLAGS]', e); } }
+            return;
+        }
+        notify('Drapeau enregistré', 'Le changement est consigné dans le journal d’audit.', 'success');
+        if (state.currentView !== 'flags') return;
+        try { await renderFlags(); } catch (e) {
+            console.error('[TITAN ADMIN FLAGS]', e);
+            notify('Actualisation impossible', 'Le changement est enregistré ; actualise la page.', 'warning');
+        }
     }
 
     async function decideAppeal(appealId, accept) {
@@ -2301,7 +2494,7 @@
         $('#modal-actions').innerHTML = '';
     }
 
-    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false }) {
+    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false, fieldLabel = 'Raison' }) {
         return new Promise((resolve) => {
             // Closing the dialog any other way (cross, backdrop) is a cancellation, never a pending promise.
             state.pendingConfirm = resolve;
@@ -2312,7 +2505,7 @@
                     <div class="panel">
                         <p>${escapeHtml(message)}</p>
                         <label class="form-field full">
-                            <span>Raison</span>
+                            <span>${escapeHtml(fieldLabel)}</span>
                             <textarea class="admin-textarea" data-confirm-reason placeholder="${requireReason ? 'Obligatoire' : 'Optionnelle'}"></textarea>
                         </label>
                     </div>

@@ -81,7 +81,7 @@ const focusId = page => page.evaluate(() => document.activeElement?.id);
 
 // The real report code runs against a controllable, synthetic RPC boundary.
 async function hold(page) {
-  await page.evaluate(() => { window.titanClient.rpc = (name, params) => { window.reportCalls.push(params); return new Promise(resolve => { window.releaseReport = mode => resolve(mode === 'error' ? { error: { message: 'Network failed' } } : mode === 'free' ? { data: { version: 1, owner: window.state.user.id, available: false, reason: 'premium_required' } } : mode === 'invalid' ? { data: {} } : { data: window.makeReport(params) }); }); }; });
+  await page.evaluate(() => { window.titanClient.rpc = (name, params) => { if (name !== 'titan_practice_report') return Promise.resolve({ error: { code: 'PGRST202' } }); window.reportCalls.push(params); return new Promise(resolve => { window.releaseReport = mode => resolve(mode === 'error' ? { error: { message: 'Network failed' } } : mode === 'free' ? { data: { version: 1, owner: window.state.user.id, available: false, reason: 'premium_required' } } : mode === 'invalid' ? { data: {} } : { data: window.makeReport(params) }); }); }; });
 }
 async function settle(page, mode = 'ok') {
   await page.evaluate(mode => window.releaseReport(mode), mode);

@@ -59,11 +59,17 @@ export function findPlaceholders(text, file, { adsEnabled = false } = {}) {
 export function checkAndroidManifest(manifest) {
   const problems = [];
   const m = manifest || {};
-  if (m.enableNotifications === true) problems.push('notifications are enabled (adds a runtime permission)');
+  // Decision of 21/10/2026 (issue #112): native Google Play Billing is approved, and ONLY together with what Bubblewrap requires for it
+  // (notifications delegation and the alpha dependencies). Any of the three on its own, or any other feature, still needs a decision.
+  const billing = Boolean(m.features && m.features.playBilling && m.features.playBilling.enabled === true);
+  if (m.enableNotifications === true && !billing) problems.push('notifications are enabled (adds a runtime permission)');
   for (const [name, feature] of Object.entries(m.features || {})) {
-    if (feature && feature.enabled !== false) problems.push(`feature "${name}" is enabled (location, billing and similar need an explicit decision)`);
+    if (name === 'playBilling') continue;
+    if (feature && feature.enabled !== false) problems.push(`feature "${name}" is enabled (location and similar need an explicit decision)`);
   }
-  if (m.alphaDependencies && m.alphaDependencies.enabled === true) problems.push('alpha dependencies are enabled');
+  if (billing && m.enableNotifications !== true) problems.push('Play Billing is enabled without the notifications delegation Bubblewrap requires for it');
+  if (billing && !(m.alphaDependencies && m.alphaDependencies.enabled === true)) problems.push('Play Billing is enabled without the alpha dependencies Bubblewrap requires for it');
+  if (!billing && m.alphaDependencies && m.alphaDependencies.enabled === true) problems.push('alpha dependencies are enabled');
   const key = m.signingKey || {};
   if (/^(?:\/|[A-Za-z]:[\\/])/.test(String(key.path || ''))) problems.push('the signing key path is absolute');
   for (const field of ['password', 'storePassword', 'keyPassword', 'store_password', 'key_password']) {

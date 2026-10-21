@@ -13,7 +13,11 @@
     APPEAL_LIMIT: "Tu as déjà cinq recours en attente : attends une réponse.",
     APPEAL_COOLDOWN: "Ton dernier recours a été refusé il y a moins de 7 jours : tu pourras en déposer un nouveau ensuite.",
     AUTH_REQUIRED: "Connecte-toi pour déposer un recours.",
+    ANSWER_REQUIRED: "Écris entre 3 et 500 caractères.",
+    REQUEST_NOT_OPEN: "Cette demande n’attend plus de réponse (déjà répondue, ou close par l’équipe).",
+    REQUEST_NOT_FOUND: "Cette demande n’existe plus.",
   };
+  const VERIFY_STATUS = { open: "À traiter", answered: "Réponse envoyée", closed: "Clôturée" };
   const STATUS = { open: "En cours d’examen", accepted: "Accepté", declined: "Refusé" };
   const TIMEOUT_MS = 8000;
   const root = () => document.getElementById("recours");
@@ -26,10 +30,10 @@
   const context = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
   const same = (a, b) => !!a.owner && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch;
   const isGuest = (id) => !id || String(id).startsWith("guest_");
-  const errorText = (error) => {
+  const errorText = (error, fallback = "Le recours n’a pas pu être envoyé. Réessaie dans un instant.") => {
     const message = String((error && error.message) || error || "");
     const code = Object.keys(ERRORS).find((key) => message.includes(key));
-    return code ? ERRORS[code] : "Le recours n’a pas pu être envoyé. Réessaie dans un instant.";
+    return code ? ERRORS[code] : fallback;
   };
   const date = (value) => {
     const d = new Date(value);
@@ -59,12 +63,32 @@
     return `<li class="asc-row"><span><strong>${esc(target)}</strong> · ${esc(date(a.createdAt))}</span><span class="asc-chip" data-status="${esc(a.status)}">${esc(STATUS[a.status] || a.status)}</span>${note}</li>`;
   }
 
-  function render(state, appeals) {
+  function verifyLine(r) {
+    const answer = r.answer ? `<p class="asc-note">Ta réponse : ${esc(r.answer)}</p>` : "";
+    const form = r.status === "open"
+      ? `<form class="asc-form" data-verify-send data-id="${esc(r.id)}" novalidate>
+          <label for="verify-answer-${esc(r.id)}">Ta réponse (3 à 500 caractères)</label>
+          <textarea id="verify-answer-${esc(r.id)}" name="answer" rows="4" maxlength="500" required aria-describedby="verify-error-${esc(r.id)}"></textarea>
+          <p class="asc-note" id="verify-error-${esc(r.id)}" role="alert" tabindex="-1" data-verify-error hidden></p>
+          <div class="asc-row-flex"><button type="submit" class="asc-btn asc-btn-primary">Envoyer ma réponse</button></div>
+        </form>`
+      : "";
+    return `<li class="asc-row"><span><strong>Demande de l’équipe</strong> · ${esc(date(r.createdAt))}</span><span class="asc-chip" data-status="${esc(r.status)}">${esc(VERIFY_STATUS[r.status] || r.status)}</span><p>${esc(r.message)}</p>${answer}${form}</li>`;
+  }
+
+  function verifySection(verification) {
+    const list = Array.isArray(verification?.requests) ? verification.requests : [];
+    if (!list.length) return "";
+    return `<section id="verification" aria-labelledby="rec-verif"><h2 id="rec-verif">Vérifications demandées</h2><p class="asc-note">Une personne de l’équipe te demande de confirmer quelque chose. Répondre ne déclenche aucune sanction automatique : ta réponse est relue par une personne de l’équipe.</p><ul class="asc-list">${list.map(verifyLine).join("")}</ul></section>`;
+  }
+
+  function render(state, appeals, verification) {
     const sessions = Array.isArray(state?.excludedSessions) ? state.excludedSessions : [];
     const list = Array.isArray(appeals?.appeals) ? appeals.appeals : [];
     const suspended = !!state?.account?.suspended;
     const hasOpenAccount = list.some((a) => a.kind === "account" && a.status === "open");
-    let html = '<p class="asc-note">Une séance peut être mise à l’écart des classements et des défis le temps d’une vérification, et ton compte peut être suspendu. Si tu penses que c’est une erreur, explique-le ici : une personne de l’équipe relit ta demande et te répond. Rien n’est supprimé et aucune décision n’est automatique.</p>';
+    let html = verifySection(verification);
+    html += '<p class="asc-note">Une séance peut être mise à l’écart des classements et des défis le temps d’une vérification, et ton compte peut être suspendu. Si tu penses que c’est une erreur, explique-le ici : une personne de l’équipe relit ta demande et te répond. Rien n’est supprimé et aucune décision n’est automatique.</p>';
     html += '<section aria-labelledby="rec-compte"><h2 id="rec-compte">Ton compte</h2>';
     if (suspended) {
       html += `<p>Ton compte est actuellement ${state.account.banned ? "bloqué" : "suspendu"}.</p>`;
@@ -105,7 +129,15 @@
       const [state, appeals] = await withTimeout(Promise.all([ctx.client.rpc("titan_my_review_state_v1"), ctx.client.rpc("titan_my_appeals_v1")]));
       if (run !== token || !same(ctx, context())) return false;
       if (state.error || appeals.error) throw state.error || appeals.error;
-      render(state.data, appeals.data);
+      // The verification list is optional: an older server without it shows the rest of the page as before.
+      let verification = null;
+      try {
+        const v = await withTimeout(ctx.client.rpc("titan_my_verification_requests_v1"));
+        if (!v.error) verification = v.data;
+      } catch {}
+      if (run !== token || !same(ctx, context())) return false;
+      render(state.data, appeals.data, verification);
+      if (location.hash === "#verification") root()?.querySelector("#verification")?.scrollIntoView?.();
       return true;
     } catch (error) {
       if (run !== token || !same(ctx, context())) return false;
@@ -148,6 +180,39 @@
     }
   }
 
+  async function sendAnswer(form) {
+    if (busy) return;
+    const ctx = context();
+    const answer = String(form.elements.answer.value || "").trim();
+    const error = form.querySelector("[data-verify-error]");
+    const button = form.querySelector('[type="submit"]');
+    const mine = ++sendId;
+    const fail = (text) => { error.textContent = text; error.hidden = false; error.focus(); };
+    error.hidden = true;
+    if (answer.length < 3 || answer.length > 500) { fail(ERRORS.ANSWER_REQUIRED); form.elements.answer.focus(); return; }
+    busy = true;
+    button.disabled = true;
+    button.textContent = "Envoi…";
+    try {
+      const { error: rpcError } = await withTimeout(ctx.client.rpc("titan_verification_answer_v1", { p_id: Number(form.dataset.id), p_answer: answer }));
+      if (!same(ctx, context())) return;
+      if (rpcError) throw rpcError;
+      busy = false;
+      if (typeof window.titanRefreshVerificationAlert === "function") window.titanRefreshVerificationAlert();
+      if (await load() && same(ctx, context())) {
+        const live = root()?.querySelector("[data-appeal-live]");
+        if (live) { live.textContent = "Réponse envoyée. Merci."; live.focus(); }
+      }
+    } catch (e) {
+      if (!same(ctx, context())) return;
+      fail(e && e.message === "TIMEOUT" ? "Le serveur ne répond pas. Ton texte est conservé : réessaie." : errorText(e, "La réponse n’a pas pu être envoyée. Réessaie dans un instant."));
+      button.disabled = false;
+      button.textContent = "Envoyer ma réponse";
+    } finally {
+      if (mine === sendId) busy = false;
+    }
+  }
+
   function start() {
     const el = root();
     if (!el) return;
@@ -164,6 +229,8 @@
       if (event.target.closest("[data-appeal-retry]")) load();
     });
     el.addEventListener("submit", (event) => {
+      const answerForm = event.target.closest("[data-verify-send]");
+      if (answerForm) { event.preventDefault(); sendAnswer(answerForm); return; }
       const form = event.target.closest("[data-appeal-send]");
       if (!form) return;
       event.preventDefault();

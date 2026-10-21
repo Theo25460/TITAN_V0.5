@@ -492,6 +492,28 @@ to = "/legal_mentions.html"
 status = 200
 
 [[redirects]]
+from = "/regles-communaute.html"
+to = "/regles-communaute"
+status = 301
+force = true
+
+[[redirects]]
+from = "/regles-communaute"
+to = "/regles-communaute.html"
+status = 200
+
+[[redirects]]
+from = "/supprimer-mon-compte.html"
+to = "/supprimer-mon-compte"
+status = 301
+force = true
+
+[[redirects]]
+from = "/supprimer-mon-compte"
+to = "/supprimer-mon-compte.html"
+status = 200
+
+[[redirects]]
 from = "/legal_privacy.html"
 to = "/legal_privacy"
 status = 301
@@ -731,6 +753,11 @@ status = 200
 
 [[headers]]
   for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
 

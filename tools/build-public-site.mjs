@@ -28,7 +28,7 @@ const offersHtml = `<div class="pub-grid cols-2" style="margin-bottom:16px">
   <article class="pub-card" data-availability="planned"><h3>Les ajouts en préparation</h3><p>Les quatre campagnes complètes et les nouvelles analyses sont en préparation. Leur disponibilité est indiquée dans l’application : vérifie les fonctions actives avant de choisir TITAN+.</p></article>
 </div><div class="pub-grid cols-2">
   <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
-  <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">5 € <small>par mois</small></p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-primary" href="/boutique#plus">Découvrir TITAN+</a><p class="pub-fine">Prix final, taxes, renouvellement et résiliation affichés par Paddle avant le paiement.</p></article>
+  <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Bientôt disponible</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">Aucun paiement n’est proposé pour le moment. L’abonnement sera proposé dans l’application Android, via Google Play, avec son prix affiché avant tout achat.</p></article>
 </div>
 <div class="pub-card" style="margin-top:12px"><p class="pub-eyebrow">Ce que TITAN+ ne change jamais</p><p>Pas d’XP en plus, pas de crédits en plus, pas de plafond relevé, pas d’avance sur les gardiens, les classements ou les expéditions. On ne vend pas de progression.</p></div>`;
 
@@ -56,7 +56,7 @@ const home = page({
   title: "TITAN — Journal sportif multisport, progression et aventure",
   description: "Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, sans publicité, privé par défaut.",
   schema: [
-    { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", price: "5", priceCurrency: "EUR" }] },
+    { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", availability: "https://schema.org/ComingSoon" }] },
     homeFaq.schema,
   ],
   body: `<section class="pub-hero"><img class="pub-hero-bg" src="/assets/renaissance/valley.webp" srcset="/assets/renaissance/valley-small.webp 800w, /assets/renaissance/valley.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
@@ -268,7 +268,7 @@ const tarifsFaq = faq([
   ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits. Les bilans ouvrent après la mise à jour du serveur, et chaque téléchargement recalcule les données avec ton accès actuel."],
   ["Que sont les vues sauvegardées TITAN+ ?", "Retrouve 10 vues privées de comparaison ou de bilan par compte : seuls le nom et les paramètres sont sauvegardés, puis les données sont recalculées à l’ouverture avec ton accès actuel. À expiration, les vues sont conservées et peuvent être supprimées ; TITAN+ permet de les ouvrir et de les modifier. Tes favoris, ton historique et tes exports de base restent gratuits. Les vues ouvrent après la mise à jour du serveur."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
-  ["Comment résilier ?", "Depuis le lien de gestion de l’e-mail de reçu Paddle, ou en écrivant au support. L’accès reste actif jusqu’à la fin de la période payée."],
+  ["Comment résilier ?", "TITAN+ n’est pas encore en vente. À son ouverture, l’abonnement se résiliera dans Google Play, et l’accès restera actif jusqu’à la fin de la période payée."],
   ["Y a-t-il de la publicité ?", "Non, ni dans l’offre gratuite ni dans TITAN+."],
 ]);
 // Capacity diagrams describe existing limits, not a fictional application screen.
@@ -280,7 +280,7 @@ const concreteBenefits = `<section class="pub-section" id="concret"><div class="
   <div class="pub-grid cols-3">
     <article class="pub-card" data-benefit="routines">${icon("layers")}<h3>Garde plusieurs cycles de musculation.</h3><p class="pub-price">5 → 20 <small>routines nommées</small></p>${capacityMeter(5, "routines")}<p>Retrouve tes exercices, séries, charges et répétitions sans reconstruire la séance. Pratique si tu alternes plusieurs programmes.</p><p class="pub-fine">5 emplacements en Classique ; 15 de plus avec TITAN+.</p><a href="/carnet-musculation" class="asc-btn asc-btn-secondary">Voir le carnet musculation</a></article>
     <article class="pub-card" data-benefit="coach">${icon("group")}<h3>Accompagne un groupe plus large.</h3><p class="pub-price">3 → 20 <small>sportifs suivis</small></p>${capacityMeter(3, "sportifs suivis")}<p>Consulte le périmètre autorisé et propose des séances. Chaque sportif choisit ce qu’il partage et peut retirer son accord.</p><p class="pub-fine">L’abonnement concerne le coach. Le sportif suivi peut rester en Classique.</p><a href="/pour-les-coachs" class="asc-btn asc-btn-secondary">Voir le fonctionnement coach</a></article>
-    <article class="pub-card" data-benefit="worlds">${icon("compass")}<h3>Les quatre campagnes restent gratuites.</h3><div class="pub-benefit-worlds">${C.worlds.map((w) => `<a href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span>${w.name}</span></a>`).join("")}</div><p>36 chapitres et4 gardiens accessibles sans abonnement après mise à jour serveur. Même effort, mêmes règles de progression.</p></article>
+    <article class="pub-card" data-benefit="worlds">${icon("compass")}<h3>Les quatre campagnes restent gratuites.</h3><div class="pub-benefit-worlds">${C.worlds.map((w) => `<a href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span>${w.name}</span></a>`).join("")}</div><p>36 chapitres et 4 gardiens accessibles sans abonnement après mise à jour serveur. Même effort, mêmes règles de progression.</p></article>
   </div>
   <aside class="pub-card" id="stats-free"><h3>Tes repères sportifs restent gratuits.</h3><p>Récap hebdomadaire, historique, records et tendances de volume, d’allure, de force ou d’escalade : les analyses déjà disponibles restent gratuites, avec ou sans TITAN+.</p><a class="asc-btn asc-btn-secondary" href="/comprendre-mes-donnees">Comprendre les analyses</a></aside>
 </div></section>`;
@@ -289,10 +289,10 @@ writeFileSync(
   page({
     route: "/tarifs",
     title: "Gratuit et TITAN+ : tout ce qui est inclus | TITAN",
-    description: "Journal et progression gratuits. TITAN+ à 5 €/mois ajoute comparaisons, bilans mensuels/annuels, routines et capacité coach, sans avantage d’XP.",
+    description: "Journal et progression gratuits. TITAN+, bientôt disponible, ajoutera comparaisons, bilans mensuels et annuels, routines et capacité coach, sans avantage d’XP.",
     image: "aurora",
-    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", price: "5", priceCurrency: "EUR", url: `${SITE}/tarifs` } }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journal, statistiques et progression sont accessibles gratuitement. TITAN+ ajoute des emplacements et de la capacité coach. Les quatre campagnes restent gratuites après mise à jour serveur.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
+    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", availability: "https://schema.org/ComingSoon", url: `${SITE}/tarifs` } }],
+    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journal, statistiques et progression sont accessibles gratuitement. TITAN+ ajoutera des emplacements et de la capacité coach ; il n’est pas encore disponible à l’achat. Les quatre campagnes restent gratuites après mise à jour serveur.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
       <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
       ${concreteBenefits}
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2></div><div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Fonction</th><th>Classique</th><th>TITAN+</th></tr></thead><tbody>${[
@@ -392,6 +392,8 @@ const INDEXABLE = [
   ["/legal_cgu", 0.3],
   ["/legal_mentions", 0.3],
   ["/legal_hub", 0.2],
+  ["/regles-communaute", 0.3],
+  ["/supprimer-mon-compte", 0.3],
 ];
 // lastmod is optional. Omit it until significant changes can be dated per page;
 // neither a frozen shared date nor the build date describes those changes.

@@ -305,6 +305,7 @@
     return `<section class="asc-section" id="compte"><div class="asc-section-head"><h2>${guest() ? "Garder tes séances" : "Compte et données"}</h2></div>
       ${guest() ? `<div class="asc-note">${icon("cloudUp")}<span>Crée un compte pour sauvegarder ta progression et la retrouver partout. Tes séances de découverte pourront le rejoindre en un geste.</span></div><div class="asc-row-flex pf-actions"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-secondary" href="/login">J’ai déjà un compte</a></div>` : `<div class="asc-list">
         <a class="asc-row" href="/boutique"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Confort, campagnes et cosmétiques. Jamais de progression achetée."}</span></span>${icon("chevron")}</a>
+        <a class="asc-row" href="/recours"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Séances contrôlées et recours</span><span class="asc-row-sub">Voir une séance mise de côté et contester la décision.</span></span>${icon("chevron")}</a>
       </div>`}
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
@@ -421,7 +422,9 @@
     let pending = false, serverDeleted = false;
     const body = document.createElement("form");
     body.className = "asc-stack";
+    const plusActive = Boolean(A()?.snapshot?.plus || window.state?.user?.is_elite);
     body.innerHTML = `<p>Ton compte, tes séances, tes objectifs et ta progression seront supprimés définitivement. Exporte d’abord tes données si tu veux les garder.</p>
+      ${plusActive ? `<p class="asc-note" data-delete-plus>${icon("info")}<span>Si tu as un abonnement TITAN+ payant, il n’est pas résilié automatiquement par la suppression du compte. Résilie-le d’abord (lien du reçu Paddle, ou Google Play si tu t’es abonné dans l’application) pour ne plus être facturé.</span></p>` : ""}
       <label class="asc-field"><span>Écris SUPPRIMER pour confirmer</span><input class="asc-input" name="confirm" autocomplete="off" autocapitalize="characters"></label>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <p class="asc-small asc-muted" role="status" data-delete-progress></p>

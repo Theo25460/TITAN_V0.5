@@ -39,7 +39,7 @@ begin
   assert j->'previous'->>'sessions'='1' and (j->'previous'->>'minutes')::numeric=60, 'previous equal period';
   assert j->'previous'->>'to'=j->'recent'->>'from', 'adjacent half-open periods';
   assert jsonb_array_length(j->'recent'->'series')=4 and jsonb_array_length(j->'recent'->'sources')=5, 'all buckets, bounded examples';
-  assert j::text not like '%PRIVATE_NOTE%' and j::text not like '%weight%' and j::text not like '%9999%', 'no private details or client effort';
+  assert j::text not like '%PRIVATE_NOTE%' and j::text not like '%weight%' and j::text !~ '[^0-9a-f-]9999[^0-9a-f-]', 'no private details or client effort';  -- 9999 as a standalone value; a random uuid may contain those four digits
   for s in select value from jsonb_array_elements(j->'recent'->'sources') loop
     select count(*) into n from public.training_logs where id=(s->>'id')::uuid and user_id=auth.uid() and archived_at is null;
     assert n=1, 'source resolves to own live journal';

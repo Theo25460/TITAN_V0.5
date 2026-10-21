@@ -43,15 +43,22 @@ jobs:
       - name: Clé jetable et projet Android
         working-directory: android
         run: |
-          keytool -genkeypair -keystore android.keystore -alias titan -keyalg RSA -keysize 2048 -validity 30 \
+          # Same type and size as the real upload key (PKCS12, RSA 4096), so this trial proves the real key format works with Bubblewrap.
+          keytool -genkeypair -keystore android.keystore -storetype PKCS12 -alias titan -keyalg RSA -keysize 4096 -validity 30 \
             -storepass "$THROWAWAY_PASSWORD" -keypass "$THROWAWAY_PASSWORD" -dname "CN=TITAN essai, O=TITAN, C=FR"
-          # Bubblewrap downloads the icons from the deployed site: an icon added in this branch but not published yet falls
-          # back to the published launcher icon for this trial only (the warning names it).
+          # Bubblewrap downloads the icons from the deployed site. An icon added in this branch and not published yet is served from this
+          # checkout on the runner instead (the warning names it): the launcher icons built into the app are then the real ones.
           for key in iconUrl maskableIconUrl; do
             url=$(node -e "console.log(require('./twa-manifest.json').$key)")
             if ! curl -fsI "$url" > /dev/null; then
-              echo "::warning::$key $url is not published yet: using the published launcher icon for this trial"
-              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='https://titan-app.fr/image/logo-512.png';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+              file=$(basename "$url")
+              test -f "../image/$file" || { echo "::error::$key $url is not published and ../image/$file does not exist"; exit 1; }
+              if ! curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1; then
+                (cd ../image && nohup python3 -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &)
+                for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1 && break; sleep 1; done
+              fi
+              echo "::warning::$key $url is not published yet: using ../image/$file from this checkout"
+              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='http://127.0.0.1:8765/$file';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
             fi
           done
           # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.
@@ -70,9 +77,11 @@ jobs:
         run: |
           aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
           "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
-          # TITAN a besoin d'Internet et de rien d'autre : toute autre permission doit être justifiée avant release.
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          # TITAN a besoin d'Internet, plus de la permission d'achat de Google Play Billing (décision du 21/10/2026 : l'abonnement ne se crée dans
+          # Play Console qu'avec un bundle qui la contient ; les achats restent coupés côté application) : toute autre permission doit être justifiée.
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
+          grep -q "com.android.vending.BILLING" permissions.txt || { echo "::error::la permission com.android.vending.BILLING est absente : Play Console ne débloquera pas les abonnements"; exit 1; }
       - name: Cible et liens d'application de l'APK (AND05, AND09)
         working-directory: android
         run: |
@@ -85,6 +94,19 @@ jobs:
           # L'hôte du lien est une ressource de chaîne : on contrôle autoVerify dans le manifeste, puis l'hôte dans les chaînes de l'APK.
           grep -q "autoVerify.*=true" manifest-tree.txt || { echo "::error::autoVerify absent du manifeste"; exit 1; }
           "$aapt2" dump strings app-release-signed.apk | grep -q "titan-app.fr" || { echo "::error::titan-app.fr absent des chaînes de l'APK"; exit 1; }
+      - name: App Bundle produit par la même construction (AND04)
+        working-directory: android
+        run: |
+          test -s app-release-bundle.aab || { echo "::error::app-release-bundle.aab absent"; exit 1; }
+          unzip -l app-release-bundle.aab | tee bundle-contents.txt | tail -3
+          grep -q "base/manifest/AndroidManifest.xml" bundle-contents.txt || { echo "::error::le bundle n'a pas de module de base"; exit 1; }
+      - name: Play Billing natif présent dans le bundle (issue #112)
+        working-directory: android
+        run: |
+          # Bubblewrap ajoute la bibliothèque de facturation quand features.playBilling est actif : on la cherche dans le code du bundle.
+          mkdir -p dex && unzip -o -q app-release-bundle.aab 'base/dex/*.dex' -d dex
+          cat dex/base/dex/*.dex | strings | grep -q "com/android/billingclient" || { echo "::error::la bibliothèque Play Billing est absente du bundle"; exit 1; }
+          echo "Play Billing présent dans le bundle"
       - uses: actions/upload-artifact@v4
         with:
           name: titan-android-essai-NE-PAS-PUBLIER

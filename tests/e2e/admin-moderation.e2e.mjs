@@ -135,6 +135,22 @@ function installFakeAdmin({ admin = true, mode = "ok" } = {}) {
           a.status = params.p_accept ? "accepted" : "declined";
           return { data: { version: 1, id: a.id, status: a.status }, error: null };
         }
+        if (name === "titan_verification_list_v1") {
+          if (mode === "oldserver" || mode === "no-verif") return fail("Could not find the function public.titan_verification_list_v1 in the schema cache", "PGRST202");
+          db.verif = db.verif || { [P1]: [{ id: 5, message: `Merci de confirmer ta séance ${evil}`, status: "answered", createdAt: "2026-10-18T08:00:00Z", answer: `Oui, c’était moi ${evil}`, answeredAt: "2026-10-18T09:00:00Z", closedAt: null }] };
+          if (!params.p_user) return { data: { version: 1, requests: Object.entries(db.verif).flatMap(([uid, list]) => list.filter((r) => r.status === params.p_status).map((r) => ({ ...r, userId: uid }))) }, error: null };
+          return { data: { version: 1, requests: (db.verif[params.p_user] || []) }, error: null };
+        }
+        if (name === "titan_verification_request_v1") {
+          if (mode === "verify-refused") return fail("REQUEST_ALREADY_OPEN", "23505");
+          db.verif = db.verif || {};
+          (db.verif[params.p_user] = db.verif[params.p_user] || []).push({ id: 20, message: params.p_message, status: "open", createdAt: "2026-10-20T08:00:00Z", answer: null, answeredAt: null, closedAt: null });
+          return { data: { version: 1, id: 20, status: "open" }, error: null };
+        }
+        if (name === "titan_verification_close_v1") {
+          for (const list of Object.values(db.verif || {})) for (const r of list) if (r.id === params.p_id) r.status = "closed";
+          return { data: { version: 1, id: params.p_id, status: "closed" }, error: null };
+        }
         if (!name.startsWith("titan_moderation_")) return { data: null, error: { message: "unexpected rpc " + name } };
         if (mode === "oldserver") return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
         if (mode === "forbidden") return fail("ADMIN_ONLY", "42501");
@@ -527,5 +543,67 @@ test("appeals: empty, old server, forbidden and a refused acceptance are explain
   await page.locator("[data-confirm-ok]").click();
   await page.getByText(/plus rien à lever/).first().waitFor();
   assert.equal(await page.locator("[data-appeal-row]").count(), 2, "the appeal stays open after a refusal");
+  await context.close();
+});
+
+test("verification requests: the file shows past requests and the player's answer escaped; a request needs a message and is sent once", async () => {
+  const { page, context, errors } = await open(1280);
+  await page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = page.locator("#admin-modal");
+  await modal.getByText("Demandes de vérification").waitFor();
+  assert.match(await modal.locator("[data-verification-list]").innerText(), /Réponse reçue/);
+  assert.match(await modal.locator("[data-verification-list]").innerText(), /Oui, c’était moi/);
+  assert.equal(await modal.locator("[data-verification-list] img").count(), 0, "the player's answer and the message are escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+
+  // No message, no request.
+  await modal.locator("[data-verify-request]").click();
+  await page.locator("[data-confirm-ok]").click();
+  assert.equal((await calls(page)).filter((c) => c.startsWith("titan_verification_request_v1")).length, 0, "an empty message sends nothing");
+  await page.locator("[data-confirm-reason]").fill("Peux-tu envoyer la trace de ta course de dimanche ?");
+  await page.locator("[data-confirm-ok]").click();
+  await page.waitForFunction(() => window.__mod.db.verif["00000000-0000-4000-8000-0000000000a1"].some((r) => r.id === 20));
+  const sent = (await calls(page)).find((c) => c.startsWith("titan_verification_request_v1"));
+  assert.ok(sent.includes(P1));
+  assert.match(sent, /trace de ta course/);
+  // One open request at a time: the button is gone, and the open request can be closed.
+  await modal.locator("[data-verification='20']").waitFor();
+  assert.equal(await modal.locator("[data-verify-request]").count(), 0);
+  await modal.locator("[data-verify-close='20']").click();
+  await page.waitForFunction(() => window.__mod.db.verif["00000000-0000-4000-8000-0000000000a1"].find((r) => r.id === 20).status === "closed");
+  await modal.locator("[data-verify-request]").waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("verification requests: a refusal is explained and an older server hides the feature without breaking the file", async () => {
+  let r = await open(1280, { mode: "verify-refused" });
+  await r.page.locator(`[data-moderation-open="${P2}"]`).click();
+  await r.page.locator("#admin-modal [data-verify-request]").click();
+  await r.page.locator("[data-confirm-reason]").fill("Peux-tu confirmer cette séance de samedi ?");
+  await r.page.locator("[data-confirm-ok]").click();
+  await r.page.getByText(/déjà ouverte pour ce joueur/).first().waitFor();
+  await r.context.close();
+  r = await open(1280, { mode: "no-verif" });
+  await r.page.locator(`[data-moderation-open="${P1}"]`).click();
+  const modal = r.page.locator("#admin-modal");
+  await modal.getByText(/ne sont pas disponibles sur ce serveur/).waitFor();
+  assert.equal(await modal.locator("[data-verify-request]").count(), 0, "no request button without the function");
+  assert.match(await modal.innerText(), /Signaux qui composent le score/, "the case file still opens");
+  await r.context.close();
+});
+
+test("appeals screen: players' answers to verification requests wait there, escaped, until an administrator closes them", async () => {
+  const { page, context, errors } = await open(1280, {}, "appeals");
+  const table = page.locator("[data-verification-answers]");
+  await table.waitFor();
+  assert.match(await table.innerText(), /Oui, c’était moi/);
+  assert.equal(await table.locator("img").count(), 0, "message and answer are escaped");
+  assert.equal(await page.evaluate(() => window.pwned), undefined);
+  assert.ok((await calls(page)).some((c) => c.startsWith("titan_verification_list_v1") && c.includes('"p_status":"answered"') && c.includes('"p_user":null')));
+  await table.locator("[data-verify-close]").click();
+  await page.waitForFunction(() => window.__mod.db.verif["00000000-0000-4000-8000-0000000000a1"].find((r) => r.id === 5).status === "closed");
+  await page.locator("#admin-view").getByText(/Aucune réponse à lire/).waitFor();
+  assert.deepEqual(errors, []);
   await context.close();
 });
