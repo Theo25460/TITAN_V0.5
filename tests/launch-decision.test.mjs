@@ -11,8 +11,8 @@ test("no public page names Paddle as seller or payment processor, or states a TI
   for (const file of pages) {
     const html = readFileSync(new URL(file, root), "utf8");
     const text = html.replace(/<script[\s\S]*?<\/script>/g, (m) => (m.includes("ld+json") ? m : "")); // the sport "Paddle" is a sport, not the vendor
-    assert.ok(!/(opérés? par|vendeur officiel|reçu Paddle|par Paddle|Paddle,? vendeur|chez Paddle|relève de Paddle)/i.test(text), `${file} names Paddle as vendor`);
-    assert.ok(!/TITAN\+[^<]{0,40}5\s?€|5\s?€\s?(\/|par)\s?mois|"price":"5"/.test(html), `${file} states a TITAN+ price`);
+    assert.ok(!/(opérés? par|vendeur officiel|reçu Paddle|par Paddle|via Paddle|Paddle,? vendeur|chez Paddle|relève de Paddle)/i.test(text), `${file} names Paddle as vendor`);
+    assert.ok(!/TITAN\+[^<]{0,40}\b[1-9]\d*([,.]\d+)?\s?(€|euros?)|\b[1-9]\d*([,.]\d+)?\s?(€|euros?)\s?(\/|par)\s?mois|"price":"[1-9]/i.test(html), `${file} states a TITAN+ price`);
     assert.ok(!/href="\/boutique#plus"/.test(html), `${file} leads to a web purchase`);
   }
 });

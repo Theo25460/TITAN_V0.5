@@ -59,9 +59,9 @@ Principes : décrire ce que **l'application et ses services** collectent ; chaqu
 | Photos et vidéos | Photos (avatar) | Oui si l'utilisateur en ajoute | Non | Facultative | Personnalisation |
 | Activité dans l'application | Interactions, pages vues | **Uniquement avec accord** (mesure d'audience) | Non | Facultative | Analyses |
 | Infos et performances | Journaux d'erreurs | **Restent sur l'appareil** (aucun envoi automatique relevé) | — | — | — |
-| Infos financières | Historique d'achats | Côté site via Paddle (identifiants d'événement, d'offre, d'abonnement) ; pas dans l'application Android | Partagé avec Paddle pour le paiement sur le site | — | à confirmer selon la réponse « achats » ci-dessus |
+| Infos financières | Historique d'achats | Aujourd'hui aucun achat n'est proposé (Paddle désactivé le 21/10/2026, TITAN+ « bientôt disponible »). À l'ouverture de l'abonnement via Google Play : identifiants d'abonnement et de jeton d'achat reçus de Google | Google Play traite le paiement ; TITAN ne reçoit que le statut | — | à reprendre au moment de l'ouverture de l'abonnement et selon la réponse « achats » ci-dessus |
 
-Tiers à déclarer comme prestataires de traitement : Supabase (hébergement des données, région `eu-west-1`), Netlify (hébergement), Paddle (paiement sur le site), Resend (e-mails d'assistance). Les durées de conservation ne sont **pas fixées** (Q-002) : ne rien affirmer de précis dans la politique tant que la décision n'est pas prise. Toute modification de collecte impose de remettre ce formulaire à jour **avant** la version concernée.
+Tiers à déclarer comme prestataires de traitement : Supabase (hébergement des données, région `eu-west-1`), Netlify (hébergement), Resend (e-mails d'assistance) ; Google Play pour le paiement dans l'application à l'ouverture de l'abonnement (Paddle désactivé depuis le 21/10/2026). Les durées de conservation ne sont **pas fixées** (Q-002) : ne rien affirmer de précis dans la politique tant que la décision n'est pas prise. Toute modification de collecte impose de remettre ce formulaire à jour **avant** la version concernée.
 
 ## 5. Classification du contenu (GP06)
 

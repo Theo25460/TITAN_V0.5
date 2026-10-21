@@ -3,7 +3,7 @@
 Statut : **décision de Théo du 20/10/2026 : « Google Play Billing »** (option 3 de `docs/PLAY_CONSOLE.md` §3). La conception ci-dessous est proposée par Claude et n'est pas encore implémentée. Rien dans cet ADR n'a été vérifié contre les pages Google officielles : la lecture des pages « Payments » et « Play Billing » à jour est une étape obligatoire avant le code.
 
 ## Contexte
-TITAN+ est aujourd'hui vendu sur le web par Paddle. L'application Android est une coque web (TWA, ADR-001). Les règles Google sur les paiements changent en 2026 selon la région (voir `docs/PLAY_CONSOLE.md` §3). Théo choisit de proposer l'abonnement **dans l'application via Google Play Billing**, ce qui lève le risque de renvoyer vers le site.
+TITAN+ était vendu sur le web par Paddle (désactivé par la décision du 21/10/2026 : aucun achat sur le web). L'application Android est une coque web (TWA, ADR-001). Les règles Google sur les paiements changent en 2026 selon la région (voir `docs/PLAY_CONSOLE.md` §3). Théo choisit de proposer l'abonnement **dans l'application via Google Play Billing**, ce qui lève le risque de renvoyer vers le site.
 
 Contraintes du code actuel :
 - `functions/webhook.mjs` applique l'abonnement par `titan_apply_paddle_entitlement_v87`, qui écrit **un seul** enregistrement sur `profiles` (`is_elite`, `elite_*`) avec la règle « le dernier événement gagne » (`elite_last_event_at`).

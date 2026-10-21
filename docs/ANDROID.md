@@ -42,7 +42,7 @@ Actions › **Android (TWA, essai sans secret)** › *Run workflow* : construit 
 - Catégorie : Santé et remise en forme. Contenu : tout public, pas de publicité.
 - Règles de confidentialité : `https://titan-app.fr/legal_privacy`.
 - Sécurité des données : e-mail et identifiant (compte), activité sportive saisie (fonction de l'app), statistiques d'usage seulement avec accord ; aucune donnée vendue ni partagée à des fins publicitaires ; suppression du compte depuis l'application.
-- Achats : TITAN+ est vendu sur le web par Paddle. Dans l'application Android (lancée avec `?source=twa`), l'Atelier n'affiche pas le bouton d'achat et renvoie vers le site. Vérifier les règles de facturation Google Play en vigueur avant la publication.
+- Achats : décision du 21/10/2026 — Paddle est désactivé et aucun paiement n'est proposé sur le web. TITAN+ est « bientôt disponible » ; à son ouverture il s'achètera uniquement dans l'application Android, via Google Play Billing (intégration native activée dans le bundle, achats encore coupés côté application : `TITAN_PLAY_BILLING.enabled` à `false`). Vérifier les règles de facturation Google Play en vigueur avant l'ouverture.
 
 ## Non vérifié ici
 
