@@ -40,8 +40,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: android-native-${{ github.ref }}
-  cancel-in-progress: true
+  # A manual (signed) build never cancels, and is never cancelled by, the push/PR checks.
+  group: android-native-${{ github.event_name == 'workflow_dispatch' && 'dispatch' || 'checks' }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 defaults:
   run:
@@ -153,6 +154,10 @@ jobs:
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           if grep -q "BILLING\|AD_ID" permissions.txt; then echo "::error::facturation ou identifiant publicitaire présent"; exit 1; fi
           "$bt/apksigner" verify --print-certs "$apk" | tee signature.txt
+          # An upload build must carry the registered upload key, or Play Console rejects the bundle.
+          if [ "$SIGNING_LABEL" = "upload" ] && ! grep -q "SHA-256 digest: 8e359edea72e48f0760d1b7ff66494439bba4b5f7385de44c7cfa5929dec205c" signature.txt; then
+            echo "::error::la clé fournie n'est pas la clé d'envoi enregistrée (SHA-256 8E:35:…:20:5C)"; exit 1
+          fi
           unzip -l "$aab" | grep -q "base/manifest/AndroidManifest.xml"
           # No WebView-based UI: the app ships its own JS bundle and must not depend on the website at launch.
           unzip -l "$apk" | grep -q "assets/index.android.bundle" || { echo "::error::bundle JavaScript absent de l'APK"; exit 1; }
