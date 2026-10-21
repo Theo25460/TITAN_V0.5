@@ -11,7 +11,7 @@
   "navigationDividerColor": "#05070A",
   "navigationDividerColorDark": "#05070A",
   "backgroundColor": "#05070A",
-  "enableNotifications": false,
+  "enableNotifications": true,
   "startUrl": "/aujourdhui?source=twa",
   "iconUrl": "https://titan-app.fr/image/logo-512.png",
   "maskableIconUrl": "https://titan-app.fr/image/logo-maskable-512.png",

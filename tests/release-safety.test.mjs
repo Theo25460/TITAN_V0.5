@@ -72,7 +72,9 @@ test('android: the TWA keeps the minimum permissions and no secret', () => {
   const bad = {
     notifications: { enableNotifications: true },
     location: { features: { locationDelegation: { enabled: true } } },
-    billing: { features: { playBilling: { enabled: true } } },
+    'billing alone': { features: { playBilling: { enabled: true } } },
+    'billing without alpha dependencies': { enableNotifications: true, features: { playBilling: { enabled: true } } },
+    'billing without notifications': { features: { playBilling: { enabled: true } }, alphaDependencies: { enabled: true } },
     alpha: { alphaDependencies: { enabled: true } },
     'absolute key path': { signingKey: { path: '/home/me/android.keystore', alias: 'titan' } },
     'password in manifest': { signingKey: { path: './android.keystore', alias: 'titan', password: 'x' } },
@@ -80,6 +82,9 @@ test('android: the TWA keeps the minimum permissions and no secret', () => {
     'plain http host': { host: 'http://titan-app.fr' },
   };
   for (const [label, patch] of Object.entries(bad)) assert.ok(checkAndroidManifest({ ...manifest(), ...patch }).length > 0, `refused: ${label}`);
+  // The approved Play Billing configuration (decision of 21/10/2026): the three settings together, nothing else.
+  assert.deepEqual(checkAndroidManifest({ ...manifest(), enableNotifications: true, features: { playBilling: { enabled: true } }, alphaDependencies: { enabled: true } }), []);
+  assert.ok(checkAndroidManifest({ ...manifest(), enableNotifications: true, features: { playBilling: { enabled: true }, locationDelegation: { enabled: true } }, alphaDependencies: { enabled: true } }).length > 0, 'billing does not approve location')
 });
 
 test('ignored paths: keystores and build outputs can never be tracked', () => {

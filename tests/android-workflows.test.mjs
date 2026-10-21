@@ -55,6 +55,7 @@ test("Play Billing is enabled in the Android bundle and verified before the file
   const manifest = JSON.parse(readFileSync(`${root}android/twa-manifest.json`, "utf8"));
   assert.equal(manifest.features?.playBilling?.enabled, true, "native Play Billing in the TWA project");
   assert.equal(manifest.alphaDependencies?.enabled, true, "Bubblewrap needs the alpha dependencies for it");
+  assert.equal(manifest.enableNotifications, true, "and the notifications delegation (\"Play Billing requires enableNotifications to be true\")");
   for (const [name, text] of [["release", release], ["trial", trial]]) {
     assert.match(text, /com\.android\.vending\.BILLING/, `${name}: the billing permission is expected`);
     assert.match(text, /grep -q "com\.android\.vending\.BILLING" permissions\.txt/, `${name}: and required`);
