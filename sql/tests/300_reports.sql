@@ -1,7 +1,8 @@
 -- Read-only personal reports, synthetic fixtures, rollback. Never applied to production.
 begin;
 do $$
-declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); c uuid:=gen_random_uuid();
+-- Deliberately contains 9999: identifiers are not forged effort values.
+declare a uuid:='99990000-0000-4000-8000-000000000123'; b uuid:=gen_random_uuid(); c uuid:=gen_random_uuid();
   m date:=(date_trunc('month',timezone('Europe/Paris',now()))-interval '1 month')::date;
   y date:=(date_trunc('year',timezone('Europe/Paris',now()))-interval '1 year')::date;
 begin
@@ -40,7 +41,7 @@ do $$ declare j jsonb; s jsonb; days int; n int; before_count int; begin
   assert days in (28,29,30,31) and jsonb_array_length(j->'series')=days,'every actual calendar day';
   assert jsonb_array_length(j->'sports')=2 and jsonb_array_length(j->'sources')=5,'full breakdown, bounded sources';
   assert (select sum((value->>'active_days')::int) from jsonb_array_elements(j->'sports'))=7,'same day is shared across sports, not summed in total';
-  assert j::text not like '%PRIVATE_NOTE%' and j::text not like '%weight%' and j::text not like '%9999%','no sensitive details or forged effort';
+  assert j::text not like '%PRIVATE_NOTE%' and j::text not like '%weight%' and not jsonb_path_exists(j, '$.** ? (@ == 9999)'),'no sensitive details or forged effort';
   for s in select value from jsonb_array_elements(j->'sources') loop
     select count(*) into n from public.training_logs where id=(s->>'id')::uuid and user_id=auth.uid() and archived_at is null;
     assert n=1,'all sources resolve to own live journal';

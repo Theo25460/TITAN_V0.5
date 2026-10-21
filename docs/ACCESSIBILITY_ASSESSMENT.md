@@ -4,12 +4,12 @@
 
 ## 1. Les obligations s'appliquent-elles à TITAN ?
 
-- La directive européenne sur l'accessibilité (directive (UE) 2019/882, dite « EAA »), transposée en droit français, s'applique depuis le **28 juin 2025** aux **services de commerce électronique** vendus à des consommateurs. TITAN vend un abonnement (TITAN+) à des consommateurs, en passant par Paddle : le service est donc dans le champ.
+- La directive européenne sur l'accessibilité (directive (UE) 2019/882, dite « EAA »), transposée en droit français, s'applique depuis le **28 juin 2025** aux **services de commerce électronique** vendus à des consommateurs. Cette hypothèse historique de commerce électronique ne décrit pas la V1 actuelle : aucun abonnement TITAN+ n’est en vente, Paddle et les publicités restent désactivés. La qualification du service gratuit et les éventuelles obligations restent à établir par une personne compétente (LEG13/LEG52), sans déduire automatiquement son inclusion ou son exemption.
 - Les **microentreprises qui fournissent des services** (moins de 10 personnes et chiffre d'affaires ou total de bilan annuel inférieur ou égal à 2 millions d'euros) sont **exemptées** d'une partie des exigences ; l'exemption demande en général de pouvoir la justifier par écrit (taille, chiffre d'affaires) et ne laisserait, selon une source consultée, aucun délai de grâce si l'on dépasse le seuil (à vérifier).
 - TITAN est aujourd'hui porté à titre personnel, sans structure (LEG16 ; les mentions légales actuelles évoquent aussi un cofondateur, point à clarifier : sous dix personnes, le nombre exact ne change pas la conclusion). **Hypothèse de travail : il relève de l'exemption des microentreprises** de services. Deux points ne sont pas tranchés par ce dépôt et doivent l'être par une personne compétente : (a) l'exemption vaut-elle pour une personne physique qui n'est pas encore immatriculée, et dans quelles conditions de justification ; (b) elle cessera de valoir si l'activité dépasse les seuils, ou si l'éditeur change de statut.
 - Textes à relire directement et à identifier précisément sur Légifrance (les sources consultées citent la loi n° 2023-171, le décret n° 2023-931 et l'ordonnance n° 2023-859, sans que l'article de l'exemption soit établi ici) (les résumés trouvés en ligne ne citent pas l'article exact de l'exemption, et un guide affirme qu'une entreprise de moins de deux ans pourrait en bénéficier : à vérifier, non retenu ici).
 
-## 2. Ce qui est fait malgré l'exemption probable
+## 2. Contrôles techniques réalisés indépendamment de la qualification juridique
 
 L'accessibilité est traitée comme une qualité du produit, avec des preuves automatiques dans le dépôt :
 

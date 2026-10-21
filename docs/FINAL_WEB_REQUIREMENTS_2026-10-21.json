@@ -1,0 +1,3402 @@
+{
+  "meta": {
+    "date": "2026-10-21",
+    "candidate_sha": "fef923c072d7e362c64287757f9e0bf3a5e3aba9",
+    "candidate_tree": "07ad054942e5c6219f50192472493afb7df297f5",
+    "sources": {
+      "work": "95d901530816855af5aeba8c89deff418c6f784d",
+      "claude": "02311a5c98ebffb9fab9336b494a6c5c699dd181"
+    },
+    "policy": "319 identifiants canoniques conservés. Case du cahier et preuve technique distinctes. Aucun pourcentage de complétude. Publicités/vente TITAN+ et Android exclus ; reports proposés encore ouverts. Liste technique dérivée sans recopier les handoffs privés."
+  },
+  "requirements": [
+    {
+      "id": "A01",
+      "exigence": "Auditer l’architecture actuelle du dépôt Titan : frontend, backend, Supabase, auth, base de données, fonctions, PWA, déploiement, analytics, SEO et dépendances.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A02",
+      "exigence": "Cartographier les fonctionnalités existantes et identifier celles qui pourraient régresser pendant la migration Android ou la refonte.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A03",
+      "exigence": "Identifier les données sensibles, secrets, clés API et variables d’environnement ; vérifier qu’aucun secret serveur n’est exposé au client.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Document livré, exécution opérationnelle non prouvée",
+      "preuves_depot": [],
+      "reste": "Valeurs fournisseurs et calendrier à valider ; aucune rotation réelle",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A04",
+      "exigence": "Proposer une architecture cible unique permettant de partager au maximum le code entre web, PWA et Android.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A05",
+      "exigence": "Privilégier une approche Capacitor ou équivalente si elle permet de conserver le code existant ; ne pas réécrire Titan en natif sans justification majeure.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A06",
+      "exigence": "Lister les dépendances entre les grands chantiers et définir l’ordre optimal d’implémentation.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A07",
+      "exigence": "Mettre en place une stratégie de branches/commits permettant d’isoler Android, monétisation, RPG, anti-triche et UX.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A08",
+      "exigence": "Mettre en place ou renforcer lint, type-check, tests et build CI avant les modifications les plus risquées.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "CI et TypeScript strict livrés par PR111 ; effort.js et contrat seulement",
+      "preuves_depot": [],
+      "reste": "Pas de typage global du dépôt prétendu ; ne pas rouvrir A08 pour cette extension future.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A09",
+      "exigence": "Établir un plan de rollback pour toute migration de données ou changement critique.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Plan, préflight et procédures livrés ; sauvegarde/restauration NON EXÉCUTÉES",
+      "preuves_depot": [
+        "tools/db/preflight-production.sql",
+        "tools/db/postflight-production.sql",
+        "tools/db/test-release-gates.py"
+      ],
+      "reste": "Sauvegarde réelle restaurée, migration sur copie, contrats actifs et compensation des retenues à éprouver",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A10",
+      "exigence": "PROTECTION BASE DE DONNÉES : aucune migration ne doit supprimer, écraser, corrompre, réinterpréter ou rendre incompatibles les données utilisateurs existantes. Toute modification de schéma doit être backward-compatible lorsque possible, testée sur un environne",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Plan, préflight et procédures livrés ; sauvegarde/restauration NON EXÉCUTÉES",
+      "preuves_depot": [],
+      "reste": "Sauvegarde réelle restaurée, migration sur copie, contrats actifs et compensation des retenues à éprouver",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "A11",
+      "exigence": "Avant toute migration de production, vérifier la sauvegarde des données concernées et la capacité réelle de restauration. Une migration destructive ne peut jamais être utilisée comme raccourci de développement.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Plan, préflight et procédures livrés ; sauvegarde/restauration NON EXÉCUTÉES",
+      "preuves_depot": [],
+      "reste": "Sauvegarde réelle restaurée, migration sur copie, contrats actifs et compensation des retenues à éprouver",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND17",
+      "exigence": "Créer une couche unifiée « sources d’activité » indépendante du fournisseur afin que séances importées, activité quotidienne et futures intégrations alimentent le même modèle de données et les mêmes parcours Titan au lieu de créer des logiques parallèles.",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP12",
+      "exigence": "Une fois la fiche publique, ajouter dans Titan et sur le site un lien Google Play correct et traçable.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Préparation web livrée, publication/activation ouverte",
+      "preuves_depot": [
+        "tests/play-store-link.test.mjs",
+        "tests/e2e/play-store-link.e2e.mjs"
+      ],
+      "reste": "Visuels honnêtes, URL publique, captures Atelier/Communauté requièrent serveur",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP13",
+      "exigence": "Ne jamais afficher un bouton Play Store cassé avant que l’URL publique soit active. Fermeture 21/10/2026 : tant que l’URL est vide, aucune page ne contient de lien, de balise ni de script Play (test sur toutes les pages) ; seule l’adresse exacte de fr.titanapp",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/play-store-link.test.mjs"
+      ],
+      "reste": "Pas de preuve fiche publique ; Android hors périmètre",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP15",
+      "exigence": "Sur le web mobile Android, mettre en avant le téléchargement Play Store sans rendre l’expérience web inutilisable.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Préparation web livrée, publication/activation ouverte",
+      "preuves_depot": [
+        "tests/play-store-link.test.mjs",
+        "tests/e2e/play-store-link.e2e.mjs"
+      ],
+      "reste": "Visuels honnêtes, URL publique, captures Atelier/Communauté requièrent serveur",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS01",
+      "exigence": "Séparer clairement la stratégie web et la stratégie Android : AdSense ou solution web adaptée côté site, AdMob ou solution Android adaptée côté application.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS02",
+      "exigence": "Vérifier les règles Google AdSense/AdMob en vigueur au moment de l’intégration.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS03",
+      "exigence": "Mettre en place un système de consentement conforme pour les utilisateurs concernés, cohérent web + Android.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS04",
+      "exigence": "Mettre à jour la politique de confidentialité et les préférences cookies/consentement avant activation réelle des régies.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS05",
+      "exigence": "Vérifier ads.txt/app-ads.txt et les fichiers ou déclarations nécessaires.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS06",
+      "exigence": "Utiliser exclusivement des identifiants de test pendant le développement et les tests automatisés.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS07",
+      "exigence": "Remplacer les identifiants de test par les identifiants production uniquement au moment adéquat.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS08",
+      "exigence": "Sur le web, placer la publicité de façon à préserver la lisibilité, le SEO et les actions essentielles.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS09",
+      "exigence": "Éviter les pubs intrusives pendant la saisie ou l’enregistrement d’une séance.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS10",
+      "exigence": "Si un interstitiel est utilisé après une séance, l’afficher uniquement APRÈS confirmation de l’enregistrement, sur une rupture naturelle, avec fréquence plafonnée.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS11",
+      "exigence": "Ne pas afficher un interstitiel à chaque séance ; implémenter un frequency cap configurable à distance ou côté serveur.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS12",
+      "exigence": "Ajouter des publicités récompensées volontaires permettant d’obtenir une petite récompense non pay-to-win, par exemple des coins ou une récompense cosmétique. CONFIRMATION THÉO — 20/10/2026 : oui aux publicités récompensées volontaires, en complément des publi",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS13",
+      "exigence": "Limiter le nombre de récompenses publicitaires par période pour protéger l’économie du jeu.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS14",
+      "exigence": "La récompense d’une rewarded ad doit être attribuée côté serveur après validation fiable de l’événement, pas uniquement côté client.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS15",
+      "exigence": "Un utilisateur Premium ne doit voir aucune publicité sur le web ni dans l’application lorsqu’il est authentifié.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS16",
+      "exigence": "Mesurer impressions, revenus, taux de remplissage et impact sur rétention sans collecter plus de données personnelles que nécessaire.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS17",
+      "exigence": "Ajouter des feature flags permettant de désactiver rapidement une régie, un format ou un emplacement sans nouvelle release si possible.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Infrastructure seule, consommateurs absents",
+      "preuves_depot": [
+        "tests/e2e/feature-flags.e2e.mjs",
+        "tests/e2e/admin-flags.e2e.mjs",
+        "sql/tests/300_feature_flags.sql"
+      ],
+      "reste": "Aucun consommateur RPG/ADS ; migration27 non appliquée",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ADS18",
+      "exigence": "Prévoir un fallback propre en cas d’échec de chargement d’une publicité ; aucune fonctionnalité essentielle ne doit être bloquée.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Régie/flux non activés",
+      "preuves_depot": [],
+      "reste": "Régie choisie, consentement/confidentialité et cohérence adsEnabled/déclaration ; pas de pub activée par formulaire ; Android différé ; uniquement enjeu cohérence web et promesse.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP01",
+      "exigence": "Auditer la boutique actuelle et identifier ce qui manque pour créer une vraie boucle envie → progression → récompense → personnalisation.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR22 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP02",
+      "exigence": "Conserver les fonctionnalités essentielles de Titan accessibles dès le départ ; les déblocages ne doivent pas rendre l’app inutilisable pour un nouvel utilisateur.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP03",
+      "exigence": "Interdire l’achat direct de coins ou de monnaie virtuelle contre de l’argent réel. Fermeture 20/10/2026 : tests/no-currency-purchase.test.mjs (webhook et RPC Paddle sans crédits, XP ni niveau ; aucune offre d'achat de pièces ou d'XP dans les pages et scripts, ",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "tests/no-currency-purchase.test.mjs",
+        "sql/tests/300_shop_policy.sql"
+      ],
+      "reste": "Articles hérités inactifs et exécution webhook séparés",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP04",
+      "exigence": "Les coins doivent principalement provenir de la progression, des quêtes, réussites et activités validées ; les rewarded ads peuvent fournir un appoint plafonné.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP05",
+      "exigence": "Ajouter des avatars achetables/déblocables.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_displayed_title.sql",
+        "tests/e2e/profile-title.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP06",
+      "exigence": "Ajouter des titres de profil achetables/déblocables.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_displayed_title.sql",
+        "tests/e2e/profile-title.e2e.mjs",
+        "tests/e2e/athlete-title.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP07",
+      "exigence": "Ajouter des cadres, badges, arrière-plans, thèmes ou éléments de profil cosmétiques.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Candidat synthétique/SQL jetable ;23migrations encore non appliquées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP08",
+      "exigence": "Ajouter des apparences/skins de certains éléments de l’interface si cela reste lisible et cohérent.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Candidat synthétique/SQL jetable ;23migrations encore non appliquées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP09",
+      "exigence": "Permettre de débloquer progressivement des éléments secondaires de l’expérience : widgets de profil, thèmes de carte, décorations, variantes visuelles, emplacements de personnalisation, etc.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Candidat synthétique/SQL jetable ;23migrations encore non appliquées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP10",
+      "exigence": "Permettre éventuellement d’acheter/débloquer des missions ou arcs de missions avec des coins, sans bloquer la progression principale.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP11",
+      "exigence": "Ne jamais vendre d’avantage sportif, faux record, XP brute massive, bonus de classement ou avantage communautaire compétitif. Fermeture 20/10/2026 : sql/tests/300_shop_policy.sql : catalogue actif = cosmétiques seulement ; chaque article tenté par un joueur ri",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_shop_policy.sql"
+      ],
+      "reste": "Articles hérités inactifs et exécution webhook séparés",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP12",
+      "exigence": "Créer des niveaux de rareté si cela améliore la collection, sans fabriquer artificiellement de frustration.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Ouvert ou non vérifié",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP13",
+      "exigence": "Afficher clairement comment chaque objet est obtenu : coins, niveau, quête, boss, événement, Premium ou récompense spécifique.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR22 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP14",
+      "exigence": "Ajouter un inventaire clair des objets possédés et un système équiper/déséquiper.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR24 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP15",
+      "exigence": "Empêcher les doubles achats, soldes négatifs et modifications client de l’inventaire.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_purchase_integrity.sql"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP16",
+      "exigence": "Toutes les transactions de coins et d’objets doivent être validées côté serveur et journalisées.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_purchase_integrity.sql"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP17",
+      "exigence": "Prévoir une architecture permettant d’ajouter facilement de nouveaux objets sans modifier profondément le code. Fermeture 20/10/2026 : une ligne shop_items suffit (visible dans l'Atelier, achetable), testé.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_shop_policy.sql"
+      ],
+      "reste": "Articles hérités inactifs et exécution webhook séparés",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP18",
+      "exigence": "Ajouter une prévisualisation avant achat quand c’est pertinent.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR24 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP19",
+      "exigence": "Montrer davantage les récompenses à venir afin que l’utilisateur sache ce qu’il peut viser.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/smoke.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SHOP20",
+      "exigence": "L’économie doit rester atteignable sans publicité obligatoire et sans Premium obligatoire. Fermeture 20/10/2026 : un joueur gratuit gagne des crédits par une séance ordinaire, son plafond hebdomadaire couvre le cosmétique gratuit le plus cher, 16 cosmétiques a",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_shop_policy.sql"
+      ],
+      "reste": "Articles hérités inactifs et exécution webhook séparés Vérifier les quatre cosmétiques hors 16/20 accessibles au joueur gratuit cité : la doctrine exige tous gagnables gratuitement.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG01",
+      "exigence": "Auditer le système actuel de niveaux/cartes et identifier pourquoi la sensation de progression est encore trop faible.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG02",
+      "exigence": "Faire de chaque carte/niveau une vraie petite aventure et non un simple palier numérique.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Autres régions/combats/campagne adaptative ; lot narratif ne ferme pas règles serveur",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG03",
+      "exigence": "Ajouter des ennemis/monstres ou obstacles à battre dans chaque niveau ou zone, avec une identité visuelle cohérente avec Titan.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/campaign-encounters.test.mjs",
+        "tests/e2e/rpg-guardian-phases.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG04",
+      "exigence": "Ajouter des mini-quêtes au sein des cartes.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Migrations à appliquer pour contrats réels ; découverte/ancien serveur limités",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG05",
+      "exigence": "Ne JAMAIS imposer une quête qui exige un sport précis comme condition unique de progression.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_adventure_multisport.sql"
+      ],
+      "reste": "Pas équivalence physiologique, compte réel ou nouveau anti-farming ; Matrices synthétiques et temps comprimé clairement bornés.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG06",
+      "exigence": "Les quêtes doivent être formulées autour d’objectifs multisports : nombre de séances validées, durée active, régularité, progression personnelle, variété facultative, séries, objectifs individuels, etc.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas équivalence physiologique, compte réel ou nouveau anti-farming ; Matrices synthétiques et temps comprimé clairement bornés.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG07",
+      "exigence": "Une personne qui ne pratique que la natation doit pouvoir progresser autant qu’une personne qui court ou fait de la musculation.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas équivalence physiologique, compte réel ou nouveau anti-farming ; Matrices synthétiques et temps comprimé clairement bornés.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG08",
+      "exigence": "La difficulté doit s’adapter au profil et à l’historique de l’utilisateur lorsque c’est pertinent, sans favoriser les très gros volumes.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_adventure_personal_targets.sql",
+        "tests/e2e/rpg-server-quests.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG09",
+      "exigence": "Ajouter des boss ou combats spéciaux à certains jalons.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/rpg-guardian-phases.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG10",
+      "exigence": "Définir un système de points de vie/dégâts/progression compréhensible si des combats sont ajoutés, sans transformer Titan en jeu complexe séparé du sport.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Définition retenue documentée, pas un moteur supplémentaire",
+      "preuves_depot": [],
+      "reste": "Pas un nouveau moteur combat serveur revendiqué",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG11",
+      "exigence": "Les performances sportives validées peuvent alimenter le RPG mais ne doivent pas nécessiter de battre les autres utilisateurs.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG12",
+      "exigence": "Récompenser la constance et la progression personnelle, pas uniquement la performance absolue.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Autres objectifs/systèmes ; ancien serveur fixe ; migrations requises et recette réelle absente",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG13",
+      "exigence": "Ajouter des récompenses visibles aux quêtes : coins, cosmétiques, titres, objets, badges, éléments de carte ou personnalisation.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Migrations à appliquer pour contrats réels ; découverte/ancien serveur limités",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG14",
+      "exigence": "Ajouter un journal de quêtes / objectifs en cours.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/rpg-guardian-phases.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG15",
+      "exigence": "Montrer clairement la progression vers chaque objectif.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/rpg-server-quests.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG16",
+      "exigence": "Ajouter des événements/mini-arcs futurs avec architecture extensible, mais ne pas rendre la V1 dépendante d’événements temporaires.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG17",
+      "exigence": "Prévoir un onboarding expliquant la boucle sport → validation → XP/coins → progression carte → récompenses.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG18",
+      "exigence": "Éviter les mécaniques manipulatrices : pas de punition excessive pour une journée sans sport, pas de faux compte à rebours permanent.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG19",
+      "exigence": "Tester que le RPG reste lisible pour un utilisateur qui veut seulement suivre ses séances.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [
+        "tests/e2e/discovery-recap.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG20",
+      "exigence": "Conserver une séparation claire entre progression ludique et vérité des performances sportives.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "RPG21",
+      "exigence": "L’activité quotidienne validée, notamment les pas, peut contribuer aux quêtes de régularité, objectifs souples et progression RPG, mais elle ne doit jamais être assimilée artificiellement à une séance sportive. Les gains doivent rester modestes/plafonnés, évit",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV01",
+      "exigence": "Repenser l’affichage Records pour qu’un utilisateur avec des dizaines ou centaines de sports ne soit jamais perdu.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV02",
+      "exigence": "Ajouter une recherche textuelle des sports dans Records.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV03",
+      "exigence": "Ajouter des filtres pertinents dans Records : favoris, récents, catégories, sports pratiqués, ordre alphabétique et autres critères utiles.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV04",
+      "exigence": "Permettre de masquer facilement les sports sans données de l’utilisateur.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV05",
+      "exigence": "Ajouter un tri des records par récence, progression ou importance lorsque pertinent.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV06",
+      "exigence": "Repenser Maîtrise avec la même exigence de recherche/filtrage.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV07",
+      "exigence": "Faire en sorte qu’un utilisateur pratiquant énormément de sports puisse retrouver une donnée en quelques secondes.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV08",
+      "exigence": "Conserver une bonne expérience quand l’utilisateur n’a que 1 à 3 sports.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV09",
+      "exigence": "Vérifier les performances de listes longues et éviter de charger inutilement des centaines de blocs lourds.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "NAV10",
+      "exigence": "Ajouter états vides, recherches sans résultat et feedbacks clairs.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX01",
+      "exigence": "Auditer tous les onglets de navigation et identifier ceux dont le sens n’est pas évident sans explication.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR50 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX02",
+      "exigence": "Repenser particulièrement l’onglet Communauté, actuellement jugé peu clair et peu esthétique.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX03",
+      "exigence": "Clarifier la hiérarchie dans Communauté : feed, amis, classements, défis/éléments sociaux existants ou futurs.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX04",
+      "exigence": "Réduire les écrans où plusieurs onglets secondaires se ressemblent ou manquent de hiérarchie visuelle.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Chantier actif, aucune clôture globale",
+      "preuves_depot": [],
+      "reste": "Audit et correctifs Claude en cours ; pas de clôture générale ; Tests sociaux heure et comparaisons9999 corrigés ponctuellement [2048/2204].",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX05",
+      "exigence": "Garder la DA Titan actuelle comme base ; ne pas faire une refonte graphique générique qui efface son identité.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX06",
+      "exigence": "Vérifier cohérence des boutons, icônes, cartes, états actifs, navigation retour et terminologie.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Audit global, lecteurs d’écran/appareils, compte/session réels ; lots unitaires livrés ne ferment pas globaux",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX07",
+      "exigence": "Améliorer la découverte des fonctionnalités sans surcharger l’écran.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Exigence globale non terminée",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX08",
+      "exigence": "Ajouter de petits indices/onboarding contextuels uniquement là où l’utilisateur risque de ne pas comprendre l’action.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX09",
+      "exigence": "Vérifier l’accessibilité de base : contrastes, tailles tactiles, focus, labels, lecteur d’écran lorsque pertinent.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Audit global, lecteurs d’écran/appareils, compte/session réels ; lots unitaires livrés ne ferment pas globaux",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX10",
+      "exigence": "Tester les parcours principaux : inscription, première séance, progression, records, maîtrise, boutique, communauté, Premium, paramètres.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Audit global, lecteurs d’écran/appareils, compte/session réels ; lots unitaires livrés ne ferment pas globaux",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX11",
+      "exigence": "Intégrer l’activité quotidienne et les sources connectées dans les surfaces déjà naturelles de Titan — Aujourd’hui, Progrès, bilans, objectifs et quêtes — avec la même DA, les mêmes cartes, la même terminologie et les mêmes états de chargement. Ne pas créer un",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX12",
+      "exigence": "Ajouter un accès « Assistance » facilement trouvable dans l’application, notamment depuis Profil/paramètres et les états d’erreur pertinents, tout en conservant /service comme équivalent public accessible sans réinstaller l’application.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/profile-title.e2e.mjs"
+      ],
+      "reste": "Accès aide disponible ; formulaire intégré désactivé, configuration Netlify et test e-mail réel absents",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX13",
+      "exigence": "Transformer l’aide actuelle en parcours structuré avec catégories au minimum : bug/problème technique, compte/connexion, TITAN+ paiement ou demande de remboursement, données/confidentialité, communauté/signalement et autre. Afficher d’abord la réponse ou l’act",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX14",
+      "exigence": "Lorsqu’un bug ou une erreur technique exploitable est détecté, proposer « Envoyer un rapport » sans jamais l’envoyer automatiquement. Avec accord explicite, préremplir seulement les diagnostics nécessaires : version/build Titan, plateforme/navigateur, type d’a",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "UX15",
+      "exigence": "Après envoi, confirmer clairement que la demande a été reçue, fournir une référence exploitable et envoyer l’alerte correspondante à l’équipe TITAN ; si une adresse utilisateur est disponible et autorisée pour ce flux, permettre une réponse/suite par e-mail. C",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM01",
+      "exigence": "Auditer l’offre Premium actuelle et expliquer précisément pourquoi sa valeur perçue est insuffisante.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR25 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM02",
+      "exigence": "Repenser la proposition de valeur avec une différence immédiatement compréhensible entre Free et Premium.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR25/PR26 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM03",
+      "exigence": "Le Premium supprime toutes les publicités pour le compte authentifié sur web et Android.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Chantier actif, aucune clôture globale",
+      "preuves_depot": [],
+      "reste": "Claude réservataire",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM04",
+      "exigence": "Ajouter des fonctionnalités Premium à forte valeur autour des statistiques avancées, historique, analyses et comparaisons si l’architecture actuelle le permet.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR26 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM05",
+      "exigence": "Ajouter davantage de possibilités de personnalisation Premium sans retirer les bonnes personnalisations gagnables gratuitement.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Candidat synthétique/SQL jetable ;23migrations encore non appliquées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM06",
+      "exigence": "Étudier des tableaux de bord ou widgets supplémentaires, filtres avancés, analyses longitudinales et vues personnalisées.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM07",
+      "exigence": "Étudier des exports/rapports avancés ou résumés personnalisés comme avantage Premium.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR27 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM08",
+      "exigence": "Étudier des fonctionnalités de confort réellement utiles : presets, favoris avancés, historique étendu, comparaisons, personnalisation d’accueil.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR28/PR29 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM09",
+      "exigence": "Éviter de mettre derrière Premium la saisie normale de séances, la progression de base, les records de base ou la possibilité de jouer au RPG principal.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR26 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM10",
+      "exigence": "Créer une page Premium claire montrant les bénéfices concrets et visuels, pas seulement une liste marketing.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR25 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM11",
+      "exigence": "Prévoir mensuel/annuel seulement si le modèle économique et les règles des stores le justifient. DÉCISION THÉO — 20/10/2026 : une formule Titan+ mensuelle uniquement au lancement ; pas d'offre annuelle ou d'essai gratuit annoncés à ce stade.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM12",
+      "exigence": "Pour tout achat numérique effectué dans l’app Android, vérifier et respecter les règles Google Play Billing applicables au moment de l’implémentation.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Préparation Play / attente externe et cohérence web active",
+      "preuves_depot": [],
+      "reste": "Dépendances externes Play ; zéro paiement web, pas de vente réelle certifiée ; Architecture Android différée ; ADR-004 doit être lu avant toucher fichiers.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM13",
+      "exigence": "L’état Premium doit être validé côté serveur et synchronisé entre web et Android.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — portion gratuite / droits manuels ; vente et publicité exclues",
+      "etat_candidat": "Préparation Play / attente externe et cohérence web active",
+      "preuves_depot": [
+        "sql/tests/300_entitlement_sources.sql"
+      ],
+      "reste": "Dépendances externes Play ; zéro paiement web, pas de vente réelle certifiée ; Architecture Android différée ; ADR-004 doit être lu avant toucher fichiers. Un droit de revue gratuit réel est documenté [2249]/[2251] ; cela ne prouve ni paiement ni synchronisation de tous les cas.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM14",
+      "exigence": "Prévoir restauration d’achat / changement d’appareil / expiration / remboursement / annulation.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel / dépendances externes",
+      "preuves_depot": [
+        "sql/tests/300_entitlement_sources.sql"
+      ],
+      "reste": "Restauration appareil, annulation/événements fournisseur réel et achat réel",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "PREM15",
+      "exigence": "Mesurer conversion Free → Premium et rétention sans dark patterns.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT01",
+      "exigence": "Déplacer les validations importantes côté serveur ; le client ne doit jamais décider seul qu’une performance est valide. Fermeture 20/10/2026 : le joueur ne peut ni insérer ni supprimer ni modifier une séance (droits et tests, 31 écritures directes refusées) ;",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Autres disciplines et seuils réglables en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT02",
+      "exigence": "Créer un moteur de validation modulaire par sport/type de métrique plutôt qu’un unique seuil universel. Fermeture 20/10/2026 : signaux indépendants et plafonds d'allure par sport en données (private.titan_sport_limits), ajout d'une discipline = une ligne ; con",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Autres disciplines et seuils réglables en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT03",
+      "exigence": "Pour les disciplines comparables, intégrer des références de performances humaines maximales crédibles, dont records mondiaux officiels ou bornes conservatrices. Fermeture 20/10/2026 : course, marche et natation avec bornes généreuses justifiées par les record",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Autres disciplines et seuils réglables en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT04",
+      "exigence": "Ne jamais rejeter automatiquement une séance simplement parce qu’elle approche un record ; utiliser marges, contexte et score de risque. Fermeture 19/10/2026 : seules les bornes physiques du garde rejettent ; une séance ×1,3 à ×1,45 de son rythme habituel est ",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_false_positives.sql",
+        "sql/tests/300_reward_holds.sql"
+      ],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT05",
+      "exigence": "Détecter les séances qui dépassent clairement une performance humaine plausible. Fermeture 20/10/2026 : signal beyond_human (course > 30 km/h, marche > 16 km/h, natation > 7 km/h tenus 15 min, kilomètres ou mètres), très au-delà des records ; retenue des gains",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_risk_signals_extra.sql"
+      ],
+      "reste": "Plafonds autres sports en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT06",
+      "exigence": "Détecter les chevauchements temporels impossibles entre séances.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_session_risk.sql"
+      ],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT07",
+      "exigence": "Détecter les volumes journaliers ou enchaînements physiquement incohérents lorsqu’un sport permet cette estimation. Fermeture 19/10/2026 : signal day_volume (12 h moyen, 16 h élevé, limite testée) et chevauchements ; sports sans durée hors périmètre.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT08",
+      "exigence": "Détecter les sauts extrêmes de performance par rapport à l’historique de l’utilisateur. Fermeture 19/10/2026 : signal speed_jump (×1,5 moyen, ×2 élevé contre la médiane personnelle, ≥ 5 séances, sports de distance) ; autres métriques au BACKLOG FINITION.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT09",
+      "exigence": "Détecter les séries répétées de performances extraordinaires ou records improbables sur une courte période. Fermeture 20/10/2026 : signal extraordinary_series au niveau « à surveiller » (3 séances en 14 jours à ≥ 1,5 × la médiane personnelle, sports à propulsi",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_risk_signals_extra.sql"
+      ],
+      "reste": "Plafonds autres sports en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT10",
+      "exigence": "Ne pas supposer qu’un utilisateur multisport performant est automatiquement suspect. Fermeture 19/10/2026 : profils multisport d'élite, journée de triathlon et double séance jamais mis en revue (sql/tests/300_false_positives.sql).",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_false_positives.sql"
+      ],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT11",
+      "exigence": "Pour les sports où aucun record mondial comparable n’est pertinent, utiliser d’autres contrôles ou ne pas appliquer de hard cap arbitraire. Fermeture 19/10/2026 : aucun plafond par sport, seul le garde physique global ; la RPC accepte 18 500 points de curling ",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_false_positives.sql",
+        "sql/tests/300_reward_holds.sql"
+      ],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT12",
+      "exigence": "Produire un score de risque explicable à partir de plusieurs signaux.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_session_risk.sql"
+      ],
+      "reste": "Calcul à enregistrement/plafonds/liste transversale mentionnés en backlog ; lots ultérieurs enrichissent",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT13",
+      "exigence": "Séparer au minimum : séance normale, séance à surveiller, séance exclue temporairement des récompenses/classements, cas critique.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_exclusion_effect.sql",
+        "sql/tests/300_session_risk.sql"
+      ],
+      "reste": "Calcul à enregistrement/plafonds/liste transversale mentionnés en backlog ; lots ultérieurs enrichissent",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT14",
+      "exigence": "Une séance suspecte ne doit pas forcément être supprimée : elle peut rester visible pour l’utilisateur tout en étant exclue des récompenses compétitives le temps de la vérification.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "tests/e2e/recours.e2e.mjs",
+        "sql/tests/300_session_exclusion.sql",
+        "sql/tests/300_reward_holds.sql"
+      ],
+      "reste": "Notification réponse et lien journal exclus en backlog ; candidature pas production ; Ancienne concurrence recours levée par107 ; page autonome évite Profil réservé.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT15",
+      "exigence": "Empêcher l’attribution de coins/XP/récompenses exploitables tant que les contrôles serveur requis ne sont pas passés.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_session_exclusion.sql",
+        "sql/tests/300_reward_holds.sql"
+      ],
+      "reste": "Concurrence deux connexions spécifique, rafraîchissement libération et notifications ; cron fournisseur ; Décision Q-004 ; aucun retrait rétroactif.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT16",
+      "exigence": "Ajouter une protection contre le spam de création/suppression/recréation de séances.",
+      "case_cahier": "[x]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT17",
+      "exigence": "Ajouter des rate limits adaptés aux endpoints sensibles.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_abuse_surface_limits.sql"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT18",
+      "exigence": "Journaliser les signaux anti-triche importants de manière exploitable sans conserver inutilement des données personnelles.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "sql/tests/300_risk_analysis.sql"
+      ],
+      "reste": "Autres endpoints, ancien garde refus/retention logs fournisseur, cron et calibrage",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT19",
+      "exigence": "Prévoir une procédure d’appel ou de correction lorsqu’un vrai utilisateur est faussement signalé.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "tests/appeal-links.test.mjs",
+        "tests/e2e/recours.e2e.mjs",
+        "sql/tests/300_appeals.sql",
+        "sql/tests/300_account_deletion.sql"
+      ],
+      "reste": "Notification réponse et lien journal exclus en backlog ; candidature pas production ; Ancienne concurrence recours levée par107 ; page autonome évite Profil réservé. PR107 a levé la réserve de concurrence des recours ; ne pas la rouvrir depuis une ancienne note.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "CHEAT20",
+      "exigence": "Tester explicitement les faux positifs : débutant, athlète avancé, très gros volume, reprise après pause, import de données, sport atypique.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_false_positives.sql"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT01",
+      "exigence": "Créer un système serveur qui analyse régulièrement les comptes et activités à partir des signaux anti-triche.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code livré, exécution planifiée réelle à vérifier",
+      "preuves_depot": [
+        "sql/tests/300_risk_analysis.sql"
+      ],
+      "reste": "Vérifier cron.job et première exécution réelle après migration",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT02",
+      "exigence": "Le bot doit prioriser les comptes selon le risque plutôt que bannir aveuglément.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_risk_analysis.sql"
+      ],
+      "reste": "Calcul à enregistrement/plafonds/liste transversale mentionnés en backlog ; lots ultérieurs enrichissent",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT03",
+      "exigence": "Créer une file de comptes/séances à examiner.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_moderation_queue.sql"
+      ],
+      "reste": "Calcul à enregistrement/plafonds/liste transversale mentionnés en backlog ; lots ultérieurs enrichissent",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT04",
+      "exigence": "Ajouter un petit tableau de bord admin ou une vue sécurisée permettant de comprendre pourquoi un compte est signalé.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Recette vrai serveur après déploiement, pagination et modérateurs",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT05",
+      "exigence": "Afficher les signaux à l’origine du score : vitesse impossible, chevauchement, fréquence, progression anormale, etc.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_moderation_queue.sql"
+      ],
+      "reste": "Recette vrai serveur après déploiement, pagination et modérateurs",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT06",
+      "exigence": "Autoriser des actions graduelles : aucune action, surveillance, retrait temporaire de classement/récompenses, demande de vérification, suspension.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "tests/e2e/verification-alert.e2e.mjs",
+        "sql/tests/300_moderation_queue.sql",
+        "sql/tests/300_verification_requests.sql"
+      ],
+      "reste": "Migration26 non appliquée ; alerte Profil shell à aligner ; concurrence et texte humain",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT07",
+      "exigence": "Éviter les bannissements automatiques définitifs sauf cas d’exploitation technique extrêmement certaine et documentée.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT08",
+      "exigence": "Empêcher tout accès public aux outils de modération et protéger les endpoints admin. Fermeture 19/10/2026 : sql/tests/300_admin_surface.sql énumère le catalogue (fonctions et tables d'administration fermées à anon, schéma private sans droit API) ; production l",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_admin_surface.sql"
+      ],
+      "reste": "CHEAT08 hors sports distance ; vérifier private non exposé ; lectures ouvertes non exhaustives",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT09",
+      "exigence": "Prévoir des logs d’actions de modération et la possibilité de revenir sur une décision.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_moderation_queue.sql"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "BOT10",
+      "exigence": "Concevoir le système pour qu’il puisse évoluer plus tard vers des modèles statistiques plus sophistiqués sans dépendre immédiatement d’une IA coûteuse. Fermeture 20/10/2026 : docs/adr/ADR-002-moteur-de-risque-evolutif.md (proposé) et contrat de signal testé ; ",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_risk_signals_extra.sql"
+      ],
+      "reste": "Autres disciplines et seuils réglables en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO01",
+      "exigence": "Corriger l’aperçu Google actuellement jugé mauvais.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Résultats réels non vérifiés",
+      "preuves_depot": [],
+      "reste": "Appareils/installations/aperçus/caches et résultat Google réels",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO02",
+      "exigence": "Remplacer partout l’ancien logo référencé par les moteurs, métadonnées, manifestes et assets par le NOUVEAU logo utilisé actuellement dans l’application lorsqu’il est techniquement pertinent.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Résultats réels non vérifiés",
+      "preuves_depot": [],
+      "reste": "Appareils/installations/aperçus/caches et résultat Google réels",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO03",
+      "exigence": "Vérifier favicon, apple-touch/icon equivalents pertinents, manifest PWA et icônes haute résolution. Fermeture 20/10/2026 : tests/seo-meta.test.mjs (icônes du manifeste 192 et 512 dont maskable, favicon, apple-touch).",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO04",
+      "exigence": "Vérifier title, meta description et canonical de la homepage et des principales pages publiques. Fermeture 20/10/2026 : title, description et canonical testés sur les 23 pages publiques (longueurs, unicité, canonical égal à l'URL du plan du site).",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/seo-meta.test.mjs"
+      ],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO05",
+      "exigence": "Vérifier Open Graph et métadonnées de partage. Fermeture 20/10/2026 : Open Graph et twitter:card testés sur chaque page publique, image existante, og:url cohérente.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/seo-meta.test.mjs"
+      ],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO06",
+      "exigence": "Vérifier les données structurées pertinentes (WebSite/Organization/SoftwareApplication ou équivalent) sans faux avis ni informations inventées. Fermeture 20/10/2026 : JSON-LD valide sur chaque page publique ; accueil : Organization, WebPage, WebSite, WebApplic",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/seo-meta.test.mjs"
+      ],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO07",
+      "exigence": "Vérifier sitemap, robots.txt et indexabilité des pages publiques. Fermeture 20/10/2026 : plan du site (pages existantes et indexables) et robots.txt (sitemap déclaré, aucune page publique bloquée) testés.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/seo-meta.test.mjs"
+      ],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO08",
+      "exigence": "Vérifier qu’aucune page privée ou utilisateur ne soit indexée par erreur. Fermeture 20/10/2026 : tests/seo-index.test.mjs : toute page hors plan du site est noindex ; un noindex par en-tête HTTP n'est pas couvert (aucun cas aujourd'hui).",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [
+        "tests/seo-index.test.mjs"
+      ],
+      "reste": "Noindex HTTP non testé ; résultat Google et production distincts ; Supersède partiels1282/1273 pour critères candidats ; ne prouve pas indexGoogle.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO09",
+      "exigence": "Une fois Android publié, ajouter proprement le lien Play Store et les données pertinentes aux pages publiques.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "tests/play-store-link.test.mjs"
+      ],
+      "reste": "URL fiche publique absente, activation après publication",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO10",
+      "exigence": "Prévoir une procédure de contrôle Search Console / recrawl après les changements majeurs.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Aucune soumission effectuée",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEO11",
+      "exigence": "Ne pas promettre que Google changera instantanément son aperçu ; vérifier les métadonnées et demander recrawl lorsque pertinent.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Préparé sans clôture individuelle explicite",
+      "preuves_depot": [],
+      "reste": "Statut individuel non explicitement fermé dans handoff",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG01",
+      "exigence": "Auditer les CGU, politique de confidentialité, mentions légales, cookies et éventuelles CGV actuelles. GOUVERNANCE : traiter les corrections juridiques et de conformité dans un nombre minimal de lots cohérents ; ne pas créer une PR par clause, avertissement ou",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG02",
+      "exigence": "Mettre les textes en cohérence avec l’existence réelle de publicités sur web et Android.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — portion gratuite / droits manuels ; vente et publicité exclues",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG03",
+      "exigence": "Documenter les données réellement collectées, leurs finalités, leur durée de conservation et les tiers impliqués.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code préparé, activation et validation ouvertes",
+      "preuves_depot": [],
+      "reste": "Migration25, validation humaine et durées fournisseurs, HTTPS200 public",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG04",
+      "exigence": "Mettre en cohérence la politique de confidentialité, le CMP, Data Safety Google Play et le comportement réel du code.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG05",
+      "exigence": "Ajouter les informations nécessaires concernant les régies publicitaires et technologies de mesure effectivement utilisées.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG06",
+      "exigence": "Mettre à jour les conditions relatives à Titan+ : prix, renouvellement, résiliation, fonctionnalités, remboursement selon les canaux applicables.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Chantier actif, aucune clôture globale",
+      "preuves_depot": [],
+      "reste": "Claude audit public actuel",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG07",
+      "exigence": "Décrire correctement les biens virtuels/coins/cosmétiques et préciser qu’ils n’ont pas de valeur monétaire retirable si c’est le modèle retenu.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/launch-decision.test.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG08",
+      "exigence": "Vérifier les obligations liées aux utilisateurs mineurs et définir l’âge/traitement adapté au produit. Avant tout achat, abonnement Titan+ ou autre paiement, afficher aux utilisateurs mineurs un avertissement clair leur demandant d’obtenir l’autorisation préal",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — portion gratuite / droits manuels ; vente et publicité exclues",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG09",
+      "exigence": "Vérifier les règles de suppression de compte et de données demandées par les stores et le droit applicable.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code préparé, activation et validation ouvertes",
+      "preuves_depot": [
+        "sql/tests/300_retention_purge.sql"
+      ],
+      "reste": "Migration25, validation humaine et durées fournisseurs, HTTPS200 public",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG10",
+      "exigence": "Ajouter ou vérifier un parcours de suppression de compte fonctionnel, pas seulement une mention juridique.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code candidat livré",
+      "preuves_depot": [
+        "sql/tests/300_account_deletion.sql"
+      ],
+      "reste": "Migrations non appliquées, cache SW non vidé ancien backlog ; page et rétention distinctes ; Préserver anciens lots Claude et contexte Profil Codex séparés.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG11",
+      "exigence": "Vérifier les droits utilisateur : accès, rectification, suppression et autres droits applicables.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG12",
+      "exigence": "Ne jamais affirmer « aucune publicité » ou « aucune donnée partagée avec une régie » si le produit ne respecte plus cette affirmation.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/launch-decision.test.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG13",
+      "exigence": "Identifier clairement les points qui nécessitent une validation juridique humaine avant publication, sans bloquer le reste du développement.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Identification des validations humaines livrée ; validation juridique non réalisée",
+      "preuves_depot": [],
+      "reste": "Validation compétente du comportement gratuit réellement lancé ; aucune conclusion juridique automatique",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG14",
+      "exigence": "Traiter les données d’activité et de santé connectées comme un périmètre sensible : consentement explicite et granulaire, permissions minimales, révocation simple, finalités claires, durée de conservation maîtrisée, suppression/export cohérents et documentatio",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG15",
+      "exigence": "Documenter les données traitées par l’Assistance, leur finalité et leur durée de conservation ; permettre à l’utilisateur de voir ce qui sera envoyé avant validation. Un ticket « remboursement » est une demande d’assistance et ne doit jamais être présenté comm",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code préparé, activation et validation ouvertes",
+      "preuves_depot": [],
+      "reste": "Migration25, validation humaine et durées fournisseurs, HTTPS200 public",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG16",
+      "exigence": "Vérifier et publier des mentions légales complètes et exactes selon le statut réel de l’éditeur : identité/dénomination, forme juridique si applicable, adresse, e-mail, téléphone, immatriculation/RNE/RCS/SIREN-SIRET et TVA si applicables, directeur de publicat",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG17",
+      "exigence": "Auditer la propriété intellectuelle de tous les éléments utilisés par Titan : nom, logo, illustrations, photos, icônes, polices, musiques/sons, textes, données, bibliothèques et composants tiers, y compris les contenus générés ou assistés par intelligence arti",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG18",
+      "exigence": "Mettre les CGU en cohérence avec le produit réel : création et sécurité du compte, âge requis, règles d’usage, contenu utilisateur, comportement interdit, modération, suspension/fermeture, disponibilité du service, évolutions fonctionnelles, propriété intellec",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG19",
+      "exigence": "Pour Titan+ et toute offre payante B2C, fournir avant paiement toutes les informations précontractuelles requises : identité du professionnel, caractéristiques essentielles, prix TTC et devise, fréquence et durée de facturation, renouvellement, durée/engagemen",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG20",
+      "exigence": "Sécuriser le tunnel de commande : récapitulatif corrigeable avant validation, bouton exprimant sans ambiguïté l’obligation de paiement, preuve de l’acceptation, confirmation sur support durable et justificatif/facture lorsque requis. Le prix final et les évent",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG21",
+      "exigence": "Vérifier et implémenter le droit de rétractation applicable aux contrats conclus à distance, y compris la fonctionnalité en ligne requise lorsqu’elle s’applique, le formulaire/accusé de réception et le délai légal. Si Titan demande l’exécution immédiate d’un c",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG22",
+      "exigence": "Mettre en place une résiliation électronique conforme pour les abonnements concernés : accès gratuit et facilement identifiable depuis le site/espace client, parcours court, récapitulatif, confirmation de réception puis date/effets de résiliation. Aligner ce p",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG23",
+      "exigence": "Désigner le médiateur de la consommation compétent si Titan vend à des consommateurs et publier ses coordonnées et son site de manière visible sur le site, dans les CGV/conditions de service et dans le parcours de réclamation, après une tentative de résolution",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG24",
+      "exigence": "Vérifier les obligations de garantie légale de conformité applicables aux contenus/services numériques, notamment conformité aux caractéristiques promises, maintien des fonctionnalités essentielles, correctifs et mises à jour de sécurité pendant la durée légal",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG25",
+      "exigence": "Déterminer précisément qui est vendeur/merchant of record pour chaque canal (Titan, Paddle, Google Play ou autre), qui facture et collecte TVA/taxes, qui traite rétractations, remboursements, chargebacks et factures, puis faire correspondre CGV, checkout, reçu",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Validation humaine attendue",
+      "preuves_depot": [],
+      "reste": "Humain compétent ; ne pas déduire conformité globale du garde technique",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG26",
+      "exigence": "Tenir un registre écrit et à jour des activités de traitement couvrant au minimum comptes, séances, GPS/fichiers sportifs, statistiques, RPG, communauté, modération, anti-triche, Titan+, facturation, analytics, publicité, Assistance et futures intégrations san",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Brouillons techniques, validation ouverte",
+      "preuves_depot": [],
+      "reste": "Brouillons techniques non publiés à valider",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG27",
+      "exigence": "Cartographier et justifier la base légale de chaque traitement et chaque finalité (contrat, consentement, intérêt légitime, obligation légale ou autre base applicable). Ne jamais utiliser une base légale générique pour couvrir des usages secondaires non compat",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG28",
+      "exigence": "Réécrire la politique de confidentialité à partir du comportement réel du produit : responsable de traitement et contact, données collectées directement ou importées, finalités et bases légales, caractère obligatoire/facultatif, destinataires, sous-traitants, ",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG29",
+      "exigence": "Recenser tous les sous-traitants et sous-traitants ultérieurs réels — par exemple hébergement, base, e-mail, paiement, analytics, publicité, crash/monitoring et stores — et vérifier pour chacun le rôle RGPD, le contrat/DPA conforme à l’article 28, les instruct",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Inventaire technique livré, qualification juridique ouverte",
+      "preuves_depot": [],
+      "reste": "Qualification juridique, contrats/localisation/durées ; périmètre technique seulement",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG30",
+      "exigence": "Auditer tous les transferts de données hors EEE et documenter, pour chaque flux, le pays, le destinataire, le mécanisme juridique applicable (décision d’adéquation, clauses contractuelles types ou autre), les garanties supplémentaires nécessaires et la cohéren",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Brouillons techniques, validation ouverte",
+      "preuves_depot": [],
+      "reste": "Brouillons techniques non publiés à valider",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG31",
+      "exigence": "Établir une matrice de conservation/purge opposable au code couvrant base active, sauvegardes, logs, analytics, tickets support, modération, anti-triche, facturation, événements Paddle, fichiers importés, GPS, santé et comptes supprimés. Toute durée doit avoir",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Code préparé, activation et validation ouvertes",
+      "preuves_depot": [
+        "tests/retention-matrix.test.mjs",
+        "sql/tests/300_retention_purge.sql"
+      ],
+      "reste": "Migration25, validation humaine et durées fournisseurs, HTTPS200 public",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG32",
+      "exigence": "Formaliser une procédure d’exercice des droits RGPD avec vérification d’identité proportionnée, délais, traçabilité et réponses pour accès, rectification, effacement, limitation, opposition, portabilité, retrait du consentement et réclamation. Le produit doit ",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Brouillons techniques, validation ouverte",
+      "preuves_depot": [],
+      "reste": "Brouillons techniques non publiés à valider",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG33",
+      "exigence": "Mettre en place une procédure de violation de données : qualification de l’incident, registre des violations, collecte des faits, analyse du risque, notification CNIL dans les délais applicables — 72 h si possible lorsqu’une notification est requise — informat",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Brouillons techniques, validation ouverte",
+      "preuves_depot": [],
+      "reste": "Brouillons techniques non publiés à valider",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG34",
+      "exigence": "Déterminer formellement si une AIPD est obligatoire pour les traitements Titan et la réaliser avant activation lorsque le risque est élevé. Réévaluer notamment santé/activité, GPS, suivi longitudinal, profilage/anti-triche, croisement de sources, mineurs, nouv",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG35",
+      "exigence": "Vérifier si la désignation d’un DPO est légalement obligatoire au regard des traitements réellement opérés, notamment suivi régulier/systématique ou données sensibles à grande échelle. Si elle ne l’est pas, désigner au minimum un responsable interne clairement",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG36",
+      "exigence": "Classifier chaque donnée issue de Health Connect, Garmin, Samsung Health, Apple Health/HealthKit ou fichiers sportifs afin de déterminer si elle constitue une donnée de santé ou une autre donnée sensible. Pour les données relevant de l’article 9 RGPD, document",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG37",
+      "exigence": "Pour Health Connect et les sources santé équivalentes, limiter strictement les permissions aux données nécessaires à une fonctionnalité visible par l’utilisateur, expliquer chaque usage, fournir un écran de gestion/révocation/suppression et interdire tout usag",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG38",
+      "exigence": "Décider et documenter la politique d’âge de Titan. Pour les traitements optionnels reposant sur le consentement d’un utilisateur de moins de 15 ans en France, prévoir le mécanisme d’accord conjoint requis avec le titulaire de l’autorité parentale lorsque la rè",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Âge15 ans présent dans les textes, sans validation humaine ni clôture de la politique d’âge",
+      "preuves_depot": [],
+      "reste": "La décision produit vise l’âge le plus jeune possible sans chiffre validé ; analyser pays, communauté, données sportives/santé, parentalité, stores et publicité. Mention15 ans existante à réconcilier, non preuve de conformité.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG39",
+      "exigence": "Vérifier qu’aucune publicité ciblée, profilage publicitaire ou exploitation commerciale de données sensibles n’est appliquée aux mineurs ou à partir de données de santé/GPS lorsque cela est interdit. La détermination d’âge ne doit pas elle-même conduire à une ",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — portion gratuite / droits manuels ; vente et publicité exclues",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG40",
+      "exigence": "Inventorier tous les cookies, SDK, local storage, identifiants, pixels, scripts tiers et autres traceurs utilisés sur le site/PWA/app, avec finalité, durée, émetteur et statut « strictement nécessaire / soumis au consentement ». Aucun traceur non documenté ne ",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Inventaire technique livré, qualification juridique ouverte",
+      "preuves_depot": [],
+      "reste": "Qualification juridique, contrats/localisation/durées ; périmètre technique seulement",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG41",
+      "exigence": "Mettre le CMP et les interfaces de consentement en conformité : aucun traceur non nécessaire avant accord, choix granulaire par finalité, refus aussi simple que l’acceptation, retrait aussi simple que le consentement, preuve du choix, absence de cases précoché",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "tests/e2e/csp-browser.e2e.mjs"
+      ],
+      "reste": "Qualification juridique bandeau nécessaire ou non, Q002/LEG13 ; Aucun CMP construit : seul Supabase produit au chargement dans périmètre testé.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG42",
+      "exigence": "Pour toute mesure d’audience présentée comme exemptée de consentement, vérifier et prouver qu’elle respecte effectivement les conditions de l’exemption CNIL : finalité limitée à la mesure d’audience pour Titan, statistiques suffisamment anonymes, pas de suivi ",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Validation humaine attendue",
+      "preuves_depot": [],
+      "reste": "Humain compétent ; ne pas déduire conformité globale du garde technique",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG43",
+      "exigence": "Pour la publicité, documenter régies, partenaires, finalités, identifiants, partage de données, personnalisation et transferts ; afficher les publicités comme telles et recueillir les consentements nécessaires avant ciblage/stockage. Ne jamais utiliser santé, ",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG44",
+      "exigence": "Séparer strictement messages transactionnels et prospection commerciale. Vérifier la base légale de chaque e-mail, push ou notification marketing, conserver la preuve de l’opt-in lorsqu’il est requis, offrir un désabonnement simple et immédiat, gérer une liste",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG45",
+      "exigence": "Qualifier juridiquement la partie Communauté de Titan au regard du Digital Services Act : simple fonctionnalité sociale, service d’hébergement ou plateforme en ligne. Documenter les obligations applicables et les éventuelles exemptions liées à la taille de l’e",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG46",
+      "exigence": "Si le DSA s’applique au rôle d’hébergement/plateforme de Titan, mettre en place les mécanismes requis : point de contact accessible, signalement de contenu illicite, traitement diligent, information claire des décisions de retrait/restriction, voies de contest",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG47",
+      "exigence": "Rendre les règles de communauté et de modération accessibles et compréhensibles : contenus interdits, harcèlement, menaces, fraude, usurpation, contenus illégaux, sanctions, durée/portée des suspensions, recours et traitement des signalements. Les décisions au",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Relecture humaine, audit manuel connecté, publication avec/après migrations19–26",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG48",
+      "exigence": "Encadrer contractuellement les contenus publiés par les utilisateurs : l’utilisateur conserve ses droits, Titan n’obtient qu’une licence limitée aux besoins réels du service, aucun transfert de propriété abusif ; prévoir les procédures de retrait pour atteinte",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG49",
+      "exigence": "Vérifier les obligations de transparence DSA applicables à Titan, notamment conditions générales de modération, protection des mineurs, publicité, rapports de transparence ou publication du nombre d’utilisateurs lorsque les seuils/règles l’exigent. Documenter ",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG50",
+      "exigence": "Encadrer toute collaboration influenceur/créateur/ambassadeur : nature de la contrepartie y compris accès Titan+ gratuit, contenu attendu, droits d’utilisation des créations, durée, validation des allégations et obligation d’identifier clairement le caractère ",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG51",
+      "exigence": "Pour chaque concours, tirage au sort, giveaway ou opération promotionnelle, définir avant lancement les conditions de participation, territoire, âge, dates, lots, méthode de sélection, responsabilité, traitement des données, communication des gagnants et règle",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG52",
+      "exigence": "Déterminer si les obligations d’accessibilité issues du cadre français/européen applicable aux services numériques de consommation s’appliquent à Titan, y compris les éventuelles exemptions pour microentreprises, et documenter la conclusion. Si elles s’appliqu",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "tests/e2e/accessibility-axe.e2e.mjs"
+      ],
+      "reste": "Relecture humaine, audit manuel connecté, publication avec/après migrations19–26",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG53",
+      "exigence": "Maintenir une frontière claire entre application de sport/bien-être et service médical : ne pas présenter Titan, ses scores, son coaching, ses analyses ou ses données connectées comme un diagnostic, traitement, prévention médicale ou dispositif médical sans an",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG54",
+      "exigence": "Auditer les décisions automatisées et profilages susceptibles d’affecter sensiblement l’utilisateur — anti-triche, sanctions, classements, accès à certaines récompenses ou restrictions de compte — afin d’identifier les obligations RGPD/DSA applicables, expliqu",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG55",
+      "exigence": "Définir les pays réellement visés par Titan et vérifier avant ouverture commerciale les règles impératives applicables aux consommateurs de ces territoires : langue d’information, droit de la consommation, fiscalité/TVA, facturation, publicité, âge, santé et t",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG56",
+      "exigence": "Constituer un dossier de preuve de conformité versionné : textes juridiques publiés, versions acceptées, preuves de consentement, registre RGPD, AIPD, contrats/DPA, transferts, licences IP, matrice de conservation, audits cookies, médiateur, procédures inciden",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "LEG57",
+      "exigence": "GATE JURIDIQUE AVANT PRODUCTION MAJEURE : relire le comportement réel du build candidat et ses configurations de production, comparer site/app/Play Console/CMP/Paddle/Resend/analytics/publicité/Health Connect aux textes publiés, résoudre tous les écarts et fai",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Validation humaine attendue",
+      "preuves_depot": [],
+      "reste": "Validation compétente du comportement gratuit réellement lancé ; aucune conclusion juridique automatique",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC01",
+      "exigence": "Auditer les policies/RLS Supabase et vérifier l’isolation stricte entre utilisateurs. Fermeture 20/10/2026 : sql/tests/300_rls_coverage.sql (RLS sur toute table publique, aucune politique d'écriture ouverte) ; conseillers Supabase lus sur la production sans ta",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "CONTRADICTION : clôture serveur et partiel global",
+      "preuves_depot": [
+        "sql/tests/300_rls_coverage.sql"
+      ],
+      "reste": "RLS fermé par Claude [2048], mais sécurité de contexte/session/appareil/audit global maintenue partielle par PR114 [2340]. Aucune fermeture globale déduite.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC02",
+      "exigence": "Vérifier que coins, inventaire, Premium, récompenses, XP, records validés et sanctions ne sont pas modifiables directement depuis le client. Fermeture 20/10/2026 : sql/tests/300_client_writes.sql (29 écritures directes refusées ou sans effet, test non vide) ; ",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_client_writes.sql",
+        "sql/tests/300_rls_coverage.sql"
+      ],
+      "reste": "Réserve explicitée Premium admin non idempotent [2050] ; Clôture documentaire candidate ; périmètre exact à rapprocher des définitions.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC03",
+      "exigence": "Vérifier les endpoints contre IDOR, injections, abus de paramètres, contournement d’auth et escalade de privilèges.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "style-src unsafe-inline ; parcours connectés sous CSP et audit global",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC04",
+      "exigence": "Ajouter idempotence aux opérations financières/virtuelles et opérations sensibles. Fermeture 20/10/2026 : matrice de preuves dans docs/CDC_WEB_SECURITY_BATCH2_HANDOFF_2026-10-20.md (séances, achats, facturation, vues, support, exclusion, recours, retenues, sup",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Réserve explicitée Premium admin non idempotent [2050] ; Clôture documentaire candidate ; périmètre exact à rapprocher des définitions.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC05",
+      "exigence": "Ajouter contraintes DB pertinentes pour empêcher soldes négatifs, duplications et états impossibles.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "sql/tests/300_abuse_surface_limits.sql"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC06",
+      "exigence": "Mettre en place des journaux d’audit sur transactions virtuelles et modération.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_economy_audit.sql"
+      ],
+      "reste": "Rétention/lecture journal et console liées à lots ultérieurs ; Ancien Q-003 corrigé candidat, pas production.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC07",
+      "exigence": "Ne pas stocker de secrets dans le bundle Android, le frontend ou les variables publiques.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Variables réelles fournisseurs et limites signatures détectées hors garantie ; Plan rotation ne constitue pas rotation.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC08",
+      "exigence": "Prévoir rotation des clés/secrets si l’audit détecte une exposition passée.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Plan de rotation livré ; aucune exposition connue imposant rotation",
+      "preuves_depot": [],
+      "reste": "Aucune rotation fournisseur testée ; valeurs réelles fournisseurs non vérifiées. Ne pas confondre prévoir et exécuter.",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC10",
+      "exigence": "Tester les principales attaques logiques liées à la boutique, rewarded ads, Premium et création de séances.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "sql/tests/300_economy_attacks.sql",
+        "sql/tests/300_rate_limits.sql",
+        "sql/tests/300_training_trust.sql"
+      ],
+      "reste": "Autres endpoints et signaux globaux, contrôles futurs",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC11",
+      "exigence": "Toute donnée issue de Health Connect, Garmin, Samsung Health ou d’une future source équivalente doit conserver une provenance exploitable, un identifiant/source permettant la déduplication et des règles serveur empêchant qu’une même activité ou période soit ré",
+      "case_cahier": "[~]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC12",
+      "exigence": "Les demandes d’assistance doivent transiter par un backend contrôlé : validation/sanitation, rate limit, rattachement fiable au compte lorsqu’il existe, protection cross-user et aucun secret de fournisseur e-mail dans le client. Les pièces jointes éventuelles ",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA01",
+      "exigence": "Mesurer séparément acquisition web, installation Android, inscription, première séance, retour utilisateur, conversion Premium et usage de la boutique.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA02",
+      "exigence": "Mesurer le funnel d’une rewarded ad : proposée → lancée → terminée → récompense validée.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA03",
+      "exigence": "Mesurer le revenu publicitaire sans exposer inutilement des données utilisateur.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA04",
+      "exigence": "Mesurer les effets des pubs sur rétention et durée de session.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA05",
+      "exigence": "Mesurer l’utilisation du RPG : quêtes commencées/terminées, boss, récompenses, progression de carte.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA06",
+      "exigence": "Mesurer les recherches/filtres dans Records et Maîtrise pour vérifier que la navigation résout réellement le problème.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA07",
+      "exigence": "Mesurer la conversion vers Titan+ et les fonctionnalités Premium réellement utilisées.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA08",
+      "exigence": "Préparer un tableau de bord simple permettant de comparer revenus mensuels Titan et coûts mensuels d’infrastructure/services.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — portion gratuite / droits manuels ; vente et publicité exclues",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA09",
+      "exigence": "Mettre en place des événements analytics stables et documentés pour éviter de casser les historiques à chaque refonte. Fermeture 20/10/2026 : tests/analytics-contract.test.mjs et docs/analytics-events.snapshot.json (aucun événement publié ne disparaît ni n'est",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "tests/analytics-contract.test.mjs"
+      ],
+      "reste": "Autres disciplines et seuils réglables en backlog",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA10",
+      "exigence": "Mesurer l’adoption et la qualité des intégrations d’activité : connexion/déconnexion d’une source, succès/échec de synchronisation, fraîcheur et usage des vues associées, sans envoyer dans l’analytics les valeurs brutes de santé ou d’activité lorsqu’elles ne s",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "DATA11",
+      "exigence": "Mesurer uniquement les métadonnées utiles du support — ouverture d’Assistance, catégorie, envoi réussi/échoué et délai de traitement agrégé — sans envoyer le texte libre, les pièces jointes, données de santé, GPS, notes ou contenu du ticket dans l’analytics pr",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA00",
+      "exigence": "ZÉRO RÉGRESSION AVANT DÉPLOIEMENT : avant toute mise en production, le site web, la PWA, l’API/backend et l’application Android concernée doivent rester 100 % fonctionnels sur les parcours existants. Aucun déploiement ne doit être effectué tant qu’une régressi",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Chantier actif, aucune clôture globale",
+      "preuves_depot": [],
+      "reste": "Audit et correctifs Claude en cours ; pas de clôture générale ; Tests sociaux heure et comparaisons9999 corrigés ponctuellement [2048/2204].",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA01",
+      "exigence": "Tous les tests automatisés existants passent.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR23 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA02",
+      "exigence": "Ajouter des tests sur les nouvelles règles de boutique, coins, Premium et rewarded ads.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA03",
+      "exigence": "Ajouter des tests sur le moteur anti-triche avec cas normaux et cas extrêmes. Fermeture 19/10/2026 : neuf suites SQL (anticheat, risque, faux positifs, limites, analyse, retenue, exclusion, effet, recours) en cas normaux et extrêmes, deux voies de banc.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [
+        "sql/tests/300_training_trust.sql",
+        "sql/tests/300_training_anticheat.sql"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA04",
+      "exigence": "Ajouter des tests sur les droits d’accès et données cross-user.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR20 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA05",
+      "exigence": "Tester les parcours web desktop, web mobile/PWA et Android.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Comptes/sessions/appareils/PWA/réseau réels, compréhension et audit global",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA06",
+      "exigence": "Tester un compte neuf, un compte ancien avec historique, un compte Premium et un compte fortement multisport.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA07",
+      "exigence": "Tester un utilisateur avec environ 200 sports/données pour valider Records/Maîtrise et les performances de l’interface.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livraison historique documentée en PR19 ; inclus par ascendance dans la RC",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA08",
+      "exigence": "Tester des erreurs réseau, backend temporairement indisponible et reprise.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "tests/e2e/queue-503-retry.e2e.mjs"
+      ],
+      "reste": "Comptes/sessions/appareils/PWA/réseau réels, compréhension et audit global",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA10",
+      "exigence": "Tester consentement pub accepté/refusé et Premium sans pub.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA11",
+      "exigence": "Vérifier que le web et Android restent cohérents fonctionnellement après chaque release.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA12",
+      "exigence": "Exécuter une review sécurité avant production.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Avancé sans clôture globale",
+      "preuves_depot": [],
+      "reste": "Première CI et contrôle général production effectif selon candidat final ; pas de statut global explicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA13",
+      "exigence": "Exécuter une review UX sur les parcours principaux.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Audit global, lecteurs d’écran/appareils, compte/session réels ; lots unitaires livrés ne ferment pas globaux",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA14",
+      "exigence": "Vérifier qu’aucun placeholder, clé test, ad unit test, faux prix ou contenu de démonstration ne subsiste en production.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Faux prix, contenu naturel et binaire réellement publié",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA15",
+      "exigence": "Vérifier les logs/monitoring après release.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA16",
+      "exigence": "Le chantier global n’est terminé que lorsque toutes les tâches sont [x] ou explicitement acceptées par l’utilisateur comme hors périmètre.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA17",
+      "exigence": "Tester les intégrations d’activité quotidienne de bout en bout : connexion de source, doublons multi-sources, changement de fuseau et passage de minuit, révocation de permission, mode hors ligne/reprise, changement de compte/appareil, données retardées et abse",
+      "case_cahier": "[ ]",
+      "perimetre": "Conditionnel — source/activité non activée, applicabilité à valider",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA18",
+      "exigence": "Tester le parcours Assistance de bout en bout : utilisateur connecté et non connecté lorsque pertinent, changement de compte, double envoi, panne réseau/retry, erreur détectée puis rapport volontaire, catégorie remboursement/TITAN+, absence de fuite de données",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA01",
+      "exigence": "Favoris de sports et raccourcis personnalisés sur l’accueil.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA02",
+      "exigence": "Showcase de profil permettant d’exposer quelques titres, badges, avatars ou trophées choisis.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA03",
+      "exigence": "Collections de cosmétiques liées aux grandes zones/cartes du RPG.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA04",
+      "exigence": "Quêtes hebdomadaires adaptées au niveau d’activité habituel de l’utilisateur plutôt qu’à un sport.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA05",
+      "exigence": "Boss communautaires coopératifs basés sur contribution d’activité validée, sans favoriser un sport précis.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA06",
+      "exigence": "Système de « streak souple » valorisant la régularité sans punir les jours de repos.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA07",
+      "exigence": "Page « Prochaines récompenses » montrant ce qui se débloque aux prochains niveaux.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/smoke.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA08",
+      "exigence": "Paramètre permettant de réduire/désactiver les animations RPG pour les utilisateurs qui veulent une expérience plus sobre.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Livré dans le code candidat ; preuves du handoff Claude 02311a5 intégrées",
+      "preuves_depot": [
+        "tests/e2e/motion-setting.e2e.mjs"
+      ],
+      "reste": "Recette réelle et publication sur schéma validé non effectuées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA09",
+      "exigence": "Mise en cache des catalogues boutique/RPG pour réduire le coût backend.",
+      "case_cahier": "[ ]",
+      "perimetre": "Report proposé — NON accepté, exigence encore ouverte",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Décision explicite du fondateur attendue ; aucun report implicite",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "IDEA10",
+      "exigence": "Feature flags serveur pour déployer progressivement RPG, ads et nouveaux écrans.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Infrastructure seule, consommateurs absents",
+      "preuves_depot": [
+        "tests/e2e/feature-flags.e2e.mjs",
+        "tests/e2e/admin-flags.e2e.mjs",
+        "sql/tests/300_feature_flags.sql"
+      ],
+      "reste": "Aucun consommateur RPG/ADS ; migration27 non appliquée",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL01",
+      "exigence": "Aucun [ ] ne reste.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL02",
+      "exigence": "Aucun [~] ne reste.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL03",
+      "exigence": "Aucun [!] ne reste sans acceptation explicite de l’utilisateur.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL04",
+      "exigence": "Les builds web et Android passent.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL05",
+      "exigence": "Les tests passent.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL07",
+      "exigence": "Le lien Play Store affiché dans Titan fonctionne.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL08",
+      "exigence": "Les pubs fonctionnent conformément au consentement et disparaissent pour Premium.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL09",
+      "exigence": "Boutique, coins, RPG et récompenses sont protégés côté serveur.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL10",
+      "exigence": "Les textes juridiques et déclarations store correspondent au comportement réel du produit.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Chantier actif, aucune clôture globale",
+      "preuves_depot": [],
+      "reste": "Audit et correctifs Claude en cours ; pas de clôture générale ; Tests sociaux heure et comparaisons9999 corrigés ponctuellement [2048/2204].",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL11",
+      "exigence": "Le nouveau logo est utilisé dans les assets et métadonnées concernés.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL12",
+      "exigence": "Les parcours principaux ont été vérifiés manuellement au moins une fois après la dernière grosse modification.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT01",
+      "exigence": "Vitrine : faire tester la promesse « suivre son sport, comprendre ses progrès, faire avancer une aventure » ; un visiteur doit identifier le bénéfice et le bouton de démarrage en 10–30 secondes. Montrer un aperçu honnête et éviter les promesses de fonctions no",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Compréhension humaine et confirmation réelle connectée ; retenues distinguées du gain",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT02",
+      "exigence": "Première visite : QG avec une action principale claire (enregistrer une séance), deux chemins secondaires (progression, aventure), vocabulaire accessible et états vides utiles ; vérifier sur mobile 360 px et desktop.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT03",
+      "exigence": "Onboarding : réduire au minimum les questions obligatoires, rendre les connexions externes facultatives, permettre de revenir sans perdre sa progression ; ne jamais forcer le RPG aux sportifs qui souhaitent uniquement suivre leurs séances.",
+      "case_cahier": "[x]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Clôture du périmètre candidat documentée",
+      "preuves_depot": [],
+      "reste": "Brouillon 48h supprimé à prochaine lecture, tests synthétiques, compte/appareil/humain non certifiés",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT04",
+      "exigence": "Première satisfaction : après une séance réellement confirmée, afficher dans un seul récapitulatif les mesures sportives, les XP réellement accordés, la progression de quête et la prochaine action ; aucune récompense inventée, aucune succession de pop-ups.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [
+        "tests/e2e/discovery-recap.e2e.mjs"
+      ],
+      "reste": "Reçus confirmés/retendus et CTA testés ; vraie API et compréhension humaine non validées",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT05",
+      "exigence": "Compréhension : expliquer au bon endroit et en une phrase pourquoi un niveau, record, verrou ou objectif évolue ; détails techniques consultables à la demande.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT06",
+      "exigence": "Découverte progressive : introduire statistiques avancées, records, Atelier, défis, guildes et cosmétiques quand leur intérêt devient concret, sans masquer ces fonctions aux utilisateurs avancés.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT07",
+      "exigence": "Envie de revenir : objectif pertinent suivant, progression de chapitre et bilans sportifs utiles ; pas de culpabilisation après une pause, pas de fausse urgence ni de notifications insistantes.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT08",
+      "exigence": "Confiance : première séance fiable, sauvegarde et reprise, fonctionnement mobile/hors ligne compréhensible, distinction explicite entre démonstration et données personnelles.",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Compte/session/appareil/PWA réel, compréhension humaine",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT09",
+      "exigence": "Audit transversal après intégration : vitrine → inscription → première séance → récapitulatif sport/RPG → deuxième visite → statistiques et aventure. Faire examiner les parcours par Astra à raisonnement élevé ; traiter d'abord les abandons et incompréhensions,",
+      "case_cahier": "[~]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "Partiel",
+      "preuves_depot": [],
+      "reste": "Compte/session/appareil/PWA réel, compréhension humaine",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT10",
+      "exigence": "Tests humains sans guidage : 8 à 12 personnes variées, dont novices, sportifs réguliers, joueurs et non-joueurs. Observer hésitations, clics erronés et abandons. Objectifs exploratoires : 80 % expliquent la proposition en 30 secondes, 80 % réalisent la premièr",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT11",
+      "exigence": "Mesure respectueuse de la vie privée : suivre, avec consentement approprié, visite → démarrage → inscription → première séance → première consultation des résultats → deuxième séance et retours J1/J7/J30. Ne pas collecter GPS ou données de santé sensibles dans",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "ACT12",
+      "exigence": "Bêta et itération : après stabilisation, classer les trois principales frictions constatées, corriger, retester ; fixer des cibles de rétention sur des données réelles, sans bloquer indéfiniment la sortie pour attendre J30.",
+      "case_cahier": "[ ]",
+      "perimetre": "V1 WEB — exigence à satisfaire",
+      "etat_candidat": "À faire",
+      "preuves_depot": [],
+      "reste": "À réaliser après stabilisation sans série de 12 PR ; pas attendre J30 indéfiniment",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND01",
+      "exigence": "Créer la cible Android de Titan à partir de l’application existante sans casser le web ni la PWA.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND02",
+      "exigence": "Définir un package Android stable et définitif.",
+      "case_cahier": "[x]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Clôture source historique ; périmètre à revalider sur le candidat réuni",
+      "preuves_depot": [
+        "tests/e2e/twa-no-checkout.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND03",
+      "exigence": "Configurer une compilation Android reproductible en debug et release.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/android-workflows.test.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND04",
+      "exigence": "Générer un Android App Bundle de production conforme aux exigences Google Play en vigueur au moment de la publication.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND05",
+      "exigence": "Vérifier la compatibilité avec les versions Android pertinentes et le niveau d’API cible exigé par Google Play.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND06",
+      "exigence": "Adapter les safe areas, clavier, scroll, orientation, bouton retour Android, navigation système et comportements spécifiques mobile.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/viewports.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND07",
+      "exigence": "Vérifier toutes les vues sur plusieurs tailles d’écran et densités.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/viewports.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND08",
+      "exigence": "Garantir que l’authentification, la persistance de session et la déconnexion fonctionnent correctement sur Android.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/signout-keeps-device-data.test.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND09",
+      "exigence": "Gérer proprement les deep links et app links pertinents entre titan-app.fr et l’application.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND10",
+      "exigence": "Préparer les icônes Android à partir du NOUVEAU logo actuellement utilisé dans l’application.",
+      "case_cahier": "[x]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Clôture source historique ; périmètre à revalider sur le candidat réuni",
+      "preuves_depot": [
+        "tests/android-assets.test.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND11",
+      "exigence": "Préparer splash screen et assets de démarrage cohérents avec la DA Titan actuelle.",
+      "case_cahier": "[x]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Clôture source historique ; périmètre à revalider sur le candidat réuni",
+      "preuves_depot": [
+        "tests/android-assets.test.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND12",
+      "exigence": "Vérifier les performances, temps de démarrage, mémoire et erreurs réseau sur appareil réel.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND13",
+      "exigence": "Gérer correctement l’absence de connexion et les erreurs temporaires, sans perte silencieuse de données.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/queue-503-retry.e2e.mjs",
+        "tests/e2e/session-local-date.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND14",
+      "exigence": "Vérifier que les actions critiques ne peuvent pas être exécutées deux fois à cause de doubles taps ou de retries.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/confirm-once.e2e.mjs",
+        "tests/e2e/session-local-date.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND15",
+      "exigence": "Ajouter les mécanismes de logs/crash reporting compatibles avec la politique de confidentialité retenue.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [
+        "tests/e2e/client-errors-local.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND16",
+      "exigence": "Tester une installation propre, une mise à jour depuis une version précédente et une réinstallation.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND18",
+      "exigence": "Sur Android, utiliser Health Connect comme intégration prioritaire pour les pas quotidiens et autres métriques retenues lorsqu’elles sont disponibles, avec synchronisation incrémentale, fraîcheur visible et fonctionnement robuste après une période hors ligne.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND19",
+      "exigence": "Ajouter une intégration Garmin Connect directe lorsqu’elle apporte des données ou une fiabilité non disponibles par le chemin commun ; Samsung Health doit emprunter le chemin supporté le plus cohérent. Détecter et fusionner les doublons lorsqu’une même donnée ",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "AND20",
+      "exigence": "Concevoir permissions, modèle de données et couche de sources de façon compatible avec une future intégration Apple Health/HealthKit si Titan arrive sur iOS, sans créer aujourd’hui une seconde architecture ni retarder la cible Android.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP01",
+      "exigence": "Vérifier les règles Google Play à jour AVANT de préparer la publication ; ne jamais se baser uniquement sur une règle mémorisée.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [
+        "tests/e2e/twa-no-checkout.e2e.mjs"
+      ],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP02",
+      "exigence": "Créer/configurer la fiche Play Store : nom, description courte, description longue, catégorie, coordonnées, politique de confidentialité et visuels.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP03",
+      "exigence": "Produire screenshots et visuels Play Store à partir de l’application réelle et de la DA Titan actuelle.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Préparation web livrée, publication/activation ouverte",
+      "preuves_depot": [
+        "tests/play-screenshots.test.mjs"
+      ],
+      "reste": "Visuels honnêtes, URL publique, captures Atelier/Communauté requièrent serveur",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP04",
+      "exigence": "Remplir correctement la déclaration « Contient des publicités ».",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP05",
+      "exigence": "Compléter Data Safety en cohérence exacte avec les données réellement collectées, partagées et stockées.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Dépendance externe, pas de clôture web",
+      "preuves_depot": [],
+      "reste": "Page publique200 et procédure/durées production, validation déclarations ; saisie future ne prouve pas disponibilité",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP06",
+      "exigence": "Compléter la classification de contenu et les questionnaires requis.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP07",
+      "exigence": "Vérifier les règles applicables aux comptes développeur, tests fermés et accès à la production ; exécuter la procédure nécessaire.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP08",
+      "exigence": "Configurer Play App Signing et conserver une procédure de récupération/documentation.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP09",
+      "exigence": "Mettre en place un canal de test interne/fermé avant production.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP10",
+      "exigence": "Corriger les erreurs relevées par Play Console, Pre-launch report et tests automatisés.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP11",
+      "exigence": "Publier la version de production uniquement lorsqu’elle est réellement stable.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "GP14",
+      "exigence": "Sur Android, éviter d’afficher inutilement un CTA « Télécharger sur Google Play » à l’intérieur de l’app déjà installée. Fermeture 21/10/2026 : l’application n’a aucun CTA de téléchargement ; sur les pages publiques le lien et la bande sont retirés dans la coq",
+      "case_cahier": "[x]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Contrats du candidat documentés",
+      "preuves_depot": [],
+      "reste": "Pas de preuve fiche publique ; Android hors périmètre",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "SEC09",
+      "exigence": "Limiter les permissions Android au strict nécessaire.",
+      "case_cahier": "[~]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Partiel selon la checklist",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "QA09",
+      "exigence": "Tester la mise à jour Android depuis la version précédente sans perte de session/données.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    },
+    {
+      "id": "FINAL06",
+      "exigence": "La version Android de production est effectivement publiée ou, si Google impose une étape d’attente indépendante du code, tout ce qui dépend de Codex est terminé et l’état exact est documenté.",
+      "case_cahier": "[ ]",
+      "perimetre": "Hors V1 — Android, publicité ou commercialisation",
+      "etat_candidat": "Aucune clôture documentée",
+      "preuves_depot": [],
+      "reste": "Pas de preuve individuelle supplémentaire apportée ; statut documentaire conservé",
+      "production": "Non attestée sur le déploiement visé"
+    }
+  ]
+}
