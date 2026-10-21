@@ -55,7 +55,7 @@ appId: fr.titanapp.app
 - tapOn:
     id: "session-save"
 - extendedWaitUntil:
-    visible: ".*XP confirmés.*"
+    visible: ".*(XP confirmés|Récompense en vérification).*"
     timeout: 30000
 - takeScreenshot: 06-resultat-serveur
 - tapOn:
