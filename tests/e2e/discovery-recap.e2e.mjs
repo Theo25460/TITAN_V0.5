@@ -50,3 +50,24 @@ test('a discovery session recap offers a concrete signup action next to Terminé
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test('the sport journal stays complete for someone who ignores the adventure entirely (RPG19)', async () => {
+  const { page, context, errors } = await newPage(390);
+  try {
+    const adventureRequests = [];
+    page.on('request', (r) => { if (/\/adventure|aventure\.js/.test(r.url())) adventureRequests.push(r.url()); });
+    await page.goto(BASE + '/training', { waitUntil: 'load' });
+    await page.locator('#sport-q').fill('course');
+    await page.locator('#sport-results [data-sport="running"]').click();
+    await page.locator('[data-k="distance"]').fill('6');
+    await page.locator('[data-act="save"]').click();
+    const dialog = page.locator('dialog.asc-sheet[open]');
+    await dialog.waitFor();
+    await dialog.locator('[data-moment="done"]').click();
+    await page.goto(BASE + '/journal', { waitUntil: 'load' });
+    await page.waitForFunction(() => (window.state?.history || []).length === 1);
+    assert.match(await page.locator('main').innerText(), /Course à pied|6 km|6,0? km/i, 'the session is in the journal');
+    assert.deepEqual(adventureRequests.filter((u) => /aventure\.js/.test(u)), [], 'the adventure script was never needed');
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
