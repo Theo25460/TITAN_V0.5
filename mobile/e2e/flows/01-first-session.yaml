@@ -16,7 +16,6 @@ name: Connexion avec un compte existant, onboarding et première séance confirm
 - tapOn:
     id: "login-password"
 - inputText: "TitanE2E-a-2026"
-- hideKeyboard
 - takeScreenshot: 02-connexion
 - tapOn:
     id: "login-submit"
@@ -44,7 +43,6 @@ name: Connexion avec un compte existant, onboarding et première séance confirm
 - tapOn:
     id: "duration-m"
 - inputText: "55"
-- hideKeyboard
 - takeScreenshot: 05-saisie-seance
 - tapOn:
     id: "session-save"

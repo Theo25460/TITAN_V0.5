@@ -28,7 +28,6 @@ name: Déconnexion et changement de compte sans fuite de données
 - tapOn:
     id: "login-password"
 - inputText: "TitanE2E-b-2026"
-- hideKeyboard
 - tapOn:
     id: "login-submit"
 - extendedWaitUntil:

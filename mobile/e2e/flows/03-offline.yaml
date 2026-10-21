@@ -20,7 +20,6 @@ name: Séance hors ligne, conservation après fermeture de l'application, envoi 
 - tapOn:
     id: "session-note"
 - inputText: "E2E hors ligne"
-- hideKeyboard
 - tapOn:
     id: "session-save"
 - extendedWaitUntil:

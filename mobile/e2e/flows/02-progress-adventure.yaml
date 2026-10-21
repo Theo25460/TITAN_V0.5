@@ -46,7 +46,6 @@ name: Statistiques, journal, campagne de l'Aventure et validation d'un chapitre 
 - tapOn:
     id: "duration-m"
 - inputText: "30"
-- hideKeyboard
 - tapOn:
     id: "session-save"
 - extendedWaitUntil:
