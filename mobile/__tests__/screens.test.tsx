@@ -136,7 +136,7 @@ describe("with account data", () => {
       expect(screen.getAllByText("Enregistrer la séance").length).toBeGreaterThan(0);
     }
     show(<S.Result {...props({ eventId: logs[0].client_event_id })} />);
-    expect(screen.getByText("10 km")).toBeTruthy();
+    expect(screen.getAllByText("10 km").length).toBeGreaterThan(0);
     // A reward held for review (server migration 20261020000000) is never shown as "+0 XP confirmés".
     require("../src/data/receipts").rememberReceipt(logs[0].client_event_id, { log_id: logs[0].id, xp: 0, credits: 0, credits_after: 0, xp_after: 0, level_after: 4, level_bonus: 0, leveled_up: 0, requested_xp: 594, requested_credits: 59, weekly_xp_remaining: 0, weekly_credits_remaining: 0, server_version: "300", reward_held: true, held_xp: 594, held_credits: 59, release_at: new Date(Date.now() + 5 * 3600000).toISOString() });
     show(<S.Result {...props({ eventId: logs[0].client_event_id })} />);
