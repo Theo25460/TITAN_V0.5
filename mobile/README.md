@@ -30,7 +30,26 @@ node scripts/render-brand.mjs                            # régénérer icônes 
 ```
 
 Le SDK Android n'étant pas disponible dans l'environnement cloud de développement, la compilation Gradle, les contrôles du
-paquet et le parcours sur émulateur s'exécutent dans `.github/workflows/android-native.yml`.
+paquet et le parcours sur émulateur s'exécutent dans `.github/workflows/android-native.yml` (le lancement manuel accepte
+`e2e_post_migrations` pour rejouer les parcours sur une base où les migrations de la candidate Web sont déjà appliquées).
+
+## Voir les écrans sans appareil
+
+`TITAN_PREVIEW=1` (jamais dans le build Android) fait afficher les vrais écrans React Native dans Chromium avec des données
+fictives (`preview/`) : l'adresse `#World?id=aube`, `#QG&state=empty`, `#Onboarding&state=new`… choisit l'écran et l'état.
+
+```bash
+TITAN_PREVIEW=1 EXPO_OFFLINE=1 npx expo export --platform web --output-dir /tmp/preview
+node scripts/preview-shots.mjs /tmp/preview /tmp/shots QG "World?id=aube" "Progress|click=Tendances"
+PLAY_STORE=1 node scripts/preview-shots.mjs ...   # captures 1080×2160 pour la fiche Play
+```
+
+Ce n'est pas un appareil : polices, ombres et gestes diffèrent légèrement, et rien ne remplace un essai sur téléphone.
+
+## Publier
+
+`docs/PUBLIER_PLAY_CONSOLE.md` (marche à suivre pas à pas), `docs/RELEASE.md` (clé et build), `docs/INVENTAIRE.md` (ce qui est
+fait, partiel ou absent), `docs/avant-apres/` (finition visuelle), `docs/play-store/` (captures de la fiche).
 
 ## Principes
 
