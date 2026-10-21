@@ -74,7 +74,7 @@
     const popular = SP().POPULAR.filter((s) => window.SPORTS_CONFIG?.[s]);
     const chips = [...new Set([...picked, ...popular])];
     return `<p class="asc-eyebrow cy">1 · Tes sports</p>
-      <h1>Qu’est-ce que tu pratiques ?</h1>
+      <h1>Qu’est-ce que tu pratiques&#8239;?</h1>
       <p class="asc-lead">Choisis jusqu’à 5 sports. Ils seront en tête quand tu enregistres une séance. Tu peux en pratiquer d’autres à tout moment.</p>
       <div class="seance-search"><label class="sr-only" for="ob-q">Rechercher un sport</label><span class="seance-search-icon">${icon("search")}</span><input id="ob-q" class="asc-input" type="search" autocomplete="off" placeholder="Padel, natation, escalade…" value="${esc(query)}"></div>
       ${results.length ? `<div class="seance-chips ob-results">${results.map((r) => `<button type="button" class="seance-chip" data-pick="${esc(r.id)}" aria-pressed="${picked.includes(r.id)}">${icon(SP().FAMILY_ICON[r.family])}${esc(r.label)}</button>`).join("")}</div>` : ""}
@@ -84,7 +84,7 @@
 
   function rhythmStep() {
     return `<p class="asc-eyebrow cy">2 · Ton rythme</p>
-      <h1>Combien de jours actifs par semaine ?</h1>
+      <h1>Combien de jours actifs par semaine&#8239;?</h1>
       <p class="asc-lead">C’est ta cadence. Une semaine où tu l’atteins est une semaine tenue. Pas de série à casser : une semaine calme ne t’enlève rien.</p>
       <div class="ob-target" role="radiogroup" aria-label="Jours actifs par semaine">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-target="${n}" aria-checked="${target === n}" tabindex="${target === n ? 0 : -1}">${n}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${target <= 2 ? "Un départ solide, facile à tenir dans une semaine chargée." : target <= 4 ? "Le rythme le plus courant pour progresser durablement." : "Un rythme soutenu : pense aux jours de récupération."} Modifiable à tout moment depuis le QG.</p>`;

@@ -12,6 +12,8 @@
   let validationField = null;
 
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
+  // The Supabase SDK loads after this script so the form paints first; actions wait for it (10 s at most).
+  const ready = async () => client() || (await window.waitForTitanSupabase?.(10000)) || null;
 
   function nextUrl(fallback = "/aujourdhui") {
     const requested = new URLSearchParams(location.search).get("next");
@@ -160,7 +162,7 @@
       if (password.length < 8) return invalidField("password", "Choisis un mot de passe d’au moins 8 caractères.");
       if (!fd.get("terms")) return invalidField("terms", "Accepte les conditions pour créer ton compte.");
     }
-    const c = client();
+    const c = await ready();
     if (!c) return message("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
     const btn = form.querySelector(".auth-submit");
     const task = begin(mode === "signin" ? "Connexion en cours…" : "Création du compte en cours…", btn);
@@ -200,7 +202,7 @@
     clearValidation();
     const email = String(document.querySelector("[name=email]")?.value || "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
-    const c = client();
+    const c = await ready();
     if (!c) return message("Le service de connexion est indisponible.");
     lastEmail = email;
     const task = begin("Envoi en cours…", button);
@@ -223,7 +225,7 @@
     if (!task) return;
     try {
       try {
-        await client()?.auth.signOut({ scope: "local" });
+        await (await ready())?.auth.signOut({ scope: "local" });
       } catch {}
       try {
         // Discovery keeps its stable device id: earlier local sessions come back.
@@ -241,7 +243,9 @@
     if (!task) return;
     let sent = false;
     try {
-      const { error } = await client().auth.resend({ type: "signup", email: button.dataset.resend, options: { emailRedirectTo: `${SITE}/onboarding` } });
+      const c = await ready();
+      if (!c) throw new Error("SUPABASE_CLIENT_UNAVAILABLE");
+      const { error } = await c.auth.resend({ type: "signup", email: button.dataset.resend, options: { emailRedirectTo: `${SITE}/onboarding` } });
       if (error) throw error;
       message("E-mail renvoyé.", "ok");
       sent = true;
@@ -285,20 +289,26 @@
     submit(e.target);
   });
 
-  async function boot() {
+  function paint() {
     for (const id of ["auth-mark", "auth-mark-m"]) {
       const el = document.getElementById(id);
       if (el && window.titanMark) el.innerHTML = window.titanMark();
     }
     render();
+  }
+
+  async function boot() {
     // Already signed in: go straight on.
     try {
-      const session = (await client()?.auth.getSession())?.data?.session;
+      const session = (await (await ready())?.auth.getSession())?.data?.session;
       if (session?.user) {
         $("#auth").insertAdjacentHTML("afterbegin", `<p class="asc-note">${icon("check")}<span>Tu es déjà connecté. <a href="${esc(nextUrl())}">Continuer</a></span></p>`);
       }
     } catch {}
   }
+  // This script sits after the form: paint it now, without waiting for the SDK below it.
+  if (document.getElementById("auth")) paint();
+  else document.addEventListener("DOMContentLoaded", paint);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();
