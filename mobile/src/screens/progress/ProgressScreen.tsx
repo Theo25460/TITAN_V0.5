@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "../../components/Card";
-import { BarChart, ShareBar } from "../../components/Charts";
+import { BarChart } from "../../components/Charts";
 import { Icon, type IconName } from "../../components/Icon";
 import { ProgressBar } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
@@ -15,6 +15,7 @@ import { T } from "../../components/Text";
 import { Format, Progress, Questions, Sports, Training, type Recap } from "../../core";
 import { useGoals, useLogs, usePrefs } from "../../data/hooks";
 import { colors, familyColors, space } from "../../theme/tokens";
+import { SportQuestions } from "./Questions";
 
 type View_ = "week" | "trends" | "mastery";
 
@@ -98,7 +99,7 @@ export function ProgressScreen() {
   const goals = useGoals();
   const prefs = usePrefs();
   const [view, setView] = useState<View_>("week");
-  const [range, setRange] = useState<"12" | "26" | "52">("12");
+  const [range, setRange] = useState<"26" | "52">("26");
   const { active } = q;
   const now = new Date();
 
@@ -155,9 +156,12 @@ export function ProgressScreen() {
           </>
         ) : view === "trends" ? (
           <>
-            <Section title="Temps de pratique par semaine">
+            <Section title="Tes questions">
+              <SportQuestions logs={active} cadenceTarget={prefs.weeklyGoalSessions} pauses={prefs.cadencePauses} />
+            </Section>
+            <Section title="Sur la durée">
               <Card style={{ gap: space.s3 }}>
-                <Segmented value={range} onChange={setRange} options={[{ value: "12", label: "12 sem." }, { value: "26", label: "6 mois" }, { value: "52", label: "1 an" }]} accessibilityLabel="Période" />
+                <Segmented value={range} onChange={setRange} options={[{ value: "26", label: "6 mois" }, { value: "52", label: "1 an" }]} accessibilityLabel="Période" />
                 <BarChart
                   data={series.map((w) => ({ label: w.current ? "Sem." : w.start.toLocaleDateString("fr-FR", { day: "numeric", month: "numeric" }), detail: w.current ? "Cette semaine" : `Semaine du ${w.start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`, value: w.minutes, highlight: w.current }))}
                   format={(v) => Format.duration(v)}
@@ -182,13 +186,6 @@ export function ProgressScreen() {
                 {month.measured < month.sessions ? <T variant="caption" tone="faint">{Format.plural(month.sessions - month.measured, "séance sans durée renseignée ne compte", "séances sans durée renseignée ne comptent")} pas dans ce graphique.</T> : null}
               </Card>
             </Section>
-            {dna.families.length ? (
-              <Section title="Répartition par famille">
-                <Card>
-                  <ShareBar parts={dna.families.map((f) => ({ id: f.id, label: f.label, share: f.share, color: familyColors[f.id] ?? colors.tx3 }))} />
-                </Card>
-              </Section>
-            ) : null}
           </>
         ) : (
           <>

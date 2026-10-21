@@ -6,7 +6,7 @@ import { haptic } from "../lib/haptics";
 import { colors, fonts } from "../theme/tokens";
 import { T } from "./Text";
 
-export type BarDatum = { label: string; value: number; detail?: string; highlight?: boolean };
+export type BarDatum = { label: string; value: number; detail?: string; highlight?: boolean; display?: string };
 
 const LABEL_SPACE = 40; // px a label needs so neighbours never touch
 
@@ -19,10 +19,11 @@ export function labelIndexes(count: number, width: number): Set<number> {
   return out;
 }
 
-export function BarChart({ data, height = 160, unit = "", color = colors.cy, format, average = false, accessibilityLabel }: { data: BarDatum[]; height?: number; unit?: string; color?: string; format?: (v: number) => string; average?: boolean; accessibilityLabel: string }) {
+export function BarChart({ data, height = 160, unit = "", color = colors.cy, format, average = false, scale = true, accessibilityLabel }: { data: BarDatum[]; height?: number; unit?: string; color?: string; format?: (v: number) => string; average?: boolean; scale?: boolean; accessibilityLabel: string }) {
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const fmt = format ?? ((v: number) => `${Math.round(v)} ${unit}`.trim());
+  const shown = (d: BarDatum) => d.display ?? fmt(d.value);
   const max = Math.max(1, ...data.map((d) => d.value));
   const gap = data.length > 20 ? 2 : data.length > 12 ? 4 : 6;
   const barW = width > 0 ? Math.max(3, (width - gap * (data.length - 1)) / Math.max(1, data.length)) : 0;
@@ -34,20 +35,24 @@ export function BarChart({ data, height = 160, unit = "", color = colors.cy, for
   const avg = average && filled.length >= 2 ? data.reduce((n, d) => n + d.value, 0) / data.length : null;
   const yOf = (v: number) => chartH - (v / max) * (chartH - top);
   return (
-    <View accessible accessibilityLabel={`${accessibilityLabel}. ${data.map((d) => `${d.detail ?? d.label} : ${fmt(d.value)}`).join(", ")}`}>
+    <View accessible accessibilityLabel={`${accessibilityLabel}. ${data.map((d) => `${d.detail ?? d.label} : ${shown(d)}`).join(", ")}`}>
       <View style={styles.readout}>
         <T variant="caption" tone={sel ? "default" : "muted"} numberOfLines={1}>
-          {sel ? `${sel.detail ?? sel.label} · ${fmt(sel.value)}` : avg !== null ? `Moyenne ${fmt(avg)} · touche une barre pour le détail` : "Touche une barre pour le détail"}
+          {sel ? `${sel.detail ?? sel.label} · ${shown(sel)}` : avg !== null ? `Moyenne ${fmt(avg)} · touche une barre pour le détail` : "Touche une barre pour le détail"}
         </T>
       </View>
       <View onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
         {width > 0 ? (
           <Svg width={width} height={height}>
             <Line x1={0} x2={width} y1={chartH} y2={chartH} stroke={colors.line2} strokeWidth={1} />
-            <SvgText x={0} y={10} fill={colors.tx4} fontSize={10} fontFamily={fonts.textSemi}>
-              {fmt(max)}
-            </SvgText>
-            <Line x1={0} x2={width} y1={top} y2={top} stroke={colors.line} strokeWidth={1} />
+            {scale ? (
+              <>
+                <SvgText x={0} y={10} fill={colors.tx4} fontSize={10} fontFamily={fonts.textSemi}>
+                  {fmt(max)}
+                </SvgText>
+                <Line x1={0} x2={width} y1={top} y2={top} stroke={colors.line} strokeWidth={1} />
+              </>
+            ) : null}
             {data.map((d, i) => {
               const h = d.value > 0 ? Math.max(3, chartH - yOf(d.value)) : 0;
               const x = i * (barW + gap);

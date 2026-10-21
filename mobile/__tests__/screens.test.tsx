@@ -108,7 +108,10 @@ describe("with account data", () => {
     show(<S.Progress />);
     expect(screen.getByText("Cette semaine")).toBeTruthy();
     fireEvent.press(screen.getByText("Tendances"));
-    expect(screen.getByText("Temps de pratique par semaine")).toBeTruthy();
+    expect(screen.getByText("Tes questions")).toBeTruthy();
+    expect(screen.getByText("Où va mon temps ?")).toBeTruthy();
+    expect(screen.getByText("Combien de semaines ai-je tenues ?")).toBeTruthy();
+    expect(screen.getByText("Sur la durée")).toBeTruthy();
     fireEvent.press(screen.getByText("Maîtrise"));
     expect(screen.getByText("Maîtrise par discipline")).toBeTruthy();
   });

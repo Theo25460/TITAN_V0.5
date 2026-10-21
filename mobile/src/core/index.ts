@@ -131,9 +131,16 @@ export const Progress = g.TitanProgress as {
   newRecords(logs: TrainingLog[], from: number, to: number, now?: number | Date): RecordEntry[];
 };
 
+export type WeekPoint = { start: Date; sessions: number; minutes: number; activeDays: number; current: boolean };
+export type MonthPoint = { month: string; label: string };
 export const Questions = g.TitanQuestions as {
-  weeklySeries(logs: TrainingLog[], opts?: { weeks?: number; now?: Date }): { start: Date; sessions: number; minutes: number; activeDays: number; current: boolean }[];
-  familyShare(logs: TrainingLog[], opts?: { now?: Date; days?: number }): unknown;
+  weeklySeries(logs: TrainingLog[], opts?: { weeks?: number; now?: Date }): WeekPoint[];
+  volumeTrend(series: WeekPoint[]): { recent: number; before: number; ratio: number | null; direction: "up" | "down" | "stable" | "new" } | null;
+  paceTrend(logs: TrainingLog[], opts?: { now?: Date; months?: number }): { sport: string; points: (MonthPoint & { pace: number; sessions: number })[]; enough: boolean; first?: MonthPoint & { pace: number }; last?: MonthPoint & { pace: number }; delta?: number } | null;
+  strengthTrend(logs: TrainingLog[], opts?: { now?: Date; months?: number }): { name: string; variant?: string; sessions: number; points: (MonthPoint & { weight: number })[]; enough: boolean; delta: number | null } | null;
+  climbingTrend(logs: TrainingLog[], opts?: { now?: Date; months?: number }): { system: string; points: (MonthPoint & { grade: string; score: number })[]; enough: boolean; up: boolean } | null;
+  load(logs: TrainingLog[], opts?: { now?: Date }): { enough: false; coverage: number } | { enough: true; week: number; base: number; ratio: number; level: "high" | "low" | "usual" };
+  familyShare(logs: TrainingLog[], opts?: { now?: Date; days?: number }): { total: number; sessions: number; families: { id: Family; minutes: number; share: number }[]; sports: { sport: string; label: string; minutes: number; sessions: number }[] };
 };
 
 export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; name: string }[]; avatars: AvatarDef[]; routes: RouteDef[]; version: number };

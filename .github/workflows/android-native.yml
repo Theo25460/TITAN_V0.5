@@ -134,7 +134,9 @@ jobs:
           echo "TITAN_UPLOAD_STORE_FILE=$store" >> "$GITHUB_ENV"
           echo "TITAN_UPLOAD_KEY_ALIAS=titan" >> "$GITHUB_ENV"
       - name: Projet natif (expo prebuild)
-        run: npx expo prebuild --platform android --clean --no-install
+        run: |
+          npx expo prebuild --platform android --clean --no-install
+          scripts/install-ndk.sh
       - name: Gradle assembleRelease bundleRelease
         working-directory: mobile/android
         run: ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
@@ -215,6 +217,7 @@ jobs:
           export EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL="http://10.0.2.2:54321"
           export EXPO_PUBLIC_TITAN_E2E_SUPABASE_ANON_KEY="$E2E_ANON_KEY"
           npx expo prebuild --platform android --clean --no-install
+          scripts/install-ndk.sh
           cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
       - name: Maestro
         run: |
