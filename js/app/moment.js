@@ -153,7 +153,8 @@
       ${adventureHtml(log)}
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
-        <button type="button" class="asc-btn asc-btn-primary" data-moment="done">Terminé</button>
+        ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup" data-moment-signup>${icon("user")} Créer un compte et garder ma séance</a>` : ""}
+        <button type="button" class="asc-btn ${isGuest() ? "asc-btn-secondary" : "asc-btn-primary"}" data-moment="done">Terminé</button>
         <a class="asc-btn asc-btn-secondary" href="/journal">${icon("journal")} Voir dans le journal</a>
       </div>
     </div>`;
