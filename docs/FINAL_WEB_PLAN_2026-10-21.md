@@ -17,8 +17,8 @@ Mission du 21 octobre 2026 : terminer le WEB existant avant toute reconstruction
 - [x] Réserver le chantier de coordination dans le cahier ; respecter les réservations Claude (public/offre/CSS), Work (Journal) et Profil/RPG.
 - [x] Réunir les deux sources, exécuter typecheck, tests, build, audit, release-check et recherche de secrets sur la version réunie.
 - [x] Corriger les défauts de release démontrés : transaction de la migration 24, préflight ambigu, purge destructive mal décrite, suivi d'historique et postflight distincts.
-- [ ] Rejouer les deux voies PostgreSQL 17.6 et les contrats concurrents sur la candidate, avec test rouge puis vert pour la transaction.
-- [~] Tests navigateur finaux en CI ;135captures initiales et48ciblées finales360/390/1280 inspectées, axe et mesures Lighthouse analysés. Aucun remplacement de recette réelle.
+- [x] Deux voies PostgreSQL17.6/170006 et65suites par voie, contrats concurrents et pré/postflight réussis sur `14f8bbb` ; transaction et propriété concurrente reproduites rouges avant correction.
+- [x] CI finale14f8bbb :332 tests et801parcours navigateur verts ;135 captures initiales et48ciblées finales360/390/1280 inspectées, axe et Lighthouse analysés. Aucun remplacement de recette réelle.
 - [ ] Répéter une sauvegarde réellement restaurée dans une préproduction isolée ; vérifier notamment les effets de purge, les droits TITAN+ et les contrats RPG existants.
 - [ ] Effectuer les parcours avec deux comptes de test et de vraies sessions/API, vérifier emails, synchronisation entre appareils, reprise réseau et mise à jour PWA.
 - [ ] Clore les problèmes critiques/importants et produire une décision GO/NO-GO traçable ; actualiser le cahier à chaque lot.
@@ -33,7 +33,7 @@ Mission du 21 octobre 2026 : terminer le WEB existant avant toute reconstruction
 6. Mentions et politique de confidentialité cohérentes avec le comportement réellement déployé ; décisions humaines non inventées.
 7. Préproduction isolée validée avant la bascule. Les tests avec API synthétiques ne remplacent pas une recette intégrée réelle.
 
-Le site public actuellement observé est le déploiement Netlify `6ac3e212c48091d1e9774a6d` publié le 5 octobre 2026, sans SHA associé. La base de production s'arrête à `20261005230000`. Les 29 migrations suivantes ne sont pas appliquées. Le préflight final lu le21octobre est favorable (29contrôles,21bloquants) sur les invariants existants, mais ne prouve ni sauvegarde, ni restauration, ni compatibilité complète du lot.
+Le site public actuellement observé est le déploiement Netlify `6ac3e212c48091d1e9774a6d` publié le 5 octobre 2026, sans SHA associé. La base de production s'arrête à `20261005230000`. Les 29 migrations suivantes ne sont pas appliquées. Le préflight final lu le 21 octobre est favorable (29 contrôles,21bloquants) sur les invariants existants, mais ne prouve ni sauvegarde, ni restauration, ni compatibilité complète du lot.
 
 ## Périmètre V1 confirmé au cahier le 21 octobre
 

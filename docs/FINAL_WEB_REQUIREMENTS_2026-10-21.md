@@ -2,7 +2,9 @@
 
 319 identifiants canoniques conservés. Case du cahier et preuve technique distinctes. Aucun pourcentage de complétude. Publicités/vente TITAN+ et Android exclus ; reports proposés encore ouverts. Liste technique dérivée sans recopier les handoffs privés.
 
-Source fonctionnelle : cahier Google Drive relu intégralement, décision fondatrice du 21/10 et handoff final Claude. Source technique : candidate `fef923c`, arbre `07ad054`, PR #115. Le fichier JSON associé conserve les 319 lignes avec preuves et reste à faire.
+Source fonctionnelle : cahier Google Drive relu intégralement, décision fondatrice du 21/10 et handoff final Claude. Source technique : code validé `14f8bbb`, arbre `e7756a3`, PR #115. Le fichier JSON associé conserve les 319 lignes avec preuves et reste à faire.
+
+CI finale39626675553 :332 tests et801parcours navigateur verts, deux voies SQL17.6 réussies. Ces résultats ne remplacent pas une preuve métier individuelle ou une recette réelle.
 
 Une case `[x]` ci-dessous est la déclaration du cahier, pas une certification du site déployé. « Non attesté » ne signifie pas automatiquement « code absent ». Les portions gratuites et la sécurité des droits manuels restent exigées même pour une ligne mixte Premium. Les lois ou exemptions ne sont pas qualifiées par cette matrice.
 

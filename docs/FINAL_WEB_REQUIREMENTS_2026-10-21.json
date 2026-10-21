@@ -1,13 +1,22 @@
 {
   "meta": {
     "date": "2026-10-21",
-    "candidate_sha": "fef923c072d7e362c64287757f9e0bf3a5e3aba9",
-    "candidate_tree": "07ad054942e5c6219f50192472493afb7df297f5",
+    "candidate_sha": "14f8bbb8e03ef5d933ecad08f5d0f755056e7176",
+    "candidate_tree": "e7756a3fb97efafeaf1a635a1d9b25b78fb3d1f1",
     "sources": {
       "work": "95d901530816855af5aeba8c89deff418c6f784d",
       "claude": "02311a5c98ebffb9fab9336b494a6c5c699dd181"
     },
-    "policy": "319 identifiants canoniques conservés. Case du cahier et preuve technique distinctes. Aucun pourcentage de complétude. Publicités/vente TITAN+ et Android exclus ; reports proposés encore ouverts. Liste technique dérivée sans recopier les handoffs privés."
+    "policy": "319 identifiants canoniques conservés. Case du cahier et preuve technique distinctes. Aucun pourcentage de complétude. Publicités/vente TITAN+ et Android exclus ; reports proposés encore ouverts. Liste technique dérivée sans recopier les handoffs privés.",
+    "verification": {
+      "run": 39626675553,
+      "unit_pass": 332,
+      "browser_pass": 801,
+      "sql_suites_per_way": 65,
+      "postgres_version_num": 170006,
+      "sql_ways_passed": 2,
+      "production_go": false
+    }
   },
   "requirements": [
     {
