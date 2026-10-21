@@ -16,10 +16,10 @@
     return (m ? m[1] : new URLSearchParams(location.search).get("c") || "").toLowerCase();
   };
 
-  function missing(root, offline, notYet) {
-    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète arrivent bientôt." : "Cette carte n’est pas disponible."}</h1>
-      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles seront disponibles avec la prochaine mise à jour du serveur." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
-      <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></div></section>`;
+  function missing(root, offline, notYet, temporary = false) {
+    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète arrivent bientôt." : temporary ? "Carte temporairement indisponible." : "Cette carte n’est pas disponible."}</h1>
+      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles seront disponibles avec la prochaine mise à jour du serveur." : temporary ? "Le serveur n’a pas répondu correctement. Tu peux réessayer." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
+      <div class="asc-row-flex">${offline || temporary ? '<button type="button" id="athlete-retry" class="asc-btn asc-btn-primary">Réessayer</button>' : ""}<a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></div></section>`;
     root.setAttribute("aria-busy", "false");
   }
 
@@ -54,21 +54,85 @@
     root.setAttribute("aria-busy", "false");
   }
 
-  async function start() {
-    const root = document.getElementById("athlete");
-    if (!root) return;
+  function start() {
+    const root = document.getElementById("athlete"), status = document.getElementById("athlete-status");
+    if (!root || !status) return;
     document.querySelectorAll("[data-mark]").forEach((el) => (el.innerHTML = window.titanMark?.() || ""));
-    const s = slug();
-    if (!/^[a-z0-9]{10}$/.test(s) || !window.titanClient) return missing(root, !navigator.onLine);
-    try {
-      const call = window.titanClient.rpc("titan_public_card", { p_slug: s });
-      const { data, error } = await (typeof AbortSignal.timeout === "function" && call.abortSignal ? call.abortSignal(AbortSignal.timeout(12000)) : call);
-      if (error?.code === "PGRST202") return missing(root, false, true);
-      if (error || !data) return missing(root, !navigator.onLine);
-      render(root, data);
-    } catch {
-      missing(root, !navigator.onLine);
+    let pending = null, sequence = 0, recoverable = false;
+    function cancel() {
+      sequence++;
+      if (pending) { clearTimeout(pending.timer); pending.controller.abort(); pending = null; }
     }
+    function unavailable(offline = false, notYet = false, temporary = false, message = "") {
+      const focused = document.activeElement;
+      recoverable = offline || temporary;
+      missing(root, offline, notYet, temporary);
+      status.textContent = message || (offline ? "Hors ligne. La carte sera relue à la reconnexion." : temporary ? "Lecture impossible. Tu peux réessayer." : notYet ? "Cartes bientôt disponibles." : "Carte indisponible.");
+      if (focused?.id === "athlete-retry" && !document.querySelector('dialog[open]')
+        && [focused, document.body, root].includes(document.activeElement)) root.querySelector("#athlete-retry")?.focus();
+    }
+    /* The worn title is a second, best-effort read: a card is complete without it and an older server simply has none. */
+    async function showTitle(client, s) {
+      try {
+        const { data, error } = await client.rpc("titan_public_card_title", { p_slug: s });
+        if (error || !data?.key || slug() !== s || window.titanClient !== client) return;
+        const name = window.TitanTitles?.label(data.key, { catalog: window.TitanCodex, serverLabel: data.label });
+        const heading = root.querySelector("h1.pf-name");
+        if (!name || !heading || root.querySelector("[data-pf-title]")) return;
+        heading.insertAdjacentHTML("afterend", `<p class="pf-title" data-pf-title>${icon("star")} ${esc(name)}</p>`);
+      } catch {}
+    }
+    async function load(user = false) {
+      if (pending) return;
+      const s = slug(), client = window.titanClient;
+      document.title = "Carte d’athlète — TITAN";
+      if (!/^[a-z0-9]{10}$/.test(s)) return unavailable();
+      if (!navigator.onLine) return unavailable(true);
+      if (!client) return unavailable(false, false, true);
+      const focused = document.activeElement, restoreFocus = user && focused?.id === "athlete-retry";
+      const request = ++sequence;
+      const job = { controller: new AbortController(), timer: null }; pending = job; recoverable = false;
+      const current = () => pending === job && sequence === request && slug() === s && window.titanClient === client && navigator.onLine;
+      root.setAttribute("aria-busy", "true");
+      const retry = root.querySelector("#athlete-retry"); if (retry) retry.disabled = true;
+      status.textContent = "Chargement de la carte…";
+      try {
+        let call = client.rpc("titan_public_card", { p_slug: s });
+        if (typeof call?.abortSignal === "function") call = call.abortSignal(job.controller.signal);
+        const expiry = new Promise((resolve, reject) => {
+          job.controller.signal.addEventListener("abort", () => reject(new Error("ATHLETE_CANCELLED")), { once: true });
+          job.timer = setTimeout(() => { reject(new Error("ATHLETE_TIMEOUT")); job.controller.abort(); }, 12000);
+        });
+        const { data, error } = await Promise.race([Promise.resolve(call), expiry]);
+        if (!current()) return;
+        if (error?.code === "PGRST202") unavailable(false, true);
+        else if (error) throw error;
+        else if (!data) unavailable();
+        else { render(root, data); status.textContent = "Carte chargée."; showTitle(client, s); }
+      } catch (error) {
+        if (!current()) return;
+        unavailable(false, false, true, error?.message === "ATHLETE_TIMEOUT" ? "Le serveur n’a pas répondu en 12 secondes. Tu peux réessayer." : "Lecture impossible. Tu peux réessayer.");
+      } finally {
+        clearTimeout(job.timer);
+        const valid = current();
+        if (pending === job) {
+          pending = null; root.setAttribute("aria-busy", "false");
+          const button = root.querySelector("#athlete-retry"); if (button) button.disabled = false;
+        }
+        if (valid && restoreFocus && !document.querySelector('dialog[open]')
+          && [focused, document.body, root].includes(document.activeElement)) {
+          const target = root.querySelector("#athlete-retry") || root.querySelector("h1");
+          if (target) { if (target.tagName === "H1") target.tabIndex = -1; target.focus(); }
+        }
+      }
+    }
+    root.addEventListener("click", event => { if (event.target.closest("#athlete-retry")) load(true); });
+    window.addEventListener("online", () => { if (recoverable) load(); });
+    window.addEventListener("offline", () => { if (pending || recoverable) { cancel(); unavailable(true); } });
+    window.addEventListener("popstate", () => {
+      cancel(); root.innerHTML = '<div class="asc-skeleton" style="height:260px;border-radius:26px"></div>'; load();
+    });
+    load();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();

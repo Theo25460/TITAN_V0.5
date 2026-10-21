@@ -1,0 +1,9 @@
+{
+  "known": [
+    {
+      "blob": "44fabdf9f2",
+      "kind": "server secret assigned a literal",
+      "reason": "Trial Android workflow, commit ec1036d: a throwaway keystore password written in clear (titan-throwaway-not-a-secret) for a key generated on the CI runner and discarded; it protected nothing and never signed a published build. The workflow now draws a random masked password per run. Reviewed 20/10/2026."
+    }
+  ]
+}

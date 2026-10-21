@@ -33,6 +33,14 @@
   const effortRule = () => (A()?.snapshot?.campaigns || []).some((c) => c.effort_target != null);
   const SOON = "L’épreuve d’effort du gardien (150 minutes, 90 au plus par jour) arrive avec la prochaine mise à jour du serveur.";
 
+  const personalServer = () => !isGuest() && (A()?.snapshot?.version || 1) >= 4;
+  function personalTargetHtml(p) {
+    if (!personalServer() || !p.main_objective || p.chapter < 1 || p.chapter > 9) return "";
+    return `<p class="asc-small asc-muted" data-personal-target>${p.main_objective.version === 0
+      ? "Chapitre déjà commencé : ses conditions sont conservées jusqu’à sa validation."
+      : "Cible adaptée à tes 28 jours admissibles précédents, figée au départ de ce chapitre. Le serveur confirme les preuves ; aucun record à battre, aucune échéance."}</p>`;
+  }
+
   function campaign(world) {
     const s = A().snapshot;
     return s?.campaigns?.find((c) => c.id === world.id) || { id: world.id, chapter: 0, evidence: { days: 0, source_ids: [] }, target: 0 };
@@ -45,7 +53,7 @@
         const finished = p?.chapter >= 10;
         return `<button type="button" role="tab" class="av-world" data-world="${w.id}" aria-selected="${w.id === world.id}" style="--world:${w.color}">
           <img src="/assets/renaissance/${w.image}-xs.webp" alt="" width="480" height="270" loading="lazy" decoding="async">
-          <span class="av-world-copy"><small>${w.tier === "plus" ? "TITAN+" : "Gratuit"} · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
+          <span class="av-world-copy"><small>Gratuit · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
           <span class="av-world-bar"><span style="--p:${Math.round((finished ? 9 : done(p)) / 9 * 100)}%"></span></span>
         </button>`;
       })
@@ -69,11 +77,11 @@
   }
 
   function missionHtml(world, p, s) {
-    const locked = world.tier === "plus" && !s.plus;
+    const locked = !isGuest() && (s.version || 1) < 3 && ["forge", "aurores"].includes(world.id) && !s.plus;
     if (locked)
-      return `<section class="av-panel"><p class="asc-eyebrow">Campagne TITAN+</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
-        <p class="asc-small asc-muted">9 chapitres, 9 insignes cosmétiques et un gardien. Les mêmes règles de progression que les campagnes gratuites : aucun bonus de puissance, aucune XP en plus.</p>
-        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/boutique">Découvrir TITAN+</a><button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></div></section>`;
+      return `<section class="av-panel"><p class="asc-eyebrow">Campagne gratuite</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
+        <p class="asc-small asc-muted">L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.</p>
+        <button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></section>`;
     if (p.chapter >= 10)
       return `<section class="av-panel is-complete"><p class="asc-eyebrow">Campagne accomplie</p><h2 class="asc-h2">${esc(world.guardian)} te reconnaît</h2><p>${esc(world.ending)}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-secondary" href="/profile#collection">Voir ma collection</a></div></section>`;
     if (!p.chapter)
@@ -81,19 +89,30 @@
         <fieldset class="av-routes"><legend class="seance-label">Ton chemin</legend>${C()
           .routes.map((r, i) => `<label class="av-route"><input type="radio" name="route" value="${r.id}" ${i === 0 ? "checked" : ""}><span><strong>${esc(r.name)}</strong><small>${esc(r.description)}${r.id === "journal" ? " (10 caractères minimum)" : ""}</small></span></label>`)
           .join("")}</fieldset>
+        <details class="asc-note av-rules" data-rpg-departure="${esc(world.id)}"><summary>Comment ton sport fait avancer l’aventure</summary>
+        <ol><li>Commence la campagne avant ta prochaine séance. Tes séances précédentes restent dans ton journal ; elles ne sont pas reprises pour cette balise.</li>
+        <li>Pratique le sport de ton choix et enregistre ta séance. Les séances admissibles font avancer les jours de l’étape ; le chemin Observation demande aussi une note de 10 caractères minimum.</li>
+        <li>Quand tous les objectifs sont atteints, reviens allumer la balise. Le gardien demande aussi l’effort indiqué ; plusieurs séances le même jour ne créent pas plusieurs jours actifs.</li>
+        <li>La balise débloque un insigne cosmétique, ni XP ni coins supplémentaires. Les XP et coins d’une séance suivent leurs propres règles. Une pause n’efface pas tes insignes.</li></ol>
+        <p class="asc-small">${isGuest() ? "En découverte, la progression est calculée sur cet appareil." : "Avec un compte, le serveur confirme la progression et les récompenses."}</p></details>
         <button type="button" class="asc-btn asc-btn-primary" data-start>${icon("compass")} Commencer la campagne</button>
         <p class="asc-small asc-faint">Les séances comptent à partir du départ, une seule fois par jour. Aucune échéance, aucune pénalité.</p></section>`;
     const ch = world.chapters[p.chapter - 1];
-    const days = Math.min(p.target, Number(p.evidence?.days || 0));
-    const effortTarget = Number(p.effort_target ?? 0);
-    const effort = Math.min(effortTarget, Number(p.evidence?.effort || 0));
-    const ready = days >= p.target && effort >= effortTarget;
+    const progress = window.TitanProgress.campaignProgress(p);
+    const days = progress.objectives[0].value;
+    const effortObjective = progress.objectives.find(o => o.id === "effort");
+    const effortTarget = effortObjective?.target || 0;
+    const effort = effortObjective?.value || 0;
+    const ready = progress.ready;
+    const remaining = ready ? "Étape prête à valider." : progress.objectives.filter(o => o.remaining > 0).map(o => o.id === "days" ? `${F().number(o.remaining)} jour${o.remaining > 1 ? "s" : ""} ${p.route === "journal" ? "avec une séance annotée" : "actif" + (o.remaining > 1 ? "s" : "")} à accomplir` : `${F().number(o.remaining)} min d’effort à accomplir`).join(" · ");
     return `<section class="av-panel${ready ? " is-ready" : ""}">
       <div class="av-mission-head">${badge(world, ch.index, ready)}<div><p class="asc-eyebrow${ready ? " cy" : ""}">Chapitre ${ch.index} / 9${ch.boss ? " · le gardien" : ""}</p><h2 class="asc-h2">${esc(ch.name)}</h2></div></div>
       <p>${esc(ch.story)}</p>
       <div class="av-track"><div class="asc-between"><span>${p.route === "journal" ? "Jours avec une séance annotée" : "Jours actifs"}</span><strong class="asc-num">${days} / ${p.target}</strong></div><span class="asc-ascent"><span style="--p:${Math.round((days / Math.max(1, p.target)) * 100)}%"></span></span></div>
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
+      ${personalTargetHtml(p)}
+      <p class="asc-small" data-rpg-remaining>${esc(remaining)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
@@ -101,12 +120,78 @@
     </section>`;
   }
 
-  function guardianHtml(world, p) {
+  function valleyHtml(world, p, snapshot) {
+    const owner = window.state?.user?.id;
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
+    const model = window.TitanCampaignQuests?.plan({ campaign: p, history: window.TitanData?.logs?.() || [], guest: isGuest(), owner,
+      effortOf: log => window.TitanProgress.effortOf(log).effortMinutes, serverVersion: snapshot.version });
+    if (!model) return "";
+    const source = p.evidence?.source_ids?.[0];
+    return `<section class="asc-section av-panel" data-valley-encounter>
+      <p class="asc-eyebrow">${esc(world.name)} · rencontre du chapitre ${p.chapter}</p>
+      <h2 class="asc-h2">${esc(model.encounter.name)}</h2><p>${esc(model.encounter.text)}</p>
+      <details class="av-rules" data-rpg-quests="${esc(world.id)}:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
+        <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni coins supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
+        <p class="asc-small asc-muted">${model.authority === "server" ? `Cibles figées par le serveur au départ du chapitre : ${F().number(model.profile.daysTarget)} jour(s) et ${F().number(model.profile.effortTarget)} min d’effort, d’après les jours admissibles des 28 jours précédents (90 min au plus par jour).${model.profile.legacy ? " Chapitre déjà commencé : cibles douces conservées lors de la mise à jour." : ""} Les souvenirs des missions remplies sont confirmés quand tu allumes la balise ; une mission incomplète ne bloque pas la suite.` : `${model.profile.days ? `Cibles indicatives sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour(s) et ${model.profile.effortTarget} min d’effort, 90 min au plus par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil, sans nouveaux souvenirs." : "Ces préparatifs sont indicatifs sur cette version du serveur, sans nouveaux souvenirs."}`}</p>
+        <div class="asc-stack">${model.quests.map(q => `<article class="asc-note" data-quest="${q.id}" data-complete="${q.complete}">
+          ${icon(q.complete ? "check" : q.id === "note" ? "journal" : "route")}<div class="asc-stack-sm"><strong>${esc(q.name)}</strong>
+          <span class="asc-small">${q.available ? `${F().number(q.value)}/${F().number(q.target)} ${esc(q.unit)}${q.complete ? " · préparatif réuni" : ""}` : "Mesure d’effort indisponible sur cette version du serveur."}</span>
+          ${q.reward ? `<span class="asc-small asc-muted">Souvenir prévu : ${esc(q.reward)} · ${q.complete ? "prêt à confirmer avec la balise" : "mission à remplir"}. Cosmétique, sans XP ni coins.</span>` : ""}
+          ${q.id === "note" ? '<span class="asc-small asc-muted">Une note d’au moins 10 caractères sur une séance citée dans les preuves du chapitre.</span>' : ""}
+          ${!q.complete && q.available ? `<a class="asc-link asc-small" href="${q.id === "note" && source ? `/journal?session=${encodeURIComponent(source)}` : "/training"}">${q.id === "note" && source ? "Retrouver la séance dans le journal" : "Enregistrer une séance à ton rythme"}</a>` : ""}
+          </div></article>`).join("")}</div>
+      </details></section>`;
+  }
+
+  /* One place for everything in progress across the four regions (RPG14). Read-only: it only reflects the confirmed snapshot. */
+  function questLogHtml(snapshot) {
+    const owner = window.state?.user?.id;
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
+    const rows = C().worlds.map((w) => {
+      const p = snapshot.campaigns?.find((c) => c.id === w.id);
+      if (!p || !Number.isInteger(p.chapter) || p.chapter < 1 || p.chapter > 9) return null;
+      const ch = w.chapters[p.chapter - 1];
+      const percent = window.TitanProgress.campaignProgress(p)?.percent ?? 0;
+      const model = window.TitanCampaignQuests?.plan({ campaign: p, history: window.TitanData?.logs?.() || [], guest: isGuest(), owner,
+        effortOf: log => window.TitanProgress.effortOf(log).effortMinutes, serverVersion: snapshot.version });
+      return `<li data-quest-log-world="${esc(w.id)}"><a class="asc-link" href="/adventure?world=${esc(w.id)}"><strong>${esc(w.name)}</strong></a>
+        <span class="asc-small">Chapitre ${p.chapter} · ${esc(ch?.title || "")} · balise à ${percent}%${model ? ` · ${model.completed}/3 préparatifs` : ""}</span></li>`;
+    }).filter(Boolean);
+    const souvenirs = (Array.isArray(snapshot.quest_rewards) ? snapshot.quest_rewards : []).filter(r => window.TitanCampaignQuests?.rewardName(r.quest_id)).length;
+    if (!rows.length) return "";
+    return `<details class="asc-note av-rules" data-quest-log><summary>Journal de quêtes · ${rows.length} région${rows.length > 1 ? "s" : ""} en cours</summary>
+      <ul class="asc-stack-sm">${rows.join("")}</ul>
+      <p class="asc-small asc-muted">${souvenirs} souvenir${souvenirs > 1 ? "s" : ""} de quête confirmé${souvenirs > 1 ? "s" : ""}. Tout ici est facultatif : prendre une pause n’efface rien.</p></details>`;
+  }
+
+  function questSouvenirsHtml(world, snapshot) {
+    const owner = window.state?.user?.id;
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active || isGuest() || snapshot.version < 3) return "";
+    const earned = (Array.isArray(snapshot.quest_rewards) ? snapshot.quest_rewards : []).filter(r => r.world === world.id && Number.isInteger(r.chapter) && r.chapter >= 1 && r.chapter <= 9 && window.TitanCampaignQuests?.rewardName(r.quest_id));
+    if (!earned.length) return "";
+    return `<section class="asc-section av-panel" data-quest-souvenirs><h2 class="asc-h2">Souvenirs de quêtes confirmés</h2><p class="asc-small asc-muted">Conservés dans ton carnet, même après une correction de séance. Ils ne donnent ni XP ni coins.</p><div class="asc-stack">${earned.map(r => `<p class="asc-note" data-quest-souvenir>${icon("star")}<span>Chapitre ${r.chapter} · ${esc(window.TitanCampaignQuests.rewardName(r.quest_id))}</span></p>`).join("")}</div></section>`;
+  }
+
+  function guardianHtml(world, p, snapshot) {
+    const owner = window.state?.user?.id;
+    const encounter = owner && snapshot?.owner === owner && !window.titanAccountTransition?.active
+      ? window.TitanCampaignEncounters?.describe(p, window.TitanProgress.campaignProgress(p)) : null;
+    if (encounter) return `<section class="av-panel asc-section" data-campaign-encounter data-state="${encounter.state}">
+      <div class="asc-row-flex">${encounter.kind === "guardian" ? `<img src="/assets/renaissance/guardian-${esc(p.id)}-s.webp" alt="" width="96" height="96" loading="lazy">` : icon("route")}
+        <div><p class="asc-eyebrow">${encounter.kind === "guardian" ? "Rencontre du gardien" : "Obstacle du chapitre"}</p><h2 class="asc-h2">${esc(encounter.name)}</h2></div></div>
+      <p>${esc(encounter.text)}</p>
+      ${encounter.kind === "guardian" ? `<p class="asc-small" data-guardian-goal>Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend ${p.target} jours actifs${p.effort_target ? ` et ${p.effort_target} minutes d’effort` : ""}. 90 minutes au plus par jour.</p>` : ""}
+      <div class="av-track"><div class="asc-between"><span>Avancement de l’épreuve</span><strong class="asc-num">${encounter.percent}%</strong></div>
+        <span class="asc-ascent" role="progressbar" aria-label="Avancement de l’épreuve" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${encounter.percent}"><span style="--p:${encounter.percent}%"></span></span></div>
+      <ol class="asc-stack-sm">${encounter.phases.map(phase => `<li data-phase="${phase.id}" data-state="${phase.state}" class="asc-small"><strong>${esc(phase.name)} · ${phase.state === "done" ? "preuves réunies" : phase.state === "active" ? "en cours" : "à venir"}</strong><p class="asc-small asc-muted">${F().number(phase.value)}/${F().number(phase.target)} ${esc(phase.unit)}</p></li>`).join("")}</ol>
+      <p class="asc-small asc-muted">Le pourcentage suit l’objectif le moins avancé du chapitre. Les mêmes séances peuvent faire avancer plusieurs phases ; les preuves déjà réunies sont conservées.</p>
+      <p class="asc-small" data-encounter-outcome>${encounter.ready ? `Épreuve prête à valider : utilise « ${encounter.kind === "guardian" ? "Affronter le gardien" : "Allumer la balise"} ». Le passage sera confirmé après validation de la campagne.` : "L’épreuve avance avec les jours et l’effort admissibles de ce chapitre. Reviens à ton rythme pour poursuivre."}</p>
+    </section>`;
     const finished = p.chapter >= 10;
     return `<section class="av-guardian" style="--world:${world.color}">
       <img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="${esc(world.guardian)}" width="256" height="256" loading="lazy" decoding="async">
       <div><p class="asc-eyebrow">Le gardien de la région</p><h2 class="asc-h2">${esc(world.guardian)}</h2>
-        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend trois jours actifs${effortRule() ? " et 150 minutes d’effort. Pas plus de 90 par jour : il mesure ta constance, pas une journée héroïque" : ""}.`}</p></div>
+        <p>${finished ? esc(world.ending) : `Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend ${p.chapter === 9 ? `${p.target} jours actifs${p.effort_target ? ` et ${p.effort_target} minutes d’effort` : ""}. 90 minutes au plus par jour` : personalServer() ? "une cible personnelle fixée au départ de ce chapitre, sur au moins deux jours distincts" : `trois jours actifs${effortRule() ? " et 150 minutes d’effort, 90 au plus par jour" : ""}`}.`}</p></div>
     </section>`;
   }
 
@@ -122,6 +207,8 @@
 
   function render() {
     if (!root) return;
+    const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
+    const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
     const s = A()?.snapshot;
     if (!s) {
       root.innerHTML = `<div class="asc-empty"><h2>${A()?.status === "error" ? "L’aventure est momentanément indisponible" : "Ton univers se prépare…"}</h2><p>Tes séances restent dans ton journal.</p>${A()?.status === "error" ? `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>` : ""}</div>`;
@@ -136,13 +223,20 @@
       ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world)}
+      ${questLogHtml(s)}
       <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
-      ${guardianHtml(world, p)}
+      ${guardianHtml(world, p, s)}
+      ${valleyHtml(world, p, s)}
       ${carnetHtml(world, p)}
+      ${questSouvenirsHtml(world, s)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
-        <p>${effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
+        <p>${personalServer() ? "Les nouveaux chapitres adaptent leurs cibles à tes 28 derniers jours admissibles, puis les gardent figées jusqu’à validation. Le gardien demande au moins deux jours distincts et l’effort indiqué, 90 minutes au plus par jour. Les conditions des chapitres déjà commencés sont conservées." : effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour. Ces conditions fixes restent celles du mode découverte et de cet ancien contrat." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
       <p class="asc-small" role="status" id="av-error"></p>`;
+    const guide = root.querySelector("[data-rpg-departure]");
+    if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
+    const quests = root.querySelector("[data-rpg-quests]");
+    if (quests && quests.dataset.rpgQuests === openQuests) quests.open = true;
   }
 
   async function mutate(action, params) {
@@ -197,7 +291,7 @@
     body.innerHTML = `<div class="av-mission-head">${badge(world, index, earned)}<p class="asc-small asc-muted">${earned ? "Balise allumée" : current ? "Étape en cours" : "À découvrir"}</p></div>
       <p>${esc(ch.story)}</p>
       <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
-      <p class="asc-small">Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss && effortRule() ? " et 150 minutes d’effort (90 max par jour)" : ""}. Insigne : <strong>${esc(ch.title)}</strong>.</p>
+      <p class="asc-small">${current ? `Mission : ${p.target} jour${p.target > 1 ? "s" : ""} actif${p.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${p.effort_target ? ` et ${p.effort_target} minutes d’effort (90 max par jour)` : ""}.` : earned ? "Chapitre validé ; ses conditions ne sont pas recalculées." : personalServer() ? "La cible personnelle sera fixée au départ de ce chapitre." : `Mission : ${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}${p.route === "journal" ? " avec une note de séance" : ""}${ch.boss && effortRule() ? " et 150 minutes d’effort (90 max par jour)" : ""}.`} Insigne : <strong>${esc(ch.title)}</strong>.</p>
       ${ids.length ? `<div class="asc-stack-sm"><p class="asc-eyebrow">Séances qui ont compté</p><div class="asc-list">${ids
         .map((id) => {
           const l = logs.find((x) => String(x.id) === String(id) || x.client_event_id === id);
@@ -243,6 +337,7 @@
     });
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter], [data-quest-souvenirs]").forEach(el => el.remove()));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
