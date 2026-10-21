@@ -1,5 +1,5 @@
+# Séance hors ligne, conservation après fermeture de l'application, envoi unique au retour du réseau
 appId: fr.titanapp.app
-name: Séance hors ligne, conservation après fermeture de l'application, envoi unique au retour du réseau
 ---
 - launchApp
 - extendedWaitUntil:

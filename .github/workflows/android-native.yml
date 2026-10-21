@@ -232,6 +232,8 @@ jobs:
           script: mobile/e2e/run-emulator.sh
       - name: Vérifications côté serveur (séances, XP, aventure, isolation)
         if: always()
+        # bash (not the default sh -e) adds pipefail: a failed check must fail the step despite tee.
+        shell: bash
         run: mkdir -p ../e2e-out && e2e/verify-backend.sh | tee ../e2e-out/server-checks.txt
       - uses: actions/upload-artifact@v4
         if: always()

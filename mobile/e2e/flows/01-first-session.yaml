@@ -1,5 +1,5 @@
+# Connexion avec un compte existant, onboarding et première séance confirmée par le serveur
 appId: fr.titanapp.app
-name: Connexion avec un compte existant, onboarding et première séance confirmée par le serveur
 ---
 - launchApp:
     clearState: true

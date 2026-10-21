@@ -1,5 +1,5 @@
+# Déconnexion et changement de compte sans fuite de données
 appId: fr.titanapp.app
-name: Déconnexion et changement de compte sans fuite de données
 ---
 - launchApp
 - extendedWaitUntil:

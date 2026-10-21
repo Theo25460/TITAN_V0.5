@@ -1,5 +1,5 @@
+# Statistiques, journal, campagne de l'Aventure et validation d'un chapitre côté serveur
 appId: fr.titanapp.app
-name: Statistiques, journal, campagne de l'Aventure et validation d'un chapitre côté serveur
 ---
 - launchApp
 - extendedWaitUntil:
