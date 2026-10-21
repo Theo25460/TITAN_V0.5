@@ -92,7 +92,7 @@ ${table(["Donnée", "Durée"], [
 <ul><li><strong>Accès et portabilité</strong> : Profil &gt; Exporter toutes mes données (JSON) et Exporter mon journal (CSV).</li><li><strong>Rectification</strong> : modifie une séance, ton nom ou tes réglages dans l’application.</li><li><strong>Effacement</strong> : Profil &gt; Supprimer mon compte. Suppression définitive des données du compte.</li><li><strong>Opposition, limitation, retrait du consentement</strong> : dans les réglages, ou en écrivant à <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</li></ul>
 <p>Nous répondons sous un mois. Tu peux introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>11. Mineurs</h2>
-<p>Avant 15 ans, l’utilisation de TITAN et de ses fonctions sociales nécessite l’accord d’un représentant légal. Les profils restent privés par défaut pour tous.</p>
+<p>TITAN est ouvert à partir de 13 ans. Les mineurs l’utilisent avec l’accord d’un adulte, représentant légal, en particulier pour les fonctions sociales. Les profils restent privés par défaut pour tous.</p>
 <h2>12. Sécurité</h2>
 <p>Les données de chaque compte sont isolées par des règles d’accès en base. Les récompenses, achats et partages sont validés par le serveur. Aucune clé secrète n’est présente dans l’application. En cas de faille suspectée, écris-nous immédiatement.</p>
 <h2>13. Modifications</h2>
@@ -125,7 +125,7 @@ doc({
 <h2>9. Profil public et images</h2><p>Le profil public est désactivé par défaut. En l’activant, tu acceptes que toute personne disposant du lien voie les blocs que tu as choisis. Tu peux le désactiver ou changer de lien à tout moment. Les images partagées sont créées sur ton appareil ; une fois envoyées ailleurs, elles échappent au contrôle de TITAN.</p>
 <h2>10. Propriété intellectuelle</h2><p>L’univers, les textes, les illustrations, le code et les règles propres à TITAN appartiennent à l’équipe éditrice, sous réserve des composants tiers (licences libres citées dans les mentions légales). Ton journal t’appartient.</p>
 <h2>11. Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>.</p>
-<h2>12. Mineurs</h2><p>Avant 15 ans, l’accord d’un représentant légal est nécessaire, en particulier pour les fonctions sociales et TITAN+.</p>
+<h2>12. Mineurs</h2><p>TITAN est ouvert à partir de 13 ans. Les mineurs l’utilisent avec l’accord d’un adulte, représentant légal, en particulier pour les fonctions sociales et TITAN+.</p>
 <h2>13. Droit applicable</h2><p>Droit français, sous réserve des règles impératives protégeant les consommateurs. En cas de difficulté, écris d’abord à <a href="mailto:${SUPPORT}">${SUPPORT}</a> pour trouver une solution amiable ; tu peux aussi recourir à un médiateur de la consommation ou aux juridictions compétentes.</p>`,
 });
 
