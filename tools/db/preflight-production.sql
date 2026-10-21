@@ -1,59 +1,58 @@
--- Contrôle préalable à la mise en production des migrations 20261008110220 → 20261019180000.
+-- Contrôle préalable à la mise en production des migrations 20261008110220 → 20261021020000.
 -- LECTURE SEULE : un seul SELECT, aucune écriture, aucun identifiant ni valeur personnelle (comptages uniquement).
 -- À exécuter sur la base cible AVANT d'appliquer quoi que ce soit. Chaque ligne : check, blocking (true = ne pas migrer),
 -- ok, detail. Lecture : toutes les lignes blocking=true doivent avoir ok=true. Voir docs/CDC_WEB_PRODUCTION_RELEASE_PLAN_2026-10-19.md.
 with
+expected_migrations(version) as (values
+  ('20261008110220'), ('20261008113411'), ('20261008120931'), ('20261008180429'), ('20261009205151'), ('20261009212850'), ('20261010163122'), ('20261011061707'), ('20261011213600'), ('20261013074320'), ('20261019053123'), ('20261019062757'), ('20261019090000'), ('20261019120000'), ('20261019122259'), ('20261019150000'), ('20261019180000'), ('20261019200000'), ('20261019210000'), ('20261019220000'), ('20261019230000'), ('20261020000000'), ('20261020010000'), ('20261020020000'), ('20261020030000'), ('20261020040000'), ('20261020050000'), ('20261021010000'), ('20261021020000')
+),
 prof as (select to_regclass('public.profiles') is not null as present),
+entitlement_candidates as (
+  select p.id,
+    case when coalesce(nullif(p.elite_subscription_id, ''), nullif(p.elite_order_id, '')) is null then 'manual' else 'paddle' end as source,
+    coalesce(nullif(p.elite_subscription_id, ''), nullif(p.elite_order_id, ''), 'legacy:' || p.id::text) as external_id
+  from public.profiles p
+  where p.is_elite is true or coalesce(nullif(p.elite_subscription_id, ''), nullif(p.elite_order_id, '')) is not null
+),
 checks(check_name, blocking, ok, detail) as (
   select 'profiles présent', true, (select present from prof), 'table public.profiles'
   union all
   select 'migration de base appliquée (20261005230000)', true,
-    coalesce((select count(*) from supabase_migrations.schema_migrations where version >= '20261005230000') > 0, false),
+    coalesce((select count(*) from supabase_migrations.schema_migrations where version = '20261005230000') > 0, false),
     'dernière version attendue côté production avant ce lot'
   union all
-  select 'aucune des 25 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', false,
-    (select count(*) = 0 from supabase_migrations.schema_migrations where version in (
-      '20261008110220',
-      '20261008113411',
-      '20261008120931',
-      '20261008180429',
-      '20261009205151',
-      '20261009212850',
-      '20261010163122',
-      '20261011061707',
-      '20261011213600',
-      '20261013074320',
-      '20261019053123',
-      '20261019062757',
-      '20261019090000',
-      '20261019120000',
-      '20261019122259',
-      '20261019150000',
-      '20261019180000',
-      '20261019200000',
-      '20261019210000',
-      '20261019220000','20261019230000','20261020000000','20261020010000','20261020020000','20261020030000','20261020040000','20261020050000')),
-    'nombre déjà appliquées : ' || (select count(*) from supabase_migrations.schema_migrations where version in (
-      '20261008110220',
-      '20261008113411',
-      '20261008120931',
-      '20261008180429',
-      '20261009205151',
-      '20261009212850',
-      '20261010163122',
-      '20261011061707',
-      '20261011213600',
-      '20261013074320',
-      '20261019053123',
-      '20261019062757',
-      '20261019090000',
-      '20261019120000',
-      '20261019122259',
-      '20261019150000',
-      '20261019180000',
-      '20261019200000',
-      '20261019210000',
-      '20261019220000','20261019230000','20261020000000','20261020010000','20261020020000','20261020030000','20261020040000','20261020050000'))
+  select 'aucune des 29 migrations du lot déjà appliquée (sinon : reprise partielle à étudier)', true,
+    (select count(*) = 0 from supabase_migrations.schema_migrations where version in (select version from expected_migrations)),
+    'nombre déjà appliquées : ' || (select count(*) from supabase_migrations.schema_migrations where version in (select version from expected_migrations))
+  union all
+  select 'aucune migration ultérieure hors du lot 29', true,
+    not exists(select 1 from supabase_migrations.schema_migrations m where m.version > '20261005230000'
+      and not exists(select 1 from expected_migrations e where e.version = m.version)),
+    'versions hors du lot : ' || (select count(*) from supabase_migrations.schema_migrations m where m.version > '20261005230000'
+      and not exists(select 1 from expected_migrations e where e.version = m.version))
+  union all
+  select 'aucun objet 24-27 installé hors historique', true,
+    to_regclass('private.titan_entitlements') is null
+    and to_regclass('private.titan_retention_rules') is null
+    and to_regclass('private.titan_verification_requests') is null
+    and to_regclass('private.titan_feature_flags') is null,
+    'si un objet existe, réconcilier son état et son historique avant reprise'
+  union all
+  select 'sources TITAN+ : aucun identifiant partagé entre comptes', true,
+    not exists(select 1 from entitlement_candidates group by source, external_id having count(*) > 1),
+    'collisions : ' || (select count(*) from (select source, external_id from entitlement_candidates group by source, external_id having count(*) > 1) d)
+  union all
+  select 'sources TITAN+ : identifiants au plus 512 caractères', true,
+    not exists(select 1 from entitlement_candidates where char_length(external_id) > 512),
+    'identifiants trop longs : ' || (select count(*) from entitlement_candidates where char_length(external_id) > 512)
+  union all
+  select 'sources TITAN+ : aucun propriétaire sans compte Auth', true,
+    not exists(select 1 from entitlement_candidates c where not exists(select 1 from auth.users a where a.id = c.id)),
+    'orphelins : ' || (select count(*) from entitlement_candidates c where not exists(select 1 from auth.users a where a.id = c.id))
+  union all
+  select 'sources TITAN+ : référence avant migration 24', false, true,
+    'candidats=' || (select count(*) from entitlement_candidates) || ' actifs=' || (select count(*) from public.profiles where is_elite is true)
+      || ' dons actifs=' || (select count(*) from public.profiles where is_elite is true and coalesce(nullif(elite_subscription_id, ''), nullif(elite_order_id, '')) is null)
   union all
   -- 20261008120931 : le catalogue doit contenir les 4 cosmétiques
   select 'catalogue : 4 cosmétiques attendus (20261008120931)', true,
@@ -128,7 +127,7 @@ checks(check_name, blocking, ok, detail) as (
   union all
   select 'schéma private présent', true, exists (select 1 from pg_namespace where nspname = 'private'), 'schéma private'
   union all
-  select 'transactions longues en cours (> 5 min)', false,
+  select 'transactions longues en cours (> 5 min)', true,
     (select count(*) = 0 from pg_stat_activity where state <> 'idle' and xact_start < now() - interval '5 minutes' and pid <> pg_backend_pid()),
     'en cours : ' || (select count(*) from pg_stat_activity where state <> 'idle' and xact_start < now() - interval '5 minutes' and pid <> pg_backend_pid())
 )

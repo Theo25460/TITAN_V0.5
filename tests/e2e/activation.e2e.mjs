@@ -77,7 +77,7 @@ for(const width of [360,1280]){
    await page.locator('dialog.moment-sheet[open]').waitFor();
    const saved=await page.evaluate(()=>({id:window.state.history[0].id,owner:window.state.user.id,count:window.state.history.length}));
    const dialog=page.locator('dialog.moment-sheet[open]');
-   const signup=dialog.getByRole('link',{name:'Créer mon compte',exact:true});await signup.waitFor();
+   const signup=dialog.getByRole('link',{name:'Créer un compte et garder ma séance',exact:true});await signup.waitFor();
    assert.equal(await signup.getAttribute('href'),'/login?mode=signup');
    assert.match(await dialog.textContent(),/cet appareil/);
    if(process.env.TITAN_QA_SCREENSHOTS)await page.screenshot({path:`/tmp/titan-activation-moment-${width}.png`,fullPage:true});

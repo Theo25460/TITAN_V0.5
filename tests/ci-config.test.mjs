@@ -63,3 +63,16 @@ test('static sport gate rejects a wrong XP return from the JavaScript implementa
     assert.match(result.stdout + result.stderr, /effort\.js.*TS2322.*string.*number/);
   } finally { rmSync(temp, {recursive:true, force:true}); }
 });
+
+
+test('all player pages use the same version of the shared shell', () => {
+  const root = new URL('../', import.meta.url);
+  const entries = readdirSync(root).filter(name => name.endsWith('.html')).flatMap(name => {
+    const html = readFileSync(new URL(name, root), 'utf8');
+    const token = /src="\/js\/app\/shell\.js\?v=([^" ]+)"/.exec(html);
+    return token ? [[name, token[1]]] : [];
+  });
+  assert.ok(entries.length >= 15, 'check every player entry point');
+  assert.equal(new Set(entries.map(([, version]) => version)).size, 1,
+    'a stale shell token can replay the old cached shell on one page: ' + JSON.stringify(entries));
+});

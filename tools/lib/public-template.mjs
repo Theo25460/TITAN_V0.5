@@ -60,7 +60,7 @@ const NAV = [
   ["/niveaux-et-xp", "Progression"],
   ["/aventures-sportives", "Aventure"],
   ["/pour-les-coachs", "Coachs"],
-  ["/tarifs", "Tarifs"],
+  ["/titan-plus", "TITAN+"],
 ];
 const header = (route) => `<a class="asc-skip" href="#contenu">Aller au contenu</a><header class="pub-header"><div class="pub-wrap">
   <a class="pub-brand" href="/" aria-label="TITAN, accueil">${mark()}TITAN</a>
@@ -74,7 +74,7 @@ const PLAY = playStoreUrl();
 const playFooter = (url) => (url ? `<p class="pub-fine"><a data-play-store hidden href="${esc(url)}" rel="noopener">Télécharger sur Google Play</a></p>` : "");
 const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
   <div><a class="pub-brand" href="/">${mark()}TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
-  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/tarifs">Gratuit et TITAN+</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
+  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/titan-plus">TITAN+ · bientôt</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
   <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
   <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
   <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/regles-communaute">Règles de la communauté</a><a href="/service">Assistance</a></nav></div>
@@ -109,7 +109,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${SITE}/image/og-titan.jpg">
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=300.1"><link rel="stylesheet" href="/css/public.css?v=300.2">
+<link rel="stylesheet" href="/css/ascension.css?v=300.2"><link rel="stylesheet" href="/css/public.css?v=300.2">
 <script src="/js/pwa.js?v=${V}" defer></script>${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>

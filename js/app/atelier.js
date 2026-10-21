@@ -284,7 +284,7 @@
       return wear + purchase;
     }
     if (wear) return wear;
-    if (item.unlock === "plus") return `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus>Voir TITAN+</button>`;
+    if (item.unlock === "plus") return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+ · bientôt</a>`;
     if (item.unlock === "rank") return `<span class="asc-small asc-faint">Niveau ${item.min_level}</span>`;
     const short = item.price - (Number(data.credits) || 0);
     return short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)}</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">Débloquer</button>`;
@@ -311,6 +311,25 @@
         <p class="asc-small asc-muted">Une seule monnaie, gagnée en t’entraînant : 10 % de l’XP de chaque séance. Elle ne s’achète pas.</p></div>
       <div class="at-week"><div class="asc-between"><span class="asc-small">Cette semaine</span><span class="asc-small asc-num">${F().number(week)} / ${F().number(cap)}</span></div><span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, week / cap) * 100)}%"></span></span>
         <p class="asc-small asc-faint">Le même plafond pour tout le monde, abonné ou non.</p></div></section>`;
+  }
+
+  /* The next three pieces within reach, so the reward ahead is always visible (credits or rank, never a purchase). */
+  function upcomingHtml() {
+    const level = Number(data.level) || 1;
+    const credits = Number(data.credits) || 0;
+    const perSession = creditsPerSession();
+    const rows = (data.items || [])
+      .filter((i) => !permanent(i) && ((i.unlock === "credits" && Number.isFinite(Number(i.price))) || (i.unlock === "rank" && Number.isFinite(Number(i.min_level)) && Number(i.min_level) > level)))
+      .map((i) => {
+        if (i.unlock !== "credits") return { item: i, order: 1000 + i.min_level - level, text: `Au niveau ${i.min_level} (rang ${RANKS[i.min_level] || i.min_level}), encore ${i.min_level - level} niveau${i.min_level - level > 1 ? "x" : ""}.` };
+        const need = Math.max(0, Math.ceil((i.price - credits) / perSession));
+        return { item: i, order: need, text: i.price <= credits ? "Tu peux le débloquer maintenant." : `Environ ${need} séance${need > 1 ? "s" : ""} à ton rythme actuel.` };
+      })
+      .sort((a, b) => a.order - b.order || (Number(a.item.price) || 0) - (Number(b.item.price) || 0))
+      .slice(0, 3);
+    if (!rows.length) return "";
+    return `<section class="asc-section" id="a-venir" data-upcoming><div class="asc-section-head"><h2>Prochaines récompenses</h2><span class="asc-small asc-muted">Estimations, sans engagement</span></div>
+      <ul class="asc-stack-sm">${rows.map(({ item, text }) => `<li class="asc-row-flex"><strong>${esc(item.name)}</strong><span class="asc-small asc-muted">${esc(text)}</span></li>`).join("")}</ul></section>`;
   }
 
   function lookHtml() {
@@ -347,12 +366,12 @@
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Merci de soutenir TITAN.</h2>
         <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton accès TITAN+ est actif."}</p>
         <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
-        <a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+        <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
         <p class="asc-small asc-faint">Pour arrêter ou modifier ton accès : écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de confort pour ta pratique.</h2>
       <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
-      <a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+      <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
       ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
       ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ : bientôt disponible. Aucun paiement n’est proposé pour le moment. À son ouverture, l’abonnement sera proposé dans l’application Android, via Google Play.</span></p>`}
       ${guest() && (playBillingOffered() || window.TITAN_PAYMENTS?.webCheckout === true) ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
@@ -365,7 +384,7 @@
     if (guest()) {
       root.innerHTML = `<section class="asc-hero at-wallet"><div class="at-wallet-main"><p class="asc-eyebrow cy">Atelier</p><h2 class="cm-exp-title">Ton style se gagne à l’effort.</h2>
           <p class="asc-lead">Chaque séance rapporte des crédits. Ils débloquent des cadres, des ambiances de carte et des styles de cartes partageables. Rien ici ne change ta progression.</p>
-          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/tarifs">Gratuit et TITAN+</a></div></div></section>
+          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/titan-plus">TITAN+ · bientôt</a></div></div></section>
         ${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;
@@ -376,7 +395,7 @@
       root.setAttribute("aria-busy", "false");
       return;
     }
-    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${plusHtml()}
+    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${upcomingHtml()}${plusHtml()}
       <p class="asc-small asc-faint at-foot">Tous les styles du catalogue se gagnent gratuitement par les crédits ou le rang. Une pièce acquise avec tes crédits reste à toi après la fin de TITAN+. L’accès inclus par l’abonnement est temporaire : seules les pièces encore non acquises reviennent au style d’origine.</p>
       ${(data.items || []).some((i) => i.unlock === "plus") ? `<p class="asc-note">${icon("info")}<span>Mise à jour du catalogue en attente : les pièces encore marquées TITAN+ deviendront aussi accessibles avec tes crédits d’activité.</span></p>` : ""}`;
     root.setAttribute("aria-busy", "false");
@@ -550,7 +569,6 @@
     }
     if (b.dataset.preview) return openPreview(b.dataset.preview);
     if (b.dataset.buy) return buy(b.dataset.buy);
-    if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
     if (b.hasAttribute("data-play-checkout")) return playCheckout(b);
     if (b.hasAttribute("data-retry")) {

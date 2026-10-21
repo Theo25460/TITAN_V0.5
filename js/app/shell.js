@@ -326,9 +326,30 @@
     });
   }
 
+  /* Calmer interface on request; the system "reduce motion" setting is always honoured by the stylesheet. */
+  const MOTION_KEY = "titan_motion_v1";
+  function motionReduced() {
+    try { return localStorage.getItem(MOTION_KEY) === "reduced"; } catch { return false; }
+  }
+  function applyMotion() {
+    if (motionReduced()) document.documentElement.setAttribute("data-motion", "reduced");
+    else document.documentElement.removeAttribute("data-motion");
+  }
+  applyMotion();
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-motion-toggle]");
+    if (!button) return;
+    try { localStorage.setItem(MOTION_KEY, motionReduced() ? "default" : "reduced"); } catch {}
+    applyMotion();
+    button.setAttribute("aria-pressed", String(motionReduced()));
+    const sub = button.querySelector(".asc-row-sub");
+    if (sub) sub.textContent = motionReduced() ? "Activées : mouvements limités dans TITAN" : "Désactivées : TITAN suit les réglages de ton appareil";
+  });
+
   /* Secondary destinations on mobile: one tap from the top bar, out of the main tab bar. */
   function openMore() {
     const body = `<nav class="asc-list" aria-label="Plus">${SECONDARY.map((t) => `<a class="asc-row" href="${t.href}"${territory() === t.id ? ' aria-current="page"' : ""}><span class="asc-row-icon">${icon(t.icon)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(t.label)}</span><span class="asc-row-sub">${esc(MORE_HINTS[t.id] || "")}</span></span>${icon("chevron")}</a>`).join("")}</nav>
+      <button type="button" class="asc-row asc-more-motion" data-motion-toggle aria-pressed="${motionReduced()}"><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">${motionReduced() ? "Activées : mouvements limités dans TITAN" : "Désactivées : TITAN suit les réglages de ton appareil"}</span></span></button>
       <p class="asc-small asc-faint asc-more-legal"><a href="/legal_cgu">Conditions</a> · <a href="/legal_privacy">Confidentialité</a> · <a href="/changelog">Nouveautés</a></p>`;
     sheet({ title: "Plus", body });
   }

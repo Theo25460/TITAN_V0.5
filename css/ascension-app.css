@@ -2486,6 +2486,19 @@
   font-size: clamp(26px, 6vw, 38px);
   font-stretch: 80%;
 }
+.pf-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--am);
+}
+.pf-title .t-icon {
+  width: 14px;
+  height: 14px;
+}
 .pf-level {
   display: grid;
   gap: var(--s2);

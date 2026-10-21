@@ -38,7 +38,7 @@ test("with the listing set, pages get a hidden link, the meta tag and the script
   assert.equal(app.installUrl, LISTING);
   assert.ok(!("aggregateRating" in app) && !("review" in app) && !("offers" in app), "no invented rating, review or price");
   const other = execFileSync(process.execPath, ["--input-type=module", "-e",
-    `import { page } from "./tools/lib/public-template.mjs"; process.stdout.write(page({ route: "/tarifs", title: "Titre", description: "Description assez longue pour le test.", body: "<p>x</p>" }));`],
+    `import { page } from "./tools/lib/public-template.mjs"; process.stdout.write(page({ route: "/titan-plus", title: "Titre", description: "Description assez longue pour le test.", body: "<p>x</p>" }));`],
     { cwd: root.pathname, env: { ...process.env, TITAN_PLAY_STORE_URL: LISTING } }).toString();
   assert.ok(!other.includes("MobileApplication"), "only the home page declares the application");
 });

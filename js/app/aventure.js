@@ -143,6 +143,27 @@
       </details></section>`;
   }
 
+  /* One place for everything in progress across the four regions (RPG14). Read-only: it only reflects the confirmed snapshot. */
+  function questLogHtml(snapshot) {
+    const owner = window.state?.user?.id;
+    if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active) return "";
+    const rows = C().worlds.map((w) => {
+      const p = snapshot.campaigns?.find((c) => c.id === w.id);
+      if (!p || !Number.isInteger(p.chapter) || p.chapter < 1 || p.chapter > 9) return null;
+      const ch = w.chapters[p.chapter - 1];
+      const percent = window.TitanProgress.campaignProgress(p)?.percent ?? 0;
+      const model = window.TitanCampaignQuests?.plan({ campaign: p, history: window.TitanData?.logs?.() || [], guest: isGuest(), owner,
+        effortOf: log => window.TitanProgress.effortOf(log).effortMinutes, serverVersion: snapshot.version });
+      return `<li data-quest-log-world="${esc(w.id)}"><a class="asc-link" href="/adventure?world=${esc(w.id)}"><strong>${esc(w.name)}</strong></a>
+        <span class="asc-small">Chapitre ${p.chapter} · ${esc(ch?.title || "")} · balise à ${percent}%${model ? ` · ${model.completed}/3 préparatifs` : ""}</span></li>`;
+    }).filter(Boolean);
+    const souvenirs = (Array.isArray(snapshot.quest_rewards) ? snapshot.quest_rewards : []).filter(r => window.TitanCampaignQuests?.rewardName(r.quest_id)).length;
+    if (!rows.length) return "";
+    return `<details class="asc-note av-rules" data-quest-log><summary>Journal de quêtes · ${rows.length} région${rows.length > 1 ? "s" : ""} en cours</summary>
+      <ul class="asc-stack-sm">${rows.join("")}</ul>
+      <p class="asc-small asc-muted">${souvenirs} souvenir${souvenirs > 1 ? "s" : ""} de quête confirmé${souvenirs > 1 ? "s" : ""}. Tout ici est facultatif : prendre une pause n’efface rien.</p></details>`;
+  }
+
   function questSouvenirsHtml(world, snapshot) {
     const owner = window.state?.user?.id;
     if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active || isGuest() || snapshot.version < 3) return "";
@@ -156,9 +177,10 @@
     const encounter = owner && snapshot?.owner === owner && !window.titanAccountTransition?.active
       ? window.TitanCampaignEncounters?.describe(p, window.TitanProgress.campaignProgress(p)) : null;
     if (encounter) return `<section class="av-panel asc-section" data-campaign-encounter data-state="${encounter.state}">
-      <div class="asc-row-flex">${encounter.kind === "guardian" ? `<img src="/assets/renaissance/guardian-aube-s.webp" alt="" width="96" height="96" loading="lazy">` : icon("route")}
+      <div class="asc-row-flex">${encounter.kind === "guardian" ? `<img src="/assets/renaissance/guardian-${esc(p.id)}-s.webp" alt="" width="96" height="96" loading="lazy">` : icon("route")}
         <div><p class="asc-eyebrow">${encounter.kind === "guardian" ? "Rencontre du gardien" : "Obstacle du chapitre"}</p><h2 class="asc-h2">${esc(encounter.name)}</h2></div></div>
       <p>${esc(encounter.text)}</p>
+      ${encounter.kind === "guardian" ? `<p class="asc-small" data-guardian-goal>Au neuvième chapitre, ${esc(world.guardian.toLocaleLowerCase("fr-FR"))} attend ${p.target} jours actifs${p.effort_target ? ` et ${p.effort_target} minutes d’effort` : ""}. 90 minutes au plus par jour.</p>` : ""}
       <div class="av-track"><div class="asc-between"><span>Avancement de l’épreuve</span><strong class="asc-num">${encounter.percent}%</strong></div>
         <span class="asc-ascent" role="progressbar" aria-label="Avancement de l’épreuve" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${encounter.percent}"><span style="--p:${encounter.percent}%"></span></span></div>
       <ol class="asc-stack-sm">${encounter.phases.map(phase => `<li data-phase="${phase.id}" data-state="${phase.state}" class="asc-small"><strong>${esc(phase.name)} · ${phase.state === "done" ? "preuves réunies" : phase.state === "active" ? "en cours" : "à venir"}</strong><p class="asc-small asc-muted">${F().number(phase.value)}/${F().number(phase.target)} ${esc(phase.unit)}</p></li>`).join("")}</ol>
@@ -201,6 +223,7 @@
       ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world)}
+      ${questLogHtml(s)}
       <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
       ${guardianHtml(world, p, s)}
       ${valleyHtml(world, p, s)}

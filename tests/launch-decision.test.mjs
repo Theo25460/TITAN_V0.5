@@ -36,3 +36,29 @@ test("the legal texts describe Google Play, not a web seller", () => {
   assert.match(cgu, /quatre campagnes/);
   assert.ok(!/deux campagnes/.test(cgu), "all four campaigns are free");
 });
+
+test("TITAN+ has one canonical « Bientôt disponible » page and every old pricing route leads to it", () => {
+  const page = readFileSync(new URL("titan-plus.html", root), "utf8");
+  assert.match(page, /<title>TITAN\+ — Bientôt disponible/);
+  assert.match(page, /<h1>TITAN\+ — Bientôt disponible/);
+  assert.match(page, /rel="canonical" href="https:\/\/titan-app\.fr\/titan-plus"/);
+  assert.ok(!/<(button|a)[^>]*(checkout|paddle|data-play-checkout)/i.test(page), "no purchase control on the page");
+  const toml = readFileSync(new URL("netlify.toml", root), "utf8");
+  for (const from of ["/tarifs", "/tarifs.html", "/titan-plus.html"]) {
+    assert.match(toml, new RegExp(`from = "${from.replace(".", "\\.")}"\\nto = "/titan-plus"\\nstatus = 301`), `${from} redirects to /titan-plus`);
+  }
+  const readme = [...pages, "js/app/atelier.js", "js/app/rapports.js", "js/app/analyses.js", "tools/lib/public-template.mjs", "tools/build-public-site.mjs"];
+  for (const file of readme) assert.ok(!/["'(=]\/tarifs\b/.test(readFileSync(new URL(file, root), "utf8")), `${file} still links to /tarifs`);
+});
+
+test("V1 has no advertising and says nothing false about it (LEG12), and virtual goods are described as having no monetary value (LEG07)", () => {
+  const config = readFileSync(new URL("js/config.js", root), "utf8");
+  assert.match(config, /adsEnabled:\s*false/);
+  const adsTxt = readFileSync(new URL("ads.txt", root), "utf8");
+  assert.ok(!adsTxt.split("\n").some((l) => l.trim() && !l.trim().startsWith("#")), "ads.txt authorises no seller");
+  const everything = [...pages.map((f) => readFileSync(new URL(f, root), "utf8")), ...readdirSync(new URL("js/", root), { recursive: true }).filter((f) => String(f).endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, root), "utf8"))].join("\n");
+  assert.ok(!/(doubleclick|googlesyndication|adservice\.google|pagead2|applovin|admob|ca-pub-\d)/i.test(everything), "no advertising network code or publisher id ships");
+  const cgu = readFileSync(new URL("legal_cgu.html", root), "utf8");
+  assert.match(cgu, /sans valeur monétaire[\s\S]{0,120}ne s’achètent pas, ne se vendent pas, ne s’échangent pas et ne sont pas remboursables/);
+  assert.match(readFileSync(new URL("js/app/atelier.js", root), "utf8"), /Elle ne s’achète pas/);
+});

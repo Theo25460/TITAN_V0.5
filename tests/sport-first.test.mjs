@@ -59,7 +59,7 @@ test('public discovery pages are indexable, canonical and content-rich', async (
     assert.equal((html.match(/<h1\b/g) || []).length, 1);
     assert.match(html, /class="pub-faq"/);
     assert.match(html, /"@type":"FAQPage"/);
-    assert.match(html, /ascension\.css\?v=300\.1/);
+    assert.match(html, /ascension\.css\?v=300\.2/);
     assert.match(html, /<link rel="stylesheet" href="\/css\/public\.css\?v=300\.\d+">/);
     assert.match(sitemap, new RegExp(`<loc>https://titan-app\\.fr${route}</loc>`));
   }

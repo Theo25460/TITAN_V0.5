@@ -4,7 +4,7 @@
 import { writeFileSync } from "node:fs";
 import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, faq, finalCta, cards } from "./lib/public-template.mjs";
 
-/* ---------- Offers (single source for landing and /tarifs) ---------- */
+/* ---------- Offers (single source for landing and /titan-plus) ---------- */
 const FREE = [
   "Journal multisport complet : 260 sports, liste, calendrier, édition, export CSV et JSON",
   "Records avec leur séance source, objectifs datés, récap de la semaine",
@@ -285,14 +285,14 @@ const concreteBenefits = `<section class="pub-section" id="concret"><div class="
   <aside class="pub-card" id="stats-free"><h3>Tes repères sportifs restent gratuits.</h3><p>Récap hebdomadaire, historique, records et tendances de volume, d’allure, de force ou d’escalade : les analyses déjà disponibles restent gratuites, avec ou sans TITAN+.</p><a class="asc-btn asc-btn-secondary" href="/comprendre-mes-donnees">Comprendre les analyses</a></aside>
 </div></section>`;
 writeFileSync(
-  "tarifs.html",
+  "titan-plus.html",
   page({
-    route: "/tarifs",
-    title: "Gratuit et TITAN+ : tout ce qui est inclus | TITAN",
+    route: "/titan-plus",
+    title: "TITAN+ — Bientôt disponible | TITAN",
     description: "Journal et progression gratuits. TITAN+, bientôt disponible, ajoutera comparaisons, bilans mensuels et annuels, routines et capacité coach, sans avantage d’XP.",
     image: "aurora",
-    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", availability: "https://schema.org/ComingSoon", url: `${SITE}/tarifs` } }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Gratuit et TITAN+</p><h1>Le cœur est gratuit.<br>Pour de bon.</h1><p class="pub-lead">Journal, statistiques et progression sont accessibles gratuitement. TITAN+ ajoutera des emplacements et de la capacité coach ; il n’est pas encore disponible à l’achat. Les quatre campagnes restent gratuites après mise à jour serveur.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
+    schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", availability: "https://schema.org/ComingSoon", url: `${SITE}/titan-plus` } }],
+    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">TITAN+</p><h1>TITAN+ — Bientôt disponible.<br>Le cœur de TITAN est gratuit.</h1><p class="pub-lead">TITAN+ n’est pas en vente : aucun abonnement, aucun prix et aucun paiement ne sont proposés pour le moment. Journal, statistiques, progression, aventures, Atelier et Communauté sont gratuits, sans publicité. Voici ce que TITAN+ ajoutera plus tard.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
       <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
       ${concreteBenefits}
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2></div><div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Fonction</th><th>Classique</th><th>TITAN+</th></tr></thead><tbody>${[
@@ -371,7 +371,7 @@ writeFileSync(
 const INDEXABLE = [
   ["/", 1.0],
   ["/fonctionnalites", 0.9],
-  ["/tarifs", 0.9],
+  ["/titan-plus", 0.9],
   ["/niveaux-et-xp", 0.8],
   ["/aventures-sportives", 0.8],
   ["/comprendre-mes-donnees", 0.7],

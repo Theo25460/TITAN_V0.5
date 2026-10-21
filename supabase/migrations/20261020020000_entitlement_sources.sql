@@ -2,7 +2,7 @@
 -- Until now profiles held a single "last event wins" entitlement: a cancellation from one source would revoke
 -- access paid through another. Each (source, external_id) is now a row; profiles.is_elite is true when at
 -- least one source is active. The Paddle webhook keeps calling titan_apply_paddle_entitlement_v87 unchanged.
-begin;
+-- Transaction boundaries belong to the release caller.
 
 create table if not exists private.titan_entitlements (
   source text not null check (source in ('paddle', 'google_play', 'manual')),
@@ -166,5 +166,3 @@ grant execute on function public.titan_apply_paddle_entitlement_v87(uuid, boolea
   timestamptz, timestamptz, timestamptz, timestamptz) to service_role;
 
 notify pgrst, 'reload schema';
-
-commit;

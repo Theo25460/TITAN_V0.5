@@ -33,6 +33,8 @@
   let card = null; // public card settings (server)
   let cardUnavailable = false; // the server does not offer public cards yet
   let titles = null; // expedition titles earned (server)
+  let worn = null; // worn title {key,label} (server); null until read
+  let wornTask = null; // a title change in flight
   const guest = () => D().isGuest();
   const BLOCKS = [
     ["name", "Mon nom affiché", "Sinon : « Athlète TITAN »."],
@@ -50,7 +52,7 @@
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
-        <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2><p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
+        <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
       <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
         ${pr.guest || pr.confirmed ? `<span class="asc-ascent"><span style="--p:${pct}%"></span></span>` : ""}
         <p class="asc-small asc-muted">${next ? `${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div>
@@ -98,6 +100,52 @@
       </div></section>`;
   }
 
+  /* Wear (or take off) one earned title. Same account/client/epoch guards as the public card write; the server checks ownership. */
+  async function wearTitle(key) {
+    if (wornTask || cardTask || !worn || !cardContextValid(bitsContext)) return false;
+    const context = bitsContext;
+    const job = { context, focus: key ? `[data-wear-title="${CSS.escape(key)}"]` : "[data-wear-title='']" };
+    wornTask = job;
+    render();
+    try {
+      const session = await readBitsSession(job);
+      if (wornTask !== job || !bitsCurrent(job)) return false;
+      const { data, error } = await context.client.rpc("titan_set_displayed_title", { p_key: key || null })
+        .setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (wornTask !== job || !bitsCurrent(job)) return false;
+      if (error) throw error;
+      await readBitsSession(job);
+      if (wornTask !== job || !bitsCurrent(job)) return false;
+      worn = { key: data?.key || null, label: data?.label || null };
+      return true;
+    } catch (error) {
+      if (wornTask === job && bitsCurrent(job)) throw error;
+      return false;
+    } finally {
+      if (wornTask === job) {
+        const current = bitsCurrent(job);
+        wornTask = null;
+        if (current) {
+          const restoreFocus = job.focus && document.activeElement === document.body;
+          render();
+          if (restoreFocus && document.activeElement === document.body) root.querySelector(job.focus)?.focus({ preventScroll: true });
+        }
+      }
+    }
+  }
+  const wornName = () => (worn?.key ? window.TitanTitles?.label(worn.key, { catalog: C(), serverLabel: worn.label }) : null);
+
+  function titleBlockHtml() {
+    if (guest() || !worn || !window.TitanTitles) return "";
+    const options = window.TitanTitles.earned({ rewards: A()?.snapshot?.rewards || [], expeditionTitles: titles || [], catalog: C() });
+    const name = wornName();
+    return `<div class="pf-col-block" data-title-block><p class="asc-eyebrow">Titre porté</p>
+      <p class="asc-small ${name ? "" : "asc-muted"}" data-worn-title>${name ? `Tu portes « ${esc(name)} », visible sur ton profil${card?.enabled ? " et ta carte publique (si les titres sont affichés)" : ""}.` : options.length ? "Aucun titre porté. Choisis-en un parmi ceux que tu as gagnés." : "Gagne un insigne d’aventure pour porter ton premier titre."}</p>
+      ${options.length ? `<ul class="pf-chips" role="group" aria-label="Titres gagnés">${options.map((t) => `<li><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear-title="${esc(t.key)}" aria-pressed="${worn.key === t.key}" ${wornTask ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}${worn.key === t.key ? " · porté" : ""}</button></li>`).join("")}</ul>
+      ${worn.key ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-wear-title="" ${wornTask ? "disabled" : ""}>Ne plus porter de titre</button>` : ""}` : ""}
+      <p class="asc-small asc-faint">Un titre est purement décoratif : il ne donne ni XP ni crédits.</p></div>`;
+  }
+
   function collectionHtml() {
     const s = A()?.snapshot;
     const rewards = (s?.rewards || []).slice().sort((a, b) => new Date(b.earned_at) - new Date(a.earned_at));
@@ -119,6 +167,7 @@
       <div class="pf-collection">
         <div class="pf-col-block"><p class="asc-eyebrow">Insignes d’aventure</p>${rewards.length ? `<ul class="pf-items">${rewards.map(badge).join("")}</ul>` : `<p class="asc-small asc-muted">Allume ta première balise dans <a href="/adventure">l’Aventure</a>.</p>`}</div>
         ${titles?.length ? `<div class="pf-col-block"><p class="asc-eyebrow">Titres d’expédition</p><ul class="pf-chips">${titles.map((t) => `<li>${icon("mountain")} ${esc(t.title)} <small class="asc-faint">· ${esc(t.expedition)}</small></li>`).join("")}</ul></div>` : ""}
+        ${titleBlockHtml()}
         <div class="pf-col-block"><p class="asc-eyebrow">Jalons</p><ul class="pf-chips">${ms.map((m) => `<li>${icon("flag")} ${m} séance${m > 1 ? "s" : ""}</li>`).join("")}${hs.map((h) => `<li>${icon("clock")} ${h} h</li>`).join("")}${held ? `<li>${icon("check")} ${held} semaine${held > 1 ? "s" : ""} tenue${held > 1 ? "s" : ""}</li>` : ""}${records ? `<li>${icon("star")} ${records} record${records > 1 ? "s" : ""}</li>` : ""}</ul>
           <p class="asc-small asc-faint">${nextM ? `Prochain jalon : ${nextM} séances (${nextM - list.length} à venir)` : ""}${nextM && nextH ? " · " : ""}${nextH ? `${nextH} h de pratique` : ""}</p></div>
       </div>
@@ -233,6 +282,8 @@
     cacheConfirmation = null;
     card = null;
     titles = null;
+    worn = null;
+    wornTask = null;
     cardUnavailable = false;
     cardFailed = false;
   }
@@ -273,6 +324,13 @@
       else if (err?.code === "PGRST202" || /Could not find/.test(err?.message || "")) cardUnavailable = true;
       cardFailed = !card && !cardUnavailable;
       if (t.status === "fulfilled" && !t.value.error && Array.isArray(t.value.data)) titles = t.value.data;
+      // The worn title is a separate, best-effort read on the same session: an older server simply shows no picker.
+      try {
+        const w = await within(job.context.client.rpc("titan_displayed_title").setHeader("Authorization", `Bearer ${session.access_token}`));
+        if (!bitsCurrent(job)) return;
+        await readBitsSession(job);
+        if (bitsCurrent(job) && !w.error && w.data && typeof w.data === "object") worn = { key: w.data.key || null, label: w.data.label || null };
+      } catch {}
     } catch {
       if (bitsCurrent(job)) cardFailed = true;
     } finally {
@@ -306,6 +364,8 @@
       ${guest() ? `<div class="asc-note">${icon("cloudUp")}<span>Crée un compte pour sauvegarder ta progression et la retrouver partout. Tes séances de découverte pourront le rejoindre en un geste.</span></div><div class="asc-row-flex pf-actions"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-secondary" href="/login">J’ai déjà un compte</a></div>` : `<div class="asc-list">
         <a class="asc-row" href="/boutique"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Confort, campagnes et cosmétiques. Jamais de progression achetée."}</span></span>${icon("chevron")}</a>
         <a class="asc-row" href="/recours"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Séances contrôlées et recours</span><span class="asc-row-sub">Voir une séance mise de côté et contester la décision.</span></span>${icon("chevron")}</a>
+        <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
+        <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
       </div>`}
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
@@ -654,6 +714,15 @@
           location.href = "/login";
         },
       });
+    if (b.dataset.wearTitle !== undefined) {
+      const key = b.dataset.wearTitle;
+      return wearTitle(key)
+        .then(applied => applied && window.titanShell.toast({ type: "ok", title: key ? "Titre porté" : "Titre retiré", message: key ? `« ${wornName() || "Titre"} » apparaît sur ton profil.` : "Ton profil n’affiche plus de titre." }))
+        .catch(err => {
+          const m = String(err?.message || "");
+          window.titanShell.toast({ type: "warn", message: m.includes("RATE_LIMITED") ? "Trop de changements de titre. Réessaie dans une heure." : m.includes("NOT_EARNED") ? "Ce titre n’est pas encore gagné." : err?.code === "PGRST202" || m.includes("Could not find") ? "Les titres arrivent avec la prochaine mise à jour du serveur." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
+        });
+    }
     if (b.hasAttribute("data-delete")) return deleteAccount();
   }
 

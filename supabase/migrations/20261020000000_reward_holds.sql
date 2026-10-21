@@ -9,10 +9,11 @@
 -- RPC answer (reward_held, held_xp, held_credits, release_at).
 -- Interface change: titan_submit_training_session gains four trailing columns, so it is dropped and recreated with the
 -- same grants (existing clients ignore unknown columns). The caller owns the transaction.
--- Rollback: re-apply titan_submit_training_session from 20261005160000_ascension_progression_v300.sql and
---   titan_session_exclusion_v1 from 20261019210000_session_exclusion.sql; select cron.unschedule('titan_release_reward_holds');
---   drop function private.titan_release_due_reward_holds(); drop function private.titan_reward_hold_settle(uuid, boolean, boolean);
---   then drop table private.titan_reward_holds only once no hold is still 'held' (it would forfeit those rewards).
+-- Rollback must preserve the 17-column contract and every unsettled hold once exposed.
+-- Do not replay the old 13-column CREATE OR REPLACE (Postgres rejects its changed return type).
+-- Keep the hold table until ALL status='held' rows are resolved, including suspended users;
+-- one release-job call (limit 500, suspended users skipped) cannot establish this.
+-- A compensating migration must be rehearsed on a restored copy; see release plan row 22.
 
 create table if not exists private.titan_reward_holds (
   id bigint generated always as identity primary key,
