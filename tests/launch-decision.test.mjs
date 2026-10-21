@@ -36,3 +36,17 @@ test("the legal texts describe Google Play, not a web seller", () => {
   assert.match(cgu, /quatre campagnes/);
   assert.ok(!/deux campagnes/.test(cgu), "all four campaigns are free");
 });
+
+test("TITAN+ has one canonical « Bientôt disponible » page and every old pricing route leads to it", () => {
+  const page = readFileSync(new URL("titan-plus.html", root), "utf8");
+  assert.match(page, /<title>TITAN\+ — Bientôt disponible/);
+  assert.match(page, /<h1>TITAN\+ — Bientôt disponible/);
+  assert.match(page, /rel="canonical" href="https:\/\/titan-app\.fr\/titan-plus"/);
+  assert.ok(!/<(button|a)[^>]*(checkout|paddle|data-play-checkout)/i.test(page), "no purchase control on the page");
+  const toml = readFileSync(new URL("netlify.toml", root), "utf8");
+  for (const from of ["/tarifs", "/tarifs.html", "/titan-plus.html"]) {
+    assert.match(toml, new RegExp(`from = "${from.replace(".", "\\.")}"\\nto = "/titan-plus"\\nstatus = 301`), `${from} redirects to /titan-plus`);
+  }
+  const readme = [...pages, "js/app/atelier.js", "js/app/rapports.js", "js/app/analyses.js", "tools/lib/public-template.mjs", "tools/build-public-site.mjs"];
+  for (const file of readme) assert.ok(!/["'(=]\/tarifs\b/.test(readFileSync(new URL(file, root), "utf8")), `${file} still links to /tarifs`);
+});

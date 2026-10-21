@@ -15,7 +15,7 @@ execFileSync(process.execPath, [join(root, "tools/build-public-site.mjs")], { cw
 const generated = (name) => readFileSync(join(output, name), "utf8");
 
 test("regeneration preserves the permanent inventory policy in visible and structured answers", () => {
-  const html = generated("tarifs.html");
+  const html = generated("titan-plus.html");
   const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];
   const faq = graph.find((x) => x["@type"] === "FAQPage");
   const expiry = faq.mainEntity.find((x) => /fin de TITAN\+/.test(x.name)).acceptedAnswer.text;
@@ -26,7 +26,7 @@ test("regeneration preserves the permanent inventory policy in visible and struc
 });
 
 test("both generated offers explain temporary access and free acquisition", () => {
-  for (const name of ["index.html", "tarifs.html"]) {
+  for (const name of ["index.html", "titan-plus.html"]) {
     const html = generated(name);
     assert.ok(/Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité/.test(html), `${name}: explain the free acquisition path`);
     assert.ok(!/4 pièces de collection TITAN\+/.test(html), `${name}: no exclusive collection promise`);
@@ -34,7 +34,7 @@ test("both generated offers explain temporary access and free acquisition", () =
 });
 
 test("the real offer distinguishes paid period comparisons from free basic analyses", () => {
-  const html = generated("tarifs.html");
+  const html = generated("titan-plus.html");
   const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];
   const answer = graph.find((x) => x["@type"] === "FAQPage").mainEntity.find((x) => /analyses sportives/.test(x.name)).acceptedAnswer.text;
   assert.match(answer, /4, 12 ou 26 semaines/);
@@ -44,13 +44,13 @@ test("the real offer distinguishes paid period comparisons from free basic analy
 });
 
 test("committed landing and prices are reproducible from the offer generator", () => {
-  for (const name of ["index.html", "tarifs.html"]) {
+  for (const name of ["index.html", "titan-plus.html"]) {
     assert.ok(generated(name) === readFileSync(join(root, name), "utf8"), `${name}: regenerate after editing the source`);
   }
 });
 
 test('campaign access offer follows four free regions with an explicit server rollout',()=>{
- for(const name of ['index.html','tarifs.html','aventures-sportives.html']){
+ for(const name of ['index.html','titan-plus.html','aventures-sportives.html']){
   const html=generated(name);assert.match(html,/quatre campagnes|Quatre campagnes/);
   assert.doesNotMatch(html,/2 campagnes de plus|deux campagnes supplémentaires|campagnes TITAN\+ ne peuvent plus être poursuivies|viennent avec TITAN\+|sont gratuits : 18 chapitres/);
  }
@@ -60,7 +60,7 @@ test('campaign access offer follows four free regions with an explicit server ro
 });
 
 test("generated report offer explains aggregated CSV, provisional periods and free journal exports", () => {
-  const html = generated("tarifs.html");
+  const html = generated("titan-plus.html");
   const graph = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])["@graph"];
   const answer = graph.find(x => x["@type"] === "FAQPage").mainEntity.find(x => /bilans/.test(x.name))?.acceptedAnswer.text;
   assert.ok(answer, "report FAQ exists");
@@ -77,7 +77,7 @@ test("generated report offer explains aggregated CSV, provisional periods and fr
 });
 
 test("saved views offer describes private parameters, retention, free favorites and unchanged price", () => {
-  const html=generated('tarifs.html');
+  const html=generated('titan-plus.html');
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])['@graph'];
   const answer=graph.find(x=>x['@type']==='FAQPage').mainEntity.find(x=>/vues sauvegardées/.test(x.name))?.acceptedAnswer.text;
   assert.ok(answer,'saved views FAQ');assert.match(answer,/10 vues/);assert.match(answer,/paramètres/);assert.match(answer,/conservées.*supprimées/);

@@ -87,7 +87,7 @@
       if (error) throw error;
       if (j?.version !== 1 || j.owner !== owner) throw new Error("INVALID_REPORT_RESPONSE");
       if (j.available === false && j.reason === "premium_required") {
-        status.innerHTML = '<p>TITAN+ ajoute les bilans mensuels et annuels avec leur CSV agrégé. Ton journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices TITAN+</a>'; return;
+        status.innerHTML = '<p>TITAN+ ajoute les bilans mensuels et annuels avec leur CSV agrégé. Ton journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices TITAN+</a>'; return;
       }
       if (!R().valid(j, options, owner)) throw new Error("INVALID_REPORT_RESPONSE");
       results(j); status.innerHTML = "<p>Bilan calculé.</p>";

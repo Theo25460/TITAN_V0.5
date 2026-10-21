@@ -103,7 +103,7 @@
       if (error) throw error;
       if (!j || j.owner !== owner) throw new Error("INVALID_COMPARISON_RESPONSE");
       if (j.available === false) {
-        status.innerHTML = '<p>TITAN+ ajoute les comparaisons de périodes et le filtre par sport. Ton historique, tes records et tes analyses de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices TITAN+</a>';
+        status.innerHTML = '<p>TITAN+ ajoute les comparaisons de périodes et le filtre par sport. Ton historique, tes records et tes analyses de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices TITAN+</a>';
       } else {
         if (j.available !== true || !valid(j, options)) throw new Error("INVALID_COMPARISON_RESPONSE");
         results(j);

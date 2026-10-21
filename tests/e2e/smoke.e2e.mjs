@@ -2474,7 +2474,7 @@ test("landing: one h1, the start call to action, no horizontal scroll", async ()
 test("Titan+ prices: concrete capacities and worlds are readable on mobile and desktop", async () => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await newPage(width);
-    await page.goto(BASE + "/tarifs#concret", { waitUntil: "load" });
+    await page.goto(BASE + "/titan-plus#concret", { waitUntil: "load" });
     assert.equal(await page.locator("#concret").count(), 1);
     for (const [kind, free] of [["routines", 5], ["coach", 3]]) {
       const meter = page.locator(`[data-benefit="${kind}"] .pub-benefit-meter`);
@@ -2506,11 +2506,11 @@ test("Atelier: both subscription states can consult the concrete benefits withou
     let checkoutCalls = 0;
     await page.exposeFunction("recordCheckoutCall", () => { checkoutCalls++; });
     await page.evaluate(() => { window.openEliteCheckout = window.recordCheckoutCall; });
-    const link = page.locator('#plus a[href="/tarifs#concret"]');
+    const link = page.locator('#plus a[href="/titan-plus#concret"]');
     assert.equal(await link.count(), 1);
     await link.focus();
     await page.keyboard.press("Enter");
-    await page.waitForURL("**/tarifs#concret");
+    await page.waitForURL("**/titan-plus#concret");
     assert.equal(await page.locator("#concret").isVisible(), true);
     assert.equal(checkoutCalls, 0, "consulting benefits never calls the checkout entry point");
     // Check before returning: the active Atelier can clear a pending marker on reload.
@@ -2814,7 +2814,7 @@ test("validation: a run without distance or duration is refused on the field", a
 const assistanceTopics = [
   ["bug", "Bug ou problème technique", "/journal"],
   ["compte", "Compte et connexion", "/login"],
-  ["titanplus", "TITAN+ et remboursement", "/tarifs"],
+  ["titanplus", "TITAN+ et remboursement", "/titan-plus"],
   ["donnees", "Données et confidentialité", "/profile"],
   ["communaute", "Communauté et signalement", "/social"],
   ["autre", "Autre question", "/debuter-titan"],
@@ -3610,7 +3610,7 @@ test("assistance: installed PWA can reach help offline before its first visit", 
 });
 
 test("private pages are noindex, public guides are indexable", async () => {
-  for (const [path, indexable] of [["/aujourdhui", false], ["/journal", false], ["/profile", false], ["/boutique", false], ["/u/abcdefghij", false], ["/tarifs", true], ["/niveaux-et-xp", true]]) {
+  for (const [path, indexable] of [["/aujourdhui", false], ["/journal", false], ["/profile", false], ["/boutique", false], ["/u/abcdefghij", false], ["/titan-plus", true], ["/niveaux-et-xp", true]]) {
     const html = await (await fetch(BASE + path)).text();
     const robots = html.match(/<meta name="robots" content="([^"]+)"/)?.[1] || "";
     assert.equal(/noindex/.test(robots), !indexable, `${path}: ${robots}`);

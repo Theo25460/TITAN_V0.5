@@ -347,12 +347,12 @@
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Merci de soutenir TITAN.</h2>
         <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton accès TITAN+ est actif."}</p>
         <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
-        <a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+        <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
         <p class="asc-small asc-faint">Pour arrêter ou modifier ton accès : écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de confort pour ta pratique.</h2>
       <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
-      <a class="asc-btn asc-btn-secondary" href="/tarifs#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+      <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
       ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
       ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ : bientôt disponible. Aucun paiement n’est proposé pour le moment. À son ouverture, l’abonnement sera proposé dans l’application Android, via Google Play.</span></p>`}
       ${guest() && (playBillingOffered() || window.TITAN_PAYMENTS?.webCheckout === true) ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
@@ -365,7 +365,7 @@
     if (guest()) {
       root.innerHTML = `<section class="asc-hero at-wallet"><div class="at-wallet-main"><p class="asc-eyebrow cy">Atelier</p><h2 class="cm-exp-title">Ton style se gagne à l’effort.</h2>
           <p class="asc-lead">Chaque séance rapporte des crédits. Ils débloquent des cadres, des ambiances de carte et des styles de cartes partageables. Rien ici ne change ta progression.</p>
-          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/tarifs">Gratuit et TITAN+</a></div></div></section>
+          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/titan-plus">TITAN+ · bientôt</a></div></div></section>
         ${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;

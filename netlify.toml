@@ -686,13 +686,25 @@ status = 200
 
 [[redirects]]
 from = "/tarifs.html"
-to = "/tarifs"
+to = "/titan-plus"
 status = 301
 force = true
 
 [[redirects]]
 from = "/tarifs"
-to = "/tarifs.html"
+to = "/titan-plus"
+status = 301
+force = true
+
+[[redirects]]
+from = "/titan-plus.html"
+to = "/titan-plus"
+status = 301
+force = true
+
+[[redirects]]
+from = "/titan-plus"
+to = "/titan-plus.html"
 status = 200
 
 [[redirects]]
