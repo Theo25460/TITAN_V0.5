@@ -24,8 +24,9 @@ if not query('select current_database()').startswith('titan_test_'):
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = '20261005230000'
+LAST = '20261021020000'  # last migration of the V1 release lot; later files belong to V1.1 and have their own gates
 versions = sorted(path.name[:14] for path in (ROOT / 'supabase/migrations').glob('*.sql')
-                  if path.name[:14] > BASE)
+                  if BASE < path.name[:14] <= LAST)
 assert len(versions) == 29, 'this release gate is scoped to the 29 pending migrations'
 values = ','.join(f"('{version}')" for version in [BASE] + versions)
 seed_ledger = f"""delete from supabase_migrations.schema_migrations where version > '{BASE}';

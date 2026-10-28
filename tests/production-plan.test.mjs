@@ -3,10 +3,27 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 
 const BASE = '20261005230000';
+const LAST_V1 = '20261021020000';
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const pending = readdirSync(new URL('../supabase/migrations/', import.meta.url))
-  .filter((f) => f.endsWith('.sql') && f.slice(0, 14) > BASE)
+  .filter((f) => f.endsWith('.sql') && f.slice(0, 14) > BASE && f.slice(0, 14) <= LAST_V1)
   .sort();
+// Migrations written after the V1 lot (applied in production on 22/10/2026) belong to V1.1 and have their own plan.
+const v11 = readdirSync(new URL('../supabase/migrations/', import.meta.url))
+  .filter((f) => f.endsWith('.sql') && f.slice(0, 14) > LAST_V1)
+  .sort();
+
+test('chaque migration V1.1 est citée dans son plan, dans l\'ordre, avec son retour arrière et sans BEGIN/COMMIT', () => {
+  const plan = read('docs/V11_RELEASE_PLAN.md');
+  let last = -1;
+  for (const f of v11) {
+    const name = f.replace(/\.sql$/, '');
+    const at = plan.indexOf('`' + name + '`');
+    assert.ok(at > last, `migration V1.1 absente ou hors ordre dans le plan : ${name}`);
+    last = at;
+    assert.doesNotMatch(read('supabase/migrations/' + f).split('\n').filter((l) => !l.trim().startsWith('--')).join('\n'), /^\s*(begin|commit)\s*;/im, `${name} laisse la transaction à l'appelant`);
+  }
+});
 
 test('le plan de production cite chaque migration en attente, dans l\'ordre', () => {
   const plan = read('docs/CDC_WEB_PRODUCTION_RELEASE_PLAN_2026-10-19.md');

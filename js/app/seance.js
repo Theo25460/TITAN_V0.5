@@ -13,6 +13,8 @@
   const COMMON_EXERCISES = ["Développé couché", "Squat", "Soulevé de terre", "Développé militaire", "Rowing barre", "Tractions", "Dips", "Fentes", "Presse à cuisses", "Hip thrust", "Tirage vertical", "Tirage horizontal", "Curl biceps", "Extension triceps", "Élévations latérales", "Leg curl", "Leg extension", "Mollets", "Pompes", "Gainage"];
   const COMMON_MOVES = ["Pompes", "Tractions", "Dips", "Squats", "Fentes", "Gainage (planche)", "Planche latérale", "Burpees", "Relevés de jambes", "Muscle-up", "Pistol squat", "L-sit", "Front lever", "Handstand"];
   const RPE_TEXT = { 1: "Très facile", 2: "Très facile", 3: "Facile", 4: "Facile", 5: "Modéré", 6: "Modéré", 7: "Difficile", 8: "Difficile", 9: "Très difficile", 10: "Maximal" };
+  const MAX_DISTANCE_KM = 1000; // ultra-distance is plausible; beyond this a typo is far likelier than an effort
+  const MAX_AVERAGE_KMH = 120; // no session of the distance form exceeds this average speed
   const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] };
 
   let S = null;
@@ -172,9 +174,20 @@
     let unit = S_().unitOf(sport);
     if (form === "distance") {
       const km = num(S.distance);
-      if (!(km > 0)) fail("Indique la distance.", "distance");
-      else if (km > 300) fail("La distance d’une séance est limitée à 300 km.", "distance");
-      data.val1 = km;
+      if (km === null && dur !== null) {
+        // V11-11: a distance that is not known is not 0 km. The session is recorded by its duration alone.
+        data.unitOverride = "min";
+        data.val1 = dur;
+        data.extras.distance_unknown = true;
+      } else {
+        if (km === null) fail("Indique la distance, ou au moins la durée.", "distance");
+        else if (!(km > 0)) fail("Indique la distance.", "distance");
+        else if (km > MAX_DISTANCE_KM) fail(`La distance d’une séance est limitée à ${MAX_DISTANCE_KM} km.`, "distance");
+        else if (km > 300 && dur === null) fail("Au-delà de 300 km, indique aussi la durée.", "durH");
+        else if (dur !== null && dur > 0 && km / (dur / 60) > MAX_AVERAGE_KMH) fail("Cette vitesse moyenne semble irréaliste : vérifie la distance et la durée.", "distance");
+        data.val1 = km;
+      }
+      Object.assign(data.extras, collectExtras(["elevation", "avg_speed", "avg_pace", "distance"]));
       const elev = num(S.elevation);
       if (elev !== null) data.elevation = Math.min(12000, Math.max(0, elev));
       if (S.gpx) {
@@ -186,6 +199,7 @@
       if (!(m > 0)) fail("Indique la distance nagée.", "meters");
       data.val1 = m;
       data.extras.pool = S.pool;
+      Object.assign(data.extras, collectExtras(["pool", "distance"]));
     } else if (form === "strength") {
       data.exercises = exercisesPayload();
       if (!data.exercises.length && dur === null) fail("Ajoute au moins une série complète (exercice et répétitions), ou une durée.", "exercises.0.name");
@@ -195,6 +209,7 @@
       }
     } else if (form === "bodyweight") {
       data.exercises = exercisesPayload();
+      Object.assign(data.extras, collectExtras(["sets", "best_set", "reps"]));
       const reps = data.exercises.filter((e) => e.kind !== "hold").reduce((n, e) => n + e.setRows.reduce((a, r) => a + (r.reps || 0), 0), 0);
       if (reps > 0) {
         data.val1 = reps;
@@ -232,7 +247,7 @@
         data.val1 = dur;
         if (unit === "h" && dur) data.unitOverride = "min";
       }
-      for (const [k, v] of Object.entries(S.extras)) if (v !== "" && v !== null && v !== undefined) data.extras[k] = v;
+      Object.assign(data.extras, collectExtras());
     }
     unit = data.unitOverride || unit;
     let val = Number(data.val1) || 0;
@@ -358,12 +373,47 @@
     return [...names.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([n]) => n);
   }
 
+  /* V11-09: the sport's own measures. The first 2-3 (by catalogue priority) are shown right away, the others stay in an optional section.
+     A field can depend on another one (visibleWhen: field + equals/in), as in football where saves only concern the goalkeeper. */
+  const extraVisible = (f) => {
+    const w = f.visibleWhen;
+    if (!w || !w.field) return true;
+    const cur = S.extras[w.field];
+    if (w.equals !== undefined) return cur === w.equals;
+    if (Array.isArray(w.in)) return w.in.includes(cur);
+    return true;
+  };
+  function sportMeasures(skip = []) {
+    const all = (window.SPORTS_CONFIG?.[S.sport]?.extraFields || [])
+      .filter((f) => f && f.id && ["number", "select", "checkbox", "text"].includes(f.type) && !skip.includes(f.id))
+      .sort((a, b) => (a.priority || 99) - (b.priority || 99));
+    const shown = all.filter(extraVisible);
+    const primary = shown.filter((f) => f.type !== "text" && !f.eliteOnly).slice(0, 3);
+    const rest = shown.filter((f) => !primary.includes(f)).slice(0, 8);
+    return { primary, rest, all };
+  }
+  function measuresExtrasHtml(skip = [], title = "Mesures") {
+    const { primary, rest } = sportMeasures(skip);
+    const name = esc(S_().label(S.sport).toLowerCase());
+    return `${primary.length ? `<section class="seance-block" data-primary-measures><p class="asc-eyebrow">${esc(title)} · ${name}</p><div class="asc-form-grid">${primary.map(extraField).join("")}</div></section>` : ""}
+      ${rest.length ? `<details class="seance-block seance-more" ${rest.some((f) => S.extras[f.id] !== undefined && S.extras[f.id] !== "") ? "open" : ""}><summary>Détails de ${name} <small class="asc-faint">facultatif</small></summary><div class="asc-form-grid">${rest.map(extraField).join("")}</div></details>` : ""}`;
+  }
+  /** Values of the visible fields only: a hidden field never leaves stale data in the session. */
+  function collectExtras(skip = []) {
+    const out = {};
+    for (const f of sportMeasures(skip).all) {
+      const v = S.extras[f.id];
+      if (extraVisible(f) && v !== "" && v !== null && v !== undefined && v !== false) out[f.id] = v;
+    }
+    return out;
+  }
+
   function measuresHtml() {
     const form = S_().formOf(S.sport);
     if (form === "distance") {
       const mode = S_().paceMode(S.sport);
       return `<section class="seance-block"><div class="seance-big">
-          <label class="asc-field"><span>Distance</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" max="300" step="0.01" data-k="distance" value="${esc(S.distance)}" placeholder="0,0"><span>km</span></div></label>
+          <label class="asc-field"><span>Distance</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" max="1000" step="0.01" data-k="distance" value="${esc(S.distance)}" placeholder="0,0"><span>km</span></div><small class="asc-faint">Distance inconnue ? Laisse vide et indique la durée.</small></label>
           ${durationHtml("Durée", false, true)}
         </div>
         <p class="seance-derived asc-small" id="derived" aria-live="polite"></p>
@@ -371,7 +421,8 @@
         <div class="seance-gpx"><label class="asc-btn asc-btn-secondary asc-btn-sm">${icon("upload")} Importer un GPX<input type="file" accept=".gpx,application/gpx+xml" data-gpx hidden></label>
           ${S.gpx ? `<span class="asc-small asc-muted">Trace importée : ${esc(F().distance(S.gpx.distanceKm))}${S.gpx.movingMinutes ? `, ${esc(F().duration(S.gpx.movingMinutes))} en mouvement` : ""}${S.gpx.ascent ? `, +${S.gpx.ascent} m` : ""}. Le tracé GPS n’est pas conservé.</span>` : `<span class="asc-small asc-faint">Distance, temps en mouvement et dénivelé sont remplis depuis ta montre ou ton application.</span>`}</div>
         <input type="hidden" data-mode="${mode}">
-      </section>`;
+      </section>
+      ${measuresExtrasHtml(["elevation", "avg_speed", "avg_pace", "distance"])}`;
     }
     if (form === "swim")
       return `<section class="seance-block"><div class="seance-big">
@@ -380,9 +431,10 @@
         </div>
         <p class="seance-derived asc-small" id="derived" aria-live="polite"></p>
         <div class="asc-field"><span>Bassin</span><div class="asc-seg" role="group" aria-label="Bassin">${[["25", "25 m"], ["50", "50 m"], ["open", "Eau libre"]].map(([k, l]) => `<button type="button" data-pool="${k}" aria-pressed="${S.pool === k}">${l}</button>`).join("")}</div></div>
-      </section>`;
+      </section>
+      ${measuresExtrasHtml(["pool", "distance"])}`;
     if (form === "strength") return setsEditor("strength");
-    if (form === "bodyweight") return setsEditor("bodyweight");
+    if (form === "bodyweight") return `${setsEditor("bodyweight")}${measuresExtrasHtml(["sets", "best_set", "reps"], "Précisions")}`;
     if (form === "climbing") {
       const c = S.climbing;
       const systems = GRADE_SYSTEMS[c.discipline] || GRADE_SYSTEMS.Bloc;
@@ -405,9 +457,8 @@
       <section class="seance-block">${durationHtml()}</section>`;
     }
     const unit = S_().unitOf(S.sport);
-    const fields = (window.SPORTS_CONFIG?.[S.sport]?.extraFields || []).filter((f) => f && f.id && ["number", "select", "checkbox", "text"].includes(f.type)).sort((a, b) => (a.priority || 99) - (b.priority || 99)).slice(0, 6);
     return `<section class="seance-block"><div class="seance-big">${!["min", "h"].includes(unit) ? `<label class="asc-field"><span>Valeur</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" data-k="value" value="${esc(S.value)}" placeholder="0"><span>${esc(unit)}</span></div></label>` : ""}${durationHtml()}</div></section>
-      ${fields.length ? `<details class="seance-block seance-more" ${Object.keys(S.extras).length ? "open" : ""}><summary>Détails de ${esc(S_().label(S.sport).toLowerCase())} <small class="asc-faint">facultatif</small></summary><div class="asc-form-grid">${fields.map(extraField).join("")}</div></details>` : ""}`;
+      ${measuresExtrasHtml()}`;
   }
 
   function extraField(f) {
@@ -704,7 +755,8 @@
       status("");
     }
     setPath(S, k, el.type === "checkbox" ? el.checked : el.value);
-    if (k === "climbing.system" || k === "date") {
+    const dependsOn = k.startsWith("extras.") && (window.SPORTS_CONFIG?.[S.sport]?.extraFields || []).some((f) => f?.visibleWhen?.field === k.slice(7));
+    if (k === "climbing.system" || k === "date" || dependsOn) {
       render();
       const again = root.querySelector(`[data-k="${k}"]`);
       again?.focus();
