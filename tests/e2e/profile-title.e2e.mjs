@@ -124,3 +124,23 @@ test('a silent SDK session rollover during the worn-title read discards the priv
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test('an ultra-distance session shows its endurance souvenirs in the Collection, decorative only', async () => {
+  const { page, context, errors } = await profilePage();
+  try {
+    await page.locator('[data-title-block]').waitFor();
+    assert.equal(await page.locator('[data-endurance-block]').count(), 0, 'nothing before a long effort');
+    await page.evaluate(() => {
+      window.state.history = [{ id: 'long-1', client_event_id: 'long-1', sport: 'cycling', unit: 'km', val: 320, xp: 1800, date: new Date(Date.now() - 86400000).toISOString(), syncStatus: 'confirmed', details: { duration: 1200, elevation: 4200, serverReward: true } }];
+      dispatchEvent(new CustomEvent('titan:history-updated'));
+    });
+    const block = page.locator('[data-endurance-block]');
+    await block.waitFor();
+    const text = await block.innerText();
+    assert.match(text, /Ultra : 300 km/);
+    assert.match(text, /3 000 m de dénivelé/);
+    assert.match(text, /sans XP en plus/);
+    assert.equal(await block.locator('[data-endurance="endurance:distance:300"]').count(), 1);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

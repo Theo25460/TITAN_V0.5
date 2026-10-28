@@ -146,6 +146,15 @@
       <p class="asc-small asc-faint">Un titre est purement décoratif : il ne donne ni XP ni crédits.</p></div>`;
   }
 
+  /* V11-12: long efforts recognised on their own, cosmetic only (no XP, no credits). */
+  function enduranceBlockHtml() {
+    const h = window.TitanEndurance?.highlights(logs());
+    if (!h || (!h.earned.length && !(h.bests.distanceKm > 0))) return "";
+    return `<div class="pf-col-block" data-endurance-block><p class="asc-eyebrow">Exploits d’endurance</p>
+      ${h.earned.length ? `<ul class="pf-chips">${h.earned.map((e) => `<li data-endurance="${esc(e.key)}">${icon(e.family === "elevation" ? "mountain" : e.family === "duration" ? "clock" : "route")} ${esc(e.label)}</li>`).join("")}</ul>` : ""}
+      ${h.next.length ? `<p class="asc-small asc-faint">Prochain${h.next.length > 1 ? "s" : ""} : ${h.next.map((n) => esc(n.label)).join(" · ")}. Une seule sortie suffit, sans XP en plus : ce sont des souvenirs.</p>` : ""}</div>`;
+  }
+
   function collectionHtml() {
     const s = A()?.snapshot;
     const rewards = (s?.rewards || []).slice().sort((a, b) => new Date(b.earned_at) - new Date(a.earned_at));
@@ -168,6 +177,7 @@
         <div class="pf-col-block"><p class="asc-eyebrow">Insignes d’aventure</p>${rewards.length ? `<ul class="pf-items">${rewards.map(badge).join("")}</ul>` : `<p class="asc-small asc-muted">Allume ta première balise dans <a href="/adventure">l’Aventure</a>.</p>`}</div>
         ${titles?.length ? `<div class="pf-col-block"><p class="asc-eyebrow">Titres d’expédition</p><ul class="pf-chips">${titles.map((t) => `<li>${icon("mountain")} ${esc(t.title)} <small class="asc-faint">· ${esc(t.expedition)}</small></li>`).join("")}</ul></div>` : ""}
         ${titleBlockHtml()}
+        ${enduranceBlockHtml()}
         <div class="pf-col-block"><p class="asc-eyebrow">Jalons</p><ul class="pf-chips">${ms.map((m) => `<li>${icon("flag")} ${m} séance${m > 1 ? "s" : ""}</li>`).join("")}${hs.map((h) => `<li>${icon("clock")} ${h} h</li>`).join("")}${held ? `<li>${icon("check")} ${held} semaine${held > 1 ? "s" : ""} tenue${held > 1 ? "s" : ""}</li>` : ""}${records ? `<li>${icon("star")} ${records} record${records > 1 ? "s" : ""}</li>` : ""}</ul>
           <p class="asc-small asc-faint">${nextM ? `Prochain jalon : ${nextM} séances (${nextM - list.length} à venir)` : ""}${nextM && nextH ? " · " : ""}${nextH ? `${nextH} h de pratique` : ""}</p></div>
       </div>
