@@ -338,7 +338,7 @@ writeFileSync(
         ["offline", "Hors ligne", "Une séance sans réseau reste sur l’appareil et se synchronise toute seule."],
       ], 4)}</div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comprendre</p><h2>Progrès</h2></div>${cards([
-        ["chart", "Semaine", "Récap hebdomadaire, comparaison avec tes semaines habituelles, questions qui répondent.", "/comprendre-mes-donnees"],
+        ["chart", "Semaine et bilans", "Récap hebdomadaire, bilans du mois et de l’année à partager, comparaison honnête avec tes périodes habituelles, questions qui répondent.", "/comprendre-mes-donnees"],
         ["journal", "Journal", "Recherche, familles, calendrier, détail, comparaison avec la séance précédente, correction, archive, export."],
         ["star", "Records", "Par sport, avec la séance source, le contexte et l’historique des améliorations."],
         ["flag", "Objectifs", "Séances, jours, minutes ou kilomètres sur une période, avec projection de rythme."],

@@ -62,6 +62,24 @@ test("soft streak (IDEA06): rest days inside a week cost nothing, and a missed w
   assert.equal(paused.weeks.find((w) => w.start === "2026-09-21").state, "pause");
 });
 
+test("progressive discovery (ACT06): screens are introduced when they become concrete, last in line, and never for ever", () => {
+  const day = (d) => `2026-09-${String(d).padStart(2, "0")}T07:00:00`;
+  const base = [1, 3, 5, 8, 10].map((d, i) => log(day(d), { val: 5 + i, details: { duration: 30 + i } }));
+  const ids = (logs, extra = {}) => P.insights({ logs, now: new Date("2026-09-12T12:00:00"), ...extra }).map((i) => i.id);
+  assert.ok(!ids(base.slice(0, 2)).some((id) => id.startsWith("discover")), "nothing in the first sessions");
+  const five = P.insights({ logs: base, now: new Date("2026-09-12T12:00:00") });
+  assert.ok(five.some((i) => i.id === "discover-goals"), "a goal is suggested once there are five sessions and none set");
+  assert.ok(five.some((i) => i.id === "discover-records"), "records are introduced once one exists");
+  assert.ok(!P.insights({ logs: base, now: new Date("2026-09-12T12:00:00"), goals: [{ id: "g" }] }).some((i) => i.id === "discover-goals"), "not when a goal already exists");
+  assert.ok(five.filter((i) => i.id.startsWith("discover")).every((i) => i.priority < 40), "always below a real recommendation");
+  assert.ok(P.nextAction({ logs: base, now: new Date("2026-09-12T12:00:00") }).priority === undefined || P.nextAction({ logs: base, now: new Date("2026-09-12T12:00:00") }).priority >= 0, "the hero still resolves");
+  // After the first weeks the introductions stop on their own.
+  const late = P.insights({ logs: base, now: new Date("2026-12-12T12:00:00") });
+  assert.ok(!late.some((i) => i.id.startsWith("discover")), "no discovery after sixty days");
+  const many = Array.from({ length: 45 }, (_, i) => log(`2026-09-${String(1 + (i % 28)).padStart(2, "0")}T0${i % 9}:00:00`, { val: 5 + (i % 4) }));
+  assert.ok(!P.insights({ logs: many, now: new Date("2026-09-30T12:00:00") }).some((i) => i.id.startsWith("discover")), "no discovery for an established player");
+});
+
 test("cadence keeps every local week across spring clock changes", () => {
   for (const anchor of ["2026-03-30T12:00:00", "2026-03-09T12:00:00"]) {
     const now = new Date(anchor);
