@@ -63,6 +63,12 @@ fi
 [[ "$guard" == "Refused: release gate tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · release gate non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-release-gates.py" "${PSQL[@]}" -d "$DB"
+echo "V1.1 postflight gate (rollback-only)"
+if guard=$(python3 "$ROOT/tools/db/test-v11-gates.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "V1.1 gate runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the V1.1 gate tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+python3 "$ROOT/tools/db/test-v11-gates.py" "${PSQL[@]}" -d "$DB"
 echo "Economy concurrency contracts (two real connections)"
 if guard=$(python3 "$ROOT/tools/db/test-economy-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
   echo "concurrency runner accepted a non-test database"; exit 1
