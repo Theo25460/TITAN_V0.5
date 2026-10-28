@@ -18,22 +18,27 @@
     {
       "blob": "ba5268d0d0",
       "kind": "keystore password assigned a literal",
-      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow, line 122-128. Shell parameter expansion references existing environment variables with a fallback; no credential is written in the line (checked with the values masked)."
     },
     {
       "blob": "29a54fd1cf",
       "kind": "keystore password assigned a literal",
-      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow, line 122-128. Shell parameter expansion references existing environment variables with a fallback; no credential is written in the line (checked with the values masked)."
     },
     {
       "blob": "ec7c6afd49",
       "kind": "keystore password assigned a literal",
-      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow, line 122-128. Shell parameter expansion references existing environment variables with a fallback; no credential is written in the line (checked with the values masked)."
     },
     {
       "blob": "a129bfb880",
       "kind": "keystore password assigned a literal",
-      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow, line 122-128. Shell parameter expansion references existing environment variables with a fallback; no credential is written in the line (checked with the values masked)."
+    },
+    {
+      "blob": "6c784ec0a9",
+      "kind": "keystore password assigned a literal",
+      "reason": "Claude Code, 28/10/2026: the first wording of the four reviews above quoted the name of an environment variable next to the word password. It is explanatory text in this very file, not a credential; the wording was changed in the next commit."
     }
   ]
 }
