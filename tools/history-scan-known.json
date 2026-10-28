@@ -14,6 +14,26 @@
       "blob": "5c3e70420d",
       "kind": "keystore password assigned a literal",
       "reason": "Reviewed by Codex on 21/10/2026: false positive in a separate branch workflow, line 122. Shell parameter expansion references existing environment variables with a fallback; no credential literal. Exact content hash only; the Android branch is not integrated into WEB."
+    },
+    {
+      "blob": "ba5268d0d0",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+    },
+    {
+      "blob": "29a54fd1cf",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+    },
+    {
+      "blob": "ec7c6afd49",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
+    },
+    {
+      "blob": "a129bfb880",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Claude Code on 28/10/2026 (to be confirmed by Codex): same false positive as 65a732aa41, in the separate Android branch workflow (claude/tender-faraday-89ijgk). The line only references the KEY_PASSWORD environment variable with a shell-expansion fallback to another variable; checked with the values masked, no credential is written in it."
     }
   ]
 }
