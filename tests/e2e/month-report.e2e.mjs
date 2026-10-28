@@ -57,6 +57,8 @@ test("month report: this month is compared with the same days of the previous mo
     const text = await page.locator(".wk-month").innerText();
     assert.match(text, /2 jours actifs, 2 sports/);
     assert.match(text, /Mois en cours/);
+    assert.match(text, /Temps forts/i, "12 km beats the 10 km of September");
+    assert.match(text, /record/i);
     assert.match(text, /12 km|12,0 km/);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.getByRole("button", { name: "Mois précédent", exact: true }).click();

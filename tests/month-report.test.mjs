@@ -60,3 +60,12 @@ test("a quieter month is described, never judged", () => {
   assert.match(describe(build([], opts)).title, /commence/);
   assert.match(describe(build([], { ...opts, offset: 1 })).title, /repos/);
 });
+
+test("records and adventure highlights of the month come from the caller, capped, and a record count joins the notes", () => {
+  const recs = Array.from({ length: 7 }, (_, i) => ({ sport: "running", label: `r${i}` }));
+  const r = build([log(new Date(2026, 9, 2, 8))], { ...opts, recordsOf: (from, to) => (from < to ? recs : []), adventureOf: () => [{ label: "Insigne", detail: "Aube · chapitre 1" }] });
+  assert.equal(r.records.length, 5);
+  assert.equal(r.adventure.length, 1);
+  assert.ok(describe(r).notes.some((n) => /5 records battus/.test(n)));
+  assert.deepEqual(build([log(new Date(2026, 9, 2, 8))], opts).records, []);
+});

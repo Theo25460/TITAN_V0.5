@@ -14,7 +14,7 @@
   let root = null;
   let offset = 0; // 0 = this week, 1 = last week…
   let goalsCache = [];
-  let monthOffset = 0; // 0 = this month in progress, 1 = last month…
+  let monthOffset = /[?&]mois=1\b/.test(location.search) ? 1 : 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
 
@@ -115,7 +115,9 @@
     });
   }
 
-  const monthReport = () => window.TitanMonthReport.build(logs(), { offset: monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s) });
+  const monthReport = () => window.TitanMonthReport.build(logs(), { offset: monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
+    recordsOf: (from, to) => P().newRecords(logs(), from, to).filter((r) => r.kind !== "duration"),
+    adventureOf: (from, to) => window.TitanTitles ? window.TitanTitles.earned({ rewards: (window.TitanAdventure?.snapshot?.rewards || []).filter((r) => { const t = new Date(r.earned_at).getTime(); return t >= from && t < to; }), catalog: window.TitanCodex }) : [] });
 
   /* V11-14: the free monthly report. Time is the common measure; each sport keeps its own volume. */
   function monthHtml() {
@@ -127,9 +129,18 @@
         <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset + 1}" aria-label="Mois précédent">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset - 1}" aria-label="Mois suivant" ${monthOffset === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
       <p class="asc-lead">${esc(d.title)} ${esc(d.text)}</p>
       ${m.sessions ? `<dl class="wk-stats"><div><dt>Séances</dt><dd class="asc-num">${m.sessions}</dd></div><div><dt>Jours actifs</dt><dd class="asc-num">${m.activeDays}</dd></div><div><dt>Temps</dt><dd class="asc-num">${m.minutes ? esc(F().duration(m.minutes)) : "—"}</dd></div></dl><div class="asc-list">${rows}</div>` : ""}
+      ${monthHighlights(m)}
       ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}
       ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month-card>${icon("share")} Image de mon mois</button>` : ""}
     </section>`;
+  }
+
+  function monthHighlights(m) {
+    const items = [
+      ...m.records.map((rec) => `<div class="asc-row"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(SP().label(rec.sport))} · ${esc(rec.label)}</span><span class="asc-row-sub">${esc(fmtRecord(rec))}${rec.previous ? ` · avant ${esc(fmtRecord(rec, rec.previous.value))}` : " · premier repère"}</span></span></div>`),
+      ...m.adventure.map((t) => `<div class="asc-row"><span class="asc-row-icon">${icon("flag")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(t.label)}</span><span class="asc-row-sub">Aventure · ${esc(t.detail)}</span></span></div>`),
+    ];
+    return items.length ? `<h3 class="asc-eyebrow">Temps forts</h3><div class="asc-list">${items.join("")}</div>` : "";
   }
 
   function monthCard() {
@@ -139,7 +150,7 @@
       kind: "week",
       eyebrow: `Bilan de ${m.label}`,
       title: d.title,
-      detail: [d.text, ...d.notes.filter((n) => /estimées/.test(n))].join(" "),
+      detail: [d.text, ...d.notes.filter((n) => /estimées|record/.test(n))].join(" "),
       stats: [["Jours actifs", String(m.activeDays)], ["Temps", m.minutes ? F().duration(m.minutes) : "—"], m.distanceKm ? ["Distance", F().distance(m.distanceKm)] : ["Séances", String(m.sessions)]],
       name: window.TitanCard.userName(),
       filename: "titan-mois",

@@ -34,7 +34,7 @@
   }
 
   /** offset 0 = this month (in progress), 1 = last month… */
-  function build(logs, { now = new Date(), offset = 0, minutesOf, label = (s) => s } = {}) {
+  function build(logs, { now = new Date(), offset = 0, minutesOf, label = (s) => s, recordsOf = () => [], adventureOf = () => [] } = {}) {
     const list = (logs || []).filter(counted).filter((l) => new Date(l.date).getTime() <= now.getTime() + 10 * 60000);
     const from = new Date(now.getFullYear(), now.getMonth() - offset, 1);
     const fullTo = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
@@ -52,6 +52,8 @@
       from, to: fullTo, current, label: `${MONTHS[from.getMonth()]} ${from.getFullYear()}`,
       ...cur,
       distanceKm: Math.round(cur.sports.reduce((a, s) => a + (s.distanceKm || 0), 0) * 10) / 10,
+      records: (recordsOf(from.getTime(), to.getTime()) || []).slice(0, 5),
+      adventure: (adventureOf(from.getTime(), fullTo.getTime()) || []).slice(0, 5),
       estimatedShare: cur.minutes > 0 ? cur.estimatedMinutes / cur.minutes : 0,
       previous: comparable ? { label: `${MONTHS[prevFrom.getMonth()]}`, sessions: prev.sessions, activeDays: prev.activeDays, minutes: prev.minutes, estimatedMinutes: prev.estimatedMinutes } : null,
       comparison: comparable ? { minutes: cur.minutes - prev.minutes, activeDays: cur.activeDays - prev.activeDays, sessions: cur.sessions - prev.sessions, sameDays: current } : null,
@@ -70,6 +72,7 @@
       text = Math.abs(d) < 10 ? `Dans ton rythme${r.comparison.sameDays ? ` de ${r.previous.label}` : ` de ${r.previous.label}`}.` : d > 0 ? `${duration(d)} de plus${since}.` : `${duration(-d)} de moins${since}.`;
     }
     const notes = [];
+    if (r.records?.length) notes.push(`${s(r.records.length, "record battu", "records battus")} ce mois-ci.`);
     if (r.estimatedMinutes > 0) notes.push(`Dont ${duration(r.estimatedMinutes)} estimées pour des séances sans durée.`);
     if (r.current) notes.push("Mois en cours : le bilan évolue avec tes séances.");
     return { title, text, notes };

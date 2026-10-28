@@ -199,6 +199,16 @@
       <span class="asc-small asc-muted" data-rpg-summary>${esc(world?.name || "")} · chapitre ${c.chapter}/9 · ${esc(summary)} · ${esc(remaining)}</span></span>${icon("chevron")}</a>`;
   }
 
+  /* V11-17: in the first week of a month, offer last month's report once. Optional, dismissible, remembered on this device only. */
+  const monthKey = (now) => `titan.month-report.${window.state?.user?.id || "guest"}.${now.getFullYear()}-${now.getMonth() + 1}`;
+  function monthPromptHtml(now) {
+    if (now.getDate() > 7 || !window.TitanMonthReport) return "";
+    try { if (localStorage.getItem(monthKey(now))) return ""; } catch { /* storage unavailable: show it, it is harmless */ }
+    const m = window.TitanMonthReport.build(D().logs(), { now, offset: 1, minutesOf: (l) => P().minutesOf(l) });
+    if (!m.sessions) return "";
+    return `<div class="asc-note qg-month">${icon("star")}<div><strong>Ton bilan de ${window.TitanMonthReport.MONTHS[m.from.getMonth()]} est prêt</strong> · ${m.activeDays} jour${m.activeDays > 1 ? "s" : ""} actif${m.activeDays > 1 ? "s" : ""}, ${m.sports.length} sport${m.sports.length > 1 ? "s" : ""}. <a class="asc-link" href="/stats?mois=1">Le voir</a> · <button type="button" class="asc-link" data-action="dismiss-month">Plus tard</button></div></div>`;
+  }
+
   function guestHtml() {
     return `<div class="asc-note qg-guest">${icon("phone")}<div><strong>Mode découverte</strong> · tes séances restent sur cet appareil. <a class="asc-link" href="/login?mode=signup">Créer un compte</a> pour les sauvegarder et les reprendre partout.</div></div>`;
   }
@@ -222,6 +232,7 @@
     document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     el.innerHTML = `
       ${D().isGuest() ? guestHtml() : ""}
+      ${monthPromptHtml(now)}
       ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
@@ -290,6 +301,10 @@
 
   document.addEventListener("click", async (e) => {
     if (e.target.closest('[data-action="cadence"]')) cadenceSheet();
+    if (e.target.closest('[data-action="dismiss-month"]')) {
+      try { localStorage.setItem(monthKey(new Date()), "1"); } catch { /* the prompt may come back on reload */ }
+      queue();
+    }
     const imp = e.target.closest('[data-action="import-guest"]');
     if (!imp || !root()?.contains(imp)) return;
     if (!current(context)) { invalidate(); queue(); return; }
