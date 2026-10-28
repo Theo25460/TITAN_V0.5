@@ -16,6 +16,8 @@ Une ligne par traitement. Colonnes renseignées à partir du dépôt ; **base l�
 | Anti-triche et modération | signaux de risque, décisions, recours, retenues de récompense, journal d'administration | équité, sécurité | Supabase (schéma privé) | Supabase | à valider (intérêt légitime ?) | signaux 12 mois ; décisions et recours 24 mois ; journal d'administration 12 mois ; retenues réglées 3 mois |
 | Mesure d'audience | nom d'événement, page, source, métadonnées minimales | amélioration du produit | Supabase | Supabase | consentement ou refus respecté dans l'application | 13 mois, purge exécutée |
 | Assistance | message, catégorie, adresse de réponse | répondre aux demandes | Supabase ; envoi de l'alerte par Resend | Resend | à valider | 6 mois (paiement 13 mois, droits 12 mois) |
+| Sources d'activité connectées (V1.1, Health Connect d'abord ; serveur prêt, application native à faire) | identifiant externe de l'activité, sport, début, durée, distance ; consentement par source (date d'octroi et de retrait) ; jamais de flux brut de santé | afficher et compter les séances importées une seule fois | Supabase (schéma privé, sans accès API direct) | Supabase | consentement explicite, par source, retirable depuis Profil ; à valider | tant que le compte existe ; retrait du consentement : arrêt des imports et archivage possible ; effacées à la suppression |
+| Quêtes de la semaine et du mois, vitrine de profil (V1.1) | quêtes réclamées (date), choix de trois titres gagnés | proposer des objectifs adaptés et personnaliser le profil | Supabase | Supabase | à valider | tant que le compte existe ; effacées à la suppression ; la vitrine n'est publique que si la carte publique est activée et affiche les titres |
 | Hébergement et diffusion | adresses IP, requêtes | servir le site | Netlify | Netlify | à valider | journaux de l'hébergeur : à confirmer |
 
 ## 2. Transferts de données hors de l'Espace économique européen (LEG30)
@@ -34,7 +36,8 @@ Action : demander à chaque fournisseur sa page de transferts / son addendum de 
 ## 3. Procédure d'exercice des droits (LEG32)
 
 Moyens techniques réellement en place :
-- **Accès / portabilité** : fonction `export_own_data` (bouton dans Profil) : export du compte par la personne elle-même.
+- **Accès / portabilité** : fonction `export_own_data` (bouton dans Profil) : export du compte par la personne elle-même ; depuis la V1.1 (migration 35) l'export couvre aussi l'aventure, les objectifs, les Moments, la carte publique, les expéditions et défis rejoints, la guilde, l'historique des corrections, l'accès TITAN+, les quêtes réclamées, les consentements et activités importées (test `300_export_complete`).
+- **Retrait d'une source connectée** : écran Profil « Sources connectées » (migration 37) : retirer l'accès et archiver ce que la source a apporté (V1.1).
 - **Suppression** : fonction `delete_own_account` (Profil > Supprimer mon compte), effacement des données du compte, séances, brouillons locaux et transmission des guildes ; contrôlé par test (aucune référence résiduelle au compte supprimé). Ce qui est conservé et pour combien de temps reste à fixer (Q-002).
 - **Rectification** : modification du profil et des séances dans l'application.
 - **Opposition à la mesure** : le refus dans l'application arrête l'envoi.
