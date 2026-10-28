@@ -16,7 +16,7 @@ declare a uuid := current_setting('titan.ex_a')::uuid; r jsonb; k text; need tex
   'trainingLogs','activities','messages','friendships','shopHistory','achievements','inventory','socialChallengesAsChallenger','socialChallengesAsOpponent',
   'cacheReconciliationReports','suspiciousActions','trainingRevisions','goals','adventureProfile','adventureProgress','adventureRewards','adventureQuestRewards',
   'campaignState','bestiary','moments','momentCheers','publicCard','expeditions','challengesJoined','guildMembership','titanPlusAccess',
-  'periodicQuestClaims','sourceConsents','importedActivities'];
+  'periodicQuestClaims','sourceConsents','importedActivities','dailyActivity'];
 begin
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   perform public.titan_set_source_consent_v1('health_connect',true);

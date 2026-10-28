@@ -26,11 +26,12 @@ Suite : `pnpm run verify` 355/355 ; banc SQL (`tools/db/test-migrations.sh`) ver
 | V11-30 | écran « Sources connectées » (voir, retirer l'accès, archiver) (migration 37) | e2e `profile-showcase` |
 | V11-31 | indices contextuels sur cinq écrans, trois visites au plus | e2e `hints`, axe |
 | V11-34 | cinq index de clés étrangères (migration 38) | `300_fk_indexes` |
+| V11-38 (prépare V11-04) | activité quotidienne (pas) : table privée et deux fonctions, jamais une séance ni une récompense, le plus élevé des sources et jamais la somme (migration 39) | `300_daily_activity` |
 | V11-36 | découverte progressive des écrans au QG | `tests/ascension-progress.test.mjs` |
 
-## Migrations (30 à 38), à appliquer dans l'ordre après les 29 de la V1
+## Migrations (30 à 39), à appliquer dans l'ordre après les 29 de la V1
 
-Voir `docs/V11_RELEASE_PLAN.md` : une ligne par fichier avec son effet, ce qu'il réécrit et son retour arrière. Toutes additives, sans `BEGIN/COMMIT`, à appliquer une par une sur une copie restaurée d'abord. La 35 doit suivre la 34 (elle lit ses tables) ; la 36 redéfinit un déclencheur de la 29 ; la 38 pose cinq index (verrou bref, délai de 5 s).
+Voir `docs/V11_RELEASE_PLAN.md` : une ligne par fichier avec son effet, ce qu'il réécrit et son retour arrière. Toutes additives, sans `BEGIN/COMMIT`, à appliquer une par une sur une copie restaurée d'abord. La 35 doit suivre la 34 (elle lit ses tables) et la 39 la 35 (elle redéfinit l'export) ; la 36 redéfinit un déclencheur de la 29 ; la 38 pose cinq index (verrou bref, délai de 5 s).
 
 ## Ce que le web ne peut pas faire seul
 
