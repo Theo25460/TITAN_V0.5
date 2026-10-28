@@ -1869,7 +1869,7 @@ test('views: malformed list rejected, missing server and timeout recover without
   await page.evaluate(()=>{window.viewGateway=()=>new Promise(resolve=>{window.oldViewReply=()=>resolve({data:window.makeViewList({})});});});
   await page.click('#views-retry');await page.waitForFunction(()=>!!window.oldViewReply);await page.clock.fastForward(15100);
   assert.match(await page.locator('#views-status').innerText(),/15 secondes/);await page.evaluate(()=>window.oldViewReply());assert.equal(await page.locator('[data-view]').count(),0);
-  await page.evaluate(()=>{window.viewGateway=async()=>({error:{code:'PGRST202'}});});await page.click('#views-retry');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('mise à jour du serveur'));await context.close();
+  await page.evaluate(()=>{window.viewGateway=async()=>({error:{code:'PGRST202'}});});await page.click('#views-retry');await page.waitForFunction(()=>document.querySelector('#views-status').textContent.includes('momentanément indisponibles'));await context.close();
 });
 test('views: delayed mutations cannot cross an actual A to B to A auth transition',async()=>{
   const {page,context}=await viewsPage();await page.locator('#report-panel > summary').click();await page.waitForSelector('#report-save-view');await page.click('#report-save-view');await page.fill('#views-name','Private A');
@@ -1950,7 +1950,7 @@ test("reports: guest, Free, old server and network errors never expose a paid ag
     assert.equal(await page.locator(".report-results").count(), 0);
     assert.equal(await page.locator("#report-export").count(), 0);
     assert.equal(await page.locator(".wk-hero").count(), 1);
-    assert.match(await page.locator("#report-status").innerText(), access === "missing" ? /mise à jour du serveur/ : access === "error" ? /Réessaie/ : /compte|TITAN\+/);
+    assert.match(await page.locator("#report-status").innerText(), access === "missing" ? /momentanément indisponibles/ : access === "error" ? /Réessaie/ : /compte|TITAN\+/);
     if (access === "guest") assert.equal(await page.evaluate(() => window.reportCalls.length), 0);
     else assert.ok(await page.evaluate(() => window.reportCalls.length) > 0);
     assert.deepEqual(errors, []); await context.close();
@@ -2135,7 +2135,7 @@ test("comparisons: missing server, network failure and Retry show honest states"
     const { page, context, errors } = await comparisonPage(360, access);
     await page.locator("#compare-panel summary").click();
     await page.waitForSelector("#compare-status p");
-    assert.match(await page.locator("#compare-status").innerText(), access === "missing" ? /mise à jour du serveur/ : /Réessaie/);
+    assert.match(await page.locator("#compare-status").innerText(), access === "missing" ? /momentanément indisponibles/ : /Réessaie/);
     assert.equal(await page.locator(".compare-results").count(), 0);
     await page.evaluate(() => { window.compareAccess = "plus"; });
     await page.click("#compare-submit");

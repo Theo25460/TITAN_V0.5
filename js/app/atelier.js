@@ -41,7 +41,7 @@
 
   const messageOf = (e) => {
     const m = String(e?.message || "");
-    if (missing(e)) return "L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.";
+    if (missing(e)) return "L’Atelier est momentanément indisponible. Tes crédits sont intacts.";
     if (m.includes("NO_FUNDS")) return "Il te manque des crédits pour cette pièce. Ils viennent de tes séances.";
     if (m.includes("RATE_LIMITED")) return "Beaucoup d’achats en peu de temps. Réessaie dans un moment.";
     if (m.includes("PURCHASE_LIMIT_ONCE")) return "Cette pièce est déjà dans ta collection.";
@@ -372,10 +372,10 @@
       <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
       <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
-      ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
+      ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition s’afficheront dès que l’Atelier répond.</p>` : ""}
       ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ : bientôt disponible. Aucun paiement n’est proposé pour le moment. À son ouverture, l’abonnement sera proposé dans l’application Android, via Google Play.</span></p>`}
       ${guest() && (playBillingOffered() || window.TITAN_PAYMENTS?.webCheckout === true) ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
-      <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les quatre campagnes (après mise à jour serveur) et la Communauté restent gratuits, sans limite de durée.</p></section>`;
+      <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les quatre campagnes et la Communauté restent gratuits, sans limite de durée.</p></section>`;
   }
 
   function render() {

@@ -72,8 +72,8 @@ test('server quests: forge is free and uses server quests, legacy server explain
  const {page,context,errors}=await accountPage(360,'forge');try{
   await page.locator('[data-rpg-quests]').waitFor();assert.equal(await page.getByRole('link',{name:'Découvrir TITAN+'}).count(),0);
   await page.evaluate(()=>{const a=window.TitanAdventure;a.snapshot.version=2;a.snapshot.campaigns.find(c=>c.id==='forge').chapter=0;dispatchEvent(new Event('titan:adventure-updated'));});
-  await page.getByText('L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.').waitFor();
-  assert.match(await page.locator('.av-panel').first().textContent(),/mise à jour du serveur/);assert.equal(await page.locator('[data-start]').count(),0);assert.deepEqual(errors,[]);
+  await page.getByText('Cette région n’est pas accessible pour le moment. Tes acquis sont conservés.').waitFor();
+  assert.match(await page.locator('.av-panel').first().textContent(),/pas accessible pour le moment/);assert.equal(await page.locator('[data-start]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
 test('server quests: a malformed server contract leaves the campaign usable without invented rewards',async()=>{

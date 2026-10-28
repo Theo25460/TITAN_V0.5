@@ -166,7 +166,7 @@ test("atelier retry: a retry reaching an older server focuses its fallback notic
   try{
     await page.evaluate(()=>{window.at.fail=false;window.at.missing=true;});await page.locator('[data-retry]').focus();await page.keyboard.press("Enter");
     await page.getByRole("heading",{name:"Merci de soutenir TITAN.",exact:true}).waitFor();
-    const text=page.getByText("L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.",{exact:true});
+    const text=page.getByText("L’Atelier est momentanément indisponible. Tes crédits sont intacts.",{exact:true});
     assert.equal(await text.locator('..').evaluate(el=>el===document.activeElement),true);assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
 });

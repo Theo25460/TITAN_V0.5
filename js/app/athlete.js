@@ -17,8 +17,8 @@
   };
 
   function missing(root, offline, notYet, temporary = false) {
-    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète arrivent bientôt." : temporary ? "Carte temporairement indisponible." : "Cette carte n’est pas disponible."}</h1>
-      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles seront disponibles avec la prochaine mise à jour du serveur." : temporary ? "Le serveur n’a pas répondu correctement. Tu peux réessayer." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
+    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète sont momentanément indisponibles." : temporary ? "Carte temporairement indisponible." : "Cette carte n’est pas disponible."}</h1>
+      <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles sont momentanément indisponibles." : temporary ? "Le serveur n’a pas répondu correctement. Tu peux réessayer." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
       <div class="asc-row-flex">${offline || temporary ? '<button type="button" id="athlete-retry" class="asc-btn asc-btn-primary">Réessayer</button>' : ""}<a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></div></section>`;
     root.setAttribute("aria-busy", "false");
   }

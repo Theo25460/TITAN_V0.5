@@ -104,7 +104,7 @@
     } catch (e) {
       if (!current()) return;
       const missing = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
-      const message = missing ? "Les bilans ouvrent avec la prochaine mise à jour du serveur. Tes exports de base restent disponibles."
+      const message = missing ? "Les bilans sont momentanément indisponibles. Tes exports de base restent disponibles."
         : e?.message === "REPORT_TIMEOUT" ? "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant."
           : "Le bilan n’a pas répondu correctement. Réessaie dans un instant.";
       status.innerHTML = `<p>${esc(message)}</p>`;

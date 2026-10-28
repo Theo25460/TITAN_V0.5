@@ -205,7 +205,7 @@
 
   function publicHtml() {
     if (guest()) return "";
-    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${cardUnavailable ? "La carte d’athlète publique arrive avec la prochaine mise à jour du serveur." : !navigator.onLine ? "Disponible avec le réseau." : cardFailed || !window.titanClient ? "Profil public indisponible pour le moment. Réessaie plus tard." : "Chargement…"}</p></section>`;
+    if (!card) return `<section class="asc-section" id="public"><div class="asc-section-head"><h2>Profil public</h2></div><p class="asc-small asc-muted">${cardUnavailable ? "La carte d’athlète publique est momentanément indisponible." : !navigator.onLine ? "Disponible avec le réseau." : cardFailed || !window.titanClient ? "Profil public indisponible pour le moment. Réessaie plus tard." : "Chargement…"}</p></section>`;
     const url = card.slug ? `https://titan-app.fr/u/${card.slug}` : "";
     let qr = "";
     if (card.enabled && url && !window.qrcode) window.TitanCard?.loadQr().then((q) => q && render());
@@ -720,7 +720,7 @@
         .then(applied => applied && window.titanShell.toast({ type: "ok", title: key ? "Titre porté" : "Titre retiré", message: key ? `« ${wornName() || "Titre"} » apparaît sur ton profil.` : "Ton profil n’affiche plus de titre." }))
         .catch(err => {
           const m = String(err?.message || "");
-          window.titanShell.toast({ type: "warn", message: m.includes("RATE_LIMITED") ? "Trop de changements de titre. Réessaie dans une heure." : m.includes("NOT_EARNED") ? "Ce titre n’est pas encore gagné." : err?.code === "PGRST202" || m.includes("Could not find") ? "Les titres arrivent avec la prochaine mise à jour du serveur." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
+          window.titanShell.toast({ type: "warn", message: m.includes("RATE_LIMITED") ? "Trop de changements de titre. Réessaie dans une heure." : m.includes("NOT_EARNED") ? "Ce titre n’est pas encore gagné." : err?.code === "PGRST202" || m.includes("Could not find") ? "Les titres sont momentanément indisponibles." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
         });
     }
     if (b.hasAttribute("data-delete")) return deleteAccount();
@@ -745,7 +745,7 @@
         .catch(err => {
           if (!cardContextValid(context)) return;
           const m = String(err?.message || "");
-          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public arrive avec la prochaine mise à jour du serveur." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
+          window.titanShell.toast({ type: "warn", message: err?.code === "PGRST202" || m.includes("Could not find") ? "Le profil public est momentanément indisponible." : "Modification non confirmée. Vérifie ta connexion, puis réessaie." });
         });
     }
     if (t.matches("[data-analytics]")) {

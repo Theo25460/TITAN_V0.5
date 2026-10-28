@@ -68,10 +68,10 @@ test("generated report offer explains aggregated CSV, provisional periods and fr
   assert.match(answer, /provisoire/);
   assert.match(answer, /CSV agrégé/);
   assert.match(answer, /CSV et JSON.*gratuit/);
-  assert.match(answer, /mise à jour du serveur/);
+  assert.doesNotMatch(answer, /mise à jour/i, "no obsolete server-update caveat once the migrations are live");
   assert.ok(html.includes(`<p>${answer}</p>`));
   assert.match(html, /href="\/stats#bilans"/);
-  assert.match(generated("index.html"), /Bilans mensuels et annuels.*après mise à jour serveur/);
+  assert.match(generated("index.html"), /Bilans mensuels et annuels avec CSV agrégé/);
   assert.equal(graph.find(x => x["@type"] === "Product").offers.availability, "https://schema.org/ComingSoon");
   assert.ok(!("price" in graph.find(x => x["@type"] === "Product").offers), "no price for an offer that cannot be bought");
 });
@@ -81,8 +81,8 @@ test("saved views offer describes private parameters, retention, free favorites 
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])['@graph'];
   const answer=graph.find(x=>x['@type']==='FAQPage').mainEntity.find(x=>/vues sauvegardées/.test(x.name))?.acceptedAnswer.text;
   assert.ok(answer,'saved views FAQ');assert.match(answer,/10 vues/);assert.match(answer,/paramètres/);assert.match(answer,/conservées.*supprimées/);
-  assert.match(answer,/favoris.*gratuits/);assert.match(answer,/mise à jour du serveur/);assert.ok(html.includes(`<p>${answer}</p>`));
-  assert.match(html,/href="\/stats#vues"/);assert.match(generated('index.html'),/10 vues d’analyse privées.*après mise à jour serveur/);
+  assert.match(answer,/favoris.*gratuits/);assert.doesNotMatch(answer,/mise à jour/i);assert.ok(html.includes(`<p>${answer}</p>`));
+  assert.match(html,/href="\/stats#vues"/);assert.match(generated('index.html'),/10 vues d’analyse privées pour retrouver tes filtres/);
   assert.equal(graph.find(x=>x['@type']==='Product').offers.availability,'https://schema.org/ComingSoon');
   assert.ok(!('price' in graph.find(x=>x['@type']==='Product').offers));
 });

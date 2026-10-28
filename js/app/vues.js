@@ -64,7 +64,7 @@
   }
   function errorText(e,mutation=false) {
     const text=String(e?.message||'');
-    if(e?.code==='PGRST202'||text.includes('Could not find'))return 'Les vues ouvrent avec la prochaine mise à jour du serveur. Tes favoris et exports de base restent gratuits.';
+    if(e?.code==='PGRST202'||text.includes('Could not find'))return 'Les vues sont momentanément indisponibles. Tes favoris et exports de base restent gratuits.';
     if(text.includes('VIEW_TIMEOUT'))return 'Le serveur n’a pas répondu en 15 secondes. Pour une modification, vérifie la liste avant de réessayer.';
     if(text.includes('VIEW_VERSION_CONFLICT'))return 'Cette vue a été modifiée sur un autre appareil. Actualise la liste, puis reprends la vue avant de la modifier.';
     if(text.includes('VIEW_LIMIT'))return 'Tu as déjà dix vues. Supprime une vue pour libérer une place.';

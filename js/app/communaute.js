@@ -74,7 +74,7 @@
     const raw = String(e?.message || e || "");
     const k = Object.keys(MESSAGES).find((x) => raw.includes(x));
     if (k) return MESSAGES[k];
-    if (e?.code === "PGRST202" || raw.includes("Could not find the function")) return "Cette fonction arrive avec la prochaine mise à jour du serveur.";
+    if (e?.code === "PGRST202" || raw.includes("Could not find the function")) return "Cette fonction est momentanément indisponible. Réessaie dans un instant.";
     return navigator.onLine ? "Action impossible pour le moment. Réessaie dans un instant." : "Hors ligne : la communauté revient avec le réseau.";
   };
   /** Confirm dialogs show the thrown message: give them the human one. */

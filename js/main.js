@@ -178,7 +178,7 @@ window.flushPendingTrainingLogs = function(options={}) {
                 const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
                 const tooOld=String(error.message||'').includes('TRAINING_DATE_OUT_OF_RANGE')&&new Date(item.payload.date).getTime()<Date.now()-30*86400000;
                 // deferred: refused only until the server update, so it is offered again automatically on each send.
-                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : acceptée avec la prochaine mise à jour du serveur':(error.message||'Connexion indisponible')});
+                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : pas encore acceptée par le serveur':(error.message||'Connexion indisponible')});
                 const failedLocal=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
                 if(failedLocal)failedLocal.syncStatus=permanent?'error':'pending';
                 if(!permanent)break;

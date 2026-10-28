@@ -62,3 +62,15 @@ test("V1 has no advertising and says nothing false about it (LEG12), and virtual
   assert.match(cgu, /sans valeur monétaire[\s\S]{0,120}ne s’achètent pas, ne se vendent pas, ne s’échangent pas et ne sont pas remboursables/);
   assert.match(readFileSync(new URL("js/app/atelier.js", root), "utf8"), /Elle ne s’achète pas/);
 });
+
+test("V1.1 (V11-10): no public page or app screen still talks about a pending server update, and the four campaigns are never presented as unavailable", () => {
+  const sources = [...pages.map((f) => [f, readFileSync(new URL(f, root), "utf8")]),
+    ...readdirSync(new URL("js/", root), { recursive: true }).filter((f) => String(f).endsWith(".js") && !String(f).startsWith("vendor")).map((f) => [`js/${f}`, readFileSync(new URL(`js/${f}`, root), "utf8")]),
+    ["tools/build-public-site.mjs", readFileSync(new URL("tools/build-public-site.mjs", root), "utf8")]];
+  for (const [file, text] of sources) {
+    assert.ok(!/(prochaine mise à jour du serveur|mise à jour (du )?serveur|attend la mise à jour|après mise à jour)/i.test(text.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "")), `${file} still mentions a pending server update`);
+  }
+  const index = readFileSync(new URL("index.html", root), "utf8");
+  assert.ok(!/campagnes complètes et les nouvelles analyses sont en préparation/.test(index));
+  assert.match(index, /Quatre mondes/);
+});

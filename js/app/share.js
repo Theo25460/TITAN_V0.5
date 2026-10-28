@@ -124,7 +124,7 @@
           const m = String(error?.message || "");
           err.textContent = uncertain ? "Le partage n’a pas pu être confirmé. Vérifie tes Moments dans Communauté avant de le renvoyer."
             : m.includes("SOCIAL_RATE_LIMIT") ? "Tu as déjà partagé beaucoup de Moments aujourd’hui. Réessaie demain."
-            : m.includes("Could not find") || error?.code === "PGRST202" ? "Les Moments arrivent avec la prochaine mise à jour du serveur."
+            : m.includes("Could not find") || error?.code === "PGRST202" ? "Les Moments sont momentanément indisponibles. Réessaie dans un instant."
             : "Partage impossible pour le moment. Ton brouillon est conservé. Vérifie ta connexion puis réessaie.";
           err.hidden = false;
           body.querySelector("[data-review-share]").hidden = !uncertain;

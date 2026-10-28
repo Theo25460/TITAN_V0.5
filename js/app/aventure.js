@@ -31,7 +31,7 @@
 
   /** The guardian effort trial is enforced by the v300 server (and the guest engine), which always send effort_target. */
   const effortRule = () => (A()?.snapshot?.campaigns || []).some((c) => c.effort_target != null);
-  const SOON = "L’épreuve d’effort du gardien (150 minutes, 90 au plus par jour) arrive avec la prochaine mise à jour du serveur.";
+  const SOON = "L’épreuve d’effort du gardien (150 minutes, 90 au plus par jour) n’est pas disponible pour le moment.";
 
   const personalServer = () => !isGuest() && (A()?.snapshot?.version || 1) >= 4;
   function personalTargetHtml(p) {
@@ -80,7 +80,7 @@
     const locked = !isGuest() && (s.version || 1) < 3 && ["forge", "aurores"].includes(world.id) && !s.plus;
     if (locked)
       return `<section class="av-panel"><p class="asc-eyebrow">Campagne gratuite</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
-        <p class="asc-small asc-muted">L’accès gratuit à cette région attend la mise à jour du serveur. Tes acquis sont conservés.</p>
+        <p class="asc-small asc-muted">Cette région n’est pas accessible pour le moment. Tes acquis sont conservés.</p>
         <button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></section>`;
     if (p.chapter >= 10)
       return `<section class="av-panel is-complete"><p class="asc-eyebrow">Campagne accomplie</p><h2 class="asc-h2">${esc(world.guardian)} te reconnaît</h2><p>${esc(world.ending)}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-secondary" href="/profile#collection">Voir ma collection</a></div></section>`;
@@ -132,7 +132,7 @@
       <h2 class="asc-h2">${esc(model.encounter.name)}</h2><p>${esc(model.encounter.text)}</p>
       <details class="av-rules" data-rpg-quests="${esc(world.id)}:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
         <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni coins supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
-        <p class="asc-small asc-muted">${model.authority === "server" ? `Cibles figées par le serveur au départ du chapitre : ${F().number(model.profile.daysTarget)} jour(s) et ${F().number(model.profile.effortTarget)} min d’effort, d’après les jours admissibles des 28 jours précédents (90 min au plus par jour).${model.profile.legacy ? " Chapitre déjà commencé : cibles douces conservées lors de la mise à jour." : ""} Les souvenirs des missions remplies sont confirmés quand tu allumes la balise ; une mission incomplète ne bloque pas la suite.` : `${model.profile.days ? `Cibles indicatives sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour(s) et ${model.profile.effortTarget} min d’effort, 90 min au plus par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil, sans nouveaux souvenirs." : "Ces préparatifs sont indicatifs sur cette version du serveur, sans nouveaux souvenirs."}`}</p>
+        <p class="asc-small asc-muted">${model.authority === "server" ? `Cibles figées par le serveur au départ du chapitre : ${F().number(model.profile.daysTarget)} jour(s) et ${F().number(model.profile.effortTarget)} min d’effort, d’après les jours admissibles des 28 jours précédents (90 min au plus par jour).${model.profile.legacy ? " Chapitre déjà commencé : cibles douces conservées." : ""} Les souvenirs des missions remplies sont confirmés quand tu allumes la balise ; une mission incomplète ne bloque pas la suite.` : `${model.profile.days ? `Cibles indicatives sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour(s) et ${model.profile.effortTarget} min d’effort, 90 min au plus par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil, sans nouveaux souvenirs." : "Ces préparatifs sont indicatifs sur cette version du serveur, sans nouveaux souvenirs."}`}</p>
         <div class="asc-stack">${model.quests.map(q => `<article class="asc-note" data-quest="${q.id}" data-complete="${q.complete}">
           ${icon(q.complete ? "check" : q.id === "note" ? "journal" : "route")}<div class="asc-stack-sm"><strong>${esc(q.name)}</strong>
           <span class="asc-small">${q.available ? `${F().number(q.value)}/${F().number(q.target)} ${esc(q.unit)}${q.complete ? " · préparatif réuni" : ""}` : "Mesure d’effort indisponible sur cette version du serveur."}</span>

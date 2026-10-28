@@ -9,23 +9,23 @@ const FREE = [
   "Journal multisport complet : 260 sports, liste, calendrier, édition, export CSV et JSON",
   "Records avec leur séance source, objectifs datés, récap de la semaine",
   "Rang, maîtrise par sport, cadence choisie, collection",
-  "Quatre campagnes complètes : 36 chapitres, 4 gardiens, après mise à jour serveur",
+  "Quatre campagnes complètes : 36 chapitres, 4 gardiens",
   "Communauté : amis par consentement, Moments, défis sans mise, expéditions, guilde",
   "Atelier : cadres, ambiances et cartes gagnés avec tes crédits",
   "5 routines, coaching jusqu’à 3 sportifs, profil public (optionnel)",
 ];
 const PLUS = [
   "Tout le Classique, avec exactement les mêmes règles d’XP et de crédits",
-  "Comparaisons de 4, 12 ou 26 semaines, tous sports ou un sport, après mise à jour serveur",
-  "Bilans mensuels et annuels avec CSV agrégé, après mise à jour serveur",
-  "10 vues d’analyse privées pour retrouver tes filtres, après mise à jour serveur",
+  "Comparaisons de 4, 12 ou 26 semaines, tous sports ou un sport",
+  "Bilans mensuels et annuels avec CSV agrégé",
+  "10 vues d’analyse privées pour retrouver tes filtres",
   "20 routines nommées au lieu de 5",
   "Jusqu’à 20 sportifs dans l’espace coach",
   "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
 ];
 const offersHtml = `<div class="pub-grid cols-2" style="margin-bottom:16px">
   <article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>
-  <article class="pub-card" data-availability="planned"><h3>Les ajouts en préparation</h3><p>Les quatre campagnes complètes et les nouvelles analyses sont en préparation. Leur disponibilité est indiquée dans l’application : vérifie les fonctions actives avant de choisir TITAN+.</p></article>
+  <article class="pub-card" data-availability="planned"><h3>Ce qui est à venir</h3><p>TITAN+ n’est pas encore en vente et aucune publicité n’est affichée. Tout ce qui figure dans « Classique » est disponible maintenant ; ce que TITAN+ ajoutera est signalé « bientôt disponible ».</p></article>
 </div><div class="pub-grid cols-2">
   <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
   <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Bientôt disponible</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">Aucun paiement n’est proposé pour le moment. L’abonnement sera proposé dans l’application Android, via Google Play, avec son prix affiché avant tout achat.</p></article>
@@ -98,7 +98,7 @@ const home = page({
       ["shield", "L’équité", "Les mêmes plafonds pour tous, abonnés compris. Une séance saisie plus de 30 jours après sa date entre au journal sans XP."],
     ])}<a class="pub-link" href="/niveaux-et-xp" style="margin-top:20px">Toutes les règles de progression ${icon("arrow")}</a></div></section>
 
-  <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">L’aventure</p><h2>Quatre mondes.<br>Ton sport les rallume.</h2><p class="pub-lead">Démarre une campagne avant ta prochaine séance : tes jours actifs peuvent alors faire avancer ses balises. Après mise à jour serveur, les nouveaux chapitres suivent ta cadence récente. Le gardien demande au moins deux jours distincts et l’effort fixé au départ, 90 minutes au plus par jour.</p></div>
+  <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">L’aventure</p><h2>Quatre mondes.<br>Ton sport les rallume.</h2><p class="pub-lead">Démarre une campagne avant ta prochaine séance : tes jours actifs peuvent alors faire avancer ses balises. Les nouveaux chapitres suivent ta cadence récente. Le gardien demande au moins deux jours distincts et l’effort fixé au départ, 90 minutes au plus par jour.</p></div>
     <div class="pub-grid cols-4">${C.worlds.map((w) => `<a class="pub-world" href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span class="pub-tier${w.tier === "plus" ? " plus" : ""}">${w.tier === "plus" ? "TITAN+" : "GRATUIT"}</span><h3>${w.name}</h3><p>${w.subtitle} · ${w.guardian}</p></a>`).join("")}</div></div></section>
 
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble, sans pression</p><h2>Avancer avec les autres.<br>Sans tout montrer.</h2></div>
@@ -165,7 +165,7 @@ guide({
     ["Pourquoi mon ressenti change-t-il l’XP ?", "Parce qu’une heure facile et une heure très dure ne demandent pas le même effort. L’écart reste borné : de ×0,68 à ×1,4. Mentir sur son ressenti ne rapporte presque rien face aux plafonds."],
     ["Les objectifs ou les défis donnent-ils de l’XP ?", "Non. Seules les séances en donnent. Objectifs, défis, Moments et propositions de coach servent à s’organiser, pas à multiplier les récompenses."],
     ["Puis-je perdre un niveau ?", "Non. Un niveau, une maîtrise ou un insigne acquis le restent, même après une longue pause."],
-    ["TITAN+ fait-il progresser plus vite ?", "Non. Mêmes formules, mêmes plafonds. Les quatre campagnes sont gratuites après mise à jour serveur. TITAN+ ajoute des routines, de la capacité coach et un accès temporaire aux pièces cosmétiques."],
+    ["TITAN+ fait-il progresser plus vite ?", "Non. Mêmes formules, mêmes plafonds. Les quatre campagnes sont gratuites. TITAN+ ajoute des routines, de la capacité coach et un accès temporaire aux pièces cosmétiques."],
   ],
 });
 
@@ -180,17 +180,17 @@ guide({
   lead: "Chaque monde compte neuf balises et un gardien. Ce ne sont pas des quêtes à cocher : ce sont tes vraies journées de sport qui les allument.",
   sections: [
     ["mondes", "Quatre mondes, quatre intentions", `<div class="pub-grid cols-2">${C.worlds.map((w) => `<div class="pub-world" id="${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span class="pub-tier${w.tier === "plus" ? " plus" : ""}">${w.tier === "plus" ? "TITAN+" : "GRATUIT"}</span><h3>${w.name}</h3><p>${w.subtitle}. Gardien : ${w.guardian}.</p></div>`).join("")}</div>
-      <p>Les quatre campagnes sont gratuites après mise à jour serveur : la vallée de l’Aube, l’archipel des Marées, les forges d’Obsidienne et la citadelle des Aurores, avec exactement les mêmes règles.</p>`],
+      <p>Les quatre campagnes sont gratuites : la vallée de l’Aube, l’archipel des Marées, les forges d’Obsidienne et la citadelle des Aurores, avec exactement les mêmes règles.</p>`],
     ["balises", "Comment une balise s’allume", `<ol><li>Démarre une campagne, choisis ton chemin : <strong>Rythme</strong> (jours actifs) ou <strong>Journal</strong> (jours avec une note de séance d’au moins 10 caractères).</li><li>Chaque chapitre demande un, deux ou trois jours actifs, enregistrés après son départ.</li><li>Un jour compte une fois, quel que soit le volume : trois séances le même jour valent un jour.</li><li>Quand la mission est remplie, allume la balise : l’insigne rejoint ta collection et le chapitre suivant commence.</li></ol>
       <p>Les chapitres n’expirent pas. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>`],
-    ["gardiens", "Les gardiens récompensent la constance", `<p>Après mise à jour serveur, la cible des nouveaux chapitres est figée au départ selon les 28 derniers jours admissibles. Au neuvième chapitre, le gardien attend <strong>deux à trois jours actifs et 30 à 135 minutes d’effort</strong>, avec <strong>90 minutes au plus par jour</strong>. Les insignes sont les mêmes pour tous, sans record à battre ni échéance. Les chapitres déjà commencés gardent leurs conditions. En découverte et sur l’ancien serveur, le gardien demande toujours trois jours et 150 minutes.</p>`],
+    ["gardiens", "Les gardiens récompensent la constance", `<p>La cible des nouveaux chapitres est figée au départ selon les 28 derniers jours admissibles. Au neuvième chapitre, le gardien attend <strong>deux à trois jours actifs et 30 à 135 minutes d’effort</strong>, avec <strong>90 minutes au plus par jour</strong>. Les insignes sont les mêmes pour tous, sans record à battre ni échéance. Les chapitres déjà commencés gardent leurs conditions. En découverte et sur l’ancien serveur, le gardien demande toujours trois jours et 150 minutes.</p>`],
     ["expeditions", "Les expéditions de saison", `<p>Plusieurs fois par an, une expédition rassemble toute la communauté face à un gardien de saison. Chaque minute d’effort compte pareil, quel que soit ton sport, 90 au plus par jour. Un objectif personnel (par exemple 4 jours et 300 minutes sur la période) donne un titre à garder dans ta collection.</p>`],
     ["recompenses", "Des récompenses qui racontent", `<p>Insignes, titres et cadres sont cosmétiques. Ils ne donnent ni XP ni crédits, et ne se perdent pas après une correction de journal ou la fin d’un abonnement.</p>`],
   ],
   faqItems: [
     ["Dois-je faire du sport tous les jours ?", "Non. Les chapitres comptent des jours actifs sans échéance. Tu avances à ton rythme."],
     ["Faire plus de kilomètres accélère-t-il l’aventure ?", "Non. Une balise compte des jours ; le gardien plafonne l’effort à 90 minutes par jour. La constance passe avant l’exploit."],
-    ["Que deviennent mes insignes si TITAN+ s’arrête ?", "Ils restent dans ta collection. Les quatre campagnes sont gratuites après mise à jour serveur, sans abonnement."],
+    ["Que deviennent mes insignes si TITAN+ s’arrête ?", "Ils restent dans ta collection. Les quatre campagnes sont gratuites, sans abonnement."],
   ],
 });
 
@@ -234,7 +234,7 @@ guide({
     ["compte", "5. Garder tes séances", `<p>Crée un compte quand tu veux : tes séances de découverte peuvent le rejoindre. Le compte synchronise tes appareils et rend ta progression officielle. Tu peux exporter ou supprimer tes données à tout moment depuis Profil.</p>`],
   ],
   faqItems: [
-    ["Combien coûte le premier essai ?", "Rien. L’essai, le journal, les analyses, la progression et quatre campagnes complètes sont gratuits après mise à jour serveur, sans carte bancaire."],
+    ["Combien coûte le premier essai ?", "Rien. L’essai, le journal, les analyses, la progression et quatre campagnes complètes sont gratuits, sans carte bancaire."],
     ["Puis-je installer TITAN sur mon téléphone ?", "Oui : depuis le navigateur, « Ajouter à l’écran d’accueil ». TITAN s’ouvre alors comme une application et fonctionne hors ligne."],
   ],
 });
@@ -264,9 +264,9 @@ guide({
 /* ---------- Tarifs ---------- */
 const tarifsFaq = faq([
   ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans et à leur CSV agrégé prend fin. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis."],
-  ["TITAN+ ajoute-t-il des analyses sportives ?", "Oui : les comparaisons de 4, 12 ou 26 semaines complètes avec la période précédente, tous sports ou un sport, ajoutent une lecture de ta pratique. Séances, jours actifs et minutes sont calculés depuis ton historique synchronisé. Le récap, les records et les tendances de base restent gratuits. Le panneau indique clairement si la mise à jour du serveur est encore nécessaire."],
-  ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits. Les bilans ouvrent après la mise à jour du serveur, et chaque téléchargement recalcule les données avec ton accès actuel."],
-  ["Que sont les vues sauvegardées TITAN+ ?", "Retrouve 10 vues privées de comparaison ou de bilan par compte : seuls le nom et les paramètres sont sauvegardés, puis les données sont recalculées à l’ouverture avec ton accès actuel. À expiration, les vues sont conservées et peuvent être supprimées ; TITAN+ permet de les ouvrir et de les modifier. Tes favoris, ton historique et tes exports de base restent gratuits. Les vues ouvrent après la mise à jour du serveur."],
+  ["TITAN+ ajoute-t-il des analyses sportives ?", "Oui : les comparaisons de 4, 12 ou 26 semaines complètes avec la période précédente, tous sports ou un sport, ajoutent une lecture de ta pratique. Séances, jours actifs et minutes sont calculés depuis ton historique synchronisé. Le récap, les records et les tendances de base restent gratuits."],
+  ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits. Chaque téléchargement recalcule les données avec ton accès actuel."],
+  ["Que sont les vues sauvegardées TITAN+ ?", "Retrouve 10 vues privées de comparaison ou de bilan par compte : seuls le nom et les paramètres sont sauvegardés, puis les données sont recalculées à l’ouverture avec ton accès actuel. À expiration, les vues sont conservées et peuvent être supprimées ; TITAN+ permet de les ouvrir et de les modifier. Tes favoris, ton historique et tes exports de base restent gratuits."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
   ["Comment résilier ?", "TITAN+ n’est pas encore en vente. À son ouverture, l’abonnement se résiliera dans Google Play, et l’accès restera actif jusqu’à la fin de la période payée."],
   ["Y a-t-il de la publicité ?", "Non, ni dans l’offre gratuite ni dans TITAN+."],
@@ -274,13 +274,13 @@ const tarifsFaq = faq([
 // Capacity diagrams describe existing limits, not a fictional application screen.
 const capacityMeter = (free, label) => `<div class="pub-benefit-meter" role="img" aria-label="${free} ${label} en Classique, 20 avec TITAN+">${Array.from({ length: 20 }, (_, i) => `<span${i < free ? ' class="is-free"' : ""}></span>`).join("")}</div>`;
 const concreteBenefits = `<section class="pub-section" id="concret"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">TITAN+, concrètement</p><h2>Prends du recul sur ta pratique.</h2><p class="pub-lead">Compare des périodes de même durée, garde tes routines et retrouve tes repères.</p></div>
-  <article class="pub-card" data-benefit="comparisons"><h3>Qu’est-ce qui change entre deux périodes ?</h3><p class="pub-price">4 · 12 · 26 <small>semaines complètes</small></p><p>Compare tes séances, tes jours actifs et ton temps de pratique à la période précédente. Choisis tous tes sports ou un seul, puis consulte les semaines et les séances sources.</p><p class="pub-fine">Historique synchronisé, durées estimées signalées. Plus de volume ne signifie pas meilleure performance. Si le serveur n’a pas encore reçu la mise à jour, le panneau te l’indique.</p><a class="asc-btn asc-btn-secondary" href="/stats#analyses">Ouvrir les comparaisons</a></article>
-  <article class="pub-card" data-benefit="reports"><h3>Garde une vue de ton mois ou de ton année.</h3><p>Consulte tes séances, tes jours actifs et ton temps de pratique, par sport et dans le calendrier. Télécharge le même bilan en CSV agrégé, recalculé au moment de l’export.</p><p class="pub-fine">Période courante provisoire ou période précédente complète, durées estimées signalées. Disponible après mise à jour serveur ; le journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#bilans">Ouvrir mon bilan</a></article>
-  <article class="pub-card" data-benefit="views"><h3>Retrouve tes analyses habituelles.</h3><p>Nomme jusqu’à 10 vues de comparaison ou de bilan. Retrouve leurs filtres ; les données sont recalculées à chaque ouverture.</p><p class="pub-fine">Paramètres privés, conservés et supprimables à expiration. Disponible après mise à jour serveur ; favoris, historique et exports de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#vues">Retrouver mes vues</a></article>
+  <article class="pub-card" data-benefit="comparisons"><h3>Qu’est-ce qui change entre deux périodes ?</h3><p class="pub-price">4 · 12 · 26 <small>semaines complètes</small></p><p>Compare tes séances, tes jours actifs et ton temps de pratique à la période précédente. Choisis tous tes sports ou un seul, puis consulte les semaines et les séances sources.</p><p class="pub-fine">Historique synchronisé, durées estimées signalées. Plus de volume ne signifie pas meilleure performance.</p><a class="asc-btn asc-btn-secondary" href="/stats#analyses">Ouvrir les comparaisons</a></article>
+  <article class="pub-card" data-benefit="reports"><h3>Garde une vue de ton mois ou de ton année.</h3><p>Consulte tes séances, tes jours actifs et ton temps de pratique, par sport et dans le calendrier. Télécharge le même bilan en CSV agrégé, recalculé au moment de l’export.</p><p class="pub-fine">Période courante provisoire ou période précédente complète, durées estimées signalées. Le journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#bilans">Ouvrir mon bilan</a></article>
+  <article class="pub-card" data-benefit="views"><h3>Retrouve tes analyses habituelles.</h3><p>Nomme jusqu’à 10 vues de comparaison ou de bilan. Retrouve leurs filtres ; les données sont recalculées à chaque ouverture.</p><p class="pub-fine">Paramètres privés, conservés et supprimables à expiration. Favoris, historique et exports de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#vues">Retrouver mes vues</a></article>
   <div class="pub-grid cols-3">
     <article class="pub-card" data-benefit="routines">${icon("layers")}<h3>Garde plusieurs cycles de musculation.</h3><p class="pub-price">5 → 20 <small>routines nommées</small></p>${capacityMeter(5, "routines")}<p>Retrouve tes exercices, séries, charges et répétitions sans reconstruire la séance. Pratique si tu alternes plusieurs programmes.</p><p class="pub-fine">5 emplacements en Classique ; 15 de plus avec TITAN+.</p><a href="/carnet-musculation" class="asc-btn asc-btn-secondary">Voir le carnet musculation</a></article>
     <article class="pub-card" data-benefit="coach">${icon("group")}<h3>Accompagne un groupe plus large.</h3><p class="pub-price">3 → 20 <small>sportifs suivis</small></p>${capacityMeter(3, "sportifs suivis")}<p>Consulte le périmètre autorisé et propose des séances. Chaque sportif choisit ce qu’il partage et peut retirer son accord.</p><p class="pub-fine">L’abonnement concerne le coach. Le sportif suivi peut rester en Classique.</p><a href="/pour-les-coachs" class="asc-btn asc-btn-secondary">Voir le fonctionnement coach</a></article>
-    <article class="pub-card" data-benefit="worlds">${icon("compass")}<h3>Les quatre campagnes restent gratuites.</h3><div class="pub-benefit-worlds">${C.worlds.map((w) => `<a href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span>${w.name}</span></a>`).join("")}</div><p>36 chapitres et 4 gardiens accessibles sans abonnement après mise à jour serveur. Même effort, mêmes règles de progression.</p></article>
+    <article class="pub-card" data-benefit="worlds">${icon("compass")}<h3>Les quatre campagnes restent gratuites.</h3><div class="pub-benefit-worlds">${C.worlds.map((w) => `<a href="/aventures-sportives#${w.id}"><img src="/assets/renaissance/${w.image}-xs.webp" width="480" height="270" alt="" loading="lazy" decoding="async"><span>${w.name}</span></a>`).join("")}</div><p>36 chapitres et 4 gardiens accessibles sans abonnement. Même effort, mêmes règles de progression.</p></article>
   </div>
   <aside class="pub-card" id="stats-free"><h3>Tes repères sportifs restent gratuits.</h3><p>Récap hebdomadaire, historique, records et tendances de volume, d’allure, de force ou d’escalade : les analyses déjà disponibles restent gratuites, avec ou sans TITAN+.</p><a class="asc-btn asc-btn-secondary" href="/comprendre-mes-donnees">Comprendre les analyses</a></aside>
 </div></section>`;
@@ -299,11 +299,11 @@ writeFileSync(
         ["Journal, 260 sports, export CSV et JSON", "Inclus", "Inclus"],
         ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus"],
         ["Analyses de base, tendances et historique", "Inclus", "Inclus"],
-        ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus après mise à jour serveur"],
-        ["Bilans mensuels/annuels et CSV agrégé", "—", "Inclus après mise à jour serveur"],
-        ["Vues d’analyse sauvegardées et privées", "Conservation et suppression à expiration", "10, après mise à jour serveur"],
+        ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus"],
+        ["Bilans mensuels/annuels et CSV agrégé", "—", "Inclus"],
+        ["Vues d’analyse sauvegardées et privées", "Conservation et suppression à expiration", "10"],
         ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus"],
-        ["Campagnes d’aventure, après mise à jour serveur", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres"],
+        ["Campagnes d’aventure", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres"],
         ["Communauté, défis, expéditions, guilde", "Inclus", "Inclus"],
         ["Atelier (tous les styles gagnables gratuitement)", "Inclus", "Inclus + accès temporaire à 4 pièces"],
         ["Routines nommées", "5", "20"],
@@ -318,7 +318,7 @@ writeFileSync(
 
 /* ---------- Fonctionnalités ---------- */
 const featFaq = faq([
-  ["Qu’est-ce qui est gratuit ?", "Le journal, les analyses, les records, les objectifs, la progression, quatre campagnes après mise à jour serveur, la Communauté, l’Atelier, cinq routines et le suivi de trois sportifs."],
+  ["Qu’est-ce qui est gratuit ?", "Le journal, les analyses, les records, les objectifs, la progression, quatre campagnes, la Communauté, l’Atelier, cinq routines et le suivi de trois sportifs."],
   ["TITAN est-il une application mobile ?", "C’est une application web installable : depuis ton navigateur, ajoute-la à l’écran d’accueil. Elle fonctionne hors ligne."],
   ["Mon coach voit-il mon journal automatiquement ?", "Non. Le partage commence après ton accord explicite, sur le périmètre que tu choisis, et se révoque à tout moment."],
 ]);

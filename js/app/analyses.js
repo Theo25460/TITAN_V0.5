@@ -116,7 +116,7 @@
     } catch (e) {
       if (!current()) return;
       const missing = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
-      const message = missing ? "Les comparaisons ouvrent avec la prochaine mise à jour du serveur. Tes statistiques de base restent disponibles."
+      const message = missing ? "Les comparaisons sont momentanément indisponibles. Tes statistiques de base restent disponibles."
         : e?.message === "COMPARISON_TIMEOUT" ? "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant."
           : "La comparaison n’a pas répondu correctement. Réessaie dans un instant.";
       status.innerHTML = `<p>${esc(message)}</p>`;

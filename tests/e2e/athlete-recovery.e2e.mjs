@@ -91,7 +91,7 @@ test('athlete recovery: hanging RPC has a bounded timeout and ignores a late res
 for(const mode of ['none','missing'])test(`athlete recovery: ${mode} keeps the unavailable state without retry`,async()=>{
  const {page,context,errors}=await athletePage({mode});try{
   await ready(page);assert.equal(await page.locator('#athlete-retry').count(),0);
-  assert.match(await page.locator('#athlete').textContent(),mode==='missing'?/arrivent bientôt/:/pas disponible/);
+  assert.match(await page.locator('#athlete').textContent(),mode==='missing'?/momentanément indisponibles/:/pas disponible/);
   await reconnect(page);assert.equal(await page.evaluate(()=>window.athleteCalls.length),1);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
