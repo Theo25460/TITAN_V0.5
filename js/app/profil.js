@@ -35,6 +35,10 @@
   let titles = null; // expedition titles earned (server)
   let worn = null; // worn title {key,label} (server); null until read
   let wornTask = null; // a title change in flight
+  let showcase = null; // showcase [{key,label}] (server, V11-23); null until read
+  let showcaseTask = null;
+  let sources = null; // connected activity sources [{source,granted,imported,...}] (server, V11-30); null until read
+  let sourcesTask = null;
   const guest = () => D().isGuest();
   const BLOCKS = [
     ["name", "Mon nom affiché", "Sinon : « Athlète TITAN »."],
@@ -135,6 +139,105 @@
   }
   const wornName = () => (worn?.key ? window.TitanTitles?.label(worn.key, { catalog: C(), serverLabel: worn.label }) : null);
 
+  /* V11-23: up to three earned titles shown on the public card. Same account/client/epoch guards as wearing a title; the server checks ownership. */
+  async function toggleShowcase(key) {
+    if (showcaseTask || wornTask || cardTask || !showcase || !cardContextValid(bitsContext)) return false;
+    const context = bitsContext;
+    const keys = showcase.map((x) => x.key);
+    const next = keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key].slice(0, 3);
+    const job = { context, focus: `[data-showcase-toggle="${CSS.escape(key)}"]` };
+    showcaseTask = job;
+    render();
+    try {
+      const session = await readBitsSession(job);
+      if (showcaseTask !== job || !bitsCurrent(job)) return false;
+      const { data, error } = await context.client.rpc("titan_set_showcase_v1", { p_keys: next }).setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (showcaseTask !== job || !bitsCurrent(job)) return false;
+      if (error) throw error;
+      await readBitsSession(job);
+      if (showcaseTask !== job || !bitsCurrent(job)) return false;
+      showcase = (Array.isArray(data) ? data : []).filter((x) => x && typeof x.key === "string").map((x) => ({ key: x.key, label: x.label || null }));
+      return true;
+    } catch (error) {
+      if (showcaseTask === job && bitsCurrent(job)) throw error;
+      return false;
+    } finally {
+      if (showcaseTask === job) {
+        const current = bitsCurrent(job);
+        showcaseTask = null;
+        if (current) {
+          const restoreFocus = document.activeElement === document.body;
+          render();
+          if (restoreFocus && document.activeElement === document.body) root.querySelector(job.focus)?.focus({ preventScroll: true });
+        }
+      }
+    }
+  }
+
+  const SOURCE_NAMES = { health_connect: "Health Connect" };
+
+  /* V11-30: stop a connected source, or archive what it brought. Same account/client/epoch guards; the server only acts on the caller's own rows. */
+  async function sourceAction(kind, source) {
+    if (sourcesTask || !sources || !cardContextValid(bitsContext)) return false;
+    const context = bitsContext;
+    const job = { context, focus: `[data-source-${kind}="${CSS.escape(source)}"]`, kind };
+    sourcesTask = job;
+    render();
+    try {
+      const session = await readBitsSession(job);
+      if (sourcesTask !== job || !bitsCurrent(job)) return false;
+      const call = kind === "revoke"
+        ? context.client.rpc("titan_set_source_consent_v1", { p_source: source, p_granted: false })
+        : context.client.rpc("titan_archive_imported_v1", { p_source: source });
+      const { error } = await call.setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (sourcesTask !== job || !bitsCurrent(job)) return false;
+      if (error) throw error;
+      const fresh = await context.client.rpc("titan_sources_v1").setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (sourcesTask !== job || !bitsCurrent(job)) return false;
+      if (!fresh.error && Array.isArray(fresh.data)) sources = fresh.data.filter((x) => x && typeof x.source === "string");
+      return true;
+    } catch (error) {
+      if (sourcesTask === job && bitsCurrent(job)) throw error;
+      return false;
+    } finally {
+      if (sourcesTask === job) {
+        const current = bitsCurrent(job);
+        sourcesTask = null;
+        if (current) {
+          const restoreFocus = document.activeElement === document.body;
+          render();
+          if (restoreFocus && document.activeElement === document.body) root.querySelector(job.focus)?.focus({ preventScroll: true });
+        }
+      }
+    }
+  }
+
+  function sourcesBlockHtml() {
+    if (guest() || !sources || !sources.length) return "";
+    return `<section class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
+      <div class="asc-list">${sources.map((x) => {
+        const name = SOURCE_NAMES[x.source] || x.source;
+        const since = x.granted_at ? new Date(x.granted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+        const busy = sourcesTask ? " disabled" : "";
+        return `<div class="asc-row" data-source="${esc(x.source)}"><span class="asc-row-icon">${icon("cloudUp")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(name)} · ${x.granted ? "autorisée" : "retirée"}</span>
+          <span class="asc-row-sub">${x.granted ? `Autorisée depuis le ${esc(since)}. ` : "Plus aucune séance n’est reçue. "}${Number(x.imported) || 0} séance${x.imported > 1 ? "s" : ""} reçue${x.imported > 1 ? "s" : ""} et gardée${x.imported > 1 ? "s" : ""} dans ton journal${x.linked ? `, ${x.linked} rattachée${x.linked > 1 ? "s" : ""} à une séance déjà saisie` : ""}.</span></span></div>
+        <div class="asc-row-flex">${x.granted ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-source-revoke="${esc(x.source)}"${busy}>Retirer l’accès</button>` : ""}${x.imported > 0 ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-source-archive="${esc(x.source)}"${busy}>Archiver ce que ${esc(name)} a apporté</button>` : ""}</div>`;
+      }).join("")}</div>
+      <p class="asc-small asc-faint">Retirer l’accès arrête les imports. Tes récompenses déjà reçues restent acquises ; archiver retire seulement les séances reçues du journal.</p></section>`;
+  }
+
+  function showcaseBlockHtml() {
+    if (guest() || !showcase || !window.TitanTitles) return "";
+    const options = window.TitanTitles.earned({ rewards: A()?.snapshot?.rewards || [], expeditionTitles: titles || [], catalog: C() });
+    if (!options.length) return "";
+    const picked = new Set(showcase.map((x) => x.key));
+    const full = picked.size >= 3;
+    return `<div class="pf-col-block" data-showcase-block><p class="asc-eyebrow">Vitrine</p>
+      <p class="asc-small asc-muted">Choisis jusqu’à trois distinctions à montrer sur ta carte publique${card?.enabled ? "" : " (quand tu l’activeras)"} — ${picked.size} sur 3.</p>
+      <ul class="pf-chips" role="group" aria-label="Distinctions de la vitrine">${options.map((t) => `<li><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-showcase-toggle="${esc(t.key)}" aria-pressed="${picked.has(t.key)}" ${showcaseTask || (full && !picked.has(t.key)) ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}</button></li>`).join("")}</ul>
+      <p class="asc-small asc-faint">Purement décoratif : aucune distinction ne donne d’XP ni de crédits.</p></div>`;
+  }
+
   function titleBlockHtml() {
     if (guest() || !worn || !window.TitanTitles) return "";
     const options = window.TitanTitles.earned({ rewards: A()?.snapshot?.rewards || [], expeditionTitles: titles || [], catalog: C() });
@@ -152,7 +255,24 @@
     if (!h || (!h.earned.length && !(h.bests.distanceKm > 0))) return "";
     return `<div class="pf-col-block" data-endurance-block><p class="asc-eyebrow">Exploits d’endurance</p>
       ${h.earned.length ? `<ul class="pf-chips">${h.earned.map((e) => `<li data-endurance="${esc(e.key)}">${icon(e.family === "elevation" ? "mountain" : e.family === "duration" ? "clock" : "route")} ${esc(e.label)}</li>`).join("")}</ul>` : ""}
-      ${h.next.length ? `<p class="asc-small asc-faint">Prochain${h.next.length > 1 ? "s" : ""} : ${h.next.map((n) => esc(n.label)).join(" · ")}. Une seule sortie suffit, sans XP en plus : ce sont des souvenirs.</p>` : ""}</div>`;
+      ${h.next.length ? `<p class="asc-small asc-faint">Prochain${h.next.length > 1 ? "s" : ""} : ${h.next.map((n) => esc(n.label)).join(" · ")}. Une seule sortie suffit, sans XP en plus : ce sont des souvenirs.</p>` : ""}
+      ${h.earned.length && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-endurance-card>${icon("share")} Image de mon plus bel exploit</button>` : ""}</div>`;
+  }
+
+  /* V11-12 follow-up: the best endurance exploit as a shareable card. One session only, no place, no route. */
+  function enduranceCard() {
+    const h = window.TitanEndurance?.highlights(logs());
+    const best = h?.earned?.[0];
+    if (!best || !window.TitanCard) return;
+    window.TitanCard.open({
+      kind: "record",
+      eyebrow: "Exploit d’endurance",
+      title: best.family === "elevation" ? "Dénivelé en une sortie" : best.family === "duration" ? "Durée en une sortie" : "Distance en une sortie",
+      value: best.label,
+      detail: h.bests.distanceKm > 0 ? `Plus longue sortie : ${F().distance(h.bests.distanceKm)}` : "",
+      name: window.TitanCard.userName(),
+      filename: "titan-exploit",
+    });
   }
 
   function collectionHtml() {
@@ -177,6 +297,7 @@
         <div class="pf-col-block"><p class="asc-eyebrow">Insignes d’aventure</p>${rewards.length ? `<ul class="pf-items">${rewards.map(badge).join("")}</ul>` : `<p class="asc-small asc-muted">Allume ta première balise dans <a href="/adventure">l’Aventure</a>.</p>`}</div>
         ${titles?.length ? `<div class="pf-col-block"><p class="asc-eyebrow">Titres d’expédition</p><ul class="pf-chips">${titles.map((t) => `<li>${icon("mountain")} ${esc(t.title)} <small class="asc-faint">· ${esc(t.expedition)}</small></li>`).join("")}</ul></div>` : ""}
         ${titleBlockHtml()}
+        ${showcaseBlockHtml()}
         ${enduranceBlockHtml()}
         <div class="pf-col-block"><p class="asc-eyebrow">Jalons</p><ul class="pf-chips">${ms.map((m) => `<li>${icon("flag")} ${m} séance${m > 1 ? "s" : ""}</li>`).join("")}${hs.map((h) => `<li>${icon("clock")} ${h} h</li>`).join("")}${held ? `<li>${icon("check")} ${held} semaine${held > 1 ? "s" : ""} tenue${held > 1 ? "s" : ""}</li>` : ""}${records ? `<li>${icon("star")} ${records} record${records > 1 ? "s" : ""}</li>` : ""}</ul>
           <p class="asc-small asc-faint">${nextM ? `Prochain jalon : ${nextM} séances (${nextM - list.length} à venir)` : ""}${nextM && nextH ? " · " : ""}${nextH ? `${nextH} h de pratique` : ""}</p></div>
@@ -294,6 +415,10 @@
     titles = null;
     worn = null;
     wornTask = null;
+    showcase = null;
+    showcaseTask = null;
+    sources = null;
+    sourcesTask = null;
     cardUnavailable = false;
     cardFailed = false;
   }
@@ -341,6 +466,20 @@
         await readBitsSession(job);
         if (bitsCurrent(job) && !w.error && w.data && typeof w.data === "object") worn = { key: w.data.key || null, label: w.data.label || null };
       } catch {}
+      // The showcase is another best-effort read (V11-23): an older server simply shows no picker.
+      try {
+        const v = await within(job.context.client.rpc("titan_showcase_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
+        if (!bitsCurrent(job)) return;
+        await readBitsSession(job);
+        if (bitsCurrent(job) && !v.error && Array.isArray(v.data)) showcase = v.data.filter((x) => x && typeof x.key === "string").map((x) => ({ key: x.key, label: x.label || null }));
+      } catch {}
+      // Connected activity sources (V11-30): shown only when the account allowed one.
+      try {
+        const v = await within(job.context.client.rpc("titan_sources_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
+        if (!bitsCurrent(job)) return;
+        await readBitsSession(job);
+        if (bitsCurrent(job) && !v.error && Array.isArray(v.data)) sources = v.data.filter((x) => x && typeof x.source === "string");
+      } catch {}
     } catch {
       if (bitsCurrent(job)) cardFailed = true;
     } finally {
@@ -377,6 +516,7 @@
         <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
         <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
       </div>`}
+      ${sourcesBlockHtml()}
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
         <button type="button" class="asc-row" data-export-csv><span class="asc-row-icon">${icon("journal")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter mon journal</span><span class="asc-row-sub">Tableur CSV, lisible partout</span></span></button>
@@ -684,6 +824,7 @@
       return window.titanShell.sheet({ title: "Les paliers de maîtrise", eyebrow: "Maîtrise", body });
     }
     if (b.hasAttribute("data-dna-card")) return dnaCard();
+    if (b.hasAttribute("data-endurance-card")) return enduranceCard();
     if (b.hasAttribute("data-card-copy"))
       return (navigator.clipboard?.writeText(`https://titan-app.fr/u/${card.slug}`) || Promise.reject()).then(
         () => window.titanShell.toast({ type: "ok", title: "Lien copié" }),
@@ -724,6 +865,21 @@
           location.href = "/login";
         },
       });
+    const sourceKind = b.dataset.sourceRevoke !== undefined ? "revoke" : b.dataset.sourceArchive !== undefined ? "archive" : null;
+    if (sourceKind) {
+      const source = sourceKind === "revoke" ? b.dataset.sourceRevoke : b.dataset.sourceArchive;
+      return sourceAction(sourceKind, source)
+        .then((done) => done && window.titanShell.toast({ type: "ok", title: sourceKind === "revoke" ? "Accès retiré" : "Séances archivées", message: sourceKind === "revoke" ? "Plus aucune séance ne sera reçue de cette source." : "Les séances reçues ne sont plus dans ton journal. La page se recharge pour le montrer." }))
+        .then((done) => { if (done && sourceKind === "archive") setTimeout(() => location.reload(), 1200); })
+        .catch(() => window.titanShell.toast({ type: "warn", message: "Cette action n’a pas pu être faite. Réessaie." }));
+    }
+    if (b.dataset.showcaseToggle !== undefined) {
+      return toggleShowcase(b.dataset.showcaseToggle)
+        .catch((err) => {
+          const m = String(err?.message || "");
+          window.titanShell.toast({ type: "warn", message: m.includes("RATE_LIMITED") ? "Trop de changements de vitrine. Réessaie dans une heure." : m.includes("NOT_EARNED") ? "Cette distinction n’est pas encore gagnée." : "La vitrine n’a pas pu être modifiée. Réessaie." });
+        });
+    }
     if (b.dataset.wearTitle !== undefined) {
       const key = b.dataset.wearTitle;
       return wearTitle(key)

@@ -141,6 +141,9 @@ test('an ultra-distance session shows its endurance souvenirs in the Collection,
     assert.match(text, /3 000 m de dénivelé/);
     assert.match(text, /sans XP en plus/);
     assert.equal(await block.locator('[data-endurance="endurance:distance:300"]').count(), 1);
+    await block.locator('[data-endurance-card]').click();
+    await page.getByRole('dialog', { name: 'Image à partager', exact: true }).waitFor();
+    await page.waitForFunction(() => document.querySelector('.cd-preview img')?.src.startsWith('data:image/png'));
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

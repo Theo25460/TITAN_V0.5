@@ -897,6 +897,9 @@ window.loadServerData = async function() {
     window.TITAN_DB_STATUS.issues = [];
     window.TITAN_DB_STATUS.softIssues = [];
     const CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+    // IDEA09: the shared catalogues (sports, shop, creatures...) change rarely. A copy younger than this is reused without asking the
+    // server again; the per-account tables are always read. The admin screens always read the live catalogues.
+    const CATALOG_REUSE_MS = 10 * 60 * 1000;
 
     const cached = localStorage.getItem(window.CACHE_KEY);
     let cachedData = null;
@@ -943,6 +946,17 @@ window.loadServerData = async function() {
         ];
 
         const page=location.pathname.replace(/\.html$/, '');
+        const catalogAge = cachedAt ? Date.now() - cachedAt : Number.POSITIVE_INFINITY;
+        const reuseCatalog = catalogAge >= 0 && catalogAge <= CATALOG_REUSE_MS && !/admin/.test(page)
+            && Array.isArray(cachedData?.sports) && cachedData.sports.length > 0;
+        if (reuseCatalog) {
+            const cachedKeyByTable = { mobs: 'mobs', bosses: 'bosses', creatures: 'creatures', talents: 'talents', sports: 'sports', achievements_config: 'achievements', global_config: 'globalConf', fun_stats: 'funStats', shop_items: 'shopItems' };
+            queries.forEach((entry, index) => {
+                const key = cachedKeyByTable[entry[0]];
+                if (key) queries[index] = [entry[0], Promise.resolve({ data: Array.isArray(cachedData[key]) ? cachedData[key] : null, error: null })];
+            });
+            window.TITAN_DB_STATUS.catalogReused = true;
+        }
         const gamePage=/adventure|talents|boutique|trophies|admin/.test(page);
         const optional=new Set(['mobs','bosses','creatures','talents','fun_stats','shop_items','shop_history']);
         if(!gamePage)queries.forEach((entry,index)=>{if(optional.has(entry[0]))queries[index]=[entry[0],Promise.resolve({data:null,error:null})];});
@@ -1019,7 +1033,7 @@ window.loadServerData = async function() {
         if (window.TITAN_DB_STATUS.issues.length === 0 && window.TITAN_DB_STATUS.softIssues.length === 0) {
             localStorage.setItem(window.CACHE_KEY, JSON.stringify({
                 version: 'v2',
-                cachedAt: Date.now(),
+                cachedAt: reuseCatalog ? cachedAt : Date.now(),
                 data: freshData
             }));
             window.TITAN_DB_STATUS.cache = { source: 'network', stale: false, ageMs: 0 };

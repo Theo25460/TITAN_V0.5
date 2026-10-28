@@ -3726,3 +3726,16 @@
   object-fit: cover;
   display: block;
 }
+
+/* UX08: contextual hint, first visits only. */
+.asc-hint {
+  align-items: center;
+  margin: var(--s3) 0 var(--s4);
+}
+.asc-hint p {
+  margin: 0;
+  flex: 1;
+}
+.asc-hint .asc-btn {
+  flex: none;
+}

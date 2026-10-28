@@ -124,6 +124,7 @@
       ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
       <p class="asc-small asc-muted">${f.number(left)} XP avant le niveau ${p.level + 1}. ${nextRank}</p>` : `<p class="asc-small asc-muted">${nextRank} La barre du niveau s’affiche dès que le serveur répond.</p>`}
       <p class="asc-small asc-faint">${D().rulesV300() ? "1 minute d’effort modéré ≈ 10 XP, quel que soit ton sport." : "L’XP est calculée par le serveur à chaque séance."}${p.guest ? " En découverte, le calcul est local et indicatif." : ""}</p>
+      <details class="qg-why"><summary>Pourquoi mon niveau monte ?</summary><p>Il monte avec l’effort réel (durée × ressenti), pas avec le nombre de séances. Les mêmes plafonds par jour et par semaine s’appliquent à tout le monde, et un jour de repos ne te retire rien.</p></details>
     </section>`;
   }
 
@@ -206,7 +207,19 @@
     try { if (localStorage.getItem(monthKey(now))) return ""; } catch { /* storage unavailable: show it, it is harmless */ }
     const m = window.TitanMonthReport.build(D().logs(), { now, offset: 1, minutesOf: (l) => P().minutesOf(l) });
     if (!m.sessions) return "";
-    return `<div class="asc-note qg-month">${icon("star")}<div><strong>Ton bilan de ${window.TitanMonthReport.MONTHS[m.from.getMonth()]} est prêt</strong> · ${m.activeDays} jour${m.activeDays > 1 ? "s" : ""} actif${m.activeDays > 1 ? "s" : ""}, ${m.sports.length} sport${m.sports.length > 1 ? "s" : ""}. <a class="asc-link" href="/stats?mois=1">Le voir</a> · <button type="button" class="asc-link" data-action="dismiss-month">Plus tard</button></div></div>`;
+    return `<div class="asc-note qg-month">${icon("star")}<div><strong>Ton bilan de ${window.TitanMonthReport.MONTHS[m.from.getMonth()]} est prêt</strong> · ${m.activeDays} jour${m.activeDays > 1 ? "s" : ""} actif${m.activeDays > 1 ? "s" : ""}, ${m.sports.length} sport${m.sports.length > 1 ? "s" : ""}. <a class="asc-link" href="/stats?mois=1">Le voir</a> · <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-action="dismiss-month">Plus tard</button></div></div>`;
+  }
+
+  /* V11-19: your sports one tap from a new session. Recent first, then favourites; nothing is shown before there is something to show. */
+  function shortcutsHtml(list) {
+    const sports = window.TitanSports, cfg = window.SPORTS_CONFIG;
+    if (!sports || !cfg) return "";
+    const recent = list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((l) => l.sport);
+    const favorites = Array.isArray(window.state?.user?.favoriteSports) ? window.state.user.favoriteSports : [];
+    const ids = [...new Set([...recent.slice(0, 20), ...favorites])].filter((id) => cfg[id]).slice(0, 4);
+    if (!ids.length) return "";
+    return `<section class="asc-section asc-appear" aria-labelledby="qg-sports"><div class="asc-section-head"><h2 id="qg-sports">Tes sports</h2></div>
+      <div class="seance-chips">${ids.map((id) => `<a class="seance-chip" href="/training?sport=${encodeURIComponent(id)}">${icon(sports.FAMILY_ICON[sports.familyOf(id)])}${esc(sports.label(id))}</a>`).join("")}</div></section>`;
   }
 
   function guestHtml() {
@@ -236,6 +249,7 @@
       ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
+      ${shortcutsHtml(list)}
       <div class="asc-grid-2 qg-grid">
         <div>${ascentHtml(D().progression())}</div>
         <div>${lastHtml(list)}

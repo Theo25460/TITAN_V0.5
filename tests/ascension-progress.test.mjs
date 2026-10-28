@@ -45,6 +45,23 @@ test("cadence holds a week by active days, ignores rest and pause weeks", () => 
   assert.equal(c.weeks.length, 8);
 });
 
+test("soft streak (IDEA06): rest days inside a week cost nothing, and a missed week never takes back weeks already held", () => {
+  // Three held weeks, a fully empty week, then two more held weeks: the lifetime count only ever grows.
+  const week = (monday) => [0, 2, 4].map((d) => { const x = new Date(`${monday}T07:00:00`); x.setDate(x.getDate() + d); return log(`${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}T07:00:00`); });
+  const held = ["2026-08-31", "2026-09-07", "2026-09-14", "2026-09-28"].flatMap(week);
+  const before = P.cadence(held, { target: 3, now: new Date("2026-09-20T12:00:00") });
+  const after = P.cadence([...held, ...week("2026-10-05")], { target: 3, now: new Date("2026-10-11T12:00:00") });
+  assert.equal(before.lifetimeHeld, 3);
+  assert.equal(after.lifetimeHeld, 5, "the empty week between did not reset anything");
+  const gap = after.weeks.find((w) => w.start === "2026-09-21");
+  assert.equal(gap.state, "missed");
+  // The target counts days, not a chain: 3 active days with 4 rest days hold the week.
+  assert.equal(after.weeks.find((w) => w.start === "2026-10-05").state, "held");
+  // A week the player puts on pause is not counted as missed.
+  const paused = P.cadence(held, { target: 3, now: new Date("2026-10-11T12:00:00"), pauses: ["2026-09-21"] });
+  assert.equal(paused.weeks.find((w) => w.start === "2026-09-21").state, "pause");
+});
+
 test("cadence keeps every local week across spring clock changes", () => {
   for (const anchor of ["2026-03-30T12:00:00", "2026-03-09T12:00:00"]) {
     const now = new Date(anchor);

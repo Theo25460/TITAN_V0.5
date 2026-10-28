@@ -41,6 +41,11 @@ test("month prompt: shown in the first week, dismissed for good on this device, 
     const note = page.locator(".qg-month");
     await note.waitFor();
     assert.match(await note.innerText(), /bilan de octobre est prêt.*2 jours actifs, 2 sports/);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.waitForTimeout(700);
+    await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });
+    const axe = await page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(" ")).join(", ")}`)));
+    assert.deepEqual(axe, [], "the invitation is readable and accessible");
     await page.locator('[data-action="dismiss-month"]').click();
     await page.waitForFunction(() => !document.querySelector(".qg-month"));
     await page.evaluate(() => window.dispatchEvent(new Event("titan:history-updated")));

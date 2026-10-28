@@ -79,3 +79,25 @@ test("month report: the card opens locally with the month title and nothing else
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test("annual report: this year in progress, the year before on request, a card of the year", async () => {
+  const { page, context, errors } = await monthPage();
+  try {
+    const title = page.locator("#wk-year-title");
+    await title.waitFor();
+    assert.match(await title.textContent(), /Bilan de 2026/);
+    const text = await page.locator(".wk-year").innerText();
+    assert.match(text, /4 séances|SÉANCES\s*4/i);
+    assert.match(text, /Année en cours/);
+    await page.getByRole("button", { name: "Année précédente", exact: true }).click();
+    assert.match(await page.locator("#wk-year-title").textContent(), /Bilan de 2025/);
+    assert.equal(await page.evaluate(() => document.activeElement.id), "wk-year-title");
+    assert.match(await page.locator(".wk-year").innerText(), /Une année sans séance enregistrée/);
+    await page.getByRole("button", { name: "Année suivante", exact: true }).click();
+    await page.getByRole("button", { name: /Image de mon année/ }).click();
+    await page.getByRole("dialog", { name: "Image à partager", exact: true }).waitFor();
+    await page.waitForFunction(() => document.querySelector(".cd-preview img")?.src.startsWith("data:image/png"));
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

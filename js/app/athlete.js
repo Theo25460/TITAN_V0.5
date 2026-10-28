@@ -82,6 +82,17 @@
         heading.insertAdjacentHTML("afterend", `<p class="pf-title" data-pf-title>${icon("star")} ${esc(name)}</p>`);
       } catch {}
     }
+    /* V11-23: the showcase, another best-effort read after the card. */
+    async function showShowcase(client, s) {
+      try {
+        const { data, error } = await client.rpc("titan_public_card_showcase", { p_slug: s });
+        if (error || !Array.isArray(data) || !data.length || slug() !== s || window.titanClient !== client) return;
+        const names = data.map((x) => window.TitanTitles?.label(x.key, { catalog: window.TitanCodex, serverLabel: x.label })).filter(Boolean);
+        const heading = root.querySelector("h1.pf-name");
+        if (!names.length || !heading || root.querySelector("[data-pf-showcase]")) return;
+        (root.querySelector("[data-pf-title]") || heading).insertAdjacentHTML("afterend", `<ul class="pf-chips" data-pf-showcase aria-label="Vitrine">${names.map((n) => `<li>${icon("star")} ${esc(n)}</li>`).join("")}</ul>`);
+      } catch {}
+    }
     async function load(user = false) {
       if (pending) return;
       const s = slug(), client = window.titanClient;
@@ -108,7 +119,7 @@
         if (error?.code === "PGRST202") unavailable(false, true);
         else if (error) throw error;
         else if (!data) unavailable();
-        else { render(root, data); status.textContent = "Carte chargée."; showTitle(client, s); }
+        else { render(root, data); status.textContent = "Carte chargée."; showTitle(client, s).then(() => showShowcase(client, s)); }
       } catch (error) {
         if (!current()) return;
         unavailable(false, false, true, error?.message === "ATHLETE_TIMEOUT" ? "Le serveur n’a pas répondu en 12 secondes. Tu peux réessayer." : "Lecture impossible. Tu peux réessayer.");

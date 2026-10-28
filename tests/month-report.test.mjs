@@ -69,3 +69,21 @@ test("records and adventure highlights of the month come from the caller, capped
   assert.ok(describe(r).notes.some((n) => /5 records battus/.test(n)));
   assert.deepEqual(build([log(new Date(2026, 9, 2, 8))], opts).records, []);
 });
+
+test("the annual report compares with the same days of the previous year and names the year", () => {
+  const logs = [log(new Date(2025, 1, 3, 8)), log(new Date(2025, 11, 20, 8)), log(new Date(2026, 0, 10, 8)), log(new Date(2026, 8, 3, 8)), log(new Date(2026, 8, 4, 8), "yoga", { unit: "min", val: 45, details: { duration: 45 } })];
+  const y = build(logs, { ...opts, period: "year" });
+  assert.equal(y.period, "year");
+  assert.equal(y.label, "2026");
+  assert.equal(y.sessions, 3);
+  assert.equal(y.previous.label, "2025");
+  assert.equal(y.previous.sessions, 1, "20 December 2025 is after the 15 October: not compared");
+  const last = build(logs, { ...opts, period: "year", offset: 1 });
+  assert.equal(last.current, false);
+  assert.equal(last.label, "2025");
+  assert.equal(last.sessions, 2);
+  assert.equal(last.previous, null);
+  assert.match(describe(y).text, /sur les mêmes jours de 2025/);
+  assert.match(describe(last).text, /Première année mesurée/);
+  assert.match(describe(build([], { ...opts, period: "year", offset: 2 })).title, /Une année sans séance/);
+});

@@ -54,6 +54,24 @@ begin
   r2:=public.titan_import_activity_v1('health_connect','hc-old','running',now()-interval '90 days',50,8);
   assert r2->>'status'='imported' and (r2->>'xp')::int=0,'history older than 30 days earns nothing';
 
+  -- QA17 (server half). Across midnight: a manual 23:55 -> 00:30 run absorbs an import that started at 23:50 and ended at 00:40, whatever the time zone.
+  perform set_config('timezone','Pacific/Auckland',true);
+  perform public.titan_submit_training_session('rowing','cardio',35,'min',jsonb_build_object('duration',35),date_trunc('day',now()) - interval '5 minutes' - interval '2 days');
+  r2:=public.titan_import_activity_v1('health_connect','hc-night','rowing',date_trunc('day',now()) - interval '10 minutes' - interval '2 days',50);
+  assert r2->>'status'='linked','a session across midnight is matched in any time zone: '||r2::text;
+  perform set_config('timezone','UTC',true);
+  -- Two distinct back-to-back sessions of the same sport are two sessions, not one.
+  r2:=public.titan_import_activity_v1('health_connect','hc-b2b-1','swimming',now()-interval '20 hours',30);
+  assert r2->>'status'='imported','first swim';
+  r2:=public.titan_import_activity_v1('health_connect','hc-b2b-2','swimming',now()-interval '20 hours' + interval '31 minutes',30);
+  assert r2->>'status'='imported','the swim that starts when the first ends is its own session: '||r2::text;
+  -- The source editing an activity it already sent changes nothing here: the session stays as the player first saw it.
+  r2:=public.titan_import_activity_v1('health_connect','hc-b2b-2','swimming',now()-interval '20 hours' + interval '31 minutes',55);
+  assert r2->>'status'='duplicate','an edited replay is ignored, never doubled';
+
+  -- The Profile screen reads the same facts: what was allowed, how much each source brought.
+  r2:=public.titan_sources_v1();
+  assert jsonb_array_length(r2)=1 and r2->0->>'source'='health_connect' and (r2->0->>'granted')::boolean and (r2->0->>'imported')::int=5 and (r2->0->>'linked')::int=3,'sources status: '||r2::text;
   -- Another account sees nothing and can import the same external id on its own.
   perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ai_b'),'role','authenticated')::text,true);
   ok:=false; begin perform public.titan_import_activity_v1('health_connect','hc-1','running',t0,40,6); exception when others then ok:=sqlerrm='CONSENT_REQUIRED'; end; assert ok,'consent is per account';
@@ -63,11 +81,14 @@ begin
 
   -- Revocation stops imports; archiving removes only what the source brought.
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
-  r2:=public.titan_set_source_consent_v1('health_connect',false); assert not (r2->>'granted')::boolean and (r2->>'imported')::int=3,'three imported sessions remain: '||r2::text;
+  r2:=public.titan_set_source_consent_v1('health_connect',false); assert not (r2->>'granted')::boolean and (r2->>'imported')::int=5,'five imported sessions remain: '||r2::text;
   ok:=false; begin perform public.titan_import_activity_v1('health_connect','hc-9','running',t0 - interval '1 day',30,5); exception when others then ok:=sqlerrm='CONSENT_REQUIRED'; end; assert ok,'revoked: no more import';
-  n:=public.titan_archive_imported_v1('health_connect'); assert n=3,'archived what the source brought, not the manual session';
-  select count(*) into n from public.training_logs where user_id=a and archived_at is null; assert n=1,'the manual cycling session stays';
+  n:=public.titan_archive_imported_v1('health_connect'); assert n=5,'archived what the source brought, not the manual session';
+  select count(*) into n from public.training_logs where user_id=a and archived_at is null; assert n=2,'the manual sessions stay';
 
+  r2:=public.titan_sources_v1(); assert not (r2->0->>'granted')::boolean and (r2->0->>'imported')::int=0 and r2->0->>'revoked_at' is not null,'after revoking and archiving: '||r2::text;
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ai_b'),'role','authenticated')::text,true);
+  assert jsonb_array_length(public.titan_sources_v1())=1,'b sees only its own consent';
   -- Anonymous cannot do anything.
   perform set_config('request.jwt.claims','{"role":"anon"}',true);
   ok:=false; begin perform public.titan_import_activity_v1('health_connect','z','running',t0,40,6); exception when others then ok:=true; end; assert ok,'anonymous refused';

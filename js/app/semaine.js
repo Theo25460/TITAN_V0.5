@@ -14,6 +14,7 @@
   let root = null;
   let offset = 0; // 0 = this week, 1 = last week…
   let goalsCache = [];
+  let yearOffset = 0; // V11-29: 0 = this year in progress, 1 = last year…
   let monthOffset = /[?&]mois=1\b/.test(location.search) ? 1 : 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
@@ -115,23 +116,26 @@
     });
   }
 
-  const monthReport = () => window.TitanMonthReport.build(logs(), { offset: monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
+  const periodReport = (period) => window.TitanMonthReport.build(logs(), { period, offset: period === "year" ? yearOffset : monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
     recordsOf: (from, to) => P().newRecords(logs(), from, to).filter((r) => r.kind !== "duration"),
     adventureOf: (from, to) => window.TitanTitles ? window.TitanTitles.earned({ rewards: (window.TitanAdventure?.snapshot?.rewards || []).filter((r) => { const t = new Date(r.earned_at).getTime(); return t >= from && t < to; }), catalog: window.TitanCodex }) : [] });
 
-  /* V11-14: the free monthly report. Time is the common measure; each sport keeps its own volume. */
-  function monthHtml() {
+  const monthReport = () => periodReport("month");
+
+  /* V11-14 / V11-29: the free monthly and annual reports. Time is the common measure; each sport keeps its own volume. */
+  function periodHtml(period = "month") {
+    const Y = period === "year", off = Y ? yearOffset : monthOffset, id = Y ? "wk-year-title" : "wk-month-title", attr = Y ? "data-year" : "data-month";
     if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
-    const m = monthReport();
+    const m = periodReport(period);
     const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
     const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
-    return `<section class="asc-section wk-month" aria-labelledby="wk-month-title"><div class="asc-section-head"><h2 id="wk-month-title" tabindex="-1">Bilan de ${esc(m.label)}</h2>
-        <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset + 1}" aria-label="Mois précédent">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset - 1}" aria-label="Mois suivant" ${monthOffset === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
+    return `<section class="asc-section ${Y ? "wk-year" : "wk-month"}" aria-labelledby="${id}"><div class="asc-section-head"><h2 id="${id}" tabindex="-1">Bilan de ${esc(m.label)}</h2>
+        <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off + 1}" aria-label="${Y ? "Année précédente" : "Mois précédent"}">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off - 1}" aria-label="${Y ? "Année suivante" : "Mois suivant"}" ${off === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
       <p class="asc-lead">${esc(d.title)} ${esc(d.text)}</p>
       ${m.sessions ? `<dl class="wk-stats"><div><dt>Séances</dt><dd class="asc-num">${m.sessions}</dd></div><div><dt>Jours actifs</dt><dd class="asc-num">${m.activeDays}</dd></div><div><dt>Temps</dt><dd class="asc-num">${m.minutes ? esc(F().duration(m.minutes)) : "—"}</dd></div></dl><div class="asc-list">${rows}</div>` : ""}
       ${monthHighlights(m)}
       ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}
-      ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month-card>${icon("share")} Image de mon mois</button>` : ""}
+      ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${Y ? "data-year-card" : "data-month-card"}>${icon("share")} Image de ${Y ? "mon année" : "mon mois"}</button>` : ""}
     </section>`;
   }
 
@@ -143,8 +147,8 @@
     return items.length ? `<h3 class="asc-eyebrow">Temps forts</h3><div class="asc-list">${items.join("")}</div>` : "";
   }
 
-  function monthCard() {
-    const m = monthReport();
+  function periodCard(period = "month") {
+    const m = periodReport(period);
     const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
     window.TitanCard.open({
       kind: "week",
@@ -153,9 +157,11 @@
       detail: [d.text, ...d.notes.filter((n) => /estimées|record/.test(n))].join(" "),
       stats: [["Jours actifs", String(m.activeDays)], ["Temps", m.minutes ? F().duration(m.minutes) : "—"], m.distanceKm ? ["Distance", F().distance(m.distanceKm)] : ["Séances", String(m.sessions)]],
       name: window.TitanCard.userName(),
-      filename: "titan-mois",
+      filename: period === "year" ? "titan-annee" : "titan-mois",
     });
   }
+
+  const monthCard = () => periodCard("month");
 
   function highlightsHtml(r) {
     const items = [];
@@ -272,7 +278,7 @@
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${monthHtml()}
+    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${periodHtml("month")}${periodHtml("year")}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
     if (focusId) {
@@ -300,6 +306,15 @@
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
         if (e.target.closest("[data-month-card]")) return monthCard();
+        if (e.target.closest("[data-year-card]")) return periodCard("year");
+        const yb = e.target.closest("[data-year]");
+        if (yb) {
+          if (yb.disabled) return;
+          yearOffset = Math.max(0, Math.min(10, Number(yb.dataset.year)));
+          render();
+          root.querySelector("#wk-year-title")?.focus({ preventScroll: true });
+          return;
+        }
         const mb = e.target.closest("[data-month]");
         if (mb) {
           if (mb.disabled) return;
