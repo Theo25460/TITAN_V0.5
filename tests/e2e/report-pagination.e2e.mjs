@@ -174,7 +174,7 @@ test('report pagination: the new page does not execute the previous script resou
   try {
     await page.route('**/js/app/rapports.js?v=300.2', route => route.fulfill({ contentType: 'text/javascript', body: 'window.legacyReportScript=true;' }));
     await page.goto(BASE + '/stats');
-    assert.equal(await page.locator('script[src*="/js/app/rapports.js?"]').getAttribute('src'), '/js/app/rapports.js?v=300.4');
+    assert.equal(await page.locator('script[src*="/js/app/rapports.js?"]').getAttribute('src'), '/js/app/rapports.js?v=300.5');
     await page.locator('#report-panel').waitFor({ state: 'attached' });
     assert.equal(await page.evaluate(() => Boolean(window.legacyReportScript)), false);
     assert.deepEqual(errors, []);

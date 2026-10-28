@@ -205,7 +205,7 @@ test('view name: the versioned page does not reuse the preceding script resource
   try {
     await page.route('**/js/app/vues.js?v=300.2', route => route.fulfill({ contentType: 'text/javascript', body: 'window.legacyViewScript=true;' }));
     await page.goto(BASE + '/stats');
-    assert.equal(await page.locator('script[src*="/js/app/vues.js?"]').getAttribute('src'), '/js/app/vues.js?v=300.4');
+    assert.equal(await page.locator('script[src*="/js/app/vues.js?"]').getAttribute('src'), '/js/app/vues.js?v=300.5');
     await page.locator('#views-panel').waitFor({ state: 'attached' });
     assert.equal(await page.locator('#views-name-error').count(), 1);
     assert.equal(await page.evaluate(() => Boolean(window.legacyViewScript)), false);

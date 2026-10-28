@@ -223,6 +223,7 @@
       ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world)}
+      ${window.TitanPeriodicQuests?.html() || ""}
       ${questLogHtml(s)}
       <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
       ${guardianHtml(world, p, s)}
@@ -308,6 +309,7 @@
     if (!booted) {
       booted = true;
       SP()?.ensure?.();
+      window.TitanPeriodicQuests?.refresh();
       root.addEventListener("click", (e) => {
         const b = e.target.closest("button");
         if (!b) return;
@@ -337,6 +339,7 @@
     });
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:periodic-quests-updated", () => { if (root && window.TitanAdventure?.snapshot) render(); });
   window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter], [data-quest-souvenirs]").forEach(el => el.remove()));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);

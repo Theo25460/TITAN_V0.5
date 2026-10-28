@@ -35,7 +35,7 @@ for(const width of [360,1280]){
    assert.doesNotMatch(await offers.textContent(),/ouvre plus de monde/);
    await offers.locator('[data-availability="now"]').waitFor();
    assert.match(await offers.locator('[data-availability="now"]').textContent(),/journal|Journal/);
-   assert.match(await offers.locator('[data-availability="planned"]').textContent(),/préparation/);
+   assert.match(await offers.locator('[data-availability="planned"]').textContent(),/à venir/);
    assert.match(await offers.textContent(),/routines/);
    if(process.env.TITAN_QA_SCREENSHOTS){await offers.scrollIntoViewIfNeeded();await page.screenshot({path:`/tmp/titan-activation-offer-${width}.png`});}
    assert.equal(await offers.getByRole('link',{name:'Commencer gratuitement',exact:true}).getAttribute('href'),'/onboarding');

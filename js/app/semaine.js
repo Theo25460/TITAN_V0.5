@@ -14,6 +14,7 @@
   let root = null;
   let offset = 0; // 0 = this week, 1 = last week…
   let goalsCache = [];
+  let monthOffset = 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
 
@@ -111,6 +112,37 @@
       days: perDay(r).map((d) => d.minutes),
       name: window.TitanCard.userName(),
       filename: "titan-semaine",
+    });
+  }
+
+  const monthReport = () => window.TitanMonthReport.build(logs(), { offset: monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s) });
+
+  /* V11-14: the free monthly report. Time is the common measure; each sport keeps its own volume. */
+  function monthHtml() {
+    if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
+    const m = monthReport();
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    return `<section class="asc-section wk-month" aria-labelledby="wk-month-title"><div class="asc-section-head"><h2 id="wk-month-title" tabindex="-1">Bilan de ${esc(m.label)}</h2>
+        <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset + 1}" aria-label="Mois précédent">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month="${monthOffset - 1}" aria-label="Mois suivant" ${monthOffset === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
+      <p class="asc-lead">${esc(d.title)} ${esc(d.text)}</p>
+      ${m.sessions ? `<dl class="wk-stats"><div><dt>Séances</dt><dd class="asc-num">${m.sessions}</dd></div><div><dt>Jours actifs</dt><dd class="asc-num">${m.activeDays}</dd></div><div><dt>Temps</dt><dd class="asc-num">${m.minutes ? esc(F().duration(m.minutes)) : "—"}</dd></div></dl><div class="asc-list">${rows}</div>` : ""}
+      ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}
+      ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-month-card>${icon("share")} Image de mon mois</button>` : ""}
+    </section>`;
+  }
+
+  function monthCard() {
+    const m = monthReport();
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    window.TitanCard.open({
+      kind: "week",
+      eyebrow: `Bilan de ${m.label}`,
+      title: d.title,
+      detail: [d.text, ...d.notes.filter((n) => /estimées/.test(n))].join(" "),
+      stats: [["Jours actifs", String(m.activeDays)], ["Temps", m.minutes ? F().duration(m.minutes) : "—"], m.distanceKm ? ["Distance", F().distance(m.distanceKm)] : ["Séances", String(m.sessions)]],
+      name: window.TitanCard.userName(),
+      filename: "titan-mois",
     });
   }
 
@@ -229,7 +261,7 @@
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}
+    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${monthHtml()}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
     if (focusId) {
@@ -256,6 +288,15 @@
       SP().ensure();
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
+        if (e.target.closest("[data-month-card]")) return monthCard();
+        const mb = e.target.closest("[data-month]");
+        if (mb) {
+          if (mb.disabled) return;
+          monthOffset = Math.max(0, Math.min(24, Number(mb.dataset.month)));
+          render();
+          root.querySelector("#wk-month-title")?.focus({ preventScroll: true });
+          return;
+        }
         const b = e.target.closest("[data-week]");
         if (!b || b.disabled) return;
         offset = Math.max(0, Number(b.dataset.week));
