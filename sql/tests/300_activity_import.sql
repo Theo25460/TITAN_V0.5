@@ -95,3 +95,31 @@ begin
 end $$;
 reset role;
 rollback;
+
+-- A long first synchronisation: history is accepted up to the daily ceiling, then the call is refused whole and leaves nothing behind.
+begin;
+do $$ declare c uuid := gen_random_uuid(); begin insert into auth.users(id,raw_user_meta_data) values (c,'{}'); perform set_config('titan.ai_c',c::text,true); c := gen_random_uuid(); insert into auth.users(id,raw_user_meta_data) values (c,'{}'); perform set_config('titan.ai_d',c::text,true); end $$;
+set local role authenticated;
+do $$
+declare i int; ok boolean := false; n int; c uuid := current_setting('titan.ai_c')::uuid;
+begin
+  perform set_config('request.jwt.claims',json_build_object('sub',c,'role','authenticated')::text,true);
+  perform public.titan_set_source_consent_v1('health_connect',true);
+  for i in 1..300 loop
+    perform public.titan_import_activity_v1('health_connect','old-'||i,'swimming',now() - interval '60 days' - (i * interval '2 hours'),40);
+  end loop;
+  begin perform public.titan_import_activity_v1('health_connect','old-301','swimming',now() - interval '60 days' - (301 * interval '2 hours'),40); exception when others then ok := sqlerrm in ('TRAINING_RATE_LIMIT','RATE_LIMITED'); end;
+  assert ok,'the 301st history session of the day is refused';
+  -- Recent sessions (another account): 12 an hour.
+  perform set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.ai_d'),'role','authenticated')::text,true);
+  perform public.titan_set_source_consent_v1('health_connect',true);
+  for i in 1..12 loop
+    perform public.titan_import_activity_v1('health_connect','new-'||i,'swimming',now() - interval '1 hour' - (i * interval '3 hours'),40);
+  end loop;
+  ok := false;
+  begin perform public.titan_import_activity_v1('health_connect','new-13','swimming',now() - interval '1 hour' - (13 * interval '3 hours'),40); exception when others then ok := sqlerrm='TRAINING_RATE_LIMIT'; end;
+  assert ok,'the 13th recent session of the hour is refused';
+end $$;
+reset role;
+do $$ declare n int; begin select count(*) into n from private.titan_imported_activities where user_id = current_setting('titan.ai_c')::uuid; assert n = 300,'the refused call recorded nothing, found '||n; end $$;
+rollback;

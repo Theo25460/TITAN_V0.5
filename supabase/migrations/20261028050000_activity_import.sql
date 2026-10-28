@@ -90,6 +90,8 @@ begin
   if not exists (select 1 from private.titan_source_consents c where c.user_id = v_uid and c.source = p_source and c.revoked_at is null) then
     raise exception 'CONSENT_REQUIRED' using errcode = '42501';
   end if;
+  -- Imports go through the same creation ceilings as any session (12 an hour and 40 a day for recent ones, 300 a day for history older
+  -- than 30 days): a long first synchronisation is spread over days by the sender, and a refused call leaves nothing behind (same transaction).
   perform private.titan_rate_limit(v_uid, 'activity_import', 300);
   perform pg_advisory_xact_lock(hashtextextended(v_uid::text || ':' || p_source || ':' || p_external_id, 0));
 
