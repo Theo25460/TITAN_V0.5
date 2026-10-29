@@ -83,7 +83,7 @@ begin
 end $$;
 reset role;
 do $$
-declare b uuid := current_setting('titan.di_b')::uuid;
+declare b uuid := current_setting('titan.di_c')::uuid;
 begin
   insert into private.titan_daily_intents(user_id, day, intent, visibility) values (b, current_date, 'Nager un peu', 'friends');
   perform set_config('request.jwt.claims',json_build_object('sub',b,'role','authenticated')::text,true);
