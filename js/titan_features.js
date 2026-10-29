@@ -429,6 +429,7 @@
         Object.entries(INNOVATION_SPORTS).forEach(([id, sport]) => {
             if (!config[id]) {
                 config[id] = Object.assign({
+                    catalogSource: 'fallback',
                     extraFields: [],
                     xpRules: {},
                     validationRules: {},
@@ -436,6 +437,7 @@
                 }, sport);
             } else {
                 config[id] = Object.assign({
+                    catalogSource: 'fallback',
                     extraFields: [],
                     xpRules: {},
                     validationRules: {},

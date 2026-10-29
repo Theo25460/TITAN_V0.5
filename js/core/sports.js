@@ -61,8 +61,8 @@
   function snapshot() {
     if (snapshotIndex) return snapshotIndex;
     snapshotIndex = new Map();
-    for (const [id, label, unit, cat, profile, aliases, sort] of root.TITAN_SPORTS_SNAPSHOT || [])
-      snapshotIndex.set(id, { id, label, unit, cat, balanceProfile: profile, aliases: String(aliases || "").split("|").filter(Boolean), sortOrder: sort });
+    for (const [id, label, unit, cat, profile, aliases, sort, fields] of root.TITAN_SPORTS_SNAPSHOT || [])
+      snapshotIndex.set(id, { id, label, unit, cat, balanceProfile: profile, aliases: String(aliases || "").split("|").filter(Boolean), sortOrder: sort, extraFields: fields || [] });
     return snapshotIndex;
   }
 
@@ -71,10 +71,15 @@
     root.SPORTS_CONFIG = root.SPORTS_CONFIG || {};
     let added = 0;
     for (const [id, s] of snapshot()) {
-      if (root.SPORTS_CONFIG[id]) continue;
+      if (root.SPORTS_CONFIG[id]) {
+        if (root.SPORTS_CONFIG[id].catalogSource === 'fallback') Object.assign(root.SPORTS_CONFIG[id], {
+          extraFields: JSON.parse(JSON.stringify(s.extraFields)), catalogSource: 'offline', offline: true,
+        });
+        continue;
+      }
       root.SPORTS_CONFIG[id] = {
         label: s.label, name: s.label, unit: s.unit, cat: s.cat, balanceProfile: s.balanceProfile,
-        extraFields: [], aliases: s.aliases, sortOrder: s.sortOrder, offline: true,
+        extraFields: JSON.parse(JSON.stringify(s.extraFields)), aliases: s.aliases, sortOrder: s.sortOrder, offline: true, catalogSource: 'offline',
         formType: s.unit === "km" ? "gps_full" : "duration",
       };
       added++;

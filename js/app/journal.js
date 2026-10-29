@@ -279,8 +279,8 @@
     const x = l.details?.extras || {};
     const fields = Object.fromEntries((window.SPORTS_CONFIG?.[l.sport]?.extraFields || []).map((f) => [f.id, f]));
     const rows = Object.entries(x)
-      .filter(([, v]) => v !== null && v !== "" && v !== undefined && v !== false)
-      .map(([k, v]) => [fields[k]?.label || EXTRA_LABELS[k] || k, v === true ? "Oui" : k === "pool" ? (v === "open" ? "Eau libre" : `${v} m`) : `${v}${fields[k]?.unit ? " " + fields[k].unit : ""}`]);
+      .filter(([, v]) => v !== null && v !== "" && v !== undefined)
+      .map(([k, v]) => [fields[k]?.label || EXTRA_LABELS[k] || k, typeof v === "boolean" ? (v ? "Oui" : "Non") : k === "pool" ? (v === "open" ? "Eau libre" : `${v} m`) : `${v}${fields[k]?.unit ? " " + fields[k].unit : ""}`]);
     const g = l.details?.gpxStats;
     if (g?.movingMinutes) rows.push(["Temps en mouvement", F().duration(g.movingMinutes)]);
     if (g?.descent) rows.push(["Dénivelé négatif", `−${F().number(g.descent)} m`]);
@@ -399,6 +399,26 @@
     const exercises = l.details?.exercises || [];
     const editableSets = exercises.length > 0 && !exercises.some((e) => e.kind === "hold");
     const climbing = SP().formOf(l.sport) === "climbing" || Boolean(l.details?.extras?.grade_system);
+    const previousExtras = l.details?.extras || {};
+    const managed = climbing ? ["max_done", "attempts", "successful_routes"] : [];
+    const metricFields = (window.SPORTS_CONFIG?.[l.sport]?.extraFields || [])
+      .filter(f => f && /^[a-zA-Z0-9_-]+$/.test(f.id) && !managed.includes(f.id) && ["number", "select", "checkbox", "text"].includes(f.type) && !f.eliteOnly)
+      .sort((a, b) => (a.priority || 99) - (b.priority || 99));
+    const metricInput = f => {
+      const v = previousExtras[f.id] ?? "";
+      const name = `metric.${esc(f.id)}`;
+      const label = `${esc(f.label || f.id)}${f.unit ? ` (${esc(f.unit)})` : ""}`;
+      let control;
+      if (f.type === "select" || f.type === "checkbox") {
+        const options = f.type === "checkbox" ? [["true", "Oui"], ["false", "Non"]] : (f.options || []).map(o => [String(o), String(o)]);
+        // Historical values remain selectable when the catalog vocabulary changes.
+        if (v !== "" && !options.some(([k]) => k === String(v))) options.unshift([String(v), String(v)]);
+        control = `<select name="${name}"><option value="">Non renseigné</option>${options.map(([k, label]) => `<option value="${esc(k)}" ${String(v) === k ? "selected" : ""}>${esc(label)}</option>`).join("")}</select>`;
+      } else if (f.type === "number") {
+        control = `<input class="asc-input" type="number" inputmode="decimal" name="${name}" value="${esc(v)}" step="${Number(f.step) || "any"}" ${f.min != null ? `min="${Number(f.min)}"` : ""} ${f.max != null ? `max="${Number(f.max)}"` : ""}>`;
+      } else control = `<input class="asc-input" name="${name}" maxlength="120" value="${esc(v)}">`;
+      return `<label class="asc-field" data-metric="${esc(f.id)}"><span>${label}</span>${control}</label>`;
+    };
     const timeUnit = ["min", "h"].includes(l.unit);
     const body = document.createElement("form");
     body.className = "asc-stack jr-edit";
@@ -433,12 +453,31 @@
         <label class="asc-field"><span>Réussites</span><input class="asc-input" type="number" min="0" max="200" name="successful_routes" value="${esc(l.details?.extras?.successful_routes ?? "")}"></label></div>`
           : ""
       }
+      ${metricFields.length ? `<details class="seance-more seance-block"><summary>Mesures du sport <small class="asc-faint">facultatif</small></summary><div class="asc-form-grid">${metricFields.map(metricInput).join("")}</div></details>` : ""}
       <label class="asc-field"><span>Note</span><textarea name="note" maxlength="2000">${esc(l.details?.note || "")}</textarea></label>
       <p class="asc-small asc-faint">Statistiques et records sont recalculés à partir des mesures corrigées. Les récompenses restent celles de la séance initiale.</p>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
     const d = window.titanShell.sheet({ title: "Corriger la séance", eyebrow: SP().label(l.sport), body });
     guardDialog(d, context);
+    const metricValues = () => Object.fromEntries(metricFields.map(f => {
+      const el = body.elements.namedItem(`metric.${f.id}`);
+      const v = el.value;
+      return [f.id, f.type === "checkbox" && v !== "" ? v === "true" : v];
+    }));
+    const metricVisible = (f, values) => {
+      const rule = f.visibleWhen;
+      if (!rule?.field) return true;
+      if (Array.isArray(rule.in)) return rule.in.map(String).includes(String(values[rule.field]));
+      if (rule.equals !== undefined) return String(values[rule.field]) === String(rule.equals);
+      return true;
+    };
+    const updateMetricVisibility = () => {
+      const values = metricValues();
+      for (const f of metricFields) body.querySelector(`[data-metric="${f.id}"]`).hidden = !metricVisible(f, values);
+    };
+    body.addEventListener("change", updateMetricVisibility);
+    updateMetricVisibility();
     body.addEventListener("click", (e) => {
       if (e.target.closest("[data-cancel]")) return d.close();
       const add = e.target.closest("[data-add-set]");
@@ -499,6 +538,29 @@
         patch.extras = { max_done: best || null, attempts: n("attempts"), successful_routes: n("successful_routes") };
         if (patch.extras.attempts !== null && patch.extras.successful_routes !== null && patch.extras.successful_routes > patch.extras.attempts) return (err.textContent = "Les réussites ne peuvent pas dépasser les essais.");
       }
+      const values = metricValues();
+      const metricPatch = {};
+      for (const f of metricFields) {
+        const input = body.elements.namedItem(`metric.${f.id}`);
+        const visible = metricVisible(f, values);
+        const raw = visible ? input.value.trim() : "";
+        // Unchanged/absent fields do not introduce zeroes or erase unknown historical IDs.
+        if (!raw) {
+          if (Object.prototype.hasOwnProperty.call(previousExtras, f.id)) metricPatch[f.id] = null;
+          continue;
+        }
+        let value = f.type === "checkbox" ? raw === "true" : raw;
+        if (f.type === "number") {
+          value = Number(raw.replace(",", "."));
+          if (!Number.isFinite(value) || (f.min != null && value < f.min) || (f.max != null && value > f.max)) {
+            input.closest("details")?.setAttribute("open", "");
+            input.focus();
+            return (err.textContent = `Vérifie ${f.label || f.id}${f.unit ? ` (${f.unit})` : ""}.`);
+          }
+        }
+        if (value !== previousExtras[f.id]) metricPatch[f.id] = value;
+      }
+      if (Object.keys(metricPatch).length) patch.extras = { ...(patch.extras || {}), ...metricPatch };
       const submit = body.querySelector("[type=submit]");
       submit.disabled = true;
       try {
