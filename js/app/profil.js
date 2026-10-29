@@ -39,6 +39,7 @@
   let showcaseTask = null;
   let sources = null; // connected activity sources [{source,granted,imported,...}] (server, V11-30); null until read
   let sourcesTask = null;
+  let pioneer = null; // Pionnier badge {granted, cohort} (server, V11-60); null until read
   const guest = () => D().isGuest();
   const BLOCKS = [
     ["name", "Mon nom affiché", "Sinon : « Athlète TITAN »."],
@@ -56,7 +57,7 @@
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
-        <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
+        <div><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
       <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
         ${pr.guest || pr.confirmed ? `<span class="asc-ascent"><span style="--p:${pct}%"></span></span>` : ""}
         <p class="asc-small asc-muted">${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div>
@@ -467,6 +468,7 @@
     showcase = null;
     showcaseTask = null;
     sources = null;
+    pioneer = null;
     sourcesTask = null;
     cardUnavailable = false;
     cardFailed = false;
@@ -521,6 +523,13 @@
         if (!bitsCurrent(job)) return;
         await readBitsSession(job);
         if (bitsCurrent(job) && !v.error && Array.isArray(v.data)) showcase = v.data.filter((x) => x && typeof x.key === "string").map((x) => ({ key: x.key, label: x.label || null }));
+      } catch {}
+      // The Pionnier badge (V11-60) is another best-effort read: an older server simply shows none.
+      try {
+        const v = await within(job.context.client.rpc("titan_pioneer_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
+        if (!bitsCurrent(job)) return;
+        await readBitsSession(job);
+        if (bitsCurrent(job) && !v.error && v.data && typeof v.data === "object") pioneer = v.data.granted === true ? { cohort: String(v.data.cohort || "").slice(0, 40) } : { cohort: null };
       } catch {}
       // Connected activity sources (V11-30): shown only when the account allowed one.
       try {

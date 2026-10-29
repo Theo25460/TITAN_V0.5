@@ -26,6 +26,7 @@
         { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
         { id: 'flags', label: 'Drapeaux', icon: 'ri-toggle-line', custom: 'flags' },
         { id: 'consultations', label: 'Votes et idées', icon: 'ri-bar-chart-horizontal-line', custom: 'consultations' },
+        { id: 'pioneers', label: 'Pionniers', icon: 'ri-flag-line', custom: 'pioneers' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -840,6 +841,7 @@
             else if (item.custom === 'appeals') await renderAppeals(force);
             else if (item.custom === 'flags') await renderFlags(force);
             else if (item.custom === 'consultations') await renderConsultations(force);
+            else if (item.custom === 'pioneers') await renderPioneers(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1454,6 +1456,12 @@
             return;
         }
 
+        const pioneerFind = event.target.closest('[data-pioneer-find]');
+        if (pioneerFind) { await findPioneers(); return; }
+        const pioneerGrant = event.target.closest('[data-pioneer-grant]');
+        if (pioneerGrant) { await grantPioneers(); return; }
+        const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
+        if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
         const pollCreate = event.target.closest('[data-poll-create]');
         if (pollCreate) { await createPoll(); return; }
         const pollClose = event.target.closest('[data-poll-close]');
@@ -2495,6 +2503,92 @@
         if (error) { notify('Idée refusée', consultationError(error), 'danger'); return; }
         notify('Idée enregistrée', 'Le changement de statut est gardé dans son historique.', 'success');
         if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+
+    // Pionnier badge (COM-D1): the announced rule lists the candidates, the administrator grants from the list. Never automatic, never bought.
+    const PIONEER_ERRORS = {
+        ADMIN_REQUIRED: 'Cette action est réservée aux administrateurs.',
+        CRITERIA_INVALID: 'Indique une date et au moins une séance.',
+        ACCOUNT_NOT_ELIGIBLE: 'Ce compte est suspendu ou n’existe plus.'
+    };
+    const pioneerError = (error) => {
+        const message = String((error && error.message) || '');
+        const code = Object.keys(PIONEER_ERRORS).find((candidate) => message.includes(candidate));
+        return code ? PIONEER_ERRORS[code] : (message || 'Erreur inconnue.');
+    };
+
+    async function renderPioneers() {
+        const head = sectionHead('Pionniers', 'Une cohorte fondatrice aux critères annoncés. Le badge est permanent, ne s’achète pas et ne donne ni XP, ni crédits, ni avantage. Tu attribues toi-même depuis la liste : rien n’est automatique.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_pioneer_list_v1');
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le badge n’est pas disponible sur ce serveur : applique la migration 20261029100000_pioneer_badge.sql.';
+            else if (String(error.message || '').includes('ADMIN_REQUIRED')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const holders = (Array.isArray(data) ? data : []).map((h) => `
+            <tr><td>${escapeHtml(h.username || h.id)}</td><td>${escapeHtml(h.cohort)}</td><td>${escapeHtml(new Date(h.grantedAt).toLocaleDateString('fr-FR'))}</td>
+                <td>${buttonMarkup('Retirer', 'ri-close-line', 'secondary', `data-pioneer-revoke="${escapeHtml(h.id)}" aria-label="Retirer le badge de ${escapeHtml(h.username || h.id)}"`)}</td></tr>`).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            <form class="panel" data-pioneer-form aria-label="Chercher des candidats" novalidate>
+                <h3>Règle annoncée</h3>
+                <p><label>Comptes créés avant le <input class="admin-input" type="date" name="before"></label>
+                   <label>Au moins <input class="admin-input" type="number" name="sessions" min="1" max="1000" step="1" value="3"> séances confirmées</label>
+                   <label>Nom de la cohorte <input class="admin-input" name="cohort" maxlength="40" value="Fondateurs 2026"></label></p>
+                ${buttonMarkup('Chercher les candidats', 'ri-search-line', 'primary', 'data-pioneer-find')}
+                <div data-pioneer-candidates aria-live="polite"></div>
+            </form>
+            <h3>Détenteurs</h3>
+            ${holders ? tableShell(`<table class="admin-table" aria-label="Détenteurs du badge Pionnier"><thead><tr><th>Compte</th><th>Cohorte</th><th>Depuis</th><th>Action</th></tr></thead><tbody>${holders}</tbody></table>`) : '<p><small>Aucun badge attribué pour l’instant.</small></p>'}
+        `;
+    }
+
+    async function findPioneers() {
+        const form = document.querySelector('[data-pioneer-form]');
+        if (!form) return;
+        const before = new Date(String((form.querySelector('[name=before]') || {}).value || ''));
+        const sessions = Number((form.querySelector('[name=sessions]') || {}).value);
+        const box = form.querySelector('[data-pioneer-candidates]');
+        if (!Number.isFinite(before.getTime()) || !Number.isInteger(sessions) || sessions < 1) { notify('Critères', PIONEER_ERRORS.CRITERIA_INVALID, 'warning'); return; }
+        const { data, error } = await state.client.rpc('titan_pioneer_candidates_v1', { p_before: before.toISOString(), p_min_sessions: sessions });
+        if (error) { notify('Recherche refusée', pioneerError(error), 'danger'); return; }
+        const list = Array.isArray(data) ? data : [];
+        box.innerHTML = list.length
+            ? `<ul style="list-style:none;padding:0;margin:8px 0">${list.map((c) => `<li><label><input type="checkbox" name="candidate" value="${escapeHtml(c.id)}"> ${escapeHtml(c.username || c.id)} <small>· créé le ${escapeHtml(new Date(c.createdAt).toLocaleDateString('fr-FR'))} · ${Number(c.sessions) || 0} séances</small></label></li>`).join('')}</ul>
+               ${buttonMarkup('Attribuer aux comptes cochés', 'ri-flag-line', 'primary', 'data-pioneer-grant')}${list.length >= 200 ? '<p><small>Liste limitée à 200 comptes : attribue puis relance la recherche.</small></p>' : ''}`
+            : '<p><small>Aucun compte ne correspond (ou tous ont déjà le badge).</small></p>';
+    }
+
+    async function grantPioneers() {
+        const form = document.querySelector('[data-pioneer-form]');
+        if (!form) return;
+        const ids = [...form.querySelectorAll('[name=candidate]:checked')].map((x) => x.value);
+        const cohort = String((form.querySelector('[name=cohort]') || {}).value || '').trim();
+        if (!ids.length) { notify('Aucun compte coché', 'Coche les comptes à honorer.', 'warning'); return; }
+        if (cohort.length < 3) { notify('Cohorte', 'Le nom de la cohorte fait au moins trois caractères.', 'warning'); return; }
+        const ok = await confirmSensitive({ title: 'Attribuer le badge Pionnier', message: `${ids.length} compte(s) recevront le badge « ${cohort} ». Il est permanent et sans avantage.`, actionLabel: 'Attribuer', danger: false, requireReason: false });
+        if (ok === null || ok === false || ok === undefined) return;
+        let granted = 0, failed = 0;
+        for (const id of ids) {
+            const { error } = await state.client.rpc('titan_pioneer_grant_v1', { p_user: id, p_cohort: cohort });
+            if (error) failed++; else granted++;
+        }
+        notify('Badge attribué', `${granted} compte(s) honoré(s)${failed ? `, ${failed} refusé(s)` : ''}.`, failed ? 'warning' : 'success');
+        if (state.currentView === 'pioneers') await renderPioneers();
+    }
+
+    async function revokePioneer(id) {
+        const ok = await confirmSensitive({ title: 'Retirer le badge', message: 'Le joueur perd son badge Pionnier. Tu pourras le lui rendre depuis la liste des candidats si la règle le permet.', actionLabel: 'Retirer', danger: true, requireReason: false });
+        if (ok === null || ok === false || ok === undefined) return;
+        const { error } = await state.client.rpc('titan_pioneer_revoke_v1', { p_user: id });
+        if (error) notify('Retrait refusé', pioneerError(error), 'danger'); else notify('Badge retiré', 'Le joueur ne le voit plus.', 'success');
+        if (state.currentView === 'pioneers') await renderPioneers();
     }
 
     async function decideAppeal(appealId, accept) {
