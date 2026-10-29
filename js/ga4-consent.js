@@ -122,6 +122,9 @@
     settingsButton.textContent = "Statistiques";
     settingsButton.setAttribute("aria-label", "Gérer les statistiques Google Analytics");
     settingsButton.addEventListener("click", showBanner);
+    document.addEventListener("click", event => {
+      if (event.target instanceof Element && event.target.closest("[data-ga4-open]")) showBanner();
+    });
     document.body.appendChild(settingsButton);
   }
 
@@ -134,7 +137,10 @@
       ".titan-ga4-banner strong{display:block;font-size:15px}.titan-ga4-banner p{margin:8px 0}.titan-ga4-banner a{color:#9bdafa}",
       ".titan-ga4-controls{display:flex;gap:10px;margin-top:14px}.titan-ga4-controls button{flex:1;min-height:42px;padding:9px;border:1px solid #acbacb;border-radius:9px;background:#222f3d;color:white;font:600 14px system-ui,sans-serif;cursor:pointer}",
       ".titan-ga4-controls button:last-child{background:#d5f0fb;border-color:#d5f0fb;color:#102232}",
-      "@media(min-width:520px){.titan-ga4-banner{right:auto;min-width:420px}}"
+      "@media(min-width:520px){.titan-ga4-banner{right:auto;min-width:420px}}",
+      // Écrans de l'app : la barre d'onglets occupe le bas ; le choix se rouvre depuis Profil.
+      "body:has(.asc-tabbar) .titan-ga4-settings{display:none}",
+      "body:has(.asc-tabbar) .titan-ga4-banner{bottom:calc(var(--tabbar,68px) + env(safe-area-inset-bottom,0px) + 12px)}"
     ].join("");
     document.head.appendChild(style);
   }

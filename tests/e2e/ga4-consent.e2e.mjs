@@ -97,3 +97,18 @@ test("the banner and its button stay inside a phone screen and the banner does n
     assert.ok(button.height >= 24, "the reopening button is a usable target");
   } finally { await context.close(); }
 });
+
+test("app screens: the floating button never covers the tab bar; the choice reopens from Profil and the banner sits above the tab bar", async () => {
+  const { page, context } = await visit("/stats", { choice: "denied", width: 360 });
+  try {
+    await page.locator(".asc-tabbar").waitFor();
+    assert.equal(await page.locator(".titan-ga4-settings").isVisible(), false);
+    await page.goto(BASE + "/profile");
+    await page.locator("[data-ga4-open]").waitFor();
+    await page.locator("[data-ga4-open]").click();
+    const banner = page.locator(".titan-ga4-banner");
+    await banner.waitFor();
+    const [b, bar] = await Promise.all([banner.boundingBox(), page.locator(".asc-tabbar").boundingBox()]);
+    assert.ok(b.y + b.height <= bar.y + 1, "banner above the tab bar");
+  } finally { await context.close(); }
+});
