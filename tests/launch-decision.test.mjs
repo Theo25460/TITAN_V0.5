@@ -55,7 +55,10 @@ test("V1 has no advertising and says nothing false about it (LEG12), and virtual
   const config = readFileSync(new URL("js/config.js", root), "utf8");
   assert.match(config, /adsEnabled:\s*false/);
   const adsTxt = readFileSync(new URL("ads.txt", root), "utf8");
-  assert.ok(!adsTxt.split("\n").some((l) => l.trim() && !l.trim().startsWith("#")), "ads.txt authorises no seller");
+  // 29/10/2026 (owner): the file may carry the single AdSense line of the publisher so that the site can be verified. Declaring a seller shows
+  // nothing: ads stay off (adsEnabled false above) and no advertising code ships (checked below). Any other seller line is refused.
+  const sellers = adsTxt.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+  assert.ok(sellers.every((l) => /^google\.com, pub-\d{10,20}, DIRECT, f08c47fec0942fa0$/.test(l)) && sellers.length <= 1, "ads.txt authorises at most the owner's single AdSense line, nothing else");
   const everything = [...pages.map((f) => readFileSync(new URL(f, root), "utf8")), ...readdirSync(new URL("js/", root), { recursive: true }).filter((f) => String(f).endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, root), "utf8"))].join("\n");
   assert.ok(!/(doubleclick|googlesyndication|adservice\.google|pagead2|applovin|admob|ca-pub-\d)/i.test(everything), "no advertising network code or publisher id ships");
   const cgu = readFileSync(new URL("legal_cgu.html", root), "utf8");
