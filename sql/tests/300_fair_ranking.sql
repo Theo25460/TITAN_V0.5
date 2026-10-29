@@ -32,7 +32,7 @@ set local role authenticated;
 do $$
 declare ok boolean; r jsonb; xp0 integer;
   a uuid := current_setting('titan.fr_a')::uuid; b uuid := current_setting('titan.fr_b')::uuid; c uuid := current_setting('titan.fr_c')::uuid;
-  d uuid := current_setting('titan.fr_d')::uuid; e uuid := current_setting('titan.fr_e')::uuid; f uuid := current_setting('titan.fr_f')::uuid;
+  d uuid := current_setting('titan.fr_d')::uuid; ue uuid := current_setting('titan.fr_e')::uuid; f uuid := current_setting('titan.fr_f')::uuid;
 begin
   -- Nobody is in unless they chose to be, and a player who did not opt in sees nothing of the others.
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
@@ -41,7 +41,7 @@ begin
   assert (r->>'optedIn')::boolean = false and not (r ? 'entries'), 'not opted in: nothing is shown: '||r::text;
   ok:=false; begin perform public.titan_ranking_v1('Not A Sport!'); exception when others then ok:=sqlerrm='SPORT_INVALID'; end; assert ok,'the sport filter is checked';
   perform public.titan_ranking_set_v1(true);
-  foreach c in array array[b, d, e, f] loop
+  foreach c in array array[b, d, ue, f] loop
     perform set_config('request.jwt.claims',json_build_object('sub',c,'role','authenticated')::text,true);
     perform public.titan_ranking_set_v1(true);
   end loop;
@@ -68,7 +68,7 @@ begin
   r := public.titan_ranking_v1('running');
   assert (r->'me'->>'score')::int = 70 and (r->'me'->>'activeDays')::int = 6, 'running only: six days, progress from nothing: '||(r->'me')::text;
   r := public.titan_ranking_v1('swimming');
-  assert jsonb_array_length(r->'entries')=0 and (r->'me') is not distinct from null, 'a sport nobody does lists nobody';
+  assert jsonb_array_length(r->'entries')=0 and (r->'me') = 'null'::jsonb, 'a sport nobody does lists nobody';
 
   -- A block or a suspension removes someone from the list.
   perform set_config('request.jwt.claims','{}',true);
