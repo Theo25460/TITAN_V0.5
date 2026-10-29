@@ -73,6 +73,7 @@
     const persisted = remember(choice);
     if (banner) { banner.remove(); banner = null; }
     if (choice === "granted") {
+      window["ga-disable-" + ID] = false;
       // If storage is unavailable, don't start analytics; show the choice on next visit.
       if (persisted) initTag();
     } else {
@@ -93,7 +94,7 @@
     banner.setAttribute("role", "region");
     banner.setAttribute("aria-label", "Choix des statistiques Google Analytics");
     const heading = document.createElement("strong");
-    heading.textContent = "Statistiques anonymisées de fréquentation";
+    heading.textContent = "Statistiques de fréquentation";
     const description = document.createElement("p");
     description.textContent = "Autorises-tu Google Analytics à mesurer les visites sur TITAN ? Aucun suivi Google sans ton accord. Tu peux changer d'avis à tout moment.";
     const privacy = document.createElement("a");
