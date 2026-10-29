@@ -1,4 +1,5 @@
 /* TITAN 300 — French formatting for sport data. Pure, testable. */
+/** @typedef {any} Loose A date-like value as the app stores it (ISO string, timestamp, Date); invalid values are handled by each function. */
 (function (root) {
   "use strict";
   const DAY = 86400000;
@@ -6,14 +7,16 @@
     new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
   const N0 = nf(0), N1 = nf(1), N2 = nf(2);
 
+  /** @param {unknown} v */
   const isNum = (v) => v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v));
 
+  /** @param {unknown} v @param {number} [digits] */
   function number(v, digits = 0) {
     if (!isNum(v)) return "—";
     return (digits === 0 ? N0 : digits === 1 ? N1 : N2).format(Number(v)).replace(/ /g, " ");
   }
 
-  /** 95 → "1 h 35", 45 → "45 min", 0.5 → "30 s". */
+  /** 95 → "1 h 35", 45 → "45 min", 0.5 → "30 s". @param {unknown} minutes */
   function duration(minutes) {
     if (!isNum(minutes) || Number(minutes) <= 0) return "—";
     const m = Number(minutes);
@@ -26,13 +29,14 @@
     return `${h} h ${String(rest).padStart(2, "0")}`;
   }
 
-  /** Hours with one decimal for totals: 13.5 → "13,5 h". */
+  /** Hours with one decimal for totals: 13.5 → "13,5 h". @param {unknown} minutes */
   function hours(minutes) {
     if (!isNum(minutes)) return "—";
     const h = Number(minutes) / 60;
     return `${number(h, h < 10 ? 1 : 0)} h`;
   }
 
+  /** @param {unknown} km */
   function distance(km) {
     if (!isNum(km) || Number(km) <= 0) return "—";
     const v = Number(km);
@@ -41,6 +45,7 @@
   }
 
   /** Pace in min/km from distance (km) and duration (min): "5:12 /km". */
+  /** @param {unknown} km @param {unknown} minutes */
   function pace(km, minutes) {
     if (!isNum(km) || !isNum(minutes) || Number(km) <= 0 || Number(minutes) <= 0) return "—";
     const secPerKm = Math.round((Number(minutes) * 60) / Number(km));
@@ -48,28 +53,31 @@
     return `${Math.floor(secPerKm / 60)}:${String(secPerKm % 60).padStart(2, "0")} /km`;
   }
 
+  /** @param {unknown} km @param {unknown} minutes */
   function speed(km, minutes) {
     if (!isNum(km) || !isNum(minutes) || Number(km) <= 0 || Number(minutes) <= 0) return "—";
     return `${number(Number(km) / (Number(minutes) / 60), 1)} km/h`;
   }
 
+  /** @param {unknown} kg */
   function weight(kg) {
     if (!isNum(kg)) return "—";
     const v = Number(kg);
     return v >= 1000 ? `${number(v / 1000, v >= 10000 ? 0 : 1)} t` : `${number(v, v % 1 ? 1 : 0)} kg`;
   }
 
+  /** @param {Loose} d */
   const startOfDay = (d) => {
     const t = new Date(d);
     t.setHours(0, 0, 0, 0);
     return t;
   };
 
-  /** "aujourd’hui", "hier", "mardi", "12 sept.", "12 sept. 2024". */
+  /** "aujourd’hui", "hier", "mardi", "12 sept.", "12 sept. 2024". @param {Loose} date @param {Loose} [now] */
   function relativeDay(date, now = new Date()) {
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return "—";
-    const diff = Math.round((startOfDay(now) - startOfDay(d)) / DAY);
+    const diff = Math.round((startOfDay(now).getTime() - startOfDay(d).getTime()) / DAY);
     if (diff === 0) return "aujourd’hui";
     if (diff === 1) return "hier";
     if (diff > 1 && diff < 7) return d.toLocaleDateString("fr-FR", { weekday: "long" });
@@ -77,49 +85,53 @@
     return d.toLocaleDateString("fr-FR", sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
   }
 
+  /** @param {Loose} date */
   function longDate(date) {
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return "—";
     return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   }
 
+  /** @param {Loose} date */
   function time(date) {
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return "";
     return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   }
 
-  /** Days since a date, rounded down, never negative. */
+  /** Days since a date, rounded down, never negative. @param {Loose} date @param {Loose} [now] */
   function daysSince(date, now = new Date()) {
     const d = new Date(date);
     if (Number.isNaN(d.getTime())) return null;
-    return Math.max(0, Math.round((startOfDay(now) - startOfDay(d)) / DAY));
+    return Math.max(0, Math.round((startOfDay(now).getTime() - startOfDay(d).getTime()) / DAY));
   }
 
+  /** @param {unknown} n @param {string} one @param {string} many */
   function plural(n, one, many) {
     return `${number(n)} ${Math.abs(Number(n)) >= 2 ? many : one}`;
   }
 
-  /** Monday 00:00 of the week containing the date (local time). */
+  /** Monday 00:00 of the week containing the date (local time). @param {Loose} [date] */
   function weekStart(date = new Date()) {
     const d = startOfDay(date);
     d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
     return d;
   }
 
+  /** @param {Loose} date */
   function dateKey(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
-  /** Calendar days in local time, preserving the local clock across DST. */
+  /** Calendar days in local time, preserving the local clock across DST. @param {Loose} date @param {number} days */
   function addDays(date, days) {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
     return d;
   }
 
-  /** Chronometer style for timed efforts: 52.5 → "52:30", 65.2 → "1:05:12". Whole minutes keep "52 min". */
+  /** Chronometer style for timed efforts: 52.5 → "52:30", 65.2 → "1:05:12". Whole minutes keep "52 min". @param {unknown} minutes */
   function clock(minutes) {
     if (!isNum(minutes) || Number(minutes) <= 0) return "—";
     const total = Math.round(Number(minutes) * 60);
@@ -128,7 +140,7 @@
     return h ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`;
   }
 
-  /** A record value in its own unit: km, minutes, kg, repetitions or a climbing grade. */
+  /** A record value in its own unit: km, minutes, kg, repetitions or a climbing grade. @param {unknown} unit @param {unknown} value */
   function recordValue(unit, value) {
     if (unit === "km") return distance(value);
     if (unit === "min") {
@@ -146,6 +158,6 @@
   }
 
   const api = { isNum, number, duration, hours, distance, pace, speed, weight, relativeDay, longDate, time, daysSince, plural, weekStart, startOfDay, dateKey, addDays, recordValue, clock, DAY };
-  root.TitanFormat = api;
+  /** @type {any} */ (root).TitanFormat = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
