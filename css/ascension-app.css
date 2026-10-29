@@ -1996,6 +1996,9 @@
   font-weight: 800;
   font-size: 22px;
 }
+@media (max-width: 380px) {
+  .ob-target button { aspect-ratio: auto; min-width: 0; height: 44px; }
+}
 .ob-target button[aria-checked="true"] {
   background: var(--cy);
   border-color: var(--cy);

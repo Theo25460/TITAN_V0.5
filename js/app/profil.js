@@ -379,7 +379,7 @@
         <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}" tabindex="${settings.target === n ? 0 : -1}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
         <fieldset class="pf-privacy"><legend class="seance-label">Confidentialité</legend>${guest() ? `<p class="asc-small asc-muted">En mode découverte, rien ne quitte cet appareil.</p>` : PRIVACY.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-privacy="${k}" ${privacy[k] === true ? "checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(help)}</small></span></label>`).join("")}
           <label class="pf-toggle"><input type="checkbox" role="switch" data-analytics ${analytics ? "checked" : ""}><span><strong>Statistiques d’usage</strong><small>Aide à améliorer TITAN. Jamais de santé, de poids, de GPS ni de notes.</small></span></label>
-          <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-ga4-open>Mesure de fréquentation (Google Analytics)</button></fieldset>
+          <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" style="white-space:normal" data-ga4-open>Mesure de fréquentation (Google Analytics)</button></fieldset>
       </div></section>`;
   }
 
