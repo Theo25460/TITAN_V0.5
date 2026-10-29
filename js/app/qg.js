@@ -251,6 +251,7 @@
       ${weekHtml(cad, recapNow)}
       ${shortcutsHtml(list)}
       ${window.TitanStepsCard?.html?.() || ""}
+      ${window.TitanIntents?.html?.() || ""}
       <div class="asc-grid-2 qg-grid">
         <div>${ascentHtml(D().progression())}</div>
         <div>${lastHtml(list)}
@@ -341,6 +342,7 @@
   });
   window.addEventListener("titan:pending-changed", queue);
   window.addEventListener("titan:steps-updated", queue);
+  window.addEventListener("titan:intents-updated", queue);
   ["titan:history-updated", "titan:adventure-updated"].forEach(ev => window.addEventListener(ev, () => { refreshData(); queue(); }));
   window.addEventListener("titan:account-changing", invalidate);
   window.addEventListener("titan:account-changed", () => { refreshData(); queue(); });

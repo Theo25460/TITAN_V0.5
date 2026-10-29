@@ -3752,3 +3752,10 @@
 .qg-steps-spark { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; align-items: end; height: 56px; }
 .qg-steps-bar { display: block; height: var(--h); background: var(--cy); border-radius: 2px 2px 0 0; }
 .qg-steps-bar[data-on="false"] { height: 2px; background: var(--line-2); }
+
+/* V11-61: the daily rendezvous of the QG. */
+.rv-mine, .rv-empty { display: grid; gap: var(--s3); }
+.rv-text { margin: 0; font-size: 18px; }
+.rv-mine[data-done="true"] .rv-text { color: var(--tx-2); }
+.rv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+.rv-share { display: flex; gap: var(--s2); align-items: center; min-height: 44px; }

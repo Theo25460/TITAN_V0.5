@@ -15,6 +15,7 @@ Objet : déployer progressivement le RPG, les publicités et de nouveaux écrans
 
 - Les **clés sont publiques** (lisibles sans connexion) : aucun secret, aucun nom confidentiel.
 - Un drapeau n'est pas un contrôle de sécurité : le serveur doit refuser lui-même ce qui est interdit (un utilisateur Premium sans publicité, par exemple, se vérifie côté serveur et côté application, pas par drapeau seul).
+- Troisième : `screens.intents` (rendez-vous quotidien du QG, V11-61 ; absent tant que le drapeau n'existe pas ou est éteint).
 - Deuxième écran branché sur un drapeau : `screens.consultations` (votes et feuille de route sous la Communauté ; absents tant que le drapeau n'existe pas ou est éteint).
 - Premier écran branché sur un drapeau : `screens.garmin` (bouton « Connecter Garmin » du Profil ; absent tant que le drapeau n'existe pas ou est éteint).
 - Nommer `domaine.élément` : `ads.web`, `ads.android`, `ads.interstitial`, `ads.rewarded`, `rpg.rollout`, `screens.<nom>`.
