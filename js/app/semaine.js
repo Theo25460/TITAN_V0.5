@@ -278,7 +278,7 @@
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${periodHtml("month")}${periodHtml("year")}
+    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${periodHtml("month")}${window.TitanStepsCard?.monthHtml?.() || ""}${periodHtml("year")}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
     if (focusId) {
@@ -344,6 +344,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:steps-updated", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

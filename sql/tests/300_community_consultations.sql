@@ -90,6 +90,19 @@ begin
   perform set_config('request.jwt.claims',json_build_object('sub',c,'role','authenticated')::text,true);
   ok:=false; begin perform public.titan_roadmap_vote_v1(ids[3], true); exception when others then ok:=sqlerrm='NOT_ELIGIBLE'; end; assert ok,'a brand-new account does not vote on the roadmap either';
 
+  -- The administrator reads the counts at any time; a player cannot.
+  ok:=false; begin perform public.titan_poll_admin_list_v1(); exception when others then ok:=sqlerrm='ADMIN_REQUIRED'; end; assert ok,'players cannot list polls as admin';
+  ok:=false; begin perform public.titan_roadmap_admin_list_v1(); exception when others then ok:=sqlerrm='ADMIN_REQUIRED'; end; assert ok,'players cannot list the roadmap as admin';
+  perform set_config('request.jwt.claims',json_build_object('sub',adm,'role','authenticated')::text,true);
+  r := public.titan_poll_admin_list_v1();
+  assert jsonb_array_length(r)=2 and (select count(*) from jsonb_array_elements(r) e where e->>'state'='scheduled')=1 and (select count(*) from jsonb_array_elements(r) e where e->>'state'='closed')=1, 'admin sees scheduled and closed polls: '||r::text;
+  assert (select sum((o->>'votes')::int) from jsonb_array_elements(r) e, jsonb_array_elements(e->'options') o where e->>'state'='closed')=2, 'admin sees the counts';
+  r := public.titan_roadmap_admin_list_v1();
+  assert jsonb_array_length(r)=7 and (select (e->>'votes')::int from jsonb_array_elements(r) e where e->>'title'='Idée numéro 1')=1, 'admin sees the roadmap with its votes';
+  perform public.titan_roadmap_admin_save_v1(ids[7],'Idée numéro 7','détail','wish',7,true);
+  assert jsonb_array_length(public.titan_roadmap_v1())=6 and jsonb_array_length(public.titan_roadmap_admin_list_v1())=7, 'an archived idea leaves the public list but stays for the admin';
+  perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
+
   -- Export, then anonymous refusal.
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   assert jsonb_array_length(public.export_own_data()->'pollVotes')=1 and jsonb_array_length(public.export_own_data()->'roadmapVotes')=6, 'own votes are exported: '||(public.export_own_data()->'roadmapVotes')::text;

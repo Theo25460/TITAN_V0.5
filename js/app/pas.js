@@ -106,6 +106,26 @@
       </div></section>`;
   }
 
+  /** The 30-day line of the monthly screen (Progrès): the average, the days with a number, the best day, thirty small bars. Empty without data. */
+  function monthHtml() {
+    sync();
+    if (guest() || missing || !days || !S()) return "";
+    const s = S().summarize(days, { today: dayKey(), goal: goal() });
+    if (s.empty) return "";
+    const series = [];
+    for (let i = 29; i >= 0; i--) { const key = S().shift(dayKey(), -i); const e = days.find((d) => d.day === key); series.push({ day: key, steps: e && Number.isFinite(Number(e.steps)) ? Number(e.steps) : null }); }
+    const max = Math.max(1, ...series.map((d) => d.steps || 0));
+    const best = series.reduce((m, d) => (d.steps !== null && (!m || d.steps > m.steps) ? d : m), null);
+    const bars = series.map((d) => `<span class="qg-steps-bar" data-on="${d.steps ? "true" : "false"}" style="--h:${d.steps ? Math.max(6, Math.round((d.steps / max) * 100)) : 0}%"></span>`).join("");
+    return `<section class="asc-section asc-appear" data-steps-month aria-labelledby="pas-month-title"><div class="asc-section-head"><h2 id="pas-month-title">Pas, 30 derniers jours</h2></div>
+      <div class="asc-panel qg-steps-card">
+        <p class="qg-steps-value"><strong>${n(s.average30)}</strong> <span class="asc-muted">pas par jour en moyenne</span></p>
+        <div class="qg-steps-spark" role="img" aria-label="Pas par jour sur trente jours, ${s.daysWithData30} jours renseignés${best ? `, le plus haut : ${esc(n(best.steps))}` : ""}">${bars}</div>
+        <p class="asc-small asc-muted">${s.daysWithData30} jour${s.daysWithData30 > 1 ? "s" : ""} sur 30 avec un chiffre${best ? ` · meilleur jour : ${n(best.steps)} pas` : ""}. Un jour sans chiffre n’est pas un jour à zéro.</p>
+        <p class="asc-small asc-faint">Les pas ne comptent ni comme une séance, ni pour l’XP.</p>
+      </div></section>`;
+  }
+
   function goalSheet() {
     sync();
     if (guest() || !days || dialog?.open) return dialog;
@@ -136,7 +156,7 @@
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   window.addEventListener("online", () => refresh(true));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
-  window.TitanStepsCard = { html, refresh, goal };
+  window.TitanStepsCard = { html, monthHtml, refresh, goal };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

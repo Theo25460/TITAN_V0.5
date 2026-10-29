@@ -25,6 +25,7 @@
         { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
         { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
         { id: 'flags', label: 'Drapeaux', icon: 'ri-toggle-line', custom: 'flags' },
+        { id: 'consultations', label: 'Votes et idées', icon: 'ri-bar-chart-horizontal-line', custom: 'consultations' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -838,6 +839,7 @@
             else if (item.custom === 'moderation') await renderModeration(force);
             else if (item.custom === 'appeals') await renderAppeals(force);
             else if (item.custom === 'flags') await renderFlags(force);
+            else if (item.custom === 'consultations') await renderConsultations(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1451,6 +1453,13 @@
             await closeVerification(verifyClose.dataset.verifyClose);
             return;
         }
+
+        const pollCreate = event.target.closest('[data-poll-create]');
+        if (pollCreate) { await createPoll(); return; }
+        const pollClose = event.target.closest('[data-poll-close]');
+        if (pollClose) { await closePoll(pollClose.dataset.pollClose); return; }
+        const ideaSave = event.target.closest('[data-idea-save]');
+        if (ideaSave) { await saveIdea(ideaSave.closest('[data-idea-row]')); return; }
 
         const flagSave = event.target.closest('[data-flag-save]');
         if (flagSave) {
@@ -2372,6 +2381,120 @@
             console.error('[TITAN ADMIN FLAGS]', e);
             notify('Actualisation impossible', 'Le changement est enregistré ; actualise la page.', 'warning');
         }
+    }
+
+
+    // Votes and roadmap (COM-F3, COM-F4): create and close a poll, create or move an idea. Players only ever see the counts after the close.
+    const CONSULTATION_ERRORS = {
+        ADMIN_REQUIRED: 'Cette action est réservée aux administrateurs.',
+        OPTIONS_2_TO_6: 'Un vote a entre deux et six options.',
+        POLL_NOT_OPEN_OR_UNKNOWN: 'Ce vote est déjà clos ou n’existe plus.',
+        STATUS_UNKNOWN: 'Statut inconnu.',
+        ITEM_NOT_FOUND: 'Cette idée n’existe plus : actualise la page.'
+    };
+    const IDEA_STATUS = { wish: 'Souhaité', study: 'À l’étude', planned: 'Planifié', doing: 'En chantier', shipped: 'Livré' };
+    const POLL_STATE = { scheduled: 'Programmé', open: 'Ouvert', closed: 'Clos' };
+    const consultationError = (error) => {
+        const message = String((error && error.message) || '');
+        const code = Object.keys(CONSULTATION_ERRORS).find((candidate) => message.includes(candidate));
+        return code ? CONSULTATION_ERRORS[code] : (message || 'Erreur inconnue.');
+    };
+    const localInput = (date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+    async function renderConsultations() {
+        const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const [polls, ideas] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1')]);
+        const error = polls.error || ideas.error;
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Les votes ne sont pas disponibles sur ce serveur : applique la migration 20261029090000_community_consultations.sql.';
+            else if (String(error.message || '').includes('ADMIN_REQUIRED')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const now = new Date();
+        const pollRows = (Array.isArray(polls.data) ? polls.data : []).map((p) => `
+            <tr data-poll-row>
+                <td><strong>${escapeHtml(p.title)}</strong><br><small>${escapeHtml(POLL_STATE[p.state] || p.state)} · du ${escapeHtml(new Date(p.opensAt).toLocaleString('fr-FR'))} au ${escapeHtml(new Date(p.closesAt).toLocaleString('fr-FR'))}</small></td>
+                <td>${(p.options || []).map((o) => `${escapeHtml(o.label)} : <strong>${Number(o.votes) || 0}</strong>`).join('<br>')}</td>
+                <td>${p.state === 'closed' ? '' : buttonMarkup('Clore maintenant', 'ri-stop-circle-line', 'secondary', `data-poll-close="${escapeHtml(p.id)}" aria-label="Clore le vote ${escapeHtml(p.title)}"`)}</td>
+            </tr>`).join('');
+        const createPollForm = `
+            <form class="panel" data-poll-form aria-label="Créer un vote" novalidate>
+                <h3>Nouveau vote</h3>
+                <p><label>Question <input class="admin-input" name="title" maxlength="120" required></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="600"></label></p>
+                <p><label>Options, une par ligne (2 à 6)<br><textarea class="admin-input" name="options" rows="4" maxlength="600"></textarea></label></p>
+                <p><label>Ouverture <input class="admin-input" type="datetime-local" name="opens" value="${escapeHtml(localInput(now))}"></label>
+                   <label>Clôture <input class="admin-input" type="datetime-local" name="closes" value="${escapeHtml(localInput(new Date(now.getTime() + 7 * 86400000)))}"></label></p>
+                ${buttonMarkup('Créer le vote', 'ri-add-line', 'primary', 'data-poll-create')}
+            </form>`;
+        const select = (current) => `<select class="admin-input" name="status" aria-label="Statut">${Object.entries(IDEA_STATUS).map(([k, v]) => `<option value="${k}"${k === current ? ' selected' : ''}>${v}</option>`).join('')}</select>`;
+        const ideaRow = (i) => `
+            <tr data-idea-row data-idea-id="${escapeHtml(i.id)}">
+                <td><input class="admin-input" name="title" maxlength="100" value="${escapeHtml(i.title)}" aria-label="Titre"><br><input class="admin-input" name="detail" maxlength="500" value="${escapeHtml(i.detail || '')}" aria-label="Détail"></td>
+                <td>${select(i.status)}<br><small>${Number(i.votes) || 0} soutien(s)</small></td>
+                <td><input class="admin-input" name="sort" type="number" step="1" value="${Number(i.sortOrder) || 0}" aria-label="Ordre"> <label><input type="checkbox" name="archive"${i.archived ? ' checked' : ''}> Masquée</label></td>
+                <td>${buttonMarkup('Enregistrer', 'ri-save-line', 'primary', `data-idea-save aria-label="Enregistrer l’idée ${escapeHtml(i.title)}"`)}</td>
+            </tr>`;
+        const newIdea = `
+            <tr data-idea-row data-idea-new>
+                <td><input class="admin-input" name="title" maxlength="100" placeholder="Nouvelle idée" aria-label="Titre de la nouvelle idée"><br><input class="admin-input" name="detail" maxlength="500" placeholder="Détail (facultatif)" aria-label="Détail de la nouvelle idée"></td>
+                <td>${select('wish')}</td>
+                <td><input class="admin-input" name="sort" type="number" step="1" value="0" aria-label="Ordre"></td>
+                <td>${buttonMarkup('Ajouter', 'ri-add-line', 'secondary', 'data-idea-save aria-label="Ajouter l’idée"')}</td>
+            </tr>`;
+        $('#admin-view').innerHTML = `
+            ${head}
+            <h3>Votes</h3>
+            ${pollRows ? tableShell(`<table class="admin-table" aria-label="Votes"><thead><tr><th>Vote</th><th>Voix par option</th><th>Action</th></tr></thead><tbody>${pollRows}</tbody></table>`) : '<p><small>Aucun vote pour l’instant.</small></p>'}
+            ${createPollForm}
+            <h3>Feuille de route</h3>
+            ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
+            <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
+        `;
+    }
+
+    async function createPoll() {
+        const form = document.querySelector('[data-poll-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const options = value('options').split('\n').map((x) => x.trim()).filter(Boolean);
+        const opens = new Date(value('opens')), closes = new Date(value('closes'));
+        if (value('title').length < 3) { notify('Question requise', 'La question fait au moins trois caractères.', 'warning'); return; }
+        if (options.length < 2 || options.length > 6) { notify('Options', CONSULTATION_ERRORS.OPTIONS_2_TO_6, 'warning'); return; }
+        if (!Number.isFinite(opens.getTime()) || !Number.isFinite(closes.getTime()) || closes <= opens || closes - opens > 60 * 86400000) { notify('Dates', 'La clôture suit l’ouverture, au plus 60 jours plus tard.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_poll_admin_save_v1', { p_title: value('title'), p_detail: value('detail') || null, p_options: options, p_opens: opens.toISOString(), p_closes: closes.toISOString() });
+        if (error) { notify('Vote refusé', consultationError(error), 'danger'); return; }
+        notify('Vote créé', 'Il apparaît dans la Communauté à l’ouverture si le drapeau est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function closePoll(id) {
+        const reason = await confirmSensitive({ title: 'Clore ce vote', message: 'Les votes sont arrêtés et le résultat devient visible des joueurs.', actionLabel: 'Clore', danger: false, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_poll_admin_close_v1', { p_poll: id });
+        if (error) notify('Clôture refusée', consultationError(error), 'danger'); else notify('Vote clos', 'Le résultat est visible des joueurs.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function saveIdea(row) {
+        if (!row) return;
+        const value = (name) => String((row.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        const sort = Number(value('sort'));
+        const { error } = await state.client.rpc('titan_roadmap_admin_save_v1', {
+            p_id: row.hasAttribute('data-idea-new') ? null : row.dataset.ideaId,
+            p_title: value('title'), p_detail: value('detail') || null, p_status: value('status'),
+            p_sort: Number.isInteger(sort) ? sort : 0,
+            p_archive: Boolean((row.querySelector('[name=archive]') || {}).checked)
+        });
+        if (error) { notify('Idée refusée', consultationError(error), 'danger'); return; }
+        notify('Idée enregistrée', 'Le changement de statut est gardé dans son historique.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     async function decideAppeal(appealId, accept) {

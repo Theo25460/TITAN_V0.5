@@ -20,13 +20,13 @@ before(async () => {
 after(async () => { await browser?.close(); server?.kill(); });
 
 const NOON = new Date("2026-10-29T12:00:00Z");
-async function qg({ rows, missing = false, signedIn = true, width = 390 } = {}) {
+async function qg({ rows, missing = false, signedIn = true, width = 390, path = "/aujourdhui" } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
   await page.clock.setFixedTime(NOON);
-  await page.goto(BASE + "/aujourdhui");
+  await page.goto(BASE + path);
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.state?.user && window.TitanStepsCard);
   await page.evaluate(({ rows, missing, signedIn, owner }) => {
     window.stepsCalls = [];
@@ -114,4 +114,24 @@ test("steps card: nothing for a guest, for an account without any number, or on 
       assert.equal(await page.locator("[data-steps]").count(), 0);
     } finally { await context.close(); }
   }
+});
+
+test("steps card: the monthly screen carries the thirty-day line, with honest wording about days without a number", async () => {
+  const { page, context, errors } = await qg({ path: "/stats", rows: [row("2026-10-29", 5400), row("2026-10-20", 9000), row("2026-10-10", 3000)] });
+  try {
+    const month = page.locator("[data-steps-month]");
+    await month.waitFor();
+    const text = await month.innerText();
+    assert.match(text.replace(/\s/g, " "), /5\s800 pas par jour en moyenne/);
+    assert.match(text, /3 jours sur 30 avec un chiffre/);
+    assert.match(text, /meilleur jour : 9\s000 pas/);
+    assert.match(text, /Un jour sans chiffre n’est pas un jour à zéro/);
+    assert.equal(await month.locator(".qg-steps-bar").count(), 30);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });
+    const axe = await page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(" ")).join("|")}`)));
+    assert.deepEqual(axe, []);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
 });

@@ -10,7 +10,7 @@
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop function public.titan_polls_v1(), public.titan_poll_vote_v1(uuid,smallint), public.titan_poll_admin_save_v1(text,text,text[],timestamptz,timestamptz),
 -- public.titan_poll_admin_close_v1(uuid), public.titan_roadmap_v1(), public.titan_roadmap_vote_v1(uuid,boolean),
--- public.titan_roadmap_admin_save_v1(uuid,text,text,text,integer,boolean); drop tables private.titan_poll_votes, private.titan_poll_options,
+-- public.titan_roadmap_admin_save_v1(uuid,text,text,text,integer,boolean), public.titan_poll_admin_list_v1(), public.titan_roadmap_admin_list_v1(); drop tables private.titan_poll_votes, private.titan_poll_options,
 -- private.titan_polls, private.titan_roadmap_votes, private.titan_roadmap_items; then re-apply the extras helper of migration 40
 -- (20261028110000_garmin_link.sql).
 
@@ -261,12 +261,53 @@ begin
 end;
 $function$;
 
+
+-- The administrator sees everything, counts included at any time (a player never sees a count before the close).
+create or replace function public.titan_poll_admin_list_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, pg_temp
+as $function$
+begin
+  if auth.uid() is null or not private.titan_is_admin(auth.uid()) then raise exception 'ADMIN_REQUIRED' using errcode = '42501'; end if;
+  return coalesce((
+    select jsonb_agg(x.j order by x.opens_at desc)
+      from (select p.opens_at,
+                   jsonb_build_object(
+                     'id', p.id, 'title', p.title, 'detail', p.detail, 'opensAt', p.opens_at, 'closesAt', coalesce(p.closed_early_at, p.closes_at),
+                     'state', case when p.opens_at > now() then 'scheduled' when coalesce(p.closed_early_at, p.closes_at) <= now() then 'closed' else 'open' end,
+                     'options', (select jsonb_agg(jsonb_build_object('position', o.position, 'label', o.label,
+                                   'votes', (select count(*) from private.titan_poll_votes v where v.poll_id = p.id and v.option_position = o.position)) order by o.position)
+                                   from private.titan_poll_options o where o.poll_id = p.id)) as j
+              from private.titan_polls p order by p.opens_at desc limit 50) x), '[]'::jsonb);
+end;
+$function$;
+
+create or replace function public.titan_roadmap_admin_list_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, pg_temp
+as $function$
+begin
+  if auth.uid() is null or not private.titan_is_admin(auth.uid()) then raise exception 'ADMIN_REQUIRED' using errcode = '42501'; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', i.id, 'title', i.title, 'detail', i.detail, 'status', i.status, 'sortOrder', i.sort_order, 'archived', i.archived_at is not null,
+             'updatedAt', i.updated_at, 'history', i.history, 'votes', (select count(*) from private.titan_roadmap_votes v where v.item_id = i.id))
+           order by i.archived_at is not null, i.sort_order, i.created_at)
+      from private.titan_roadmap_items i), '[]'::jsonb);
+end;
+$function$;
+
 revoke all on function public.titan_polls_v1(), public.titan_poll_vote_v1(uuid, smallint), public.titan_poll_admin_save_v1(text, text, text[], timestamptz, timestamptz),
   public.titan_poll_admin_close_v1(uuid), public.titan_roadmap_v1(), public.titan_roadmap_vote_v1(uuid, boolean),
-  public.titan_roadmap_admin_save_v1(uuid, text, text, text, integer, boolean) from public, anon;
+  public.titan_roadmap_admin_save_v1(uuid, text, text, text, integer, boolean), public.titan_poll_admin_list_v1(), public.titan_roadmap_admin_list_v1() from public, anon;
 grant execute on function public.titan_polls_v1(), public.titan_poll_vote_v1(uuid, smallint), public.titan_poll_admin_save_v1(text, text, text[], timestamptz, timestamptz),
   public.titan_poll_admin_close_v1(uuid), public.titan_roadmap_v1(), public.titan_roadmap_vote_v1(uuid, boolean),
-  public.titan_roadmap_admin_save_v1(uuid, text, text, text, integer, boolean) to authenticated;
+  public.titan_roadmap_admin_save_v1(uuid, text, text, text, integer, boolean), public.titan_poll_admin_list_v1(), public.titan_roadmap_admin_list_v1() to authenticated;
 
 -- The export gains the account's own votes (the helper of migration 40 keeps the Garmin link).
 create or replace function private.titan_export_extras_v1(p_uid uuid)

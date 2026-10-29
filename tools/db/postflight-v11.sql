@@ -49,7 +49,9 @@ expected_rpc(signature, anon_execute, authenticated_execute, service_execute) as
   ('public.titan_poll_admin_close_v1(uuid)', false, true, null),
   ('public.titan_roadmap_v1()', false, true, null),
   ('public.titan_roadmap_vote_v1(uuid,boolean)', false, true, null),
-  ('public.titan_roadmap_admin_save_v1(uuid,text,text,text,integer,boolean)', false, true, null)
+  ('public.titan_roadmap_admin_save_v1(uuid,text,text,text,integer,boolean)', false, true, null),
+  ('public.titan_poll_admin_list_v1()', false, true, null),
+  ('public.titan_roadmap_admin_list_v1()', false, true, null)
 ),
 rpc_state as (
   select e.*, p.oid, p.proacl, p.proowner, p.proconfig, p.prosecdef
