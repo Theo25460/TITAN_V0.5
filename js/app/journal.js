@@ -217,7 +217,7 @@
       ${pendingHtml()}
       <div class="jr-tools">
         <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
-          <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note, cotation…" value="${esc(ui.q)}"></div>
+          <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note…" value="${esc(ui.q)}"></div>
         <div class="jr-filters">
           <div class="asc-seg" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${l}</button>`).join("")}</div>
           <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>
