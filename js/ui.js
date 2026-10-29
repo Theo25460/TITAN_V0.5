@@ -502,7 +502,7 @@ window.injectSidebar = function() {
     if (!sb) return;
     const u = (window.state && window.state.user) ? window.state.user : { name: '...', level: 0, avatar: null };
     const userAvatar = u.avatar;
-    const avatarHTML = userAvatar ? `<img src="${window.getAvatarUrl(userAvatar)}" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<img src="/assets/renaissance/scout.webp" width="640" height="640" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="L’Éclaireuse">`;
+    const avatarHTML = userAvatar ? `<img src="${window.getAvatarUrl(userAvatar)}" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" data-img-fallback="./image/logo.png" alt="Avatar du joueur">` : `<img src="/assets/renaissance/scout.webp" width="640" height="640" class="avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="L’Éclaireuse">`;
     
     // Fonction helper pour class active
     const pg = (n) => window.location.pathname.includes(n) ? 'active' : '';
@@ -540,12 +540,12 @@ window.injectMobileHeader = function() {
     if(!m || document.querySelector('.mobile-user-bar')) return; 
     
     const u = (window.state && window.state.user) ? window.state.user : { name: '...', level: 0, credits: 0, avatar: null };
-    const avatarHTML = u.avatar ? `<img src="${window.getAvatarUrl(u.avatar)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='./image/logo.png'" alt="Avatar du joueur">` : `<i class="ri-user-3-fill"></i>`;
+    const avatarHTML = u.avatar ? `<img src="${window.getAvatarUrl(u.avatar)}" style="width:100%;height:100%;object-fit:cover;" data-img-fallback="./image/logo.png" alt="Avatar du joueur">` : `<i class="ri-user-3-fill"></i>`;
     
     m.insertAdjacentHTML('afterbegin', `
     <div class="mobile-user-bar">
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;background:rgba(255,255,255,0.05);padding:15px;border-radius:16px;margin-bottom:20px;">
-            <div style="display:flex;gap:12px;" onclick="window.location.href='profile.html'">
+            <div style="display:flex;gap:12px;" data-act="goto" data-href="profile.html">
                 <div style="width:40px;height:40px;background:#1e2538;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#38bdf8;border:1px solid #38bdf8;overflow:hidden;">${avatarHTML}</div>
                 <div><div style="font-weight:800;color:#fff;">${window.titanEscapeText(u.name)}</div><div style="font-size:0.75rem;color:#94a3b8;">Niv. ${Math.floor(Number(u.level) || 0)}</div></div>
             </div>
@@ -740,7 +740,7 @@ window.updateGlobalUI = function() {
         overlay.setAttribute('aria-labelledby', 'titan-guide-title');
         overlay.innerHTML = `
             <div class="titan-guide-panel">
-                <button class="titan-guide-close" type="button" onclick="titanCloseFirstRunGuide()" aria-label="Fermer le guide">
+                <button class="titan-guide-close" type="button" data-act="close-guide" aria-label="Fermer le guide">
                     ${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}
                 </button>
                 <div class="titan-guide-kicker">Premiere connexion</div>
@@ -781,10 +781,10 @@ window.updateGlobalUI = function() {
                     </div>
                 </div>
                 <div class="titan-guide-actions">
-                    <button type="button" class="btn-primary titan-guide-primary" onclick="titanCloseFirstRunGuide('training.html')">
+                    <button type="button" class="btn-primary titan-guide-primary" data-act="close-guide" data-href="training.html">
                         <i class="ri-flashlight-line"></i> Premiere mission
                     </button>
-                    <button type="button" class="titan-guide-secondary" onclick="titanCloseFirstRunGuide('guide.html#guide-demarrage')">
+                    <button type="button" class="titan-guide-secondary" data-act="close-guide" data-href="guide.html#guide-demarrage">
                         <i class="ri-compass-3-line"></i> Guide complet
                     </button>
                 </div>
@@ -841,7 +841,7 @@ window.renderHistory = function() {
         const sportLabel = (window.SPORTS_CONFIG[log.sport] ? window.SPORTS_CONFIG[log.sport].label : log.sport).toUpperCase();
         
         return `
-        <div class="history-card ${log.eliteTrace ? 'elite-trace' : ''}" onclick="if(typeof openSessionModal === 'function') openSessionModal('${log.id}')">
+        <div class="history-card ${log.eliteTrace ? 'elite-trace' : ''}" data-act="open-session" data-session-id="${window.titanEscapeText(String(log.id))}">
             <div style="display:flex; align-items:center; gap:12px;">
                 <div style="width:40px; height:40px; background:rgba(56,189,248,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--accent); border:1px solid var(--accent);">
                     <i class="${window.SPORTS_CONFIG[log.sport]?.icon || 'ri-check-line'}"></i>
@@ -1090,6 +1090,22 @@ function titanToggleMobileMenu() {
 window.titanSetMobileMenu = titanSetMobileMenu;
 window.titanToggleMobileMenu = titanToggleMobileMenu;
 
+// The CSP forbids inline handlers: markup built here carries data-act / data-img-fallback, handled by these delegated listeners.
+document.addEventListener('click', (event) => {
+    const el = event.target.closest && event.target.closest('[data-act]');
+    if (!el) return;
+    const act = el.dataset.act;
+    if (act === 'goto') window.location.href = el.dataset.href;
+    else if (act === 'close-guide') window.titanCloseFirstRunGuide(el.dataset.href || '');
+    else if (act === 'open-session') { if (typeof window.openSessionModal === 'function') window.openSessionModal(el.dataset.sessionId); }
+    else if (act === 'toggle-menu') titanToggleMobileMenu();
+    else if (act === 'close-menu') titanSetMobileMenu(false);
+});
+document.addEventListener('error', (event) => {
+    const img = event.target;
+    if (img && img.tagName === 'IMG' && img.dataset.imgFallback && !img.src.endsWith(img.dataset.imgFallback.replace(/^\.\//, ''))) img.src = img.dataset.imgFallback;
+}, true);
+
 window.injectSidebar = function() {
     const sb = document.querySelector('.sidebar');
     if (!sb) return;
@@ -1140,10 +1156,10 @@ window.injectMobileHeader = function() {
     }
     bar.innerHTML = `
         <div class="mobile-agent-card">
-            <button class="mobile-menu-toggle" type="button" onclick="titanToggleMobileMenu()" aria-label="Ouvrir la navigation" aria-expanded="false">
+            <button class="mobile-menu-toggle" type="button" data-act="toggle-menu" aria-label="Ouvrir la navigation" aria-expanded="false">
                 ${window.titanIcon ? window.titanIcon('menu') : '<i class="ri-menu-4-line"></i>'}
             </button>
-            <div class="mobile-agent-main" onclick="window.location.href='profile.html'">
+            <div class="mobile-agent-main" data-act="goto" data-href="profile.html">
                 <div class="mobile-avatar titan-avatar-frame ${avatarFrameClass} ${eliteAvatarClass}">${avatarHTML}</div>
                 <div><div class="mobile-agent-name">${window.titanEscapeText(u.name)} ${window.titanRenderPremiumIcon ? window.titanRenderPremiumIcon(u) : ''}</div><div class="mobile-agent-sub" title="${window.titanEscapeText(compactTitle)}">Niv. ${u.level}${window.titanEscapeText(compactTitle)}</div></div>
             </div>
@@ -1178,7 +1194,7 @@ window.injectMobileMenu = function() {
     const overlay = document.createElement('div');
     overlay.className = 'mobile-menu-overlay';
     overlay.setAttribute('aria-hidden', 'true');
-    overlay.setAttribute('onclick', 'titanSetMobileMenu(false)');
+    overlay.dataset.act = 'close-menu';
 
     const panel = document.createElement('aside');
     panel.className = 'mobile-menu-panel';panel.inert=true;
@@ -1192,7 +1208,7 @@ window.injectMobileMenu = function() {
     panel.innerHTML = `
             <div class="drawer-head">
             <div><span class="drawer-kicker">TITAN OS</span><strong>Explorer TITAN</strong></div>
-            <button type="button" class="drawer-close" onclick="titanSetMobileMenu(false)" aria-label="Fermer la navigation">${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}</button>
+            <button type="button" class="drawer-close" data-act="close-menu" aria-label="Fermer la navigation">${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}</button>
         </div>
         <div class="drawer-nav">${titanRenderGroupedNav('drawer-link', primaryLinks)}${secondary}</div>
         <div class="drawer-utilities">${utilities}</div>`;

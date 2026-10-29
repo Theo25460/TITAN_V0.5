@@ -42,7 +42,7 @@
     return (ui.archived ? window.state?.archivedHistory : window.state?.history) || [];
   }
 
-  function filtered() {
+  function filtered(ignoreDay = false) {
     const q = norm(ui.q).trim();
     const since = ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY;
     return source()
@@ -50,7 +50,7 @@
         const t = new Date(l.date).getTime();
         if (!Number.isFinite(t) || t < since) return false;
         if (ui.family !== "all" && SP().familyOf(l.sport) !== ui.family) return false;
-        if (ui.day && F().dateKey(l.date) !== ui.day) return false;
+        if (!ignoreDay && ui.day && F().dateKey(l.date) !== ui.day) return false;
         if (!q) return true;
         const hay = norm([SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" "));
         return q.split(/\s+/).every((w) => hay.includes(w));
@@ -141,7 +141,8 @@
     const offset = (first.getDay() + 6) % 7;
     const days = new Date(y, m + 1, 0).getDate();
     const byDay = new Map();
-    for (const l of source().filter((l) => ui.family === "all" || SP().familyOf(l.sport) === ui.family)) {
+    // Keep the month overview filtered, independently of the selected day.
+    for (const l of filtered(true)) {
       const k = F().dateKey(l.date);
       if (!byDay.has(k)) byDay.set(k, []);
       byDay.get(k).push(l);
@@ -219,7 +220,7 @@
           <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note, cotation…" value="${esc(ui.q)}"></div>
         <div class="jr-filters">
           <div class="asc-seg" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${l}</button>`).join("")}</div>
-          ${ui.view === "list" ? `<label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
+          <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>
         </div>
         <div class="seance-chips jr-fams" role="group" aria-label="Famille">
           <button type="button" class="seance-chip" data-family="all" aria-pressed="${ui.family === "all"}">Tout</button>
@@ -246,6 +247,9 @@
     if (historical(l)) return { cls: "", text: "Séance historique : statistiques et records, sans XP." };
     const r = l.details?.serverReward;
     if (String(window.state?.user?.id || "").startsWith("guest_")) return { cls: "", text: `≈ ${F().number(P().effortOf(l).xp)} XP estimés (mode découverte).` };
+    if (l.syncStatus === "confirmed" && r && typeof r === "object" && r.reward_held) {
+      return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP retenus par précaution, au plus 24 h ; ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+    }
     if (l.syncStatus === "confirmed") {
       const xp = Number(r?.xp ?? l.xp) || 0;
       const capped = r && Number(r.requested_xp) > xp;
@@ -331,28 +335,55 @@
     </div>`;
   }
 
-  function openDetail(id) {
-    const l = X().find(id);
+  let detailRequest = 0;
+  const accountContext = () => ({ owner: window.state?.user?.id, epoch: window.titanAccountTransition?.epoch || 0 });
+  const currentAccount = (context) => !window.titanAccountTransition?.active
+    && context.owner === window.state?.user?.id && context.epoch === (window.titanAccountTransition?.epoch || 0);
+  function guardDialog(d, context) {
+    const guard = () => { if (!currentAccount(context)) d.close(); };
+    const events = ["titan:account-changing", "titan:account-changed", "titan:history-updated"];
+    events.forEach(ev => window.addEventListener(ev, guard));
+    d.addEventListener("close", () => events.forEach(ev => window.removeEventListener(ev, guard)), { once: true });
+    guard();
+  }
+  async function openDetail(id) {
+    const request = ++detailRequest;
+    const context = accountContext();
+    if (!currentAccount(context)) return;
+    let l;
+    try { l = await X().resolve(id); }
+    catch (e) {
+      if (request !== detailRequest || !currentAccount(context)) return;
+      return window.titanShell.toast({ type: "warn", title: "Séance indisponible", message: e.message });
+    }
+    if (request !== detailRequest || !currentAccount(context)) return;
     if (!l) return window.titanShell.toast({ type: "warn", title: "Séance introuvable", message: "Elle a peut-être été archivée ou n’est pas encore synchronisée sur cet appareil." });
     const body = document.createElement("div");
     body.innerHTML = detailHtml(l);
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
+    guardDialog(d, context);
     body.addEventListener("click", async (e) => {
+      if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
       if (e.target.closest("[data-edit]")) {
         d.close();
-        return openEdit(l);
+        return openEdit(l, context);
       }
       if (e.target.closest("[data-toggle-archive]")) {
         d.close();
         const archive = !l.archived_at;
-        await window.titanShell.confirm({
+        const confirmation = window.titanShell.confirm({
           title: archive ? "Archiver cette séance ?" : "Restaurer cette séance ?",
           message: archive ? "Elle sort de tes statistiques, records et objectifs, et reste dans les archives." : "Elle revient dans ton journal, tes statistiques et tes records.",
           detail: "Les récompenses déjà obtenues restent inchangées ; aucune nouvelle récompense n’est attribuée.",
           confirmLabel: archive ? "Archiver" : "Restaurer",
-          action: () => (archive ? X().archive(l) : X().restore(l)),
+          action: () => {
+            if (!currentAccount(context)) throw new Error("Le compte a changé. Rouvre la séance depuis son journal.");
+            return archive ? X().archive(l) : X().restore(l);
+          },
         });
+        guardDialog(document.querySelector("dialog.asc-sheet[open]"), context);
+        await confirmation;
       }
     });
   }
@@ -363,7 +394,8 @@
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   }
 
-  function openEdit(l) {
+  function openEdit(l, context = accountContext()) {
+    if (!currentAccount(context) || (l.user_id && l.user_id !== context.owner)) return;
     const exercises = l.details?.exercises || [];
     const editableSets = exercises.length > 0 && !exercises.some((e) => e.kind === "hold");
     const climbing = SP().formOf(l.sport) === "climbing" || Boolean(l.details?.extras?.grade_system);
@@ -406,6 +438,7 @@
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
     const d = window.titanShell.sheet({ title: "Corriger la séance", eyebrow: SP().label(l.sport), body });
+    guardDialog(d, context);
     body.addEventListener("click", (e) => {
       if (e.target.closest("[data-cancel]")) return d.close();
       const add = e.target.closest("[data-add-set]");
@@ -425,6 +458,7 @@
     });
     body.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (!currentAccount(context)) return d.close();
       const err = body.querySelector(".jr-edit-error");
       const fd = new FormData(body);
       const date = new Date(fd.get("date"));
@@ -469,9 +503,11 @@
       submit.disabled = true;
       try {
         await X().update(l, patch);
+        if (!currentAccount(context)) return;
         d.close();
         window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: "Statistiques et records sont à jour." });
       } catch (error) {
+        if (!currentAccount(context)) return;
         err.textContent = error.message;
       } finally {
         submit.disabled = false;

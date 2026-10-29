@@ -12,27 +12,44 @@
     { id: "card", label: "Cartes", hint: "Le style des cartes que tu partages." },
   ];
   const RANKS = { 6: "Sentinelle", 10: "Gardien", 15: "Champion", 25: "Titan", 40: "Légende" };
-  const CHECKOUT_KEY = "titan_checkout_started_v1";
+  const CHECKOUT_KEY = "titan_checkout_started_v3:";
+  const activationPending = new Set();
+  const activationNotified = new Map();
+  const receiptLock = (owner, action) => navigator.locks?.request
+    ? navigator.locks.request("titan_checkout_receipt:" + owner, () => action(true))
+    : Promise.resolve(action(false));
+  let loadSequence = 0;
+  let catalogueRequest = null;
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const accountCurrent = (c) => c.owner === window.state?.user?.id && c.client === window.titanClient
+    && c.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
 
   let root = null;
   let data = null;
+  let dataOwner = null;
   let loading = true;
   let error = "";
   let pending = false; // the server does not offer the Atelier yet
   let fallbackPlus = null; // TITAN+ status read from the profile while titan_atelier is missing
   let slot = "frame";
+  let collection = "all";
   const guest = () => D().isGuest();
   const plusActive = () => (data?.plus ?? fallbackPlus)?.active === true;
+  // Older servers have no permanence field; their credit purchases are already permanent.
+  const permanent = (item) => typeof item.permanent === "boolean" ? item.permanent : item.owned && item.unlock !== "plus" && !item.plus_access;
   const missing = (e) => e?.code === "PGRST202" || String(e?.message || "").includes("Could not find");
 
   const messageOf = (e) => {
     const m = String(e?.message || "");
     if (missing(e)) return "L’Atelier ouvre avec la prochaine mise à jour du serveur. Tes crédits sont intacts.";
     if (m.includes("NO_FUNDS")) return "Il te manque des crédits pour cette pièce. Ils viennent de tes séances.";
+    if (m.includes("RATE_LIMITED")) return "Beaucoup d’achats en peu de temps. Réessaie dans un moment.";
     if (m.includes("PURCHASE_LIMIT_ONCE")) return "Cette pièce est déjà dans ta collection.";
     if (m.includes("NOT_FOR_SALE")) return "Cette pièce ne s’achète pas : elle se mérite par le rang ou vient avec TITAN+.";
     if (m.includes("NOT_OWNED")) return "Cette pièce n’est pas encore dans ta collection.";
     if (m.includes("ACCOUNT_SUSPENDED")) return "Ton compte est suspendu : l’Atelier est indisponible.";
+    if (m === "ATELIER_TIMEOUT") return "Le serveur n’a pas répondu en 15 secondes. Réessaie dans un instant.";
+    if (m.includes("ACCOUNT_CHANGED")) return "Le compte a changé. Rouvre l’Atelier.";
     return navigator.onLine ? "L’Atelier n’a pas répondu. Réessaie dans un instant." : "Hors ligne : l’Atelier revient avec le réseau.";
   };
 
@@ -43,60 +60,202 @@
     return Math.max(5, Math.round(recent.reduce((n, l) => n + Number(l.xp) * 0.1, 0) / recent.length));
   }
 
-  async function load() {
-    if (guest() || !window.titanClient) {
-      loading = false;
-      return render();
+  function cancelCatalogue() {
+    const job = catalogueRequest;
+    if (!job) return;
+    catalogueRequest = null;
+    clearTimeout(job.timer);
+    job.controller.abort();
+  }
+
+  function showLoading(userRetry) {
+    const retry = root.querySelector("[data-retry]");
+    const restoreFocus = userRetry && retry === document.activeElement;
+    const progress = root.querySelector("[data-at-loading]") || document.createElement("p");
+    progress.className = "asc-note";
+    progress.dataset.atLoading = "";
+    progress.setAttribute("role", "status");
+    progress.tabIndex = -1;
+    // The live status stays outside the busy placeholder/button.
+    root.setAttribute("aria-busy", "false");
+    root.querySelectorAll(".asc-skeleton").forEach(el => el.setAttribute("aria-busy", "true"));
+    root.querySelector("[data-at-error]")?.setAttribute("hidden", "");
+    if (!progress.isConnected) root.prepend(progress);
+    progress.textContent = "Chargement de l’Atelier…";
+    if (retry) {
+      retry.disabled = true;
+      retry.setAttribute("aria-busy", "true");
     }
+    if (restoreFocus) progress.focus({ preventScroll: true });
+    return progress;
+  }
+
+  function load(userRetry = false) {
+    const context = accountContext(), { owner, client } = context;
+    if (catalogueRequest && accountCurrent(catalogueRequest.context)) return catalogueRequest.done;
+    cancelCatalogue();
+    const request = ++loadSequence;
+    if (dataOwner && dataOwner !== owner) { data = null; dataOwner = null; fallbackPlus = null; }
+    if (guest() || !client || !accountCurrent(context)) {
+      loading = false;
+      render();
+      return Promise.resolve();
+    }
+    const job = { context, request, controller: new AbortController(), timer: null, done: null };
+    catalogueRequest = job;
+    loading = !data;
+    job.done = readCatalogue(job, userRetry);
+    return job.done;
+  }
+
+  async function readCatalogue(job, userRetry) {
+    const { context, request } = job, { owner, client } = context;
+    const current = () => request === loadSequence && accountCurrent(context);
+    const progress = !data ? showLoading(userRetry) : null;
     try {
-      const { data: d, error: e } = await window.titanClient.rpc("titan_atelier");
+      let query = client.rpc("titan_atelier");
+      if (typeof query?.abortSignal === "function") query = query.abortSignal(job.controller.signal);
+      const expiry = new Promise((resolve, reject) => {
+        job.controller.signal.addEventListener("abort", () => reject(new Error("ATELIER_CANCELLED")), { once: true });
+        job.timer = setTimeout(() => { reject(new Error("ATELIER_TIMEOUT")); job.controller.abort(); }, 15000);
+      });
+      const { data: d, error: e } = await Promise.race([Promise.resolve(query), expiry]);
+      if (!current()) return;
+      if (d?.owner && d.owner !== owner) return ownerChanged();
       if (e) throw e;
       data = d;
+      dataOwner = owner;
       error = "";
+      pending = false;
       syncUser();
-      noteActivation();
+      noteActivation(context);
     } catch (e) {
+      if (!current()) return;
       error = messageOf(e);
       pending = missing(e);
+    } finally {
+      clearTimeout(job.timer);
+      if (catalogueRequest === job) catalogueRequest = null;
     }
     loading = false;
+    const restoreFocus = userRetry && progress && document.activeElement === progress;
+    const focusedResult = renderOutcome(restoreFocus);
+    if (!data && pending) await readPlusFromProfile(context, current).then(() => {
+      if (current()) renderOutcome(focusedResult && document.activeElement === focusedResult);
+    });
+  }
+
+  function renderOutcome(restoreFocus) {
     render();
-    if (!data && pending) await readPlusFromProfile().then(render);
+    if (!restoreFocus) return null;
+    const target = root.querySelector("[data-retry]") || root.querySelector("#collection h2") || root.querySelector("[data-at-notice]");
+    if (target) {
+      if (target.tagName !== "BUTTON") target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+    }
+    return target;
+  }
+
+  function ownerChanged() {
+    ++loadSequence;
+    cancelCatalogue();
+    data = null;
+    dataOwner = null;
+    fallbackPlus = null;
+    loading = false;
+    pending = false;
+    error = messageOf(new Error("ACCOUNT_CHANGED"));
+    render();
   }
 
   /** Before the server update, TITAN+ status still comes from the profile the payment webhook writes (read only). */
-  async function readPlusFromProfile() {
+  async function readPlusFromProfile(context, current) {
+    const { owner, client } = context;
     try {
-      const { data: p } = await window.titanClient.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", window.state.user.id).maybeSingle();
-      if (!p) return;
+      const { data: p } = await client.from("profiles").select("is_elite, elite_renews_at, elite_ends_at").eq("id", owner).maybeSingle();
+      if (!p || !current()) return;
       fallbackPlus = { active: p.is_elite === true, renews_at: p.elite_renews_at, ends_at: p.elite_ends_at };
       if (window.state?.user) window.state.user.is_elite = fallbackPlus.active;
-      noteActivation();
+      noteActivation(context);
     } catch {}
   }
 
   /** The server is the truth: mirror balance, status and look into the local state the shell reads. */
   function syncUser() {
     const u = window.state?.user;
-    if (!u || !data) return;
+    if (!u || !data || u.id !== dataOwner) return;
     u.credits = Number(data.credits) || 0;
     u.is_elite = plusActive();
     u.appearance = data.appearance || {};
+    window.titanApplyAtelierAppearance?.(data, u.id);
     window.titanShell?.refresh?.();
   }
 
-  /** premium_activated only when a checkout started from this browser is now confirmed by the webhook. */
-  function noteActivation() {
-    if (!plusActive()) return;
+  /** A browser receipt is attribution only. The fresh server status grants access; an analytics ack consumes the receipt. */
+  async function noteActivation(context) {
+    if (!accountCurrent(context)) return;
+    const key = CHECKOUT_KEY + context.owner;
+    if (activationPending.has(key)) return;
+    activationPending.add(key);
     try {
-      const started = Number(localStorage.getItem(CHECKOUT_KEY) || 0);
-      if (!started) return;
-      localStorage.removeItem(CHECKOUT_KEY);
-      if (Date.now() - started < 3 * 86400000) {
-        window.TitanAnalytics?.track("premium_activated", { source: "atelier" });
-        window.titanShell?.toast({ type: "ok", title: "TITAN+ est actif", message: "Merci. Les campagnes et la collection TITAN+ sont ouvertes." });
+      const pending = await receiptLock(context.owner, writable => {
+        if (!accountCurrent(context)) return;
+        // The old timestamp has no owner and cannot be migrated safely between accounts.
+        if (writable) { try { localStorage.removeItem("titan_checkout_started_v1"); } catch {} }
+        // v2 has no preference snapshot; keep its functional confirmation, never infer analytics consent.
+        let storedKey = key, raw = localStorage.getItem(key);
+        const previousKey = "titan_checkout_started_v2:" + context.owner;
+        if (!raw) { storedKey = previousKey; raw = localStorage.getItem(previousKey); }
+        if (!raw) return;
+        const removeCurrent = () => {
+          if (writable && accountCurrent(context) && localStorage.getItem(storedKey) === raw) {
+            localStorage.removeItem(storedKey);
+            activationNotified.delete(storedKey);
+          }
+        };
+        let receipt;
+        try { receipt = JSON.parse(raw); } catch {}
+        const now = Date.now();
+        if (!receipt || ![2, 3].includes(receipt.v) || receipt.owner !== context.owner || !Number.isSafeInteger(receipt.at)
+          || receipt.at <= 0 || receipt.at > now || now - receipt.at >= 3 * 86400000 || typeof receipt.notified !== "boolean") {
+          removeCurrent();
+          return;
+        }
+        if (!plusActive()) return;
+        if (!receipt.notified) {
+          if (localStorage.getItem(storedKey) !== raw) return;
+          const alreadyNotified = activationNotified.get(storedKey) === raw;
+          activationNotified.set(storedKey, raw);
+          if (writable) {
+            receipt.notified = true;
+            const notifiedRaw = JSON.stringify(receipt);
+            try { localStorage.setItem(storedKey, notifiedRaw); raw = notifiedRaw; } catch {}
+          }
+          if (!alreadyNotified) window.titanShell?.toast({ type: "ok", title: "TITAN+ est actif", message: "Merci. Les avantages TITAN+ sont actifs. Les campagnes restent gratuites." });
+        }
+        // Without cross-tab locking, keep confirmation read-only and do not measure an unprotected receipt.
+        if (!writable) return;
+        // Refusal does not prevent the functional confirmation or create a later analytics replay.
+        const preferenceCurrent = () => typeof receipt.consent === "string" && receipt.consent === window.TitanAnalytics?.consentSnapshot?.();
+        if (receipt.v !== 3 || !preferenceCurrent() || window.TitanAnalytics?.consent() === "denied") {
+          removeCurrent();
+          return;
+        }
+        return { raw, consent: receipt.consent };
+      });
+      if (pending && accountCurrent(context)) {
+        // Network/token preparation never holds the receipt lock.
+        const accepted = await window.TitanAnalytics?.track("premium_activated", { source: "atelier" });
+        await receiptLock(context.owner, writable => {
+          if (writable && accountCurrent(context)
+            && (accepted === true || pending.consent !== window.TitanAnalytics?.consentSnapshot?.() || window.TitanAnalytics?.consent() === "denied")
+            && localStorage.getItem(key) === pending.raw) {
+            localStorage.removeItem(key);
+            activationNotified.delete(key);
+          }
+        });
       }
-    } catch {}
+    } catch {} finally { activationPending.delete(key); }
   }
 
   /* ---------- Previews ---------- */
@@ -112,29 +271,36 @@
     if (item.unlock === "default") return `<span class="asc-small asc-muted">Inclus</span>`;
     if (item.unlock === "rank") return `<span class="asc-chip">${icon("shield")} Rang ${esc(RANKS[item.min_level] || `niveau ${item.min_level}`)}</span>`;
     if (item.unlock === "plus") return `<span class="asc-chip am">${icon("crown")} TITAN+</span>`;
-    return `<span class="at-price asc-num">${F().number(item.price)} <small>crédits</small></span>`;
+    return `<span class="at-price asc-num">${F().number(item.price)} <small>crédits</small></span>${item.plus_access ? `<span class="asc-chip am">${icon("crown")} Accès TITAN+</span>` : ""}`;
   }
 
   function action(item) {
     const worn = (data.appearance || {})[item.slot] === item.cosmetic || (!data.appearance?.[item.slot] && item.unlock === "default");
-    if (worn) return `<span class="asc-chip cy">${icon("check")} Porté</span>`;
-    if (item.owned) return `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>`;
-    if (item.unlock === "plus") return `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus>Voir TITAN+</button>`;
+    const canRemove = worn && item.unlock !== "default" && (data.items || []).some((i) => i.slot === item.slot && i.unlock === "default" && i.owned);
+    const wear = worn ? `<span class="asc-chip cy">${icon("check")} Porté</span>${canRemove ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-remove="${esc(item.slot)}" aria-label="Retirer ${esc(item.name)}">Retirer</button>` : ""}` : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}">Porter</button>` : "";
+    if (item.unlock === "credits" && !permanent(item)) {
+      const short = item.price - (Number(data.credits) || 0);
+      const purchase = short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)} crédits</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">${item.owned ? "Garder la pièce" : "Débloquer"}</button>`;
+      return wear + purchase;
+    }
+    if (wear) return wear;
+    if (item.unlock === "plus") return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+ · bientôt</a>`;
     if (item.unlock === "rank") return `<span class="asc-small asc-faint">Niveau ${item.min_level}</span>`;
     const short = item.price - (Number(data.credits) || 0);
     return short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)}</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">Débloquer</button>`;
   }
 
   function itemHtml(item) {
-    const short = item.unlock === "credits" && !item.owned ? item.price - (Number(data.credits) || 0) : 0;
+    const short = item.unlock === "credits" && !permanent(item) ? item.price - (Number(data.credits) || 0) : 0;
     const level = Number(data.level) || 1;
     return `<article class="at-item" data-owned="${item.owned}" data-unlock="${esc(item.unlock)}">
       <div class="at-preview">${preview(item)}</div>
       <div class="at-body"><div class="at-head"><strong>${esc(item.name)}</strong>${condition(item)}</div>
         <p class="asc-small asc-muted">${esc(item.description || "")}</p>
+        ${item.owned ? `<p class="asc-small asc-muted">${permanent(item) ? "Acquis définitivement" : "Accès temporaire TITAN+"}</p>` : ""}
         ${short > 0 ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, (Number(data.credits) || 0) / item.price) * 100)}%"></span></span><p class="asc-small asc-faint">Environ ${Math.ceil(short / creditsPerSession())} séance${Math.ceil(short / creditsPerSession()) > 1 ? "s" : ""} à ton rythme actuel.</p>` : ""}
         ${item.unlock === "rank" && !item.owned ? `<span class="asc-ascent thin"><span style="--p:${Math.round(Math.min(1, level / item.min_level) * 100)}%"></span></span>` : ""}
-        <div class="at-action">${action(item)}</div></div></article>`;
+        <div class="at-action asc-row-flex">${action(item)}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-preview="${esc(item.id)}" aria-label="Prévisualiser ${esc(item.name)}">Aperçu</button></div></div></article>`;
   }
 
   /* ---------- Sections ---------- */
@@ -147,6 +313,25 @@
         <p class="asc-small asc-faint">Le même plafond pour tout le monde, abonné ou non.</p></div></section>`;
   }
 
+  /* The next three pieces within reach, so the reward ahead is always visible (credits or rank, never a purchase). */
+  function upcomingHtml() {
+    const level = Number(data.level) || 1;
+    const credits = Number(data.credits) || 0;
+    const perSession = creditsPerSession();
+    const rows = (data.items || [])
+      .filter((i) => !permanent(i) && ((i.unlock === "credits" && Number.isFinite(Number(i.price))) || (i.unlock === "rank" && Number.isFinite(Number(i.min_level)) && Number(i.min_level) > level)))
+      .map((i) => {
+        if (i.unlock !== "credits") return { item: i, order: 1000 + i.min_level - level, text: `Au niveau ${i.min_level} (rang ${RANKS[i.min_level] || i.min_level}), encore ${i.min_level - level} niveau${i.min_level - level > 1 ? "x" : ""}.` };
+        const need = Math.max(0, Math.ceil((i.price - credits) / perSession));
+        return { item: i, order: need, text: i.price <= credits ? "Tu peux le débloquer maintenant." : `Environ ${need} séance${need > 1 ? "s" : ""} à ton rythme actuel.` };
+      })
+      .sort((a, b) => a.order - b.order || (Number(a.item.price) || 0) - (Number(b.item.price) || 0))
+      .slice(0, 3);
+    if (!rows.length) return "";
+    return `<section class="asc-section" id="a-venir" data-upcoming><div class="asc-section-head"><h2>Prochaines récompenses</h2><span class="asc-small asc-muted">Estimations, sans engagement</span></div>
+      <ul class="asc-stack-sm">${rows.map(({ item, text }) => `<li class="asc-row-flex"><strong>${esc(item.name)}</strong><span class="asc-small asc-muted">${esc(text)}</span></li>`).join("")}</ul></section>`;
+  }
+
   function lookHtml() {
     const a = data.appearance || {};
     const find = (s) => (data.items || []).find((i) => i.slot === s && i.cosmetic === a[s]) || (data.items || []).find((i) => i.slot === s && i.unlock === "default");
@@ -157,12 +342,19 @@
   }
 
   function shelfHtml() {
-    const items = (data.items || []).filter((i) => i.slot === slot);
+    const catalog = data.items || [];
+    const items = catalog.filter((i) => i.slot === slot && (collection === "all" || (collection === "owned" ? permanent(i) : !permanent(i))));
     const meta = SLOTS.find((s) => s.id === slot);
-    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${(data.items || []).filter((i) => i.owned).length} / ${(data.items || []).length} pièces</span></div>
-      <div class="asc-seg at-tabs" role="tablist" aria-label="Type de pièce">${SLOTS.map((s) => `<button type="button" role="tab" data-slot="${s.id}" aria-selected="${s.id === slot}">${esc(s.label)}</button>`).join("")}</div>
+    const acquired = catalog.filter(permanent).length;
+    const borrowed = catalog.filter((i) => i.owned && !permanent(i)).length;
+    return `<section class="asc-section" id="collection"><div class="asc-section-head"><h2>Collection</h2><span class="asc-small asc-muted">${acquired} / ${catalog.length} acquises${borrowed ? ` · ${borrowed} accès TITAN+` : ""}</span></div>
+      <div class="asc-seg at-tabs" role="tablist" aria-label="Type de pièce">${SLOTS.map((s) => `<button type="button" role="tab" id="at-tab-${s.id}" data-slot="${s.id}" aria-controls="at-panel-${s.id}" aria-selected="${s.id === slot}" tabindex="${s.id === slot ? 0 : -1}">${esc(s.label)}</button>`).join("")}</div>
+      <div id="at-panel-${slot}" role="tabpanel" aria-labelledby="at-tab-${slot}" tabindex="0">
+      <div class="at-filters" role="group" aria-label="Filtrer la collection">${[["all", "Tout"], ["owned", "Acquis"], ["locked", "À débloquer"]].map(([id, label]) => `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-collection="${id}" aria-pressed="${collection === id}">${label}</button>`).join("")}</div>
       <p class="asc-small asc-muted">${esc(meta.hint)}</p>
-      <div class="at-grid">${items.map(itemHtml).join("")}</div></section>`;
+      ${collection === "owned" ? `<p class="asc-small asc-faint">Tes pièces acquises restent disponibles sans TITAN+. Les accès temporaires sont dans « Tout ».</p>` : ""}
+      <div class="at-grid">${items.length ? items.map(itemHtml).join("") : `<p class="asc-note" data-collection-empty>${collection === "owned" ? "Aucune pièce acquise dans cette catégorie. Découvre ce que tu peux viser dans « À débloquer »." : collection === "locked" ? "Tu as acquis toutes les pièces de cette catégorie." : "Aucune pièce dans cette catégorie pour le moment."}</p>`}</div></div>
+      ${SLOTS.filter(s => s.id !== slot).map(s => `<div id="at-panel-${s.id}" role="tabpanel" aria-labelledby="at-tab-${s.id}" tabindex="-1" hidden></div>`).join("")}</section>`;
   }
 
   function plusHtml() {
@@ -172,51 +364,97 @@
     const never = `<ul class="at-never"><li>${icon("close")} Pas d’XP en plus</li><li>${icon("close")} Pas de crédits en plus</li><li>${icon("close")} Pas de plafond relevé</li><li>${icon("close")} Pas d’avance sur les gardiens ni les classements</li></ul>`;
     if (p.active)
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Merci de soutenir TITAN.</h2>
-        <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton abonnement est confirmé par notre partenaire de paiement."}</p>
-        <ul class="at-includes"><li>${icon("compass")} Les forges d’Obsidienne et la citadelle des Aurores : 18 chapitres</li><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} 4 pièces de collection TITAN+</li></ul>
-        <p class="asc-small asc-faint">Arrêter ou modifier : le lien figure dans l’e-mail de reçu Paddle, ou écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
-    return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de monde à explorer. Pas plus de puissance.</h2>
-      <ul class="at-includes"><li>${icon("compass")} <span><strong>2 campagnes en plus</strong> · les forges d’Obsidienne et la citadelle des Aurores, 18 chapitres</span></li><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>4 pièces de collection</strong> : Aegis, Givre, Aurores, Obsidienne</span></li></ul>
+        <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton accès TITAN+ est actif."}</p>
+        <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
+        <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+        <p class="asc-small asc-faint">Pour arrêter ou modifier ton accès : écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
+    return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de confort pour ta pratique.</h2>
+      <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
-      ${pending && !data ? `<p class="asc-small asc-faint">Les pièces de collection TITAN+ apparaissent avec la prochaine mise à jour du serveur ; un abonnement pris d’ici là les inclut.</p>` : ""}
-      ${window.titanInAndroidApp?.() ? `<p class="asc-note">${icon("info")}<span>TITAN+ se souscrit depuis le site titan-app.fr, dans ton navigateur. L’abonnement s’applique ensuite partout, application comprise.</span></p>` : `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>`}
-      ${guest() ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
-      <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les deux premières campagnes et la Communauté restent gratuits, sans limite de durée.</p></section>`;
+      <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
+      ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition apparaîtront avec la prochaine mise à jour du serveur.</p>` : ""}
+      ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">5 € par mois. Prix final, taxes et résiliation affichés par Paddle avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ : bientôt disponible. Aucun paiement n’est proposé pour le moment. À son ouverture, l’abonnement sera proposé dans l’application Android, via Google Play.</span></p>`}
+      ${guest() && (playBillingOffered() || window.TITAN_PAYMENTS?.webCheckout === true) ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
+      <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les quatre campagnes (après mise à jour serveur) et la Communauté restent gratuits, sans limite de durée.</p></section>`;
   }
 
   function render() {
     if (!root) return;
+    const focusedSlot = root.contains(document.activeElement) ? document.activeElement.closest('[role="tab"][data-slot]')?.dataset.slot : null;
     if (guest()) {
       root.innerHTML = `<section class="asc-hero at-wallet"><div class="at-wallet-main"><p class="asc-eyebrow cy">Atelier</p><h2 class="cm-exp-title">Ton style se gagne à l’effort.</h2>
           <p class="asc-lead">Chaque séance rapporte des crédits. Ils débloquent des cadres, des ambiances de carte et des styles de cartes partageables. Rien ici ne change ta progression.</p>
-          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/tarifs">Gratuit et TITAN+</a></div></div></section>
+          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/titan-plus">TITAN+ · bientôt</a></div></div></section>
         ${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;
     }
     if (loading) return;
     if (!data) {
-      root.innerHTML = `<p class="asc-note${pending ? "" : " err"}">${icon(pending ? "info" : "alert")}<span>${esc(error)}</span></p>${pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`}${plusHtml()}`;
+      root.innerHTML = `<p class="asc-small asc-muted" data-at-loading role="status" tabindex="-1"></p><p data-at-notice ${pending ? "" : 'data-at-error role="alert"'} class="asc-note${pending ? "" : " err"}">${icon(pending ? "info" : "alert")}<span>${esc(error)}</span></p>${pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>Réessayer</button>`}${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;
     }
-    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${plusHtml()}
-      <p class="asc-small asc-faint at-foot">Les pièces sont purement visuelles et restent dans ta collection. Les pièces TITAN+ se portent tant que l’abonnement est actif ; ensuite, ton apparence revient au style d’origine.</p>`;
+    root.innerHTML = `${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}${walletHtml()}${lookHtml()}${shelfHtml()}${upcomingHtml()}${plusHtml()}
+      <p class="asc-small asc-faint at-foot">Tous les styles du catalogue se gagnent gratuitement par les crédits ou le rang. Une pièce acquise avec tes crédits reste à toi après la fin de TITAN+. L’accès inclus par l’abonnement est temporaire : seules les pièces encore non acquises reviennent au style d’origine.</p>
+      ${(data.items || []).some((i) => i.unlock === "plus") ? `<p class="asc-note">${icon("info")}<span>Mise à jour du catalogue en attente : les pièces encore marquées TITAN+ deviendront aussi accessibles avec tes crédits d’activité.</span></p>` : ""}`;
     root.setAttribute("aria-busy", "false");
+    if (focusedSlot) {
+      root.querySelectorAll('.at-tabs [role="tab"]').forEach(tab => { tab.tabIndex = tab.dataset.slot === focusedSlot ? 0 : -1; });
+      root.querySelector(`[role="tab"][data-slot="${focusedSlot}"]`)?.focus({ preventScroll: true });
+    }
+  }
+
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('[role="tab"][data-slot]');
+    if (!tab || !root.contains(tab)) return;
+    const tabs = [...root.querySelectorAll('.at-tabs [role="tab"]')], index = tabs.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs.forEach((button, i) => { button.tabIndex = i === next ? 0 : -1; });
+    tabs[next].focus();
+  }
+
+  function onTabExit(e) {
+    if (!e.target.matches('[role="tab"][data-slot]') || (root.contains(e.relatedTarget) && e.relatedTarget?.closest('.at-tabs'))) return;
+    root.querySelectorAll('.at-tabs [role="tab"]').forEach(tab => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 
   /* ---------- Actions ---------- */
-  async function wear(id) {
+  async function wear(id, removed = false) {
+    const owner = dataOwner;
+    if (window.state?.user?.id !== owner) throw new Error("ACCOUNT_CHANGED");
     const item = data.items.find((i) => i.id === id);
+    const previous = removed ? data.items.find((i) => i.slot === item.slot && i.cosmetic === data.appearance?.[item.slot]) : item;
+    const trigger = document.activeElement;
     const { data: look, error: e } = await window.titanClient.rpc("titan_set_appearance", { p_slot: item.slot, p_item: id });
+    if (window.state?.user?.id !== owner) return;
     if (e) throw e;
     data.appearance = look || {};
     syncUser();
+    const restoreFocus = document.activeElement === trigger && root.contains(trigger);
     render();
-    window.titanShell.toast({ type: "ok", title: `${item.name} porté`, message: item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
+    if (restoreFocus) {
+      const buttons = [...root.querySelectorAll("button")];
+      const next = buttons.find((b) => removed ? b.dataset.wear === previous?.id : b.dataset.remove === item.slot) || buttons.find((b) => b.dataset.preview === previous?.id) || root.querySelector(`[data-collection="${collection}"]`);
+      next?.focus({ preventScroll: true });
+    }
+    window.titanShell.toast({ type: "ok", title: removed ? "Style d’origine rétabli" : `${item.name} porté`, message: removed ? previous && permanent(previous) ? "Ta pièce acquise reste dans ta collection. Tu peux la porter à nouveau." : "Cette pièce reste accessible tant que ton accès TITAN+ est actif. Les pièces acquises restent dans ta collection." : item.slot === "map" ? "Ta carte d’aventure change de lumière." : item.slot === "card" ? "Tes prochaines cartes partagées prennent ce style." : "Ton portrait le montre partout dans TITAN." });
+  }
+
+  function openPreview(id) {
+    const item = data?.items?.find((i) => i.id === id);
+    if (!item || window.state?.user?.id !== dataOwner) return;
+    window.titanShell.sheet({
+      title: item.name,
+      eyebrow: "Aperçu",
+      body: `<div class="at-preview at-preview-large">${preview(item)}</div><p class="asc-small asc-muted">${esc(item.description || "")}</p><div class="at-action">${condition(item)}</div><p class="asc-small asc-muted">${permanent(item) ? "Cette pièce est acquise." : item.owned ? "Ton accès TITAN+ est temporaire. Une acquisition par crédits garde la pièce dans ta collection." : "Consulte les conditions de la pièce dans la collection pour la débloquer."}</p><p class="asc-small asc-faint">Cet aperçu ne change pas ton style et ne dépense aucun crédit.</p>`,
+    });
   }
 
   function buy(id) {
+    const owner = dataOwner;
     const item = data.items.find((i) => i.id === id);
     const left = (Number(data.credits) || 0) - item.price;
     window.titanShell.confirm({
@@ -225,25 +463,83 @@
       detail: "Une pièce visuelle, gardée dans ta collection. Aucun effet sur l’XP, les gardiens ou les classements.",
       confirmLabel: "Débloquer et porter",
       action: async () => {
+        if (window.state?.user?.id !== owner) throw new Error(messageOf(new Error("ACCOUNT_CHANGED")));
         const { data: r, error: e } = await window.titanClient.rpc("titan_purchase_shop_item", { p_item_id: id });
+        if (window.state?.user?.id !== owner) return;
         if (e) throw new Error(messageOf(e));
         const row = Array.isArray(r) ? r[0] : r;
         data.credits = Number(row?.credits_after ?? left);
         item.owned = true;
+        item.permanent = true;
         await wear(id).catch(() => render());
       },
     });
   }
 
-  async function checkout(btn) {
-    if (guest()) return;
+  /* ADR-004: inside the Android app, when the flag is on and the browser exposes the Digital Goods and Payment Request APIs. */
+  const PLAY_BILLING = "https://play.google.com/billing";
+  function playBillingOffered() {
+    return window.TITAN_PLAY_BILLING?.enabled === true && window.titanInAndroidApp?.() === true
+      && typeof window.getDigitalGoodsService === "function" && typeof window.PaymentRequest === "function";
+  }
+  let playBusy = false;
+  async function playCheckout(btn) {
+    const context = accountContext();
+    if (playBusy || guest() || !accountCurrent(context) || !playBillingOffered()) return;
+    playBusy = true;
     btn.disabled = true;
+    const sku = window.TITAN_PLAY_BILLING.productId;
+    let response = null;
     try {
-      localStorage.setItem(CHECKOUT_KEY, String(Date.now()));
-    } catch {}
+      const service = await window.getDigitalGoodsService(PLAY_BILLING);
+      const [details] = await service.getDetails([sku]);
+      if (!details?.price) throw new Error("PLAY_PRODUCT_UNAVAILABLE");
+      const request = new PaymentRequest([{ supportedMethods: PLAY_BILLING, data: { sku } }], { total: { label: details.title || "TITAN+", amount: { currency: details.price.currency, value: details.price.value } } });
+      response = await request.show();
+      const purchaseToken = response?.details?.purchaseToken;
+      if (typeof purchaseToken !== "string" || !purchaseToken) throw new Error("PLAY_NO_TOKEN");
+      // The server asks Google itself: the token alone grants nothing.
+      const session = (await context.client.auth.getSession())?.data?.session;
+      if (!session?.access_token || !accountCurrent(context)) throw new Error("ACCOUNT_CHANGED");
+      const answer = await fetch("/functions/play-billing", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ purchase_token: purchaseToken, product_id: sku }) });
+      const result = await answer.json().catch(() => ({}));
+      if (!answer.ok) {
+        const known = { purchase_already_used: "Cet achat est déjà rattaché à un autre compte TITAN.", authentication_required: "Reconnecte-toi pour finaliser l’achat.", product_not_allowed: "Cet abonnement n’est pas reconnu." };
+        throw Object.assign(new Error("PLAY_SERVER_REFUSED"), { playMessage: known[result?.error] || "Ton achat est enregistré chez Google mais n’a pas pu être confirmé ici pour le moment. Réessaie dans un instant : tu n’es pas débité deux fois." });
+      }
+      await response.complete("success");
+      response = null;
+      window.titanShell.toast({ type: "ok", title: result.active ? "TITAN+ activé" : "Achat reçu", message: result.active ? "Merci de soutenir TITAN." : "Ton abonnement n’est pas actif pour le moment." });
+      if (accountCurrent(context)) await load(true);
+    } catch (error) {
+      if (response) await response.complete("fail").catch(() => {});
+      // Closing the Google Play sheet is a choice, not an error.
+      if (error?.name !== "AbortError" && accountCurrent(context)) window.titanShell.toast({ type: "warn", title: "Achat non terminé", message: error?.playMessage || (String(error?.message).includes("ACCOUNT_CHANGED") ? messageOf(error) : "L’achat n’a pas pu aboutir. Rien n’est facturé tant que Google ne l’a pas confirmé.") });
+    } finally {
+      playBusy = false;
+      if (btn.isConnected) btn.disabled = false;
+    }
+  }
+
+  async function checkout(btn) {
+    const context = accountContext();
+    const consent = window.TitanAnalytics?.consentSnapshot?.() ?? null;
+    if (window.TITAN_PAYMENTS?.webCheckout !== true) return;
+    if (guest() || !accountCurrent(context)) return;
+    btn.disabled = true;
+    // Keep the historical event's unit: a subscription CTA action, including an unsuccessful opening.
     window.TitanAnalytics?.track("premium_checkout_started", { source: "atelier" });
     try {
-      await window.openEliteCheckout?.({ button: btn });
+      const opened = await window.openEliteCheckout?.({ button: btn });
+      if (opened === true && accountCurrent(context)) {
+        try {
+          await receiptLock(context.owner, writable => {
+            if (!writable || !accountCurrent(context)) return;
+            localStorage.setItem(CHECKOUT_KEY + context.owner, JSON.stringify({ v: 3, owner: context.owner, at: Date.now(), notified: false, consent }));
+            localStorage.removeItem("titan_checkout_started_v2:" + context.owner);
+          });
+        } catch {}
+      }
     } finally {
       btn.disabled = false;
     }
@@ -252,6 +548,12 @@
   function onClick(e) {
     const b = e.target.closest("button");
     if (!b || !root.contains(b)) return;
+    if (b.dataset.collection) {
+      collection = b.dataset.collection;
+      render();
+      root.querySelector(`[data-collection="${collection}"]`)?.focus({ preventScroll: true });
+      return;
+    }
     if (b.dataset.slot) {
       slot = b.dataset.slot;
       render();
@@ -260,12 +562,18 @@
     }
     if (b.dataset.wear)
       return wear(b.dataset.wear).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
+    if (b.dataset.remove) {
+      const base = data?.items?.find((i) => i.slot === b.dataset.remove && i.unlock === "default" && i.owned);
+      if (base) return wear(base.id, true).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
+      return;
+    }
+    if (b.dataset.preview) return openPreview(b.dataset.preview);
     if (b.dataset.buy) return buy(b.dataset.buy);
-    if (b.hasAttribute("data-goto-plus")) return document.getElementById("plus")?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (b.hasAttribute("data-checkout")) return checkout(b);
+    if (b.hasAttribute("data-play-checkout")) return playCheckout(b);
     if (b.hasAttribute("data-retry")) {
-      loading = true;
-      return load();
+      if (b.disabled) return;
+      return load(true);
     }
   }
 
@@ -283,11 +591,15 @@
     if (!root || !window.state?.user || booted) return;
     booted = true;
     root.addEventListener("click", onClick);
+    root.addEventListener("keydown", onTabKey);
+    root.addEventListener("focusout", onTabExit);
     if (location.hash === "#plus") slot = "frame";
     render();
     load().then(() => location.hash && document.getElementById(location.hash.slice(1))?.scrollIntoView());
   }
   window.addEventListener("online", () => booted && load());
+  window.addEventListener("titan:account-changing", () => { if (booted) ownerChanged(); else ++loadSequence; });
+  window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("titan:history-updated", () => setTimeout(start, 0));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);

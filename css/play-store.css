@@ -1,0 +1,4 @@
+/* GP15: slim, dismissible Android proposal on public pages. It never covers the content (the page gains room below). */
+.play-bar { position: fixed; inset: auto 0 0 0; z-index: 30; display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom)); background: var(--bg-2); border-top: 1px solid var(--line-2); color: var(--tx); }
+.play-bar > span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.has-play-bar { padding-bottom: 4.5rem; }

@@ -76,6 +76,39 @@ test('guest corrections and archives survive reload and cannot target another ow
  assert.equal(logs.length,1);assert.equal(logs[0].val,6);assert.equal(logs[0].archived_at,'2026-09-11');assert.equal(reopened.TitanQueue.list().length,0);
  await assert.rejects(e.TitanQueue.saveGuestSession('guest_other',log),/autorisée/);
 });
+test('deleting an owner erases its queue, history, draft and timer only',async()=>{
+ const db=new IDBFactory(),e=environment(db);
+ for(const owner of ['alice','bob']){
+  await e.TitanQueue.put({key:owner+':event',ownerId:owner,status:'pending',payload:{details:{client_event_id:owner}}});
+  await e.TitanQueue.saveHistory(owner,[{id:owner}]);
+  for(const key of ['titan_training_draft_'+owner,'titan_seance_draft_v3:'+owner,'titan_seance_timer_v3:'+owner,'titan_onboarding_draft_v1:'+owner]) e.storage.set(key,'{"note":"private"}');
+ }
+ await e.TitanQueue.deleteOwner('alice');
+ const reopened=environment(db);await reopened.TitanQueue.refresh();
+ assert.equal((await reopened.TitanQueue.readHistory('alice')).length,0);assert.equal((await reopened.TitanQueue.readHistory('bob')).length,1);
+ e.window.state.user.id='alice';assert.equal(e.TitanQueue.list().length,0);e.window.state.user.id='bob';assert.equal(e.TitanQueue.list().length,1);
+ assert.deepEqual([...e.storage.keys()].sort(),['titan_onboarding_draft_v1:bob','titan_seance_draft_v3:bob','titan_seance_timer_v3:bob','titan_training_draft_bob']);
+});
+test('owner drafts are erased even when durable storage fails or is missing',async()=>{
+ const drafts=e=>{for(const owner of ['alice','bob'])for(const prefix of ['titan_seance_draft_v3:','titan_onboarding_draft_v1:'])e.storage.set(prefix+owner,'{"note":"private"}');return e;};
+ const failing=drafts(environment({open(){throw new Error('storage denied')}}));
+ await assert.rejects(failing.TitanQueue.deleteOwner('alice'),/storage denied/);
+ assert.deepEqual([...failing.storage.keys()],['titan_seance_draft_v3:bob','titan_onboarding_draft_v1:bob']);
+ const missing=drafts(environment(null));
+ assert.equal(missing.TitanQueue,undefined);missing.titanForgetOwnerDrafts('alice');
+ assert.deepEqual([...missing.storage.keys()],['titan_seance_draft_v3:bob','titan_onboarding_draft_v1:bob']);
+});
+test('blocked localStorage cannot stop the queue and history purge',async()=>{
+ const db=new IDBFactory(),e=environment(db);
+ await e.TitanQueue.put({key:'alice:event',ownerId:'alice',status:'pending',payload:{details:{client_event_id:'a'}}});
+ await e.TitanQueue.saveHistory('alice',[{id:'a'}]);
+ const blocked=environment(db);blocked.storage.set('titan_seance_draft_v3:alice','x');
+ blocked.storage.delete=()=>{throw new Error('storage blocked')};
+ await blocked.TitanQueue.deleteOwner('alice');
+ const reopened=environment(db);reopened.window.state.user.id='alice';
+ assert.equal((await reopened.TitanQueue.refresh()).length,0,'the pending queue is purged');
+ assert.equal((await reopened.TitanQueue.readHistory('alice')).length,0,'the history is purged');
+});
 test('legacy migration is repeatable and preserves its event id',async()=>{
  const e=environment(),legacy=[{key:'old',ownerId:'guest_test',payload:{details:{client_event_id:'stable'},val:4}}];
  e.storage.set('titan_pending_training_logs_v1',JSON.stringify(legacy));await e.TitanQueue.migrate();
@@ -93,4 +126,16 @@ test('CSV neutralizes spreadsheet formulas and preserves quotes, accents and mul
  assert.equal(escapeCell('=1+1'),'"\'=1+1"');assert.equal(escapeCell('  =1+1'),'"\'  =1+1"');
  const result=csv([{date:'2026-09-11',sport:'running',val:5,unit:'km',details:{note:'Ligne "une"\nDeuxième'}}]);
  assert.ok(result.startsWith('\ufeff'));assert.ok(result.includes('"Ligne ""une""\nDeuxième"'));assert.ok(result.includes('Sur cet appareil'));
+});
+test('the legacy pending-session blob loses the deleted owner entries only, and an unreadable blob is left alone',async()=>{
+ const LEGACY='titan_pending_training_logs_v1';
+ const e=environment(new IDBFactory());
+ e.storage.set(LEGACY,JSON.stringify([{ownerId:'alice',key:'a1',payload:{val:1}},{ownerId:'bob',key:'b1',payload:{val:2}},{key:'orphan',payload:{val:3}},null]));
+ e.titanForgetOwnerDrafts('alice');
+ const kept=JSON.parse(e.storage.get(LEGACY));
+ assert.deepEqual(kept.map(i=>i.key),['b1','orphan'],'only the deleted owner entries (and empty junk) are removed');
+ e.titanForgetOwnerDrafts('bob');e.titanForgetOwnerDrafts('unassigned');
+ assert.equal(e.storage.has(LEGACY),false,'an emptied blob is removed');
+ e.storage.set(LEGACY,'{not json');e.titanForgetOwnerDrafts('alice');
+ assert.equal(e.storage.get(LEGACY),'{not json','an unreadable blob is not rewritten');
 });

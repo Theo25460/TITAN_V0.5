@@ -2,7 +2,7 @@ import fs from 'node:fs';
 const base=process.argv[2];
 if(!base||!/^https:\/\/(?:titan-app\.fr|[a-z0-9-]+--titano-app\.netlify\.app)$/.test(base))throw Error('Use the TITAN production or deploy URL.');
 const checks=[
- ...['/','/tarifs','/fonctionnalites','/pour-les-coachs','/niveaux-et-xp','/aventures-sportives','/comprendre-mes-donnees','/debuter-titan','/sports','/aujourdhui','/adventure','/training','/journal','/stats','/personnage','/objectifs','/records','/coaching','/profile','/sitemap.xml','/robots.txt','/manifest.json','/sw.js','/assets/renaissance/valley-small.webp','/assets/renaissance/guardian-aube.webp'].map(path=>({path,status:200})),
+ ...['/','/titan-plus','/fonctionnalites','/pour-les-coachs','/niveaux-et-xp','/aventures-sportives','/comprendre-mes-donnees','/debuter-titan','/sports','/aujourdhui','/adventure','/training','/journal','/stats','/personnage','/objectifs','/records','/coaching','/profile','/sitemap.xml','/robots.txt','/manifest.json','/sw.js','/assets/renaissance/valley-small.webp','/assets/renaissance/guardian-aube.webp'].map(path=>({path,status:200})),
  ...['/personnage.html','/objectifs.html','/records.html','/coaching.html','/guide','/algorithme'].map(path=>({path,status:301})),
  ...['/sql/tests/200_coaching.sql','/supabase/migrations/20260913133307_renaissance_coaching_workspace.sql','/RENAISSANCE_ART.json','/RENAISSANCE_200.md','/package.json','/sys_core_override_99.html','/page-inconnue-renaissance'].map(path=>({path,status:404})),
  {path:'/.netlify/functions/webhook',status:405}

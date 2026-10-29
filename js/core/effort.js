@@ -1,10 +1,23 @@
 /* TITAN 300 — normalized effort, XP and level curve.
    Mirror of public.titan_effort_v300 / public.titan_level_requirement on the server.
    The server stays the only authority; this module explains and previews. */
+/**
+ * @typedef {number|string|null|undefined} NumericInput
+ * @typedef {{[key:string]: unknown, sets?: NumericInput, setRows?: unknown[]}} Exercise
+ * @typedef {{[key:string]: unknown, gpxStats?: {[key:string]: unknown, movingMinutes?: NumericInput}, val2?: NumericInput,
+ *   duration?: NumericInput, exercises?: Exercise[], bio?: {[key:string]: unknown, rpe?: NumericInput},
+ *   rpe?: NumericInput}} EffortDetails
+ * @typedef {{sport?: string, profile?: string, unit?: string, val?: NumericInput,
+ *   details?: EffortDetails}} EffortInput
+ * @typedef {{minutes: number, estimated: boolean, rpe: number|null, intensity: number,
+ *   counted: number, effortMinutes: number, xp: number}} EffortResult
+ * @typedef {{level: number, id: string, name: string}} Rank
+ */
 (function (root) {
   "use strict";
 
   // Typical speeds used only when a session has no declared duration.
+  /** @type {Record<string, number>} */
   const PROFILE_SPEED_KMH = {
     running: 10,
     trail: 8,
@@ -17,6 +30,7 @@
     mixed: 11,
     mixed_conditioning: 9,
   };
+  /** @type {Record<string, number>} */
   const SPORT_SPEED_KMH = {
     walking: 5,
     nordic_walk: 5.5,
@@ -43,6 +57,7 @@
   const DAILY_XP_CAP = 1800;
   const WEEKLY_XP_CAP = 9600;
   const HISTORY_DAYS = 30;
+  /** @type {[Rank, ...Rank[]]} */
   const RANKS = [
     { level: 1, id: "eclaireur", name: "Éclaireur" },
     { level: 3, id: "explorateur", name: "Explorateur" },
@@ -53,23 +68,26 @@
     { level: 40, id: "legende", name: "Légende" },
   ];
 
+  /** @param {unknown} v */
   const num = (v) => {
     if (v === null || v === undefined || v === "") return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
   };
+  /** @param {unknown} v */
   const positive = (v) => {
     const n = num(v);
     return n !== null && n > 0 ? n : null;
   };
 
+  /** @param {string} unit @param {NumericInput} val @param {EffortDetails} [details] */
   function declaredMinutes(unit, val, details = {}) {
     for (const candidate of [
       details?.gpxStats?.movingMinutes,
       details?.val2,
       details?.duration,
       unit === "min" ? val : null,
-      unit === "h" ? num(val) * 60 : null,
+      unit === "h" ? Number(num(val)) * 60 : null,
     ]) {
       const n = positive(candidate);
       if (n !== null) return n;
@@ -77,6 +95,7 @@
     return null;
   }
 
+  /** @param {EffortDetails} [details] */
   function countSets(details = {}) {
     let sets = 0;
     for (const exercise of Array.isArray(details.exercises) ? details.exercises : []) {
@@ -86,6 +105,7 @@
     return sets;
   }
 
+  /** @param {{sport: string, profile: string, unit: string, val: NumericInput, details?: EffortDetails}} input */
   function estimatedMinutes({ sport, profile, unit, val, details = {} }) {
     const value = positive(val) || 0;
     if (unit === "km") {
@@ -106,13 +126,17 @@
     return 30;
   }
 
+  /** @param {EffortDetails} [details] */
   function rpeOf(details = {}) {
     const raw = num(details?.bio?.rpe ?? details?.rpe);
     if (raw === null) return null;
     return Math.min(10, Math.max(1, raw));
   }
 
-  /** Normalized effort of one session. Same inputs, same result as the server. */
+  /** Normalized effort of one session. Same inputs, same result as the server.
+   * @param {EffortInput} [input]
+   * @returns {EffortResult}
+   */
   function effort({ sport = "", profile = "", unit = "", val = 0, details = {} } = {}) {
     let minutes = declaredMinutes(unit, val, details);
     let estimated = false;
@@ -135,21 +159,26 @@
     };
   }
 
+  /** @param {string|number} date @param {number} [now] */
   function isHistorical(date, now = Date.now()) {
     const t = new Date(date).getTime();
     return Number.isFinite(t) && t < now - HISTORY_DAYS * 86400000;
   }
 
+  /** @param {NumericInput} level */
   const levelRequirement = (level) =>
     Math.max(1, Math.round(500 * Math.pow(Math.max(1, Number(level) || 1), 1.3)));
 
+  /** @param {number} level */
   function totalForLevel(level) {
     let total = 0;
     for (let l = 1; l < level; l++) total += levelRequirement(l);
     return total;
   }
 
-  /** Level, remaining XP and next requirement from a cumulated XP total. */
+  /** Level, remaining XP and next requirement from a cumulated XP total.
+   * @param {NumericInput} total
+   */
   function levelFromTotal(total) {
     let level = 1;
     let rest = Math.max(0, Math.floor(Number(total) || 0));
@@ -160,8 +189,10 @@
     return { level, xp: rest, next: levelRequirement(level) };
   }
 
+  /** @param {NumericInput} level */
   const rank = (level) =>
     [...RANKS].reverse().find((r) => (Number(level) || 1) >= r.level) || RANKS[0];
+  /** @param {NumericInput} level */
   const nextRank = (level) => RANKS.find((r) => r.level > (Number(level) || 1)) || null;
 
   const api = {
