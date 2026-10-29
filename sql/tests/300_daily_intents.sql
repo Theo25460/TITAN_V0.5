@@ -52,7 +52,8 @@ begin
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   r := public.titan_intents_v1(current_date);
   assert (r->'mine'->>'cheers')::int=1 and not (r->'mine' ? 'cheerers'), 'a count of encouragements, never the names: '||r::text;
-  assert (public.titan_intent_done_v1(current_date,true)->>'done')::boolean and (public.titan_intents_v1(current_date)->'mine'->>'done')::boolean, 'ticked';
+  assert (public.titan_intent_done_v1(current_date,true)->>'done')::boolean, 'ticked';
+  assert (public.titan_intents_v1(current_date)->'mine'->>'done')::boolean, 'ticked, and read back';
   perform set_config('request.jwt.claims',json_build_object('sub',b,'role','authenticated')::text,true);
   assert (public.titan_intents_v1(current_date)->'friends'->0->>'done')::boolean, 'the friend sees that it was kept';
   perform public.titan_intent_cheer_v1(a,current_date,false);
@@ -85,6 +86,7 @@ do $$
 declare b uuid := current_setting('titan.di_b')::uuid;
 begin
   insert into private.titan_daily_intents(user_id, day, intent, visibility) values (b, current_date, 'Nager un peu', 'friends');
+  perform set_config('request.jwt.claims',json_build_object('sub',b,'role','authenticated')::text,true);
   delete from auth.users where id = b;
   assert not exists (select 1 from private.titan_daily_intents where user_id = b), 'erased with the account';
 end $$;
