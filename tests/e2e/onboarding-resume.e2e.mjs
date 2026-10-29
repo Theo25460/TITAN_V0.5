@@ -20,9 +20,11 @@ async function fixture(width=360,blocked=false){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  await context.route('**/*',async route=>{
   if(new URL(route.request().url()).hostname!=='127.0.0.1')return route.abort('internetdisconnected');
-  const response=await route.fetch(),headers={...response.headers()};
-  if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
-  await route.fulfill({response,headers});
+  try{
+   const response=await route.fetch(),headers={...response.headers()};
+   if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
+   await route.fulfill({response,headers});
+  }catch{/* a request still in flight when the page navigates or the context closes is already settled */}
  });
  if(blocked)await context.addInitScript(()=>{const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k.startsWith('titan_onboarding_draft_v1:'))throw Error('Synthetic draft storage failure');return set.call(this,k,v);};});
  const page=await context.newPage(),errors=[];page.setDefaultTimeout(2500);
