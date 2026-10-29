@@ -1,14 +1,25 @@
 /* V11-14: the monthly report, free, computed on the device from the confirmed journal. Pure: nothing is sent anywhere.
    Volumes are never mixed across units (time is the common measure, distance is shown only for distance sports), a month in progress
    is compared with the same days of the previous month, and estimated durations are always flagged. */
+/**
+ * @typedef {{ date: string | number | Date, sport?: string, unit?: string, val?: number | string, status?: string, archived_at?: unknown, is_suspicious?: boolean, details?: { distance_unknown?: boolean } | null }} JournalLog
+ * @typedef {{ minutes: number, estimated?: boolean }} Minutes
+ * @typedef {(log: JournalLog) => Minutes | null | undefined} MinutesOf
+ * @typedef {{ sport: string, label: string, sessions: number, minutes: number, distanceKm: number | null }} SportSlice
+ * @typedef {{ sessions: number, activeDays: number, minutes: number, estimatedMinutes: number, sports: SportSlice[] }} Slice
+ */
 (function (root) {
   "use strict";
   const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+  /** @param {Date} d */
   const dayKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  const counted = (l) => l && !l.archived_at && !l.is_suspicious && !["flagged", "pending_review"].includes(l.status) && Number.isFinite(new Date(l.date).getTime());
+  /** @param {JournalLog | null | undefined} l */
+  const counted = (l) => l && !l.archived_at && !l.is_suspicious && !["flagged", "pending_review"].includes(String(l.status)) && Number.isFinite(new Date(l.date).getTime());
 
+  /** @param {JournalLog[]} logs @param {Date} from @param {Date} to @param {MinutesOf} minutesOf @param {(sport: string) => string} label @returns {Slice} */
   function slice(logs, from, to, minutesOf, label) {
     const days = new Set(), sports = new Map();
+    /** @type {Slice} */
     const out = { sessions: 0, activeDays: 0, minutes: 0, estimatedMinutes: 0, sports: [] };
     for (const l of logs) {
       const t = new Date(l.date).getTime();
@@ -19,11 +30,12 @@
       out.minutes += minutes;
       if (m.estimated) out.estimatedMinutes += minutes;
       days.add(dayKey(new Date(l.date)));
-      const s = sports.get(l.sport) || { sport: l.sport, label: label(l.sport), sessions: 0, minutes: 0, distanceKm: 0, hasDistance: false };
+      const key = String(l.sport);
+      const s = sports.get(key) || { sport: key, label: label(key), sessions: 0, minutes: 0, distanceKm: 0, hasDistance: false };
       s.sessions++;
       s.minutes += minutes;
       if (l.unit === "km" && Number(l.val) > 0 && !l.details?.distance_unknown) { s.distanceKm += Number(l.val); s.hasDistance = true; }
-      sports.set(l.sport, s);
+      sports.set(key, s);
     }
     out.activeDays = days.size;
     out.minutes = Math.round(out.minutes);
@@ -33,9 +45,11 @@
     return out;
   }
 
-  /** period "month" (default) or "year"; offset 0 = the one in progress, 1 = the one before… */
-  function build(logs, { now = new Date(), offset = 0, period = "month", minutesOf, label = (s) => s, recordsOf = () => [], adventureOf = () => [] } = {}) {
-    const list = (Array.isArray(logs) ? logs : []).filter(counted).filter((l) => new Date(l.date).getTime() <= now.getTime() + 10 * 60000);
+  /** period "month" (default) or "year"; offset 0 = the one in progress, 1 = the one before…
+   * @param {unknown} logs
+   * @param {{ now?: Date, offset?: number, period?: string, minutesOf: MinutesOf, label?: (sport: string) => string, recordsOf?: (from: number, to: number) => unknown[], adventureOf?: (from: number, to: number) => unknown[] }} options */
+  function build(logs, { now = new Date(), offset = 0, period = "month", minutesOf, label = (s) => s, recordsOf = () => [], adventureOf = () => [] }) {
+    const list = (Array.isArray(logs) ? /** @type {JournalLog[]} */ (logs) : []).filter(counted).filter((l) => new Date(l.date).getTime() <= now.getTime() + 10 * 60000);
     const year = period === "year";
     const from = year ? new Date(now.getFullYear() - offset, 0, 1) : new Date(now.getFullYear(), now.getMonth() - offset, 1);
     const fullTo = year ? new Date(from.getFullYear() + 1, 0, 1) : new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
@@ -52,6 +66,7 @@
     const cur = slice(list, from, to, minutesOf, label);
     const prev = slice(list, prevFrom, prevTo, minutesOf, label);
     const comparable = prev.sessions > 0;
+    /** @param {Date} d */
     const name = (d) => (year ? String(d.getFullYear()) : MONTHS[d.getMonth()]);
     return {
       period: year ? "year" : "month",
@@ -67,7 +82,9 @@
   }
 
   /** Words for the screen and the card. Never a verdict: a quieter month is described, not judged. */
+  /** @param {any} r @param {{ duration?: (minutes: number) => string }} [options] */
   function describe(r, { duration = (m) => `${m} min` } = {}) {
+    /** @param {number} n @param {string} one @param {string} many */
     const s = (n, one, many) => `${n} ${n > 1 ? many : one}`;
     const unit = r?.period === "year" ? "année" : "mois";
     if (!r || r.sessions === 0) return { title: r?.period === "year" ? (r.current ? "L’année commence." : "Une année sans séance enregistrée.") : r?.current ? "Le mois commence." : "Un mois de repos.", text: `Aucune séance enregistrée sur cette ${unit}.`.replace("cette mois", "ce mois"), notes: [] };
@@ -86,6 +103,6 @@
   }
 
   const api = { build, describe, MONTHS };
-  root.TitanMonthReport = api;
+  /** @type {any} */ (root).TitanMonthReport = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

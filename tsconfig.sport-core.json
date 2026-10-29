@@ -12,6 +12,9 @@
   },
   "files": [
     "js/core/effort.js",
+    "js/core/month-report.js",
+    "js/core/periodic-quests.js",
+    "js/core/endurance.js",
     "types/sport-core-globals.d.ts",
     "tests/typecheck/effort-contract.ts"
   ]

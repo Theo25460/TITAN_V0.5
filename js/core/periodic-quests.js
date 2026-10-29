@@ -1,10 +1,17 @@
 /* V11-13 / V11-15: wording of the weekly and monthly quests the server computes (titan_periodic_quests_v1). Pure: no rule lives here,
    the server decides the kind, the target and the progress; this only says it kindly. Optional, never a punishment, cosmetic keepsake only. */
+/**
+ * @typedef {Record<string, unknown>} QuestTarget
+ * @typedef {{ title: string, text: string, key: string, unit: string[] }} QuestWording
+ */
 (function (root) {
   "use strict";
+  /** @param {number} n @param {string} one @param {string} many */
   const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+  /** @param {unknown} v */
   const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
+  /** @type {Record<string, (t: QuestTarget) => QuestWording>} */
   const TEXT = {
     starter: (t) => ({ title: "Une première séance cette semaine", text: `Fais une séance d’au moins ${n(t.minSessionMinutes)} minutes, dans le sport que tu veux.`, key: "sessions", unit: ["séance", "séances"] }),
     return: (t) => ({ title: "Reprendre à ton rythme", text: `Aucune pression : une seule séance d’au moins ${n(t.minSessionMinutes)} minutes suffit pour reprendre.`, key: "sessions", unit: ["séance", "séances"] }),
@@ -15,9 +22,11 @@
   };
 
   /** One quest object of the server answer -> what the screen shows. Unknown kinds are not shown. */
+  /** @param {any} q @param {{ sportLabel?: (sport: string) => string }} [options] */
   function describe(q, { sportLabel = (s) => s } = {}) {
-    if (!q || typeof q !== "object" || !TEXT[q.kind] || !q.target || typeof q.target !== "object") return null;
-    const base = TEXT[q.kind](q.target);
+    const wording = q && typeof q === "object" ? TEXT[q.kind] : undefined;
+    if (!wording || !q.target || typeof q.target !== "object") return null;
+    const base = wording(q.target);
     const target = n(q.target[base.key]);
     const value = Math.min(target, n(q.progress?.[base.key]));
     return {
@@ -34,6 +43,6 @@
   }
 
   const api = { describe };
-  root.TitanPeriodicQuestText = api;
+  /** @type {any} */ (root).TitanPeriodicQuestText = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
