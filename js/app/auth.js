@@ -6,10 +6,10 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const icon = (n) => window.titanIcon(n);
   const $ = (s) => document.querySelector(s);
-  class UserError extends Error {}
   let mode = new URLSearchParams(location.search).get("mode") === "signup" ? "signup" : "signin";
-  let busy = false;
+  let operation = null;
   let lastEmail = "";
+  let validationField = null;
 
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
 
@@ -37,9 +37,9 @@
   function view() {
     const signup = mode === "signup";
     return `
-      <div class="auth-tabs asc-seg" role="tablist" aria-label="Connexion ou inscription">
-        <button type="button" role="tab" data-mode="signin" aria-selected="${!signup}">Se connecter</button>
-        <button type="button" role="tab" data-mode="signup" aria-selected="${signup}">Créer un compte</button>
+      <div class="auth-tabs asc-seg" role="group" aria-label="Connexion ou inscription">
+        <button type="button" data-mode="signin" aria-pressed="${!signup}">Se connecter</button>
+        <button type="button" data-mode="signup" aria-pressed="${signup}">Créer un compte</button>
       </div>
       <form id="auth-form" class="asc-stack" novalidate>
         ${signup ? `<label class="asc-field"><span>Nom affiché</span><input class="asc-input" name="name" autocomplete="nickname" maxlength="24" minlength="2" required placeholder="Ton prénom ou un pseudo"><small>Visible seulement si tu partages quelque chose. Ton profil est privé par défaut.</small></label>` : ""}
@@ -51,7 +51,7 @@
                <label class="auth-check"><input type="checkbox" name="analytics"><span>J’aide à améliorer TITAN avec des statistiques d’usage. Jamais de santé, de poids, de GPS ni de notes. <small class="asc-faint">Facultatif, modifiable à tout moment.</small></span></label>`
             : ""
         }
-        <p class="auth-msg" role="alert" aria-live="assertive"></p>
+        <p id="auth-validation-error" class="auth-msg" role="alert" aria-live="assertive"></p>
         <button type="submit" class="asc-btn asc-btn-primary asc-btn-block auth-submit">${signup ? "Créer mon compte" : "Se connecter"}</button>
         ${signup ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm auth-forgot" data-forgot>Mot de passe oublié ?</button>`}
       </form>
@@ -61,6 +61,7 @@
   }
 
   function render() {
+    clearValidation();
     $("#auth").innerHTML = view();
     $("#auth-title").textContent = mode === "signup" ? "Commence ton ascension." : "Content de te revoir.";
   }
@@ -70,6 +71,67 @@
     if (!el) return;
     el.textContent = text;
     el.dataset.kind = kind;
+  }
+
+  function clearValidation() {
+    if (!validationField) return;
+    validationField.removeAttribute("aria-invalid");
+    const refs = (validationField.getAttribute("aria-describedby") || "").split(/\s+/).filter(id => id && id !== "auth-validation-error");
+    if (refs.length) validationField.setAttribute("aria-describedby", refs.join(" "));
+    else validationField.removeAttribute("aria-describedby");
+    validationField = null;
+  }
+
+  function invalidField(name, text) {
+    clearValidation();
+    message(text);
+    const field = document.querySelector(`#auth-form [name="${name}"]`);
+    if (!field) return;
+    validationField = field;
+    field.setAttribute("aria-invalid", "true");
+    const refs = new Set((field.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+    refs.add("auth-validation-error");
+    field.setAttribute("aria-describedby", [...refs].join(" "));
+    field.focus();
+  }
+
+  for (const event of ["input", "change"]) document.addEventListener(event, e => {
+    if (operation || e.target !== validationField) return;
+    clearValidation();
+    message("");
+  });
+
+  function begin(label, source) {
+    if (operation) return null;
+    const form = $("#auth-form"), busyNode = form || source;
+    const task = { source, controls: new Map(), busyNode, busy: busyNode?.getAttribute("aria-busy") };
+    operation = task;
+    message("");
+    $("#auth").querySelectorAll("button, input, select, textarea").forEach(control => {
+      task.controls.set(control, control.disabled);
+      control.disabled = true;
+    });
+    busyNode?.setAttribute("aria-busy", "true");
+    const notice = document.createElement("p");
+    notice.className = "asc-small asc-muted";
+    notice.setAttribute("role", "status");
+    notice.textContent = label;
+    // Announce outside the busy form/button, close to the action being sent.
+    if (form) form.after(notice);
+    else source.after(notice);
+    task.notice = notice;
+    return task;
+  }
+
+  function finish(task, restoreFocus = false) {
+    task.controls.forEach((disabled, control) => { control.disabled = disabled; });
+    if (task.busyNode) {
+      if (task.busy === null) task.busyNode.removeAttribute("aria-busy");
+      else task.busyNode.setAttribute("aria-busy", task.busy);
+    }
+    task.notice.remove();
+    if (operation === task) operation = null;
+    if (restoreFocus && task.source?.isConnected && !task.source.disabled && document.activeElement === document.body) task.source.focus();
   }
 
   function sent(email, kind) {
@@ -84,77 +146,122 @@
   }
 
   async function submit(form) {
-    if (busy) return;
+    if (operation) return;
+    clearValidation();
     const fd = new FormData(form);
     const email = String(fd.get("email") || "").trim().toLowerCase();
     const password = String(fd.get("password") || "");
     lastEmail = email;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return message("Indique une adresse e-mail valide.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique une adresse e-mail valide.");
+    const name = String(fd.get("name") || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
+    if (mode === "signin" && !password) return invalidField("password", "Indique ton mot de passe.");
+    if (mode === "signup") {
+      if (name.length < 2) return invalidField("name", "Choisis un nom de 2 caractères minimum.");
+      if (password.length < 8) return invalidField("password", "Choisis un mot de passe d’au moins 8 caractères.");
+      if (!fd.get("terms")) return invalidField("terms", "Accepte les conditions pour créer ton compte.");
+    }
     const c = client();
     if (!c) return message("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
-    busy = true;
     const btn = form.querySelector(".auth-submit");
-    btn.disabled = true;
-    btn.setAttribute("aria-busy", "true");
+    const task = begin(mode === "signin" ? "Connexion en cours…" : "Création du compte en cours…", btn);
+    if (!task) return;
+    let failed = false;
     try {
       if (mode === "signin") {
-        if (!password) throw new UserError("Indique ton mot de passe.");
         const { error } = await c.auth.signInWithPassword({ email, password });
         if (error) throw error;
         location.href = nextUrl();
         return;
       }
-      const name = String(fd.get("name") || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
-      if (name.length < 2) throw new UserError("Choisis un nom de 2 caractères minimum.");
-      if (password.length < 8) throw new UserError("Choisis un mot de passe d’au moins 8 caractères.");
-      if (!fd.get("terms")) throw new UserError("Accepte les conditions pour créer ton compte.");
-      window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics")));
+      const consentSaved = window.TitanAnalytics?.setConsent(Boolean(fd.get("analytics"))) === true;
       const { data, error } = await c.auth.signUp({ email, password, options: { emailRedirectTo: `${SITE}/onboarding`, data: { full_name: name, username: name } } });
       if (error) throw error;
-      window.TitanAnalytics?.track("signup");
+      window.TitanAnalytics?.track("signup", {}, { owner: data?.user?.id || data?.session?.user?.id || null });
       if (data?.session) {
+        if (!consentSaved) {
+          $("#auth").innerHTML = `<div class="asc-stack"><h2 class="asc-h3">Ton compte est créé</h2><p role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p><a class="asc-btn asc-btn-primary" href="/onboarding">Continuer</a></div>`;
+          return;
+        }
         location.href = "/onboarding";
         return;
       }
       sent(email, "signup");
+      if (!consentSaved) message("Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.");
     } catch (error) {
-      message(error instanceof UserError ? error.message : human(error));
+      failed = true;
+      message(human(error));
     } finally {
-      busy = false;
-      btn.disabled = false;
-      btn.removeAttribute("aria-busy");
+      finish(task, failed);
     }
   }
 
-  async function forgot() {
+  async function forgot(button) {
+    if (operation) return;
+    clearValidation();
     const email = String(document.querySelector("[name=email]")?.value || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return message("Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
     const c = client();
     if (!c) return message("Le service de connexion est indisponible.");
+    lastEmail = email;
+    const task = begin("Envoi en cours…", button);
+    if (!task) return;
+    let failed = false;
     try {
       const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: `${SITE}/update-password` });
       if (error) throw error;
       sent(email, "reset");
     } catch (error) {
+      failed = true;
       message(human(error));
+    } finally {
+      finish(task, failed);
     }
   }
 
-  async function guest() {
+  async function guest(button) {
+    const task = begin("Ouverture du mode découverte…", button);
+    if (!task) return;
     try {
-      await client()?.auth.signOut({ scope: "local" });
-    } catch {}
+      try {
+        await client()?.auth.signOut({ scope: "local" });
+      } catch {}
+      try {
+        // Discovery keeps its stable device id: earlier local sessions come back.
+        sessionStorage.setItem("titan_enter_discovery", "1");
+      } catch {}
+      location.href = "/onboarding";
+    } finally {
+      finish(task);
+    }
+  }
+
+  async function resend(button) {
+    if (operation || button.disabled) return;
+    const task = begin("Envoi en cours…", button);
+    if (!task) return;
+    let sent = false;
     try {
-      // Discovery keeps its stable device id: earlier local sessions come back.
-      sessionStorage.setItem("titan_enter_discovery", "1");
-    } catch {}
-    location.href = "/onboarding";
+      const { error } = await client().auth.resend({ type: "signup", email: button.dataset.resend, options: { emailRedirectTo: `${SITE}/onboarding` } });
+      if (error) throw error;
+      message("E-mail renvoyé.", "ok");
+      sent = true;
+    } catch (error) {
+      message(human(error));
+    } finally {
+      finish(task, !sent);
+      if (sent) {
+        button.disabled = true;
+        setTimeout(() => { button.disabled = false; }, 30000);
+      }
+    }
   }
 
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("button");
-    if (!b) return;
+    if (!b || b.disabled || operation) return;
     if (b.dataset.mode) {
+      // Keep only the address in page memory; passwords and checkbox choices stay form-local.
+      lastEmail = document.querySelector("#auth-form [name=email]")?.value ?? lastEmail;
       mode = b.dataset.mode;
       render();
       document.querySelector("[name=" + (mode === "signup" ? "name" : "email") + "]")?.focus();
@@ -168,20 +275,9 @@
       b.innerHTML = icon(show ? "eyeOff" : "eye");
       return;
     }
-    if (b.hasAttribute("data-forgot")) return forgot();
-    if (b.hasAttribute("data-guest")) return guest();
-    if (b.dataset.resend) {
-      b.disabled = true;
-      try {
-        const { error } = await client().auth.resend({ type: "signup", email: b.dataset.resend, options: { emailRedirectTo: `${SITE}/onboarding` } });
-        if (error) throw error;
-        message("E-mail renvoyé.", "ok");
-      } catch (error) {
-        message(human(error));
-      } finally {
-        setTimeout(() => (b.disabled = false), 30000);
-      }
-    }
+    if (b.hasAttribute("data-forgot")) return forgot(b);
+    if (b.hasAttribute("data-guest")) return guest(b);
+    if (b.dataset.resend) return resend(b);
   });
   document.addEventListener("submit", (e) => {
     if (e.target.id !== "auth-form") return;

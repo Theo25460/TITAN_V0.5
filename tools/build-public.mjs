@@ -58,6 +58,8 @@ function copyFileOrDirectory(name) {
 function copyPublicImages(source = join(root, 'image'), destination = join(dist, 'image'), relativeDir = '') {
   mkdirSync(destination, { recursive: true });
   for (const entry of readdirSync(source, { withFileTypes: true })) {
+    // Editor drafts and temporary image writes never belong in the published site.
+    if (entry.name.startsWith('.')) continue;
     const from = assertInsideRoot(join(source, entry.name));
     const to = assertInsideRoot(join(destination, entry.name));
     const nextRelative = join(relativeDir, entry.name);
@@ -97,7 +99,8 @@ for (const entry of readdirSync(root)) {
 }
 
 // Offline shell: every local asset the app pages load, plus the pages themselves.
-const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login'];
+// Public help and its assets are available offline even before the first help visit.
+const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
 const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/css/fonts/manrope-latin-0.woff2', '/css/fonts/manrope-latin-1.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
 for (const page of APP_PAGES) {
   precache.add(`/${page}`);
