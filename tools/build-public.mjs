@@ -98,6 +98,17 @@ for (const entry of readdirSync(root)) {
   copyFileOrDirectory(entry);
 }
 
+// Inject one local, deferred analytics-consent manager into every published HTML page.
+// It makes no request to Google before explicit approval; external inline gtag is prohibited by our CSP.
+for (const entry of readdirSync(root)) {
+  if (!entry.endsWith('.html') || excludedHtml.has(basename(entry))) continue;
+  const target = join(dist, entry);
+  let html = readFileSync(target, 'utf8');
+  if (!html.includes('</head>') || html.includes('/js/ga4-consent.js')) continue;
+  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.0" defer></script>\\n</head>');
+  writeFileSync(target, html);
+}
+
 // Offline shell: every local asset the app pages load, plus the pages themselves.
 // Public help and its assets are available offline even before the first help visit.
 const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
