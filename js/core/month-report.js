@@ -35,7 +35,7 @@
 
   /** period "month" (default) or "year"; offset 0 = the one in progress, 1 = the one before… */
   function build(logs, { now = new Date(), offset = 0, period = "month", minutesOf, label = (s) => s, recordsOf = () => [], adventureOf = () => [] } = {}) {
-    const list = (logs || []).filter(counted).filter((l) => new Date(l.date).getTime() <= now.getTime() + 10 * 60000);
+    const list = (Array.isArray(logs) ? logs : []).filter(counted).filter((l) => new Date(l.date).getTime() <= now.getTime() + 10 * 60000);
     const year = period === "year";
     const from = year ? new Date(now.getFullYear() - offset, 0, 1) : new Date(now.getFullYear(), now.getMonth() - offset, 1);
     const fullTo = year ? new Date(from.getFullYear() + 1, 0, 1) : new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);

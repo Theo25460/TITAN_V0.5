@@ -172,7 +172,7 @@
   /** @param {number} level */
   function totalForLevel(level) {
     let total = 0;
-    for (let l = 1; l < level; l++) total += levelRequirement(l);
+    for (let l = 1; l < Math.min(level, 500); l++) total += levelRequirement(l);
     return total;
   }
 

@@ -87,3 +87,14 @@ test("the annual report compares with the same days of the previous year and nam
   assert.match(describe(last).text, /Première année mesurée/);
   assert.match(describe(build([], { ...opts, period: "year", offset: 2 })).title, /Une année sans séance/);
 });
+
+test("a journal that is not a list gives an empty report instead of an error", () => {
+  for (const bad of [null, undefined, {}, "x", 7]) assert.doesNotThrow(() => build(bad, opts));
+});
+
+test("an absurd level never loops for long: the cumulated XP stops at the level cap", () => {
+  const { totalForLevel } = createRequire(import.meta.url)("../js/core/effort.js");
+  const started = Date.now();
+  assert.equal(totalForLevel(1e12), totalForLevel(500));
+  assert.ok(Date.now() - started < 200);
+});
