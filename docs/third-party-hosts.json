@@ -75,6 +75,16 @@
       "host": "*.paddle.com",
       "kind": "runtime-on-demand",
       "note": "Allowed by the CSP for connect-src, frame-src and form-action: the checkout overlay and its API calls (for example buy.paddle.com, checkout-service.paddle.com). Hosts contacted by paddle.js itself cannot be enumerated from this repository. The TITAN account id is passed to Paddle as customData.user_id."
+    },
+    {
+      "host": "www.googletagmanager.com",
+      "kind": "runtime-on-demand",
+      "note": "GA4 script, loaded only with visitor opt-in."
+    },
+    {
+      "host": "*.google-analytics.com",
+      "kind": "runtime-on-demand",
+      "note": "GA4 collection endpoints allowed only after user opt-in."
     }
   ],
   "openAllowances": []
