@@ -105,7 +105,7 @@ for (const entry of readdirSync(root)) {
   const target = join(dist, entry);
   let html = readFileSync(target, 'utf8');
   if (!html.includes('</head>') || html.includes('/js/ga4-consent.js')) continue;
-  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.0" defer></script>\\n</head>');
+  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.0" defer></script>\n</head>');
   writeFileSync(target, html);
 }
 
