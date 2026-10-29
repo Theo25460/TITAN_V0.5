@@ -116,7 +116,7 @@
     });
   }
 
-  const periodReport = (period) => window.TitanMonthReport.build(logs(), { period, offset: period === "year" ? yearOffset : monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
+  const periodReport = (period) => window.TitanMonthReport.build(logs(), { period, offset: period === "year" ? yearOffset : period === "week" ? offset : monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
     recordsOf: (from, to) => P().newRecords(logs(), from, to).filter((r) => r.kind !== "duration"),
     adventureOf: (from, to) => window.TitanTitles ? window.TitanTitles.earned({ rewards: (window.TitanAdventure?.snapshot?.rewards || []).filter((r) => { const t = new Date(r.earned_at).getTime(); return t >= from && t < to; }), catalog: window.TitanCodex }) : [] });
 
@@ -137,6 +137,18 @@
       ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}
       ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${Y ? "data-year-card" : "data-month-card"}>${icon("share")} Image de ${Y ? "mon année" : "mon mois"}</button>` : ""}
     </section>`;
+  }
+
+  /* COM-B8: the week by discipline and against the same days of the week before, same engine as the monthly report. Follows the week chosen above. */
+  function weekHtml() {
+    if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
+    const m = periodReport("week");
+    if (!m.sessions) return "";
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    return `<section class="asc-section wk-weekly" data-week-detail aria-labelledby="wk-detail-title"><div class="asc-section-head"><h2 id="wk-detail-title">Par discipline</h2></div>
+      <p class="asc-lead">${esc(d.text)}</p><div class="asc-list">${rows}</div>
+      ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}</section>`;
   }
 
   function monthHighlights(m) {
@@ -278,7 +290,7 @@
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}${periodHtml("month")}${window.TitanStepsCard?.monthHtml?.() || ""}${periodHtml("year")}
+    root.innerHTML = `${heroHtml(r)}${weekHtml()}${highlightsHtml(r)}${periodHtml("month")}${window.TitanStepsCard?.monthHtml?.() || ""}${periodHtml("year")}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
     if (focusId) {

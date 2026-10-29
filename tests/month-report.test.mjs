@@ -98,3 +98,36 @@ test("an absurd level never loops for long: the cumulated XP stops at the level 
   assert.equal(totalForLevel(1e12), totalForLevel(500));
   assert.ok(Date.now() - started < 200);
 });
+
+test("a week runs Monday to Sunday and a week in progress is compared with the same days of the one before (COM-B8)", () => {
+  const logs = [
+    log(new Date(2026, 9, 5, 8)), log(new Date(2026, 9, 8, 8)), log(new Date(2026, 9, 10, 8)), // previous week: Mon, Thu, then Sat (after the 4 days elapsed)
+    log(new Date(2026, 9, 12, 8)), log(new Date(2026, 9, 14, 8), "yoga", { unit: "min", val: 45, details: { duration: 45 } }),
+  ];
+  const r = build(logs, { ...opts, period: "week" });
+  assert.equal(r.period, "week");
+  assert.equal(r.current, true);
+  assert.equal(r.sessions, 2);
+  assert.equal(r.activeDays, 2);
+  assert.equal(r.minutes, 105);
+  assert.equal(r.previous.sessions, 2, "the Saturday of the previous week is after the same four days");
+  assert.equal(r.comparison.sameDays, true);
+  assert.equal(r.comparison.minutes, 105 - 120);
+  assert.match(r.label, /semaine du 12 octobre/);
+  const done = build(logs, { ...opts, period: "week", offset: 1 });
+  assert.equal(done.current, false);
+  assert.equal(done.sessions, 3);
+  assert.deepEqual([done.from.getDate(), done.to.getDate()], [5, 12]);
+  const text = describe(r, { duration: (m) => `${m} min` });
+  assert.match(text.text, /15 min de moins sur les mêmes jours de la semaine du 5 octobre/);
+  assert.ok(text.notes.some((n) => /Semaine en cours/.test(n)));
+});
+
+test("a week without session or without a previous week is said plainly (COM-B8)", () => {
+  const empty = build([], { ...opts, period: "week" });
+  assert.match(describe(empty).title, /La semaine commence/);
+  const first = build([log(new Date(2026, 9, 13, 8))], { ...opts, period: "week" });
+  assert.equal(first.comparison, null);
+  assert.match(describe(first).text, /Première semaine mesurée/);
+  assert.match(describe(build([], { ...opts, period: "week", offset: 1 })).title, /Une semaine de repos/);
+});
