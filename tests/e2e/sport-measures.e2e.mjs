@@ -4,6 +4,8 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { readFileSync } from "node:fs";
+const ACTIVE_SPORTS = JSON.parse(readFileSync(new URL('../../tools/data/sport-metrics-baseline.json', import.meta.url)));
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server, browser, BASE;
 before(async () => {
@@ -26,6 +28,7 @@ async function newPage(width = 360) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
+  page.setDefaultTimeout(6000);
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   return { context, page, errors };
 }
@@ -51,6 +54,78 @@ async function openWith(page, query, sport, fields) {
   await page.locator(`#sport-results [data-sport="${sport}"]`).click();
 }
 const lastLog = (page) => page.evaluate(() => { const h = window.state?.history || []; return h[h.length - 1] || null; });
+
+test('offline catalog exposes yoga measures without injected fixtures and saves absent values as absent', async () => {
+  const { page, context, errors } = await newPage(360);
+  try {
+    await page.goto(BASE + '/training?sport=yoga', { waitUntil: 'load' });
+    await page.locator('[data-k="extras.style"]').selectOption('Yin');
+    await page.locator('[data-k="extras.poses"]').fill('8');
+    await page.locator('[data-k="durM"]').fill('25');
+    await page.locator('[data-act="save"]').click();
+    await page.locator('dialog.asc-sheet[open]').waitFor();
+    const log = await lastLog(page);
+    assert.equal(log.details.extras.style, 'Yin');
+    assert.equal(Number(log.details.extras.poses), 8);
+    assert.ok(!('breath_minutes' in log.details.extras));
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test('strength form saves optional rest measures alongside structured sets', async () => {
+  const { page, context } = await newPage(360);
+  try {
+    await page.goto(BASE + '/training?sport=muscu_gym', { waitUntil: 'load' });
+    await page.locator('[data-k="extras.rest_seconds"]').fill('90');
+    await page.locator('[data-k="durM"]').fill('40');
+    await page.locator('[data-act="save"]').click();
+    await page.locator('dialog.asc-sheet[open]').waitFor();
+    assert.equal(Number((await lastLog(page)).details.extras.rest_seconds), 90);
+  } finally { await context.close(); }
+});
+
+test('journal corrects sport metrics, clears an optional value and retains unrecognised historic data', async () => {
+  const { page, context } = await newPage(360);
+  try {
+    await page.goto(BASE + '/journal', { waitUntil: 'load' });
+    await page.evaluate(() => {
+      window.state.history = [{ id: 'fixture-yoga-metrics', user_id: window.state.user.id, sport: 'yoga', val: 25, unit: 'min', date: new Date().toISOString(), details: { duration: 25, extras: { style: 'Yin', poses: 8, old_private_metric: 'kept' } } }];
+      window.dispatchEvent(new Event('titan:history-updated'));
+    });
+    await page.locator('[data-open="fixture-yoga-metrics"]').click();
+    await page.locator('dialog[open] [data-edit]').click();
+    const edit = page.locator('dialog[open] form.jr-edit');
+    await edit.locator('details.seance-more summary').click();
+    await edit.locator('[name="metric.style"]').selectOption('Hatha');
+    await edit.locator('[name="metric.poses"]').fill('');
+    await edit.locator('[type="submit"]').click();
+    await page.waitForFunction(() => window.state.history[0]?.details.extras.style === 'Hatha');
+    const extras = await page.evaluate(() => window.state.history[0].details.extras);
+    assert.equal(extras.poses, null);
+    assert.equal(extras.old_private_metric, 'kept');
+    assert.ok(!('breath_minutes' in extras), 'untouched missing fields remain missing');
+  } finally { await context.close(); }
+});
+
+test('more than eleven optional measures remain reachable and checkbox false is not lost', async () => {
+  const { page, context } = await newPage(360);
+  try {
+    const fields = Array.from({length: 15}, (_, i) => ({ id: `m${i}`, label: `Mesure ${i}`, type: 'number', priority: i + 1, min: 0, max: 100, step: 1 }));
+    fields.push({ id: 'on_course', label: 'Sur parcours', type: 'checkbox', priority: 20 });
+    await openWith(page, 'golf', 'golf', fields);
+    const details = page.locator('details.seance-more');
+    await details.locator('summary').click();
+    await page.locator('[data-k="extras.m14"]').fill('12');
+    await page.locator('[data-k="extras.on_course"]').check();
+    await page.locator('[data-k="extras.on_course"]').uncheck();
+    await page.locator('[data-k="durM"]').fill('45');
+    await page.locator('[data-act="save"]').click();
+    await page.locator('dialog.asc-sheet[open]').waitFor();
+    const log = await lastLog(page);
+    assert.equal(Number(log.details.extras.m14), 12);
+    assert.equal(log.details.extras.on_course, false);
+  } finally { await context.close(); }
+});
 
 test('golf shows its three main measures at once and keeps the rest in an optional section', async () => {
   const { page, context, errors } = await newPage(390);
@@ -97,6 +172,29 @@ test('a measure that depends on another follows it and never leaves stale data',
     assert.equal(log.details.extras.position, 'Gardien');
     assert.equal(Number(log.details.extras.saves), 7);
     assert.ok(!('goals' in log.details.extras), 'the goals typed for another position are dropped');
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test('all 260 real catalog forms render on a narrow phone without page overflow', async () => {
+  const { page, context, errors } = await newPage(360);
+  try {
+    for (const sport of ACTIVE_SPORTS) {
+      await page.goto(BASE + '/training?sport=' + encodeURIComponent(sport.id), { waitUntil: 'load' });
+      await page.locator('[data-act="save"]').waitFor();
+      const result = await page.evaluate(() => {
+        const inputs = [...document.querySelectorAll('[data-k^="extras."]')];
+        const primary = [...document.querySelectorAll('[data-primary-measures] [data-k]')];
+        const id = new URLSearchParams(location.search).get('sport');
+        const expected = window.TITAN_SPORTS_SNAPSHOT.find(r => r[0] === id)[7];
+        const actual = window.SPORTS_CONFIG[id].extraFields;
+        return { schemaReady: expected.every(f => actual.some(a => a.id === f.id)), extras: inputs.length, primary: primary.length, overflow: document.documentElement.scrollWidth > innerWidth + 1 };
+      });
+      assert.ok(result.extras >= 1, sport.id + ': sport details reachable');
+      assert.ok(result.schemaReady, sport.id + ': complete reviewed schema, including pre-existing fallback sports');
+      assert.ok(result.primary <= 3, sport.id + ': progressive disclosure');
+      assert.equal(result.overflow, false, sport.id + ': 360px viewport');
+    }
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

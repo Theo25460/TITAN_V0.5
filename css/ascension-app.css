@@ -507,11 +507,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--s2);
+}
+.seance-more summary small {
+  flex-shrink: 0;
 }
 .seance-more summary::-webkit-details-marker {
   display: none;
 }
 .seance-more summary::after {
+  flex-shrink: 0;
   content: "+";
   color: var(--tx-3);
   font-size: 20px;

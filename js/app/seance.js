@@ -202,6 +202,7 @@
       Object.assign(data.extras, collectExtras(["pool", "distance"]));
     } else if (form === "strength") {
       data.exercises = exercisesPayload();
+      Object.assign(data.extras, collectExtras(["sets", "reps", "top_load", "volume"]));
       if (!data.exercises.length && dur === null) fail("Ajoute au moins une série complète (exercice et répétitions), ou une durée.", "exercises.0.name");
       if (!data.exercises.length && dur !== null) {
         data.unitOverride = "min";
@@ -223,7 +224,7 @@
       if (dur === null) fail("Indique la durée de la séance.", "durM");
       data.unitOverride = "min";
       data.val1 = dur;
-      data.extras = { climbing_discipline: c.discipline, location: c.location, grade_system: c.system };
+      data.extras = { ...collectExtras(["attempts", "successful_routes", "routes", "grade_max", "max_done", "max_tried"]), climbing_discipline: c.discipline, location: c.location, grade_system: c.system };
       if (c.discipline === "Voie" && c.belay) data.extras.belay = c.belay;
       if (num(c.attempts) !== null) data.extras.attempts = Math.round(num(c.attempts));
       if (num(c.successes) !== null) data.extras.successful_routes = Math.round(num(c.successes));
@@ -389,7 +390,7 @@
       .sort((a, b) => (a.priority || 99) - (b.priority || 99));
     const shown = all.filter(extraVisible);
     const primary = shown.filter((f) => f.type !== "text" && !f.eliteOnly).slice(0, 3);
-    const rest = shown.filter((f) => !primary.includes(f)).slice(0, 8);
+    const rest = shown.filter((f) => !primary.includes(f));
     return { primary, rest, all };
   }
   function measuresExtrasHtml(skip = [], title = "Mesures") {
@@ -403,7 +404,7 @@
     const out = {};
     for (const f of sportMeasures(skip).all) {
       const v = S.extras[f.id];
-      if (extraVisible(f) && v !== "" && v !== null && v !== undefined && v !== false) out[f.id] = v;
+      if (extraVisible(f) && v !== "" && v !== null && v !== undefined) out[f.id] = v;
     }
     return out;
   }
@@ -433,7 +434,7 @@
         <div class="asc-field"><span>Bassin</span><div class="asc-seg" role="group" aria-label="Bassin">${[["25", "25 m"], ["50", "50 m"], ["open", "Eau libre"]].map(([k, l]) => `<button type="button" data-pool="${k}" aria-pressed="${S.pool === k}">${l}</button>`).join("")}</div></div>
       </section>
       ${measuresExtrasHtml(["pool", "distance"])}`;
-    if (form === "strength") return setsEditor("strength");
+    if (form === "strength") return `${setsEditor("strength")}${measuresExtrasHtml(["sets", "reps", "top_load", "volume"], "Précisions")}`;
     if (form === "bodyweight") return `${setsEditor("bodyweight")}${measuresExtrasHtml(["sets", "best_set", "reps"], "Précisions")}`;
     if (form === "climbing") {
       const c = S.climbing;
@@ -454,7 +455,7 @@
         </div>
         <p class="asc-small asc-faint">Les cotations restent comparées dans leur système et leur contexte : un 6A en bloc n’est pas un 6a en voie.</p>
       </section>
-      <section class="seance-block">${durationHtml()}</section>`;
+      <section class="seance-block">${durationHtml()}</section>${measuresExtrasHtml(["attempts", "successful_routes", "routes", "grade_max", "max_done", "max_tried"], "Précisions")}`;
     }
     const unit = S_().unitOf(S.sport);
     return `<section class="seance-block"><div class="seance-big">${!["min", "h"].includes(unit) ? `<label class="asc-field"><span>Valeur</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" data-k="value" value="${esc(S.value)}" placeholder="0"><span>${esc(unit)}</span></div></label>` : ""}${durationHtml()}</div></section>

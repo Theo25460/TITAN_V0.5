@@ -88,7 +88,7 @@
     SET_INVALID: "Une série a une charge ou un nombre de répétitions invalide.",
     RIR_INVALID: "Le RIR va de 0 à 10, ou reste vide.",
     DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
-    EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
+    EXTRAS_INVALID: "Une mesure du sport n’est pas valide.",
     RATE_LIMITED: "Beaucoup de modifications en peu de temps. Réessaie dans un moment.",
     TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",
   };
