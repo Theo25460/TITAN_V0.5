@@ -8,10 +8,14 @@
     network: ['en ligne', 'hors ligne', 'inconnu'],
     code: ['COMMUNITY_LOAD_FAILED', 'COMMUNITY_RESPONSE_INVALID']
   };
+  /** @param {keyof typeof allowed} key @param {unknown} value @param {string} fallback */
   const choice = (key, value, fallback) => typeof value === 'string' && allowed[key].includes(value) ? value : fallback;
+  /** @param {unknown} value */
   const version = value => typeof value === 'string' && /^\d{1,4}(?:\.\d{1,4}){1,3}$/.test(value) ? value : 'inconnue';
+  /** @param {unknown} value */
   const timestamp = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)
     && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value ? value : 'inconnu';
+  /** @param {{ userAgent?: unknown, mobile?: unknown, version?: unknown, build?: unknown, now?: unknown, online?: unknown }} [env] @param {string} [code] */
   function capture(env = {}, code) {
     const ua = typeof env.userAgent === 'string' && env.userAgent.length <= 2048 ? env.userAgent : '';
     const platform = /Android/i.test(ua) ? 'Android' : /iPhone|iPad|iPod/i.test(ua) ? 'iOS' : /Windows/i.test(ua) ? 'Windows' : /Macintosh|Mac OS X/i.test(ua) ? 'macOS' : /Linux/i.test(ua) ? 'Linux' : 'autre';
@@ -21,6 +25,7 @@
       screen: 'Communauté', timestamp: timestamp(env.now), network: env.online === true ? 'en ligne' : env.online === false ? 'hors ligne' : 'inconnu',
       code: choice('code', code, 'COMMUNITY_LOAD_FAILED') });
   }
+  /** @param {any} data */
   function format(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) return '';
     return '\n\nDiagnostics autorisés :\n' + [
@@ -31,5 +36,5 @@
       `Code : ${choice('code', data.code, 'COMMUNITY_LOAD_FAILED')}`
     ].join('\n');
   }
-  window.TitanSupportDiagnostics = Object.freeze({ capture, format });
+  /** @type {any} */ (window).TitanSupportDiagnostics = Object.freeze({ capture, format });
 })();
