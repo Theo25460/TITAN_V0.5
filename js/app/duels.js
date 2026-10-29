@@ -95,7 +95,7 @@
       const open = results && results.id === c.id && results.data;
       const list = open ? `<ol class="rv-list" data-duel-results>${(results.data.results || []).map((r) => `<li class="asc-between"><span>${esc(r.name)}${r.me ? " (toi)" : ""}</span><span><strong>${esc(window.TitanFormat.number(r.progress))}</strong> / ${esc(window.TitanFormat.number(results.data.target))}${r.reached ? " ✓" : ""}</span></li>`).join("")}</ol><p class="asc-small asc-faint">Résultat figé à la fin du défi. Ni XP ni crédit, juste le plaisir de s’être mesurés.</p>` : "";
       return `<article class="asc-panel qg-steps-card" data-duel-ended="${esc(c.id)}"><div class="asc-between"><span><strong>${esc(c.title)}</strong> <span class="asc-small asc-muted">· terminé le ${esc(date(c.endedAt))}</span></span>
-        ${open ? "" : `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-result="${esc(c.id)}" ${lock}>Voir le résultat</button>`}</div>${list}</article>`;
+        ${open ? (window.TitanCard && (results.data.results || []).some((r) => r.me) ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-duel-card="${esc(c.id)}">Partager</button>` : "") : `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-result="${esc(c.id)}" ${lock}>Voir le résultat</button>`}</div>${list}</article>`;
     }).join("");
     root.innerHTML = `<section class="asc-section asc-appear" aria-labelledby="duel-title"><div class="asc-section-head"><h2 id="duel-title">Défis par lien</h2></div>
       <p class="asc-small asc-muted">Invite quelqu’un qui n’est pas encore ton ami à rejoindre un de tes défis. Le lien ne contient aucune donnée personnelle, sert une seule fois et peut être retiré à tout moment.</p>
@@ -112,6 +112,14 @@
     else if (t.dataset.duelResult) {
       const id = t.dataset.duelResult;
       act("titan_challenge_result_v1", { p_id: id }, (answer) => { results = { id, data: answer }; });
+    } else if (t.dataset.duelCard && results?.id === t.dataset.duelCard && window.TitanCard) {
+      const r = (results.data.results || []).find((x) => x.me), ask = context();
+      const title = (data?.ended || []).find((c) => c.id === results.id)?.title || "Défi";
+      if (r) window.TitanCard.open({
+        kind: "record", eyebrow: "Défi entre amis", title, value: `${window.TitanFormat.number(r.progress)} / ${window.TitanFormat.number(results.data.target)}`,
+        detail: r.reached ? "Objectif atteint" : "", date: `${(results.data.results || []).length} participant${(results.data.results || []).length > 1 ? "s" : ""}`,
+        filename: "titan-defi", optIn: true, name: window.TitanCard.userName(), isCurrent: () => same(ask, context()),
+      });
     } else if (t.matches("[data-duel-copy]")) {
       try { await navigator.clipboard.writeText(fresh.url); window.titanShell?.toast?.({ type: "ok", message: "Lien copié." }); } catch { root.querySelector("[data-duel-url]")?.select(); }
     } else if (t.matches("[data-duel-share]")) {

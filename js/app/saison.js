@@ -104,7 +104,8 @@
     const closing = justEnded
       ? `<div class="asc-panel qg-steps-card" data-ss-closing><p><strong>${icon("check")} ${esc(last.name)} est terminée</strong></p>
           <p class="asc-small asc-muted">${n(last.participants)} participant${Number(last.participants) > 1 ? "s" : ""} · ${n(last.minutes)} min d’effort à eux tous.</p>
-          ${last.mine ? `<p class="asc-small">Ta saison : <strong>${n(last.mine.minutes)}</strong> min d’effort · <strong>${n(last.mine.days)}</strong> jour${Number(last.mine.days) > 1 ? "s" : ""} actif${Number(last.mine.days) > 1 ? "s" : ""}. Bravo d’avoir pris part à l’aventure.</p>` : `<p class="asc-small asc-muted">Tu n’y as pas pris part : rien à signaler, la prochaine t’attend quand tu veux.</p>`}</div>`
+          ${last.mine ? `<p class="asc-small">Ta saison : <strong>${n(last.mine.minutes)}</strong> min d’effort · <strong>${n(last.mine.days)}</strong> jour${Number(last.mine.days) > 1 ? "s" : ""} actif${Number(last.mine.days) > 1 ? "s" : ""}. Bravo d’avoir pris part à l’aventure.</p>` : `<p class="asc-small asc-muted">Tu n’y as pas pris part : rien à signaler, la prochaine t’attend quand tu veux.</p>`}
+          ${last.mine && window.TitanCard ? `<div class="asc-row"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ss-card>${icon("share")} Partager</button></div>` : ""}</div>`
       : "";
     const old = archive.length
       ? `<details class="asc-small" data-ss-archive><summary>Saisons précédentes (${archive.length})</summary><ul class="rv-list">${archive.map((s) => `<li><strong>${esc(s.name)}</strong> · ${esc(day(s.startsOn))} – ${esc(day(s.endsOn))} · ${n(s.participants)} participant${Number(s.participants) > 1 ? "s" : ""}, ${n(s.minutes)} min${s.mine ? ` · ta part : ${n(s.mine.minutes)} min, ${n(s.mine.days)} j` : ""} <span class="asc-faint">(règles v${Number(s.rulesVersion) || 1})</span></li>`).join("")}</ul></details>`
@@ -116,6 +117,16 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest?.("[data-ss-join]");
     if (b) join(b.dataset.ssJoin === "true");
+    else if (e.target.closest?.("[data-ss-card]") && data?.archive?.[0]?.mine && window.TitanCard) {
+      const last = data.archive[0], ask = context();
+      window.TitanCard.open({
+        kind: "record", eyebrow: "Saison", title: last.name, value: `${n(last.mine.minutes)} min`,
+        detail: `${n(last.mine.days)} jour${Number(last.mine.days) > 1 ? "s" : ""} actif${Number(last.mine.days) > 1 ? "s" : ""}`,
+        date: `${day(last.startsOn)} – ${day(last.endsOn)}`,
+        context: `${n(last.participants)} participant${Number(last.participants) > 1 ? "s" : ""} sur cette saison.`,
+        filename: "titan-saison", optIn: true, name: window.TitanCard.userName(), isCurrent: () => same(ask, context()),
+      });
+    }
   });
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(ev === "titan:history-updated"); }));

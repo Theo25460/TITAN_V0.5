@@ -1,4 +1,5 @@
-/* TITAN 300 — shareable image cards (record, week, sports DNA), drawn locally on a canvas.
+/* TITAN 300 — shareable image cards (record, week, sports DNA, and with `optIn` the collective moments: quest, season, duel), drawn locally on a canvas.
+   `optIn` cards show no name and no profile QR until the athlete ticks them.
    Nothing is uploaded: the athlete previews the image, then shares it or saves it. Never drawn: health,
    body weight, GPS, notes. Style follows the card piece worn in the Atelier. */
 (function () {
@@ -308,7 +309,8 @@
     const body = document.createElement("div");
     body.className = "asc-stack cd-sheet";
     body.innerHTML = `<div class="cd-preview"><img alt="Aperçu de l’image" width="${W}" height="${H}"></div>
-      ${link ? `<label class="auth-check"><input type="checkbox" data-qr checked><span>Ajouter le QR de mon profil public</span></label>` : ""}
+      ${o.optIn && o.name ? `<label class="auth-check"><input type="checkbox" data-name><span>Afficher mon nom sur l’image</span></label>` : ""}
+      ${link ? `<label class="auth-check"><input type="checkbox" data-qr ${o.optIn ? "" : "checked"}><span>Ajouter le QR de mon profil public</span></label>` : ""}
       <p class="asc-small asc-muted">${icon("lock")} L’image est créée sur ton appareil. Rien n’est publié tant que tu ne la partages pas.</p>
       <p class="asc-small asc-muted" role="status" data-card-status></p>
       <p class="asc-small jr-edit-error" role="alert" data-card-error hidden></p>
@@ -317,6 +319,7 @@
     sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body, onClose: stop });
     const img = body.querySelector("img");
     const qr = body.querySelector("[data-qr]");
+    const nameBox = body.querySelector("[data-name]");
     const shareBtn = body.querySelector("[data-share]");
     const saveBtn = body.querySelector("[data-save]");
     const retry = body.querySelector("[data-card-retry]");
@@ -336,6 +339,7 @@
       actions.setAttribute("aria-busy", String(pending || painting));
       saveBtn.disabled = shareBtn.disabled = pending || painting || !canvas;
       if (qr) qr.disabled = pending;
+      if (nameBox) nameBox.disabled = pending;
       retry.disabled = pending || painting;
       retry.hidden = pending || painting || Boolean(canvas);
     };
@@ -352,7 +356,8 @@
       status.textContent = "Création de l’image…";
       syncActions();
       try {
-        const next = await draw(o, { qr: link && qr?.checked ? link : null });
+        const shown = o.optIn ? { ...o, name: nameBox?.checked ? o.name : "" } : o;
+        const next = await draw(shown, { qr: link && qr?.checked ? link : null });
         if (sequence !== paintSequence || !available()) return;
         const preview = next.toDataURL("image/png");
         canvas = next;
@@ -376,6 +381,7 @@
       }
     };
     qr?.addEventListener("change", () => { void paint(); });
+    nameBox?.addEventListener("change", () => { void paint(); });
     retry.addEventListener("click", () => { void paint(); });
     const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
     const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));

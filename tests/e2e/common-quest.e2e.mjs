@@ -104,3 +104,24 @@ test("common quest: nothing when the flag is off, for a guest, without a quest, 
     } finally { await context.close(); }
   }
 });
+
+test("common quest: a finished goal can be shared as an image that shows no name until the athlete ticks it (COM-E1)", async () => {
+  const { page, context, errors } = await qg({ quest: { ...QUEST, minutes: 1200, state: "done", joined: true, mine: 60 } });
+  try {
+    await page.evaluate(() => { window.state.user.name = "Camille"; });
+    await page.waitForFunction(() => window.TitanCard && document.querySelector("[data-cq-card]"));
+    await page.locator("[data-cq-card]").click();
+    const sheet = page.locator("dialog[open] .cd-sheet");
+    await sheet.waitFor();
+    const nameBox = sheet.locator("[data-name]");
+    await page.waitForFunction(() => document.querySelector(".cd-preview img")?.getAttribute("src")?.startsWith("data:image/png"));
+    const first = await page.locator(".cd-preview img").getAttribute("src");
+    if (await nameBox.count()) {
+      assert.equal(await nameBox.isChecked(), false);
+      await nameBox.check();
+      await page.waitForFunction(old => document.querySelector(".cd-preview img")?.getAttribute("src") !== old && document.querySelector(".cd-preview img")?.getAttribute("src")?.startsWith("data:image/png"), first);
+    }
+    assert.equal(await sheet.locator("[data-qr]").count() ? await sheet.locator("[data-qr]").isChecked() : false, false);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

@@ -153,6 +153,12 @@ test("duels panel: a link is shown once with its address, can be withdrawn, and 
     await res.waitFor();
     assert.match(await res.innerText(), /Alba \(toi\)[\s\S]*75 \/ 60 ✓[\s\S]*Basile[\s\S]*20 \/ 60/);
     assert.match(await page.locator("[data-duel-ended=c0]").innerText(), /Résultat figé à la fin du défi/);
+    await page.locator("[data-duel-card=c0]").click();
+    await page.locator("dialog[open] .cd-sheet").waitFor();
+    await page.waitForFunction(() => document.querySelector(".cd-preview img")?.getAttribute("src")?.startsWith("data:image/png"));
+    if (await page.locator("dialog[open] [data-name]").count()) assert.equal(await page.locator("dialog[open] [data-name]").isChecked(), false);
+    if (await page.locator("dialog[open] [data-qr]").count()) assert.equal(await page.locator("dialog[open] [data-qr]").isChecked(), false);
+    await page.keyboard.press("Escape");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });

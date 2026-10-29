@@ -87,6 +87,12 @@ test("seasons: the closing screen reads the frozen result, a non-participant is 
     assert.match(text.replace(/\s/g, " "), /Ta saison : 420 min d’effort · 11 jours actifs/);
     await closing.page.locator("[data-ss-archive] summary").click();
     assert.match(await closing.page.locator("[data-ss-archive]").innerText(), /règles v1/);
+    await closing.page.locator("[data-ss-card]").click();
+    await closing.page.locator("dialog[open] .cd-sheet").waitFor();
+    await closing.page.waitForFunction(() => document.querySelector(".cd-preview img")?.getAttribute("src")?.startsWith("data:image/png"));
+    if (await closing.page.locator("dialog[open] [data-name]").count()) assert.equal(await closing.page.locator("dialog[open] [data-name]").isChecked(), false);
+    if (await closing.page.locator("dialog[open] [data-qr]").count()) assert.equal(await closing.page.locator("dialog[open] [data-qr]").isChecked(), false);
+    await closing.page.keyboard.press("Escape");
   } finally { await closing.context.close(); }
   const away = await qg({ state: { current: null, archive: [{ ...OLD, mine: null }] } });
   try {
