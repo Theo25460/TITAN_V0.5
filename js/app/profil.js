@@ -677,6 +677,13 @@
         const session = await readBitsSession(job);
         if (!deletionCurrent(job)) return;
         if (!serverDeleted) {
+          // A Garmin link is withdrawn at Garmin first, on a best-effort basis: it never blocks the deletion (GAR-12).
+          if ((sources || []).some((x) => x.source === "garmin" && x.granted)) {
+            try {
+              await fetch("/.netlify/functions/garmin?action=disconnect", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(8000) });
+            } catch { /* Garmin unreachable: the account is deleted anyway, the link dies with it */ }
+            if (!deletionCurrent(job)) return;
+          }
           const { data, error } = await job.context.client.rpc("delete_own_account")
             .setHeader("Authorization", `Bearer ${session.access_token}`);
           if (!deletionCurrent(job)) return;

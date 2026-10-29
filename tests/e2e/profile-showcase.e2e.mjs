@@ -38,6 +38,8 @@ async function profilePage({ sources = [] } = {}) {
   await page.evaluate(({ owner, sources }) => {
     window.sourceCalls = [];
     window.sourceRows = sources;
+    const realFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => { if (String(input).includes("/.netlify/functions/garmin")) window.recordOrder?.(`garmin:${init?.method}:${init?.headers?.Authorization}`); return realFetch(input, init); };
     window.showcaseCalls = [];
     window.showcaseKeys = [];
     const client = window.titanClient;
@@ -47,6 +49,7 @@ async function profilePage({ sources = [] } = {}) {
         if (name === "titan_public_card_settings") return { data: { enabled: false, slug: "abcdefghij", show: { titles: true } }, error: null };
         if (name === "titan_expedition_titles") return { data: [{ id: "automne-2026", title: "Passe-brume", expedition: "La traversée des brumes", ended_at: "2026-11-16" }], error: null };
         if (name === "titan_displayed_title") return { data: { key: null, label: null }, error: null };
+        if (name === "delete_own_account") { window.recordOrder?.("delete_own_account"); return { data: { userId: owner }, error: null }; }
         if (name === "titan_sources_v1") return { data: window.sourceRows, error: null };
         if (name === "titan_set_source_consent_v1") { window.sourceCalls.push([name, args]); window.sourceRows = window.sourceRows.map(x => ({ ...x, granted: false })); return { data: {}, error: null }; }
         if (name === "titan_archive_imported_v1") { window.sourceCalls.push([name, args]); window.sourceRows = window.sourceRows.map(x => ({ ...x, imported: 0 })); return { data: 4, error: null }; }
@@ -190,4 +193,33 @@ test("garmin return: each result is said once in words and the address is cleane
       assert.deepEqual(errors, []);
     } finally { await context.close(); }
   }
+});
+
+test("account deletion: a Garmin link is withdrawn first, best effort, and a failure never blocks the deletion", async () => {
+  for (const garminStatus of [200, 503]) {
+    const row = { source: "garmin", granted: true, granted_at: "2026-10-20T10:00:00Z", revoked_at: null, imported: 1, linked: 0 };
+    const { page, context, errors } = await profilePage({ sources: [row] });
+    const order = [];
+    await page.exposeFunction("recordOrder", name => order.push(name));
+    try {
+      await page.route("**/.netlify/functions/garmin*", route => route.fulfill({ status: garminStatus, contentType: "application/json", body: "{}" }));
+      await page.locator("[data-sources-block]").waitFor();
+      await page.locator("[data-delete]").click();
+      await page.locator('dialog[open] [name="confirm"]').fill("SUPPRIMER");
+      await page.locator('dialog[open] [type="submit"]').click();
+      await page.waitForURL(BASE + "/");
+      assert.deepEqual(order, ["garmin:POST:Bearer synthetic-showcase-token", "delete_own_account"], `Garmin was asked once, with the player's own session, before the account was deleted (Garmin answered ${garminStatus})`);
+    } finally { await context.close(); }
+  }
+  // Without a Garmin link nothing is asked of Garmin.
+  const { page, context } = await profilePage({ sources: [] });
+  const order = [];
+  await page.exposeFunction("recordOrder", name => order.push(name));
+  try {
+    await page.locator("[data-delete]").click();
+    await page.locator('dialog[open] [name="confirm"]').fill("SUPPRIMER");
+    await page.locator('dialog[open] [type="submit"]').click();
+    await page.waitForURL(BASE + "/");
+    assert.deepEqual(order, ["delete_own_account"], "nothing is asked of Garmin");
+  } finally { await context.close(); }
 });
