@@ -254,6 +254,7 @@
       ${window.TitanIntents?.html?.() || ""}
       ${window.TitanCommonQuest?.html?.() || ""}
       ${window.TitanBuddy?.html?.() || ""}
+      ${window.TitanSeason?.html?.() || ""}
       <div class="asc-grid-2 qg-grid">
         <div>${ascentHtml(D().progression())}</div>
         <div>${lastHtml(list)}
@@ -347,6 +348,7 @@
   window.addEventListener("titan:intents-updated", queue);
   window.addEventListener("titan:common-quest-updated", queue);
   window.addEventListener("titan:buddy-updated", queue);
+  window.addEventListener("titan:season-updated", queue);
   ["titan:history-updated", "titan:adventure-updated"].forEach(ev => window.addEventListener(ev, () => { refreshData(); queue(); }));
   window.addEventListener("titan:account-changing", invalidate);
   window.addEventListener("titan:account-changed", () => { refreshData(); queue(); });

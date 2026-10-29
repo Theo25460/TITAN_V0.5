@@ -1462,6 +1462,8 @@
         if (pioneerGrant) { await grantPioneers(); return; }
         const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
         if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const seasonCreate = event.target.closest('[data-season-create]');
+        if (seasonCreate) { await createSeason(); return; }
         const cqCreate = event.target.closest('[data-cq-create]');
         if (cqCreate) { await createCommonQuest(); return; }
         const pollCreate = event.target.closest('[data-poll-create]');
@@ -2403,6 +2405,9 @@
         ITEM_NOT_FOUND: 'Cette idée n’existe plus : actualise la page.',
         WEEK_MUST_START_MONDAY: 'Une quête commune commence un lundi.',
         WEEK_IN_THE_PAST: 'Cette semaine est déjà passée.',
+        SEASON_OVERLAP: 'Cette saison chevauche une autre saison.',
+        SEASON_IN_THE_PAST: 'Cette saison est déjà terminée.',
+        SEASON_STARTED_FROZEN: 'La saison a commencé : seules les règles peuvent changer.',
         QUEST_STARTED_FROZEN: 'La semaine a commencé : seul le texte peut changer.'
     };
     const IDEA_STATUS = { wish: 'Souhaité', study: 'À l’étude', planned: 'Planifié', doing: 'En chantier', shipped: 'Livré' };
@@ -2418,7 +2423,7 @@
         const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
-        const [polls, ideas, quests] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1')]);
+        const [polls, ideas, quests, seasons] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1')]);
         const error = polls.error || ideas.error;
         if (error) {
             let message;
@@ -2467,6 +2472,8 @@
             ${createPollForm}
             <h3>Quête commune de la semaine</h3>
             ${commonQuestMarkup(quests)}
+            <h3>Saisons de 28 jours</h3>
+            ${seasonMarkup(seasons)}
             <h3>Feuille de route</h3>
             ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
             <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
@@ -2486,6 +2493,33 @@
                 <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
                 ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
             </form>`;
+    }
+
+    function seasonMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les saisons ne sont pas disponibles sur ce serveur : applique la migration 20261029140000_seasons.sql.' : consultationError(result.error))}</p></div>`;
+        const rows = (Array.isArray(result.data) ? result.data : []).map((x) => `<tr><td>${escapeHtml(new Date(x.startsOn).toLocaleDateString('fr-FR'))} – ${escapeHtml(new Date(x.endsOn).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(x.name)}</strong><br><small>${escapeHtml(x.rules || '')}</small></td><td>v${Number(x.rulesVersion) || 1}${x.closed ? ' · figée' : ''}</td><td>${Number(x.participants) || 0}</td></tr>`).join('');
+        const monday = new Date(); monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Saisons"><thead><tr><th>Période</th><th>Saison</th><th>Règles</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucune saison pour l’instant.</small></p>'}
+            <form class="panel" data-season-form aria-label="Créer une saison" novalidate>
+                <h3>Nouvelle saison</h3>
+                <p><label>Quatre semaines à partir du lundi <input class="admin-input" type="date" name="starts" value="${escapeHtml(localInput(monday).slice(0, 10))}"></label></p>
+                <p><label>Nom <input class="admin-input" name="name" maxlength="80"></label></p>
+                <p><label>Règles en une phrase (facultatif) <input class="admin-input" name="rules" maxlength="600"></label></p>
+                ${buttonMarkup('Créer la saison', 'ri-add-line', 'primary', 'data-season-create')}
+            </form>`;
+    }
+
+    async function createSeason() {
+        const form = document.querySelector('[data-season-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const starts = value('starts');
+        if (value('name').length < 3) { notify('Nom requis', 'Le nom fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(starts) || new Date(starts + 'T12:00:00').getDay() !== 1) { notify('Début', 'Choisis un lundi.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_season_admin_save_v1', { p_id: null, p_starts: starts, p_name: value('name'), p_rules: value('rules') || null });
+        if (error) { notify('Saison refusée', consultationError(error), 'danger'); return; }
+        notify('Saison créée', 'Elle apparaît au QG une semaine avant son début si le drapeau « screens.seasons » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     async function createCommonQuest() {

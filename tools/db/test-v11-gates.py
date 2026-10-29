@@ -22,7 +22,7 @@ if not query('select current_database()').startswith('titan_test_'):
 
 ROOT = Path(__file__).resolve().parents[2]
 versions = sorted(p.name[:14] for p in (ROOT / 'supabase/migrations').glob('*.sql') if p.name[:14] > '20261021020000')
-assert len(versions) == 17, 'the V1.1 lot is seventeen migrations'
+assert len(versions) == 18, 'the V1.1 lot is eighteen migrations'
 SEED = 'insert into supabase_migrations.schema_migrations(version) values ' + ','.join(f"('{v}')" for v in versions) + ' on conflict(version) do nothing;'
 SQL = (ROOT / 'tools/db/postflight-v11.sql').read_text().strip()
 assert SQL.endswith(';')
@@ -54,7 +54,7 @@ def negative(mutation, expected):
     print(f'RED confirmed: postflight-v11 blocks {expected}.')
 
 
-negative(f"delete from supabase_migrations.schema_migrations where version='{versions[-1]}';", 'ledger:17 migrations')
+negative(f"delete from supabase_migrations.schema_migrations where version='{versions[-1]}';", 'ledger:18 migrations')
 negative("insert into supabase_migrations.schema_migrations(version) values ('29990101000000');", 'ledger:unexpected migration')
 negative('grant select on private.titan_source_consents to authenticated;', 'private.titan_source_consents:API grants')
 negative('alter table private.titan_daily_activity disable row level security;', 'private.titan_daily_activity:RLS')
