@@ -95,7 +95,7 @@
       <div class="qg-week">
         <div class="qg-cadence">
           <div class="asc-notches" aria-label="Cadence des 8 dernières semaines">${notches}</div>
-          <div class="asc-between asc-small"><span class="asc-muted">${status}</span><span class="asc-faint">Cadence ${cad.held}/${cad.window} · ${f.plural(cad.lifetimeHeld, "semaine tenue", "semaines tenues")} au total</span></div>
+          <div class="asc-between asc-small" style="flex-wrap:wrap;gap:var(--s1) var(--s3)"><span class="asc-muted">${status}</span><span class="asc-faint">Cadence ${cad.held}/${cad.window} · ${f.plural(cad.lifetimeHeld, "semaine tenue", "semaines tenues")} au total</span></div>
         </div>
         <div class="asc-stats">
           <div class="asc-stat"><span class="asc-stat-value">${w.sessions}</span><span class="asc-stat-label">séance${w.sessions > 1 ? "s" : ""}</span></div>
