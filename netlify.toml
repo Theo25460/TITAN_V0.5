@@ -200,6 +200,17 @@ to = "/recours.html"
 status = 200
 
 [[redirects]]
+from = "/defi.html"
+to = "/defi"
+status = 301
+force = true
+
+[[redirects]]
+from = "/defi"
+to = "/defi.html"
+status = 200
+
+[[redirects]]
 from = "/coaching.html"
 to = "/coaching"
 status = 301
@@ -1061,6 +1072,18 @@ X-Robots-Tag = "noindex, nofollow"
 for = "/recours.html"
 [headers.values]
 X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/defi"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Referrer-Policy = "no-referrer"
+
+[[headers]]
+for = "/defi.html"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Referrer-Policy = "no-referrer"
 
 [[headers]]
 for = "/coaching"

@@ -15,6 +15,7 @@ Objet : déployer progressivement le RPG, les publicités et de nouveaux écrans
 
 - Les **clés sont publiques** (lisibles sans connexion) : aucun secret, aucun nom confidentiel.
 - Un drapeau n'est pas un contrôle de sécurité : le serveur doit refuser lui-même ce qui est interdit (un utilisateur Premium sans publicité, par exemple, se vérifie côté serveur et côté application, pas par drapeau seul).
+- Huitième : `screens.duels` (panneau « Défis par lien » de la Communauté, V11-66 ; la page publique `/defi` fonctionne dès que la migration 49 est appliquée et qu'un lien existe, donc sans drapeau, mais aucun lien ne peut être créé tant que le panneau est éteint).
 - Septième : `screens.ranking` (classement équitable entre amis, V11-65 ; absent tant que le drapeau n'existe pas ou est éteint).
 - Sixième : `screens.seasons` (saisons de 28 jours et archive, V11-64 ; absentes tant que le drapeau n'existe pas ou est éteint).
 - Cinquième : `screens.buddy` (binômes de progression, V11-63 ; absents tant que le drapeau n'existe pas ou est éteint).
