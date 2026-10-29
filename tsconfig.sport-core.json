@@ -16,6 +16,7 @@
     "js/core/periodic-quests.js",
     "js/core/endurance.js",
     "js/core/titles.js",
+    "js/core/gpx.js",
     "js/core/sport-navigation.js",
     "js/core/support-diagnostics.js",
     "types/sport-core-globals.d.ts",
