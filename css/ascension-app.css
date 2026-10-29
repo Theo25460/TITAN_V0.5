@@ -3742,3 +3742,10 @@
 .asc-hint .asc-btn {
   flex: none;
 }
+
+/* V11-56: the quiet "Pas aujourd'hui" card of the QG. */
+.qg-steps-card { display: grid; gap: var(--s3); }
+.qg-steps-value { margin: 0; font-size: 34px; line-height: 1.1; }
+.qg-steps-value strong { font-family: var(--font-display); font-weight: 800; }
+.qg-steps .wk-days { margin-top: 0; }
+.qg-steps .wk-bar { height: 56px; }

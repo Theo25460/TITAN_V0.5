@@ -46,7 +46,8 @@ begin
 end;
 $function$;
 
--- One entry per day, at most 400 days, the highest value among the sources for that day (never a sum), with the sources that reported it.
+-- One entry per day, at most 400 days, the highest value among the sources for that day (never a sum), with the sources that reported it
+-- and the time of the latest report (the screen says when the number was last refreshed).
 create or replace function public.titan_daily_activity_v1(p_from date default null, p_to date default null)
 returns jsonb
 language plpgsql
@@ -62,8 +63,8 @@ begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   if v_from > v_to or v_to - v_from > 400 then raise exception 'RANGE_INVALID' using errcode = '22023'; end if;
   return coalesce((
-    select jsonb_agg(jsonb_build_object('day', x.day, 'steps', x.steps, 'sources', x.sources) order by x.day)
-      from (select d.day, max(d.steps) as steps, jsonb_agg(d.source order by d.source) as sources
+    select jsonb_agg(jsonb_build_object('day', x.day, 'steps', x.steps, 'sources', x.sources, 'updatedAt', x.updated_at) order by x.day)
+      from (select d.day, max(d.steps) as steps, jsonb_agg(d.source order by d.source) as sources, max(d.updated_at) as updated_at
               from private.titan_daily_activity d
              where d.user_id = v_uid and d.day between v_from and v_to
              group by d.day) x), '[]'::jsonb);

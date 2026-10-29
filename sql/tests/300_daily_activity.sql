@@ -28,6 +28,7 @@ begin
   r := public.titan_daily_activity_v1();
   assert jsonb_array_length(r)=2 and r->1->>'steps'='9500' and r->0->>'steps'='12000','replaced, one row a day: '||r::text;
   assert r->1->'sources' = '["health_connect"]'::jsonb,'says where it comes from';
+  assert (r->1->>'updatedAt') is not null and (r->1->>'updatedAt')::timestamptz <= now(),'says when it was last refreshed';
   r := public.titan_daily_activity_v1(current_date, current_date);
   assert jsonb_array_length(r)=1,'a one-day range';
   ok:=false; begin perform public.titan_daily_activity_v1(current_date, current_date-3); exception when others then ok:=sqlerrm='RANGE_INVALID'; end; assert ok,'inverted range refused';
