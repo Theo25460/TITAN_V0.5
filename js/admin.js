@@ -1462,6 +1462,8 @@
         if (pioneerGrant) { await grantPioneers(); return; }
         const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
         if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const cqCreate = event.target.closest('[data-cq-create]');
+        if (cqCreate) { await createCommonQuest(); return; }
         const pollCreate = event.target.closest('[data-poll-create]');
         if (pollCreate) { await createPoll(); return; }
         const pollClose = event.target.closest('[data-poll-close]');
@@ -2398,7 +2400,10 @@
         OPTIONS_2_TO_6: 'Un vote a entre deux et six options.',
         POLL_NOT_OPEN_OR_UNKNOWN: 'Ce vote est déjà clos ou n’existe plus.',
         STATUS_UNKNOWN: 'Statut inconnu.',
-        ITEM_NOT_FOUND: 'Cette idée n’existe plus : actualise la page.'
+        ITEM_NOT_FOUND: 'Cette idée n’existe plus : actualise la page.',
+        WEEK_MUST_START_MONDAY: 'Une quête commune commence un lundi.',
+        WEEK_IN_THE_PAST: 'Cette semaine est déjà passée.',
+        QUEST_STARTED_FROZEN: 'La semaine a commencé : seul le texte peut changer.'
     };
     const IDEA_STATUS = { wish: 'Souhaité', study: 'À l’étude', planned: 'Planifié', doing: 'En chantier', shipped: 'Livré' };
     const POLL_STATE = { scheduled: 'Programmé', open: 'Ouvert', closed: 'Clos' };
@@ -2413,7 +2418,7 @@
         const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
-        const [polls, ideas] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1')]);
+        const [polls, ideas, quests] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1')]);
         const error = polls.error || ideas.error;
         if (error) {
             let message;
@@ -2460,10 +2465,41 @@
             <h3>Votes</h3>
             ${pollRows ? tableShell(`<table class="admin-table" aria-label="Votes"><thead><tr><th>Vote</th><th>Voix par option</th><th>Action</th></tr></thead><tbody>${pollRows}</tbody></table>`) : '<p><small>Aucun vote pour l’instant.</small></p>'}
             ${createPollForm}
+            <h3>Quête commune de la semaine</h3>
+            ${commonQuestMarkup(quests)}
             <h3>Feuille de route</h3>
             ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
             <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
         `;
+    }
+
+    function commonQuestMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'La quête commune n’est pas disponible sur ce serveur : applique la migration 20261029120000_common_quest.sql.' : consultationError(result.error))}</p></div>`;
+        const rows = (Array.isArray(result.data) ? result.data : []).map((q) => `<tr><td>${escapeHtml(new Date(q.weekStart).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(q.title)}</strong><br><small>${escapeHtml(q.detail || '')}</small></td><td>${Number(q.target) || 0} min</td><td>${Number(q.members) || 0}</td></tr>`).join('');
+        const monday = new Date(); monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Quêtes communes"><thead><tr><th>Semaine du</th><th>Quête</th><th>Objectif</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucune quête commune pour l’instant.</small></p>'}
+            <form class="panel" data-cq-form aria-label="Créer une quête commune" novalidate>
+                <h3>Nouvelle quête commune</h3>
+                <p><label>Semaine commençant le lundi <input class="admin-input" type="date" name="week" value="${escapeHtml(localInput(monday).slice(0, 10))}"></label>
+                   <label>Objectif (minutes d’effort de tous) <input class="admin-input" type="number" name="target" min="100" max="1000000" step="50" value="1000"></label></p>
+                <p><label>Titre <input class="admin-input" name="title" maxlength="100"></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
+                ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
+            </form>`;
+    }
+
+    async function createCommonQuest() {
+        const form = document.querySelector('[data-cq-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const week = value('week'), target = Number(value('target'));
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || new Date(week + 'T12:00:00').getDay() !== 1) { notify('Semaine', 'Choisis un lundi.', 'warning'); return; }
+        if (!Number.isInteger(target) || target < 100 || target > 1000000) { notify('Objectif', 'Entre 100 et 1 000 000 minutes.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_common_quest_admin_save_v1', { p_id: null, p_week: week, p_title: value('title'), p_detail: value('detail') || null, p_target: target });
+        if (error) { notify('Quête refusée', consultationError(error), 'danger'); return; }
+        notify('Quête créée', 'Elle apparaît au QG le lundi si le drapeau « screens.commonquest » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     async function createPoll() {

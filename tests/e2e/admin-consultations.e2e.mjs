@@ -22,6 +22,7 @@ function fakeAdmin({ admin, missing, evil }) {
   const calls = [];
   const db = {
     polls: [{ id: "p1", title: `Quelle quête ? ${evil}`, detail: null, opensAt: "2026-10-28T08:00:00Z", closesAt: "2026-11-05T08:00:00Z", state: "open", options: [{ position: 1, label: "Endurance", votes: 4 }, { position: 2, label: "Force", votes: 7 }] }],
+    quests: [{ id: "q1", weekStart: "2026-10-26", title: "Cent minutes ensemble", detail: null, target: 1000, members: 12 }],
     ideas: [{ id: "i1", title: "Duels entre amis", detail: "x", status: "study", sortOrder: 1, archived: false, votes: 3, history: [] }],
   };
   const fail = (message, code) => ({ data: null, error: { message, code } });
@@ -34,6 +35,8 @@ function fakeAdmin({ admin, missing, evil }) {
       if (missing && /^titan_(poll|roadmap)/.test(name)) return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
       if (!admin && /^titan_(poll|roadmap)/.test(name)) return fail("ADMIN_REQUIRED", "42501");
       if (name === "titan_poll_admin_list_v1") return { data: db.polls, error: null };
+      if (name === "titan_common_quest_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.quests, error: null };
+      if (name === "titan_common_quest_admin_save_v1") { db.quests.unshift({ id: "q2", weekStart: params.p_week, title: params.p_title, detail: params.p_detail, target: params.p_target, members: 0 }); return { data: "q2", error: null }; }
       if (name === "titan_roadmap_admin_list_v1") return { data: db.ideas, error: null };
       if (name === "titan_poll_admin_save_v1") { db.polls.unshift({ id: "p2", title: params.p_title, detail: params.p_detail, opensAt: params.p_opens, closesAt: params.p_closes, state: "scheduled", options: params.p_options.map((label, i) => ({ position: i + 1, label, votes: 0 })) }); return { data: "p2", error: null }; }
       if (name === "titan_poll_admin_close_v1") { db.polls[0].state = "closed"; return { data: null, error: null }; }
@@ -109,4 +112,23 @@ test("admin consultations: a server without the functions gets a clear message; 
     assert.equal(await player.page.locator("[data-poll-form]").count(), 0);
     assert.equal(await player.page.locator("[data-idea-row]").count(), 0);
   } finally { await player.context.close(); }
+});
+
+test("admin consultations: the common quest of the week is listed and created for a Monday only", async () => {
+  const { page, context } = await open();
+  try {
+    await page.locator("[data-cq-form]").waitFor();
+    assert.match(await page.locator("table[aria-label='Quêtes communes']").innerText(), /Cent minutes ensemble[\s\S]*1000 min[\s\S]*12/);
+    await page.locator("[data-cq-create]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_common_quest_admin_save_v1")), false, "nothing sent without a title");
+    await page.locator("[data-cq-form] [name=title]").fill("Mille minutes à tous");
+    await page.locator("[data-cq-form] [name=week]").fill("2026-11-03");
+    await page.locator("[data-cq-create]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_common_quest_admin_save_v1")), false, "a Tuesday is refused before sending");
+    await page.locator("[data-cq-form] [name=week]").fill("2026-11-02");
+    await page.locator("[data-cq-form] [name=target]").fill("1500");
+    await page.locator("[data-cq-create]").click();
+    await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_common_quest_admin_save_v1"));
+    assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_common_quest_admin_save_v1").params), { p_id: null, p_week: "2026-11-02", p_title: "Mille minutes à tous", p_detail: null, p_target: 1500 });
+  } finally { await context.close(); }
 });
