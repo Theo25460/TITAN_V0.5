@@ -19,6 +19,7 @@ Objet : déployer progressivement le RPG, les publicités et de nouveaux écrans
 - Septième : `screens.ranking` (classement équitable entre amis, V11-65 ; absent tant que le drapeau n'existe pas ou est éteint).
 - Sixième : `screens.seasons` (saisons de 28 jours et archive, V11-64 ; absentes tant que le drapeau n'existe pas ou est éteint).
 - Cinquième : `screens.buddy` (binômes de progression, V11-63 ; absents tant que le drapeau n'existe pas ou est éteint).
+- Cinquième : `screens.worldgoal` (objectif collectif en trois paliers, V11-70 ; absent tant que le drapeau n'existe pas ou est éteint).
 - Quatrième : `screens.commonquest` (quête commune de la semaine, V11-62 ; absente tant que le drapeau n'existe pas ou est éteint).
 - Troisième : `screens.intents` (rendez-vous quotidien du QG, V11-61 ; absent tant que le drapeau n'existe pas ou est éteint).
 - Deuxième écran branché sur un drapeau : `screens.consultations` (votes et feuille de route sous la Communauté ; absents tant que le drapeau n'existe pas ou est éteint).

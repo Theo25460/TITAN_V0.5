@@ -1462,6 +1462,8 @@
         if (pioneerGrant) { await grantPioneers(); return; }
         const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
         if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const goalCreate = event.target.closest('[data-wg-create]');
+        if (goalCreate) { await createWorldGoal(); return; }
         const seasonCreate = event.target.closest('[data-season-create]');
         if (seasonCreate) { await createSeason(); return; }
         const cqCreate = event.target.closest('[data-cq-create]');
@@ -2406,6 +2408,11 @@
         WEEK_MUST_START_MONDAY: 'Une quête commune commence un lundi.',
         WEEK_IN_THE_PAST: 'Cette semaine est déjà passée.',
         SEASON_OVERLAP: 'Cette saison chevauche une autre saison.',
+        GOAL_OVERLAP: 'Cet objectif chevauche un autre objectif collectif.',
+        BAD_PERIOD: 'La période doit durer de 1 jour à 13 semaines.',
+        BAD_LEVELS: 'Les trois paliers doivent être croissants.',
+        PERIOD_IN_THE_PAST: 'Cette période est déjà passée.',
+        GOAL_STARTED_FROZEN: 'L’objectif a commencé : seul son texte peut changer.',
         SEASON_IN_THE_PAST: 'Cette saison est déjà terminée.',
         SEASON_STARTED_FROZEN: 'La saison a commencé : seules les règles peuvent changer.',
         QUEST_STARTED_FROZEN: 'La semaine a commencé : seul le texte peut changer.'
@@ -2423,7 +2430,7 @@
         const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
-        const [polls, ideas, quests, seasons] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1')]);
+        const [polls, ideas, quests, seasons, worldGoals] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1')]);
         const error = polls.error || ideas.error;
         if (error) {
             let message;
@@ -2474,6 +2481,7 @@
             ${commonQuestMarkup(quests)}
             <h3>Saisons de 28 jours</h3>
             ${seasonMarkup(seasons)}
+            ${worldGoalMarkup(worldGoals)}
             <h3>Feuille de route</h3>
             ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
             <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
@@ -2493,6 +2501,42 @@
                 <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
                 ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
             </form>`;
+    }
+
+    function worldGoalMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'L’objectif collectif n’est pas disponible sur ce serveur : applique la migration 20261029170000_world_goal.sql.' : consultationError(result.error))}</p></div>`;
+        const fr = (d) => new Date(d).toLocaleDateString('fr-FR');
+        const rows = (Array.isArray(result.data) ? result.data : []).map((g) => `<tr><td>${escapeHtml(fr(g.startsOn))} – ${escapeHtml(fr(g.endsOn))}</td><td><strong>${escapeHtml(g.title)}</strong><br><small>${escapeHtml(g.detail || '')}</small></td><td>${(g.levels || []).map((v) => escapeHtml(Number(v).toLocaleString('fr-FR'))).join(' · ')} min</td><td>${Number(g.members) || 0}</td></tr>`).join('');
+        const start = new Date(); start.setDate(start.getDate() + 1);
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Objectifs collectifs"><thead><tr><th>Période</th><th>Objectif</th><th>Trois paliers</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucun objectif collectif pour l’instant.</small></p>'}
+            <form class="panel" data-wg-form aria-label="Créer un objectif collectif" novalidate>
+                <h3>Nouvel objectif collectif</h3>
+                <p><label>Début <input class="admin-input" type="date" name="starts" value="${escapeHtml(localInput(start).slice(0, 10))}"></label>
+                   <label>Durée en semaines (1 à 13) <input class="admin-input" type="number" name="weeks" min="1" max="13" value="4"></label></p>
+                <p><label>Palier 1 (min d’effort) <input class="admin-input" type="number" name="l1" min="100" step="50" value="5000"></label>
+                   <label>Palier 2 <input class="admin-input" type="number" name="l2" min="150" step="50" value="15000"></label>
+                   <label>Palier 3 <input class="admin-input" type="number" name="l3" min="200" step="50" value="40000"></label></p>
+                <p><label>Titre <input class="admin-input" name="title" maxlength="100"></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
+                ${buttonMarkup('Créer l’objectif', 'ri-add-line', 'primary', 'data-wg-create')}
+            </form>`;
+    }
+
+    async function createWorldGoal() {
+        const form = document.querySelector('[data-wg-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const starts = value('starts'), weeks = Number(value('weeks')), l1 = Number(value('l1')), l2 = Number(value('l2')), l3 = Number(value('l3'));
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(starts)) { notify('Début', 'Choisis une date de début.', 'warning'); return; }
+        if (!Number.isInteger(weeks) || weeks < 1 || weeks > 13) { notify('Durée', 'Entre 1 et 13 semaines.', 'warning'); return; }
+        if (![l1, l2, l3].every(Number.isInteger) || !(l1 >= 100 && l1 < l2 && l2 < l3)) { notify('Paliers', 'Trois paliers croissants, le premier d’au moins 100 minutes.', 'warning'); return; }
+        const end = new Date(starts + 'T12:00:00'); end.setDate(end.getDate() + weeks * 7 - 1);
+        const ends = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+        const { error } = await state.client.rpc('titan_world_goal_admin_save_v1', { p_id: null, p_starts: starts, p_ends: ends, p_title: value('title'), p_detail: value('detail') || null, p_level1: l1, p_level2: l2, p_level3: l3 });
+        if (error) { notify('Objectif refusé', consultationError(error), 'danger'); return; }
+        notify('Objectif créé', 'Il apparaît au QG dès son début si le drapeau « screens.worldgoal » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     function seasonMarkup(result) {

@@ -23,6 +23,7 @@ function fakeAdmin({ admin, missing, evil }) {
   const db = {
     polls: [{ id: "p1", title: `Quelle quête ? ${evil}`, detail: null, opensAt: "2026-10-28T08:00:00Z", closesAt: "2026-11-05T08:00:00Z", state: "open", options: [{ position: 1, label: "Endurance", votes: 4 }, { position: 2, label: "Force", votes: 7 }] }],
     seasons: [{ id: "s1", name: "Saison de la reprise", rules: null, rulesVersion: 2, startsOn: "2026-09-28", endsOn: "2026-10-25", closed: true, participants: 40 }],
+    goals: [{ id: "g1", startsOn: "2026-10-01", endsOn: "2026-10-28", title: "Un mois ensemble", detail: null, levels: [5000, 15000, 40000], members: 25 }],
     quests: [{ id: "q1", weekStart: "2026-10-26", title: "Cent minutes ensemble", detail: null, target: 1000, members: 12 }],
     ideas: [{ id: "i1", title: "Duels entre amis", detail: "x", status: "study", sortOrder: 1, archived: false, votes: 3, history: [] }],
   };
@@ -36,6 +37,8 @@ function fakeAdmin({ admin, missing, evil }) {
       if (missing && /^titan_(poll|roadmap)/.test(name)) return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
       if (!admin && /^titan_(poll|roadmap)/.test(name)) return fail("ADMIN_REQUIRED", "42501");
       if (name === "titan_poll_admin_list_v1") return { data: db.polls, error: null };
+      if (name === "titan_world_goal_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.goals, error: null };
+      if (name === "titan_world_goal_admin_save_v1") { db.goals.unshift({ id: "g2", startsOn: params.p_starts, endsOn: params.p_ends, title: params.p_title, detail: params.p_detail, levels: [params.p_level1, params.p_level2, params.p_level3], members: 0 }); return { data: "g2", error: null }; }
       if (name === "titan_season_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.seasons, error: null };
       if (name === "titan_season_admin_save_v1") { db.seasons.unshift({ id: "s2", name: params.p_name, rules: params.p_rules, rulesVersion: 1, startsOn: params.p_starts, endsOn: params.p_starts, closed: false, participants: 0 }); return { data: "s2", error: null }; }
       if (name === "titan_common_quest_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.quests, error: null };
@@ -151,5 +154,26 @@ test("admin consultations: seasons are listed with their rules version and creat
     await page.locator("[data-season-create]").click();
     await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_season_admin_save_v1"));
     assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_season_admin_save_v1").params), { p_id: null, p_starts: "2026-11-02", p_name: "Saison d'hiver", p_rules: null });
+  } finally { await context.close(); }
+});
+
+test("admin consultations: world goals are listed with their three levels and created with increasing levels only (COM-B5)", async () => {
+  const { page, context } = await open();
+  try {
+    await page.locator("[data-wg-form]").waitFor();
+    assert.match(await page.locator("table[aria-label='Objectifs collectifs']").innerText(), /Un mois ensemble[\s\S]*5\s?000 · 15\s?000 · 40\s?000 min[\s\S]*25/);
+    await page.locator("[data-wg-create]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_world_goal_admin_save_v1")), false, "nothing sent without a title");
+    await page.locator("[data-wg-form] [name=title]").fill("Cap sur l'hiver");
+    await page.locator("[data-wg-form] [name=l2]").fill("4000");
+    await page.locator("[data-wg-create]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_world_goal_admin_save_v1")), false, "levels that do not increase are refused before sending");
+    await page.locator("[data-wg-form] [name=l2]").fill("15000");
+    await page.locator("[data-wg-form] [name=starts]").fill("2026-11-02");
+    await page.locator("[data-wg-form] [name=weeks]").fill("4");
+    await page.locator("[data-wg-create]").click();
+    await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_world_goal_admin_save_v1"));
+    assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_world_goal_admin_save_v1").params),
+      { p_id: null, p_starts: "2026-11-02", p_ends: "2026-11-29", p_title: "Cap sur l'hiver", p_detail: null, p_level1: 5000, p_level2: 15000, p_level3: 40000 });
   } finally { await context.close(); }
 });

@@ -253,6 +253,7 @@
       ${window.TitanStepsCard?.html?.() || ""}
       ${window.TitanIntents?.html?.() || ""}
       ${window.TitanCommonQuest?.html?.() || ""}
+      ${window.TitanWorldGoal?.html?.() || ""}
       ${window.TitanBuddy?.html?.() || ""}
       ${window.TitanSeason?.html?.() || ""}
       ${window.TitanRanking?.html?.() || ""}
@@ -348,6 +349,7 @@
   window.addEventListener("titan:steps-updated", queue);
   window.addEventListener("titan:intents-updated", queue);
   window.addEventListener("titan:common-quest-updated", queue);
+  window.addEventListener("titan:world-goal-updated", queue);
   window.addEventListener("titan:buddy-updated", queue);
   window.addEventListener("titan:season-updated", queue);
   window.addEventListener("titan:ranking-updated", queue);
