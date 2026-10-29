@@ -17,7 +17,7 @@ begin
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   -- No consent, no import.
   ok:=false; begin perform public.titan_import_activity_v1('health_connect','hc-1','running',t0,40,6); exception when others then ok:=sqlerrm='CONSENT_REQUIRED'; end; assert ok,'refused without consent';
-  ok:=false; begin perform public.titan_set_source_consent_v1('garmin',true); exception when others then ok:=sqlerrm='SOURCE_UNKNOWN'; end; assert ok,'closed list of sources';
+  ok:=false; begin perform public.titan_set_source_consent_v1('strava',true); exception when others then ok:=sqlerrm='SOURCE_UNKNOWN'; end; assert ok,'closed list of sources';
   r:=public.titan_set_source_consent_v1('health_connect',true); assert (r->>'granted')::boolean,'consent given';
 
   -- Validation.

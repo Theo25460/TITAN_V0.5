@@ -174,7 +174,7 @@
     }
   }
 
-  const SOURCE_NAMES = { health_connect: "Health Connect" };
+  const SOURCE_NAMES = { health_connect: "Health Connect", garmin: "Garmin" };
 
   /* V11-30: stop a connected source, or archive what it brought. Same account/client/epoch guards; the server only acts on the caller's own rows. */
   async function sourceAction(kind, source) {
