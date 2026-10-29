@@ -94,3 +94,18 @@ La révocation chez le fournisseur est faite par la déconnexion (`provider` vau
 Texte à ajouter à la politique de confidentialité AVANT l'activation publique (GAR-05, brouillon à valider, non publié) : « Si tu relies Garmin, TITAN reçoit de Garmin les séances que ton appareil enregistre (sport, début, durée, distance) pour les ajouter à ton journal ; rien n'est repris sans ton accord, les mêmes règles de contrôle s'appliquent qu'à une séance saisie, tes données Garmin ne sont jamais vendues ni utilisées pour de la publicité. Tu peux retirer l'accès à tout moment depuis Profil (TITAN le retire aussi chez Garmin) ou depuis Garmin ; les séances reçues restent dans ton journal jusqu'à ce que tu les archives ou supprimes ton compte. » Destinataires : Supabase (base) et Netlify (fonctions), Garmin comme fournisseur de la donnée.
 
 Documentation officielle OAuth : https://developerportal.garmin.com/sites/default/files/OAuth2PKCE.pdf ; programme : https://developer.garmin.com/gc-developer-program/overview/ ; état des demandes : https://forums.garmin.com/apps-software/mobile-apps-web/f/garmin-connect-mobile-andriod/433735/is-the-garmin-connect-developer-program-down-i-can-t-submit-a-request/2035925 .
+
+
+## 7. Configuration Netlify effectuée le 29/10/2026 — reprise déploiement
+
+Configuration serveur enregistrée et relue sur le projet Netlify `titano-app` (site `0a553bc3-458a-415d-9173-538faa0ac1e6`), contexte **production**. Aucun secret ni jeton de réception n'est reproduit dans ce document.
+
+- Présents : `GARMIN_CLIENT_ID`, `GARMIN_CLIENT_SECRET`, `GARMIN_AUTH_URL`, `GARMIN_TOKEN_URL`, `GARMIN_USER_ID_URL`, `GARMIN_REDIRECT_URI`, `GARMIN_PERMISSIONS_URL`, `GARMIN_REGISTRATION_URL`, `GARMIN_PUSH_TOKEN`, `GARMIN_STATE_KEY`, `GARMIN_TOKEN_KEY`.
+- Les identifiants Garmin proviennent de la capture transmise par le propriétaire. Les clés STATE et TOKEN sont distinctes, générées aléatoirement ; le jeton PUSH correspond à l'adresse remise au propriétaire pour la saisie dans Garmin.
+- `SUPABASE_URL` était déjà présent. Ajout de `SUPABASE_SECRET_KEY` (alias de la clé serveur existante) et de `SUPABASE_PUBLISHABLE_KEY` (clé anon active du projet, compatible avec cette fonction).
+- `GARMIN_CLIENT_SECRET`, `GARMIN_PUSH_TOKEN`, `GARMIN_STATE_KEY`, `GARMIN_TOKEN_KEY` et `SUPABASE_SECRET_KEY` sont marqués secrets. La portée Functions seule avait renvoyé 403 ; la portée acceptée pour ces secrets est Builds + Functions + Runtime (sans Post processing).
+- `GARMIN_ENABLED=false` : aucun import n'est activé.
+- Déploiement publié inspecté : `6ad9c1f1a3cb26a466c44bc5`, du 22/10/2026. Il contient assistance, play-billing, play-notifications et webhook, **aucune fonction garmin**.
+- Les 13 tests de `tests/garmin.test.mjs` ont été exécutés localement : 13 réussites, zéro échec ; Garmin et base simulés uniquement.
+
+**Reste à faire :** vérifier l'état réel des migrations et leurs dépendances ; préparer puis déployer la fonction et son routage en respectant la V1 en service ; ouvrir l'interrupteur seulement lorsque le backend est prêt ; tester authentification, livraison Push et retrait avec Garmin réel. Conserver On Hold chez Garmin avant disponibilité du récepteur. Les variables sont uniquement en production, ne pas annoncer un Deploy Preview configuré. Le connecteur Netlify de cette session expose la configuration et la lecture des déploiements, mais pas de commande de création de déploiement.
