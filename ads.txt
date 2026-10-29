@@ -1,2 +1,1 @@
-# Publicite desactivee sur TITAN OS au 2026-07-30.
-# Ajouter uniquement la ligne exacte fournie par la regie avant de reactiver TITAN_EXTERNAL_URLS.adsEnabled.
+google.com, pub-8126986266950187, DIRECT, f08c47fec0942fa0
