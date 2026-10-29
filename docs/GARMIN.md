@@ -61,7 +61,7 @@ Rotation et révocation : voir `docs/SECRETS_ROTATION_PLAN.md`. Changer `GARMIN_
 
 ## 5. Ce qui n'est pas fait (et pourquoi)
 
-- **Aucun bouton « Connecter Garmin » dans l'application** : il ne doit apparaître qu'après accord de Garmin, essai sur de vrais comptes autorisés et nouvelle version (cahier V11-05). Quand ce sera le cas : appeler le consentement, puis `POST ?action=start` avec la session du joueur, puis ouvrir l'adresse reçue ; au retour, `/profile?garmin=ok|conflict|consent|error`.
+- **Le bouton « Connecter Garmin » existe mais reste invisible** : il est derrière le drapeau serveur `screens.garmin` (premier écran branché sur le mécanisme de `docs/FEATURE_FLAGS.md`, valeur par défaut éteinte, aucune migration). Profil > Garmin : autorisation de la source, puis `POST ?action=start` avec la session du joueur, puis ouverture de l'adresse reçue ; au retour, `/profile?garmin=ok|refused|permission|conflict|consent|error` est dit en clair. Une fois relié, la ligne « Sources connectées » remplace le bouton, et « Retirer l'accès » passe par la déconnexion du serveur (retrait chez Garmin) avant de retirer l'autorisation locale. **Pour l'ouvrir : créer le drapeau `screens.garmin` dans le centre de contrôle (page Drapeaux) et l'activer, seulement après les points B et C.** L'éteindre le masque aussitôt, sans nouvelle version.
 - **Aucun essai sur un vrai compte Garmin** : impossible sans accès. Preuve technique (simulée) distincte de l'ouverture multi-utilisateur.
 - **Aucune mention publique** (site, Play Store, politique de confidentialité) avant l'ouverture réelle ; le registre des traitements et l'inventaire technique sont déjà tenus à jour.
 

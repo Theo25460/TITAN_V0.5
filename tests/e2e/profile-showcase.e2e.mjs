@@ -223,3 +223,70 @@ test("account deletion: a Garmin link is withdrawn first, best effort, and a fai
     assert.deepEqual(order, ["delete_own_account"], "nothing is asked of Garmin");
   } finally { await context.close(); }
 });
+
+async function withFlag(flag, sources = []) {
+  const f = await profilePage({ sources });
+  const { page } = f;
+  await page.evaluate(flag => {
+    window.titanFlags = { enabled: (key, fallback) => key === "screens.garmin" ? flag : fallback };
+    window.garminCalls = [];
+    const rpc = window.titanClient.rpc;
+    window.titanClient.rpc = (name, args = {}) => { if (name === "titan_set_source_consent_v1") window.garminCalls.push(`rpc:${name}:${args.p_source}:${args.p_granted}`); return rpc(name, args); };
+    dispatchEvent(new CustomEvent("titan:history-updated"));
+  }, flag);
+  return f;
+}
+
+test("garmin connect: hidden while the server flag is off, nothing is sent", async () => {
+  const { page, context, errors } = await withFlag(false);
+  try {
+    await page.locator("[data-showcase-block]").waitFor();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator("[data-garmin-block]").count(), 0);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("garmin connect: with the flag on, consent first, then the server's consent address opens; an unavailable server says so and changes nothing", async () => {
+  const { page, context, errors } = await withFlag(true);
+  const calls = [];
+  try {
+    await page.route("https://garmin.example.test/**", route => route.fulfill({ status: 200, contentType: "text/html", body: "<title>garmin</title>" }));
+    await page.route("**/.netlify/functions/garmin*", route => { calls.push(route.request().url() + "|" + route.request().headers().authorization); return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ url: "https://garmin.example.test/authorize?state=x" }) }); });
+    const button = page.locator("[data-garmin-connect]");
+    await button.waitFor();
+    assert.match(await page.locator("[data-garmin-block]").innerText(), /tu peux tout retirer ici/);
+    await button.click();
+    await page.waitForURL(/garmin\.example\.test\/authorize/);
+    assert.deepEqual(calls, [`${BASE}/.netlify/functions/garmin?action=start|Bearer synthetic-showcase-token`]);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+  for (const answer of [{ status: 503, body: "" }, { status: 200, body: JSON.stringify({ url: "javascript:alert(1)" }) }, { status: 200, body: "not json" }]) {
+    const f = await withFlag(true), p = f.page;
+    try {
+      await p.route("**/.netlify/functions/garmin*", route => route.fulfill({ status: answer.status, contentType: "application/json", body: answer.body }));
+      await p.locator("[data-garmin-connect]").click();
+      await p.locator(".asc-toast, [role=status]").filter({ hasText: /Garmin n’est pas disponible/ }).first().waitFor({ timeout: 8000 });
+      assert.match(p.url(), /\/profile/, "the player stays on the profile");
+      assert.equal(await p.locator("[data-garmin-connect]").isDisabled(), false, "and can try again");
+    } finally { await f.context.close(); }
+  }
+});
+
+test("garmin connect: once linked, the button gives way to the source line, and leaving goes through the server first", async () => {
+  const row = { source: "garmin", granted: true, granted_at: "2026-10-20T10:00:00Z", revoked_at: null, imported: 2, linked: 0 };
+  const { page, context, errors } = await withFlag(true, [row]);
+  const calls = [];
+  try {
+    await page.route("**/.netlify/functions/garmin*", route => { calls.push(route.request().url().split("?")[1] + "|" + route.request().headers().authorization); return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ linked: false, provider: "withdrawn" }) }); });
+    const block = page.locator("[data-sources-block]");
+    await block.waitFor();
+    assert.equal(await page.locator("[data-garmin-connect]").count(), 0);
+    assert.match(await block.innerText(), /Garmin · autorisée/);
+    await block.locator("[data-source-revoke=garmin]").click();
+    await page.waitForFunction(() => window.sourceCalls.length === 1);
+    assert.deepEqual(calls, ["action=disconnect|Bearer synthetic-showcase-token"]);
+    assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }]);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

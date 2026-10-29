@@ -186,6 +186,11 @@
     try {
       const session = await readBitsSession(job);
       if (sourcesTask !== job || !bitsCurrent(job)) return false;
+      // Garmin: TITAN is withdrawn at Garmin first (best effort); the local consent is withdrawn in any case so the player can always leave.
+      if (kind === "revoke" && source === "garmin") {
+        try { await fetch("/.netlify/functions/garmin?action=disconnect", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) }); } catch { /* handled by the consent withdrawal below */ }
+        if (sourcesTask !== job || !bitsCurrent(job)) return false;
+      }
       const call = kind === "revoke"
         ? context.client.rpc("titan_set_source_consent_v1", { p_source: source, p_granted: false })
         : context.client.rpc("titan_archive_imported_v1", { p_source: source });
@@ -210,6 +215,49 @@
         }
       }
     }
+  }
+
+  /* V11-05: "Connecter Garmin" is behind the server flag screens.garmin (off unless the owner turns it on after Garmin's agreement and the real tests).
+     Consent first, then the server builds the Garmin consent address (PKCE) and the player goes there. */
+  const garminOn = () => !guest() && window.titanFlags?.enabled?.("screens.garmin", false) === true;
+  let garminTask = null;
+  async function connectGarmin() {
+    if (garminTask || sourcesTask || !cardContextValid(bitsContext)) return false;
+    const context = bitsContext;
+    const job = { context, focus: "[data-garmin-connect]" };
+    garminTask = job;
+    render();
+    try {
+      const session = await readBitsSession(job);
+      if (garminTask !== job || !bitsCurrent(job)) return false;
+      const consent = await context.client.rpc("titan_set_source_consent_v1", { p_source: "garmin", p_granted: true }).setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (garminTask !== job || !bitsCurrent(job)) return false;
+      if (consent.error) throw consent.error;
+      const response = await fetch("/.netlify/functions/garmin?action=start", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) });
+      if (garminTask !== job || !bitsCurrent(job)) return false;
+      const data = response.ok ? await response.json().catch(() => null) : null;
+      if (!data || typeof data.url !== "string" || !/^https:\/\//.test(data.url)) throw new Error("GARMIN_UNAVAILABLE");
+      await readBitsSession(job);
+      if (garminTask !== job || !bitsCurrent(job)) return false;
+      location.assign(data.url);
+      return true;
+    } catch (error) {
+      if (garminTask === job && bitsCurrent(job)) throw error;
+      return false;
+    } finally {
+      if (garminTask === job) {
+        const current = bitsCurrent(job);
+        garminTask = null;
+        if (current) render();
+      }
+    }
+  }
+
+  function garminConnectHtml() {
+    if (!garminOn() || (sources || []).some((x) => x.source === "garmin" && x.granted)) return "";
+    return `<section class="asc-section" data-garmin-block aria-labelledby="pf-garmin"><div class="asc-section-head"><h2 id="pf-garmin">Garmin</h2></div>
+      <p class="asc-small asc-muted">Relie ta montre Garmin : tes séances arrivent dans ton journal sans les saisir. Tu choisis ce que Garmin partage sur son écran, tu peux tout retirer ici à tout moment, et rien n’est repris sans ton accord.</p>
+      <button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect ${garminTask ? "disabled aria-busy=\"true\"" : ""}>${icon("cloudUp")} Connecter Garmin</button></section>`;
   }
 
   function sourcesBlockHtml() {
@@ -516,6 +564,7 @@
         <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
         <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
       </div>`}
+      ${garminConnectHtml()}
       ${sourcesBlockHtml()}
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
@@ -872,6 +921,9 @@
           location.href = "/login";
         },
       });
+    if (b.hasAttribute("data-garmin-connect")) {
+      return connectGarmin().catch(() => window.titanShell.toast({ type: "warn", message: "Garmin n’est pas disponible pour le moment. Réessaie plus tard." }));
+    }
     const sourceKind = b.dataset.sourceRevoke !== undefined ? "revoke" : b.dataset.sourceArchive !== undefined ? "archive" : null;
     if (sourceKind) {
       const source = sourceKind === "revoke" ? b.dataset.sourceRevoke : b.dataset.sourceArchive;
