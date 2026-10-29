@@ -284,8 +284,9 @@
     const g = l.details?.gpxStats;
     if (g?.movingMinutes) rows.push(["Temps en mouvement", F().duration(g.movingMinutes)]);
     if (g?.descent) rows.push(["Dénivelé négatif", `−${F().number(g.descent)} m`]);
-    if (!rows.length) return "";
-    return `<section class="jr-detail-block"><p class="asc-eyebrow">Détails</p><dl class="jr-kv">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></section>`;
+    const gpxView = window.TitanGpxView?.render(g) || "";
+    if (!rows.length && !gpxView) return "";
+    return `<section class="jr-detail-block"><p class="asc-eyebrow">Détails</p><dl class="jr-kv">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>${gpxView}</section>`;
   }
 
   function compareHtml(l) {

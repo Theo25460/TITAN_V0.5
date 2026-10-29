@@ -440,6 +440,23 @@
 .seance-gpx label {
   cursor: pointer;
 }
+.gpx-preview {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+  margin-top: var(--s3);
+}
+.gpx-preview h3, .gpx-preview p, .gpx-figure { margin: 0; }
+.gpx-metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s3); margin: 0; }
+.gpx-metrics dt { color: var(--tx-3); font-size: 12px; }
+.gpx-metrics dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.gpx-figure svg { display: block; width: 100%; height: auto; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r2); }
+.gpx-figure polyline { fill: none; stroke: var(--cy); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.gpx-figure figcaption, .gpx-splits small { display: block; color: var(--tx-3); font-size: 12px; margin-top: 6px; }
+.gpx-table { max-height: 300px; overflow: auto; margin-top: var(--s2); }
+.gpx-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.gpx-table th, .gpx-table td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.gpx-table th:first-child { text-align: left; }
 .seance-exercises {
   display: grid;
   gap: var(--s3);

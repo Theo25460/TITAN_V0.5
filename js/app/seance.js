@@ -59,9 +59,11 @@
   /* ---------- Persistence of the draft and the timer ---------- */
   function persist() {
     clearTimeout(saveTimer);
+    const draft = S, draftOwner = owner(), epoch = window.titanAccountTransition?.epoch;
     saveTimer = setTimeout(() => {
+      if (S !== draft || owner() !== draftOwner || epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active) return;
       try {
-        if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpxPath: undefined, updatedAt: Date.now() }));
+        if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
       } catch {
         if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
       }
@@ -173,6 +175,7 @@
     }
     let unit = S_().unitOf(sport);
     if (form === "distance") {
+      if (S.gpx && (S.gpx.kind !== "recorded" || !(S.gpx.movingMinutes > 0))) fail("Ce GPX ne fournit pas de temps sportif exploitable. Repars en saisie manuelle pour déclarer ton activité réelle.", "distance");
       const km = num(S.distance);
       if (km === null && dur !== null) {
         // V11-11: a distance that is not known is not 0 km. The session is recorded by its duration alone.
@@ -192,7 +195,8 @@
       if (elev !== null) data.elevation = Math.min(12000, Math.max(0, elev));
       if (S.gpx) {
         data.hasGpx = true;
-        data.gpxStats = { movingMinutes: S.gpx.movingMinutes || 0, elapsedMinutes: S.gpx.elapsedMinutes || 0, ascent: S.gpx.ascent || 0, descent: S.gpx.descent || 0, points: S.gpx.points || 0 };
+        const g = S.gpx;
+        data.gpxStats = { distanceKm:g.distanceKm, movingMinutes:g.movingMinutes, elapsedMinutes:g.elapsedMinutes, pauseMinutes:g.pauseMinutes, ascent:g.ascent, descent:g.descent, points:g.points, cleanPoints:g.cleanPoints, ignoredPoints:g.ignoredPoints, kind:g.kind, altitudeSource:g.altitudeSource, analysisVersion:g.analysisVersion, source:"gpx_import", verified:false, profile:g.profile, splits:g.splits };
       }
     } else if (form === "swim") {
       const m = num(S.meters);
@@ -420,7 +424,8 @@
         <p class="seance-derived asc-small" id="derived" aria-live="polite"></p>
         ${S_().hasElevation(S.sport) ? `<label class="asc-field seance-elev"><span>Dénivelé positif <small class="asc-faint">facultatif</small></span><div class="seance-unit"><input class="asc-input" inputmode="numeric" type="number" min="0" max="12000" step="1" data-k="elevation" value="${esc(S.elevation)}" placeholder="0"><span>m</span></div></label>` : ""}
         <div class="seance-gpx"><label class="asc-btn asc-btn-secondary asc-btn-sm">${icon("upload")} Importer un GPX<input type="file" accept=".gpx,application/gpx+xml" data-gpx hidden></label>
-          ${S.gpx ? `<span class="asc-small asc-muted">Trace importée : ${esc(F().distance(S.gpx.distanceKm))}${S.gpx.movingMinutes ? `, ${esc(F().duration(S.gpx.movingMinutes))} en mouvement` : ""}${S.gpx.ascent ? `, +${S.gpx.ascent} m` : ""}. Le tracé GPS n’est pas conservé.</span>` : `<span class="asc-small asc-faint">Distance, temps en mouvement et dénivelé sont remplis depuis ta montre ou ton application.</span>`}</div>
+          ${S.gpx ? `<span class="asc-small asc-muted">Trace importée : ${esc(F().distance(S.gpx.distanceKm))}${S.gpx.movingMinutes ? `, ${esc(F().duration(S.gpx.movingMinutes))} en mouvement` : ""}${S.gpx.ascent ? `, +${S.gpx.ascent} m` : ""}. Le tracé GPS n’est pas conservé.</span>` : `<span class="asc-small asc-faint">Distance, temps et altitude sont lus uniquement lorsqu’ils existent dans le fichier.</span>`}</div>
+        ${S.gpx ? window.TitanGpxView?.render(S.gpx,{preview:true}) || "" : ""}
         <input type="hidden" data-mode="${mode}">
       </section>
       ${measuresExtrasHtml(["elevation", "avg_speed", "avg_pace", "distance"])}`;
@@ -538,7 +543,8 @@
       const b = build();
       const rpeText = document.getElementById("rpe-text");
       if (rpeText) rpeText.textContent = S.rpe ? `${S.rpe}/10 · ${RPE_TEXT[S.rpe]}` : "Non renseigné";
-      if (b.at && E().isHistorical(b.at.getTime())) p.innerHTML = `<strong>Historique</strong><span>sans XP</span>`;
+      if (S.gpx && (S.gpx.kind !== "recorded" || !(S.gpx.movingMinutes > 0))) p.innerHTML = `<strong>Itinéraire</strong><span>aucune activité ni XP</span>`;
+      else if (b.at && E().isHistorical(b.at.getTime())) p.innerHTML = `<strong>Historique</strong><span>sans XP</span>`;
       else if (b.val > 0) {
         const e = E().effort({ sport: S.sport, profile: S_().profileOf(S.sport), unit: b.unit, val: b.val, details: b.data });
         p.innerHTML = window.TitanData?.rulesV300?.()
@@ -669,7 +675,9 @@
     if (!file || saving) return;
     if (file.size > 15 * 1024 * 1024) return window.titanShell.toast({ type: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
     const draft = S, sequence = ++gpxSequence;
-    const current = () => !saving && S === draft && sequence === gpxSequence;
+    const requestOwner = owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
+    const current = () => !saving && S === draft && sequence === gpxSequence && owner() === requestOwner
+      && epoch === window.titanAccountTransition?.epoch && client === window.titanClient && !window.titanAccountTransition?.active;
     let r;
     try {
       const text = await file.text();
@@ -682,14 +690,15 @@
     if (!r.ok) return window.titanShell.toast({ type: "warn", title: "GPX illisible", message: r.error });
     S.gpx = r;
     S.distance = String(r.distanceKm);
-    const mins = r.movingMinutes || r.elapsedMinutes;
-    if (mins) {
+    const mins = r.movingMinutes;
+    S.durH = ""; S.durM = ""; S.durS = "";
+    if (mins !== null && mins > 0) {
       const secs = Math.round(mins * 60);
       S.durH = String(Math.floor(secs / 3600) || "");
       S.durM = String(Math.floor((secs % 3600) / 60));
       S.durS = secs % 60 ? String(secs % 60) : "";
     }
-    if (r.ascent) S.elevation = String(r.ascent);
+    S.elevation = r.ascent === null ? "" : String(r.ascent);
     if (r.start) {
       const d = new Date(r.start);
       S.when = "other";
@@ -698,7 +707,7 @@
     }
     render();
     persist();
-    window.titanShell.toast({ type: "ok", title: "Trace importée", message: `${F().distance(r.distanceKm)} · ${r.points} points${r.ignoredPoints ? `, ${r.ignoredPoints} aberrants ignorés` : ""}.` });
+    status(`GPX analysé : ${F().distance(r.distanceKm)} · ${r.points} points${r.ignoredPoints ? `, ${r.ignoredPoints} aberrants ignorés` : ""}.`);
   }
 
   function routineSheet(mode) {
@@ -771,6 +780,14 @@
     const t = e.target.closest("button, [data-sport], [data-repeat], [data-routine]");
     if (!t || !root.contains(t) || t.disabled) return;
     if (t.dataset.sport) return choose(t.dataset.sport);
+    if (t.dataset.act === "clear-gpx") {
+      ++gpxSequence;
+      S.gpx = null; S.distance = ""; S.elevation = ""; S.durH = ""; S.durM = ""; S.durS = "";
+      S.when = "now";
+      render(); persist();
+      root.querySelector('[data-k="distance"]')?.focus();
+      return;
+    }
     if (t.dataset.repeat) {
       const l = (window.state?.history || []).find((x) => (x.client_event_id || x.id) === t.dataset.repeat);
       if (l) choose(l.sport, prefillFromLog(l));

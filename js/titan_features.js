@@ -848,6 +848,7 @@
         details.extras = sanitizeExtras(details.extras, sportKey);
         details.gpxPath = limitPath(details.gpxPath, user);
         if (details.gpxStats) {
+            const sourceStats = details.gpxStats;
             details.gpxStats = {
                 pace: details.gpxStats.pace || '',
                 speed: details.gpxStats.speed || '',
@@ -860,6 +861,21 @@
                 ascent: Math.max(0, Math.min(toNumber(details.gpxStats.ascent, 0), 12000)),
                 descent: Math.max(0, Math.min(toNumber(details.gpxStats.descent, 0), 12000))
             };
+            if (sourceStats.analysisVersion === 'gpx-v2') {
+                const optional = (value, max) => value === null || value === undefined || value === '' ? null : (Number.isFinite(Number(value)) ? Math.max(0,Math.min(Number(value),max)) : null);
+                const numeric = value => typeof value === 'number' && Number.isFinite(value);
+                Object.assign(details.gpxStats, {
+                    analysisVersion: 'gpx-v2', source: 'gpx_import', verified: false,
+                    kind: ['recorded','route','incomplete'].includes(sourceStats.kind) ? sourceStats.kind : 'incomplete',
+                    altitudeSource: ['gpx_unverified','partial','missing'].includes(sourceStats.altitudeSource) ? sourceStats.altitudeSource : 'missing',
+                    points: optional(sourceStats.points,100000), cleanPoints: optional(sourceStats.cleanPoints,100000), ignoredPoints: optional(sourceStats.ignoredPoints,100000),
+                    distanceKm: optional(sourceStats.distanceKm,1000),
+                    movingMinutes: optional(sourceStats.movingMinutes,1440), elapsedMinutes: optional(sourceStats.elapsedMinutes,1440), pauseMinutes: optional(sourceStats.pauseMinutes,1440),
+                    ascent: optional(sourceStats.ascent,12000), descent: optional(sourceStats.descent,12000),
+                    profile: Array.isArray(sourceStats.profile) ? sourceStats.profile.slice(0,160).filter(p=>p&&numeric(p.distanceKm)&&p.distanceKm>=0&&p.distanceKm<=1000).map(p=>({distanceKm:p.distanceKm,altitude:numeric(p.altitude)&&p.altitude>=-500&&p.altitude<=10000?p.altitude:null,segment:Math.max(0,Math.min(parseInt(p.segment,10)||0,100160))})) : [],
+                    splits: Array.isArray(sourceStats.splits) ? sourceStats.splits.slice(0,1000).filter(s=>s&&numeric(s.distanceKm)&&s.distanceKm>0&&s.distanceKm<=1&&numeric(s.durationSeconds)&&s.durationSeconds>=0&&s.durationSeconds<=86400).map((s,i)=>({index:i+1,distanceKm:s.distanceKm,durationSeconds:s.durationSeconds})) : [],
+                });
+            }
         }
         return details;
     }

@@ -2563,7 +2563,7 @@ async function holdSessionGpx(page) {
   await page.evaluate(() => {
     const input = document.querySelector("[data-gpx]");
     Object.defineProperty(input, "files", { configurable: true, value: [{ size: 100, text: () => new Promise((resolve, reject) => {
-      window.releaseSessionGpx = () => resolve('<gpx><trk><trkseg><trkpt lat="47.00" lon="7.00"/><trkpt lat="47.01" lon="7.00"/></trkseg></trk></gpx>');
+      window.releaseSessionGpx = () => resolve('<gpx><trk><trkseg><trkpt lat="47.00" lon="7.00"><time>2026-10-29T07:00:00Z</time></trkpt><trkpt lat="47.01" lon="7.00"><time>2026-10-29T07:04:00Z</time></trkpt></trkseg></trk></gpx>');
       window.failSessionGpx = () => reject(Error("Lecture du fichier interrompue"));
     }) }] });
     input.dispatchEvent(new Event("change", { bubbles: true }));
