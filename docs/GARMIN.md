@@ -18,11 +18,12 @@ Références : programme [developer.garmin.com/gc-developer-program](https://dev
 ```
 joueur ──(1) autorise « garmin » dans TITAN──▶ titan_set_source_consent_v1('garmin', true)
 joueur ──(2) POST ?action=start (session) ───▶ fonction Netlify garmin : adresse de consentement Garmin (PKCE S256, état scellé)
-Garmin ──(3) GET ?action=callback&code&state ─▶ échange du code, lecture de l'identifiant Garmin, titan_garmin_link_v1(compte, garmin)
+Garmin ──(3) GET /auth/garmin/callback?code&state (ou &error) ─▶ réécriture 200 vers la fonction : échange du code, identifiant Garmin, permissions accordées, titan_garmin_link_v1, jetons scellés
 Garmin ──(4) POST ?action=push&token=… ──────▶ titan_garmin_ingest_v1 (par activité) / titan_garmin_deregister_v1
+joueur ──(5) POST ?action=disconnect (session) ▶ retrait de TITAN chez Garmin (DELETE user/registration), puis fin du lien, du consentement et des jetons
 ```
 
-- **Aucun jeton Garmin n'est conservé** : le modèle « push » n'a besoin que de l'identifiant Garmin. Rien à voler, rien à faire tourner en base.
+- **Les jetons Garmin ne sont jamais en clair** : la fonction les scelle (AES-256-GCM, clé `GARMIN_TOKEN_KEY` qui ne vit que chez Netlify, liés à l'identifiant du compte) avant de les écrire dans une table privée sans accès API ; ils ne servent qu'à renouveler l'accès et à retirer TITAN chez Garmin à la déconnexion. Toute fin de lien (déconnexion, notice Garmin, retrait du consentement, suppression du compte) les efface par un déclencheur unique.
 - **Un client ne peut jamais dire « ceci vient de Garmin »** : `titan_import_activity_v1` et `titan_import_daily_activity_v1` refusent la source `garmin` ; seule `titan_garmin_ingest_v1` (rôle serveur) l'écrit, pour un compte qui a lié Garmin **et** autorisé la source. Pas de provenance dans les champs libres (ADR-003).
 - **Un identifiant Garmin = un compte à la fois** (`GARMIN_ALREADY_LINKED`) : pas de second profil, pas d'historique coupé en deux.
 - **Anti-doublon entre sources** : une activité qui recouvre une séance du même sport déjà au journal — saisie à la main, Health Connect ou Garmin — est rattachée, comptée une fois (pas d'XP, de crédits, de quêtes ni de records en double).
@@ -31,7 +32,7 @@ Garmin ──(4) POST ?action=push&token=… ──────▶ titan_garmin_
 - **Journalisation** : aucune donnée de santé ni identifiant dans les journaux ; la fonction ne journalise rien.
 - **Types d'activité inconnus** : ignorés, jamais devinés (`private.titan_garmin_sport`) ; durées de moins d'une minute, dates futures, distances impossibles : acquittées et ignorées pour que Garmin cesse de réessayer.
 
-Fichiers : migration `20261028110000_garmin_link`, `functions/garmin.mjs` (+ `netlify/functions/garmin.mts`), tests `sql/tests/300_garmin.sql` et `tests/garmin.test.mjs`.
+Fichiers : migrations `20261028110000_garmin_link` et `20261028120000_garmin_tokens`, `functions/garmin.mjs` (+ `netlify/functions/garmin.mts`), réécriture `/auth/garmin/callback` dans `netlify.toml`, tests `sql/tests/300_garmin.sql`, `300_garmin_tokens.sql` et `tests/garmin.test.mjs`.
 
 ## 3. Secrets et variables Netlify (aucune valeur dans le dépôt)
 
@@ -43,6 +44,9 @@ Fichiers : migration `20261028110000_garmin_link`, `functions/garmin.mjs` (+ `ne
 | `GARMIN_REDIRECT_URI` | `https://titan-app.fr/auth/garmin/callback` (DÉJÀ déclarée chez Garmin ; ajouter une réécriture 200 vers la fonction garmin avec action=callback ; transmettre code et state) |
 | `GARMIN_PUSH_TOKEN` | jeton secret (24 caractères au moins) placé dans l'adresse de réception déclarée chez Garmin |
 | `GARMIN_STATE_KEY` | clé (32 caractères au moins) qui scelle l'état OAuth |
+| `GARMIN_TOKEN_KEY` | clé distincte (32 caractères au moins) qui scelle les jetons des joueurs avant l'écriture en base (la perdre force chaque joueur à relier Garmin) |
+| `GARMIN_PERMISSIONS_URL` | https://apis.garmin.com/wellness-api/rest/user/permissions (facultatif : sans elle, les permissions ne sont pas contrôlées) |
+| `GARMIN_REGISTRATION_URL` | https://apis.garmin.com/wellness-api/rest/user/registration (facultatif : sans elle, la déconnexion ne retire pas TITAN chez Garmin et le dit : `provider: skipped`) |
 | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_PUBLISHABLE_KEY` | déjà utilisés par les autres fonctions |
 
 Rotation et révocation : voir `docs/SECRETS_ROTATION_PLAN.md`. Changer `GARMIN_STATE_KEY` n'invalide que les liaisons en cours (dix minutes).
@@ -75,6 +79,18 @@ Endpoints OAuth 2.0 PKCE officiels : GARMIN_AUTH_URL=https://connect.garmin.com/
 
 Priorités : Activities, éventuellement Activity Details, puis Deregistrations et User Permissions Change ; Health/Dailies pour les pas si le périmètre est autorisé. Les autres 15 flux santé sont recensés, pas à collecter par défaut. Pas de collecte de données médicales superflues ni de GPS/FIT inutile. Starter Business : Push uniquement et pas d'historique ; ne pas supposer Ping/Pull ni historique disponibles.
 
-Reprise Claude : 1) corriger la route et les tests de simulation dans une branche ; 2) mettre les URLs publiques officielles ci-dessus dans la documentation et les variables d'environnement prévues ; 3) valider le parsing des événements, le consentement, les doublons et la déconnexion en simulation ; 4) classer les essais réels et la configuration des notifications en « attente Garmin / propriétaire ». Garder GARMIN_ENABLED=false ; ne toucher ni aux secrets ni à la production. La décision de ne pas imposer la régénération du secret doit être respectée, tout en conservant l'avertissement de sécurité.
+Reprise Claude (29/10/2026) — état au sens du cahier GAR-14 :
+
+| | Contenu | État |
+|---|---|---|
+| **A. Code préparé et testé (simulation)** | réécriture `/auth/garmin/callback` -> fonction (code, state, error conservés) ; PKCE S256, état scellé ; succès, refus (`garmin=refused`), état expiré ou falsifié, code erroné, permission d'activité absente (`garmin=permission`), doublon de compte, consentement manquant ; permissions lues après consentement ; jetons scellés et effacés à chaque fin de lien ; déconnexion avec retrait chez Garmin (renouvellement par jeton d'actualisation si besoin) et fin locale quoi que réponde Garmin ; réception : activités et activités modifiées chez Garmin, notices de désenregistrement et de changement de permission ; autres flux acquittés et non collectés ; mapping des sports, idempotence, doublons entre sources | fait, `GARMIN_ENABLED` reste faux |
+| **B. Secrets, déploiement, migrations** | variables Netlify (tableau §3), migrations 40 et 41 à appliquer dans l'ordre, déclaration chez Garmin de l'adresse de réception (`?action=push&token=…`, distincte du callback) | **non fait, à faire par le propriétaire**, sans que je voie le secret |
+| **C. Garmin réel** | état réel des cases « Enabled » et « On Hold » par flux, réponse de Garmin sur l'accès (pause des nouvelles demandes), format exact des messages, essai avec une montre synchronisée sur deux comptes distincts, schéma des permissions et de la notice de changement | **attente Garmin / propriétaire** ; rien n'est présenté comme réussi |
+
+Hypothèses de format à vérifier à la première réception réelle : noms de champs de l'activité, clés `manuallyUpdatedActivities` et `userPermissionsChange` (et la forme de `permissions`), nom des permissions (`ACTIVITY_EXPORT` attendu : la fonction accepte toute chaîne contenant « ACTIVITY »). Un format de permissions inconnu ne bloque pas la liaison.
+
+La révocation chez le fournisseur est faite par la déconnexion (`provider` vaut `withdrawn`, `refused`, `unavailable` ou `skipped`) ; la suppression d'un compte TITAN ne l'appelle pas : Garmin continuera d'envoyer, ces envois sont ignorés (`not_linked`) et le joueur peut aussi retirer l'application depuis Garmin. À trancher avant la production : appeler la déconnexion au moment de la suppression du compte.
+
+Texte à ajouter à la politique de confidentialité AVANT l'activation publique (GAR-05, brouillon à valider, non publié) : « Si tu relies Garmin, TITAN reçoit de Garmin les séances que ton appareil enregistre (sport, début, durée, distance) pour les ajouter à ton journal ; rien n'est repris sans ton accord, les mêmes règles de contrôle s'appliquent qu'à une séance saisie, tes données Garmin ne sont jamais vendues ni utilisées pour de la publicité. Tu peux retirer l'accès à tout moment depuis Profil (TITAN le retire aussi chez Garmin) ou depuis Garmin ; les séances reçues restent dans ton journal jusqu'à ce que tu les archives ou supprimes ton compte. » Destinataires : Supabase (base) et Netlify (fonctions), Garmin comme fournisseur de la donnée.
 
 Documentation officielle OAuth : https://developerportal.garmin.com/sites/default/files/OAuth2PKCE.pdf ; programme : https://developer.garmin.com/gc-developer-program/overview/ ; état des demandes : https://forums.garmin.com/apps-software/mobile-apps-web/f/garmin-connect-mobile-andriod/433735/is-the-garmin-connect-developer-program-down-i-can-t-submit-a-request/2035925 .

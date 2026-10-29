@@ -178,3 +178,16 @@ test("sources: an allowed source can be stopped, and what it brought can be arch
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test("garmin return: each result is said once in words and the address is cleaned", async () => {
+  for (const [status, text] of [["ok", /Garmin relié/], ["refused", /Liaison annulée/], ["permission", /Accès aux activités manquant/], ["conflict", /déjà relié/], ["consent", /Autorise d’abord/], ["error", /Liaison impossible/], ["unknown-value", /Liaison impossible/]]) {
+    const f = await newPage(), { page, context, errors } = f;
+    try {
+      await page.goto(BASE + `/profile?garmin=${status}`, { waitUntil: "load" });
+      await page.waitForFunction(() => window.TitanAdventure?.status === "ready");
+      await page.locator(".asc-toast, [role=status]").filter({ hasText: text }).first().waitFor({ timeout: 8000 });
+      assert.equal(new URL(page.url()).search, "", "the address is cleaned");
+      assert.deepEqual(errors, []);
+    } finally { await context.close(); }
+  }
+});

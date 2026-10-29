@@ -129,6 +129,13 @@ from = "/prevoir"
 to = "/prevoir.html"
 status = 200
 
+# Garmin OAuth return address, registered exactly like this at Garmin: served by the Garmin function (code, state and error are passed along).
+[[redirects]]
+from = "/auth/garmin/callback"
+to = "/.netlify/functions/garmin?action=callback"
+status = 200
+force = true
+
 # Public athlete cards: an opt-in, unguessable link per athlete (never indexed).
 [[redirects]]
 from = "/u/*"
@@ -1064,3 +1071,10 @@ X-Robots-Tag = "noindex, nofollow"
 for = "/coaching.html"
 [headers.values]
 X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/auth/garmin/callback"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Cache-Control = "no-store"
+Referrer-Policy = "no-referrer"

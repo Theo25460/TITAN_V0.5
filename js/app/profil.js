@@ -925,6 +925,24 @@
   }
 
   let booted = false;
+  /* GAR-03: the return from Garmin lands here with ?garmin=<result>. Said once in words, then the address is cleaned. */
+  const GARMIN_RESULTS = {
+    ok: ["ok", "Garmin relié", "Tes prochaines séances Garmin arriveront dans ton journal."],
+    refused: ["warn", "Liaison annulée", "Tu as refusé l’accès sur l’écran Garmin : rien n’a été relié."],
+    permission: ["warn", "Accès aux activités manquant", "Garmin n’a pas accordé l’accès aux activités : coche-le sur l’écran Garmin et réessaie."],
+    conflict: ["warn", "Compte Garmin déjà relié", "Ce compte Garmin est déjà relié à un autre compte TITAN. Retire d’abord la liaison de l’autre compte."],
+    consent: ["warn", "Autorisation manquante", "Autorise d’abord Garmin dans TITAN, puis recommence la liaison."],
+    error: ["warn", "Liaison impossible", "La liaison avec Garmin n’a pas abouti. Réessaie dans un moment."],
+  };
+  function garminReturn() {
+    let status = null;
+    try { status = new URLSearchParams(location.search).get("garmin"); } catch { return; }
+    if (!status) return;
+    try { history.replaceState(null, "", location.pathname + location.hash); } catch { /* the notice still shows */ }
+    const [type, title, message] = GARMIN_RESULTS[status] || GARMIN_RESULTS.error;
+    window.titanShell?.toast?.({ type, title, message });
+  }
+
   function start() {
     root = document.getElementById("profil");
     if (!root || !window.state?.user || !window.TitanSports || !B()) return;
@@ -941,6 +959,7 @@
       root.addEventListener("change", onChange);
       root.addEventListener("input", (e) => { if (masteryNavigation.handle(e)) renderMastery(); });
       A()?.refresh?.();
+      garminReturn();
     }
     render();
     loadServerBits();
