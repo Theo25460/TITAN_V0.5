@@ -151,6 +151,81 @@
     return splits;
   }
 
+  /** Analyse only cleaned points; no coordinates or timestamps enter persisted summaries.
+      @param {GpxPoint[]} points @param {boolean} complete */
+  function terrain(points, complete) {
+    /** @typedef {{p:GpxPoint,distance:number,altRun:number,timeRun:number}} SamplePoint */
+    /** @type {Map<number,SamplePoint[]>} */ const groups=new Map();
+    const pauses=complete?{count:0,totalSeconds:0,unobservedSeconds:0,items:/** @type {{distanceKm:number,seconds:number}[]} */([])}:null;
+    let distance=0,altRun=0,timeRun=0,pauseSeconds=0,pauseDistance=0,previousAltitudeJump=false;
+    /** @type {GpxPoint|null} */ let previous=null;
+    const finishPause=()=>{
+      if(pauses&&pauseSeconds>=20) {
+        pauses.count++;pauses.totalSeconds+=pauseSeconds;
+        if(pauses.items.length<50)pauses.items.push({distanceKm:round(pauseDistance/1000,3),seconds:round(pauseSeconds,1)});
+      }
+      pauseSeconds=0;
+    };
+    for(const p of points) {
+      const same=previous?.segment===p.segment;
+      const d=previous&&same?haversine(previous,p):0;
+      const dt=previous&&previous.time!==null&&p.time!==null?(p.time-previous.time)/1000:null;
+      const gap=!same||(dt!==null&&dt>=300&&d>0.01);
+      const altitudeJump=!!(same&&d<1&&p.ele!==null&&previous?.ele!==undefined&&previous.ele!==null&&Math.abs(p.ele-previous.ele)>=3);
+      // Isolate both edges around an altitude spike, so its recovery is not a climb.
+      if(!same||p.ele===null||previous?.ele===null||altitudeJump||previousAltitudeJump)altRun++;
+      previousAltitudeJump=altitudeJump;
+      if(gap||dt===null||dt<=0)timeRun++;
+      if(pauses&&previous) {
+        if(gap) {finishPause();if(dt!==null&&dt>0)pauses.unobservedSeconds+=dt;}
+        else if(dt!==null&&dt>0&&d/dt<0.4) {if(pauseSeconds===0)pauseDistance=distance;pauseSeconds+=dt;}
+        else if(!(dt===0&&d<=0.01))finishPause();
+      }
+      distance+=d;
+      if(!groups.has(p.segment))groups.set(p.segment,[]);
+      groups.get(p.segment)?.push({p,distance,altRun,timeRun});
+      previous=p;
+    }
+    finishPause();
+    if(pauses) {pauses.totalSeconds=round(pauses.totalSeconds,1);pauses.unobservedSeconds=round(pauses.unobservedSeconds,1);}
+    /** @type {{startKm:number,endKm:number,distanceKm:number,gainMeters:number,averageGradePercent:number}|null} */ let primaryClimb=null;
+    /** @type {{distance:number,altitude:number}|null} */ let start=null;
+    /** @type {{distance:number,altitude:number}|null} */ let peak=null;
+    let climbRun=-1;
+    const finishClimb=()=>{
+      if(!start||!peak)return;
+      const gain=peak.altitude-start.altitude, length=peak.distance-start.distance;
+      if(gain>=20&&length>=100&&gain/length<=1&&(!primaryClimb||gain>primaryClimb.gainMeters))
+        primaryClimb={startKm:round(start.distance/1000,3),endKm:round(peak.distance/1000,3),distanceKm:round(length/1000,3),gainMeters:round(gain,1),averageGradePercent:round(gain/length*100,1)};
+    };
+    for(const group of groups.values())for(const entry of group) {
+      const altitude=entry.p.ele;
+      if(altitude===null) {finishClimb();start=null;peak=null;climbRun=-1;continue;}
+      if(entry.altRun!==climbRun||!start||!peak) {finishClimb();start=peak={distance:entry.distance,altitude};climbRun=entry.altRun;continue;}
+      if(altitude>peak.altitude)peak={distance:entry.distance,altitude};
+      if(peak.altitude-altitude>=10) {finishClimb();start=peak={distance:entry.distance,altitude};}
+      else if(altitude<start.altitude)start=peak={distance:entry.distance,altitude};
+    }
+    finishClimb();
+    /** @type {number[][][]} */ const previewSegments=[];
+    /** @type {{speedKmh:number|null,gradePercent:number|null}[][]} */ const previewMetrics=[];
+    const perSegment=Math.max(2,Math.floor(320/groups.size));
+    for(const group of groups.values()) {
+      const selected=sample(group,perSegment);
+      previewSegments.push(selected.map(e=>[e.p.lat,e.p.lon]));
+      previewMetrics.push(selected.map((entry,i)=>{
+        const before=selected[i-1];
+        if(!before)return {speedKmh:null,gradePercent:null};
+        const d=entry.distance-before.distance;
+        const dt=entry.p.time!==null&&before.p.time!==null?(entry.p.time-before.p.time)/1000:null;
+        const speedKmh=complete&&entry.timeRun===before.timeRun&&dt!==null&&dt>0?round(d/dt*3.6,1):null;
+        const grade=entry.altRun===before.altRun&&d>=20&&entry.p.ele!==null&&before.p.ele!==null?(entry.p.ele-before.p.ele)/d*100:null;
+        return {speedKmh,gradePercent:grade!==null&&Math.abs(grade)<=100?round(grade,1):null};
+      }));
+    }
+    return {terrainVersion:'gpx-terrain-v1',previewSegments,previewMetrics,primaryClimb,pauses};
+  }
+
   /** @param {unknown} text */
   function analyse(text) {
     const parsed=read(text), pts=parsed.points;
@@ -186,8 +261,6 @@
     const elapsed=complete&&first!==null&&last!==null?(last-first)/60000:null;
     const kind=!parsed.recording?'route':complete?'recorded':invalidTime||times.length?'incomplete':'route';
     const segmentIds=[...new Set(clean.map(p=>p.segment))];
-    const perSegment=Math.max(2,Math.floor(320/segmentIds.length));
-    const previewSegments=segmentIds.map(id=>sample(clean.filter(p=>p.segment===id),perSegment).map(p=>[p.lat,p.lon]));
     const profile=sample(rawProfile,160).map(p=>({...p,distanceKm:round(p.distanceKm)}));
     if(profile.length)profile[profile.length-1]={...profile[profile.length-1],distanceKm:round(dist/1000),altitude:clean.at(-1)?.ele??null,segment:profileRun};
     return {ok:true,points:pts.length,ignoredPoints:ignored,cleanPoints:clean.length,distanceKm:round(dist/1000),
@@ -197,7 +270,7 @@
       ascent:altitudeComplete?Math.round(ascent):null,descent:altitudeComplete?Math.round(descent):null,
       altitudeSource:altitudeComplete?'gpx_unverified':rawProfile.some(p=>p.altitude!==null)?'partial':'missing',
       start:complete&&first!==null?new Date(first).toISOString():null,
-      segmentCount:segmentIds.length,profile,previewSegments,splits:complete?splitKilometres(edges):[],analysisVersion:'gpx-v2',
+      segmentCount:segmentIds.length,profile,...terrain(clean,complete),splits:complete?splitKilometres(edges):[],analysisVersion:'gpx-v2',
     };
   }
   const api={haversine,points,analyse};

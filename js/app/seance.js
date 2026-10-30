@@ -67,7 +67,7 @@
     const write = () => {
       if (S !== draft || owner() !== draftOwner || epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active) return;
       try {
-        if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
+        if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined, previewMetrics: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
       } catch {
         if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
       }
@@ -202,7 +202,7 @@
       if (S.gpx) {
         data.hasGpx = true;
         const g = S.gpx;
-        data.gpxStats = { distanceKm:g.distanceKm, movingMinutes:g.movingMinutes, elapsedMinutes:g.elapsedMinutes, pauseMinutes:g.pauseMinutes, ascent:g.ascent, descent:g.descent, points:g.points, cleanPoints:g.cleanPoints, ignoredPoints:g.ignoredPoints, kind:g.kind, altitudeSource:g.altitudeSource, analysisVersion:g.analysisVersion, source:"gpx_import", verified:false, profile:g.profile, splits:g.splits };
+        data.gpxStats = { distanceKm:g.distanceKm, movingMinutes:g.movingMinutes, elapsedMinutes:g.elapsedMinutes, pauseMinutes:g.pauseMinutes, ascent:g.ascent, descent:g.descent, points:g.points, cleanPoints:g.cleanPoints, ignoredPoints:g.ignoredPoints, kind:g.kind, altitudeSource:g.altitudeSource, analysisVersion:g.analysisVersion, terrainVersion:g.terrainVersion, primaryClimb:g.primaryClimb, pauses:g.pauses, source:"gpx_import", verified:false, profile:g.profile, splits:g.splits };
       }
     } else if (form === "swim") {
       const m = num(S.meters);
@@ -848,6 +848,7 @@
     if (saving) { e.preventDefault(); return; }
     const t = e.target.closest("button, [data-sport], [data-repeat], [data-routine]");
     if (!t || !root.contains(t) || t.disabled) return;
+    if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
       ++gpxSequence; persist(true); hubOpen = true; manualRequested = false;
       history.replaceState(null,"","/training"); render(); root.querySelector("[data-hub-title]")?.focus(); return;

@@ -875,6 +875,20 @@
                     profile: Array.isArray(sourceStats.profile) ? sourceStats.profile.slice(0,160).filter(p=>p&&numeric(p.distanceKm)&&p.distanceKm>=0&&p.distanceKm<=1000).map(p=>({distanceKm:p.distanceKm,altitude:numeric(p.altitude)&&p.altitude>=-500&&p.altitude<=10000?p.altitude:null,segment:Math.max(0,Math.min(parseInt(p.segment,10)||0,100160))})) : [],
                     splits: Array.isArray(sourceStats.splits) ? sourceStats.splits.slice(0,1000).filter(s=>s&&numeric(s.distanceKm)&&s.distanceKm>0&&s.distanceKm<=1&&numeric(s.durationSeconds)&&s.durationSeconds>=0&&s.durationSeconds<=86400).map((s,i)=>({index:i+1,distanceKm:s.distanceKm,durationSeconds:s.durationSeconds})) : [],
                 });
+                if (sourceStats.terrainVersion === 'gpx-terrain-v1') {
+                    const bounded = (v,min,max) => numeric(v) && v >= min && v <= max;
+                    const c = sourceStats.primaryClimb, p = sourceStats.pauses;
+                    const climbOk = c && bounded(c.startKm,0,1000) && bounded(c.endKm,0,1000) && c.endKm > c.startKm
+                        && bounded(c.distanceKm,0.1,1000) && Math.abs(c.endKm-c.startKm-c.distanceKm)<=0.003
+                        && bounded(c.gainMeters,20,10500) && bounded(c.averageGradePercent,0,100);
+                    const pausesOk = sourceStats.kind === 'recorded' && p && Number.isInteger(p.count) && bounded(p.count,0,100000)
+                        && bounded(p.totalSeconds,0,31536000) && bounded(p.unobservedSeconds,0,31536000);
+                    Object.assign(details.gpxStats, {
+                        terrainVersion: 'gpx-terrain-v1',
+                        primaryClimb: climbOk ? {startKm:c.startKm,endKm:c.endKm,distanceKm:c.distanceKm,gainMeters:c.gainMeters,averageGradePercent:c.averageGradePercent} : null,
+                        pauses: pausesOk ? {count:p.count,totalSeconds:p.totalSeconds,unobservedSeconds:p.unobservedSeconds,items:Array.isArray(p.items)?p.items.slice(0,50).filter(i=>i&&bounded(i.distanceKm,0,1000)&&bounded(i.seconds,20,31536000)).map(i=>({distanceKm:i.distanceKm,seconds:i.seconds})):[]} : null,
+                    });
+                }
             }
         }
         return details;
