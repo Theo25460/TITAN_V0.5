@@ -198,3 +198,11 @@
 .cs-item { padding-bottom: var(--s3); border-bottom: 1px solid var(--line); }
 .cs-result { display: grid; gap: var(--s1); }
 .cs-poll h3 { margin: 0; }
+
+/* Clubs (COM-C8): names, announcements and member names are free text from other people; never let them widen the page. */
+#clubs { overflow-wrap: anywhere; min-width: 0; }
+#clubs .asc-between { gap: var(--s2); align-items: flex-start; }
+#clubs .asc-between > span { min-width: 0; }
+#clubs textarea.asc-input { width: 100%; resize: vertical; }
+#clubs .asc-stack > * { min-width: 0; }
+#clubs .asc-row { flex-wrap: wrap; }

@@ -135,7 +135,8 @@ test('callback: a tampered, expired or foreign state, a missing code and Garmin 
     const good = sealState({ u: USER, v: 'verifier-0123456789' }, STATE_KEY);
     const expired = sealState({ u: USER, v: 'verifier-0123456789' }, STATE_KEY, Date.now() - 3600000);
     const foreign = sealState({ u: USER, v: 'verifier-0123456789' }, 'another-key-0123456789abcdef0123456789');
-    const flipped = good.slice(0, -2) + (good.endsWith('A') ? 'BB' : 'AA');
+    // Change a character well inside the signature: the last characters of a base64url value carry padding bits that do not change the decoded bytes.
+    const at10 = good.length - 10, flipped = good.slice(0, at10) + (good[at10] === 'A' ? 'B' : 'A') + good.slice(at10 + 1);
     await run(async calls => {
         for (const query of [`code=c0de1234&state=${flipped}`, `code=c0de1234&state=${expired}`, `code=c0de1234&state=${foreign}`, `state=${good}`, `code=c0de1234`, `code=%00%00%00%00&state=${good}`]) {
             const response = await handler(at(`action=callback&${query}`));
