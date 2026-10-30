@@ -452,6 +452,20 @@
 .gpx-metrics dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
 .gpx-figure svg { display: block; width: 100%; height: auto; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r2); }
 .gpx-figure polyline { fill: none; stroke: var(--cy); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.gpx-color-controls { margin-bottom: var(--s2); }
+.gpx-figure [data-color-mode="speed"] polyline, .gpx-figure [data-color-mode="grade"] polyline { stroke: var(--tx-3); }
+.gpx-color-line { stroke: var(--gpx-color); stroke-width: 3; stroke-linecap: round; }
+.gpx-band-0 { --gpx-color: #75baff; }
+.gpx-band-1 { --gpx-color: #7bdeb2; }
+.gpx-band-2 { --gpx-color: #f8d477; }
+.gpx-band-3 { --gpx-color: #ed9bca; }
+.gpx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; padding: 0; margin: var(--s2) 0; font-size: 12px; }
+.gpx-legend li { display: flex; align-items: center; gap: 5px; }
+.gpx-legend span { width: 14px; height: 3px; background: var(--gpx-color); }
+.gpx-unknown { --gpx-color: var(--tx-3); }
+.gpx-terrain { display: grid; gap: var(--s3); }
+.gpx-terrain h4 { margin: 0 0 var(--s2); }
+.gpx-terrain section { display: grid; gap: var(--s2); padding: var(--s3); background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r2); }
 .gpx-figure figcaption, .gpx-splits small { display: block; color: var(--tx-3); font-size: 12px; margin-top: 6px; }
 .gpx-table { max-height: 300px; overflow: auto; margin-top: var(--s2); }
 .gpx-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
