@@ -353,6 +353,29 @@
   }
 
   /* ---------- Rendering ---------- */
+  function analysisHtml() {
+    if (mode !== "coach" || !sameContext(viewContext) || !current() || !sessions || !assignments || window.titanFlags?.enabled?.("screens.coachanalysis", false) !== true) return "";
+    const a = window.TitanCoachAnalysis?.analyse({sessions, assignments, from:fromDate, to:toDate});
+    if (!a?.available) return "";
+    const partial = !a.sessionComplete || !a.assignmentComplete;
+    const knownDuration = value => value === null ? "Non disponible" : value === 0 ? "0 min" : F().duration(value);
+    return `<section class="co-analysis" data-co-analysis aria-labelledby="co-analysis-title">
+      <div><p class="asc-eyebrow cy">Analyse du suivi</p><h3 id="co-analysis-title">Bilan des données partagées</h3><p class="asc-small asc-muted">Du ${esc(date(a.from))} au ${esc(date(a.to))} · jours UTC · uniquement le partage de cet athlète.</p></div>
+      ${partial ? `<p class="asc-note" data-ca-partial>${icon("info")}<span>Bilan partiel : ${a.sessionLoaded} / ${a.sessionTotal ?? "?"} séances et ${a.assignmentLoaded} / ${a.assignmentTotal ?? "?"} propositions chargées. Les chiffres portent sur les pages reçues ; charge la suite dans les listes pour les compléter.</span></p>` : ""}
+      <dl class="co-analysis-stats"><div><dt>Séances dans la période</dt><dd data-ca-sessions>${a.sessions}</dd></div><div><dt>Durée renseignée</dt><dd data-ca-minutes>${esc(knownDuration(a.minutes))}</dd></div><div><dt>Jours avec séance</dt><dd>${a.activeDays}</dd></div></dl>
+      <p class="asc-small asc-muted">${a.measuredSessions} séance(s) avec une durée · ${a.missingDuration} séance(s) sans durée exploitable. Aucune durée déduite des kilomètres, répétitions ou charges.</p>
+      ${a.sports.length ? `<div class="co-analysis-table"><table data-ca-sports><caption>Répartition sur les séances partagées chargées</caption><thead><tr><th scope="col">Sport</th><th scope="col">Séances</th><th scope="col">Durée renseignée</th></tr></thead><tbody>${a.sports.map(s=>`<tr><th scope="row">${esc(s.sport === "unknown" ? "Sport non renseigné" : SP().label(s.sport))}</th><td>${s.sessions}</td><td>${esc(knownDuration(s.minutes))}<small>${s.measuredSessions} / ${s.sessions} renseignées</small></td></tr>`).join("")}</tbody></table></div>` : `<p class="asc-small asc-muted">Aucune séance partagée chargée dans cette période.</p>`}
+      <div class="co-analysis-programme"><h4>Prévu / réalisé</h4><p data-ca-adherence>${a.assignmentComplete ? (a.due ? `<strong>${a.adherencePercent} %</strong> · ${a.completed} / ${a.due} propositions acceptées échues réalisées.` : "Aucune proposition acceptée arrivée à échéance.") : "Taux non disponible : charge toutes les propositions pour le calculer."}</p>
+        <p class="asc-small asc-faint">Seulement les propositions acceptées dont le jour prévu précède aujourd’hui (UTC), dans la période sélectionnée. Une proposition refusée, annulée, en attente ou prévue aujourd’hui n’est pas un échec.</p></div>
+      <p class="asc-small asc-faint">Charge sRPE indisponible : le partage actuel ne transmet pas le ressenti. Ces durées ne sont ni une charge d’entraînement, ni des calories, ni de l’XP. Aucun accès supplémentaire ni donnée de santé déduite.</p>
+    </section>`;
+  }
+
+  function refreshAnalysis() {
+    const slot = root?.querySelector("[data-co-analysis-slot]");
+    if (slot) slot.innerHTML = analysisHtml();
+  }
+
   const LABELS = { proposed: "À accepter", accepted: "Prévue", declined: "Déclinée", completed: "Réalisée", cancelled: "Annulée" };
   function taskCards() {
     return (assignments?.rows || [])
@@ -425,6 +448,7 @@
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
             <form class="co-period" data-period><label class="asc-field"><span>Du</span><input class="asc-input" type="date" name="from" value="${fromDate}" max="${isoDay()}" required></label><label class="asc-field"><span>Au</span><input class="asc-input" type="date" name="to" value="${toDate}" max="${isoDay()}" required></label><button type="submit" class="asc-btn asc-btn-secondary">Appliquer</button></form><p class="asc-small asc-faint">Dates incluses · 366 jours au plus · le début réel respecte le consentement du sportif.</p>
+            <div data-co-analysis-slot>${analysisHtml()}</div>
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="asc-empty"><h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
@@ -525,6 +549,7 @@
     load();
   }
   window.addEventListener("titan:account-changing", () => booted && invalidate());
+  window.addEventListener("titan:flags-updated", () => booted && refreshAnalysis());
   window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("online", () => booted && load());
   document.addEventListener("visibilitychange", () => {

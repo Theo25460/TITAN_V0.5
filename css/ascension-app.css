@@ -3803,3 +3803,15 @@
 [data-activity-hub] select { width: 100%; min-width: 0; }
 [data-activity-hub] .asc-lead { margin-top: var(--s3); }
 .jr-add { margin-bottom: var(--s4); flex-wrap: wrap; }
+.co-analysis { display: grid; gap: var(--s3); padding: var(--s4); margin: var(--s3) 0; border: 1px solid var(--line); border-radius: var(--r2); background: var(--bg-2); min-width: 0; }
+.co-analysis h3, .co-analysis h4, .co-analysis p { margin: 0; }
+.co-analysis-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); margin: 0; }
+.co-analysis-stats dt { font-size: 12px; color: var(--tx-3); }
+.co-analysis-stats dd { margin: var(--s1) 0 0; font-size: clamp(17px, 2.2vw, 25px); font-weight: 700; overflow-wrap: anywhere; }
+.co-analysis-table { max-width: 100%; overflow-x: auto; }
+.co-analysis-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.co-analysis-table caption { text-align: left; color: var(--tx-3); padding-bottom: var(--s2); }
+.co-analysis-table th, .co-analysis-table td { padding: var(--s2) 5px; border-bottom: 1px solid var(--line); text-align: right; }
+.co-analysis-table th:first-child { text-align: left; }
+.co-analysis-table small { display: block; color: var(--tx-3); font-size: 11px; }
+.co-analysis-programme { display: grid; gap: var(--s2); }

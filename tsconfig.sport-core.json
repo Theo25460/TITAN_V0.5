@@ -17,6 +17,7 @@
     "js/core/endurance.js",
     "js/core/titles.js",
     "js/core/gpx.js",
+    "js/core/coach-analysis.js",
     "js/core/format.js",
     "js/core/steps.js",
     "js/core/sport-navigation.js",
