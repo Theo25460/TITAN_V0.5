@@ -3781,3 +3781,11 @@
 .rv-mine[data-done="true"] .rv-text { color: var(--tx-2); }
 .rv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
 .rv-share { display: flex; gap: var(--s2); align-items: center; min-height: 44px; }
+/* Web activity hub: retain native file input accessibility within its visual button. */
+.seance-hub-upload { position: relative; overflow: hidden; margin-top: var(--s3); }
+.seance-hub-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.seance-hub-upload:focus-within { outline: 2px solid var(--cy); outline-offset: 3px; }
+[data-activity-hub] .asc-note { flex-wrap: wrap; }
+[data-activity-hub] select { width: 100%; min-width: 0; }
+[data-activity-hub] .asc-lead { margin-top: var(--s3); }
+.jr-add { margin-bottom: var(--s4); flex-wrap: wrap; }

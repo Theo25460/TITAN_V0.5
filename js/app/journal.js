@@ -214,6 +214,7 @@
     const archivedCount = (window.state?.archivedHistory || []).length;
     const focus = document.activeElement?.id;
     root.innerHTML = `
+      ${window.titanFlags?.enabled?.("screens.activityhub", false) === true ? `<div class="asc-actions jr-add"><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Ajouter une activité</a><a class="asc-btn asc-btn-secondary" href="/training?mode=manual" data-journal-manual>Saisie manuelle</a></div>` : ""}
       ${pendingHtml()}
       <div class="jr-tools">
         <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
@@ -676,7 +677,7 @@
       start();
     });
   };
-  ["titan:history-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  ["titan:history-updated", "titan:pending-changed", "titan:flags-updated"].forEach((ev) => window.addEventListener(ev, queue));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
