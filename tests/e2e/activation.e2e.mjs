@@ -19,9 +19,11 @@ async function fixture(width){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  await context.route('**/*',async route=>{
   if(new URL(route.request().url()).hostname!=='127.0.0.1')return route.abort('internetdisconnected');
-  const response=await route.fetch(),headers={...response.headers()};
-  if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
-  await route.fulfill({response,headers});
+  try{
+   const response=await route.fetch(),headers={...response.headers()};
+   if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
+   await route.fulfill({response,headers});
+  }catch{/* a request still in flight when the page navigates or the context closes is already settled */}
  });
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(/Content Security Policy/i.test(m.text()))errors.push(m.text());});page.setDefaultTimeout(4000);
  return {context,page,errors};

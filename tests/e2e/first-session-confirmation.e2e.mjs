@@ -34,9 +34,11 @@ for(const width of [360,1280])for(const held of [false,true]){
     return route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify([receipt])});
    }
    if(url.hostname!=='127.0.0.1')return route.abort('internetdisconnected');
-   const response=await route.fetch(),headers={...response.headers()};
-   if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
-   await route.fulfill({response,headers});
+   try{
+    const response=await route.fetch(),headers={...response.headers()};
+    if(route.request().resourceType()==='document')headers['content-security-policy']=POLICY;
+    await route.fulfill({response,headers});
+   }catch{/* a request still in flight when the page navigates or the context closes is already settled */}
   });
   const page=await context.newPage();page.setDefaultTimeout(5000);
   page.on('pageerror',e=>errors.push(e.message));

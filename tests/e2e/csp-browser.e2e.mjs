@@ -52,10 +52,12 @@ test("the production CSP blocks nothing on any page, and its allowed hosts are o
       contacted.add(url.hostname);
       return route.abort("internetdisconnected");
     }
-    const response = await route.fetch();
-    const headers = { ...response.headers() };
-    if (route.request().resourceType() === "document") headers["content-security-policy"] = POLICY;
-    await route.fulfill({ response, headers });
+    try {
+      const response = await route.fetch();
+      const headers = { ...response.headers() };
+      if (route.request().resourceType() === "document") headers["content-security-policy"] = POLICY;
+      await route.fulfill({ response, headers });
+    } catch { /* a request still in flight when the page navigates or the context closes is already settled */ }
   });
   const violations = [];
   for (const path of PAGES) {
@@ -120,10 +122,12 @@ test("under the production policy the shell's delegated actions still work (menu
   const context = await browser.newContext({ serviceWorkers: "block", viewport: { width: 360, height: 900 } });
   await context.route("**/*", async (route) => {
     if (new URL(route.request().url()).hostname !== "127.0.0.1") return route.abort("internetdisconnected");
-    const response = await route.fetch();
-    const headers = { ...response.headers() };
-    if (route.request().resourceType() === "document") headers["content-security-policy"] = POLICY;
-    await route.fulfill({ response, headers });
+    try {
+      const response = await route.fetch();
+      const headers = { ...response.headers() };
+      if (route.request().resourceType() === "document") headers["content-security-policy"] = POLICY;
+      await route.fulfill({ response, headers });
+    } catch { /* a request still in flight when the page navigates or the context closes is already settled */ }
   });
   const page = await context.newPage();
   const violations = [];
