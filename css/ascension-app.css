@@ -3825,3 +3825,18 @@
   .co-comparison th, .co-comparison td { padding-inline: 3px; }
   .co-comparison small { font-size: 10px; }
 }
+
+.co-roster-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: var(--s2); margin-top: var(--s2); }
+.co-roster-grid .co-person { width: 100%; min-width: 0; }
+.co-roster-grid strong, .co-roster-grid small { overflow-wrap: anywhere; }
+.co-calendar-nav { flex-wrap: wrap; }
+.co-calendar-nav strong { text-transform: capitalize; }
+.co-calendar-day { border-left: 2px solid var(--cy); padding-left: var(--s3); min-width: 0; }
+.co-calendar-day h4 { margin: 0 0 var(--s2); font-size: 14px; }
+.co-calendar-day ul { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s2); }
+.co-calendar-day li { display: grid; overflow-wrap: anywhere; gap: var(--s1); }
+[data-co-export] button { white-space: normal; }
+[data-co-roster-slot], [data-co-calendar-slot], [data-co-export-slot] { min-width: 0; }
+[data-co-export] { margin-block: var(--s3); }
+
+[data-co-legacy-nav][hidden] { display: none; }
