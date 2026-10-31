@@ -38,6 +38,7 @@
     return dialog;
   }
   function invalidate() {
+    resetWorkspace();
     ++seq;
     ++detailSeq;
     snapshot = sessions = assignments = viewContext = null;
@@ -352,6 +353,102 @@
     });
   }
 
+  const workspace = () => window.TitanCoachWorkspace;
+  const feature = key => window.titanFlags?.enabled?.(key, false) === true;
+  const coachView = () => mode === "coach" && sameContext(viewContext) && !!snapshot;
+  let rosterQuery = "", rosterSport = "", calendarMonth = isoDay().slice(0,7), calendarStatus = "";
+  let exportSeq = 0, exportTask = null, exportStatus = "", exportError = "";
+  function cancelExport() { ++exportSeq; exportTask = null; exportStatus = exportError = ""; }
+  function resetWorkspace() { rosterQuery = rosterSport = calendarStatus = ""; calendarMonth = isoDay().slice(0,7); cancelExport(); }
+  function rosterResultsHtml() {
+    const list = workspace()?.roster({links:snapshot?.links||[], owner:owner(), query:rosterQuery, sport:rosterSport}) || [];
+    return `<p class="asc-small asc-muted" role="status">${list.length} suivi(s) affiché(s). Le filtre porte sur le sport autorisé, pas sur les séances pratiquées.</p>
+      ${list.length ? `<div class="co-roster-grid">${list.map(l=>`<button type="button" class="co-person" data-link="${esc(l.id)}" aria-pressed="${l.id===selected}"><span><strong>${esc(l.athlete_name||"Compte TITAN")}</strong><small>${l.sport ? esc(SP().label(l.sport)) : "Tous les sports partagés"} · depuis le ${esc(date(l.since_date))}</small></span></button>`).join("")}</div>` : `<p class="asc-small">Aucun suivi ne correspond à ces filtres.</p>`}`;
+  }
+  function rosterHtml() {
+    if (!coachView() || !feature("screens.coachworkspace")) return "";
+    const sports = [...new Set(links().map(l=>l.sport).filter(Boolean))].sort();
+    return `<section class="co-card asc-stack" data-co-roster aria-labelledby="co-roster-title"><h2 id="co-roster-title" class="asc-h3">Mes athlètes</h2>
+      <div class="asc-form-grid"><label class="asc-field"><span>Rechercher un athlète</span><input type="search" class="asc-input" id="co-roster-query" data-roster-query maxlength="80" value="${esc(rosterQuery)}"></label>
+      <label class="asc-field"><span>Sport partagé</span><select id="co-roster-sport" data-roster-sport><option value="">Tous les sports</option>${sports.map(s=>`<option value="${esc(s)}"${s===rosterSport?" selected":""}>${esc(SP().label(s))}</option>`).join("")}</select></label></div>
+      <div data-roster-results>${rosterResultsHtml()}</div><p class="asc-small asc-faint">Vue des partages actifs uniquement. Choisis un athlète pour lire son suivi ; aucun historique supplémentaire n’est chargé par les filtres.</p></section>`;
+  }
+  function calendarHtml() {
+    if (!coachView() || !current() || !assignments || !feature("screens.coachcalendar")) return "";
+    const c = workspace()?.calendar({assignments,month:calendarMonth,status:calendarStatus});
+    if (!c?.available) return "";
+    const title = new Date(calendarMonth+"-01T12:00:00Z").toLocaleDateString("fr-FR",{timeZone:"UTC",month:"long",year:"numeric"});
+    return `<section class="co-card asc-stack" data-co-calendar aria-labelledby="co-calendar-title"><h3 id="co-calendar-title" class="asc-h3">Calendrier des propositions</h3>
+      <div class="asc-row-flex co-calendar-nav"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-calendar-move="-1" aria-label="Mois précédent"${workspace().shiftMonth(calendarMonth,-1)?"":" disabled"}>${icon("chevronLeft")} Précédent</button><strong aria-live="polite">${esc(title)}</strong><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-calendar-move="1" aria-label="Mois suivant"${workspace().shiftMonth(calendarMonth,1)?"":" disabled"}>Suivant ${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-calendar-today>Mois actuel</button></div>
+      <label class="asc-field"><span>Statut des propositions</span><select id="co-calendar-status" data-calendar-status><option value="">Tous les statuts</option>${Object.entries(LABELS).map(([key,label])=>`<option value="${key}"${calendarStatus===key?" selected":""}>${label}</option>`).join("")}</select></label>
+      <p class="asc-small asc-muted">${c.complete?"Toutes les propositions chargées":"Calendrier partiel"} · ${c.loaded} / ${c.total??"?"} propositions chargées · dates UTC. ${c.complete?"":"Charge les précédentes dans la liste pour compléter ce calendrier."}</p>
+      ${c.days.length ? `<div class="asc-stack">${c.days.map(d=>`<div class="co-calendar-day" data-calendar-day><h4>${esc(date(d.date))}</h4><ul>${d.rows.map(t=>`<li data-calendar-task><strong>${esc(t.title||"Séance proposée")}</strong><span class="asc-small asc-muted">${esc(SP().label(t.sport))} · ${esc(LABELS[t.status])}</span></li>`).join("")}</ul></div>`).join("")}</div>` : `<p class="asc-small">Aucune proposition parmi les données chargées pour ce mois et ce filtre.${c.complete?"":" Ce résultat ne décrit pas les pages encore absentes."}</p>`}
+      <p class="asc-small asc-faint">Ce calendrier organise les propositions existantes. Une séance déclinée ou en attente n’est pas une séance manquée.</p></section>`;
+  }
+  function exportHtml() {
+    if (!coachView() || !current() || !feature("screens.coachexport")) return "";
+    return `<section class="co-card asc-stack" data-co-export aria-labelledby="co-export-title"><h3 id="co-export-title" class="asc-h3">Exporter ce suivi</h3>
+      <p class="asc-small asc-muted">CSV des séances de la période appliquée, après nouvelle vérification du partage. Date UTC, sport, valeur/unité et durée renseignée uniquement ; notes, santé et localisation exclues.</p>
+      <button type="button" class="asc-btn asc-btn-secondary" data-co-export-csv${exportTask?" disabled":""}>${icon("download")} Exporter les séances partagées (CSV)</button>
+      <p class="asc-small asc-muted" role="status" data-export-status>${esc(exportStatus)}</p><p class="asc-small jr-edit-error" role="alert" data-export-error>${esc(exportError)}</p>
+      <p class="asc-small asc-faint">Le fichier est privé. Une copie déjà téléchargée ne peut pas être rappelée après la révocation du partage ; conserve-la uniquement pour ce suivi.</p></section>`;
+  }
+  function refreshSlot(selector, html) {
+    const slot = root?.querySelector(selector);
+    if (!slot) return;
+    const focus = slot.contains(document.activeElement) ? document.activeElement : null;
+    const id=focus?.id, selection=focus&&typeof focus.selectionStart==="number"?[focus.selectionStart,focus.selectionEnd]:null;
+    slot.innerHTML=html;
+    const next=id?slot.querySelector(`#${id}`):null;
+    if(next){next.focus({preventScroll:true});if(selection&&next.setSelectionRange)next.setSelectionRange(...selection);}
+  }
+  function refreshWorkspace() {
+    if (!feature("screens.coachexport")) cancelExport();
+    refreshSlot("[data-co-roster-slot]",rosterHtml());
+    refreshSlot("[data-co-calendar-slot]",calendarHtml());
+    refreshSlot("[data-co-export-slot]",exportHtml());
+    const legacy=root?.querySelector("[data-co-legacy-nav]"),overview=mode==="coach"&&feature("screens.coachworkspace");
+    if(legacy)legacy.hidden=overview;
+    root?.querySelector(".co-layout")?.classList.toggle("is-single",links().length===1||overview);
+  }
+  async function exportCsv() {
+    if (!coachView() || !current() || !feature("screens.coachexport") || exportTask) return;
+    const job=viewContext, link={...current()}, from=fromDate, to=toDate, id=++exportSeq;
+    exportTask=id;exportStatus="Vérification du partage…";exportError="";
+    const alive=()=>exportTask===id&&exportSeq===id&&sameContext(job)&&mode==="coach"&&feature("screens.coachexport")&&current()?.id===link.id&&current()?.revision===link.revision&&fromDate===from&&toDate===to;
+    const check=()=>{if(!alive())throw Error("EXPORT_CANCELLED");};
+    const progress=message=>{check();exportStatus=message;refreshSlot("[data-co-export-slot]",exportHtml());};
+    const checkSnapshot=s=>{
+      const fresh=s?.links?.find(l=>l.id===link.id);
+      if(s?.owner!==job.owner||!fresh||fresh.revoked_at||fresh.coach_id!==job.owner||fresh.athlete_id!==link.athlete_id||fresh.revision!==link.revision||fresh.since_date!==link.since_date||fresh.sport!==link.sport||fresh.share_details!==link.share_details||fresh.share_notes!==link.share_notes)throw Error("SHARING_UNAVAILABLE");
+    };
+    refreshSlot("[data-co-export-slot]",exportHtml());
+    try {
+      checkSnapshot(await rpc("snapshot",{},job));check();
+      let envelope=null, rows=[];
+      for(let page=0;page<100;page++){
+        progress(`Lecture des séances partagées… ${rows.length} reçues.`);
+        const next=await rpc("sessions",{link_id:link.id,from_date:from,to_date:to,offset:rows.length},job);check();
+        if(next?.owner!==job.owner||next.link_id!==link.id||next.revision!==link.revision||!Array.isArray(next.rows)||next.rows.length>100||!Number.isSafeInteger(next.total)||next.total<0||next.total>10000||next.from_date<link.since_date)throw Error("EXPORT_INVALID");
+        if(envelope&&(next.total!==envelope.total||next.from_date!==envelope.from_date||next.to_date!==envelope.to_date))throw Error("EXPORT_INVALID");
+        envelope=next;rows.push(...next.rows);
+        if(rows.length>next.total||(!next.rows.length&&rows.length<next.total))throw Error("EXPORT_INVALID");
+        if(rows.length===next.total)break;
+      }
+      const result=workspace()?.csv({sessions:{...envelope,rows},owner:job.owner,linkId:link.id,revision:link.revision,from,to});
+      if(!result?.available)throw Error("EXPORT_INVALID");
+      progress("Dernière vérification du partage…");checkSnapshot(await rpc("snapshot",{},job));check();
+      const url=URL.createObjectURL(new Blob([result.text],{type:"text/csv;charset=utf-8"}));
+      const a=document.createElement("a");a.href=url;a.download=`titan-coach-${result.from}-${result.to}.csv`;
+      try{document.body.append(a);a.click();}finally{a.remove();URL.revokeObjectURL(url);}
+      exportStatus=`${result.count} séance(s) exportée(s).`;
+    } catch(e) {
+      if(alive()) { exportStatus="";exportError=e.message==="SHARING_UNAVAILABLE"?"Le partage a changé ou a été révoqué. Recharge ce suivi avant d’exporter.":"Export non confirmé : données incomplètes, modifiées ou indisponibles. Réessaie après actualisation."; }
+    } finally {
+      if(exportTask===id){exportTask=null;refreshSlot("[data-co-export-slot]",exportHtml());}
+    }
+  }
+
   /* ---------- Rendering ---------- */
   function comparisonHtml() {
     const c = window.TitanCoachAnalysis?.compare({sessions, assignments, from:fromDate, to:toDate});
@@ -466,17 +563,19 @@
         <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-${mode === "coach" ? "invite" : "join"}>${icon("plus")} ${mode === "coach" ? "Créer une invitation" : "J’ai reçu un code"}</button></div>
         ${mode === "coach" && snapshot.invites?.length ? `<details class="co-invites"><summary>${snapshot.invites.length} invitation(s) en attente</summary>${snapshot.invites.map((v) => `<div class="asc-between"><span class="asc-small">Créée le ${esc(date(v.created_at))} · expire le ${esc(date(v.expires_at))}</span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-invite="${esc(v.id)}">Annuler</button></div>`).join("")}</details>` : ""}
       </section>
-      ${list.length ? `<div class="co-layout${list.length === 1 ? " is-single" : ""}">
-        ${list.length === 1 ? "" : `<nav class="co-people" aria-label="Suivis">`}${list.length === 1 ? "" : list.map((x) => `<button type="button" class="co-person" data-link="${esc(x.id)}" aria-pressed="${x.id === selected}">${icon(mode === "coach" ? "user" : "group")}<span><strong>${esc((mode === "coach" ? x.athlete_name : x.coach_name) || "Compte TITAN")}</strong><small>Depuis le ${esc(date(x.accepted_at))}</small></span></button>`).join("") + "</nav>"}
+      <div data-co-roster-slot>${rosterHtml()}</div>
+      ${list.length ? `<div class="co-layout${list.length === 1 || mode === "coach" && feature("screens.coachworkspace") ? " is-single" : ""}">
+        ${list.length === 1 ? "" : `<nav class="co-people" data-co-legacy-nav aria-label="Suivis"${mode === "coach" && feature("screens.coachworkspace")?" hidden":""}>`}${list.length === 1 ? "" : list.map((x) => `<button type="button" class="co-person" data-link="${esc(x.id)}" aria-pressed="${x.id === selected}">${icon(mode === "coach" ? "user" : "group")}<span><strong>${esc((mode === "coach" ? x.athlete_name : x.coach_name) || "Compte TITAN")}</strong><small>Depuis le ${esc(date(x.accepted_at))}</small></span></button>`).join("") + "</nav>"}
         ${l ? `<div class="co-detail">
           <section class="co-card"><div class="asc-between"><h3 class="asc-h3">${esc((mode === "coach" ? l.athlete_name : l.coach_name) || "Mon suivi")}</h3><span class="asc-chip">Partage actif</span></div>
             <p class="asc-small asc-muted">${list.length === 1 ? `Suivi depuis le ${esc(date(l.accepted_at))} · ` : ""}Partage depuis le ${esc(date(l.since_date))} · ${l.sport ? esc(SP().label(l.sport)) : "Tous les sports"} · ${l.share_details ? "détails techniques inclus" : "mesures essentielles"} · ${l.share_notes ? "notes incluses" : "notes privées"}</p>
             <div class="asc-row-flex">${mode === "athlete" ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-scope>${icon("settings")} Modifier mon partage</button>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-propose>${icon("plus")} Proposer une séance</button>`}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-revoke>Arrêter le partage</button></div></section>
+          <div data-co-calendar-slot>${calendarHtml()}</div>
           <section class="asc-section"><div class="asc-section-head"><h2>Séances proposées</h2><span class="asc-small asc-muted">${assignments ? `${assignments.total} au total` : "…"}</span></div>
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
             <form class="co-period" data-period><label class="asc-field"><span>Du</span><input class="asc-input" type="date" name="from" value="${fromDate}" max="${isoDay()}" required></label><label class="asc-field"><span>Au</span><input class="asc-input" type="date" name="to" value="${toDate}" max="${isoDay()}" required></label><button type="submit" class="asc-btn asc-btn-secondary">Appliquer</button></form><p class="asc-small asc-faint">Dates incluses · 366 jours au plus · le début réel respecte le consentement du sportif.</p>
-            <div data-co-analysis-slot>${analysisHtml()}</div>
+            <div data-co-analysis-slot>${analysisHtml()}</div><div data-co-export-slot>${exportHtml()}</div>
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="asc-empty"><h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
@@ -506,6 +605,7 @@
     const b = e.target.closest("button");
     if (!b || !root.contains(b) || !activeView()) return;
     if (b.dataset.mode) {
+      resetWorkspace();
       mode = b.dataset.mode;
       selected = links()[0]?.id || "";
       sessions = null;
@@ -516,7 +616,14 @@
     }
     if (b.hasAttribute("data-invite")) return invite(b);
     if (b.hasAttribute("data-join")) return join();
+    if (b.hasAttribute("data-co-export-csv")) return exportCsv();
+    if (b.hasAttribute("data-calendar-move") || b.hasAttribute("data-calendar-today")) {
+      calendarMonth=b.hasAttribute("data-calendar-today")?isoDay().slice(0,7):workspace().shiftMonth(calendarMonth,Number(b.dataset.calendarMove))||calendarMonth;
+      const target=b.hasAttribute("data-calendar-today")?"[data-calendar-today]":`[data-calendar-move="${b.dataset.calendarMove}"]`;
+      refreshSlot("[data-co-calendar-slot]",calendarHtml());root.querySelector(target)?.focus({preventScroll:true});return;
+    }
     if (b.dataset.link) {
+      cancelExport();calendarMonth=isoDay().slice(0,7);calendarStatus="";
       selected = b.dataset.link;
       sessions = null;
       assignments = null;
@@ -555,6 +662,7 @@
     e.preventDefault();
     if (!activeView()) return;
     const f = new FormData(e.target);
+    cancelExport();
     fromDate = f.get("from");
     toDate = f.get("to");
     sessions = null;
@@ -562,6 +670,12 @@
     loadDetail();
   }
 
+  function onWorkspaceInput(e) {
+    if (!activeView() || !coachView()) return;
+    if (e.target.matches("[data-roster-query]")) {rosterQuery=e.target.value.slice(0,80);const results=root.querySelector("[data-roster-results]");if(results)results.innerHTML=rosterResultsHtml();}
+    if (e.target.matches("[data-roster-sport]")) {rosterSport=e.target.value;const results=root.querySelector("[data-roster-results]");if(results)results.innerHTML=rosterResultsHtml();}
+    if (e.target.matches("[data-calendar-status]")) {calendarStatus=e.target.value;refreshSlot("[data-co-calendar-slot]",calendarHtml());}
+  }
   let booted = false;
   function start() {
     root = document.getElementById("coaching");
@@ -573,17 +687,20 @@
     root.addEventListener("keydown", onTabKey);
     root.addEventListener("focusout", onTabExit);
     root.addEventListener("submit", onSubmit);
+    root.addEventListener("input", onWorkspaceInput);
+    root.addEventListener("change", onWorkspaceInput);
     render();
     load();
   }
   window.addEventListener("titan:account-changing", () => booted && invalidate());
-  window.addEventListener("titan:flags-updated", () => booted && refreshAnalysis());
+  window.addEventListener("titan:flags-updated", () => {if(booted){refreshAnalysis();refreshWorkspace();}});
   window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("online", () => booted && load());
   document.addEventListener("visibilitychange", () => {
     if (!booted) return;
     if (!document.hidden) load();
     else {
+      cancelExport();
       sessions = null;
       assignments = null;
     }
