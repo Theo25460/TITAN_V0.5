@@ -146,8 +146,12 @@
     if (!m.sessions) return "";
     const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
     const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    // The optional weekly quest only exists for the week in progress (the server computes it for now); older weeks say nothing about it.
+    const pq = offset === 0 ? window.TitanPeriodicQuests?.get?.()?.week : null;
+    const qd = pq && window.TitanPeriodicQuestText?.describe(pq, { sportLabel: (x) => SP().label(x) });
+    const quest = qd ? `<p class="asc-small" data-week-quest>Quête de la semaine, facultative · ${esc(qd.title)} : <strong>${qd.value}/${qd.target}</strong> ${esc(qd.target > 1 ? qd.unit[1] : qd.unit[0])}${qd.state === "claimed" ? " · souvenir récupéré" : qd.state === "ready" ? " · terminée" : ""}</p>` : "";
     return `<section class="asc-section wk-weekly" data-week-detail aria-labelledby="wk-detail-title"><div class="asc-section-head"><h2 id="wk-detail-title">Par discipline</h2></div>
-      <p class="asc-lead">${esc(d.text)}</p><div class="asc-list">${rows}</div>
+      <p class="asc-lead">${esc(d.text)}</p><div class="asc-list">${rows}</div>${quest}
       ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}</section>`;
   }
 
@@ -315,6 +319,7 @@
     if (!booted) {
       booted = true;
       SP().ensure();
+      window.TitanPeriodicQuests?.refresh();
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
         if (e.target.closest("[data-month-card]")) return monthCard();
@@ -357,6 +362,7 @@
   };
   ["titan:history-updated", "titan:adventure-updated"].forEach((ev) => window.addEventListener(ev, queue));
   window.addEventListener("titan:steps-updated", queue);
+  window.addEventListener("titan:periodic-quests-updated", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

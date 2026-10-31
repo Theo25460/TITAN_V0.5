@@ -32,6 +32,7 @@
   let root = null;
   let draft = {};   // typed text survives a refresh; never sent anywhere
   let openRoster = new Set();   // which member lists the administrator left open
+  let synced = false;           // the trophy hand-out is asked once per session and account
   let reporting = null;         // { club, announcement } the report form being filled, if any
 
   const context = () => ({ owner: window.state?.user?.id || null, client: window.titanClient || null, epoch: window.titanAccountTransition?.epoch });
@@ -45,7 +46,7 @@
   };
   const date = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); };
 
-  function reset() { data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; }
+  function reset() { data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -59,6 +60,8 @@
     const ask = context();
     flight = (async () => {
       try {
+        // Season trophies are earned from frozen results: ask the server once per session to hand out the ones that are due (a missing function is not an error).
+        if (!synced) { synced = true; try { await ask.client.rpc("titan_club_trophy_sync_v1"); } catch { /* optional */ } if (!same(ask, context())) return; }
         const [mine, found] = await Promise.all([ask.client.rpc("titan_club_my_v1"), ask.client.rpc("titan_club_discover_v1")]);
         if (!same(ask, context())) return;
         if (mine.error) { if (missingFn(mine.error)) missing = true; else notice = failure(mine.error); return; }

@@ -37,6 +37,15 @@ test("weekly detail: disciplines keep their own units, the comparison is honest,
     });
     const detail = page.locator("[data-week-detail]");
     await detail.waitFor();
+    // The optional weekly quest (server) is told in the recap of the week in progress only.
+    await page.evaluate(() => {
+      const week = { scope: "week", kind: "constancy", target: { days: 3 }, progress: { days: 2 }, complete: false, claimed: false };
+      window.titanClient.rpc = (name) => { const r = Promise.resolve(name === "titan_periodic_quests_v1" ? { data: { week, month: { ...week, scope: "month", kind: "regularity", target: { days: 12 }, progress: { days: 4 } }, souvenirs: {} }, error: null } : { data: null, error: { code: "PGRST202", message: "Could not find" } }); r.setHeader = () => r; return r; };
+      window.state.user.id = "00000000-0000-4000-8000-000000000951";
+      return window.TitanPeriodicQuests.refresh(true);
+    });
+    await page.waitForFunction(() => /Quête de la semaine, facultative/.test(document.querySelector("[data-week-detail]")?.innerText || ""));
+    assert.match((await page.locator("[data-week-quest]").innerText()).replace(/\s+/g, " "), /Garder ton rythme : 2\/3 jours/);
     const text = (await detail.innerText()).replace(/\s+/g, " ");
     assert.match(text, /Par discipline/);
     assert.match(text, /2 séances|1 séance/);
@@ -46,6 +55,7 @@ test("weekly detail: disciplines keep their own units, the comparison is honest,
     assert.match(text, /de plus|de moins|même rythme/);
     await page.getByRole("button", { name: "Semaine précédente", exact: true }).click();
     await page.waitForFunction(() => /8 km/.test(document.querySelector("[data-week-detail]")?.innerText || ""));
+    assert.equal(await page.locator("[data-week-quest]").count(), 0, "an older week says nothing about the quest");
     assert.doesNotMatch((await page.locator("[data-week-detail]").innerText()), /Semaine en cours/);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });
