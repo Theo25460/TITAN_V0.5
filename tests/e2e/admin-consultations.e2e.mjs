@@ -24,6 +24,7 @@ function fakeAdmin({ admin, missing, evil }) {
     polls: [{ id: "p1", title: `Quelle quête ? ${evil}`, detail: null, opensAt: "2026-10-28T08:00:00Z", closesAt: "2026-11-05T08:00:00Z", state: "open", options: [{ position: 1, label: "Endurance", votes: 4 }, { position: 2, label: "Force", votes: 7 }] }],
     seasons: [{ id: "s1", name: "Saison de la reprise", rules: null, rulesVersion: 2, startsOn: "2026-09-28", endsOn: "2026-10-25", closed: true, participants: 40 }],
     goals: [{ id: "g1", startsOn: "2026-10-01", endsOn: "2026-10-28", title: "Un mois ensemble", detail: null, levels: [5000, 15000, 40000], members: 25 }],
+    reports: [{ id: "r1", clubId: "c1", club: "Foulées du mardi", announcementId: "a1", announcement: `Un message ${evil}`, reason: "harassment", details: "Insultes", at: "2026-10-29T10:00:00Z", sameTarget: 2 }, { id: "r2", clubId: "c2", club: "Trail", announcementId: null, announcement: null, reason: "spam", details: null, at: "2026-10-29T11:00:00Z", sameTarget: 1 }],
     quests: [{ id: "q1", weekStart: "2026-10-26", title: "Cent minutes ensemble", detail: null, target: 1000, members: 12 }],
     ideas: [{ id: "i1", title: "Duels entre amis", detail: "x", status: "study", sortOrder: 1, archived: false, votes: 3, history: [] }],
   };
@@ -37,6 +38,8 @@ function fakeAdmin({ admin, missing, evil }) {
       if (missing && /^titan_(poll|roadmap)/.test(name)) return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
       if (!admin && /^titan_(poll|roadmap)/.test(name)) return fail("ADMIN_REQUIRED", "42501");
       if (name === "titan_poll_admin_list_v1") return { data: db.polls, error: null };
+      if (name === "titan_club_reports_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.reports, error: null };
+      if (name === "titan_club_report_resolve_v1") { db.reports = db.reports.filter(r => r.id !== params.p_report); return { data: true, error: null }; }
       if (name === "titan_world_goal_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.goals, error: null };
       if (name === "titan_world_goal_admin_save_v1") { db.goals.unshift({ id: "g2", startsOn: params.p_starts, endsOn: params.p_ends, title: params.p_title, detail: params.p_detail, levels: [params.p_level1, params.p_level2, params.p_level3], members: 0 }); return { data: "g2", error: null }; }
       if (name === "titan_season_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.seasons, error: null };
@@ -175,5 +178,23 @@ test("admin consultations: world goals are listed with their three levels and cr
     await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_world_goal_admin_save_v1"));
     assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_world_goal_admin_save_v1").params),
       { p_id: null, p_starts: "2026-11-02", p_ends: "2026-11-29", p_title: "Cap sur l'hiver", p_detail: null, p_level1: 5000, p_level2: 15000, p_level3: 40000 });
+  } finally { await context.close(); }
+});
+
+test("admin consultations: club reports show the text concerned as text, and a decision needs a confirmation (COM-C8)", async () => {
+  const { page, context } = await open();
+  try {
+    const table = page.locator("table[aria-label='Signalements de clubs']");
+    await table.waitFor();
+    assert.match(await table.innerText(), /Foulées du mardi[\s\S]*Harcèlement[\s\S]*2 signalement[\s\S]*Trail[\s\S]*Le club lui-même/);
+    assert.equal(await page.evaluate(() => window.pwned), undefined);
+    assert.equal(await table.locator("img").count(), 0, "text is escaped");
+    assert.equal(await table.locator("tr", { hasText: "Trail" }).locator("[data-club-report-act=remove_announcement]").count(), 0, "no announcement to remove on a club report");
+    await table.locator("[data-club-report-act=remove_announcement]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_club_report_resolve_v1")), false, "nothing is decided before the confirmation");
+    await page.locator("[data-confirm-ok]").click();
+    await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_club_report_resolve_v1"));
+    assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_club_report_resolve_v1").params), { p_report: "r1", p_action: "remove_announcement", p_note: null });
+    await page.waitForFunction(() => !/Foulées du mardi/.test(document.querySelector("table[aria-label='Signalements de clubs']")?.innerText || ""));
   } finally { await context.close(); }
 });

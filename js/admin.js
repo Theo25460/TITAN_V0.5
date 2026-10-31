@@ -1462,6 +1462,8 @@
         if (pioneerGrant) { await grantPioneers(); return; }
         const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
         if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const reportAct = event.target.closest('[data-club-report-act]');
+        if (reportAct) { await resolveClubReport(reportAct.dataset.report, reportAct.dataset.clubReportAct); return; }
         const goalCreate = event.target.closest('[data-wg-create]');
         if (goalCreate) { await createWorldGoal(); return; }
         const seasonCreate = event.target.closest('[data-season-create]');
@@ -2430,7 +2432,7 @@
         const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
-        const [polls, ideas, quests, seasons, worldGoals] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1')]);
+        const [polls, ideas, quests, seasons, worldGoals, clubReports] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1'), state.client.rpc('titan_club_reports_admin_list_v1')]);
         const error = polls.error || ideas.error;
         if (error) {
             let message;
@@ -2482,6 +2484,7 @@
             <h3>Saisons de 28 jours</h3>
             ${seasonMarkup(seasons)}
             ${worldGoalMarkup(worldGoals)}
+            ${clubReportsMarkup(clubReports)}
             <h3>Feuille de route</h3>
             ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
             <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
@@ -2501,6 +2504,27 @@
                 <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
                 ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
             </form>`;
+    }
+
+    const REPORT_REASONS = { spam: 'Spam', harassment: 'Harcèlement', inappropriate: 'Inapproprié', other: 'Autre' };
+    function clubReportsMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les signalements de clubs ne sont pas disponibles sur ce serveur : applique la migration 20261030100000_club_reports.sql.' : consultationError(result.error))}</p></div>`;
+        const list = Array.isArray(result.data) ? result.data : [];
+        if (!list.length) return '<h3>Signalements de clubs</h3><p><small>Aucun signalement ouvert.</small></p>';
+        const rows = list.map((r) => `<tr><td>${escapeHtml(new Date(r.at).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(r.club)}</strong><br><small>${r.announcement ? '« ' + escapeHtml(r.announcement) + ' »' : 'Le club lui-même'}</small></td><td>${escapeHtml(REPORT_REASONS[r.reason] || r.reason)}${r.details ? '<br><small>' + escapeHtml(r.details) + '</small>' : ''}<br><small>${Number(r.sameTarget) || 1} signalement(s)</small></td><td>
+            ${buttonMarkup('Ignorer', 'ri-close-line', 'secondary', `data-club-report-act="dismiss" data-report="${escapeHtml(r.id)}"`)}
+            ${r.announcementId ? buttonMarkup('Retirer l’annonce', 'ri-delete-bin-line', 'secondary', `data-club-report-act="remove_announcement" data-report="${escapeHtml(r.id)}"`) : ''}
+            ${buttonMarkup('Archiver le club', 'ri-archive-line', 'danger', `data-club-report-act="archive_club" data-report="${escapeHtml(r.id)}"`)}</td></tr>`).join('');
+        return `<h3>Signalements de clubs</h3>${tableShell(`<table class="admin-table" aria-label="Signalements de clubs"><thead><tr><th>Date</th><th>Contenu</th><th>Motif</th><th>Décision</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    async function resolveClubReport(id, action) {
+        const archive = action === 'archive_club';
+        const reason = await confirmSensitive({ title: action === 'dismiss' ? 'Ignorer ce signalement' : archive ? 'Archiver ce club' : 'Retirer cette annonce', message: archive ? 'Le club disparaît pour tous ses membres.' : action === 'dismiss' ? 'Le signalement est clos sans autre effet.' : 'L’annonce disparaît pour les membres du club.', actionLabel: 'Confirmer', danger: archive, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_club_report_resolve_v1', { p_report: id, p_action: action, p_note: typeof reason === 'string' && reason ? reason : null });
+        if (error) notify('Décision refusée', consultationError(error), 'danger'); else notify('Décision enregistrée', 'Le signalement est clos.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     function worldGoalMarkup(result) {

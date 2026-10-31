@@ -12,6 +12,7 @@
     BAD_NAME: "Le nom d’un club fait entre 3 et 60 caractères.",
     BAD_DESCRIPTION: "La description fait 300 caractères au plus.",
     BAD_ANNOUNCEMENT: "Une annonce fait entre 1 et 500 caractères.",
+    BAD_REASON: "Choisis un motif de signalement.",
     TOO_MANY_CREATED: "Tu as déjà créé trois clubs.",
     TOO_MANY_CLUBS: "Tu fais déjà partie de cinq clubs.",
     CLUB_FULL: "Ce club est complet.",
@@ -31,6 +32,7 @@
   let root = null;
   let draft = {};   // typed text survives a refresh; never sent anywhere
   let openRoster = new Set();   // which member lists the administrator left open
+  let reporting = null;         // { club, announcement } the report form being filled, if any
 
   const context = () => ({ owner: window.state?.user?.id || null, client: window.titanClient || null, epoch: window.titanAccountTransition?.epoch });
   const same = (a, b) => a && b && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch && !window.titanAccountTransition?.active;
@@ -43,7 +45,7 @@
   };
   const date = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); };
 
-  function reset() { data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); }
+  function reset() { data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -85,9 +87,17 @@
   }
 
   const val = (key) => draft[key] || "";
+  function reportForm(c) {
+    return `<form class="asc-panel asc-stack" data-club-report-form="${esc(c.id)}" novalidate><h3>${reporting.announcement ? "Signaler cette annonce" : "Signaler ce club"}</h3>
+      <p class="asc-small asc-muted">Ton signalement n’est lu que par l’équipe TITAN, jamais par le club.</p>
+      <label class="asc-field"><span>Motif</span><select class="asc-select" data-club-draft="reason"><option value="">Choisir…</option>${[["spam", "Spam ou publicité"], ["harassment", "Harcèlement ou insultes"], ["inappropriate", "Contenu inapproprié"], ["other", "Autre"]].map(([v, l]) => `<option value="${v}" ${val("reason") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label class="asc-field"><span>Précision (facultatif)</span><input class="asc-input" maxlength="300" data-club-draft="details" value="${esc(val("details"))}"></label>
+      <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Envoyer le signalement</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report-cancel>Annuler</button></div></form>`;
+  }
+
   function clubHtml(c) {
     const admin = c.role === "admin";
-    const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span>${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}</li>`).join("");
+    const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span><span class="asc-row">${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}${a.mine ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="${esc(a.id)}" aria-label="Signaler cette annonce">Signaler</button>`}</span></li>`).join("");
     const roster = admin ? `<details class="asc-small" data-club-roster="${esc(c.id)}" ${openRoster.has(c.id) ? "open" : ""}><summary>Membres (${n(c.members)})</summary><ul class="rv-list">${(c.roster || []).map((m) => `<li class="asc-between"><span>${esc(m.name)}${m.role === "admin" ? " · administrateur" : ""}</span>${m.role === "admin" ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-kick="${esc(c.id)}" data-user="${esc(m.userId)}" data-name="${esc(m.name)}">Retirer</button>`}</li>`).join("")}</ul></details>` : "";
     const tools = admin ? `<div class="asc-stack">
         <p class="asc-small">Code pour inviter : <strong data-club-code>${esc(c.code)}</strong></p>
@@ -99,7 +109,8 @@
       ${c.description ? `<p class="asc-small asc-muted">${esc(c.description)}</p>` : ""}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
-      <div class="asc-row"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-leave="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Quitter le club</button></div></article>`;
+      ${reporting && reporting.club === c.id ? reportForm(c) : ""}
+      <div class="asc-row"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="">Signaler ce club</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-leave="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Quitter le club</button></div></article>`;
   }
 
   function render() {
@@ -139,6 +150,13 @@
     if (e.target.matches("[data-club-join-form]")) {
       const code = val("code").trim();
       if (code) act("titan_club_join_v1", { p_code: code, p_club: null }, () => { draft.code = ""; });
+    } else if (e.target.matches("[data-club-report-form]")) {
+      if (!reporting) return;
+      const target = reporting;
+      if (!val("reason")) { notice = MESSAGES.BAD_REASON; render(); return; }
+      act("titan_club_report_v1", { p_club: target.club, p_announcement: target.announcement || null, p_reason: val("reason"), p_details: val("details").trim() || null }, () => {
+        reporting = null; delete draft.reason; delete draft.details; notice = "Merci : ton signalement a été transmis à l’équipe TITAN.";
+      });
     } else if (e.target.matches("[data-club-create-form]")) {
       const name = val("name").trim();
       if (name.length < 3) { notice = MESSAGES.BAD_NAME; render(); return; }
@@ -149,6 +167,8 @@
     const t = e.target.closest?.("#clubs button");
     if (!t || !root) return;
     const club = (id) => (data || []).find((c) => c.id === id);
+    if (t.dataset.clubReport !== undefined) { reporting = { club: t.dataset.clubReport, announcement: t.dataset.ann || null }; render(); root.querySelector("[data-club-report-form] select")?.focus(); return; }
+    if (t.matches("[data-club-report-cancel]")) { reporting = null; render(); return; }
     if (t.dataset.clubAnnounce) {
       const id = t.dataset.clubAnnounce, body = val("ann-" + id).trim();
       if (!body) { notice = MESSAGES.BAD_ANNOUNCEMENT; render(); return; }

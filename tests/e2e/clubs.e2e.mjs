@@ -54,6 +54,7 @@ async function panel({ flag = true, missing = false, signedIn = true } = {}) {
           if (name === "titan_club_announce_remove_v1") { window.data.mine[0].announcements = window.data.mine[0].announcements.filter(a => a.id !== args.p_announcement); out = { data: true, error: null }; }
           if (name === "titan_club_join_v1") out = window.wrongCode ? { data: null, error: { code: "22023", message: "CLUB_NOT_FOUND" } } : { data: "c3", error: null };
           if (name === "titan_club_create_v1") { window.data.mine.push({ id: "c9", name: args.p_name, description: args.p_description, discoverable: args.p_discoverable, role: "admin", members: 1, code: "ZZZZ9999", roster: [{ userId: "u1", name: "Alba", role: "admin" }], announcements: [] }); out = { data: "c9", error: null }; }
+          if (name === "titan_club_report_v1") out = window.badReason ? { data: null, error: { code: "22023", message: "BAD_REASON" } } : { data: true, error: null };
           if (name === "titan_club_set_v1") out = { data: true, error: null };
           if (name === "titan_club_member_remove_v1") { window.data.mine[0].roster = window.data.mine[0].roster.filter(m => m.userId !== args.p_user); window.data.mine[0].members -= 1; out = { data: true, error: null }; }
           if (name === "titan_club_leave_v1") { window.data.mine = window.data.mine.filter(c => c.id !== args.p_club); out = { data: true, error: null }; }
@@ -148,4 +149,34 @@ test("clubs: nothing when the flag is off, for a guest, or on a server without t
       assert.deepEqual(errors, []);
     } finally { await context.close(); }
   }
+});
+
+test("clubs: a member reports an announcement privately, a reason is required, and the thanks do not name anyone (COM-C8)", async () => {
+  const { page, context, errors } = await panel();
+  try {
+    const member = page.locator("[data-club=c2]");
+    await member.waitFor();
+    assert.equal(await page.locator("[data-club=c1] [data-club-report][data-ann=a1]").count(), 0, "an administrator does not report their own announcement");
+    await tap(page, member.locator("[data-club-report][data-ann=a2]"));
+    const form = member.locator("[data-club-report-form]");
+    await form.waitFor();
+    assert.match(await form.innerText(), /n’est lu que par l’équipe TITAN, jamais par le club/);
+    await form.locator("button[type=submit]").click();
+    assert.match(await page.locator("[data-club-notice]").innerText(), /Choisis un motif/);
+    assert.equal(await page.evaluate(() => window.calls.some(c => c[0] === "titan_club_report_v1")), false, "nothing is sent without a reason");
+    await member.locator("select").selectOption("spam");
+    await member.locator("[data-club-draft=details]").fill("Publicité");
+    await member.locator("[data-club-report-form] button[type=submit]").click();
+    await page.waitForFunction(() => window.calls.some(c => c[0] === "titan_club_report_v1"));
+    assert.deepEqual(await page.evaluate(() => window.calls.find(c => c[0] === "titan_club_report_v1")[1]), { p_club: "c2", p_announcement: "a2", p_reason: "spam", p_details: "Publicité" });
+    await page.waitForFunction(() => /transmis à l’équipe TITAN/.test(document.querySelector("[data-club-notice]")?.innerText || ""));
+    assert.equal(await member.locator("[data-club-report-form]").count(), 0, "the form closes");
+    // The club itself can be reported too, and cancelled.
+    await tap(page, member.locator("[data-club-report][data-ann='']"));
+    await member.locator("[data-club-report-form]").waitFor();
+    await member.locator("[data-club-report-cancel]").click();
+    assert.equal(await member.locator("[data-club-report-form]").count(), 0);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
 });
