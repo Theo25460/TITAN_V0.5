@@ -24,6 +24,8 @@ function fakeAdmin({ admin, missing, evil }) {
     polls: [{ id: "p1", title: `Quelle quête ? ${evil}`, detail: null, opensAt: "2026-10-28T08:00:00Z", closesAt: "2026-11-05T08:00:00Z", state: "open", options: [{ position: 1, label: "Endurance", votes: 4 }, { position: 2, label: "Force", votes: 7 }] }],
     seasons: [{ id: "s1", name: "Saison de la reprise", rules: null, rulesVersion: 2, startsOn: "2026-09-28", endsOn: "2026-10-25", closed: true, participants: 40 }],
     goals: [{ id: "g1", startsOn: "2026-10-01", endsOn: "2026-10-28", title: "Un mois ensemble", detail: null, levels: [5000, 15000, 40000], members: 25 }],
+    clubs: [{ id: "c1", name: "Foulées du mardi", members: 5, trophies: [{ id: "t1", title: "Première saison", on: "2026-10-20" }] }, { id: "c2", name: "Trail", members: 12, trophies: [] }],
+    pantheon: { mine: false, hiddenByTeam: false, profilePublic: true, entries: [{ name: `Alba ${evil}`, kind: "pioneer", label: "Pionnier de TITAN", at: "2026-10-20T10:00:00Z", me: false, userId: "u1" }] },
     reports: [{ id: "r1", clubId: "c1", club: "Foulées du mardi", announcementId: "a1", announcement: `Un message ${evil}`, reason: "harassment", details: "Insultes", at: "2026-10-29T10:00:00Z", sameTarget: 2 }, { id: "r2", clubId: "c2", club: "Trail", announcementId: null, announcement: null, reason: "spam", details: null, at: "2026-10-29T11:00:00Z", sameTarget: 1 }],
     quests: [{ id: "q1", weekStart: "2026-10-26", title: "Cent minutes ensemble", detail: null, target: 1000, members: 12 }],
     ideas: [{ id: "i1", title: "Duels entre amis", detail: "x", status: "study", sortOrder: 1, archived: false, votes: 3, history: [] }],
@@ -38,6 +40,11 @@ function fakeAdmin({ admin, missing, evil }) {
       if (missing && /^titan_(poll|roadmap)/.test(name)) return fail("Could not find the function public." + name + " in the schema cache", "PGRST202");
       if (!admin && /^titan_(poll|roadmap)/.test(name)) return fail("ADMIN_REQUIRED", "42501");
       if (name === "titan_poll_admin_list_v1") return { data: db.polls, error: null };
+      if (name === "titan_club_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.clubs, error: null };
+      if (name === "titan_pantheon_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.pantheon, error: null };
+      if (name === "titan_club_trophy_award_v1") { db.clubs.find(c => c.id === params.p_club).trophies.push({ id: "t2", title: params.p_title, on: "2026-10-30" }); return { data: "t2", error: null }; }
+      if (name === "titan_club_trophy_revoke_v1") { db.clubs.forEach(c => { c.trophies = c.trophies.filter(t => t.id !== params.p_trophy); }); return { data: true, error: null }; }
+      if (name === "titan_pantheon_moderate_v1") { db.pantheon.entries = []; return { data: true, error: null }; }
       if (name === "titan_club_reports_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.reports, error: null };
       if (name === "titan_club_report_resolve_v1") { db.reports = db.reports.filter(r => r.id !== params.p_report); return { data: true, error: null }; }
       if (name === "titan_world_goal_admin_list_v1") return missing ? fail("Could not find the function public." + name + " in the schema cache", "PGRST202") : { data: db.goals, error: null };
@@ -196,5 +203,34 @@ test("admin consultations: club reports show the text concerned as text, and a d
     await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_club_report_resolve_v1"));
     assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_club_report_resolve_v1").params), { p_report: "r1", p_action: "remove_announcement", p_note: null });
     await page.waitForFunction(() => !/Foulées du mardi/.test(document.querySelector("table[aria-label='Signalements de clubs']")?.innerText || ""));
+  } finally { await context.close(); }
+});
+
+test("admin consultations: club trophies are awarded with a clean key and withdrawn after a confirmation; the Pantheon can hide a person (COM-D7, COM-D4)", async () => {
+  const { page, context } = await open();
+  try {
+    await page.locator("[data-trophy-form]").waitFor();
+    assert.match(await page.locator("table[aria-label='Trophées de clubs']").innerText(), /Foulées du mardi[\s\S]*Première saison/);
+    await page.locator("[data-trophy-award]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_club_trophy_award_v1")), false, "nothing sent without a club");
+    await page.locator("[data-trophy-form] [name=club]").selectOption("c2");
+    await page.locator("[data-trophy-form] [name=key]").fill("Mauvaise Clé");
+    await page.locator("[data-trophy-form] [name=title]").fill("Premier défi");
+    await page.locator("[data-trophy-award]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_club_trophy_award_v1")), false, "an unclean key is refused before sending");
+    await page.locator("[data-trophy-form] [name=key]").fill("premier-defi");
+    await page.locator("[data-trophy-award]").click();
+    await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_club_trophy_award_v1"));
+    assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_club_trophy_award_v1").params), { p_club: "c2", p_key: "premier-defi", p_title: "Premier défi", p_note: null });
+    // Pantheon moderation: names are text, hiding needs a confirmation.
+    const table = page.locator("table[aria-label='Panthéon']");
+    await table.waitFor();
+    assert.equal(await table.locator("img").count(), 0);
+    assert.equal(await page.evaluate(() => window.pwned), undefined);
+    await table.locator("[data-pantheon-hide]").click();
+    assert.equal(await page.evaluate(() => window.__calls.some(c => c.name === "titan_pantheon_moderate_v1")), false, "nothing before the confirmation");
+    await page.locator("[data-confirm-ok]").click();
+    await page.waitForFunction(() => window.__calls.some(c => c.name === "titan_pantheon_moderate_v1"));
+    assert.deepEqual(await page.evaluate(() => window.__calls.find(c => c.name === "titan_pantheon_moderate_v1").params), { p_user: "u1", p_hidden: true });
   } finally { await context.close(); }
 });

@@ -24,6 +24,7 @@ const DATA = {
   mine: [
     { id: "c1", name: `Foulées du mardi ${evil}`, description: "Course à pied.", discoverable: false, role: "admin", members: 3, code: "ABCD2345",
       roster: [{ userId: "u1", name: "Alba", role: "admin" }, { userId: "u2", name: "Basile", role: "member" }, { userId: "u3", name: "Chloé", role: "member" }],
+      trophies: [{ id: "t1", title: "Première saison ensemble", note: "Bravo.", on: "2026-10-20" }],
       announcements: [{ id: "a1", body: `Sortie mardi 18h30 ${evil}`, at: "2026-10-28T10:00:00Z", mine: true }] },
     { id: "c2", name: "Trail du dimanche", description: null, discoverable: true, role: "member", members: 12, code: null, roster: null,
       announcements: [{ id: "a2", body: "Rendez-vous au parking.", at: "2026-10-27T10:00:00Z", mine: false }] },
@@ -81,6 +82,8 @@ test("clubs: an administrator sees the code, the members and moderates; a member
     assert.equal(await page.evaluate(() => window.pwned), undefined, "no markup is executed");
     assert.equal(await page.locator("#clubs img").count(), 0, "text is escaped");
     assert.equal(await admin.locator("[data-club-code]").innerText(), "ABCD2345");
+    assert.match(await admin.locator("[data-club-trophies]").innerText(), /Première saison ensemble · 20 octobre/);
+    assert.equal(await page.locator("[data-club=c2] [data-club-trophies]").count(), 0, "no trophy, no list");
     await admin.locator("summary").click();
     assert.match(await admin.innerText(), /Alba · administrateur[\s\S]*Basile[\s\S]*Chloé/);
     const member = page.locator("[data-club=c2]");

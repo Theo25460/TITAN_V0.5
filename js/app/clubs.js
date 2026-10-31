@@ -107,6 +107,7 @@
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-discover="${esc(c.id)}" data-on="${c.discoverable ? "false" : "true"}" ${busy ? "disabled" : ""}>${c.discoverable ? "Ne plus afficher dans la liste" : "Afficher dans la liste"}</button></div></div>` : "";
     return `<article class="asc-panel qg-steps-card" data-club="${esc(c.id)}"><p><strong>${esc(c.name)}</strong> <span class="asc-small asc-muted">· ${n(c.members)} membre${Number(c.members) > 1 ? "s" : ""}${admin ? " · tu administres" : ""}${c.discoverable ? " · visible dans la liste" : " · privé"}</span></p>
       ${c.description ? `<p class="asc-small asc-muted">${esc(c.description)}</p>` : ""}
+      ${(c.trophies || []).length ? `<ul class="rv-list" data-club-trophies aria-label="Trophées du club">${c.trophies.map((t) => `<li><strong>${esc(t.title)}</strong> <span class="asc-small asc-muted">· ${esc(date(t.on))}</span>${t.note ? `<br><span class="asc-small asc-muted">${esc(t.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
       ${reporting && reporting.club === c.id ? reportForm(c) : ""}

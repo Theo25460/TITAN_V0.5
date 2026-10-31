@@ -1462,6 +1462,12 @@
         if (pioneerGrant) { await grantPioneers(); return; }
         const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
         if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const trophyAward = event.target.closest('[data-trophy-award]');
+        if (trophyAward) { await awardClubTrophy(); return; }
+        const trophyRevoke = event.target.closest('[data-trophy-revoke]');
+        if (trophyRevoke) { await revokeClubTrophy(trophyRevoke.dataset.trophyRevoke); return; }
+        const pantheonHide = event.target.closest('[data-pantheon-hide]');
+        if (pantheonHide) { await hidePantheon(pantheonHide.dataset.pantheonHide, pantheonHide.dataset.hide === 'true'); return; }
         const reportAct = event.target.closest('[data-club-report-act]');
         if (reportAct) { await resolveClubReport(reportAct.dataset.report, reportAct.dataset.clubReportAct); return; }
         const goalCreate = event.target.closest('[data-wg-create]');
@@ -2410,6 +2416,8 @@
         WEEK_MUST_START_MONDAY: 'Une quête commune commence un lundi.',
         WEEK_IN_THE_PAST: 'Cette semaine est déjà passée.',
         SEASON_OVERLAP: 'Cette saison chevauche une autre saison.',
+        TROPHY_ALREADY_AWARDED: 'Ce trophée a déjà été décerné à ce club.',
+        BAD_TROPHY: 'Clé ou titre invalide.',
         GOAL_OVERLAP: 'Cet objectif chevauche un autre objectif collectif.',
         BAD_PERIOD: 'La période doit durer de 1 jour à 13 semaines.',
         BAD_LEVELS: 'Les trois paliers doivent être croissants.',
@@ -2432,7 +2440,7 @@
         const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
             buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
         ]);
-        const [polls, ideas, quests, seasons, worldGoals, clubReports] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1'), state.client.rpc('titan_club_reports_admin_list_v1')]);
+        const [polls, ideas, quests, seasons, worldGoals, clubReports, clubList, pantheon] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1'), state.client.rpc('titan_club_reports_admin_list_v1'), state.client.rpc('titan_club_admin_list_v1'), state.client.rpc('titan_pantheon_v1')]);
         const error = polls.error || ideas.error;
         if (error) {
             let message;
@@ -2485,6 +2493,8 @@
             ${seasonMarkup(seasons)}
             ${worldGoalMarkup(worldGoals)}
             ${clubReportsMarkup(clubReports)}
+            ${clubTrophyMarkup(clubList)}
+            ${pantheonAdminMarkup(pantheon)}
             <h3>Feuille de route</h3>
             ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
             <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
@@ -2504,6 +2514,57 @@
                 <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
                 ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
             </form>`;
+    }
+
+    function clubTrophyMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les trophées de clubs ne sont pas disponibles sur ce serveur : applique la migration 20261030110000_factions_pantheon_trophies.sql.' : consultationError(result.error))}</p></div>`;
+        const clubs = Array.isArray(result.data) ? result.data : [];
+        const rows = clubs.filter((c) => (c.trophies || []).length).map((c) => `<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${c.trophies.map((t) => `${escapeHtml(t.title)} <small>(${escapeHtml(new Date(t.on).toLocaleDateString('fr-FR'))})</small> ${buttonMarkup('Retirer', 'ri-delete-bin-line', 'secondary', `data-trophy-revoke="${escapeHtml(t.id)}"`)}`).join('<br>')}</td></tr>`).join('');
+        return `<h3>Trophées de clubs</h3>${rows ? tableShell(`<table class="admin-table" aria-label="Trophées de clubs"><thead><tr><th>Club</th><th>Trophées</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucun trophée décerné.</small></p>'}
+            <form class="panel" data-trophy-form aria-label="Décerner un trophée" novalidate>
+                <p><label>Club <select class="admin-input" name="club"><option value="">Choisir…</option>${clubs.map((c) => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)} (${Number(c.members) || 0})</option>`).join('')}</select></label></p>
+                <p><label>Clé (lettres minuscules, chiffres, tirets) <input class="admin-input" name="key" maxlength="40" placeholder="premiere-saison"></label>
+                   <label>Titre <input class="admin-input" name="title" maxlength="60"></label></p>
+                <p><label>Mot d’accompagnement (facultatif) <input class="admin-input" name="note" maxlength="200"></label></p>
+                ${buttonMarkup('Décerner', 'ri-trophy-line', 'primary', 'data-trophy-award')}
+            </form>`;
+    }
+
+    async function awardClubTrophy() {
+        const form = document.querySelector('[data-trophy-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        if (!value('club')) { notify('Club', 'Choisis un club.', 'warning'); return; }
+        if (!/^[a-z0-9-]{3,40}$/.test(value('key'))) { notify('Clé', 'De 3 à 40 caractères : minuscules, chiffres et tirets.', 'warning'); return; }
+        if (value('title').length < 3) { notify('Titre', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_club_trophy_award_v1', { p_club: value('club'), p_key: value('key'), p_title: value('title'), p_note: value('note') || null });
+        if (error) { notify('Trophée refusé', consultationError(error), 'danger'); return; }
+        notify('Trophée décerné', 'Il apparaît dans l’espace du club.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function revokeClubTrophy(id) {
+        const reason = await confirmSensitive({ title: 'Retirer ce trophée', message: 'Le trophée disparaît de l’espace du club.', actionLabel: 'Retirer', danger: true, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_club_trophy_revoke_v1', { p_trophy: id });
+        if (error) notify('Retrait refusé', consultationError(error), 'danger'); else notify('Trophée retiré', 'Il n’apparaît plus.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    function pantheonAdminMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Le Panthéon n’est pas disponible sur ce serveur : applique la migration 20261030110000_factions_pantheon_trophies.sql.' : consultationError(result.error))}</p></div>`;
+        const entries = (result.data && Array.isArray(result.data.entries)) ? result.data.entries : [];
+        if (!entries.length) return '<h3>Panthéon</h3><p><small>Aucune entrée publiée.</small></p>';
+        const rows = entries.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.label)}</td><td>${escapeHtml(new Date(e.at).toLocaleDateString('fr-FR'))}</td><td>${e.userId ? buttonMarkup('Masquer cette personne', 'ri-eye-off-line', 'secondary', `data-pantheon-hide="${escapeHtml(e.userId)}" data-hide="true"`) : ''}</td></tr>`).join('');
+        return `<h3>Panthéon</h3>${tableShell(`<table class="admin-table" aria-label="Panthéon"><thead><tr><th>Nom</th><th>Distinction</th><th>Date</th><th>Modération</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    async function hidePantheon(userId, hide) {
+        const reason = await confirmSensitive({ title: 'Masquer du Panthéon', message: 'La personne n’apparaît plus dans la galerie ; elle en est informée sur son écran.', actionLabel: 'Masquer', danger: false, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_pantheon_moderate_v1', { p_user: userId, p_hidden: hide });
+        if (error) notify('Modération refusée', consultationError(error), 'danger'); else notify('Entrée masquée', 'Elle n’apparaît plus dans la galerie.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
     }
 
     const REPORT_REASONS = { spam: 'Spam', harassment: 'Harcèlement', inappropriate: 'Inapproprié', other: 'Autre' };
