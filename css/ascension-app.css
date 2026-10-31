@@ -3815,3 +3815,13 @@
 .co-analysis-table th:first-child { text-align: left; }
 .co-analysis-table small { display: block; color: var(--tx-3); font-size: 11px; }
 .co-analysis-programme { display: grid; gap: var(--s2); }
+
+/* Fixed columns keep both periods and the delta visible on narrow Coach cards. */
+.co-comparison table { table-layout: fixed; }
+.co-comparison th, .co-comparison td { overflow-wrap: anywhere; vertical-align: top; }
+.co-comparison th:first-child { width: 28%; }
+@media (max-width: 600px) {
+  .co-comparison table { font-size: 11px; }
+  .co-comparison th, .co-comparison td { padding-inline: 3px; }
+  .co-comparison small { font-size: 10px; }
+}

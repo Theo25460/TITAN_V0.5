@@ -9,7 +9,7 @@ const ago=n=>new Date(Date.now()-n*86400000).toISOString().slice(0,10);
 let server,browser,BASE;
 before(async()=>{const port=await new Promise(resolve=>{const s=createServer();s.listen(0,()=>{const p=s.address().port;s.close(()=>resolve(p));});});BASE=`http://127.0.0.1:${port}`;server=spawn(process.execPath,['tools/serve-public.mjs',String(port)],{cwd:ROOT,stdio:'ignore'});for(let i=0;i<50;i++){try{if((await fetch(BASE)).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}browser=await chromium.launch();});
 after(async()=>{await browser?.close();server?.kill();});
-async function fixture({width=360,partial=false,enabled=true,zero=false}={}){
+async function fixture({width=360,partial=false,enabled=true,zero=false,short=false}={}){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort());
  const page=await context.newPage();page.setDefaultTimeout(5000);const calls=[];let revoked=false;
  await page.route('**/js/app/coaching.js?*',r=>r.fulfill({contentType:'text/javascript',body:''}));await page.goto(BASE+'/coaching');await page.waitForFunction(()=>window.TitanAdventure?.status==='ready');
@@ -21,7 +21,7 @@ async function fixture({width=360,partial=false,enabled=true,zero=false}={}){
   const rows=[{id:'run-'+label,sport:'running',unit:'km',val:5,date:ago(5)+'T12:00:00Z',details:{duration:30}},{id:'yoga-'+label,sport:'yoga',unit:'min',val:20,date:ago(4)+'T12:00:00Z',details:{duration:20}},{id:'gym-'+label,sport:'muscu_gym',unit:'kg',val:100,date:ago(3)+'T12:00:00Z',details:{}}];
   if(zero){rows[0].details.duration=0;rows[1].details.duration=0;}
   const tasks=[{id:'t1-'+label,status:'completed',planned_date:ago(5),sport:'running',title:'Sortie'},{id:'t2-'+label,status:'accepted',planned_date:ago(4),sport:'yoga',title:'Mobilité'}];
-  let body=action==='snapshot'?{capacity:3,invites:[],links:[link]}:action==='sessions'?{link_id:link.id,revision:1,total:partial?4:3,from_date:ago(15),to_date:ago(0),rows:partial&&data.offset?[{id:'extra-'+label,sport:'running',unit:'min',val:10,date:ago(2)+'T12:00:00Z',details:{duration:10}}]:rows}:action==='assignments'?{link_id:link.id,revision:1,total:partial?3:2,rows:partial&&data.offset?[{id:'t3-'+label,status:'completed',planned_date:ago(3),sport:'running',title:'Suite'}]:tasks}:{};
+  let body=action==='snapshot'?{capacity:3,invites:[],links:[link]}:action==='sessions'?{link_id:link.id,revision:1,total:partial?4:3,from_date:ago(short?5:15),to_date:ago(0),rows:partial&&data.offset?[{id:'extra-'+label,sport:'running',unit:'min',val:10,date:ago(2)+'T12:00:00Z',details:{duration:10}}]:rows}:action==='assignments'?{link_id:link.id,revision:1,total:partial?3:2,rows:partial&&data.offset?[{id:'t3-'+label,status:'completed',planned_date:ago(3),sport:'running',title:'Suite'}]:tasks}:{};
   let status=200;if(revoked&&action==='sessions'){body={message:'SHARING_UNAVAILABLE'};status=403;}
   await route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)}).catch(()=>{});
  });
@@ -34,7 +34,13 @@ test('Coach summary uses only consented data and displays coverage, sports and h
   await page.locator('[data-co-analysis]').waitFor();assert.match(await page.locator('[data-ca-minutes]').innerText(),/50/);
   assert.equal(await page.locator('[data-ca-sessions]').innerText(),'3');assert.match(await page.locator('[data-ca-adherence]').innerText(),/50/);
   assert.equal(await page.locator('[data-ca-sports] tbody tr').count(),3);assert.match(await page.locator('[data-co-analysis]').innerText(),/1 séance.*sans durée/);
-  assert.match(await page.locator('[data-co-analysis]').innerText(),/sRPE.*indisponible/s);assert.ok(!(await page.locator('[data-co-analysis]').innerText()).includes('9999'));
+  assert.match(await page.locator('[data-co-analysis]').innerText(),/sRPE.*indisponible/s);
+  const comparison=page.locator('[data-ca-comparison]');await comparison.waitFor();assert.match(await comparison.innerText(),/7 jours complets/);
+  assert.equal(await comparison.locator('[data-ca-current-sessions]').innerText(),'3');assert.equal(await comparison.locator('[data-ca-previous-sessions]').innerText(),'0');
+  assert.match(await comparison.locator('[data-ca-session-delta]').innerText(),/\+3/);assert.match(await comparison.innerText(),/Durées incomplètes/);
+  assert.equal(await comparison.locator('[data-ca-sport-trends] tbody tr').count(),3);
+  assert.ok((await comparison.innerText()).includes(ago(14)));assert.ok((await comparison.innerText()).includes(ago(1)));
+  await page.screenshot({path:'/tmp/titan-coach-comparison-'+width+'.png',fullPage:true});assert.ok(!(await page.locator('[data-co-analysis]').innerText()).includes('9999'));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   assert.deepEqual(calls.map(c=>c.action).sort(),['assignments','sessions','snapshot']);
   await page.addScriptTag({content:readFileSync(ROOT+'/node_modules/axe-core/axe.min.js','utf8')});const violations=await page.evaluate(async()=>(await axe.run(document.querySelector('[data-co-analysis]'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})).violations);assert.deepEqual(violations.map(v=>v.id),[]);
@@ -45,9 +51,11 @@ test('partial pages warn and suppress the rate until all proposal pages have bee
  const {page,context}=await fixture({partial:true});try{
   await page.locator('[data-co-analysis]').waitFor();assert.match(await page.locator('[data-co-analysis]').innerText(),/partiel/i);
   assert.doesNotMatch(await page.locator('[data-ca-adherence]').innerText(),/%/);
+  assert.equal(await page.locator('[data-ca-comparison]').count(),0);assert.match(await page.locator('[data-ca-comparison-unavailable]').innerText(),/pages/);
   await page.locator('[data-more-tasks]').click();await page.waitForFunction(()=>document.querySelector('[data-ca-adherence]')?.textContent.includes('67'));
   await page.locator('[data-more-sessions]').click();await page.waitForFunction(()=>document.querySelector('[data-ca-minutes]')?.textContent.includes('1 h'));
   assert.doesNotMatch(await page.locator('[data-co-analysis]').innerText(),/bilan partiel/i);
+  await page.locator('[data-ca-comparison]').waitFor();assert.equal(await page.locator('[data-ca-current-sessions]').innerText(),'4');
  }finally{await context.close();}
 });
 
@@ -87,5 +95,14 @@ test('known zero durations remain visible as zero rather than unavailable',async
   await page.locator('[data-co-analysis]').waitFor();assert.equal(await page.locator('[data-ca-minutes]').innerText(),'0 min');
   assert.ok((await page.locator('[data-ca-sports]').innerText()).includes('0 min'));
   assert.match(await page.locator('[data-co-analysis]').innerText(),/2 séance.*avec une durée/);
+ }finally{await context.close();}
+});
+
+
+test('short consent never creates a zero-filled comparison for inaccessible previous days',async()=>{
+ const {page,context,calls}=await fixture({short:true});try{
+  await page.locator('[data-co-analysis]').waitFor();assert.equal(await page.locator('[data-ca-comparison]').count(),0);
+  assert.match(await page.locator('[data-ca-comparison-unavailable]').innerText(),/14 jours/);
+  assert.deepEqual(calls.map(c=>c.action).sort(),['assignments','sessions','snapshot']);
  }finally{await context.close();}
 });
