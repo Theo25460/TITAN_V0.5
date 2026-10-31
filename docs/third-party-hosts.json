@@ -1,0 +1,91 @@
+{
+  "_comment": "Every external host named in a shipped file (pages, scripts, styles, functions, headers). Kept in step with docs/PRIVACY_TECHNICAL_INVENTORY.md by tests/third-party-hosts.test.mjs. 'kind': first-party | runtime-on-demand (browser contacts it after a user action) | runtime-always (browser contacts it on page load) | server-side (only our functions contact it) | link (outbound link the user may click) | reference (namespace or comment, never fetched) | csp-allowance (allowed by the Content-Security-Policy but nothing in the shipped files loads from it) | disabled (named in config but switched off). 'openAllowances' lists scheme-only CSP sources (for example img-src https:) that let the browser contact hosts this file cannot enumerate; tests/third-party-hosts.test.mjs fails when the CSP gains or loses one.",
+  "hosts": [
+    {
+      "host": "titan-app.fr",
+      "kind": "first-party",
+      "note": "Site, canonical URLs, manifest, functions."
+    },
+    {
+      "host": "oubmftfufwwzwpgvrcag.supabase.co",
+      "kind": "runtime-always",
+      "note": "Supabase project (auth, database, realtime), region eu-west-1 (Ireland). Contacted for sessions and cloud sync of signed-in users. Also allowed for images (img-src): avatars are served from the project's public storage."
+    },
+    {
+      "host": "cdn.paddle.com",
+      "kind": "runtime-on-demand",
+      "note": "Paddle checkout script, loaded only when the player opens the TITAN+ checkout (js/main.js)."
+    },
+    {
+      "host": "api.resend.com",
+      "kind": "server-side",
+      "note": "Assistance e-mail delivery from functions/assistance.mjs only."
+    },
+    {
+      "host": "androidpublisher.googleapis.com",
+      "kind": "server-side",
+      "note": "Google Play Developer API: verification of a TITAN+ subscription purchase from functions/play-billing.mjs only (disabled unless PLAY_BILLING_ENABLED=true; ADR-004). Never contacted by the browser."
+    },
+    {
+      "host": "oauth2.googleapis.com",
+      "kind": "server-side",
+      "note": "Service-account token exchange for the Google Play Developer API, functions/play-billing.mjs only (ADR-004)."
+    },
+    {
+      "host": "www.googleapis.com",
+      "kind": "reference",
+      "note": "OAuth scope identifier string (https://www.googleapis.com/auth/androidpublisher) in functions/play-billing.mjs; no request is made to this address."
+    },
+    {
+      "host": "play.google.com",
+      "kind": "reference",
+      "note": "Payment-method identifier https://play.google.com/billing used with the Digital Goods and Payment Request APIs in js/app/atelier.js (ADR-004). It is not a URL the page fetches: the Google Play sheet is opened by the Android app. Off unless TITAN_PLAY_BILLING.enabled."
+    },
+    {
+      "host": "discord.gg",
+      "kind": "link",
+      "note": "Community link in js/config.js; the player leaves the site by clicking."
+    },
+    {
+      "host": "acscdn.com",
+      "kind": "disabled",
+      "note": "Adcash script URL in js/config.js; adsEnabled is false and the host is not in the CSP script-src, so nothing loads."
+    },
+    {
+      "host": "github.com",
+      "kind": "reference",
+      "note": "Licence credit in a CSS comment."
+    },
+    {
+      "host": "remixicon.com",
+      "kind": "reference",
+      "note": "Licence credit in a CSS comment."
+    },
+    {
+      "host": "schema.org",
+      "kind": "reference",
+      "note": "JSON-LD vocabulary identifiers, never fetched."
+    },
+    {
+      "host": "www.w3.org",
+      "kind": "reference",
+      "note": "SVG namespace, never fetched."
+    },
+    {
+      "host": "*.paddle.com",
+      "kind": "runtime-on-demand",
+      "note": "Allowed by the CSP for connect-src, frame-src and form-action: the checkout overlay and its API calls (for example buy.paddle.com, checkout-service.paddle.com). Hosts contacted by paddle.js itself cannot be enumerated from this repository. The TITAN account id is passed to Paddle as customData.user_id."
+    },
+    {
+      "host": "www.googletagmanager.com",
+      "kind": "runtime-on-demand",
+      "note": "GA4 script, loaded only with visitor opt-in."
+    },
+    {
+      "host": "*.google-analytics.com",
+      "kind": "runtime-on-demand",
+      "note": "GA4 collection endpoints allowed only after user opt-in."
+    }
+  ],
+  "openAllowances": []
+}

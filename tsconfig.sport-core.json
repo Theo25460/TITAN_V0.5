@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  },
+  "files": [
+    "js/core/effort.js",
+    "js/core/month-report.js",
+    "js/core/periodic-quests.js",
+    "js/core/endurance.js",
+    "js/core/titles.js",
+    "js/core/gpx.js",
+    "js/core/format.js",
+    "js/core/steps.js",
+    "js/core/sport-navigation.js",
+    "js/core/support-diagnostics.js",
+    "types/sport-core-globals.d.ts",
+    "tests/typecheck/effort-contract.ts"
+  ]
+}

@@ -14,6 +14,8 @@
   let root = null;
   let offset = 0; // 0 = this week, 1 = last week…
   let goalsCache = [];
+  let yearOffset = 0; // V11-29: 0 = this year in progress, 1 = last year…
+  let monthOffset = /[?&]mois=1\b/.test(location.search) ? 1 : 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
 
@@ -21,7 +23,7 @@
     const now = new Date();
     if (k === 0) return P().recap(logs(), { now, goals: goalsCache, current: true });
     // recap() describes the week before `now`: point `now` inside the week after the one we want.
-    const anchor = new Date(F().weekStart(now).getTime() - (k - 1) * 7 * DAY + DAY);
+    const anchor = F().addDays(F().weekStart(now), -(k - 1) * 7 + 1);
     return P().recap(logs(), { now: anchor, goals: goalsCache });
   }
 
@@ -52,7 +54,7 @@
     const per = Array.from({ length: 7 }, () => ({ minutes: 0, sessions: 0 }));
     for (const l of P().activeLogs(logs())) {
       const t = new Date(l.date).getTime();
-      if (t < from || t >= from + 7 * DAY) continue;
+      if (t < from || t > r.to.getTime()) continue;
       const i = (new Date(l.date).getDay() + 6) % 7;
       per[i].minutes += P().minutesOf(l).minutes || 0;
       per[i].sessions++;
@@ -67,7 +69,7 @@
     const today = offset === 0 ? (new Date().getDay() + 6) % 7 : -1;
     return `<div class="wk-days" role="list" aria-label="Minutes par jour">${per
       .map((d, i) => {
-        const date = new Date(from + i * DAY);
+        const date = F().addDays(r.from, i);
         const label = `${date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} : ${d.sessions ? `${d.sessions} séance${d.sessions > 1 ? "s" : ""}, ${F().duration(d.minutes)}` : "repos"}`;
         return `<div class="wk-day${i === today ? " is-today" : ""}${i > today && today >= 0 ? " is-future" : ""}" role="listitem" aria-label="${esc(label)}"><span class="wk-bar"><span style="--h:${Math.round((d.minutes / max) * 100)}%"${d.sessions ? ' data-on="true"' : ""}></span></span><span class="wk-day-l">${DAYS[i]}</span></div>`;
       })
@@ -81,10 +83,10 @@
     const max = firstWeekOffset();
     const range = offset === 0 ? "Cette semaine" : offset === 1 ? "La semaine dernière" : `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
     return `<section class="asc-hero wk-hero" aria-labelledby="wk-title">
-      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
+      <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-previous" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
         <div><p class="asc-eyebrow cy">${esc(range)}</p><p class="asc-small asc-muted">${esc(r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} – ${esc(r.to.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p></div>
-        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
-      <h2 id="wk-title" class="wk-title">${esc(h.title)}</h2>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-next" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
+      <h2 id="wk-title" class="wk-title" tabindex="-1">${esc(h.title)}</h2>
       <p class="asc-lead">${esc(h.text)}</p>
       <dl class="wk-stats">
         <div><dt>Jours actifs</dt><dd class="asc-num">${w.activeDays}<small>/${settings.target}</small></dd></div>
@@ -113,6 +115,65 @@
       filename: "titan-semaine",
     });
   }
+
+  const periodReport = (period) => window.TitanMonthReport.build(logs(), { period, offset: period === "year" ? yearOffset : period === "week" ? offset : monthOffset, minutesOf: (l) => P().minutesOf(l), label: (s) => SP().label(s),
+    recordsOf: (from, to) => P().newRecords(logs(), from, to).filter((r) => r.kind !== "duration"),
+    adventureOf: (from, to) => window.TitanTitles ? window.TitanTitles.earned({ rewards: (window.TitanAdventure?.snapshot?.rewards || []).filter((r) => { const t = new Date(r.earned_at).getTime(); return t >= from && t < to; }), catalog: window.TitanCodex }) : [] });
+
+  const monthReport = () => periodReport("month");
+
+  /* V11-14 / V11-29: the free monthly and annual reports. Time is the common measure; each sport keeps its own volume. */
+  function periodHtml(period = "month") {
+    const Y = period === "year", off = Y ? yearOffset : monthOffset, id = Y ? "wk-year-title" : "wk-month-title", attr = Y ? "data-year" : "data-month";
+    if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
+    const m = periodReport(period);
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    return `<section class="asc-section ${Y ? "wk-year" : "wk-month"}" aria-labelledby="${id}"><div class="asc-section-head"><h2 id="${id}" tabindex="-1">Bilan de ${esc(m.label)}</h2>
+        <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off + 1}" aria-label="${Y ? "Année précédente" : "Mois précédent"}">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off - 1}" aria-label="${Y ? "Année suivante" : "Mois suivant"}" ${off === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
+      <p class="asc-lead">${esc(d.title)} ${esc(d.text)}</p>
+      ${m.sessions ? `<dl class="wk-stats"><div><dt>Séances</dt><dd class="asc-num">${m.sessions}</dd></div><div><dt>Jours actifs</dt><dd class="asc-num">${m.activeDays}</dd></div><div><dt>Temps</dt><dd class="asc-num">${m.minutes ? esc(F().duration(m.minutes)) : "—"}</dd></div></dl><div class="asc-list">${rows}</div>` : ""}
+      ${monthHighlights(m)}
+      ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}
+      ${m.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${Y ? "data-year-card" : "data-month-card"}>${icon("share")} Image de ${Y ? "mon année" : "mon mois"}</button>` : ""}
+    </section>`;
+  }
+
+  /* COM-B8: the week by discipline and against the same days of the week before, same engine as the monthly report. Follows the week chosen above. */
+  function weekHtml() {
+    if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
+    const m = periodReport("week");
+    if (!m.sessions) return "";
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    return `<section class="asc-section wk-weekly" data-week-detail aria-labelledby="wk-detail-title"><div class="asc-section-head"><h2 id="wk-detail-title">Par discipline</h2></div>
+      <p class="asc-lead">${esc(d.text)}</p><div class="asc-list">${rows}</div>
+      ${d.notes.map((n) => `<p class="asc-small asc-faint">${esc(n)}</p>`).join("")}</section>`;
+  }
+
+  function monthHighlights(m) {
+    const items = [
+      ...m.records.map((rec) => `<div class="asc-row"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(SP().label(rec.sport))} · ${esc(rec.label)}</span><span class="asc-row-sub">${esc(fmtRecord(rec))}${rec.previous ? ` · avant ${esc(fmtRecord(rec, rec.previous.value))}` : " · premier repère"}</span></span></div>`),
+      ...m.adventure.map((t) => `<div class="asc-row"><span class="asc-row-icon">${icon("flag")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(t.label)}</span><span class="asc-row-sub">Aventure · ${esc(t.detail)}</span></span></div>`),
+    ];
+    return items.length ? `<h3 class="asc-eyebrow">Temps forts</h3><div class="asc-list">${items.join("")}</div>` : "";
+  }
+
+  function periodCard(period = "month") {
+    const m = periodReport(period);
+    const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
+    window.TitanCard.open({
+      kind: "week",
+      eyebrow: `Bilan de ${m.label}`,
+      title: d.title,
+      detail: [d.text, ...d.notes.filter((n) => /estimées|record/.test(n))].join(" "),
+      stats: [["Jours actifs", String(m.activeDays)], ["Temps", m.minutes ? F().duration(m.minutes) : "—"], m.distanceKm ? ["Distance", F().distance(m.distanceKm)] : ["Séances", String(m.sessions)]],
+      name: window.TitanCard.userName(),
+      filename: period === "year" ? "titan-annee" : "titan-mois",
+    });
+  }
+
+  const monthCard = () => periodCard("month");
 
   function highlightsHtml(r) {
     const items = [];
@@ -224,12 +285,18 @@
 
   function render() {
     if (!root) return;
+    const active = document.activeElement;
+    const focusId = root.contains(active) && ["wk-title", "wk-previous", "wk-next"].includes(active.id) ? active.id : null;
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${highlightsHtml(r)}
+    root.innerHTML = `${heroHtml(r)}${weekHtml()}${highlightsHtml(r)}${periodHtml("month")}${window.TitanStepsCard?.monthHtml?.() || ""}${periodHtml("year")}
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
     root.setAttribute("aria-busy", "false");
+    if (focusId) {
+      const target = document.getElementById(focusId);
+      (target?.disabled ? root.querySelector("#wk-title") : target)?.focus();
+    }
   }
 
   async function loadGoals() {
@@ -250,6 +317,24 @@
       SP().ensure();
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
+        if (e.target.closest("[data-month-card]")) return monthCard();
+        if (e.target.closest("[data-year-card]")) return periodCard("year");
+        const yb = e.target.closest("[data-year]");
+        if (yb) {
+          if (yb.disabled) return;
+          yearOffset = Math.max(0, Math.min(10, Number(yb.dataset.year)));
+          render();
+          root.querySelector("#wk-year-title")?.focus({ preventScroll: true });
+          return;
+        }
+        const mb = e.target.closest("[data-month]");
+        if (mb) {
+          if (mb.disabled) return;
+          monthOffset = Math.max(0, Math.min(24, Number(mb.dataset.month)));
+          render();
+          root.querySelector("#wk-month-title")?.focus({ preventScroll: true });
+          return;
+        }
         const b = e.target.closest("[data-week]");
         if (!b || b.disabled) return;
         offset = Math.max(0, Number(b.dataset.week));
@@ -271,6 +356,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("titan:steps-updated", queue);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

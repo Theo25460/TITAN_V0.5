@@ -22,6 +22,11 @@
     const NAV = [
         { id: 'dashboard', label: 'Dashboard', icon: 'ri-dashboard-3-line', custom: 'dashboard' },
         { id: 'users', label: 'Utilisateurs', icon: 'ri-user-3-line', custom: 'users' },
+        { id: 'moderation', label: 'Modération', icon: 'ri-shield-user-line', custom: 'moderation' },
+        { id: 'appeals', label: 'Recours', icon: 'ri-scales-2-fill', custom: 'appeals' },
+        { id: 'flags', label: 'Drapeaux', icon: 'ri-toggle-line', custom: 'flags' },
+        { id: 'consultations', label: 'Votes et idées', icon: 'ri-bar-chart-horizontal-line', custom: 'consultations' },
+        { id: 'pioneers', label: 'Pionniers', icon: 'ri-flag-line', custom: 'pioneers' },
         { id: 'activities', label: 'Activites', icon: 'ri-run-line', table: 'training_logs' },
         { id: 'premium', label: 'Premium', icon: 'ri-vip-crown-2-line', custom: 'premium' },
         { id: 'contest', label: 'Concours', icon: 'ri-trophy-line', custom: 'contest' },
@@ -781,6 +786,10 @@
     function bindEvents() {
         if (bindEvents.ready) return;
         bindEvents.ready = true;
+        // The lookup form has no inline onsubmit (CSP): Enter must not navigate; the button handles the lookup.
+        document.addEventListener('submit', (event) => {
+            if (event.target.closest && event.target.closest('[data-moderation-lookup]')) event.preventDefault();
+        });
 
         $('#admin-refresh').addEventListener('click', () => renderCurrentView(true));
         $('#admin-signout').addEventListener('click', async () => {
@@ -828,6 +837,11 @@
         try {
             if (item.custom === 'dashboard') await renderDashboard(force);
             else if (item.custom === 'users') await renderUsers(force);
+            else if (item.custom === 'moderation') await renderModeration(force);
+            else if (item.custom === 'appeals') await renderAppeals(force);
+            else if (item.custom === 'flags') await renderFlags(force);
+            else if (item.custom === 'consultations') await renderConsultations(force);
+            else if (item.custom === 'pioneers') await renderPioneers(force);
             else if (item.custom === 'premium') await renderPremium(force);
             else if (item.custom === 'contest') await renderContest(force);
             else if (item.custom === 'system') await renderSystem(force);
@@ -1046,6 +1060,7 @@
                 ${statusAction}
                 <button class="icon-button" title="Activites" data-user-action="activities" data-user-id="${id}"><i class="ri-run-line"></i></button>
                 <button class="icon-button" title="Logs" data-user-action="logs" data-user-id="${id}"><i class="ri-file-list-3-line"></i></button>
+                <button class="icon-button" title="Dossier de moderation" aria-label="Dossier de moderation" data-moderation-open="${id}"><i class="ri-shield-user-line"></i></button>
             </div>
         `;
     }
@@ -1393,6 +1408,90 @@
 
         if (event.target.closest('[data-refresh-current]')) {
             renderCurrentView(true);
+            return;
+        }
+
+        const moderationOpen = event.target.closest('[data-moderation-open]');
+        if (moderationOpen) {
+            await openModerationCase(moderationOpen.dataset.moderationOpen);
+            return;
+        }
+
+        if (event.target.closest('[data-moderation-lookup-submit]')) {
+            const typed = String(($('[data-moderation-lookup] [name=user]') || {}).value || '').trim();
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(typed)) {
+                notify('Identifiant invalide', 'Colle l\u2019identifiant complet du compte (format 8-4-4-4-12).', 'warning');
+                return;
+            }
+            await openModerationCase(typed.toLowerCase());
+            return;
+        }
+
+        const appealDecide = event.target.closest('[data-appeal-decide]');
+        if (appealDecide) {
+            await decideAppeal(appealDecide.dataset.appealId, appealDecide.dataset.appealDecide === 'accept');
+            return;
+        }
+
+        const moderationDecide = event.target.closest('[data-moderation-decide]');
+        if (moderationDecide) {
+            await decideModeration(moderationDecide.dataset.moderationDecide);
+            return;
+        }
+
+        const sessionExclude = event.target.closest('[data-session-exclude]');
+        if (sessionExclude) {
+            await excludeSession(sessionExclude.dataset.sessionExclude, sessionExclude.dataset.excluded === 'true');
+            return;
+        }
+
+        if (event.target.closest('[data-verify-request]')) {
+            await requestVerification();
+            return;
+        }
+
+        const verifyClose = event.target.closest('[data-verify-close]');
+        if (verifyClose) {
+            await closeVerification(verifyClose.dataset.verifyClose);
+            return;
+        }
+
+        const pioneerFind = event.target.closest('[data-pioneer-find]');
+        if (pioneerFind) { await findPioneers(); return; }
+        const pioneerGrant = event.target.closest('[data-pioneer-grant]');
+        if (pioneerGrant) { await grantPioneers(); return; }
+        const pioneerRevoke = event.target.closest('[data-pioneer-revoke]');
+        if (pioneerRevoke) { await revokePioneer(pioneerRevoke.dataset.pioneerRevoke); return; }
+        const trophyAward = event.target.closest('[data-trophy-award]');
+        if (trophyAward) { await awardClubTrophy(); return; }
+        const trophyRevoke = event.target.closest('[data-trophy-revoke]');
+        if (trophyRevoke) { await revokeClubTrophy(trophyRevoke.dataset.trophyRevoke); return; }
+        const pantheonHide = event.target.closest('[data-pantheon-hide]');
+        if (pantheonHide) { await hidePantheon(pantheonHide.dataset.pantheonHide, pantheonHide.dataset.hide === 'true'); return; }
+        const reportAct = event.target.closest('[data-club-report-act]');
+        if (reportAct) { await resolveClubReport(reportAct.dataset.report, reportAct.dataset.clubReportAct); return; }
+        const goalCreate = event.target.closest('[data-wg-create]');
+        if (goalCreate) { await createWorldGoal(); return; }
+        const seasonCreate = event.target.closest('[data-season-create]');
+        if (seasonCreate) { await createSeason(); return; }
+        const cqCreate = event.target.closest('[data-cq-create]');
+        if (cqCreate) { await createCommonQuest(); return; }
+        const pollCreate = event.target.closest('[data-poll-create]');
+        if (pollCreate) { await createPoll(); return; }
+        const pollClose = event.target.closest('[data-poll-close]');
+        if (pollClose) { await closePoll(pollClose.dataset.pollClose); return; }
+        const ideaSave = event.target.closest('[data-idea-save]');
+        if (ideaSave) { await saveIdea(ideaSave.closest('[data-idea-row]')); return; }
+
+        const flagSave = event.target.closest('[data-flag-save]');
+        if (flagSave) {
+            await saveFlag(flagSave.closest('[data-flag-row]'));
+            return;
+        }
+
+        const moderationRevert = event.target.closest('[data-moderation-revert]');
+        if (moderationRevert) {
+            await revertModeration(moderationRevert.dataset.moderationRevert);
             return;
         }
 
@@ -1816,6 +1915,19 @@
         `;
     }
 
+    // The Content-Security-Policy only lets images come from this site and the project's storage: say so at save time
+    // instead of leaving a silently broken picture on a public page.
+    const IMAGE_FIELDS = new Set(['image_url', 'cover_image_url']);
+    function imageUrlProblem(value) {
+        const url = String(value ?? '').trim();
+        if (!url) return null;
+        const project = String(window.TITAN_SUPABASE_URL || '').replace(/\/+$/, '');
+        const own = project && url.startsWith(`${project}/storage/`);
+        const local = (url.startsWith('/') && !url.startsWith('//')) || url.startsWith('./') || /^[a-z0-9_-][a-z0-9_./-]*$/i.test(url);
+        return own || local ? null : 'Image : utilise un chemin du site (/image/…) ou le stockage du projet ; les autres hôtes sont bloqués par la politique de sécurité.';
+    }
+    window.titanAdminValidators = { imageUrlProblem };
+
     function readFormPayload(fields) {
         const payload = {};
         fields.forEach((field) => {
@@ -1829,10 +1941,952 @@
                 const raw = el.value.trim();
                 payload[field.key] = raw ? JSON.parse(raw) : {};
             } else {
+                if (IMAGE_FIELDS.has(field.key)) {
+                    const problem = imageUrlProblem(el.value);
+                    if (problem) throw new Error(problem);
+                }
                 payload[field.key] = el.value.trim() === '' ? null : el.value.trim();
             }
         });
         return payload;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Moderation: review queue, case file and human decisions (titan_moderation_*_v1).
+    // Nothing here is automatic. The server decides who may read or act; this screen only displays and asks.
+    // ---------------------------------------------------------------------------------------------
+    const MODERATION_DECISION_LABELS = {
+        dismiss: 'Classé sans suite',
+        watch: 'Surveillance',
+        suspend: 'Suspension',
+        restore: 'Rétablissement',
+        revert: 'Annulation'
+    };
+    const MODERATION_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique un motif d’au moins 3 caractères.',
+        UNKNOWN_DECISION: 'Décision inconnue.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas modérer ton propre compte.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        ACCOUNT_NOT_FOUND: 'Ce compte n’existe plus.',
+        ALREADY_SUSPENDED: 'Ce compte est déjà suspendu.',
+        NOT_SUSPENDED: 'Ce compte n’est pas suspendu (un bannissement ne se lève pas depuis cette file).',
+        NOT_LATEST_DECISION: 'Seule la dernière décision d’un compte peut être annulée.',
+        NOT_REVERTIBLE: 'Cette décision ne peut pas être annulée.',
+        DECISION_NOT_FOUND: 'Décision introuvable.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.',
+        EXCLUSION_REQUIRED: 'Choisis d’exclure ou de rétablir la séance.',
+        MESSAGE_REQUIRED: 'Le message doit faire entre 10 et 500 caractères.',
+        REQUEST_ALREADY_OPEN: 'Une demande de vérification est déjà ouverte pour ce joueur.',
+        REQUEST_LIMIT: 'Trois demandes ont déjà été envoyées à ce joueur cette semaine.',
+        REQUEST_CLOSED: 'Cette demande est déjà close.',
+        REQUEST_NOT_FOUND: 'Cette demande n’existe plus.',
+        USER_NOT_FOUND: 'Ce compte n’existe plus.',
+        ACCOUNT_STATE_CHANGED: 'Le compte a été modifié depuis cette décision par un autre outil : vérifie son état avant de réessayer.'
+    };
+
+    function moderationErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(MODERATION_ERRORS).find((key) => message.includes(key));
+        return code ? MODERATION_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    function moderationUnavailable(error) {
+        const message = String((error && error.message) || '');
+        return error && (error.code === 'PGRST202' || error.code === '42883' || /could not find the function/i.test(message));
+    }
+
+    function moderationLevelBadge(level) {
+        const labels = { urgent: 'Urgent', review: 'À examiner', watch: 'À surveiller', low: 'Faible' };
+        const cls = level === 'urgent' ? 'badge-danger' : (level === 'review' || level === 'watch') ? 'badge-warning' : '';
+        return `<span class="status-badge ${cls}">${escapeHtml(labels[level] || level || '-')}</span>`;
+    }
+
+    const SESSION_SIGNAL_LABELS = { overlap: 'Chevauchement', speed_jump: 'Vitesse inhabituelle', day_volume: 'Volume du jour', beyond_human: 'Allure au-delà du possible', extraordinary_series: 'Série de performances extraordinaires' };
+    function sessionSignalText(signal) {
+        const d = signal.detail && typeof signal.detail === 'object' ? signal.detail : {};
+        const n = (value) => escapeHtml(value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? '?' : Number(value));
+        let detail = '';
+        if (signal.code === 'overlap') detail = `${n(d.overlapMinutes)} min en commun (${n(Math.round(Number(d.shareOfShorter) * 100))} % de la plus courte)`;
+        else if (signal.code === 'speed_jump') detail = `${n(d.kmh)} km/h contre ${n(d.medianKmh)} km/h habituels (${n(d.priorSessions)} séances)`;
+        else if (signal.code === 'beyond_human') detail = `${n(d.kmh)} km/h tenus plus de 15 minutes (${escapeHtml(d.sport || '')}) : au-delà des records connus`;
+        else if (signal.code === 'extraordinary_series') detail = `${n(d.sessionsInFourteenDays)} séances à plus de 1,5 fois l’allure habituelle en 14 jours`;
+        else if (signal.code === 'day_volume') detail = `${n(d.minutesThatDay)} min déclarées ce jour-là`;
+        const label = SESSION_SIGNAL_LABELS[signal.code] || signal.code;
+        return `<strong>${escapeHtml(label)}</strong> · ${escapeHtml(signal.severity)} · ${n(signal.points)} pt${detail ? ` · ${detail}` : ''}`;
+    }
+
+    // Advisory only: this lists sessions whose own history looks inconsistent; nothing is excluded from here.
+    // Advisory data must never hold the case file back: a throw, a rejection or a stall becomes a short note.
+    async function loadSessionRisk(userId) {
+        let timer;
+        const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve({ data: null, error: { timedOut: true, message: 'timeout' } }), 8000); });
+        try {
+            return await Promise.race([Promise.resolve(state.client.rpc('titan_session_risk_v1', { p_user: userId, p_limit: 50 })), timeout]);
+        } catch (e) {
+            return { data: null, error: (e && typeof e === 'object') ? e : { message: String(e || 'unavailable') } };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function sessionRiskMarkup(risk, error) {
+        try {
+            return sessionRiskMarkupUnsafe(risk, error);
+        } catch (e) {
+            return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        }
+    }
+
+    function sessionRiskMarkupUnsafe(risk, error) {
+        if (error) {
+            const why = moderationUnavailable(error)
+                ? 'migration 20261019180000_session_risk.sql non appliquée'
+                : error.timedOut ? 'délai dépassé' : moderationErrorText(error);
+            return `<p><small>Analyse des séances indisponible (${escapeHtml(why)}).</small></p>`;
+        }
+        if (!risk || !Array.isArray(risk.sessions)) return '<p><small>Analyse des séances illisible : réponse inattendue du serveur.</small></p>';
+        const all = risk.sessions.filter((session) => session && typeof session === 'object');
+        const flagged = all.filter((session) => session.state && session.state !== 'normal');
+        const rule = risk?.rule ? `<p><small>${escapeHtml(risk.rule)}</small></p>` : '';
+        const head = `<p><small>${escapeHtml(all.length)} séances analysées, ${escapeHtml(flagged.length)} à examiner ou surveiller.</small></p>`;
+        if (!flagged.length) return `${head}${rule}<p>Aucune séance à examiner.</p>`;
+        const rows = flagged.map((session) => `
+            <tr>
+                <td>${escapeHtml(session.sport)} · ${escapeHtml(session.value)} ${escapeHtml(session.unit)}<br><small>${escapeHtml(formatDate(session.date))}</small></td>
+                <td>${moderationLevelBadge(session.state === 'critical' ? 'urgent' : session.state)}</td>
+                <td>${escapeHtml(session.score)}</td>
+                <td>${(Array.isArray(session.signals) ? session.signals.filter((signal) => signal && typeof signal === 'object') : []).map(sessionSignalText).join('<br>')}</td>
+                <td>${session.excludedFromRankings ? 'Exclue des classements' : '—'}</td>
+                <td>${session.id ? buttonMarkup(session.excludedFromRankings ? 'Rétablir dans les classements' : 'Exclure des classements', session.excludedFromRankings ? 'ri-arrow-go-back-line' : 'ri-forbid-line', 'secondary', `data-session-exclude="${escapeHtml(session.id)}" data-excluded="${session.excludedFromRankings ? 'true' : 'false'}"`) : ''}</td>
+            </tr>`).join('');
+        return `${head}${rule}${tableShell(`<table class="admin-table" data-session-risk-table aria-label="Séances à examiner"><thead><tr><th>Séance</th><th>État</th><th>Score</th><th>Signaux</th><th>Classement</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    function moderationPayloadText(payload) {
+        const text = JSON.stringify(payload || {}, null, 2);
+        return text.length > 1200 ? `${text.slice(0, 1200)}\n… (tronqué, ${text.length - 1200} caractères de plus)` : text;
+    }
+
+    function moderationSignalLine(signal) {
+        return `<li><code>${escapeHtml(signal.reason)}</code> · ${escapeHtml(signal.severity)} · ×${escapeHtml(signal.count)} · +${escapeHtml(signal.points)} pt</li>`;
+    }
+
+    async function renderModeration() {
+        const head = sectionHead('Modération', 'Comptes ayant des signaux ouverts, classés par risque. Aucune action n’est automatique : chaque décision est humaine, motivée et annulable.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]) + `
+            <form class="panel" data-moderation-lookup>
+                <label class="form-field full">
+                    <span>Retrouver un dossier par identifiant de compte (par exemple pour annuler une décision d’un compte sorti de la file)</span>
+                    <input class="admin-input" name="user" type="text" autocomplete="off" spellcheck="false" placeholder="00000000-0000-0000-0000-000000000000" aria-label="Identifiant du compte">
+                </label>
+                ${buttonMarkup('Ouvrir le dossier', 'ri-folder-user-line', 'secondary', 'data-moderation-lookup-submit')}
+            </form>`;
+        const { data, error } = await state.client.rpc('titan_moderation_queue_v1', { p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de modération n’est pas disponible sur ce serveur : applique la migration 20261019150000_moderation_queue.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const entries = Array.isArray(data && data.entries) ? data.entries : [];
+        state.rows.moderation = new Map(entries.map((entry) => [String(entry.user_id), entry]));
+        if (!entries.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun compte à examiner : aucun signal ouvert ces 30 derniers jours.</p></div>`;
+            return;
+        }
+        const rows = entries.map((entry) => `
+            <tr data-moderation-user="${escapeHtml(entry.user_id)}">
+                <td><strong>${escapeHtml(entry.username || 'Sans nom')}</strong><br><small>${escapeHtml(shortId(entry.user_id))} · ${badge(entry.status || 'active')}</small></td>
+                <td>${moderationLevelBadge(entry.level)}</td>
+                <td><strong>${escapeHtml(entry.score)}</strong></td>
+                <td><ul class="compact-list">${(entry.signals || []).map(moderationSignalLine).join('')}</ul></td>
+                <td>${entry.last_decision ? `${escapeHtml(MODERATION_DECISION_LABELS[entry.last_decision.decision] || entry.last_decision.decision)}<br><small>${escapeHtml(formatDate(entry.last_decision.at))}</small>` : '<small>Aucune</small>'}</td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(entry.user_id)}" aria-label="Ouvrir le dossier de ${escapeHtml(entry.username || 'ce compte')}"`)}</td>
+            </tr>`).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-moderation-queue aria-label="Comptes à examiner">
+                <thead><tr><th>Compte</th><th>Niveau</th><th>Score</th><th>Signaux (raison · gravité · occurrences · points)</th><th>Dernière décision</th><th>Actions</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+        `;
+    }
+
+    // BOT06: a verification request is a message to the player (alert in Titan) with one answer; it changes nothing on the account.
+    async function loadVerifications(userId) {
+        try {
+            const { data, error } = await state.client.rpc('titan_verification_list_v1', { p_status: 'any', p_user: userId, p_limit: 20 });
+            if (error) return { available: false, requests: [], error };
+            return { available: true, requests: Array.isArray(data && data.requests) ? data.requests.filter((request) => request && typeof request === 'object') : [] };
+        } catch (error) {
+            return { available: false, requests: [], error };
+        }
+    }
+
+    const VERIFICATION_STATUS_LABELS = { open: 'En attente de réponse', answered: 'Réponse reçue', closed: 'Close' };
+
+    function verificationMarkup(verifications) {
+        if (!verifications.available) return '<p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        if (!verifications.requests.length) return '<p><small>Aucune demande.</small></p>';
+        return `<ul class="compact-list">${verifications.requests.map((request) => `
+            <li data-verification="${escapeHtml(request.id)}">
+                <strong>${escapeHtml(VERIFICATION_STATUS_LABELS[request.status] || request.status)}</strong> · ${escapeHtml(formatDate(request.createdAt))}
+                <p>${escapeHtml(request.message)}</p>
+                ${request.answer ? `<p><em>Réponse du joueur (${escapeHtml(formatDate(request.answeredAt))}) : ${escapeHtml(request.answer)}</em></p>` : ''}
+                ${request.status === 'closed' ? '' : buttonMarkup('Clore', 'ri-check-double-line', 'secondary', `data-verify-close="${escapeHtml(request.id)}"`)}
+            </li>`).join('')}</ul>`;
+    }
+
+    async function requestVerification() {
+        const userId = state.moderationUser;
+        if (!userId) return;
+        const message = await confirmSensitive({
+            title: 'Demander une vérification',
+            message: 'Le joueur verra ce message comme une alerte dans Titan et pourra y répondre une fois. Rien n’est décidé et son compte ne change pas. Ne mets pas de donnée de santé.',
+            actionLabel: 'Envoyer la demande',
+            requireReason: true,
+            fieldLabel: 'Message au joueur (10 à 500 caractères)'
+        });
+        if (!message) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_verification_request_v1', { p_user: userId, p_message: message });
+        if (error) notify('Demande refusée', moderationErrorText(error), 'danger');
+        else notify('Demande envoyée', 'Le joueur la verra dans Titan. L’envoi est consigné dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
+    async function closeVerification(id) {
+        const userId = state.moderationUser;
+        if (!id || (!userId && $('#admin-modal').hidden === false)) return;
+        const { error } = await state.client.rpc('titan_verification_close_v1', { p_id: Number(id) });
+        if (error) notify('Clôture refusée', moderationErrorText(error), 'danger');
+        else notify('Demande close', 'La clôture est consignée dans le journal d’audit.', 'success');
+        if ($('#admin-modal').hidden && state.currentView === 'appeals') {
+            try { await renderAppeals(); } catch (e) { notify('Actualisation impossible', 'La clôture est enregistrée ; actualise la file.', 'warning'); }
+            return;
+        }
+        await openModerationCase(userId);
+    }
+
+    async function openModerationCase(userId) {
+        const [{ data, error }, risk, verifications] = await Promise.all([
+            state.client.rpc('titan_moderation_case_v1', { p_user: userId }),
+            loadSessionRisk(userId),
+            loadVerifications(userId)
+        ]);
+        if (error) {
+            notify('Dossier indisponible', moderationErrorText(error), 'danger');
+            return;
+        }
+        state.moderationUser = userId;
+        const user = data.user || {};
+        const banned = user.status === 'banned';
+        const suspended = !banned && (user.is_suspended === true || user.status === 'suspended');
+        const decisions = Array.isArray(data.decisions) ? data.decisions : [];
+        const latest = decisions[0];
+        const signals = (data.signals || []).map((signal) => `
+            <tr><td><code>${escapeHtml(signal.reason)}</code></td><td>${escapeHtml(signal.severity)}</td><td>${escapeHtml(signal.count)}</td><td>${escapeHtml(signal.points)}</td><td>${escapeHtml(formatDate(signal.last_at))}</td></tr>`).join('');
+        const recent = (data.signals_recent || []).map((signal) => `
+            <div class="panel">
+                <p><strong>${escapeHtml(signal.action_type)}</strong> · ${escapeHtml(signal.severity)} · ${badge(signal.status)} · ${escapeHtml(formatDate(signal.at))}</p>
+                <p><code>${escapeHtml(signal.reason)}</code></p>
+                <div class="json-preview">${escapeHtml(moderationPayloadText(signal.payload))}</div>
+            </div>`).join('') || '<p><small>Aucun signal enregistré.</small></p>';
+        const history = decisions.map((decision) => `
+            <li>${escapeHtml(MODERATION_DECISION_LABELS[decision.decision] || decision.decision)} · ${escapeHtml(formatDate(decision.at))} · <em>${escapeHtml(decision.reason)}</em></li>`).join('') || '<li><small>Aucune décision.</small></li>';
+        const actions = [
+            buttonMarkup('Classer sans suite', 'ri-check-double-line', 'secondary', 'data-moderation-decide="dismiss"'),
+            buttonMarkup('Surveiller', 'ri-eye-line', 'secondary', 'data-moderation-decide="watch"')
+        ];
+        // A ban is a decision taken elsewhere: neither suspending nor restoring it makes sense from this file.
+        if (!banned) {
+            actions.push(suspended
+                ? buttonMarkup('Rétablir', 'ri-lock-unlock-line', 'primary', 'data-moderation-decide="restore"')
+                : buttonMarkup('Suspendre', 'ri-lock-line', 'danger', 'data-moderation-decide="suspend"'));
+        }
+        if (verifications.available && !verifications.requests.some((request) => request.status === 'open')) {
+            actions.push(buttonMarkup('Demander une vérification', 'ri-question-answer-line', 'secondary', 'data-verify-request'));
+        }
+        if (latest && latest.decision !== 'revert') {
+            actions.push(buttonMarkup('Annuler la dernière décision', 'ri-arrow-go-back-line', 'secondary', `data-moderation-revert="${escapeHtml(latest.id)}"`));
+        }
+        openModal({
+            title: user.username || 'Compte',
+            kicker: `Dossier de modération · ${data.level || ''}`,
+            body: `
+                <div class="panel">
+                    <p>Score <strong>${escapeHtml(data.score)}</strong> · ${moderationLevelBadge(data.level)} · statut ${badge(user.status || 'active')}</p>
+                    ${banned ? '<p><small>Compte banni : le bannissement se lève hors de cette file. Tu peux toujours classer, surveiller ou annuler une décision.</small></p>' : ''}
+                    <p><small>Score = somme, par raison, du poids de la gravité la plus haute (faible 1, moyenne 3, haute 8, critique 20) × min(occurrences, 3). Il ne dépend pas du volume d’entraînement. Seuls les signaux ouverts des 30 derniers jours comptent.</small></p>
+                </div>
+                <h3>Signaux qui composent le score</h3>
+                ${signals ? tableShell(`<table class="admin-table"><thead><tr><th>Raison</th><th>Gravité</th><th>Occurrences</th><th>Points</th><th>Dernier</th></tr></thead><tbody>${signals}</tbody></table>`) : '<p><small>Aucun signal ouvert.</small></p>'}
+                <h3>Séances à examiner</h3>
+                <div data-session-risk>${sessionRiskMarkup(risk && risk.data, risk && risk.error ? risk.error : (!risk || !risk.data ? { message: 'empty' } : null))}</div>
+                <h3>Derniers signaux bruts</h3>
+                ${recent}
+                <h3>Décisions</h3>
+                <ul class="compact-list">${history}</ul>
+                <h3>Demandes de vérification</h3>
+                <div data-verification-list>${verificationMarkup(verifications)}</div>
+            `,
+            actions
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Appeals (CHEAT19): players contest an excluded session or a suspension; a human accepts or declines with a note
+    // the player can read (titan_appeal_*_v1). Accepting lifts the exclusion / suspension through the audited RPCs.
+    // ---------------------------------------------------------------------------------------------
+    const APPEAL_ERRORS = {
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.',
+        REASON_REQUIRED: 'Indique une note d’au moins 3 caractères : le joueur la lira.',
+        APPEAL_NOT_FOUND: 'Ce recours n’existe plus.',
+        APPEAL_CLOSED: 'Ce recours a déjà été traité.',
+        CANNOT_MODERATE_SELF: 'Tu ne peux pas traiter ton propre recours.',
+        CANNOT_MODERATE_ADMIN: 'Un administrateur ne peut pas être modéré ici.',
+        USE_ADMIN_PROFILE_TOOL: 'Un bannissement ou un compte supprimé ne se lève pas depuis cette file : utilise l’outil de profil, ou refuse le recours.',
+        STATE_CHANGED: 'Il n’y a plus rien à lever (l’état a changé depuis le dépôt) : refuse le recours avec une note.',
+        SESSION_NOT_FOUND: 'Cette séance n’existe plus.'
+    };
+
+    function appealErrorText(error) {
+        const message = String((error && error.message) || error || '');
+        const code = Object.keys(APPEAL_ERRORS).find((key) => message.includes(key));
+        return code ? APPEAL_ERRORS[code] : (message || 'Erreur inconnue.');
+    }
+
+    async function renderAppeals() {
+        const head = sectionHead('Recours et vérifications', 'Contestations déposées par les joueurs. Accepter lève l’exclusion ou la suspension ; refuser garde l’état. Dans les deux cas, ta note est lue par le joueur.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_appeal_list_v1', { p_status: 'open', p_limit: 100 });
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le module de recours n’est pas disponible sur ce serveur : applique la migration 20261019230000_appeals.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette file est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const appeals = Array.isArray(data && data.appeals) ? data.appeals : [];
+        const answered = await answeredVerificationsMarkup();
+        if (!appeals.length) {
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>Aucun recours en attente.</p></div>${answered}`;
+            return;
+        }
+        const rows = appeals.map((appeal) => {
+            const target = appeal.kind === 'session'
+                ? `Séance ${escapeHtml((appeal.session && appeal.session.sport) || '')} du ${escapeHtml(formatDate(appeal.session && appeal.session.date))}${appeal.session && appeal.session.excluded === false ? ' <small>(déjà rétablie)</small>' : ''}`
+                : 'Suspension du compte';
+            const id = escapeHtml(appeal.id);
+            return `
+            <tr data-appeal-row="${id}">
+                <td><small>${escapeHtml(shortId(appeal.userId))}</small><br><small>${escapeHtml(formatDate(appeal.createdAt))}</small></td>
+                <td>${target}</td>
+                <td><div class="json-preview">${escapeHtml(appeal.message)}</div></td>
+                <td>${buttonMarkup('Accepter', 'ri-check-line', 'primary', `data-appeal-decide="accept" data-appeal-id="${id}" aria-label="Accepter le recours ${id}"`)}
+                    ${buttonMarkup('Refuser', 'ri-close-line', 'secondary', `data-appeal-decide="decline" data-appeal-id="${id}" aria-label="Refuser le recours ${id}"`)}</td>
+            </tr>`;
+        }).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-appeal-queue aria-label="Recours en attente">
+                <thead><tr><th>Joueur</th><th>Objet</th><th>Message du joueur</th><th>Décision</th></tr></thead>
+                <tbody>${rows}</tbody></table>`)}
+            ${answered}
+        `;
+    }
+
+    // Players' answers to verification requests wait here until an administrator has read them and closes the request.
+    async function answeredVerificationsMarkup() {
+        let result;
+        try { result = await state.client.rpc('titan_verification_list_v1', { p_status: 'answered', p_user: null, p_limit: 100 }); }
+        catch (error) { result = { error }; }
+        if (result.error) return '<h3>Réponses à des demandes de vérification</h3><p><small>Les demandes de vérification ne sont pas disponibles sur ce serveur.</small></p>';
+        const list = Array.isArray(result.data && result.data.requests) ? result.data.requests.filter((request) => request && typeof request === 'object') : [];
+        if (!list.length) return '<h3>Réponses à des demandes de vérification</h3><div class="panel empty-state"><p>Aucune réponse à lire.</p></div>';
+        const rows = list.map((request) => `
+            <tr data-verification="${escapeHtml(request.id)}">
+                <td><small>${escapeHtml(shortId(request.userId))}</small><br><small>${escapeHtml(formatDate(request.answeredAt))}</small></td>
+                <td><div class="json-preview">${escapeHtml(request.message)}</div></td>
+                <td><div class="json-preview">${escapeHtml(request.answer)}</div></td>
+                <td>${buttonMarkup('Dossier', 'ri-folder-user-line', 'secondary', `data-moderation-open="${escapeHtml(request.userId)}" aria-label="Ouvrir le dossier de ce joueur"`)}
+                    ${buttonMarkup('Clore', 'ri-check-double-line', 'primary', `data-verify-close="${escapeHtml(request.id)}" aria-label="Clore la demande ${escapeHtml(request.id)}"`)}</td>
+            </tr>`).join('');
+        return `<h3>Réponses à des demandes de vérification</h3>${tableShell(`<table class="admin-table" data-verification-answers aria-label="Réponses de vérification à lire">
+            <thead><tr><th>Joueur</th><th>Demande</th><th>Réponse</th><th>Suite</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    // Feature flags (IDEA10, ADS17): switch an ad network, format, placement or a progressive roll-out on or off without a release.
+    // The server returns each flag resolved per player; nothing in the app consumes a flag until a feature asks for one.
+    const FLAG_ERRORS = {
+        KEY_INVALID: 'Clé invalide : 3 à 49 caractères, minuscules, chiffres, point, tiret ou souligné, en commençant par une lettre.',
+        ROLLOUT_INVALID: 'Le pourcentage doit être compris entre 0 et 100.',
+        DESCRIPTION_TOO_LONG: 'La description fait au plus 200 caractères.',
+        STATE_REQUIRED: 'Choisis activé ou désactivé.',
+        FLAG_EXISTS: 'Ce drapeau existe déjà : modifie-le dans la liste.',
+        FLAG_CHANGED: 'Ce drapeau a été modifié entre-temps : la liste est actualisée, vérifie puis recommence.',
+        ADMIN_ONLY: 'Cette action est réservée aux administrateurs.'
+    };
+
+    async function renderFlags() {
+        const head = sectionHead('Drapeaux de fonctionnalité', 'Active ou coupe une fonctionnalité sans nouvelle version. Un drapeau désactivé l’emporte sur la valeur par défaut de l’application ; un pourcentage inférieur à 100 ne concerne que des joueurs connectés, toujours les mêmes. Les clés sont publiques : n’y mets rien de sensible. Chaque changement est consigné.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_admin_feature_flags_v1');
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Les drapeaux ne sont pas disponibles sur ce serveur : applique la migration 20261020050000_feature_flags.sql.';
+            else if (String(error.message || '').includes('ADMIN_ONLY')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const flags = Array.isArray(data && data.flags) ? data.flags.filter((flag) => flag && typeof flag === 'object') : [];
+        const row = (flag) => `
+            <tr data-flag-row data-flag-key="${escapeHtml(flag.key)}" data-flag-updated="${escapeHtml(flag.updatedAt || '')}">
+                <td><code>${escapeHtml(flag.key)}</code><br><small>${escapeHtml(flag.description || '')}</small></td>
+                <td><label><input type="checkbox" name="enabled"${flag.enabled ? ' checked' : ''} aria-label="Activé : ${escapeHtml(flag.key)}"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="${escapeHtml(flag.rollout)}" aria-label="Pourcentage de joueurs : ${escapeHtml(flag.key)}"> %</td>
+                <td>${buttonMarkup('Enregistrer', 'ri-save-line', 'primary', `data-flag-save aria-label="Enregistrer le drapeau ${escapeHtml(flag.key)}"`)}</td>
+            </tr>`;
+        const create = `
+            <tr data-flag-row data-flag-new>
+                <td><input class="admin-input" name="key" type="text" autocomplete="off" spellcheck="false" placeholder="ads.web" aria-label="Clé du nouveau drapeau"><br>
+                    <input class="admin-input" name="description" type="text" maxlength="200" placeholder="Description (facultatif)" aria-label="Description du nouveau drapeau"></td>
+                <td><label><input type="checkbox" name="enabled" aria-label="Activé : nouveau drapeau"> Activé</label></td>
+                <td><input class="admin-input" name="rollout" type="number" min="0" max="100" step="1" value="100" aria-label="Pourcentage de joueurs : nouveau drapeau"> %</td>
+                <td>${buttonMarkup('Créer', 'ri-add-line', 'secondary', 'data-flag-save aria-label="Créer le drapeau"')}</td>
+            </tr>`;
+        $('#admin-view').innerHTML = `
+            ${head}
+            ${tableShell(`<table class="admin-table" data-flag-table aria-label="Drapeaux de fonctionnalité">
+                <thead><tr><th>Drapeau</th><th>État</th><th>Joueurs concernés</th><th>Action</th></tr></thead>
+                <tbody>${flags.map(row).join('')}${create}</tbody></table>`)}
+            ${flags.length ? '' : '<p><small>Aucun drapeau pour l’instant : l’application garde ses valeurs par défaut.</small></p>'}
+        `;
+    }
+
+    async function saveFlag(row) {
+        if (!row) return;
+        const isNew = row.hasAttribute('data-flag-new');
+        const key = isNew ? String((row.querySelector('[name=key]') || {}).value || '').trim() : row.dataset.flagKey;
+        const rolloutText = String((row.querySelector('[name=rollout]') || {}).value || '').trim();
+        const rollout = Number(rolloutText);
+        if (!key) { notify('Clé requise', FLAG_ERRORS.KEY_INVALID, 'warning'); return; }
+        if (rolloutText === '' || !Number.isInteger(rollout) || rollout < 0 || rollout > 100) { notify('Pourcentage invalide', FLAG_ERRORS.ROLLOUT_INVALID, 'warning'); return; }
+        const description = isNew ? String((row.querySelector('[name=description]') || {}).value || '').trim() : null;
+        const { error } = await state.client.rpc('titan_admin_feature_flag_set_v1', {
+            p_key: key,
+            p_enabled: Boolean(row.querySelector('[name=enabled]').checked),
+            p_rollout: rollout,
+            p_description: description || null,
+            p_expected_updated_at: isNew ? null : (row.dataset.flagUpdated || null),
+            p_create: isNew
+        });
+        if (error) {
+            const message = String((error && error.message) || '');
+            const code = Object.keys(FLAG_ERRORS).find((candidate) => message.includes(candidate));
+            notify('Drapeau refusé', code ? FLAG_ERRORS[code] : (message || 'Erreur inconnue.'), 'danger');
+            if (code === 'FLAG_CHANGED' && state.currentView === 'flags') { try { await renderFlags(); } catch (e) { console.error('[TITAN ADMIN FLAGS]', e); } }
+            return;
+        }
+        notify('Drapeau enregistré', 'Le changement est consigné dans le journal d’audit.', 'success');
+        if (state.currentView !== 'flags') return;
+        try { await renderFlags(); } catch (e) {
+            console.error('[TITAN ADMIN FLAGS]', e);
+            notify('Actualisation impossible', 'Le changement est enregistré ; actualise la page.', 'warning');
+        }
+    }
+
+
+    // Votes and roadmap (COM-F3, COM-F4): create and close a poll, create or move an idea. Players only ever see the counts after the close.
+    const CONSULTATION_ERRORS = {
+        ADMIN_REQUIRED: 'Cette action est réservée aux administrateurs.',
+        OPTIONS_2_TO_6: 'Un vote a entre deux et six options.',
+        POLL_NOT_OPEN_OR_UNKNOWN: 'Ce vote est déjà clos ou n’existe plus.',
+        STATUS_UNKNOWN: 'Statut inconnu.',
+        ITEM_NOT_FOUND: 'Cette idée n’existe plus : actualise la page.',
+        WEEK_MUST_START_MONDAY: 'Une quête commune commence un lundi.',
+        WEEK_IN_THE_PAST: 'Cette semaine est déjà passée.',
+        SEASON_OVERLAP: 'Cette saison chevauche une autre saison.',
+        TROPHY_ALREADY_AWARDED: 'Ce trophée a déjà été décerné à ce club.',
+        BAD_TROPHY: 'Clé ou titre invalide.',
+        GOAL_OVERLAP: 'Cet objectif chevauche un autre objectif collectif.',
+        BAD_PERIOD: 'La période doit durer de 1 jour à 13 semaines.',
+        BAD_LEVELS: 'Les trois paliers doivent être croissants.',
+        PERIOD_IN_THE_PAST: 'Cette période est déjà passée.',
+        GOAL_STARTED_FROZEN: 'L’objectif a commencé : seul son texte peut changer.',
+        SEASON_IN_THE_PAST: 'Cette saison est déjà terminée.',
+        SEASON_STARTED_FROZEN: 'La saison a commencé : seules les règles peuvent changer.',
+        QUEST_STARTED_FROZEN: 'La semaine a commencé : seul le texte peut changer.'
+    };
+    const IDEA_STATUS = { wish: 'Souhaité', study: 'À l’étude', planned: 'Planifié', doing: 'En chantier', shipped: 'Livré' };
+    const POLL_STATE = { scheduled: 'Programmé', open: 'Ouvert', closed: 'Clos' };
+    const consultationError = (error) => {
+        const message = String((error && error.message) || '');
+        const code = Object.keys(CONSULTATION_ERRORS).find((candidate) => message.includes(candidate));
+        return code ? CONSULTATION_ERRORS[code] : (message || 'Erreur inconnue.');
+    };
+    const localInput = (date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+    async function renderConsultations() {
+        const head = sectionHead('Votes et idées', 'Un vote est une préférence, jamais une promesse. Les joueurs ne voient le résultat d’un vote qu’une fois clos ; le drapeau « screens.consultations » doit être actif pour que la Communauté les affiche.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const [polls, ideas, quests, seasons, worldGoals, clubReports, clubList, pantheon] = await Promise.all([state.client.rpc('titan_poll_admin_list_v1'), state.client.rpc('titan_roadmap_admin_list_v1'), state.client.rpc('titan_common_quest_admin_list_v1'), state.client.rpc('titan_season_admin_list_v1'), state.client.rpc('titan_world_goal_admin_list_v1'), state.client.rpc('titan_club_reports_admin_list_v1'), state.client.rpc('titan_club_admin_list_v1'), state.client.rpc('titan_pantheon_v1')]);
+        const error = polls.error || ideas.error;
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Les votes ne sont pas disponibles sur ce serveur : applique la migration 20261029090000_community_consultations.sql.';
+            else if (String(error.message || '').includes('ADMIN_REQUIRED')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const now = new Date();
+        const pollRows = (Array.isArray(polls.data) ? polls.data : []).map((p) => `
+            <tr data-poll-row>
+                <td><strong>${escapeHtml(p.title)}</strong><br><small>${escapeHtml(POLL_STATE[p.state] || p.state)} · du ${escapeHtml(new Date(p.opensAt).toLocaleString('fr-FR'))} au ${escapeHtml(new Date(p.closesAt).toLocaleString('fr-FR'))}</small></td>
+                <td>${(p.options || []).map((o) => `${escapeHtml(o.label)} : <strong>${Number(o.votes) || 0}</strong>`).join('<br>')}</td>
+                <td>${p.state === 'closed' ? '' : buttonMarkup('Clore maintenant', 'ri-stop-circle-line', 'secondary', `data-poll-close="${escapeHtml(p.id)}" aria-label="Clore le vote ${escapeHtml(p.title)}"`)}</td>
+            </tr>`).join('');
+        const createPollForm = `
+            <form class="panel" data-poll-form aria-label="Créer un vote" novalidate>
+                <h3>Nouveau vote</h3>
+                <p><label>Question <input class="admin-input" name="title" maxlength="120" required></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="600"></label></p>
+                <p><label>Options, une par ligne (2 à 6)<br><textarea class="admin-input" name="options" rows="4" maxlength="600"></textarea></label></p>
+                <p><label>Ouverture <input class="admin-input" type="datetime-local" name="opens" value="${escapeHtml(localInput(now))}"></label>
+                   <label>Clôture <input class="admin-input" type="datetime-local" name="closes" value="${escapeHtml(localInput(new Date(now.getTime() + 7 * 86400000)))}"></label></p>
+                ${buttonMarkup('Créer le vote', 'ri-add-line', 'primary', 'data-poll-create')}
+            </form>`;
+        const select = (current) => `<select class="admin-input" name="status" aria-label="Statut">${Object.entries(IDEA_STATUS).map(([k, v]) => `<option value="${k}"${k === current ? ' selected' : ''}>${v}</option>`).join('')}</select>`;
+        const ideaRow = (i) => `
+            <tr data-idea-row data-idea-id="${escapeHtml(i.id)}">
+                <td><input class="admin-input" name="title" maxlength="100" value="${escapeHtml(i.title)}" aria-label="Titre"><br><input class="admin-input" name="detail" maxlength="500" value="${escapeHtml(i.detail || '')}" aria-label="Détail"></td>
+                <td>${select(i.status)}<br><small>${Number(i.votes) || 0} soutien(s)</small></td>
+                <td><input class="admin-input" name="sort" type="number" step="1" value="${Number(i.sortOrder) || 0}" aria-label="Ordre"> <label><input type="checkbox" name="archive"${i.archived ? ' checked' : ''}> Masquée</label></td>
+                <td>${buttonMarkup('Enregistrer', 'ri-save-line', 'primary', `data-idea-save aria-label="Enregistrer l’idée ${escapeHtml(i.title)}"`)}</td>
+            </tr>`;
+        const newIdea = `
+            <tr data-idea-row data-idea-new>
+                <td><input class="admin-input" name="title" maxlength="100" placeholder="Nouvelle idée" aria-label="Titre de la nouvelle idée"><br><input class="admin-input" name="detail" maxlength="500" placeholder="Détail (facultatif)" aria-label="Détail de la nouvelle idée"></td>
+                <td>${select('wish')}</td>
+                <td><input class="admin-input" name="sort" type="number" step="1" value="0" aria-label="Ordre"></td>
+                <td>${buttonMarkup('Ajouter', 'ri-add-line', 'secondary', 'data-idea-save aria-label="Ajouter l’idée"')}</td>
+            </tr>`;
+        $('#admin-view').innerHTML = `
+            ${head}
+            <h3>Votes</h3>
+            ${pollRows ? tableShell(`<table class="admin-table" aria-label="Votes"><thead><tr><th>Vote</th><th>Voix par option</th><th>Action</th></tr></thead><tbody>${pollRows}</tbody></table>`) : '<p><small>Aucun vote pour l’instant.</small></p>'}
+            ${createPollForm}
+            <h3>Quête commune de la semaine</h3>
+            ${commonQuestMarkup(quests)}
+            <h3>Saisons de 28 jours</h3>
+            ${seasonMarkup(seasons)}
+            ${worldGoalMarkup(worldGoals)}
+            ${clubReportsMarkup(clubReports)}
+            ${clubTrophyMarkup(clubList)}
+            ${pantheonAdminMarkup(pantheon)}
+            <h3>Feuille de route</h3>
+            ${tableShell(`<table class="admin-table" aria-label="Feuille de route"><thead><tr><th>Idée</th><th>Statut</th><th>Ordre</th><th>Action</th></tr></thead><tbody>${(Array.isArray(ideas.data) ? ideas.data : []).map(ideaRow).join('')}${newIdea}</tbody></table>`)}
+            <p><small>Un statut n’est jamais une date. Passer une idée à « Livré » ferme les soutiens ; la masquer la retire de la liste des joueurs.</small></p>
+        `;
+    }
+
+    function commonQuestMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'La quête commune n’est pas disponible sur ce serveur : applique la migration 20261029120000_common_quest.sql.' : consultationError(result.error))}</p></div>`;
+        const rows = (Array.isArray(result.data) ? result.data : []).map((q) => `<tr><td>${escapeHtml(new Date(q.weekStart).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(q.title)}</strong><br><small>${escapeHtml(q.detail || '')}</small></td><td>${Number(q.target) || 0} min</td><td>${Number(q.members) || 0}</td></tr>`).join('');
+        const monday = new Date(); monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Quêtes communes"><thead><tr><th>Semaine du</th><th>Quête</th><th>Objectif</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucune quête commune pour l’instant.</small></p>'}
+            <form class="panel" data-cq-form aria-label="Créer une quête commune" novalidate>
+                <h3>Nouvelle quête commune</h3>
+                <p><label>Semaine commençant le lundi <input class="admin-input" type="date" name="week" value="${escapeHtml(localInput(monday).slice(0, 10))}"></label>
+                   <label>Objectif (minutes d’effort de tous) <input class="admin-input" type="number" name="target" min="100" max="1000000" step="50" value="1000"></label></p>
+                <p><label>Titre <input class="admin-input" name="title" maxlength="100"></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
+                ${buttonMarkup('Créer la quête', 'ri-add-line', 'primary', 'data-cq-create')}
+            </form>`;
+    }
+
+    function clubTrophyMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les trophées de clubs ne sont pas disponibles sur ce serveur : applique la migration 20261030110000_factions_pantheon_trophies.sql.' : consultationError(result.error))}</p></div>`;
+        const clubs = Array.isArray(result.data) ? result.data : [];
+        const rows = clubs.filter((c) => (c.trophies || []).length).map((c) => `<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${c.trophies.map((t) => `${escapeHtml(t.title)} <small>(${escapeHtml(new Date(t.on).toLocaleDateString('fr-FR'))})</small> ${buttonMarkup('Retirer', 'ri-delete-bin-line', 'secondary', `data-trophy-revoke="${escapeHtml(t.id)}"`)}`).join('<br>')}</td></tr>`).join('');
+        return `<h3>Trophées de clubs</h3>${rows ? tableShell(`<table class="admin-table" aria-label="Trophées de clubs"><thead><tr><th>Club</th><th>Trophées</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucun trophée décerné.</small></p>'}
+            <form class="panel" data-trophy-form aria-label="Décerner un trophée" novalidate>
+                <p><label>Club <select class="admin-input" name="club"><option value="">Choisir…</option>${clubs.map((c) => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)} (${Number(c.members) || 0})</option>`).join('')}</select></label></p>
+                <p><label>Clé (lettres minuscules, chiffres, tirets) <input class="admin-input" name="key" maxlength="40" placeholder="premiere-saison"></label>
+                   <label>Titre <input class="admin-input" name="title" maxlength="60"></label></p>
+                <p><label>Mot d’accompagnement (facultatif) <input class="admin-input" name="note" maxlength="200"></label></p>
+                ${buttonMarkup('Décerner', 'ri-trophy-line', 'primary', 'data-trophy-award')}
+            </form>`;
+    }
+
+    async function awardClubTrophy() {
+        const form = document.querySelector('[data-trophy-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        if (!value('club')) { notify('Club', 'Choisis un club.', 'warning'); return; }
+        if (!/^[a-z0-9-]{3,40}$/.test(value('key'))) { notify('Clé', 'De 3 à 40 caractères : minuscules, chiffres et tirets.', 'warning'); return; }
+        if (value('title').length < 3) { notify('Titre', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_club_trophy_award_v1', { p_club: value('club'), p_key: value('key'), p_title: value('title'), p_note: value('note') || null });
+        if (error) { notify('Trophée refusé', consultationError(error), 'danger'); return; }
+        notify('Trophée décerné', 'Il apparaît dans l’espace du club.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function revokeClubTrophy(id) {
+        const reason = await confirmSensitive({ title: 'Retirer ce trophée', message: 'Le trophée disparaît de l’espace du club.', actionLabel: 'Retirer', danger: true, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_club_trophy_revoke_v1', { p_trophy: id });
+        if (error) notify('Retrait refusé', consultationError(error), 'danger'); else notify('Trophée retiré', 'Il n’apparaît plus.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    function pantheonAdminMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Le Panthéon n’est pas disponible sur ce serveur : applique la migration 20261030110000_factions_pantheon_trophies.sql.' : consultationError(result.error))}</p></div>`;
+        const entries = (result.data && Array.isArray(result.data.entries)) ? result.data.entries : [];
+        if (!entries.length) return '<h3>Panthéon</h3><p><small>Aucune entrée publiée.</small></p>';
+        const rows = entries.map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.label)}</td><td>${escapeHtml(new Date(e.at).toLocaleDateString('fr-FR'))}</td><td>${e.userId ? buttonMarkup('Masquer cette personne', 'ri-eye-off-line', 'secondary', `data-pantheon-hide="${escapeHtml(e.userId)}" data-hide="true"`) : ''}</td></tr>`).join('');
+        return `<h3>Panthéon</h3>${tableShell(`<table class="admin-table" aria-label="Panthéon"><thead><tr><th>Nom</th><th>Distinction</th><th>Date</th><th>Modération</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    async function hidePantheon(userId, hide) {
+        const reason = await confirmSensitive({ title: 'Masquer du Panthéon', message: 'La personne n’apparaît plus dans la galerie ; elle en est informée sur son écran.', actionLabel: 'Masquer', danger: false, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_pantheon_moderate_v1', { p_user: userId, p_hidden: hide });
+        if (error) notify('Modération refusée', consultationError(error), 'danger'); else notify('Entrée masquée', 'Elle n’apparaît plus dans la galerie.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    const REPORT_REASONS = { spam: 'Spam', harassment: 'Harcèlement', inappropriate: 'Inapproprié', other: 'Autre' };
+    function clubReportsMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les signalements de clubs ne sont pas disponibles sur ce serveur : applique la migration 20261030100000_club_reports.sql.' : consultationError(result.error))}</p></div>`;
+        const list = Array.isArray(result.data) ? result.data : [];
+        if (!list.length) return '<h3>Signalements de clubs</h3><p><small>Aucun signalement ouvert.</small></p>';
+        const rows = list.map((r) => `<tr><td>${escapeHtml(new Date(r.at).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(r.club)}</strong><br><small>${r.announcement ? '« ' + escapeHtml(r.announcement) + ' »' : 'Le club lui-même'}</small></td><td>${escapeHtml(REPORT_REASONS[r.reason] || r.reason)}${r.details ? '<br><small>' + escapeHtml(r.details) + '</small>' : ''}<br><small>${Number(r.sameTarget) || 1} signalement(s)</small></td><td>
+            ${buttonMarkup('Ignorer', 'ri-close-line', 'secondary', `data-club-report-act="dismiss" data-report="${escapeHtml(r.id)}"`)}
+            ${r.announcementId ? buttonMarkup('Retirer l’annonce', 'ri-delete-bin-line', 'secondary', `data-club-report-act="remove_announcement" data-report="${escapeHtml(r.id)}"`) : ''}
+            ${buttonMarkup('Archiver le club', 'ri-archive-line', 'danger', `data-club-report-act="archive_club" data-report="${escapeHtml(r.id)}"`)}</td></tr>`).join('');
+        return `<h3>Signalements de clubs</h3>${tableShell(`<table class="admin-table" aria-label="Signalements de clubs"><thead><tr><th>Date</th><th>Contenu</th><th>Motif</th><th>Décision</th></tr></thead><tbody>${rows}</tbody></table>`)}`;
+    }
+
+    async function resolveClubReport(id, action) {
+        const archive = action === 'archive_club';
+        const reason = await confirmSensitive({ title: action === 'dismiss' ? 'Ignorer ce signalement' : archive ? 'Archiver ce club' : 'Retirer cette annonce', message: archive ? 'Le club disparaît pour tous ses membres.' : action === 'dismiss' ? 'Le signalement est clos sans autre effet.' : 'L’annonce disparaît pour les membres du club.', actionLabel: 'Confirmer', danger: archive, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_club_report_resolve_v1', { p_report: id, p_action: action, p_note: typeof reason === 'string' && reason ? reason : null });
+        if (error) notify('Décision refusée', consultationError(error), 'danger'); else notify('Décision enregistrée', 'Le signalement est clos.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    function worldGoalMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'L’objectif collectif n’est pas disponible sur ce serveur : applique la migration 20261029170000_world_goal.sql.' : consultationError(result.error))}</p></div>`;
+        const fr = (d) => new Date(d).toLocaleDateString('fr-FR');
+        const rows = (Array.isArray(result.data) ? result.data : []).map((g) => `<tr><td>${escapeHtml(fr(g.startsOn))} – ${escapeHtml(fr(g.endsOn))}</td><td><strong>${escapeHtml(g.title)}</strong><br><small>${escapeHtml(g.detail || '')}</small></td><td>${(g.levels || []).map((v) => escapeHtml(Number(v).toLocaleString('fr-FR'))).join(' · ')} min</td><td>${Number(g.members) || 0}</td></tr>`).join('');
+        const start = new Date(); start.setDate(start.getDate() + 1);
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Objectifs collectifs"><thead><tr><th>Période</th><th>Objectif</th><th>Trois paliers</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucun objectif collectif pour l’instant.</small></p>'}
+            <form class="panel" data-wg-form aria-label="Créer un objectif collectif" novalidate>
+                <h3>Nouvel objectif collectif</h3>
+                <p><label>Début <input class="admin-input" type="date" name="starts" value="${escapeHtml(localInput(start).slice(0, 10))}"></label>
+                   <label>Durée en semaines (1 à 13) <input class="admin-input" type="number" name="weeks" min="1" max="13" value="4"></label></p>
+                <p><label>Palier 1 (min d’effort) <input class="admin-input" type="number" name="l1" min="100" step="50" value="5000"></label>
+                   <label>Palier 2 <input class="admin-input" type="number" name="l2" min="150" step="50" value="15000"></label>
+                   <label>Palier 3 <input class="admin-input" type="number" name="l3" min="200" step="50" value="40000"></label></p>
+                <p><label>Titre <input class="admin-input" name="title" maxlength="100"></label></p>
+                <p><label>Précision (facultatif) <input class="admin-input" name="detail" maxlength="400"></label></p>
+                ${buttonMarkup('Créer l’objectif', 'ri-add-line', 'primary', 'data-wg-create')}
+            </form>`;
+    }
+
+    async function createWorldGoal() {
+        const form = document.querySelector('[data-wg-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const starts = value('starts'), weeks = Number(value('weeks')), l1 = Number(value('l1')), l2 = Number(value('l2')), l3 = Number(value('l3'));
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(starts)) { notify('Début', 'Choisis une date de début.', 'warning'); return; }
+        if (!Number.isInteger(weeks) || weeks < 1 || weeks > 13) { notify('Durée', 'Entre 1 et 13 semaines.', 'warning'); return; }
+        if (![l1, l2, l3].every(Number.isInteger) || !(l1 >= 100 && l1 < l2 && l2 < l3)) { notify('Paliers', 'Trois paliers croissants, le premier d’au moins 100 minutes.', 'warning'); return; }
+        const end = new Date(starts + 'T12:00:00'); end.setDate(end.getDate() + weeks * 7 - 1);
+        const ends = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+        const { error } = await state.client.rpc('titan_world_goal_admin_save_v1', { p_id: null, p_starts: starts, p_ends: ends, p_title: value('title'), p_detail: value('detail') || null, p_level1: l1, p_level2: l2, p_level3: l3 });
+        if (error) { notify('Objectif refusé', consultationError(error), 'danger'); return; }
+        notify('Objectif créé', 'Il apparaît au QG dès son début si le drapeau « screens.worldgoal » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    function seasonMarkup(result) {
+        if (result.error) return `<div class="panel empty-state"><p>${escapeHtml(moderationUnavailable(result.error) ? 'Les saisons ne sont pas disponibles sur ce serveur : applique la migration 20261029140000_seasons.sql.' : consultationError(result.error))}</p></div>`;
+        const rows = (Array.isArray(result.data) ? result.data : []).map((x) => `<tr><td>${escapeHtml(new Date(x.startsOn).toLocaleDateString('fr-FR'))} – ${escapeHtml(new Date(x.endsOn).toLocaleDateString('fr-FR'))}</td><td><strong>${escapeHtml(x.name)}</strong><br><small>${escapeHtml(x.rules || '')}</small></td><td>v${Number(x.rulesVersion) || 1}${x.closed ? ' · figée' : ''}</td><td>${Number(x.participants) || 0}</td></tr>`).join('');
+        const monday = new Date(); monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
+        return `${rows ? tableShell(`<table class="admin-table" aria-label="Saisons"><thead><tr><th>Période</th><th>Saison</th><th>Règles</th><th>Participants</th></tr></thead><tbody>${rows}</tbody></table>`) : '<p><small>Aucune saison pour l’instant.</small></p>'}
+            <form class="panel" data-season-form aria-label="Créer une saison" novalidate>
+                <h3>Nouvelle saison</h3>
+                <p><label>Quatre semaines à partir du lundi <input class="admin-input" type="date" name="starts" value="${escapeHtml(localInput(monday).slice(0, 10))}"></label></p>
+                <p><label>Nom <input class="admin-input" name="name" maxlength="80"></label></p>
+                <p><label>Règles en une phrase (facultatif) <input class="admin-input" name="rules" maxlength="600"></label></p>
+                ${buttonMarkup('Créer la saison', 'ri-add-line', 'primary', 'data-season-create')}
+            </form>`;
+    }
+
+    async function createSeason() {
+        const form = document.querySelector('[data-season-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const starts = value('starts');
+        if (value('name').length < 3) { notify('Nom requis', 'Le nom fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(starts) || new Date(starts + 'T12:00:00').getDay() !== 1) { notify('Début', 'Choisis un lundi.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_season_admin_save_v1', { p_id: null, p_starts: starts, p_name: value('name'), p_rules: value('rules') || null });
+        if (error) { notify('Saison refusée', consultationError(error), 'danger'); return; }
+        notify('Saison créée', 'Elle apparaît au QG une semaine avant son début si le drapeau « screens.seasons » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function createCommonQuest() {
+        const form = document.querySelector('[data-cq-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const week = value('week'), target = Number(value('target'));
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || new Date(week + 'T12:00:00').getDay() !== 1) { notify('Semaine', 'Choisis un lundi.', 'warning'); return; }
+        if (!Number.isInteger(target) || target < 100 || target > 1000000) { notify('Objectif', 'Entre 100 et 1 000 000 minutes.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_common_quest_admin_save_v1', { p_id: null, p_week: week, p_title: value('title'), p_detail: value('detail') || null, p_target: target });
+        if (error) { notify('Quête refusée', consultationError(error), 'danger'); return; }
+        notify('Quête créée', 'Elle apparaît au QG le lundi si le drapeau « screens.commonquest » est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function createPoll() {
+        const form = document.querySelector('[data-poll-form]');
+        if (!form) return;
+        const value = (name) => String((form.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        const options = value('options').split('\n').map((x) => x.trim()).filter(Boolean);
+        const opens = new Date(value('opens')), closes = new Date(value('closes'));
+        if (value('title').length < 3) { notify('Question requise', 'La question fait au moins trois caractères.', 'warning'); return; }
+        if (options.length < 2 || options.length > 6) { notify('Options', CONSULTATION_ERRORS.OPTIONS_2_TO_6, 'warning'); return; }
+        if (!Number.isFinite(opens.getTime()) || !Number.isFinite(closes.getTime()) || closes <= opens || closes - opens > 60 * 86400000) { notify('Dates', 'La clôture suit l’ouverture, au plus 60 jours plus tard.', 'warning'); return; }
+        const { error } = await state.client.rpc('titan_poll_admin_save_v1', { p_title: value('title'), p_detail: value('detail') || null, p_options: options, p_opens: opens.toISOString(), p_closes: closes.toISOString() });
+        if (error) { notify('Vote refusé', consultationError(error), 'danger'); return; }
+        notify('Vote créé', 'Il apparaît dans la Communauté à l’ouverture si le drapeau est actif.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function closePoll(id) {
+        const reason = await confirmSensitive({ title: 'Clore ce vote', message: 'Les votes sont arrêtés et le résultat devient visible des joueurs.', actionLabel: 'Clore', danger: false, requireReason: false });
+        if (reason === null || reason === false || reason === undefined) return;
+        const { error } = await state.client.rpc('titan_poll_admin_close_v1', { p_poll: id });
+        if (error) notify('Clôture refusée', consultationError(error), 'danger'); else notify('Vote clos', 'Le résultat est visible des joueurs.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+    async function saveIdea(row) {
+        if (!row) return;
+        const value = (name) => String((row.querySelector(`[name=${name}]`) || {}).value || '').trim();
+        if (value('title').length < 3) { notify('Titre requis', 'Le titre fait au moins trois caractères.', 'warning'); return; }
+        const sort = Number(value('sort'));
+        const { error } = await state.client.rpc('titan_roadmap_admin_save_v1', {
+            p_id: row.hasAttribute('data-idea-new') ? null : row.dataset.ideaId,
+            p_title: value('title'), p_detail: value('detail') || null, p_status: value('status'),
+            p_sort: Number.isInteger(sort) ? sort : 0,
+            p_archive: Boolean((row.querySelector('[name=archive]') || {}).checked)
+        });
+        if (error) { notify('Idée refusée', consultationError(error), 'danger'); return; }
+        notify('Idée enregistrée', 'Le changement de statut est gardé dans son historique.', 'success');
+        if (state.currentView === 'consultations') await renderConsultations();
+    }
+
+
+    // Pionnier badge (COM-D1): the announced rule lists the candidates, the administrator grants from the list. Never automatic, never bought.
+    const PIONEER_ERRORS = {
+        ADMIN_REQUIRED: 'Cette action est réservée aux administrateurs.',
+        CRITERIA_INVALID: 'Indique une date et au moins une séance.',
+        ACCOUNT_NOT_ELIGIBLE: 'Ce compte est suspendu ou n’existe plus.'
+    };
+    const pioneerError = (error) => {
+        const message = String((error && error.message) || '');
+        const code = Object.keys(PIONEER_ERRORS).find((candidate) => message.includes(candidate));
+        return code ? PIONEER_ERRORS[code] : (message || 'Erreur inconnue.');
+    };
+
+    async function renderPioneers() {
+        const head = sectionHead('Pionniers', 'Une cohorte fondatrice aux critères annoncés. Le badge est permanent, ne s’achète pas et ne donne ni XP, ni crédits, ni avantage. Tu attribues toi-même depuis la liste : rien n’est automatique.', [
+            buttonMarkup('Actualiser', 'ri-refresh-line', 'secondary', 'data-refresh-current')
+        ]);
+        const { data, error } = await state.client.rpc('titan_pioneer_list_v1');
+        if (error) {
+            let message;
+            if (moderationUnavailable(error)) message = 'Le badge n’est pas disponible sur ce serveur : applique la migration 20261029100000_pioneer_badge.sql.';
+            else if (String(error.message || '').includes('ADMIN_REQUIRED')) message = 'Cette page est réservée aux administrateurs (rôle admin ou super_admin).';
+            else throw error;
+            $('#admin-view').innerHTML = `${head}<div class="panel empty-state"><p>${escapeHtml(message)}</p></div>`;
+            return;
+        }
+        const holders = (Array.isArray(data) ? data : []).map((h) => `
+            <tr><td>${escapeHtml(h.username || h.id)}</td><td>${escapeHtml(h.cohort)}</td><td>${escapeHtml(new Date(h.grantedAt).toLocaleDateString('fr-FR'))}</td>
+                <td>${buttonMarkup('Retirer', 'ri-close-line', 'secondary', `data-pioneer-revoke="${escapeHtml(h.id)}" aria-label="Retirer le badge de ${escapeHtml(h.username || h.id)}"`)}</td></tr>`).join('');
+        $('#admin-view').innerHTML = `
+            ${head}
+            <form class="panel" data-pioneer-form aria-label="Chercher des candidats" novalidate>
+                <h3>Règle annoncée</h3>
+                <p><label>Comptes créés avant le <input class="admin-input" type="date" name="before"></label>
+                   <label>Au moins <input class="admin-input" type="number" name="sessions" min="1" max="1000" step="1" value="3"> séances confirmées</label>
+                   <label>Nom de la cohorte <input class="admin-input" name="cohort" maxlength="40" value="Fondateurs 2026"></label></p>
+                ${buttonMarkup('Chercher les candidats', 'ri-search-line', 'primary', 'data-pioneer-find')}
+                <div data-pioneer-candidates aria-live="polite"></div>
+            </form>
+            <h3>Détenteurs</h3>
+            ${holders ? tableShell(`<table class="admin-table" aria-label="Détenteurs du badge Pionnier"><thead><tr><th>Compte</th><th>Cohorte</th><th>Depuis</th><th>Action</th></tr></thead><tbody>${holders}</tbody></table>`) : '<p><small>Aucun badge attribué pour l’instant.</small></p>'}
+        `;
+    }
+
+    async function findPioneers() {
+        const form = document.querySelector('[data-pioneer-form]');
+        if (!form) return;
+        const before = new Date(String((form.querySelector('[name=before]') || {}).value || ''));
+        const sessions = Number((form.querySelector('[name=sessions]') || {}).value);
+        const box = form.querySelector('[data-pioneer-candidates]');
+        if (!Number.isFinite(before.getTime()) || !Number.isInteger(sessions) || sessions < 1) { notify('Critères', PIONEER_ERRORS.CRITERIA_INVALID, 'warning'); return; }
+        const { data, error } = await state.client.rpc('titan_pioneer_candidates_v1', { p_before: before.toISOString(), p_min_sessions: sessions });
+        if (error) { notify('Recherche refusée', pioneerError(error), 'danger'); return; }
+        const list = Array.isArray(data) ? data : [];
+        box.innerHTML = list.length
+            ? `<ul style="list-style:none;padding:0;margin:8px 0">${list.map((c) => `<li><label><input type="checkbox" name="candidate" value="${escapeHtml(c.id)}"> ${escapeHtml(c.username || c.id)} <small>· créé le ${escapeHtml(new Date(c.createdAt).toLocaleDateString('fr-FR'))} · ${Number(c.sessions) || 0} séances</small></label></li>`).join('')}</ul>
+               ${buttonMarkup('Attribuer aux comptes cochés', 'ri-flag-line', 'primary', 'data-pioneer-grant')}${list.length >= 200 ? '<p><small>Liste limitée à 200 comptes : attribue puis relance la recherche.</small></p>' : ''}`
+            : '<p><small>Aucun compte ne correspond (ou tous ont déjà le badge).</small></p>';
+    }
+
+    async function grantPioneers() {
+        const form = document.querySelector('[data-pioneer-form]');
+        if (!form) return;
+        const ids = [...form.querySelectorAll('[name=candidate]:checked')].map((x) => x.value);
+        const cohort = String((form.querySelector('[name=cohort]') || {}).value || '').trim();
+        if (!ids.length) { notify('Aucun compte coché', 'Coche les comptes à honorer.', 'warning'); return; }
+        if (cohort.length < 3) { notify('Cohorte', 'Le nom de la cohorte fait au moins trois caractères.', 'warning'); return; }
+        const ok = await confirmSensitive({ title: 'Attribuer le badge Pionnier', message: `${ids.length} compte(s) recevront le badge « ${cohort} ». Il est permanent et sans avantage.`, actionLabel: 'Attribuer', danger: false, requireReason: false });
+        if (ok === null || ok === false || ok === undefined) return;
+        let granted = 0, failed = 0;
+        for (const id of ids) {
+            const { error } = await state.client.rpc('titan_pioneer_grant_v1', { p_user: id, p_cohort: cohort });
+            if (error) failed++; else granted++;
+        }
+        notify('Badge attribué', `${granted} compte(s) honoré(s)${failed ? `, ${failed} refusé(s)` : ''}.`, failed ? 'warning' : 'success');
+        if (state.currentView === 'pioneers') await renderPioneers();
+    }
+
+    async function revokePioneer(id) {
+        const ok = await confirmSensitive({ title: 'Retirer le badge', message: 'Le joueur perd son badge Pionnier. Tu pourras le lui rendre depuis la liste des candidats si la règle le permet.', actionLabel: 'Retirer', danger: true, requireReason: false });
+        if (ok === null || ok === false || ok === undefined) return;
+        const { error } = await state.client.rpc('titan_pioneer_revoke_v1', { p_user: id });
+        if (error) notify('Retrait refusé', pioneerError(error), 'danger'); else notify('Badge retiré', 'Le joueur ne le voit plus.', 'success');
+        if (state.currentView === 'pioneers') await renderPioneers();
+    }
+
+    async function decideAppeal(appealId, accept) {
+        const id = Number(appealId);
+        if (!Number.isSafeInteger(id)) return;
+        const reason = await moderationAsk(
+            accept ? 'Accepter ce recours' : 'Refuser ce recours',
+            accept ? 'L’exclusion ou la suspension est levée. Le joueur lira ta note.' : 'L’état reste inchangé. Le joueur lira ta note et pourra redéposer un recours après 7 jours.',
+            accept ? 'Accepter' : 'Refuser',
+            false);
+        if (!reason) return;
+        const { error } = await state.client.rpc('titan_appeal_decide_v1', { p_id: id, p_accept: accept, p_note: reason });
+        if (error) notify('Décision refusée', appealErrorText(error), 'danger');
+        else notify('Recours traité', accept ? 'Accepté' : 'Refusé', 'success');
+        // The decision is recorded when this runs: repaint only if the administrator is still on this screen.
+        if (state.currentView !== 'appeals') return;
+        try { await renderAppeals(); } catch (e) {
+            console.error('[TITAN ADMIN APPEALS]', e);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file.', 'warning');
+        }
+    }
+
+    async function moderationAsk(title, message, actionLabel, danger) {
+        const reason = await confirmSensitive({ title, message, actionLabel, danger, requireReason: true });
+        return reason || null;
+    }
+
+    async function decideModeration(decision) {
+        const userId = state.moderationUser;
+        const labels = {
+            dismiss: ['Classer sans suite', 'Les signaux ouverts de ce compte seront marqués comme examinés. Tu pourras annuler.', false],
+            watch: ['Surveiller ce compte', 'Une surveillance est consignée. Elle ne change rien pour le joueur.', false],
+            suspend: ['Suspendre ce compte', 'Le joueur ne pourra plus enregistrer de séance ni acheter. Sa progression n’est pas modifiée et tu pourras rétablir le compte.', true],
+            restore: ['Rétablir ce compte', 'Le compte retrouve son fonctionnement normal.', false]
+        };
+        const [title, message, danger] = labels[decision] || [];
+        if (!userId || !title) return;
+        const reason = await moderationAsk(title, message, title, danger);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { error } = await state.client.rpc('titan_moderation_decide_v1', { p_user: userId, p_decision: decision, p_reason: reason });
+        if (error) notify('Décision refusée', moderationErrorText(error), 'danger');
+        else notify('Décision enregistrée', MODERATION_DECISION_LABELS[decision] || decision, 'success');
+        await refreshModeration(userId);
+    }
+
+    // The decision is already recorded when this runs: a failed refresh must say so, not hide it, and must not
+    // repaint a screen the administrator has since left.
+    async function refreshModeration(userId) {
+        if (state.currentView !== 'moderation') return;
+        try {
+            await renderModeration();
+            await openModerationCase(userId);
+        } catch (error) {
+            console.error('[TITAN ADMIN MODERATION]', error);
+            notify('Actualisation impossible', 'La décision est enregistrée ; actualise la file pour voir son effet.', 'warning');
+        }
+    }
+
+    // A human decision on one session: it stays visible to its owner, only rankings and competitive rewards skip it.
+    async function excludeSession(sessionId, currentlyExcluded) {
+        const userId = state.moderationUser;
+        if (!userId || !sessionId) return;
+        const exclude = !currentlyExcluded;
+        const reason = await moderationAsk(
+            exclude ? 'Exclure cette séance des classements' : 'Rétablir cette séance dans les classements',
+            exclude
+                ? 'La séance reste visible du joueur ; elle ne compte plus dans les classements ni les récompenses compétitives le temps de la vérification. Ses XP et crédits déjà acquis ne changent pas. Tu pourras la rétablir.'
+                : 'La séance recompte dans les classements et les récompenses compétitives.',
+            exclude ? 'Exclure' : 'Rétablir',
+            exclude
+        );
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_session_exclusion_v1', { p_session: sessionId, p_excluded: exclude, p_reason: reason });
+        if (error) notify('Action refusée', moderationErrorText(error), 'danger');
+        else if (data && data.changed === false) notify('Aucun changement', 'La séance était déjà dans cet état.', 'info');
+        else notify(exclude ? 'Séance exclue' : 'Séance rétablie', 'L’action est consignée dans le journal d’audit.', 'success');
+        await openModerationCase(userId);
+    }
+
+    async function revertModeration(decisionId) {
+        const userId = state.moderationUser;
+        if (!userId || !decisionId) return;
+        const reason = await moderationAsk('Annuler la dernière décision', 'Le compte revient à l’état d’avant cette décision, si rien ne l’a modifié depuis. L’annulation est elle-même consignée.', 'Annuler la décision', false);
+        if (!reason) {
+            await openModerationCase(userId);
+            return;
+        }
+        const { data, error } = await state.client.rpc('titan_moderation_revert_v1', { p_decision_id: Number(decisionId), p_reason: reason });
+        if (error) notify('Annulation refusée', moderationErrorText(error), 'danger');
+        else if (data && Number(data.expected) > Number(data.reopened)) notify('Décision annulée en partie', `${data.reopened} signal(aux) rouvert(s) sur ${data.expected} : les autres ont été modifiés ailleurs.`, 'warning');
+        else notify('Décision annulée', 'L’annulation est consignée.', 'success');
+        await renderModeration();
+        await openModerationCase(userId);
     }
 
     function openModal({ title, kicker = 'TITAN OS', body = '', actions = [] }) {
@@ -1846,13 +2900,20 @@
     }
 
     function closeModal() {
+        if (state.pendingConfirm) {
+            const settle = state.pendingConfirm;
+            state.pendingConfirm = null;
+            settle(false);
+        }
         $('#admin-modal').hidden = true;
         $('#modal-body').innerHTML = '';
         $('#modal-actions').innerHTML = '';
     }
 
-    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false }) {
+    function confirmSensitive({ title, message, actionLabel = 'Confirmer', danger = false, requireReason = false, fieldLabel = 'Raison' }) {
         return new Promise((resolve) => {
+            // Closing the dialog any other way (cross, backdrop) is a cancellation, never a pending promise.
+            state.pendingConfirm = resolve;
             openModal({
                 title,
                 kicker: 'Confirmation',
@@ -1860,7 +2921,7 @@
                     <div class="panel">
                         <p>${escapeHtml(message)}</p>
                         <label class="form-field full">
-                            <span>Raison</span>
+                            <span>${escapeHtml(fieldLabel)}</span>
                             <textarea class="admin-textarea" data-confirm-reason placeholder="${requireReason ? 'Obligatoire' : 'Optionnelle'}"></textarea>
                         </label>
                     </div>
@@ -1872,7 +2933,6 @@
             });
             $('[data-confirm-cancel]').onclick = () => {
                 closeModal();
-                resolve(false);
             };
             $('[data-confirm-ok]').onclick = () => {
                 const reason = $('[data-confirm-reason]').value.trim();
@@ -1880,6 +2940,7 @@
                     notify('Raison requise', 'Indique une raison avant de confirmer.', 'warning');
                     return;
                 }
+                state.pendingConfirm = null;
                 closeModal();
                 resolve(reason);
             };

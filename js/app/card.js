@@ -1,4 +1,5 @@
-/* TITAN 300 — shareable image cards (record, week, sports DNA), drawn locally on a canvas.
+/* TITAN 300 — shareable image cards (record, week, sports DNA, and with `optIn` the collective moments: quest, season, duel), drawn locally on a canvas.
+   `optIn` cards show no name and no profile QR until the athlete ticks them.
    Nothing is uploaded: the athlete previews the image, then shares it or saves it. Never drawn: health,
    body weight, GPS, notes. Style follows the card piece worn in the Atelier. */
 (function () {
@@ -18,31 +19,52 @@
 
   /** The QR encoder (vendored, MIT) is only fetched when a QR is actually drawn. */
   let qrLoading = null;
+  let qrAttempts = 0;
   function loadQr() {
-    if (window.qrcode) return Promise.resolve(window.qrcode);
+    if (typeof window.qrcode === "function") return Promise.resolve(window.qrcode);
     return (qrLoading ||= new Promise((ok) => {
       const sc = document.createElement("script");
-      sc.src = "/js/vendor/qrcode-generator-1.4.4.js";
-      sc.onload = () => ok(window.qrcode || null);
-      sc.onerror = () => ok(null);
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        sc.onload = sc.onerror = null;
+        const encoder = typeof window.qrcode === "function" ? window.qrcode : null;
+        if (!encoder) sc.remove();
+        qrLoading = null;
+        ok(encoder);
+      };
+      // Keep the null-on-failure contract for profile callers, but let the next attempt retry.
+      const timer = setTimeout(finish, 8000);
+      // A removed, stalled script can still be in flight in the browser. A retry must not join it.
+      const attempt = qrAttempts++;
+      sc.src = `/js/vendor/qrcode-generator-1.4.4.js${attempt ? `?retry=${attempt}` : ""}`;
+      sc.onload = sc.onerror = finish;
       document.head.append(sc);
     }));
   }
 
   // Only a definitive answer is kept for the page: a timeout or a network error asks again next time.
-  let linkPromise = null;
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const accountCurrent = job => !!job.owner && job.owner === window.state?.user?.id && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  let linkPromise = null, linkContext = null;
+  const resetLink = () => { linkPromise = linkContext = null; };
+  window.addEventListener("titan:account-changing", resetLink);
   function publicLink() {
-    const guest = String(window.state?.user?.id || "guest_").startsWith("guest_");
-    if (guest || !window.titanClient) return Promise.resolve(false);
-    if (!navigator.onLine) return Promise.resolve(false);
-    return (linkPromise ||= (async () => {
-      const r = await Promise.race([window.titanClient.rpc("titan_public_card_settings"), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 3000))]);
-      if (r?.error && r.error.code !== "PGRST202") linkPromise = null;
+    const job = accountContext();
+    if (!accountCurrent(job) || String(job.owner).startsWith("guest_") || !job.client || !navigator.onLine) return Promise.resolve(false);
+    if (linkPromise && linkContext && linkContext.owner === job.owner && linkContext.client === job.client && linkContext.epoch === job.epoch) return linkPromise;
+    linkContext = job;
+    let request;
+    request = (async () => {
+      const r = await Promise.race([job.client.rpc("titan_public_card_settings"), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 3000))]);
+      if (r?.error && r.error.code !== "PGRST202" && linkPromise === request) linkPromise = null;
+      if (!accountCurrent(job)) return false;
       return r?.data?.enabled && r.data.slug ? `https://titan-app.fr/u/${r.data.slug}` : false;
-    })().catch(() => {
-      linkPromise = null;
-      return false;
-    }));
+    })().catch(() => { if (linkPromise === request) linkPromise = null; return false; });
+    linkPromise = request;
+    return request;
   }
 
   function style() {
@@ -255,53 +277,150 @@
         wrap(ctx, o.detail, PAD, Math.max(ly + 50, 860) + 150, maxW, 42, 2);
       }
     }
-    if (qr) await loadQr();
+    if (qr && !(await loadQr())) {
+      const error = new Error("QR encoder unavailable");
+      error.code = "CARD_QR_UNAVAILABLE";
+      throw error;
+    }
     footer(ctx, st, o.name || "", qr);
     return c;
   }
 
-  const blobOf = (canvas) => new Promise((ok) => canvas.toBlob((b) => ok(b), "image/png"));
+  const blobOf = (canvas) => new Promise((ok, fail) => canvas.toBlob((b) => b ? ok(b) : fail(new Error("PNG unavailable")), "image/png"));
 
   /** Preview sheet with Share / Save. */
   async function open(o) {
+    const job = accountContext();
+    if (!accountCurrent(job) || (o.isCurrent && !o.isCurrent())) return null;
+    let cancelled = false, sheet = null;
+    const current = () => !cancelled && accountCurrent(job) && (!o.isCurrent || o.isCurrent());
+    const cleanup = () => {
+      window.removeEventListener("titan:account-changing", stop);
+      window.removeEventListener("titan:account-changed", stop);
+      window.removeEventListener("titan:history-updated", check);
+    };
+    function stop() { cancelled = true; if (sheet?.open) sheet.close(); cleanup(); }
+    function check() { if (!current()) stop(); }
+    window.addEventListener("titan:account-changing", stop);
+    window.addEventListener("titan:account-changed", stop);
+    window.addEventListener("titan:history-updated", check);
     const link = await publicLink();
+    if (!current()) { cleanup(); return null; }
     const body = document.createElement("div");
     body.className = "asc-stack cd-sheet";
     body.innerHTML = `<div class="cd-preview"><img alt="Aperçu de l’image" width="${W}" height="${H}"></div>
-      ${link ? `<label class="auth-check"><input type="checkbox" data-qr checked><span>Ajouter le QR de mon profil public</span></label>` : ""}
+      ${o.optIn && o.name ? `<label class="auth-check"><input type="checkbox" data-name><span>Afficher mon nom sur l’image</span></label>` : ""}
+      ${link ? `<label class="auth-check"><input type="checkbox" data-qr ${o.optIn ? "" : "checked"}><span>Ajouter le QR de mon profil public</span></label>` : ""}
       <p class="asc-small asc-muted">${icon("lock")} L’image est créée sur ton appareil. Rien n’est publié tant que tu ne la partages pas.</p>
-      <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
-    const sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body });
+      <p class="asc-small asc-muted" role="status" data-card-status></p>
+      <p class="asc-small jr-edit-error" role="alert" data-card-error hidden></p>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-card-retry hidden>Réessayer l’aperçu</button>
+      <div class="asc-confirm-actions" data-card-actions aria-busy="false"><button type="button" class="asc-btn asc-btn-secondary" data-save>${icon("download")} Enregistrer</button><button type="button" class="asc-btn asc-btn-primary" data-share>${icon("share")} Partager</button></div>`;
+    sheet = window.titanShell.sheet({ title: "Image à partager", eyebrow: o.eyebrow || "TITAN", body, onClose: stop });
     const img = body.querySelector("img");
+    const qr = body.querySelector("[data-qr]");
+    const nameBox = body.querySelector("[data-name]");
+    const shareBtn = body.querySelector("[data-share]");
+    const saveBtn = body.querySelector("[data-save]");
+    const retry = body.querySelector("[data-card-retry]");
+    const actions = body.querySelector("[data-card-actions]");
+    const status = body.querySelector("[data-card-status]");
+    const error = body.querySelector("[data-card-error]");
+    const available = () => {
+      if (!current()) { stop(); return false; }
+      return sheet.isConnected && sheet.open;
+    };
     let canvas = null;
     let file = null;
-    const paint = async () => {
-      canvas = await draw(o, { qr: link && body.querySelector("[data-qr]")?.checked ? link : null });
-      img.src = canvas.toDataURL("image/png");
-      file = null;
+    let pending = false;
+    let painting = false;
+    let paintSequence = 0;
+    const syncActions = () => {
+      actions.setAttribute("aria-busy", String(pending || painting));
+      saveBtn.disabled = shareBtn.disabled = pending || painting || !canvas;
+      if (qr) qr.disabled = pending;
+      if (nameBox) nameBox.disabled = pending;
+      retry.disabled = pending || painting;
+      retry.hidden = pending || painting || Boolean(canvas);
     };
-    try {
-      await paint();
-    } catch {
-      body.querySelector(".cd-preview").textContent = "L’image n’a pas pu être créée sur cet appareil.";
-      body.querySelector(".asc-confirm-actions")?.remove();
-      return sheet;
-    }
-    body.querySelector("[data-qr]")?.addEventListener("change", paint);
-    const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
-    const shareBtn = body.querySelector("[data-share]");
-    const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
-    shareBtn.addEventListener("click", async () => {
-      const f = await ensureFile();
-      if (canShareFiles(f)) {
-        try {
-          await navigator.share({ files: [f], title: "TITAN" });
-        } catch {}
-        return;
+    const paint = async () => {
+      if (pending || !available()) return;
+      const sequence = ++paintSequence;
+      const retryHadFocus = document.activeElement === retry;
+      painting = true;
+      canvas = null;
+      file = null;
+      img.removeAttribute("src");
+      error.textContent = "";
+      error.hidden = true;
+      status.textContent = "Création de l’image…";
+      syncActions();
+      try {
+        const shown = o.optIn ? { ...o, name: nameBox?.checked ? o.name : "" } : o;
+        const next = await draw(shown, { qr: link && qr?.checked ? link : null });
+        if (sequence !== paintSequence || !available()) return;
+        const preview = next.toDataURL("image/png");
+        canvas = next;
+        img.src = preview;
+      } catch (e) {
+        if (sequence === paintSequence && available()) {
+          error.textContent = e?.code === "CARD_QR_UNAVAILABLE"
+            ? "Le QR n’a pas pu être chargé. Réessaie l’aperçu ou décoche le QR pour créer l’image sans lien de profil."
+            : "L’aperçu n’a pas pu être créé. Réessaie avant d’enregistrer ou de partager l’image.";
+          error.hidden = false;
+        }
+      } finally {
+        if (sequence === paintSequence) {
+          painting = false;
+          syncActions();
+          if (available()) {
+            status.textContent = "";
+            if (retryHadFocus && [document.body, sheet].includes(document.activeElement)) (canvas ? saveBtn : retry).focus({ preventScroll: true });
+          }
+        }
       }
-      save(f);
-    });
-    body.querySelector("[data-save]").addEventListener("click", async () => save(await ensureFile()));
+    };
+    qr?.addEventListener("change", () => { void paint(); });
+    nameBox?.addEventListener("change", () => { void paint(); });
+    retry.addEventListener("click", () => { void paint(); });
+    const ensureFile = async () => (file ||= new File([await blobOf(canvas)], `${o.filename || "titan"}.png`, { type: "image/png" }));
+    const canShareFiles = (f) => Boolean(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
+    const act = async (kind, button) => {
+      if (pending || painting || !canvas || !available()) return;
+      pending = true;
+      const hadFocus = document.activeElement === button;
+      const controls = [...body.querySelectorAll("button, input")].map(el => [el, el.disabled]);
+      controls.forEach(([el]) => { el.disabled = true; });
+      actions.setAttribute("aria-busy", "true");
+      error.textContent = "";
+      error.hidden = true;
+      status.textContent = "Préparation de l’image…";
+      try {
+        const f = await ensureFile();
+        if (!available()) return;
+        if (kind === "share" && canShareFiles(f)) {
+          status.textContent = "Partage en cours…";
+          try {
+            await navigator.share({ files: [f], title: "TITAN" });
+          } catch (e) {
+            if (e?.name !== "AbortError") throw e;
+          }
+        } else save(f);
+      } catch {
+        if (available()) {
+          error.textContent = "L’image n’a pas pu être enregistrée ou partagée. Réessaie, ou utilise Enregistrer si le partage reste indisponible.";
+          error.hidden = false;
+        }
+      } finally {
+        pending = false;
+        controls.forEach(([el, disabled]) => { el.disabled = disabled; });
+        syncActions();
+        status.textContent = "";
+        if (available() && hadFocus && [document.body, sheet].includes(document.activeElement)) button.focus({ preventScroll: true });
+      }
+    };
+    shareBtn.addEventListener("click", () => act("share", shareBtn));
+    saveBtn.addEventListener("click", () => act("save", saveBtn));
     function save(f) {
       const url = URL.createObjectURL(f);
       const a = document.createElement("a");
@@ -313,7 +432,8 @@
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       window.titanShell.toast({ type: "ok", title: "Image enregistrée", message: "Retrouve-la dans tes téléchargements." });
     }
-    return sheet;
+    await paint();
+    return current() && sheet.open ? sheet : null;
   }
 
   const userName = () => {
@@ -321,5 +441,5 @@
     return u && !u.guest ? u.name : "";
   };
 
-  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink: () => (linkPromise = null) };
+  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink };
 })();

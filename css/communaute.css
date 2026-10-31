@@ -1,0 +1,208 @@
+/* TITAN — presentation scoped to the community page. Shared Ascension tokens and icons. */
+.cm-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+  margin-bottom: var(--s7);
+}
+.cm-entry {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r3);
+  background: var(--bg-1);
+  min-width: 0;
+}
+.cm-entry:hover {
+  border-color: var(--cy-line);
+  background: var(--bg-2);
+}
+.cm-entry-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 16px;
+}
+.cm-entry-title > .t-icon:first-child {
+  color: var(--cy);
+  width: 19px;
+  height: 19px;
+  flex: none;
+}
+.cm-entry-title > .t-icon:last-child {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  flex: none;
+  color: var(--tx-3);
+}
+.cm-entry-description,
+.cm-entry-status {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tx-2);
+}
+.cm-entry-status {
+  padding-top: var(--s2);
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+}
+.cm-attention {
+  color: var(--cy-2);
+}
+.cm-layout {
+  display: grid;
+  gap: var(--s7);
+  align-items: start;
+}
+.cm-stream,
+.cm-circle,
+.cm-teams {
+  min-width: 0;
+}
+.cm-column-label {
+  margin-bottom: var(--s4);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+}
+.cm-section {
+  scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4));
+  min-width: 0;
+}
+.cm-section:first-of-type {
+  margin-top: 0;
+}
+.cm-section .asc-section-head {
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--s2);
+}
+.cm-section-intro {
+  margin-bottom: var(--s4);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--tx-2);
+}
+.cm-circle > .cm-section,
+.cm-teams > .cm-section {
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--bg-1);
+}
+.cm-team-label {
+  margin-top: var(--s7);
+}
+.cm-teams {
+  display: grid;
+  gap: var(--s5);
+  align-items: start;
+}
+.cm-teams > .cm-section {
+  margin-top: 0;
+}
+.cm-teams .cm-challenges {
+  grid-template-columns: minmax(0, 1fr);
+}
+.cm-teams .cm-challenge,
+.cm-teams .cm-guild,
+.cm-circle .cm-code {
+  padding: var(--s3);
+  background: var(--bg-2);
+}
+.cm-requests {
+  margin-bottom: var(--s5);
+}
+.cm-requests h3 {
+  margin-bottom: var(--s2);
+  font-size: 15px;
+  color: var(--cy-2);
+}
+.cm-request {
+  flex-wrap: wrap;
+}
+.cm-request .cm-actions {
+  margin-left: auto;
+}
+.cm-section .asc-row-title,
+.cm-section h2,
+.cm-section h3,
+.cm-section .cm-chat-list p,
+.cm-moment-title span,
+.cm-moment-detail {
+  overflow-wrap: anywhere;
+}
+#communaute .asc-btn {
+  min-height: 44px;
+}
+.cm-section > .asc-btn {
+  margin-top: var(--s3);
+}
+.cm-preview {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s4) 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.cm-preview li {
+  display: flex;
+  gap: var(--s3);
+  align-items: start;
+}
+.cm-preview .t-icon {
+  color: var(--cy);
+  flex: none;
+  margin-top: 2px;
+}
+.cm-preview strong {
+  font-size: 15px;
+}
+.cm-preview p {
+  font-size: 14px;
+  color: var(--tx-2);
+  margin-top: 4px;
+}
+@media (min-width: 760px) {
+  .cm-shortcuts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .cm-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .cm-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .cm-teams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cm-circle {
+    padding-left: var(--s6);
+    border-left: 1px solid var(--line);
+  }
+}
+
+/* V11-57: votes and roadmap under the Communauté. */
+.cs-options { display: grid; gap: var(--s2); border: 0; margin: 0; padding: 0; }
+.cs-option { display: flex; gap: var(--s2); align-items: center; min-height: 44px; }
+.cs-items { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+.cs-item { padding-bottom: var(--s3); border-bottom: 1px solid var(--line); }
+.cs-result { display: grid; gap: var(--s1); }
+.cs-poll h3 { margin: 0; }
+
+/* Clubs (COM-C8): names, announcements and member names are free text from other people; never let them widen the page. */
+#clubs { overflow-wrap: anywhere; min-width: 0; }
+#clubs .asc-between { gap: var(--s2); align-items: flex-start; }
+#clubs .asc-between > span { min-width: 0; }
+#clubs textarea.asc-input { width: 100%; resize: vertical; }
+#clubs .asc-stack > * { min-width: 0; }
+#clubs .asc-row { flex-wrap: wrap; }

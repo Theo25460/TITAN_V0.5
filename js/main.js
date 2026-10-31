@@ -178,7 +178,7 @@ window.flushPendingTrainingLogs = function(options={}) {
                 const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
                 const tooOld=String(error.message||'').includes('TRAINING_DATE_OUT_OF_RANGE')&&new Date(item.payload.date).getTime()<Date.now()-30*86400000;
                 // deferred: refused only until the server update, so it is offered again automatically on each send.
-                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : acceptée avec la prochaine mise à jour du serveur':(error.message||'Connexion indisponible')});
+                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : pas encore acceptée par le serveur':(error.message||'Connexion indisponible')});
                 const failedLocal=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
                 if(failedLocal)failedLocal.syncStatus=permanent?'error':'pending';
                 if(!permanent)break;
@@ -289,6 +289,10 @@ async function setupTitanAuthListener() {
 
     window.__titanAuthListenerBound = true;
     window.titanClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || ((event === 'SIGNED_IN' || event === 'USER_UPDATED')
+            && session?.user?.id !== window.state?.user?.id)) {
+            window.titanInvalidateAccountSession?.(session?.user?.id || null);
+        }
         setTimeout(async()=>{
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();
@@ -550,6 +554,7 @@ async function purchaseShopItemOnServer(item) {
             const msg = `${error.code || ''} ${error.message || ''}`.toUpperCase();
             if (error.code === 'PGRST202' || msg.includes('FUNCTION') || msg.includes('TITAN_PURCHASE_SHOP_ITEM')) return null;
             if (msg.includes('NO_FUNDS')) throw new Error('NO_FUNDS');
+            if (msg.includes('RATE_LIMITED') || error.code === 'PT429') throw new Error('TROP_RAPIDE');
             if (msg.includes('DAILY')) throw new Error('LIMITE_ATTEINTE');
             if (msg.includes('WEEKLY')) throw new Error('LIMITE_HEBDO');
             if (msg.includes('LIMIT') || msg.includes('ONCE')) throw new Error('STOCK_EPUISE');
@@ -558,7 +563,7 @@ async function purchaseShopItemOnServer(item) {
         }
         return Array.isArray(data) ? (data[0] || null) : (data || null);
     } catch (err) {
-        if (err && ['NO_FUNDS', 'LIMITE_ATTEINTE', 'LIMITE_HEBDO', 'STOCK_EPUISE', 'ACCOUNT_SUSPENDED'].includes(err.message)) throw err;
+        if (err && ['NO_FUNDS', 'LIMITE_ATTEINTE', 'LIMITE_HEBDO', 'STOCK_EPUISE', 'ACCOUNT_SUSPENDED', 'TROP_RAPIDE'].includes(err.message)) throw err;
         console.warn('[TITAN SHOP] Achat serveur indisponible:', err);
         return null;
     }
@@ -660,6 +665,7 @@ window.buyItem = async function(itemId, options = {}) {
         if (err.message === "LIMITE_ATTEINTE") { title = 'LIMITE'; msg = 'Reviens dans 24h.'; }
         else if (err.message === "LIMITE_HEBDO") { title = 'LIMITE SEMAINE'; msg = `Max ${item.cooldown ? (item.cooldown.max || 3) : 3} par semaine.`; }
         else if (err.message === "STOCK_EPUISE") { title = 'STOCK'; msg = 'Limite atteinte.'; }
+        else if (err.message === "TROP_RAPIDE") { title = 'TROP RAPIDE'; msg = 'Beaucoup d’achats en peu de temps. Réessaie dans un moment.'; }
         else if (err.message === "NO_FUNDS") { title = 'FOND INSUFFISANTS'; msg = `Manque ${item.price - window.state.user.credits} Crédits.`; }
         else if (err.message === "LEVEL_REQ") { title = 'VERROUILLÉ'; msg = 'Niveau précédent requis.'; }
         else if (err.message === "ELITE_REQ") { title = 'TITAN+ REQUIS'; msg = 'Ce cosmétique appartient à la collection TITAN+.'; }
@@ -852,6 +858,12 @@ window.initTitanPaddleCheckout = async function(checkoutData) {
 };
 
 window.openEliteCheckout = async function(options = {}) {
+    // Founder decision of 21/10/2026: no web checkout (see TITAN_PAYMENTS in js/config.js).
+    if (window.TITAN_PAYMENTS?.webCheckout !== true) return false;
+    const owner = window.state?.user?.id, client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
+    const current = () => owner === window.state?.user?.id && client === window.titanClient
+        && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+    if (!current()) return false;
     const now = Date.now();
     if (window.__titanEliteCheckoutLock && now - window.__titanEliteCheckoutLock < 5000) {
         if(typeof window.showNotification === 'function') window.showNotification('info', 'PAIEMENT', 'Ouverture du paiement deja en cours.');
@@ -896,6 +908,7 @@ window.openEliteCheckout = async function(options = {}) {
 
     try {
         const paddle = await window.initTitanPaddleCheckout(checkoutData);
+        if (!current()) return false;
         paddle.Checkout.open(checkoutData.checkout);
         return true;
     } catch (error) {
@@ -971,31 +984,36 @@ window.initDevTools = function() {
             <div>
                 <div style="color: #22c55e; margin-bottom: 8px; border-bottom: 1px dashed #22c55e; padding-bottom: 3px;">[ ECONOMY ]</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="devAdd('credits', 10000)" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+10k CR</button>
-                    <button onclick="devAdd('xp', 5000)" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+5k XP</button>
-                    <button onclick="devMaxCharge()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">MAX BATTERY</button>
+                    <button data-dev="devAdd" data-args='["credits", 10000]' style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+10k CR</button>
+                    <button data-dev="devAdd" data-args='["xp", 5000]' style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">+5k XP</button>
+                    <button data-dev="devMaxCharge" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">MAX BATTERY</button>
                 </div>
             </div>
 
             <div>
                 <div style="color: #ef4444; margin-bottom: 8px; border-bottom: 1px dashed #ef4444; padding-bottom: 3px;">[ COMBAT ]</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="devKill()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">KILL MOB</button>
-                    <button onclick="devForceBoss()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">SPAWN BOSS</button>
-                    <button onclick="devGiveGrenades()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">+10 ALL GRENADES</button>
+                    <button data-dev="devKill" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">KILL MOB</button>
+                    <button data-dev="devForceBoss" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">SPAWN BOSS</button>
+                    <button data-dev="devGiveGrenades" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">+10 ALL GRENADES</button>
                 </div>
             </div>
 
             <div>
                 <div style="color: #38bdf8; margin-bottom: 8px; border-bottom: 1px dashed #38bdf8; padding-bottom: 3px;">[ SYSTEM ]</div>
                 <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
-                    <button onclick="devToggleElite()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">TOGGLE ELITE</button>
-                    <button onclick="devResetShop()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">RESET SHOP LIMITS</button>
-                    <button onclick="devCaptureState()" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">CAPTURE STATE</button>
+                    <button data-dev="devToggleElite" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">TOGGLE ELITE</button>
+                    <button data-dev="devResetShop" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">RESET SHOP LIMITS</button>
+                    <button data-dev="devCaptureState" style="background:#1e293b; border:1px solid #475569; color:#fff; padding:8px; border-radius:4px; cursor:pointer;">CAPTURE STATE</button>
                 </div>
             </div>
         </div>
     `;
+    devUI.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-dev]');
+        const fn = btn && window[btn.dataset.dev];
+        if (typeof fn === 'function' && /^dev[A-Z]\w*$/.test(btn.dataset.dev)) fn(...JSON.parse(btn.dataset.args || '[]'));
+    });
 
     // Le bouton pour ouvrir/fermer le panneau
     const toggleBtn = document.createElement('div');

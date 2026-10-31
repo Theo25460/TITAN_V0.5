@@ -29,6 +29,8 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -42,6 +44,24 @@ jobs:
           test -n "$KEYSTORE_B64" || { echo "Secret ANDROID_KEYSTORE_BASE64 manquant (voir docs/ANDROID.md)"; exit 1; }
           echo "$KEYSTORE_B64" | base64 --decode > android.keystore
           node -e "const f='twa-manifest.json';const m=require('./'+f);m.appVersionCode=Number('${{ inputs.version_code }}');m.appVersionName=m.appVersion='${{ inputs.version_name }}';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+          # Bubblewrap downloads the icons from the deployed site. An icon added in this branch and not published yet is served from this
+          # checkout on the runner instead (the warning names it): the launcher icons built into the app are then the real ones.
+          for key in iconUrl maskableIconUrl; do
+            url=$(node -e "console.log(require('./twa-manifest.json').$key)")
+            if ! curl -fsI "$url" > /dev/null; then
+              file=$(basename "$url")
+              test -f "../image/$file" || { echo "::error::$key $url is not published and ../image/$file does not exist"; exit 1; }
+              if ! curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1; then
+                (cd ../image && nohup python3 -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &)
+                for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsI http://127.0.0.1:8765/$file > /dev/null 2>&1 && break; sleep 1; done
+              fi
+              echo "::warning::$key $url is not published yet: using ../image/$file from this checkout"
+              node -e "const f='twa-manifest.json',m=require('./'+f);m.$key='http://127.0.0.1:8765/$file';require('fs').writeFileSync(f,JSON.stringify(m,null,2))"
+            fi
+          done
+          # Bubblewrap 1.23 wants <sdk>/tools or <sdk>/bin: expose the command-line tools of the runner's SDK there.
+          cmdline=$(ls -d "$ANDROID_SDK_ROOT"/cmdline-tools/* | sort -V | tail -1)
+          sudo mkdir -p "$ANDROID_SDK_ROOT/tools" && sudo ln -sfn "$cmdline/bin" "$ANDROID_SDK_ROOT/tools/bin"
           mkdir -p ~/.bubblewrap && printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_SDK_ROOT" > ~/.bubblewrap/config.json
           yes | bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
       - name: Construire et signer
@@ -50,6 +70,20 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: bubblewrap build --skipPwaValidation
+      - name: Contrôles du bundle avant envoi (permissions, Play Billing, cible)
+        working-directory: android
+        run: |
+          aapt2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$aapt2" dump permissions app-release-signed.apk | tee permissions.txt
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS)|com.android.vending.BILLING|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
+          grep -q "com.android.vending.BILLING" permissions.txt || { echo "::error::permission BILLING absente : Play Console ne débloquera pas les abonnements"; exit 1; }
+          mkdir -p dex && unzip -o -q app-release-bundle.aab 'base/dex/*.dex' -d dex
+          cat dex/base/dex/*.dex | strings | grep -q "com/android/billingclient" || { echo "::error::bibliothèque Play Billing absente du bundle"; exit 1; }
+          "$aapt2" dump badging app-release-signed.apk | grep -E "^(package|targetSdkVersion)" | tee badging.txt
+          grep -q "^package: name='fr.titanapp.app'" badging.txt || { echo "::error::le paquet n'est pas fr.titanapp.app"; exit 1; }
+          target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
+          if [ -z "$target" ] || [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           name: titan-android-${{ inputs.version_name }}

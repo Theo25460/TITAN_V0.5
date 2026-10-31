@@ -1,0 +1,416 @@
+[
+  {
+    "source": "guardian-manifest.json",
+    "head": "fef923c",
+    "tree": "07ad054",
+    "browser": "141.0.7390.0",
+    "synthetic_only": true,
+    "failures": [],
+    "screens": [
+      {
+        "name": "360-guardian-aube",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3620,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-aube-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3620,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-marees",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3349,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-marees-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3349,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-forge",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3326,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-forge-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3326,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-aurores",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3347,
+        "errors": []
+      },
+      {
+        "name": "360-guardian-aurores-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 3347,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-aube",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3574,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-aube-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3574,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-marees",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3332,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-marees-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3332,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-forge",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3279,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-forge-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3279,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-aurores",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3279,
+        "errors": []
+      },
+      {
+        "name": "390-guardian-aurores-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 3279,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-aube",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2558,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-aube-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2558,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-marees",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-marees-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-forge",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-forge-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-aurores",
+        "description": "Final guardian, synthetic snapshot, no backend",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      },
+      {
+        "name": "1280-guardian-aurores-detail",
+        "description": "Final guardian visible at real scroll position",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2321,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "source": "profile-manifest.json",
+    "head": "fef923c",
+    "tree": "07ad054",
+    "browser": "141.0.7390.0",
+    "synthetic_only": true,
+    "failures": [],
+    "screens": [
+      {
+        "name": "360-profile-title",
+        "description": "Final worn earned title, synthetic authenticated RPC",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 4620,
+        "errors": []
+      },
+      {
+        "name": "360-profile-account",
+        "description": "Final profile settings, TITAN+ coming soon, Assistance and motion preference",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 4620,
+        "errors": []
+      },
+      {
+        "name": "390-profile-title",
+        "description": "Final worn earned title, synthetic authenticated RPC",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 4398,
+        "errors": []
+      },
+      {
+        "name": "390-profile-account",
+        "description": "Final profile settings, TITAN+ coming soon, Assistance and motion preference",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 4398,
+        "errors": []
+      },
+      {
+        "name": "1280-profile-title",
+        "description": "Final worn earned title, synthetic authenticated RPC",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 3349,
+        "errors": []
+      },
+      {
+        "name": "1280-profile-account",
+        "description": "Final profile settings, TITAN+ coming soon, Assistance and motion preference",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 3349,
+        "errors": []
+      }
+    ]
+  },
+  {
+    "source": "manifest.json",
+    "head": "fef923c",
+    "tree": "07ad054",
+    "browser": "141.0.7390.0",
+    "synthetic_only": true,
+    "failures": [],
+    "screens": [
+      {
+        "name": "360-titan-plus",
+        "description": "Final candidate /titan-plus",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 9798,
+        "errors": []
+      },
+      {
+        "name": "360-onboarding",
+        "description": "Final candidate /onboarding?again=1",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 922,
+        "errors": []
+      },
+      {
+        "name": "360-service",
+        "description": "Final candidate /service",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 7389,
+        "errors": []
+      },
+      {
+        "name": "360-atelier",
+        "description": "Final Atelier synthetic RPC, upcoming rewards",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 2908,
+        "errors": []
+      },
+      {
+        "name": "360-atelier-preview",
+        "description": "Final Atelier preview opened",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 2636,
+        "errors": []
+      },
+      {
+        "name": "360-adventure",
+        "description": "Final real guest Adventure engine, synthetic sessions, no backend",
+        "width": 360,
+        "scrollWidth": 360,
+        "height": 844,
+        "errors": []
+      },
+      {
+        "name": "390-titan-plus",
+        "description": "Final candidate /titan-plus",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 9324,
+        "errors": []
+      },
+      {
+        "name": "390-onboarding",
+        "description": "Final candidate /onboarding?again=1",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 844,
+        "errors": []
+      },
+      {
+        "name": "390-service",
+        "description": "Final candidate /service",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 7166,
+        "errors": []
+      },
+      {
+        "name": "390-atelier",
+        "description": "Final Atelier synthetic RPC, upcoming rewards",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 2569,
+        "errors": []
+      },
+      {
+        "name": "390-atelier-preview",
+        "description": "Final Atelier preview opened",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 2396,
+        "errors": []
+      },
+      {
+        "name": "390-adventure",
+        "description": "Final real guest Adventure engine, synthetic sessions, no backend",
+        "width": 390,
+        "scrollWidth": 390,
+        "height": 844,
+        "errors": []
+      },
+      {
+        "name": "1280-titan-plus",
+        "description": "Final candidate /titan-plus",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 6570,
+        "errors": []
+      },
+      {
+        "name": "1280-onboarding",
+        "description": "Final candidate /onboarding?again=1",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 900,
+        "errors": []
+      },
+      {
+        "name": "1280-service",
+        "description": "Final candidate /service",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 6628,
+        "errors": []
+      },
+      {
+        "name": "1280-atelier",
+        "description": "Final Atelier synthetic RPC, upcoming rewards",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 2068,
+        "errors": []
+      },
+      {
+        "name": "1280-atelier-preview",
+        "description": "Final Atelier preview opened",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 1913,
+        "errors": []
+      },
+      {
+        "name": "1280-adventure",
+        "description": "Final real guest Adventure engine, synthetic sessions, no backend",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "height": 900,
+        "errors": []
+      }
+    ]
+  }
+]

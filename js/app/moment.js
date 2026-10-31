@@ -79,10 +79,14 @@
         sub:
           isGuest() || log.syncStatus === "confirmed"
             ? "Ajoutée à ton historique, à tes statistiques et à tes records. Sans XP : seules les séances des 30 derniers jours en rapportent."
-            : "Gardée sur cet appareil, sans XP. Le serveur acceptera les séances de plus de 30 jours avec sa prochaine mise à jour ; elle partira alors d’elle-même.",
+            : "Gardée sur cet appareil, sans XP. Le serveur ne l’a pas encore acceptée : elle partira d’elle-même dès qu’il le pourra.",
       };
     const est = P().effortOf(log);
-    if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Estimation du mode découverte. Crée ton compte pour rendre ta progression officielle : tes séances te suivent." };
+    if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Séance conservée sur cet appareil. XP estimés ; tu pourras ajouter tes séances à ton compte après inscription." };
+    if (log.syncStatus === "confirmed" && r && r.reward_held) {
+      const hours = Math.max(1, Math.ceil((new Date(r.release_at) - Date.now()) / 3600000)) || 24;
+      return { state: "pending", big: "Récompense en vérification", sub: `${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits sont retenus par précaution, au plus ${F().number(hours)} h : ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+    }
     if (log.syncStatus === "confirmed" && r) {
       const capped = Number(r.requested_xp) > Number(r.xp);
       const lines = [];
@@ -149,14 +153,19 @@
       ${adventureHtml(log)}
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
-        <button type="button" class="asc-btn asc-btn-primary" data-moment="done">Terminé</button>
+        ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup" data-moment-signup>${icon("user")} Créer un compte et garder ma séance</a>` : ""}
+        <button type="button" class="asc-btn ${isGuest() ? "asc-btn-secondary" : "asc-btn-primary"}" data-moment="done">Terminé</button>
         <a class="asc-btn asc-btn-secondary" href="/journal">${icon("journal")} Voir dans le journal</a>
       </div>
     </div>`;
   }
 
   function open(log) {
-    if (!log || !window.titanShell?.sheet) return;
+    if (!log || !window.titanShell?.sheet || !window.state?.user?.id || window.titanAccountTransition?.active) return;
+    const job = { owner: window.state.user.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch };
+    const currentContext = () => job.owner === window.state?.user?.id && job.client === window.titanClient
+      && job.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+    let closed = false, focusTimer = null;
     const when = F().relativeDay(log.date);
     const body = document.createElement("div");
     body.innerHTML = html(current(log));
@@ -168,21 +177,40 @@
       eyebrow: `${historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · ${when}`,
       body,
       onClose: () => {
+        closed = true;
+        clearTimeout(focusTimer);
         window.removeEventListener("titan:history-updated", update);
         window.removeEventListener("titan:adventure-updated", update);
+        window.removeEventListener("titan:account-changing", closeForAccount);
+        window.removeEventListener("titan:account-changed", closeForAccount);
       },
     });
     dialog.classList.add("moment-sheet");
+    const initialFocus = document.activeElement;
+    const live = () => !closed && dialog.isConnected && dialog.open && currentContext();
+    const topmost = () => [...document.querySelectorAll("dialog[open]")].at(-1) === dialog;
+    function closeForAccount() { dialog.close(); }
+    function restoreAction(selector) {
+      if (!live() || !topmost() || ![document.body, dialog].includes(document.activeElement)) return;
+      (body.querySelector(selector) || body.querySelector("[data-moment='done']"))?.focus({ preventScroll: true });
+    }
     let wasConfirmed = current(log).syncStatus === "confirmed";
     function update() {
+      if (!live()) { if (dialog.open) dialog.close(); return; }
+      const focused = document.activeElement;
+      const action = body.contains(focused) ? focused.closest("[data-moment], a[href]") : null;
+      const selector = action?.hasAttribute("data-moment") ? `[data-moment="${CSS.escape(action.dataset.moment)}"]`
+        : action ? `a[href="${CSS.escape(action.getAttribute("href"))}"]` : null;
       const l = current(log);
       body.innerHTML = html(l);
+      if (selector) restoreAction(selector);
       if (!wasConfirmed && l.syncStatus === "confirmed") {
         wasConfirmed = true;
         window.TitanAdventure?.refresh?.({ force: true });
       }
     }
     body.addEventListener("click", (e) => {
+      if (!live()) { if (dialog.open) dialog.close(); return; }
       if (e.target.closest("[data-moment='done']")) dialog.close();
       if (e.target.closest("[data-moment='share']")) {
         const l = current(log);
@@ -194,12 +222,16 @@
           detail: rec ? (rec.previous ? `avant : ${fmtRecord(rec, rec.previous.value)}` : "") : "",
           sport: l.sport,
           logId: l.syncStatus === "confirmed" ? l.id : null,
-        });
+        }).then(() => restoreAction("[data-moment='share']"));
       }
     });
     window.addEventListener("titan:history-updated", update);
     window.addEventListener("titan:adventure-updated", update);
-    setTimeout(() => body.querySelector("[data-moment='done']")?.focus(), 30);
+    window.addEventListener("titan:account-changing", closeForAccount);
+    window.addEventListener("titan:account-changed", closeForAccount);
+    focusTimer = setTimeout(() => {
+      if (live() && topmost() && [initialFocus, document.body, dialog].includes(document.activeElement)) body.querySelector("[data-moment='done']")?.focus();
+    }, 30);
     return dialog;
   }
 
