@@ -15,10 +15,11 @@ before(async()=>{
  let ready=false;for(let i=0;i<50;i++){try{if((await fetch(BASE)).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,100));}
  assert.ok(ready);browser=await chromium.launch();
 });
-after(async()=>{await browser?.close();server?.kill();});
+after(async()=>{await browser?.close();server?.kill();},{timeout:30000});
 for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offline']){
  const lostAck=mode==='lost-ack';
- test(`authenticated resume: ${lostAck?'committed receipt lost':mode==='offline'?'browser offline':'server unavailable'} then reload and retry at ${width}px`,async()=>{
+ // A bounded test: a hang then fails with its own name instead of cancelling the whole browser job after 25 minutes.
+ test(`authenticated resume: ${lostAck?'committed receipt lost':mode==='offline'?'browser offline':'server unavailable'} then reload and retry at ${width}px`,{timeout:90000},async()=>{
   const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
   const now=Math.floor(Date.now()/1000),user={id:OWNER,email:'resume@example.test',aud:'authenticated',app_metadata:{},user_metadata:{}};
   const token=[Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url'),Buffer.from(JSON.stringify({sub:OWNER,aud:'authenticated',role:'authenticated',iat:now,exp:now+3600})).toString('base64url'),'synthetic-signature'].join('.');
