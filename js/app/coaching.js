@@ -353,6 +353,33 @@
   }
 
   /* ---------- Rendering ---------- */
+  function comparisonHtml() {
+    const c = window.TitanCoachAnalysis?.compare({sessions, assignments, from:fromDate, to:toDate});
+    if (!c?.available) {
+      const reason = c?.reason === "incomplete"
+        ? "Charge toutes les pages de séances et de propositions avant de comparer."
+        : "La période sélectionnée et le partage doivent couvrir au moins 14 jours complets en UTC. Aucun accès antérieur au consentement n’est demandé.";
+      return `<p class="asc-small asc-muted" data-ca-comparison-unavailable>Comparaison non disponible : ${esc(reason)}</p>`;
+    }
+    const signed = n => n > 0 ? `+${n}` : String(n);
+    const duration = (a) => a.sessions === 0 ? "0 min" : a.minutes === null ? "Non disponible" : a.minutes === 0 ? "0 min" : F().duration(a.minutes);
+    const durationChange = n => n === null ? "Durées incomplètes" : n === 0 ? "0 min" : `${n > 0 ? "+" : "−"}${F().duration(Math.abs(n))}`;
+    const rate = a => a.adherencePercent === null ? "Aucune échéance" : `${a.adherencePercent} % (${a.completed}/${a.due})`;
+    const periodHead = (_a, label) => `<th scope="col">${label}</th>`;
+    return `<div class="co-analysis-programme co-comparison" data-ca-comparison><h4>Évolution · 7 jours complets</h4>
+      <p class="asc-small asc-muted">Deux périodes consécutives de 7 jours en UTC, au sein du partage sélectionné. La journée en cours est exclue. Écarts absolus, sans objectif imposé ni diagnostic.</p>
+      <p class="asc-small asc-muted">Précédente : ${esc(c.previous.from)} au ${esc(c.previous.to)}.<br>Récente : ${esc(c.current.from)} au ${esc(c.current.to)}.</p>
+      <div class="co-analysis-table" tabindex="0" role="region" aria-label="Comparaison des périodes, tableau défilant"><table><caption>Dernière période complète et période précédente · données partagées chargées</caption>
+      <thead><tr><th scope="col">Mesure</th>${periodHead(c.previous, "Précédente")}${periodHead(c.current, "Récente")}<th scope="col">Écart</th></tr></thead>
+      <tbody><tr><th scope="row">Séances</th><td data-ca-previous-sessions>${c.previous.sessions}</td><td data-ca-current-sessions>${c.current.sessions}</td><td data-ca-session-delta>${signed(c.delta.sessions)}</td></tr>
+      <tr><th scope="row">Jours actifs</th><td>${c.previous.activeDays}</td><td>${c.current.activeDays}</td><td>${signed(c.delta.activeDays)}</td></tr>
+      <tr><th scope="row">Durée renseignée</th><td>${esc(duration(c.previous))}<small>${c.previous.measuredSessions}/${c.previous.sessions} renseignées</small></td><td>${esc(duration(c.current))}<small>${c.current.measuredSessions}/${c.current.sessions} renseignées</small></td><td>${esc(durationChange(c.delta.minutes))}</td></tr>
+      <tr><th scope="row">Prévu / réalisé</th><td>${esc(rate(c.previous))}</td><td>${esc(rate(c.current))}</td><td>${c.delta.adherencePoints === null ? "Non comparable" : `${signed(c.delta.adherencePoints)} points`}</td></tr></tbody></table></div>
+      ${c.sports.length ? `<div class="co-analysis-table" tabindex="0" role="region" aria-label="Évolution par sport, tableau défilant"><table data-ca-sport-trends><caption>Évolution par sport · séances et durée renseignée</caption><thead><tr><th scope="col">Sport</th><th scope="col">Précédente</th><th scope="col">Récente</th><th scope="col">Écart</th></tr></thead><tbody>${c.sports.map(s=>`<tr><th scope="row">${esc(s.sport === "unknown" ? "Sport non renseigné" : SP().label(s.sport))}</th><td>${s.previous.sessions} séance(s)<small>${esc(duration(s.previous))} · ${s.previous.measuredSessions}/${s.previous.sessions} renseignées</small></td><td>${s.current.sessions} séance(s)<small>${esc(duration(s.current))} · ${s.current.measuredSessions}/${s.current.sessions} renseignées</small></td><td>${signed(s.delta.sessions)} séance(s)<small>${esc(durationChange(s.delta.minutes))}</small></td></tr>`).join("")}</tbody></table></div>` : `<p class="asc-small asc-muted">Aucune séance dans ces deux périodes entièrement chargées.</p>`}
+      <p class="asc-small asc-faint">Un écart de durée exige une durée renseignée pour chaque séance des deux périodes. Sans séance, 0 min décrit uniquement le journal partagé. Aucun pourcentage de hausse calculé depuis zéro. Le prévu/réalisé utilise les propositions acceptées échues, pas une estimation de l’effort.</p>
+    </div>`;
+  }
+
   function analysisHtml() {
     if (mode !== "coach" || !sameContext(viewContext) || !current() || !sessions || !assignments || window.titanFlags?.enabled?.("screens.coachanalysis", false) !== true) return "";
     const a = window.TitanCoachAnalysis?.analyse({sessions, assignments, from:fromDate, to:toDate});
@@ -367,6 +394,7 @@
       ${a.sports.length ? `<div class="co-analysis-table"><table data-ca-sports><caption>Répartition sur les séances partagées chargées</caption><thead><tr><th scope="col">Sport</th><th scope="col">Séances</th><th scope="col">Durée renseignée</th></tr></thead><tbody>${a.sports.map(s=>`<tr><th scope="row">${esc(s.sport === "unknown" ? "Sport non renseigné" : SP().label(s.sport))}</th><td>${s.sessions}</td><td>${esc(knownDuration(s.minutes))}<small>${s.measuredSessions} / ${s.sessions} renseignées</small></td></tr>`).join("")}</tbody></table></div>` : `<p class="asc-small asc-muted">Aucune séance partagée chargée dans cette période.</p>`}
       <div class="co-analysis-programme"><h4>Prévu / réalisé</h4><p data-ca-adherence>${a.assignmentComplete ? (a.due ? `<strong>${a.adherencePercent} %</strong> · ${a.completed} / ${a.due} propositions acceptées échues réalisées.` : "Aucune proposition acceptée arrivée à échéance.") : "Taux non disponible : charge toutes les propositions pour le calculer."}</p>
         <p class="asc-small asc-faint">Seulement les propositions acceptées dont le jour prévu précède aujourd’hui (UTC), dans la période sélectionnée. Une proposition refusée, annulée, en attente ou prévue aujourd’hui n’est pas un échec.</p></div>
+      ${comparisonHtml()}
       <p class="asc-small asc-faint">Charge sRPE indisponible : le partage actuel ne transmet pas le ressenti. Ces durées ne sont ni une charge d’entraînement, ni des calories, ni de l’XP. Aucun accès supplémentaire ni donnée de santé déduite.</p>
     </section>`;
   }

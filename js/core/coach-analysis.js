@@ -38,10 +38,10 @@
     const now=Date.parse(input.now||new Date().toISOString());
     const serverFrom=sessions?.from_date===undefined?requestedFrom:day(sessions.from_date);
     const serverTo=sessions?.to_date===undefined?requestedTo:day(sessions.to_date);
-    if(!requestedFrom||!requestedTo||!serverFrom||!serverTo||!Number.isFinite(now)||!Array.isArray(sessions?.rows)||!Array.isArray(assignments?.rows))return {available:false};
+    if(!requestedFrom||!requestedTo||!serverFrom||!serverTo||!Number.isFinite(now)||!Array.isArray(sessions?.rows)||!Array.isArray(assignments?.rows))return {available:/** @type {const} */(false)};
     const from=requestedFrom>serverFrom?requestedFrom:serverFrom;
     const to=requestedTo<serverTo?requestedTo:serverTo;
-    if(from>to||(Date.parse(to)-Date.parse(from))/86400000>366)return {available:false};
+    if(from>to||(Date.parse(to)-Date.parse(from))/86400000>366)return {available:/** @type {const} */(false)};
     const today=new Date(now).toISOString().slice(0,10);
     const loadedSessions=unique(sessions.rows.slice(0,10000));
     const loadedTasks=unique(assignments.rows.slice(0,10000));
@@ -72,14 +72,49 @@
     }
     const sessionComplete=complete(sessions.total,count)&&loadedSessions.length===sessions.rows.length;
     const assignmentComplete=complete(assignments.total,validTasks)&&loadedTasks.length===assignments.rows.length;
-    return {available:true,from,to,timezone:'UTC',sessions:count,minutes:measuredSessions?Math.round(minutes*100)/100:null,
+    return {available:/** @type {const} */(true),from,to,timezone:'UTC',sessions:count,minutes:measuredSessions?Math.round(minutes*100)/100:null,
       measuredSessions,missingDuration:count-measuredSessions,activeDays:days.size,
       sports:[...sports.values()].sort((a,b)=>b.sessions-a.sessions||a.sport.localeCompare(b.sport)),
       sessionLoaded:loadedSessions.length,sessionTotal:numeric(sessions.total)?sessions.total:null,sessionComplete,
       assignmentLoaded:loadedTasks.length,assignmentTotal:numeric(assignments.total)?assignments.total:null,assignmentComplete,
       due,completed,adherencePercent:assignmentComplete&&due>0?Math.round(completed/due*100):null};
   }
-  const api={analyse};
+  /** Compare only fully covered, adjacent seven-day windows. No additional access or persistence.
+   * @param {Parameters<typeof analyse>[0]} input */
+  function compare(input){
+    if(!day(input.sessions?.from_date)||!day(input.sessions?.to_date))return {available:false,reason:'scope'};
+    const all=analyse(input);
+    if(!all.available)return {available:false,reason:'scope'};
+    if(!all.sessionComplete||!all.assignmentComplete||all.sessionLoaded!==all.sessionTotal||all.assignmentLoaded!==all.assignmentTotal)return {available:false,reason:'incomplete'};
+    const now=Date.parse(input.now||new Date().toISOString());
+    const yesterday=new Date(Date.parse(new Date(now).toISOString().slice(0,10)+'T00:00:00Z')-86400000).toISOString().slice(0,10);
+    const end=all.to<yesterday?all.to:yesterday;
+    /** @param {string} date @param {number} offset */
+    const shift=(date,offset)=>new Date(Date.parse(date+'T00:00:00Z')+offset*86400000).toISOString().slice(0,10);
+    const start=shift(end,-13);
+    if(start<all.from)return {available:false,reason:'short'};
+    /** @param {string} from @param {string} to */
+    function period(from,to){
+      const rows=(input.sessions?.rows||[]).filter(r=>{
+        const date=new Date(String(r.date)).toISOString().slice(0,10);
+        return date>=from&&date<=to;
+      });
+      const tasks=(input.assignments?.rows||[]).filter(r=>String(r.planned_date)>=from&&String(r.planned_date)<=to);
+      return analyse({...input,from,to,now:new Date(now).toISOString(),sessions:{rows,total:rows.length,from_date:from,to_date:to},assignments:{rows:tasks,total:tasks.length}});
+    }
+    const previous=period(start,shift(end,-7)),current=period(shift(end,-6),end);
+    if(!previous.available||!current.available)return {available:false,reason:'scope'};
+    /** @param {{sessions:number,minutes:number|null,measuredSessions:number}} a @param {{sessions:number,minutes:number|null,measuredSessions:number}} b */
+    const durationDelta=(a,b)=>a.measuredSessions===a.sessions&&b.measuredSessions===b.sessions?Math.round(((a.minutes??0)-(b.minutes??0))*100)/100:null;
+    const empty={sessions:0,minutes:null,measuredSessions:0};
+    const sports=[...new Set([...current.sports,...previous.sports].map(s=>s.sport))].sort().map(sport=>{
+      const c=current.sports.find(s=>s.sport===sport)||empty,p=previous.sports.find(s=>s.sport===sport)||empty;
+      return {sport,current:c,previous:p,delta:{sessions:c.sessions-p.sessions,minutes:durationDelta(c,p)}};
+    });
+    return {available:true,previous,current,sports,delta:{sessions:current.sessions-previous.sessions,activeDays:current.activeDays-previous.activeDays,
+      minutes:durationDelta(current,previous),adherencePoints:current.adherencePercent!==null&&previous.adherencePercent!==null?current.adherencePercent-previous.adherencePercent:null}};
+  }
+  const api={analyse,compare};
   /** @type {any} */(root).TitanCoachAnalysis=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
