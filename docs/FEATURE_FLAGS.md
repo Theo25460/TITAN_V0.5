@@ -15,21 +15,30 @@ Objet : déployer progressivement le RPG, les publicités et de nouveaux écrans
 
 - Les **clés sont publiques** (lisibles sans connexion) : aucun secret, aucun nom confidentiel.
 - Un drapeau n'est pas un contrôle de sécurité : le serveur doit refuser lui-même ce qui est interdit (un utilisateur Premium sans publicité, par exemple, se vérifie côté serveur et côté application, pas par drapeau seul).
-- Huitième : `screens.duels` (panneau « Défis par lien » de la Communauté, V11-66 ; la page publique `/defi` fonctionne dès que la migration 49 est appliquée et qu'un lien existe, donc sans drapeau, mais aucun lien ne peut être créé tant que le panneau est éteint).
-- Septième : `screens.ranking` (classement équitable entre amis, V11-65 ; absent tant que le drapeau n'existe pas ou est éteint).
-- Sixième : `screens.seasons` (saisons de 28 jours et archive, V11-64 ; absentes tant que le drapeau n'existe pas ou est éteint).
-- Cinquième : `screens.buddy` (binômes de progression, V11-63 ; absents tant que le drapeau n'existe pas ou est éteint).
-- Huitième : `screens.pantheon` (Panthéon des Titans, V11-74).
-- Septième : `screens.factions` (trois factions, V11-74).
-- Sixième : `screens.clubs` (espaces de clubs sous la Communauté, V11-71 ; absents tant que le drapeau n'existe pas ou est éteint).
-- Cinquième : `screens.worldgoal` (objectif collectif en trois paliers, V11-70 ; absent tant que le drapeau n'existe pas ou est éteint).
-- Quatrième : `screens.commonquest` (quête commune de la semaine, V11-62 ; absente tant que le drapeau n'existe pas ou est éteint).
-- Troisième : `screens.intents` (rendez-vous quotidien du QG, V11-61 ; absent tant que le drapeau n'existe pas ou est éteint).
-- Deuxième écran branché sur un drapeau : `screens.consultations` (votes et feuille de route sous la Communauté ; absents tant que le drapeau n'existe pas ou est éteint).
-- Premier écran branché sur un drapeau : `screens.garmin` (bouton « Connecter Garmin » du Profil ; absent tant que le drapeau n'existe pas ou est éteint).
 - Nommer `domaine.élément` : `ads.web`, `ads.android`, `ads.interstitial`, `ads.rewarded`, `rpg.rollout`, `screens.<nom>`.
 - Brancher une fonctionnalité sur un drapeau relève de son chantier (RPG : Codex ; régies : chantier publicité), avec sa valeur par défaut et un test.
 
 ## Retour arrière
 
 `drop function public.titan_feature_flags_v1(), public.titan_admin_feature_flags_v1(), public.titan_admin_feature_flag_set_v1(text,boolean,integer,text,timestamptz,boolean); drop table private.titan_feature_flags;` : les consommateurs retombent sur leur valeur par défaut.
+
+## Drapeaux des écrans V1.1 : à créer après la migration correspondante
+
+Aucun drapeau n'est créé par une migration, donc rien n'apparaît tant que le propriétaire ne le crée pas (page « Drapeaux » du centre de contrôle). Tant qu'un drapeau n'existe pas ou est éteint, l'écran n'affiche rien et le serveur n'est pas appelé davantage. On peut éteindre un écran sans nouvelle version.
+
+| Drapeau | Écran | Migration | Entrée |
+|---|---|---|---|
+| `screens.garmin` | bouton « Connecter Garmin » du Profil (après l'essai réel et la décision de publication) | 40, 41 | V11-40 |
+| `screens.consultations` | votes et feuille de route sous la Communauté | 42 | V11-57 |
+| `screens.intents` | rendez-vous quotidien du QG | 44 | V11-61 |
+| `screens.commonquest` | quête commune de la semaine | 45 | V11-62 |
+| `screens.buddy` | binômes de progression | 46 | V11-63 |
+| `screens.seasons` | saisons de 28 jours et archive | 47 | V11-64 |
+| `screens.ranking` | classement équitable entre amis | 48 | V11-65 |
+| `screens.duels` | « Défis par lien » (la page publique `/defi` n'a pas de drapeau) | 49 | V11-66 |
+| `screens.worldgoal` | objectif collectif en trois paliers | 51 | V11-70 |
+| `screens.clubs` | espaces de clubs, signalements et trophées | 52, 53, 54 | V11-71, V11-73, V11-74 |
+| `screens.factions` | trois factions | 54 | V11-74 |
+| `screens.pantheon` | Panthéon des Titans | 54 | V11-74 |
+
+Le Panthéon et les clubs ouverts au public demandent qu'une personne de l'équipe traite la file des signalements (centre de contrôle, « Votes et idées »).

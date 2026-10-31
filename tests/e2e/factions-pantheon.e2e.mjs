@@ -73,6 +73,10 @@ test("factions: three camps, counts only from five members, joined on purpose, a
   try {
     const forge = page.locator("[data-faction=forge]");
     await forge.waitFor();
+    const extras = page.locator("#communaute-extras");
+    await extras.waitFor();
+    assert.deepEqual(await extras.locator("a").allInnerTexts(), ["Factions", "Panthéon"], "the row lists only the panels that are shown");
+    assert.equal(await extras.locator("a[href='#factions']").count(), 1);
     assert.equal(await page.locator("[data-faction]").count(), 3);
     assert.match(await forge.innerText(), /12 membres · 3\s?400 min d’effort cette semaine/);
     assert.match(await page.locator("[data-faction=aube]").innerText(), /à partir de cinq membres/);
@@ -135,6 +139,7 @@ test("factions and pantheon: nothing when the flag is off, for a guest, or on a 
     try {
       await page.waitForTimeout(400);
       assert.equal(await page.locator("#factions").isVisible(), false, JSON.stringify(options));
+      assert.equal(await page.locator("#communaute-extras").isVisible(), false, "no panel, no row: " + JSON.stringify(options));
       assert.equal(await page.locator("#pantheon").isVisible(), false, JSON.stringify(options));
       assert.deepEqual(errors, []);
     } finally { await context.close(); }
