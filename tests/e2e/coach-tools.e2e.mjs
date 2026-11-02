@@ -38,7 +38,7 @@ async function fixture({mode='coach',flag=true,width=360}={}){
  if(mode==='coach')await page.locator('[data-mode="coach"]').click();
  return {page,context,errors};
 }
-async function audit(page,selector){await page.addScriptTag({content:readFileSync(ROOT+'/node_modules/axe-core/axe.min.js','utf8')});const v=await page.evaluate(async s=>(await axe.run(document.querySelector(s),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})).violations,selector);assert.deepEqual(v.map(v=>v.id+':'+v.nodes.map(n=>n.target).join('|')),[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);}
+async function audit(page,selector){await page.evaluate(()=>Promise.all(document.getAnimations().map(a=>a.finished.catch(()=>{}))));await page.addScriptTag({content:readFileSync(ROOT+'/node_modules/axe-core/axe.min.js','utf8')});const v=await page.evaluate(async s=>(await axe.run(document.querySelector(s),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})).violations,selector);assert.deepEqual(v.map(v=>v.id+':'+v.nodes.map(n=>n.target).join('|')),[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);}
 
 test('flag off: no coach tools and no tool request',async()=>{
  const f=await fixture({flag:false}),{page}=f;try{

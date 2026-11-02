@@ -126,6 +126,8 @@ test("pantheon: names are text, most recent first, no ranking; appearing is a ch
     await page.getByRole("button", { name: "Apparaître au Panthéon" }).waitFor();
     assert.deepEqual(await page.evaluate(() => window.calls.filter(c => c[0] === "titan_pantheon_set_v1")[1][1]), { p_on: false });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    // Contrast must be measured at rest: under a loaded CI runner axe could catch a fade-in half-way.
+    await page.evaluate(() => Promise.all(document.getAnimations().map(a => a.finished.catch(() => {}))));
     await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });
     const axe = await page.evaluate(() => window.axe.run(document.querySelector("#pantheon"), { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(" ")).join("|")}`)));
     assert.deepEqual(axe, []);
