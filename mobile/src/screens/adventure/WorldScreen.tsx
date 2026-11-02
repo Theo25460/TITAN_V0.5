@@ -104,7 +104,6 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </View>
       </View>
       <T tone="muted">{done ? world.ending : world.intro}</T>
-      {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
 
       {locked ? (
         <Card style={{ gap: 6 }}>
@@ -217,6 +216,9 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
           <T variant="small">{world.guardian} te reconnaît. Les neuf insignes de ce monde sont dans ta collection.</T>
         </Card>
       )}
+
+      {/* The chapter card (and its claim button) stays first: the main action is never pushed below the fold by the secondary story card. */}
+      {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
 
       <View style={{ gap: space.s2 }}>
         <T variant="eyebrow">Le chemin</T>
