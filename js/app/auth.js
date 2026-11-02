@@ -187,6 +187,7 @@
       const { data, error } = await c.auth.signUp({ email, password, options: { emailRedirectTo: `${SITE}/onboarding`, data: { full_name: name, username: name } } });
       if (error) throw error;
       window.TitanAnalytics?.track("signup", {}, { owner: data?.user?.id || data?.session?.user?.id || null });
+      if (data?.user) window.TitanGa4?.conversion("sign_up"); // the server accepted the account; GA4 itself only acts with its own consent
       if (data?.session) {
         if (!consentSaved) {
           $("#auth").innerHTML = `<div class="asc-stack"><h2 class="asc-h3">Ton compte est créé</h2><p role="alert">Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.</p><a class="asc-btn asc-btn-primary" href="/onboarding">Continuer</a></div>`;

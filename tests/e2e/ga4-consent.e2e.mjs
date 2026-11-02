@@ -112,3 +112,40 @@ test("app screens: the floating button never covers the tab bar; the choice reop
     assert.ok(b.y + b.height <= bar.y + 1, "banner above the tab bar");
   } finally { await context.close(); }
 });
+
+test("conversions: counted only with GA4 consent, only once, only after the server confirmed, never for a guest, with no personal data", async () => {
+  const { page, context } = await visit("/login", { choice: "granted" });
+  try {
+    await page.waitForFunction(() => typeof window.gtag === "function" && window.TitanGa4);
+    const sent = () => page.evaluate(() => (window.dataLayer || []).filter(a => a[0] === "event" && a[1] !== "page_view").map(a => [...a]));
+    // A signed-up account: sign_up once, whatever the number of calls.
+    await page.evaluate(() => { window.TitanGa4.conversion("sign_up"); window.TitanGa4.conversion("sign_up"); });
+    assert.deepEqual(await sent(), [["event", "sign_up"]]);
+    // A guest session confirmation, or another owner's, is ignored.
+    await page.evaluate(() => {
+      window.state = { user: { id: "guest_1" }, history: [] };
+      window.dispatchEvent(new CustomEvent("titan:session-confirmed", { detail: { ownerId: "guest_1" } }));
+      window.state = { user: { id: "u1" }, history: [{ id: "a", syncStatus: "pending", date: new Date().toISOString(), cat: "training" }] };
+      window.dispatchEvent(new CustomEvent("titan:session-confirmed", { detail: { ownerId: "u1" } }));
+    });
+    assert.deepEqual((await sent()).map(e => e[1]), ["sign_up"], "a pending local save is not a conversion");
+    // Confirmed first, then second session.
+    await page.evaluate(() => {
+      window.TitanProgress = { activeLogs: l => l };
+      window.state.history = [{ id: "a", syncStatus: "confirmed" }];
+      window.dispatchEvent(new CustomEvent("titan:session-confirmed", { detail: { ownerId: "u1" } }));
+      window.dispatchEvent(new CustomEvent("titan:session-confirmed", { detail: { ownerId: "u1" } }));
+      window.state.history.push({ id: "b", syncStatus: "confirmed" });
+      window.dispatchEvent(new CustomEvent("titan:session-confirmed", { detail: { ownerId: "u1" } }));
+    });
+    const events = await sent();
+    assert.deepEqual(events.map(e => e[1]), ["sign_up", "first_session_confirmed", "second_session_confirmed"]);
+    assert.ok(events.every(e => e.length === 2), "the events carry no parameter: no id, e-mail, sport or position");
+  } finally { await context.close(); }
+  const denied = await visit("/login", { choice: "denied" });
+  try {
+    await denied.page.waitForFunction(() => window.TitanGa4);
+    assert.equal(await denied.page.evaluate(() => window.TitanGa4.conversion("sign_up")), false);
+    assert.equal(await denied.page.evaluate(() => typeof window.gtag), "undefined");
+  } finally { await denied.context.close(); }
+});

@@ -172,7 +172,7 @@ window.flushPendingTrainingLogs = function(options={}) {
                 const reward=data.serverReward;
                 const local=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
                 if(local){local.id=data.id;local.syncStatus='confirmed';local.xp=reward.xp;local.revision=1;local.details.serverReward=reward;}
-                await window.TitanQueue.remove(item.key);sent++;
+                await window.TitanQueue.remove(item.key);sent++;if(local)window.dispatchEvent(new CustomEvent('titan:session-confirmed',{detail:{ownerId:uid,logId:item.payload.details.client_event_id}}));
                 if(window.state?.user?.id===uid){window.state.user.xp=reward.xp_after;window.state.user.credits=reward.credits_after;window.state.user.level=reward.level_after;await window.TitanQueue.saveHistory(uid,[...window.state.history,...(window.state.archivedHistory||[])]);}
             } catch(error){
                 const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);

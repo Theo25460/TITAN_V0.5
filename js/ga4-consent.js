@@ -57,6 +57,34 @@
     document.head.appendChild(loader);
   }
 
+  // Conversions: sent only when the player accepted GA4 AND the server has confirmed the fact. No identifier, no e-mail, no sport data, no GPS:
+  // the event carries nothing but its name. Each conversion is counted once per browser (a list of names, never of accounts).
+  const CONVERSIONS = { sign_up: "sign_up", first_session: "first_session_confirmed", second_session: "second_session_confirmed" };
+  const ONCE_KEY = "titan_ga4_once_v1";
+  function conversion(name) {
+    const eventName = CONVERSIONS[name];
+    if (!eventName || !started || savedChoice() !== "granted" || typeof window.gtag !== "function") return false;
+    let done = [];
+    try { done = JSON.parse(localStorage.getItem(ONCE_KEY) || "[]") || []; } catch (_) {}
+    if (done.includes(name)) return false;
+    try { localStorage.setItem(ONCE_KEY, JSON.stringify([...done, name].slice(-10))); } catch (_) { return false; }
+    window.gtag("event", eventName);
+    return true;
+  }
+  window.TitanGa4 = { conversion };
+
+  // A session counts as a conversion when the SERVER confirmed it (never the local save, never a guest session).
+  window.addEventListener("titan:session-confirmed", event => {
+    try {
+      const owner = event.detail && event.detail.ownerId;
+      if (!owner || String(owner).startsWith("guest_") || owner !== (window.state && window.state.user && window.state.user.id)) return;
+      const logs = window.TitanProgress ? window.TitanProgress.activeLogs(window.state.history || []) : [];
+      const confirmed = logs.filter(l => l.syncStatus !== "pending" && l.syncStatus !== "error" && l.syncStatus !== "local").length;
+      if (confirmed === 1) conversion("first_session");
+      else if (confirmed === 2) conversion("second_session");
+    } catch (_) {}
+  });
+
   function expireAnalyticsCookies() {
     const names = document.cookie.split(";").map(part => part.trim().split("=")[0])
       .filter(name => name === "_ga" || name.startsWith("_ga_"));
