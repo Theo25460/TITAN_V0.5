@@ -24,7 +24,7 @@ export function HelpScreen({ navigation }: NativeStackScreenProps<RootParams, "H
   return (
     <Screen>
       <Group title="Premiers pas">
-        <ListRow icon="play" title="Guide de démarrage" subtitle="3 étapes, facultatif" onPress={() => navigation.navigate("Guide")} />
+        <ListRow icon="play" title="Visite guidée de TITAN" subtitle="12 étapes courtes, facultatif, reprise possible" onPress={() => navigation.navigate("Guide")} />
         <ListRow icon="edit" title="Envoyer un retour" subtitle="Un problème ou une idée" onPress={() => navigation.navigate("Feedback")} last />
       </Group>
       <Section title="Questions fréquentes">

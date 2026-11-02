@@ -199,24 +199,42 @@ describe("with account data", () => {
     for (const C of [S.Settings, S.Sports, S.Account, S.Privacy, S.Help, S.Legal, S.Plus, S.Delete]) show(<C />);
     expect(screen.getByText("Supprimer définitivement ton compte")).toBeTruthy();
   });
-  test("Guide de démarrage : trois étapes facultatives qui ouvrent les vrais écrans", () => {
+  test("Visite guidée : douze étapes facultatives sur les vrais écrans, progression gardée par compte, reprise, relance, passage", async () => {
     nav.navigate.mockClear(); nav.goBack.mockClear();
-    show(<S.Guide navigation={nav} />);
-    expect(screen.getByText("1. Enregistre une séance")).toBeTruthy();
+    const { TOUR_STEPS, loadTour } = require("../src/lib/tour");
+    expect(TOUR_STEPS).toHaveLength(12);
+    const view = show(<S.Guide navigation={nav} />);
+    expect(await screen.findByText("Bienvenue dans TITAN")).toBeTruthy();
+    expect(screen.getByText("Étape 1 sur 12")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-next"));
+    expect(screen.getByText("Tes sports favoris")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-open"));
+    expect(nav.navigate).toHaveBeenLastCalledWith("Sports");
+    fireEvent.press(screen.getByTestId("guide-next"));
+    fireEvent.press(screen.getByTestId("guide-next"));
+    expect(screen.getByText("Enregistrer une séance")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-open"));
     expect(nav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: "Record" });
     fireEvent.press(screen.getByTestId("guide-next"));
-    expect(screen.getByText("2. Retrouve-la dans le Journal")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("guide-open"));
-    expect(nav.navigate).toHaveBeenLastCalledWith("Journal");
+    expect(screen.getByText("Le suivi GPS")).toBeTruthy();
+    expect(screen.getByText(/Il ne demande ta position qu’au moment où tu démarres/)).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-next"));
-    expect(screen.getByText("3. Fais avancer ton aventure")).toBeTruthy();
+    expect(screen.getByText("Santé Connect et tes pas")).toBeTruthy();
+    expect(screen.getByText("Facultatif")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-open"));
-    expect(nav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: "Adventure" });
+    expect(nav.navigate).toHaveBeenLastCalledWith("HealthConnect");
     fireEvent.press(screen.getByTestId("guide-prev"));
-    expect(screen.getByText("2. Retrouve-la dans le Journal")).toBeTruthy();
+    expect(screen.getByText("Le suivi GPS")).toBeTruthy();
+    // leaving keeps the step for this account; reopening resumes there
+    await waitFor(async () => expect((await loadTour("owner-a")).step).toBe(4));
+    view.unmount();
+    show(<S.Guide navigation={nav} />);
+    expect(await screen.findByText("Le suivi GPS")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-restart"));
+    expect(screen.getByText("Bienvenue dans TITAN")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-skip"));
     expect(nav.goBack).toHaveBeenCalledTimes(1);
+    await waitFor(async () => expect((await loadTour("owner-a")).dismissed).toBe(true));
   });
   test("Retour : message vérifié, informations techniques facultatives, e-mail ouvert par l'utilisateur", async () => {
     const { Linking } = require("react-native");

@@ -31,7 +31,8 @@ const deps: Deps = {
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "TITAN enregistre ta séance",
-        notificationBody: "Le suivi GPS est actif. Ouvre TITAN pour mettre en pause ou terminer.",
+        notificationBody: "Suivi GPS actif · ouvre TITAN pour mettre en pause ou terminer.",
+        notificationColor: "#3DD9E8",
         killServiceOnDestroy: true,
       },
     });

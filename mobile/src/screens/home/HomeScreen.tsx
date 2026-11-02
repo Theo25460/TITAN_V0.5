@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
+import { TourCard } from "../../components/TourCard";
 import { AdBanner } from "../../components/AdBanner";
 import { Button } from "../../components/Button";
 import { CadenceNotches } from "../../components/Cadence";
@@ -86,6 +87,7 @@ export function HomeScreen() {
             <Avatar id={snap?.avatar} frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={34} />
           </Tap>
         </View>
+        <TourCard />
         <T variant="h1">
           {hello}, {name}
         </T>

@@ -92,6 +92,8 @@ const config: ExpoConfig = {
         // Foreground service only: location is read while the athlete has started a recording (visible notification).
         isAndroidBackgroundLocationEnabled: false,
         isAndroidForegroundServiceEnabled: true,
+        // Monochrome TITAN glyph in the status bar while recording (same asset as the other notifications).
+        androidForegroundServiceIcon: "./assets/brand/notification.png",
         locationWhenInUsePermission: "TITAN utilise ta position uniquement pendant une séance que tu enregistres.",
       },
     ],

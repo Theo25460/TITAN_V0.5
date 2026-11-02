@@ -1,49 +1,85 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
-import { Icon, type IconName } from "../../components/Icon";
+import { Icon } from "../../components/Icon";
+import { Reveal } from "../../components/Motion";
 import { ProgressBar } from "../../components/Progress";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
-import { colors } from "../../theme/tokens";
+import { useOwner } from "../../data/auth";
+import { finish, freshTour, goTo, loadTour, progressLabel, restart, saveTour, TOUR_STEPS, type Target, type TourState } from "../../lib/tour";
 import type { RootParams } from "../../navigation/types";
+import { colors, space } from "../../theme/tokens";
 
-/** V11-78: an optional guide in three steps. Each step opens the real screen, nothing is forced and nothing is recorded: it can be left at any time and reopened from Assistance. */
-export const GUIDE_STEPS: { icon: IconName; title: string; text: string; action: string; target: "record" | "journal" | "adventure" }[] = [
-  { icon: "plus", title: "1. Enregistre une séance", text: "Choisis ton sport, indique la durée (et la distance ou les séries si tu veux). Sans connexion, la séance reste sur ton téléphone et part dès que le réseau revient.", action: "Ouvrir « Séance »", target: "record" },
-  { icon: "journal", title: "2. Retrouve-la dans le Journal", text: "Toutes tes séances sont rangées par date. Tu peux les corriger, les archiver ou en refaire une identique en deux touches.", action: "Ouvrir le Journal", target: "journal" },
-  { icon: "mountain", title: "3. Fais avancer ton aventure", text: "Tes efforts, quel que soit le sport, allument les balises de l’aventure. Aucune pression : se reposer fait partie du jeu.", action: "Ouvrir l’aventure", target: "adventure" },
-];
+export { TOUR_STEPS as GUIDE_STEPS };
 
 type Props = NativeStackScreenProps<RootParams, "Guide">;
 
+/** The first-use tour (12 steps). Progress is kept per account, it can be skipped, resumed, replayed; each step opens the real
+    screen. No advertising here, and no permission is requested by the tour itself. */
 export function GuideScreen({ navigation }: Props) {
-  const [index, setIndex] = useState(0);
-  const step = GUIDE_STEPS[index]!;
-  const last = index === GUIDE_STEPS.length - 1;
-  function open() {
-    if (step.target === "journal") navigation.navigate("Journal");
-    else navigation.navigate("Tabs", { screen: step.target === "record" ? "Record" : "Adventure" });
-  }
+  const owner = useOwner();
+  const [tour, setTour] = useState<TourState | null>(null);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    loadTour(owner).then((s) => alive.current && setTour(s.done ? { ...freshTour(), done: true } : s));
+    return () => {
+      alive.current = false;
+    };
+  }, [owner]);
+  if (!tour) return <Screen><T tone="muted">Chargement…</T></Screen>;
+
+  const step = TOUR_STEPS[tour.step]!;
+  const last = tour.step === TOUR_STEPS.length - 1;
+  const move = (next: TourState) => {
+    setTour(next);
+    saveTour(owner, next);
+  };
+  const open = (t: Target) => {
+    // The tour is saved where it is: coming back resumes the same step.
+    saveTour(owner, tour);
+    if (t === "journal") navigation.navigate("Journal");
+    else if (t === "sports") navigation.navigate("Sports");
+    else if (t === "community") navigation.navigate("Community");
+    else if (t === "goals") navigation.navigate("Goals");
+    else if (t === "health") navigation.navigate("HealthConnect");
+    else if (t === "plus") navigation.navigate("TitanPlus");
+    else if (t === "progress") navigation.navigate("Tabs", { screen: "Progress" });
+    else navigation.navigate("Tabs", { screen: t === "record" ? "Record" : "Adventure" });
+  };
+  const close = (state: TourState) => {
+    saveTour(owner, state);
+    navigation.goBack();
+  };
+
   return (
     <Screen>
-      <ProgressBar value={(index + 1) / GUIDE_STEPS.length} accessibilityLabel={`Étape ${index + 1} sur ${GUIDE_STEPS.length}`} />
-      <T variant="caption" tone="muted">{`Étape ${index + 1} sur ${GUIDE_STEPS.length}`}</T>
-      <Card style={{ gap: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Icon name={step.icon} size={22} color={colors.cy} />
-          <T variant="h3" style={{ flex: 1 }}>{step.title}</T>
-        </View>
-        <T>{step.text}</T>
-        <Button label={step.action} kind="secondary" onPress={open} testID="guide-open" />
-      </Card>
-      <View style={{ flexDirection: "row", gap: 12 }}>
-        <Button label="Précédent" kind="ghost" disabled={index === 0} onPress={() => setIndex(index - 1)} style={{ flex: 1 }} testID="guide-prev" />
-        <Button label={last ? "Terminer" : "Suivant"} onPress={() => (last ? navigation.goBack() : setIndex(index + 1))} style={{ flex: 1 }} testID="guide-next" />
+      <ProgressBar value={(tour.step + 1) / TOUR_STEPS.length} accessibilityLabel={progressLabel(tour)} />
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <T variant="caption" tone="muted">{progressLabel(tour)}</T>
+        {tour.step > 0 ? <Button small kind="ghost" label="Recommencer" onPress={() => move(restart())} testID="guide-restart" /> : null}
       </View>
-      <Button label="Passer le guide" kind="ghost" small onPress={() => navigation.goBack()} testID="guide-skip" accessibilityHint="Ferme le guide ; tu peux le rouvrir depuis Assistance" />
+      <Reveal key={step.id}>
+        <Card tone="accent" style={{ gap: 12 }} testID={`guide-step-${step.id}`}>
+          <View style={{ alignItems: "center", paddingVertical: space.s3 }}>
+            <View style={{ width: 84, height: 84, borderRadius: 42, borderWidth: 2, borderColor: colors.cy, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 }}>
+              <Icon name={step.icon} size={38} color={colors.cy} />
+            </View>
+          </View>
+          <T variant="h2" center>{step.title}</T>
+          {step.optional ? <T variant="caption" tone="faint" center>Facultatif</T> : null}
+          <T>{step.text}</T>
+          {step.action ? <Button label={step.action.label} kind="secondary" onPress={() => open(step.action!.target)} testID="guide-open" /> : null}
+        </Card>
+      </Reveal>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        <Button label="Précédent" kind="ghost" disabled={tour.step === 0} onPress={() => move(goTo(tour, tour.step - 1))} style={{ flex: 1 }} testID="guide-prev" />
+        <Button label={last ? "Terminer" : "Suivant"} onPress={() => (last ? close(finish(tour)) : move(goTo(tour, tour.step + 1)))} style={{ flex: 1 }} testID="guide-next" />
+      </View>
+      <Button label="Passer la visite" kind="ghost" small onPress={() => close({ ...tour, dismissed: true })} testID="guide-skip" accessibilityHint="Ferme la visite ; tu peux la rouvrir ou la relancer depuis Assistance" />
     </Screen>
   );
 }
