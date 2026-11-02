@@ -585,6 +585,11 @@ function titanRenderProfileRecovery(){
 }
 window.addEventListener('titan:history-updated',titanRenderProfileRecovery);
 window.addEventListener('titan:account-changing',()=>document.getElementById('titan-profile-recovery')?.remove());
+window.addEventListener('online',()=>{
+    if(!isCloudUser()) return;
+    const owner=window.state.user.id,control=titanProfileControl(owner);
+    if(!control.blocked && control.accepted!==titanProfileSignature(window.state)) titanScheduleProfile(owner,Math.max(0,control.retryAt-Date.now()));
+});
 
 async function pushProfileStateToCloudOnce(request) {
     const {owner,client,current,snapshot:stateSnapshot}=request;
