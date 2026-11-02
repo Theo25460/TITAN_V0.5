@@ -42,6 +42,11 @@
       "note": "Issuer identifier string (https://accounts.google.com) checked in the Pub/Sub token by functions/play-auth.mjs; no request is made to this address."
     },
     {
+      "host": "www.topografix.com",
+      "kind": "reference",
+      "note": "GPX 1.1 XML namespace written in the exported file by js/app/parcours.js; it is an identifier, never fetched."
+    },
+    {
       "host": "play.google.com",
       "kind": "reference",
       "note": "Payment-method identifier https://play.google.com/billing used with the Digital Goods and Payment Request APIs in js/app/atelier.js (ADR-004). It is not a URL the page fetches: the Google Play sheet is opened by the Android app. Off unless TITAN_PLAY_BILLING.enabled."
