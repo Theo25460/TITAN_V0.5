@@ -20,7 +20,8 @@ const pkce = () =>
 
 /** The authorisation code of a callback address, or null when the address is anything else (a failed attempt carries an error instead). */
 export function parseCallback(url: string | null | undefined): { code: string } | { error: string } | null {
-  if (!url || !url.startsWith(REDIRECT)) return null;
+  // Match the exact callback, not another route with the same prefix (e.g. auth-callback-evil).
+  if (!url || !(url === REDIRECT || url.startsWith(`${REDIRECT}?`) || url.startsWith(`${REDIRECT}#`))) return null;
   const query = url.slice(url.indexOf("?") + 1).split("#")[0] ?? "";
   const params = new URLSearchParams(url.includes("?") ? query : "");
   const fragment = new URLSearchParams(url.includes("#") ? url.slice(url.indexOf("#") + 1) : "");
