@@ -30,7 +30,7 @@ const config: ExpoConfig = {
     // Session tokens and the pending-session queue must not be restored onto another device by Android backups.
     allowBackup: false,
     softwareKeyboardLayoutMode: "resize",
-    permissions: ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "android.permission.POST_NOTIFICATIONS", "android.permission.VIBRATE", "android.permission.health.READ_STEPS", "android.permission.health.READ_EXERCISE", "android.permission.RECEIVE_BOOT_COMPLETED"],
+    permissions: ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "com.android.vending.BILLING", "android.permission.POST_NOTIFICATIONS", "android.permission.VIBRATE", "android.permission.health.READ_STEPS", "android.permission.health.READ_EXERCISE", "android.permission.RECEIVE_BOOT_COMPLETED"],
     blockedPermissions: [
       "android.permission.READ_EXTERNAL_STORAGE",
       "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -118,6 +118,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/with-release-signing",
+    "./plugins/with-play-billing",
   ],
   extra: {
     supabaseUrl: "https://oubmftfufwwzwpgvrcag.supabase.co",
