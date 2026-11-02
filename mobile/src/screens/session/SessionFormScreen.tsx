@@ -245,6 +245,13 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         <T variant="caption" tone="muted" style={{ flex: 1 }}>
           {Sports.FAMILY_LABEL[fam]} · {Sports.FORMS[form].label}
         </T>
+        {GPS_SPORTS.has(sport) ? (
+          <Tap onPress={() => navigation.navigate("GpsRecord", { sport })} accessibilityLabel="Enregistrer avec le GPS" testID="gps-open" style={styles.change}>
+            <T variant="caption" color={colors.cy}>
+              Enregistrer en GPS
+            </T>
+          </Tap>
+        ) : null}
         <Tap onPress={() => navigation.goBack()} accessibilityLabel="Changer de sport" style={styles.change}>
           <T variant="caption" color={colors.cy}>
             Changer
@@ -280,7 +287,6 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
-            {GPS_SPORTS.has(sport) ? <Button small icon="play" label="Enregistrer avec le GPS" onPress={() => navigation.navigate("GpsRecord", { sport })} testID="gps-open" /> : null}
             <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
             <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
             {durationBlock("Durée", true)}
