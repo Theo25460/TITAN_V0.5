@@ -15,7 +15,7 @@ automatiquement** : chaque envoi est une action que tu fais.
 | Identifiant et clé | `fr.titanapp.app`, même clé d'envoi que la TWA (empreinte SHA-256 `8E:35:9E:DE:…:20:5C`) : Play verra une mise à jour, pas une nouvelle application |
 | Numéro de version | La TWA de test interne est en `versionCode 300`. Le natif part de **1000** (`1000 + numéro d'exécution`) : toujours supérieur |
 | Secrets GitHub | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` sont créés : le build signé avec la vraie clé a déjà réussi (artefact `titan-android-1011-upload`) et le workflow **refuse** une clé dont l'empreinte n'est pas la bonne |
-| Contrôles du paquet | identifiant, `versionCode`, cible API 36, liste fermée de 7 permissions, ni facturation ni identifiant publicitaire, signature, adresse Supabase de production, aucun trafic en clair |
+| Contrôles du paquet | identifiant, `versionCode`, cible API 36, permissions contrôlées, Play Billing 9.1.0 et permission BILLING présents dans le nouveau AAB, aucun identifiant publicitaire, signature, adresse Supabase de production, aucun trafic en clair |
 | Visuels | 6 captures 1080 × 2160 dans `mobile/docs/play-store/` ; icône `image/logo-512.png` et image 1024 × 500 `docs/play-store/feature-graphic-1024x500.png` (PR #115) |
 
 ## 1. Construire le bundle final signé
@@ -65,7 +65,7 @@ Textes prêts à coller (ils ne promettent rien qui ne soit pas dans l'applicati
 | Formulaire | Réponse | Pourquoi |
 |---|---|---|
 | Publicités | **Non** | aucune régie, aucun identifiant publicitaire (`AD_ID` refusé par le contrôle du paquet) |
-| Achats intégrés / abonnements | **Aucun** | pas de permission de facturation ; TITAN+ est « bientôt disponible » et n'a pas de bouton d'achat |
+| Achats intégrés / abonnements | **Pas encore en vente** | le nouveau AAB embarque Billing 9.1.0 pour débloquer la création d'abonnements dans Play Console ; TITAN+ reste « bientôt disponible », sans bouton d'achat ni vérification serveur |
 | Accès à l'application | Compte nécessaire. **Fournis un compte de test** | crée un compte dédié (pas un vrai) sur titan-app.fr, confirme son e-mail, finis son accueil, et saisis l'identifiant et le mot de passe dans le formulaire |
 | Public cible | **à décider** : 13+ ou 18+ ; éviter « moins de 13 ans » | fonctions sociales entre amis, pseudos, messages de guilde |
 | Classification (IARC) | utilitaire / santé et forme ; **contenu généré par les utilisateurs : oui** (pseudos, messages de guilde) ; violence, sexe, jeux d'argent, substances : non | blocage et signalement existent côté serveur |
