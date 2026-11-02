@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
+import { WorldPathMap } from "../../components/WorldPathMap";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -214,6 +215,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
 
       <View style={{ gap: space.s2 }}>
         <T variant="eyebrow">Le chemin</T>
+        <WorldPathMap chapter={chapter} earned={earned} color={world.color} worldName={world.name} finished={done} />
         <View>
           {world.chapters.map((ch, i) => {
             const isDone = earned.has(ch.index) || ch.index < chapter;
