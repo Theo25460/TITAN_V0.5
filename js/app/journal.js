@@ -215,6 +215,7 @@
     const focus = document.activeElement?.id;
     root.innerHTML = `
       ${window.titanFlags?.enabled?.("screens.activityhub", false) === true ? `<div class="asc-actions jr-add"><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Ajouter une activité</a><a class="asc-btn asc-btn-secondary" href="/training?mode=manual" data-journal-manual>Saisie manuelle</a></div>` : ""}
+      ${window.titanFlags?.enabled?.("screens.routes", false) === true ? `<div class="asc-actions jr-routes"><button type="button" class="asc-btn asc-btn-secondary" data-routes-open>${icon("route")} Mes parcours</button></div>` : ""}
       ${pendingHtml()}
       <div class="jr-tools">
         <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
@@ -328,6 +329,7 @@
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
       ${l.details?.note ? `<section class="jr-detail-block"><p class="asc-eyebrow">Note</p><p class="jr-note">${esc(l.details.note)}</p></section>` : ""}
+      <div data-route-slot></div>
       ${l.archived_at ? "" : compareHtml(l)}
       <div class="jr-actions">
         ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
@@ -364,6 +366,7 @@
     body.innerHTML = detailHtml(l);
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
     guardDialog(d, context);
+    window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
@@ -583,6 +586,7 @@
   function onClick(e) {
     const t = e.target.closest("button");
     if (!t || !root.contains(t)) return;
+    if (t.closest?.("[data-routes-open]")) return window.TitanRoutes?.openLibrary?.();
     if (t.dataset.open) return openDetail(t.dataset.open);
     if (t.dataset.view) {
       ui.view = t.dataset.view;

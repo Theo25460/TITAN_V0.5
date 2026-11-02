@@ -39,6 +39,7 @@ Aucun drapeau n'est créé par une migration, donc rien n'apparaît tant que le 
 | `screens.worldgoal` | objectif collectif en trois paliers | 51 | V11-70 |
 | `screens.clubs` | espaces de clubs, signalements et trophées | 52, 53, 54 | V11-71, V11-73, V11-74 |
 | `screens.coachtools` | messagerie par suivi, check-in hebdomadaire partagé au choix du sportif, modèles de séances du coach | 57 | V11-81 |
+| `screens.routes` | « Mes parcours » du Journal et carte du parcours dans le détail d'une séance (traces GPS enregistrées avec l'application Android ; privées) | 59 | V11-83 |
 | `auth.google` | bouton « Continuer avec Google » (web ; Android par `EXPO_PUBLIC_TITAN_GOOGLE`) | — (fournisseur Google à activer côté Supabase par Théo) | V11-77 |
 | `screens.factions` | trois factions | 54 | V11-74 |
 | `screens.pantheon` | Panthéon des Titans | 54 | V11-74 |

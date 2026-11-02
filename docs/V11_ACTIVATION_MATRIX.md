@@ -24,6 +24,7 @@ Rien n'est « cassé » : chaque fonction développée est derrière un interrup
 | Communauté (consultations, intentions, quête commune, binômes, saisons, classement, défis) | 42, 44 à 49 | `screens.consultations`, `.intents`, `.commonquest`, `.buddy`, `.seasons`, `.ranking`, `.duels` | — | — | code + tests ; migrations non appliquées |
 | Objectif mondial, clubs, factions, Panthéon | 51 à 55 | `screens.worldgoal`, `.clubs`, `.factions`, `.pantheon` | — | — | idem ; avant les clubs publics : désigner qui traite les signalements |
 | Garmin | 40, 41 | `screens.garmin` | variables Garmin (déjà posées), `GARMIN_ENABLED` faux | — | essai réel avec deux comptes à faire |
+| Parcours GPS (bibliothèque privée : liste, détail, GPX, suppression) | 59 | `screens.routes` (web) | — | rien (disponible dans tout build Android ; fond de carte : `TITAN_TILES_URL` / `TITAN_TILES_ATTRIBUTION`, facultatif) | code + tests ; migration 59 non appliquée ; drapeau non créé |
 | Cartes GPX, hub d'activités | 50 | `screens.gpxterrain`, `screens.activityhub` | — | — | migration 50 de la PR #118 non appliquée |
 
 ## 3. Ordre d'allumage recommandé
