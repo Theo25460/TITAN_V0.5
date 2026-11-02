@@ -1,0 +1,61 @@
+# Enregistrement GPS : explication avant la permission, démarrage du service de premier plan (Android 14), pause, reprise, fin, abandon.
+# Aucune séance n'est enregistrée sur le serveur (les décomptes de verify-backend.sh restent exacts) ; aucune position simulée : on vérifie
+# la mécanique (permission, service avec notification, états), pas la précision, qui demande une vraie sortie.
+appId: fr.titanapp.app
+---
+- launchApp
+- runFlow:
+    when:
+        visible: ".*isn't responding.*"
+    commands:
+      - tapOn: "Wait"
+- extendedWaitUntil:
+    visible:
+      id: "tab-record"
+    timeout: 30000
+- tapOn:
+    id: "tab-record"
+- extendedWaitUntil:
+    visible:
+      id: "sport-running"
+    timeout: 20000
+- tapOn:
+    id: "sport-running"
+- extendedWaitUntil:
+    visible:
+      id: "gps-open"
+    timeout: 20000
+- tapOn:
+    id: "gps-open"
+- extendedWaitUntil:
+    visible: ".*Pourquoi TITAN te demande ta position.*"
+    timeout: 20000
+- takeScreenshot: 30-gps-explication
+- tapOn:
+    id: "gps-start"
+- runFlow:
+    when:
+        visible: ".*(While using the app|Pendant l.utilisation de l.appli).*"
+    commands:
+      - tapOn: ".*(While using the app|Pendant l.utilisation de l.appli).*"
+- extendedWaitUntil:
+    visible: ".*Enregistrement en cours.*"
+    timeout: 30000
+- takeScreenshot: 31-gps-en-cours
+- tapOn:
+    id: "gps-toggle"
+- extendedWaitUntil:
+    visible: ".*En pause.*"
+    timeout: 20000
+- tapOn:
+    id: "gps-toggle"
+- extendedWaitUntil:
+    visible: ".*Enregistrement en cours.*"
+    timeout: 20000
+- tapOn:
+    id: "gps-finish"
+- extendedWaitUntil:
+    visible: ".*Séance terminée.*"
+    timeout: 20000
+- takeScreenshot: 32-gps-termine
+- tapOn: "Abandonner cette séance"

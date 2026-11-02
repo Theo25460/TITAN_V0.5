@@ -32,7 +32,8 @@ if [ "$status" -ne 0 ]; then
 fi
 kill "$LOGCAT" 2>/dev/null || true
 # A crash or an uncaught JavaScript error fails the run even if every screen was reached.
-if grep -E "FATAL EXCEPTION|AndroidRuntime: Process: fr.titanapp.app|ReactNativeJS.*(TypeError|ReferenceError|Unhandled)" "$OUT/logcat.txt" > "$OUT/crashes.txt"; then
+# Only a crash of OUR process counts: a generic "FATAL EXCEPTION" also matches the test driver's own threads (Maestro), which is not the app.
+if grep -E "AndroidRuntime: Process: fr.titanapp.app|ReactNativeJS.*(TypeError|ReferenceError|Unhandled)" "$OUT/logcat.txt" > "$OUT/crashes.txt"; then
   echo "::error::crash or JavaScript error in logcat (see crashes.txt)"; cat "$OUT/crashes.txt" | head -40; status=1
 fi
 exit $status

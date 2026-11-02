@@ -1,8 +1,8 @@
 # Publier TITAN Android sur Google Play — marche à suivre
 
 Rédigé le 21/10/2026 pour l'application native `fr.titanapp.app`. Cette page remplace les passages Android du dossier
-`docs/PLAY_CONSOLE.md` de la PR #115, qui décrivent encore la coque TWA et des achats TITAN+ : **cette version est
-gratuite, sans publicité et sans achat**.
+`docs/PLAY_CONSOLE.md` de la PR #115, qui décrivent encore la coque TWA et des achats TITAN+ : **la version publiée est
+gratuite, sans publicité et sans achat** ; le code d'abonnements Google Play est dans le paquet mais éteint (`docs/PLAY_BILLING_GPS_OWNER_STEPS.md`), et le GPS demande la déclaration d'un service de premier plan « localisation ».
 
 Ce qui est établi par le dépôt est écrit tel quel. Ce qui dépend de la console Google est marqué **(à vérifier dans la
 console)** : ses intitulés et ses règles changent, relis la page d'aide au moment de la saisie. **Rien n'est publié

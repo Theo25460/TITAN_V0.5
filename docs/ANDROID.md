@@ -1,5 +1,7 @@
 # Android — TITAN sur le Play Store (Trusted Web Activity)
 
+> **HISTORIQUE (02/11/2026).** Ce document décrit la coque TWA du test interne (`versionCode 300`). L'application Android actuelle est **native** : voir `mobile/docs/` (`RELEASE.md`, `PUBLIER_PLAY_CONSOLE.md`, `INVENTAIRE.md`, `PLAY_BILLING_PREP.md`) et `docs/PLAY_BILLING_GPS_OWNER_STEPS.md`. Le workflow « Android (TWA, essai sans secret) » existe encore mais ne produit plus l'application à publier ; c'est « Android natif (React Native) » qui la produit. Les achats TITAN+ passent par Google Play Billing dans l'application native (code livré, éteint, non essayé avec un vrai achat) ; la phrase « bientôt disponible, achats coupés » ci-dessous reste vraie tant que `EXPO_PUBLIC_TITAN_BILLING` et `PLAY_BILLING_ENABLED` ne sont pas activés.
+
 TITAN est publié sur Android comme **Trusted Web Activity** : une coque Android minimale qui ouvre `https://titan-app.fr` en plein écran dans Chrome, avec le même compte, le même hors ligne et les mêmes mises à jour que le site. Aucun code métier n'est dupliqué. Choix fait plutôt que Capacitor : rien à maintenir côté natif tant qu'aucune API native (capteurs, notifications locales, Health Connect) n'est nécessaire.
 
 ## Ce qui est prêt dans le dépôt
