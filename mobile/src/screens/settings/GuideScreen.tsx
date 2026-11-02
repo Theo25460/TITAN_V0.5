@@ -9,6 +9,9 @@ import { ProgressBar } from "../../components/Progress";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
 import { useOwner } from "../../data/auth";
+import { useLogs, usePrefs } from "../../data/hooks";
+import { ownerKey, readJSON } from "../../lib/storage";
+import { validGoal } from "../../lib/steps";
 import { finish, freshTour, goTo, loadTour, progressLabel, restart, saveTour, TOUR_STEPS, type Target, type TourState } from "../../lib/tour";
 import type { RootParams } from "../../navigation/types";
 import { colors, space } from "../../theme/tokens";
@@ -22,6 +25,14 @@ type Props = NativeStackScreenProps<RootParams, "Guide">;
 export function GuideScreen({ navigation }: Props) {
   const owner = useOwner();
   const [tour, setTour] = useState<TourState | null>(null);
+  // Optional mini-goals read the REAL state: they tick themselves when the person does the thing, and are never required.
+  const prefs = usePrefs();
+  const { active } = useLogs();
+  const [stepsGoal, setStepsGoal] = useState(false);
+  useEffect(() => {
+    readJSON<number | null>(ownerKey("steps-goal", owner), null).then((g) => setStepsGoal(validGoal(g) !== null));
+  }, [owner, tour?.step]);
+  const reached: Record<string, boolean> = { favorites: prefs.favoriteSports.length > 0, firstSession: active.length > 0, stepsGoal };
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -72,6 +83,13 @@ export function GuideScreen({ navigation }: Props) {
           <T variant="h2" center>{step.title}</T>
           {step.optional ? <T variant="caption" tone="faint" center>Facultatif</T> : null}
           <T>{step.text}</T>
+          {step.goal ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: space.s2, borderRadius: 12, backgroundColor: colors.bg2 }} accessible accessibilityLabel={`Mini-objectif facultatif : ${step.goal.text}${reached[step.goal.id] ? ", fait" : ""}`} testID={`guide-goal-${step.goal.id}`}>
+              <Icon name={reached[step.goal.id] ? "check" : "target"} size={18} color={reached[step.goal.id] ? colors.ok : colors.cy} />
+              <T variant="small" style={{ flex: 1 }}>{step.goal.text}</T>
+              <T variant="caption" tone={reached[step.goal.id] ? "ok" : "faint"}>{reached[step.goal.id] ? "Fait" : "Mini-objectif"}</T>
+            </View>
+          ) : null}
           {step.action ? <Button label={step.action.label} kind="secondary" onPress={() => open(step.action!.target)} testID="guide-open" /> : null}
         </Card>
       </Reveal>

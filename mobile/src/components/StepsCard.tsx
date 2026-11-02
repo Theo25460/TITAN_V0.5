@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { View } from "react-native";
 import { useSteps } from "../data/steps";
-import { GOAL_MAX, GOAL_MIN, GOAL_PRESETS, stepsText } from "../lib/steps";
+import { freshness, GOAL_MAX, GOAL_MIN, GOAL_PRESETS, stepsText } from "../lib/steps";
 import { colors, space } from "../theme/tokens";
 import { Button } from "./Button";
 import { BarChart } from "./Charts";
@@ -12,7 +12,6 @@ import { ProgressBar } from "./Progress";
 import { T } from "./Text";
 
 const DAY = ["D", "L", "M", "M", "J", "V", "S"];
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null);
 
 /** Steps of the day on the QG. Honest by construction: a day without a number says so (never 0), several sources are never added,
     nothing here creates a session, XP or a reward, and the card is absent when the server does not offer the function. */
@@ -32,6 +31,7 @@ export function StepsCard() {
   }
   if (s.loading && !s.hasAny) return null;
   const v = s.view;
+  const fresh = freshness(v.lastUpdate, Date.now());
   const trend = v.trend === "up" ? "En hausse sur la semaine" : v.trend === "down" ? "En baisse sur la semaine" : v.trend === "flat" ? "Stable sur la semaine" : null;
   return (
     <Card style={{ gap: space.s2 }} testID="steps-card">
@@ -69,7 +69,7 @@ export function StepsCard() {
         {v.month.average ? `30 jours : ${stepsText(v.month.average)} par jour en moyenne (${v.month.days} jour${v.month.days > 1 ? "s" : ""} avec chiffre)` : "Pas encore d’historique sur 30 jours"}
       </T>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <T variant="caption" tone="faint">{when(v.lastUpdate) ? `Dernière mise à jour : ${when(v.lastUpdate)}` : "Jamais mis à jour"}</T>
+        <T variant="caption" tone={fresh.level === "fresh" ? "faint" : "warn"} style={{ flex: 1 }} testID="steps-freshness">{fresh.label}</T>
         <Button small kind="ghost" label={s.syncing ? "Actualisation…" : "Actualiser"} disabled={s.syncing} onPress={() => s.refresh(false)} testID="steps-refresh" />
       </View>
       {s.error ? <T variant="caption" tone="warn" accessibilityRole="alert">{s.error}</T> : null}

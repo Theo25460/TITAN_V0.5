@@ -47,7 +47,7 @@ export function BarChart({ data, height = 160, unit = "", color = colors.cy, for
             <Line x1={0} x2={width} y1={chartH} y2={chartH} stroke={colors.line2} strokeWidth={1} />
             {scale ? (
               <>
-                <SvgText x={0} y={10} fill={colors.tx4} fontSize={10} fontFamily={fonts.textSemi}>
+                <SvgText x={0} y={10} fill={colors.tx3} fontSize={11} fontFamily={fonts.textSemi}>
                   {fmt(max)}
                 </SvgText>
                 <Line x1={0} x2={width} y1={top} y2={top} stroke={colors.line} strokeWidth={1} />

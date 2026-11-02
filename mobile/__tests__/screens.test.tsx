@@ -208,6 +208,7 @@ describe("with account data", () => {
     expect(screen.getByText("Étape 1 sur 12")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-next"));
     expect(screen.getByText("Tes sports favoris")).toBeTruthy();
+    expect(screen.getByTestId("guide-goal-favorites")).toBeTruthy(); // optional mini-goal, ticked from the real preferences
     fireEvent.press(screen.getByTestId("guide-open"));
     expect(nav.navigate).toHaveBeenLastCalledWith("Sports");
     fireEvent.press(screen.getByTestId("guide-next"));

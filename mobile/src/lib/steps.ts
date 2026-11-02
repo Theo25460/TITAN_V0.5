@@ -61,3 +61,15 @@ export function summarize(rows: DayRow[], today: string, goal: number | null): S
 export const shouldAutoSync = (lastSyncAt: number | null, now: number, allowed: boolean) => allowed && (lastSyncAt === null || now - lastSyncAt >= AUTO_SYNC_MS);
 
 export const stepsText = (n: number) => n.toLocaleString("fr-FR").replace(/ | /g, " ");
+
+/** How old the shown numbers are, said plainly: never presented as live. Health Connect is read when the QG opens or on a tap, not continuously. */
+export type Freshness = { level: "fresh" | "old" | "stale" | "never"; label: string };
+export function freshness(lastUpdate: string | null, now: number): Freshness {
+  const t = lastUpdate ? Date.parse(lastUpdate) : NaN;
+  if (!Number.isFinite(t)) return { level: "never", label: "Jamais mis à jour" };
+  const hours = (now - t) / 3_600_000;
+  const when = new Date(t).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  if (hours < 2) return { level: "fresh", label: `Mis à jour à l’ouverture · ${when}` };
+  if (hours < 24) return { level: "old", label: `Dernière mise à jour : ${when}. Ce n’est pas en temps réel : actualise pour recevoir les derniers pas.` };
+  return { level: "stale", label: `Données anciennes (${when}). Ouvre Santé Connect ou actualise : ces chiffres ne sont pas ceux d’aujourd’hui.` };
+}

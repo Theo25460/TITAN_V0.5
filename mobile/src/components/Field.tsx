@@ -20,7 +20,7 @@ export const Field = forwardRef<TextInput, Props>(function Field({ label, hint, 
       <View style={[styles.box, focused && styles.focused, !!error && styles.error]}>
         <TextInput
           ref={ref}
-          placeholderTextColor={colors.tx4}
+          placeholderTextColor={colors.tx3}
           selectionColor={colors.cy}
           cursorColor={colors.cy}
           accessibilityLabel={rest.accessibilityLabel ?? label}

@@ -57,6 +57,12 @@ test("a server without the function shows nothing at all", () => {
   expect(toJSON()).toBeNull();
 });
 
+test("old data is flagged as not real time", () => {
+  mockSteps.value = base([{ day: today, steps: 900, updatedAt: "2020-01-01T10:00:00Z" }], null);
+  render(<StepsCard />);
+  expect(screen.getByTestId("steps-freshness").props.children).toMatch(/Données anciennes/);
+});
+
 test("manual refresh is a button; an error keeps the received data on screen", () => {
   const s = base([{ day: today, steps: 1200 }], null, { error: "Actualisation impossible pour le moment. Les pas déjà reçus restent affichés." });
   mockSteps.value = s;

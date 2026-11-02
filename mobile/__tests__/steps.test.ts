@@ -1,4 +1,4 @@
-import { AUTO_SYNC_MS, summarize, shouldAutoSync, validGoal, type DayRow } from "../src/lib/steps";
+import { freshness, AUTO_SYNC_MS, summarize, shouldAutoSync, validGoal, type DayRow } from "../src/lib/steps";
 
 const rows = (days: Record<string, number>): DayRow[] => Object.entries(days).map(([day, steps]) => ({ day, steps, updatedAt: `${day}T20:00:00Z` }));
 
@@ -43,4 +43,17 @@ test("automatic refresh at most every 30 minutes and only when allowed", () => {
   expect(shouldAutoSync(1000, 1000 + AUTO_SYNC_MS - 1, true)).toBe(false);
   expect(shouldAutoSync(1000, 1000 + AUTO_SYNC_MS, true)).toBe(true);
   expect(shouldAutoSync(null, 1000, false)).toBe(false);
+});
+
+test("freshness: never presented as live; older data says so plainly", () => {
+  const now = Date.parse("2026-11-02T12:00:00Z");
+  expect(freshness(null, now)).toEqual({ level: "never", label: "Jamais mis à jour" });
+  expect(freshness("2026-11-02T11:30:00Z", now).level).toBe("fresh");
+  const old = freshness("2026-11-02T06:00:00Z", now);
+  expect(old.level).toBe("old");
+  expect(old.label).toMatch(/pas en temps réel/);
+  const stale = freshness("2026-10-30T06:00:00Z", now);
+  expect(stale.level).toBe("stale");
+  expect(stale.label).toMatch(/ne sont pas ceux d’aujourd’hui/);
+  expect(freshness("garbage", now).level).toBe("never");
 });

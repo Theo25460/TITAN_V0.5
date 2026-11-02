@@ -186,7 +186,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         ) : null}
         {!confirmed ? <Button label="Voir les envois en attente" kind="ghost" onPress={() => navigation.navigate("Pending")} /> : null}
       </View>
-      <T variant="caption" tone="faint" center style={{ color: colors.tx4 }}>
+      <T variant="caption" tone="faint" center style={{ color: colors.tx3 }}>
         Les corrections ne changent jamais les récompenses déjà attribuées.
       </T>
       {log.client_event_id ? <SessionRoute eventId={log.client_event_id} onOpen={(id) => navigation.navigate("Route", { id })} /> : null}
