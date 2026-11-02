@@ -10,6 +10,8 @@
   let operation = null;
   let lastEmail = "";
   let validationField = null;
+  // Google sign-in is shown only when the server flag auth.google is on (it also needs the provider switched on in the Supabase dashboard).
+  let googleOn = false;
 
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
   // The Supabase SDK loads after this script so the form paints first; actions wait for it (10 s at most).
@@ -58,6 +60,8 @@
         ${signup ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm auth-forgot" data-forgot>Mot de passe oublié ?</button>`}
       </form>
       <div class="auth-or"><span>ou</span></div>
+      ${googleOn ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-google>Continuer avec Google</button>
+      <p class="asc-small asc-faint auth-google-note">En continuant avec Google, tu acceptes les <a href="/legal_cgu" target="_blank" rel="noopener">conditions d’utilisation</a> et la <a href="/legal_privacy" target="_blank" rel="noopener">politique de confidentialité</a>. TITAN reçoit ton nom et ton adresse e-mail, rien d’autre.</p>` : ""}
       <button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-guest>${icon("offline")} Essayer sans compte</button>
       <p class="asc-small asc-faint auth-guest-note">Mode découverte : tes séances restent sur cet appareil. Tu pourras les rattacher à un compte plus tard.</p>`;
   }
@@ -220,6 +224,35 @@
     }
   }
 
+  async function google(button) {
+    if (operation) return;
+    clearValidation();
+    const c = await ready();
+    if (!c) return message("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
+    const task = begin("Ouverture de Google…", button);
+    if (!task) return;
+    let failed = false;
+    try {
+      // The player comes back on the page they asked for; a new account goes through the first-launch steps like any other.
+      const { error } = await c.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${SITE}${nextUrl("/onboarding")}` } });
+      if (error) throw error;
+    } catch (error) {
+      failed = true;
+      message(human(error));
+    } finally {
+      finish(task, failed);
+    }
+  }
+
+  async function loadFlags() {
+    try {
+      const c = await ready();
+      const { data } = (await c?.rpc("titan_feature_flags_v1")) || {};
+      const on = data?.flags?.["auth.google"] === true;
+      if (on !== googleOn) { googleOn = on; if (!operation) render(); }
+    } catch { /* the form simply stays without the button */ }
+  }
+
   async function guest(button) {
     const task = begin("Ouverture du mode découverte…", button);
     if (!task) return;
@@ -280,6 +313,7 @@
       return;
     }
     if (b.hasAttribute("data-forgot")) return forgot(b);
+    if (b.hasAttribute("data-google")) return google(b);
     if (b.hasAttribute("data-guest")) return guest(b);
     if (b.dataset.resend) return resend(b);
   });
@@ -298,6 +332,7 @@
   }
 
   async function boot() {
+    loadFlags();
     // Already signed in: go straight on.
     try {
       const session = (await (await ready())?.auth.getSession())?.data?.session;

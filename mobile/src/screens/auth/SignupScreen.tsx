@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useRef, useState } from "react";
 import { Linking, type TextInput, View } from "react-native";
 import { Button } from "../../components/Button";
+import { GoogleButton } from "../../components/GoogleButton";
 import { Checkbox } from "../../components/Checkbox";
 import { Field } from "../../components/Field";
 import { Screen } from "../../components/Screen";
@@ -104,6 +105,7 @@ export function SignupScreen({ navigation }: NativeStackScreenProps<RootParams, 
         </T>
       ) : null}
       <Button label={busy ? "Création…" : "Créer mon compte"} loading={busy} onPress={submit} testID="signup-submit" />
+      <GoogleButton onError={(form) => setErrors({ form })} />
       <Button label="J’ai déjà un compte" kind="ghost" onPress={() => navigation.replace("Login")} />
     </Screen>
   );

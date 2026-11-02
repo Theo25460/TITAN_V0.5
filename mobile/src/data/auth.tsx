@@ -1,9 +1,11 @@
 /* Authentication with the same Supabase accounts as titan-app.fr. The session (access + refresh token) is kept in the
    Android Keystore; switching or losing the account clears every cached view of the previous one. */
 import type { Session } from "@supabase/supabase-js";
+import { Linking } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SITE_URL } from "../lib/config";
 import { toAppError } from "../lib/errors";
+import { exchange, googleEnabled, parseCallback, startGoogle } from "../lib/googleAuth";
 import { forgetAccountCache } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { createProfile, fetchProfile } from "./api";
@@ -21,6 +23,7 @@ type AuthValue = {
   notice: string | null;
   clearNotice(): void;
   signIn(email: string, password: string): Promise<void>;
+  signInWithGoogle(): Promise<void>;
   signUp(name: string, email: string, password: string): Promise<{ needsConfirmation: boolean }>;
   resendConfirmation(email: string): Promise<void>;
   resetPassword(email: string): Promise<void>;
@@ -113,6 +116,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [apply]);
 
+  // The browser comes back with titan://auth-callback?code=…: the code becomes a session (a failure is told, never silent).
+  useEffect(() => {
+    if (!googleEnabled()) return;
+    let alive = true;
+    const handle = async (url: string | null) => {
+      const cb = parseCallback(url);
+      if (!cb) return;
+      try {
+        if ("error" in cb) throw new Error(cb.error);
+        const tokens = await exchange(cb.code);
+        const { error } = await supabase.auth.setSession(tokens);
+        if (error) throw error;
+      } catch (e) {
+        if (alive) setNotice(`La connexion avec Google n’a pas abouti : ${toAppError(e).message}`);
+      }
+    };
+    Linking.getInitialURL().then(handle).catch(() => {});
+    const sub = Linking.addEventListener("url", ({ url }) => { handle(url); });
+    return () => { alive = false; sub.remove(); };
+  }, []);
+
   const value = useMemo<AuthValue>(
     () => ({
       status,
@@ -124,6 +148,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signIn(email, password) {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw new Error(toAppError(error).message);
+      },
+      async signInWithGoogle() {
+        try { await startGoogle(); } catch (e) { throw new Error(toAppError(e).message); }
       },
       async signUp(name, email, password) {
         const { data, error } = await supabase.auth.signUp({
