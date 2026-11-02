@@ -56,3 +56,11 @@ select * from public.titan_plan_product_list_v1();
 
 ## G. GPS : sortie réelle (aucun émulateur ne remplace cela)
 Téléphone Android 14 ou plus récent : démarrer une course ou un trajet à vélo, verrouiller l'écran 10 minutes, mettre en pause 2 minutes, reprendre, terminer, exporter le GPX, enregistrer la séance. Vérifier : distance cohérente avec une application de référence, notification visible pendant l'enregistrement, aucune demande de « position en arrière-plan ».
+
+## H. Secret OAuth Web de Google : à faire pivoter (sans couper la connexion Google)
+Le cahier (Google Doc, privé : seul ton compte y a accès) contenait le secret du client Web en clair ; je l'ai retiré de la version courante le 02/11/2026, mais l'**historique des versions du Doc le garde** et il est passé par des outils de travail. Par prudence, remplace-le :
+1. Google Cloud › Google Auth Platform › Clients › client **Web** › section « Secrets du client » › **Ajouter un secret** (l'ancien reste valable : la connexion ne coupe pas).
+2. Supabase › Authentication › Providers › Google › colle le **nouveau** secret › Enregistrer. Tester une connexion Google.
+3. Retour dans Google Cloud : **Désactiver** l'ancien secret (puis le supprimer après quelques jours sans incident).
+4. Ne recolle le nouveau secret nulle part ailleurs (ni cahier, ni GitHub, ni discussion).
+Facultatif : Google Docs › Fichier › Historique des versions › supprimer les anciennes versions qui contiennent l'ancien secret (inutile une fois l'ancien secret désactivé).
