@@ -14,7 +14,7 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 | Sauvegardes identiques | Les appels d’interface pouvaient encore réémettre le même profil, y compris après succès. Comparaison canonique des seules préférences enregistrables, sans horodatages ni XP ; aucune RPC si rien n’a changé. |
 | Rechargement | `forceCloud:false` ne signifiait pas local seulement : une lecture pouvait déclencher une nouvelle écriture. Chemin `localOnly` explicite et lectures simultanées fusionnées. |
 | Réponses tardives | Propriétaire/client/transition capturés ; session vérifiée et jeton fixé sur la requête réelle. Une réponse A n’altère pas B. Version retournée conservée dans le cache sans effacer les nouvelles saisies. |
-| Protection des préférences | Copie durable, distincte par compte et par contenu avant envoi/écrasement cloud. Historique et XP restent serveur ; séances en attente dans leur file existante. Si la copie locale ne peut pas être écrite, envoi refusé. |
+| Protection des préférences | Copie durable, distincte par compte et par contenu dès saveState, avant même le délai d’envoi, et avant remplacement cloud. Historique et XP restent serveur ; séances en attente dans leur file existante. Si la copie locale ne peut pas être écrite, envoi refusé. |
 | Reprise | Carte de récupération : comparaison, téléchargement JSON, réapplication volontaire après une lecture cloud fraîche et CAS (comparaison à trois versions quand une base confirmée est connue, pour garder les champs modifiés indépendamment sur un autre appareil), retrait explicite après confirmation. Aucun remplacement aveugle du cloud. |
 | Transport et refus permanents | Attentes 30–300 s, six échecs maximum ; pas de boucle immédiate, pas de tentative réseau hors ligne, reprise espacée au retour de connexion, pas de retry automatique sur refus d’autorisation/validation. Les copies restent accessibles. |
 | RPC après sauvegarde | Lecture de progression superflue retirée : le reçu de profil fournit déjà XP/niveau/crédits, inchangés par une préférence. |
@@ -32,15 +32,15 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 
 ## Validation
 
-- Quatorze régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures fusionnées, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
+- Seize régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures fusionnées, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
 - Chromium avec vrai SDK Supabase et serveur HTTP simulé : 360/1280 px, 100 sauvegardes inchangées = 0 écriture, 100 sauvegardes après conflit = une seule écriture refusée, reload = aucune réécriture, reprise volontaire avec version fraîche et XP conservés.
 - Parcours associés : timeout/503, accusé perdu, mode hors ligne et reprise de séance ; 9 tests navigateur réussis par variante, sans contacter les données réelles.
-- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 346/346 ; port V1.1 464/464. La CI doit porter sur les têtes exactes publiées dans les PR.
+- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 349/349 ; port V1.1 467/467. La CI doit porter sur les têtes exactes publiées dans les PR.
 
 ## Mise en service à autoriser
 
 1. Contrôler les SHAs et résultats CI des PR #129 et #130 ; la branche de développement doit contenir le correctif V1.1 sans remplacer ses autres travaux.
-2. Recette humaine V1 sur un compte de test : deux appareils, modifications concurrentes, copie exportable, panne réseau, reprise, suppression/édition de séances et compte changé pendant une réponse.
+2. Recette humaine V1 sur backend isolé (ou compte de test production seulement après autorisation explicite) : deux appareils, modifications concurrentes, copie exportable, panne réseau, reprise, suppression/édition de séances et compte changé pendant une réponse.
 3. Après autorisation explicite seulement : publier le `dist/` vérifié de #129 sur Netlify, jamais le bundle V1.1 pour ce hotfix. La CI conserve l’archive du frontend, sans déploiement. Utiliser le checkout V1 et sa configuration Netlify complète pour préserver les fonctions existantes ; le ZIP statique seul ne vaut pas validation du déploiement backend. Ne pas fusionner vers main pour contourner cette séparation.
 4. Recharger les anciens onglets/appareils. Mesurer avant/après sur fenêtres égales : 40001/h, requêtes de sauvegarde, CPU et Disk I/O. Attendre un cycle de métriques suffisant ; objectif : quasi-zéro conflit répété, aucun RPC pour simple rendu/rechargement sans changement. Aucune réduction CPU/I/O de production n’est revendiquée avant publication.
 5. Retour arrière frontend : déploiement Netlify précédent si nécessaire, avec connaissance que la boucle reviendrait ; ne jamais vider les caches de données, files ou copies de récupération. Aucun rollback SQL nécessaire.
@@ -50,3 +50,5 @@ Aucun déploiement, écriture SQL, migration, nettoyage de données, dépense ou
 ## Environnement CI corrigé pendant la contre-expertise
 
 La première CI a bloqué avant Playwright : `ubuntu-latest` avait changé vers Ubuntu 26.04, non pris en charge par Playwright 1.56.1. Le job navigateur est fixé sur Ubuntu 24.04, sans changer ni retirer ses tests. Le scan historique V1 a aussi retrouvé cinq contenus déjà explicitement classés dans la V1.1 : quatre exports de variables de signature (aucune valeur littérale) et un ancien fichier de métadonnées du scanner. Les quatre lignes ont été relues indépendamment ; seuls leurs hashes exacts et celui du fichier de métadonnées sont reconnus, sans modifier le détecteur ou exclure des répertoires. Les nouvelles raisons ne citent plus la syntaxe qui provoquait le faux positif. Les résultats finaux de la CI sont à lire sur les têtes des PR ; une ancienne exécution rouge n’est pas présentée comme verte.
+
+Les copies et le circuit de profil survivent à la déconnexion/au nettoyage de cache comme les séances en attente. L’effacement explicite d’un propriétaire retire ses copies et invalide ses envois en vol ; une réponse tardive ne recrée pas ses données. La suppression d’un compte ne touche pas les copies d’un autre compte. Régressions sur le nettoyage réel et sur la réponse tardive après effacement.
