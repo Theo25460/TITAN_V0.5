@@ -429,15 +429,59 @@ window.titanCleanProfileName = window.titanCleanProfileName || function(value) {
 // instead of racing it into PROFILE_VERSION_CONFLICT.
 let titanProfilePush = null;
 let titanProfilePushAgain = false;
+let titanProfileBlockedOwner = null;
+let titanProfileRetryOwner = null;
+let titanProfileRetryAfter = 0;
+let titanProfileFailures = 0;
+
+function titanIsProfileVersionConflict(error) {
+    return String(error?.code || '') === '40001'
+        || String(error?.message || '').includes('PROFILE_VERSION_CONFLICT');
+}
+
+// A conflict means the server has a newer state. Keep edits locally and STOP writing
+// until a complete cloud reload; blindly retrying the stale version creates a request storm.
 function pushProfileStateToCloud() {
+    const owner = window.state?.user?.id;
+    if (owner && titanProfileBlockedOwner === owner) {
+        window.titanSetSyncStatus?.('error', 'Profil modifié ailleurs : recharge TITAN pour retrouver la version cloud. Tes données locales sont conservées.');
+        return Promise.resolve({ code: '40001', message: 'PROFILE_VERSION_CONFLICT' });
+    }
+    if (owner && titanProfileRetryOwner === owner && Date.now() < titanProfileRetryAfter) {
+        return Promise.resolve({ code: 'PROFILE_SYNC_BACKOFF' });
+    }
     if (titanProfilePush) {
         titanProfilePushAgain = true;
         return titanProfilePush;
     }
-    titanProfilePush = pushProfileStateToCloudOnce().finally(() => {
-        titanProfilePush = null;
-        if (titanProfilePushAgain) {
+    // Starting in a microtask ensures the single-flight promise is installed before
+    // a synchronous status callback can request another save.
+    titanProfilePush = Promise.resolve().then(() => pushProfileStateToCloudOnce()).then(error => {
+        if (window.state?.user?.id !== owner) return error;
+        if (error) {
             titanProfilePushAgain = false;
+            if (titanIsProfileVersionConflict(error)) {
+                titanProfileBlockedOwner = owner;
+                window.cloudSyncTimer && clearTimeout(window.cloudSyncTimer);
+                window.cloudSyncTimer = null;
+                window.titanSetSyncStatus?.('error', 'Conflit de version : recharge TITAN. Tes modifications restent sur cet appareil.');
+            } else {
+                titanProfileRetryOwner = owner;
+                titanProfileFailures = Math.min(6, titanProfileFailures + 1);
+                titanProfileRetryAfter = Date.now() + Math.min(300000, 30000 * Math.pow(2, titanProfileFailures - 1));
+            }
+        } else {
+            titanProfileRetryOwner = null;
+            titanProfileRetryAfter = 0;
+            titanProfileFailures = 0;
+        }
+        return error;
+    }).finally(() => {
+        titanProfilePush = null;
+        const needsAnother = titanProfilePushAgain;
+        titanProfilePushAgain = false;
+        if (needsAnother && window.state?.user?.id === owner && titanProfileBlockedOwner !== owner
+            && !(titanProfileRetryOwner === owner && Date.now() < titanProfileRetryAfter)) {
             pushProfileStateToCloud();
         }
     });
@@ -1429,6 +1473,19 @@ window.syncWithSupabase = async function() {
         window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
         window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
         window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.total});
+        // Cloud state and version have now been read together. A past version conflict
+        // can be lifted only after this successful, account-bound reconciliation.
+        if (titanProfileBlockedOwner === expectedOwner) titanProfileBlockedOwner = null;
+        if (titanProfileRetryOwner === expectedOwner) {
+            titanProfileRetryOwner = null;
+            titanProfileRetryAfter = 0;
+            titanProfileFailures = 0;
+        }
+        window.dispatchEvent(new CustomEvent('titan:history-updated'));
+
+        // Legacy wagers are not settled by the browser.
+
+        ensureStateIntegrity();
         window.dispatchEvent(new CustomEvent('titan:history-updated'));
 
         // Legacy wagers are not settled by the browser.
