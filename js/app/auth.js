@@ -66,13 +66,17 @@
       <p class="asc-small asc-faint auth-guest-note">Mode découverte : tes séances restent sur cet appareil. Tu pourras les rattacher à un compte plus tard.</p>`;
   }
 
+  // A notice told at load (a refusal from Google) must survive the re-render that follows when the feature flags arrive.
+  let carried = null;
   function render() {
     clearValidation();
     $("#auth").innerHTML = view();
     $("#auth-title").textContent = mode === "signup" ? "Commence ton ascension." : "Content de te revoir.";
+    if (carried) message(carried);
   }
 
   function message(text, kind = "err") {
+    if (text !== carried) carried = null;
     const el = $(".auth-msg");
     if (!el) return;
     el.textContent = text;
@@ -234,7 +238,8 @@
     let failed = false;
     try {
       // The player comes back on the page they asked for; a new account goes through the first-launch steps like any other.
-      const { error } = await c.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${SITE}${nextUrl("/onboarding")}` } });
+      // The player comes back HERE (not on the target page): a refusal or an error from Google is then told on the form, and a success continues to the target.
+      const { error } = await c.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${SITE}/login?via=google&next=${encodeURIComponent(nextUrl("/onboarding"))}` } });
       if (error) throw error;
     } catch (error) {
       failed = true;
@@ -331,11 +336,27 @@
     render();
   }
 
+  /** What Google (through Supabase) put in the address when the player refused or the sign-in failed; the address is cleaned afterwards. */
+  function oauthError() {
+    const q = new URLSearchParams(location.search);
+    const h = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const raw = [q.get("error"), q.get("error_description"), h.get("error"), h.get("error_description")].filter(Boolean).join(" ");
+    if (!raw) return null;
+    try { history.replaceState(null, "", `${location.pathname}${q.get("next") ? `?next=${encodeURIComponent(q.get("next"))}` : ""}`); } catch {}
+    return /access_denied|denied|cancel/i.test(raw) ? "Connexion avec Google annulée. Tu peux réessayer ou utiliser ton e-mail." : "La connexion avec Google n’a pas abouti. Réessaie, ou utilise ton e-mail.";
+  }
+
   async function boot() {
     loadFlags();
+    const refused = oauthError();
+    if (refused) { carried = refused; message(refused); }
     // Already signed in: go straight on.
     try {
       const session = (await (await ready())?.auth.getSession())?.data?.session;
+      if (session?.user && !refused && new URLSearchParams(location.search).get("via") === "google") {
+        location.replace(nextUrl("/onboarding"));
+        return;
+      }
       if (session?.user) {
         $("#auth").insertAdjacentHTML("afterbegin", `<p class="asc-note">${icon("check")}<span>Tu es déjà connecté. <a href="${esc(nextUrl())}">Continuer</a></span></p>`);
       }
