@@ -172,6 +172,11 @@ jobs:
           grep -A6 "LocationTaskService" manifest-tree.txt | grep -q "foregroundServiceType" || { echo "::error::service de localisation sans foregroundServiceType"; exit 1; }
           # Billing: print the library version that actually ended up in the build (informational, never a secret).
           grep -h "billingclient" android/app/build.gradle || true
+          # One Play Billing Library in the final app, whatever pulls it in (our plugin and the purchase module must agree).
+          (cd android && ./gradlew -q :app:dependencies --configuration releaseRuntimeClasspath) > deps.txt 2>&1 || { tail -20 deps.txt; echo "::error::arbre de dépendances illisible"; exit 1; }
+          grep -o "com.android.billingclient:billing[a-z-]*:[0-9][0-9.]*\( -> [0-9][0-9.]*\)\?" deps.txt | sort -u | tee billing-versions.txt
+          test -s billing-versions.txt || { echo "::error::bibliothèque Play Billing absente de l'application"; exit 1; }
+          [ "$(sed -E 's/.* -> //; s/.*://' billing-versions.txt | sort -u | wc -l)" = "1" ] || { echo "::error::plusieurs versions de Play Billing"; exit 1; }
           "$bt/apksigner" verify --print-certs "$apk" | tee signature.txt
           # An upload build must carry the registered upload key, or Play Console rejects the bundle.
           if [ "$SIGNING_LABEL" = "upload" ] && ! grep -q "SHA-256 digest: 8e359edea72e48f0760d1b7ff66494439bba4b5f7385de44c7cfa5929dec205c" signature.txt; then

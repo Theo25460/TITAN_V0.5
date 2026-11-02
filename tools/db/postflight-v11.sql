@@ -1,11 +1,11 @@
--- Contrôle APRÈS les migrations V1.1 (20261028010000 → 20261102100000), à lancer sur la copie restaurée puis en production.
+-- Contrôle APRÈS les migrations V1.1 (20261028010000 → 20261102110000), à lancer sur la copie restaurée puis en production.
 -- LECTURE SEULE : un SELECT, uniquement historique et catalogues, aucune donnée de compte.
 -- Toutes les lignes blocking=true doivent avoir ok=true. Les 29 migrations de la V1 doivent déjà être appliquées.
 with
 expected_migrations(version) as (values
   ('20261028010000'), ('20261028020000'), ('20261028030000'), ('20261028040000'), ('20261028050000'),
   ('20261028060000'), ('20261028070000'), ('20261028080000'), ('20261028090000'), ('20261028100000'),
-  ('20261028110000'), ('20261028120000'), ('20261029090000'), ('20261029100000'), ('20261029110000'), ('20261029120000'), ('20261029130000'), ('20261029140000'), ('20261029150000'), ('20261029160000'), ('20261029160655'), ('20261029170000'), ('20261030090000'), ('20261030100000'), ('20261030110000'), ('20261030120000'), ('20261102090000'), ('20261102100000')
+  ('20261028110000'), ('20261028120000'), ('20261029090000'), ('20261029100000'), ('20261029110000'), ('20261029120000'), ('20261029130000'), ('20261029140000'), ('20261029150000'), ('20261029160000'), ('20261029160655'), ('20261029170000'), ('20261030090000'), ('20261030100000'), ('20261030110000'), ('20261030120000'), ('20261102090000'), ('20261102100000'), ('20261102110000')
 ),
 api_roles as (
   select (select oid from pg_roles where rolname = 'anon') as anon_oid,
@@ -122,6 +122,7 @@ expected_rpc(signature, anon_execute, authenticated_execute, service_execute) as
   ('public.titan_coach_message_reports_admin_list_v1()', false, true, null),
   ('public.titan_coach_checkin_v1(uuid,jsonb,text,boolean)', false, true, null),
   ('public.titan_coach_checkins_v1(uuid)', false, true, null),
+  ('public.titan_play_entitlements_due_v1(integer)', false, false, null),
   ('public.titan_coach_checkin_share_v1(uuid,date,boolean)', false, true, null),
   ('public.titan_challenge_result_v1(uuid)', false, true, null)
 ),
@@ -135,7 +136,7 @@ expected_indexes(relation, col) as (values
   ('public.titan_moments', 'log_id')
 ),
 checks(check_name, blocking, ok, detail) as (
-  select 'ledger:28 migrations V1.1', true,
+  select 'ledger:29 migrations V1.1', true,
     not exists(select 1 from expected_migrations e where not exists(select 1 from supabase_migrations.schema_migrations m where m.version = e.version)),
     'versions manquantes : ' || (select count(*) from expected_migrations e
       where not exists(select 1 from supabase_migrations.schema_migrations m where m.version = e.version))

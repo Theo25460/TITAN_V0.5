@@ -17,7 +17,7 @@ const future = () => new Date(Date.now() + 20 * 86400000).toISOString();
 const past = () => new Date(Date.now() - 86400000).toISOString();
 const subscription = (over = {}, line = {}) => ({
     subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE', acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', latestOrderId: 'GPA.1234',
-    startTime: past(), lineItems: [{ productId: 'titan_plus', expiryTime: future(), autoRenewingPlan: { autoRenewEnabled: true }, ...line }], ...over
+    startTime: past(), externalAccountIdentifiers: { obfuscatedExternalAccountId: USER }, lineItems: [{ productId: 'titan_plus', expiryTime: future(), autoRenewingPlan: { autoRenewEnabled: true }, ...line }], ...over
 });
 
 function request(body = { purchase_token: TOKEN, product_id: 'titan_plus' }, headers = {}) {
@@ -26,7 +26,7 @@ function request(body = { purchase_token: TOKEN, product_id: 'titan_plus' }, hea
         body: typeof body === 'string' ? body : JSON.stringify(body)
     });
 }
-async function run(callback, { env = {}, google = { status: 200, data: subscription() }, rpcError = null, authStatus = 200 } = {}) {
+async function run(callback, { env = {}, google = { status: 200, data: subscription() }, rpcError = null, authStatus = 200, ackFails = false } = {}) {
     const previousNetlify = globalThis.Netlify, previousFetch = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
@@ -36,7 +36,7 @@ async function run(callback, { env = {}, google = { status: 200, data: subscript
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname === '/auth/v1/user') return Response.json(authStatus === 200 ? { id: USER, is_anonymous: false } : {}, { status: authStatus });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data || {}, { status: google.status });
-        if (u.pathname.endsWith(':acknowledge')) return Response.json({});
+        if (u.pathname.endsWith(':acknowledge')) return ackFails ? Response.json({}, { status: 500 }) : Response.json({});
         if (u.pathname.startsWith('/rest/v1/rpc/')) return rpcError ? Response.json({ message: rpcError }, { status: 400 }) : Response.json(true);
         throw new Error(`unexpected request ${url}`);
     };
@@ -133,5 +133,33 @@ test('the Google access token is a correctly signed service-account assertion', 
         assert.equal(payload.iss, 'billing@example.test');
         assert.equal(payload.scope, 'https://www.googleapis.com/auth/androidpublisher');
         assert.ok(crypto.createVerify('RSA-SHA256').update(`${header}.${claims}`).verify(publicKey, Buffer.from(signature, 'base64url')), 'signature verifies with the public key');
+    });
+});
+
+test('a purchase made for another account, or without an account id, is refused before anything is recorded', async () => {
+    for (const [identifiers, error] of [[{ obfuscatedExternalAccountId: '00000000-0000-4000-8000-0000000000b2' }, 'purchase_bound_to_other_account'], [undefined, 'purchase_not_bound'], [{}, 'purchase_not_bound']]) {
+        await run(async calls => {
+            const response = await handler(request());
+            assert.equal(response.status, 409);
+            assert.deepEqual(await response.json(), { error });
+            assert.equal(rpcs(calls).length, 0, 'no right is granted');
+            assert.equal(calls.some(c => c.path.endsWith(':acknowledge')), false, 'nothing is acknowledged');
+        }, { google: { status: 200, data: subscription({ externalAccountIdentifiers: identifiers }) } });
+    }
+});
+
+test('a failed acknowledgement is reported to the app, access stays recorded', async () => {
+    await run(async calls => {
+        const response = await handler(request());
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.active, true);
+        assert.equal(body.acknowledged, false);
+        assert.equal(rpcs(calls).length, 1);
+    }, { ackFails: true });
+    await run(async () => {
+        const body = await (await handler(request())).json();
+        assert.equal(body.acknowledged, true);
+        assert.equal(body.product_id, 'titan_plus');
     });
 });

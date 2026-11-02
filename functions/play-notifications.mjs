@@ -1,9 +1,11 @@
 // ADR-004 phase 3 bis: Google Play real-time developer notifications (Pub/Sub push) for TITAN+ subscriptions.
 // A notification only says "something changed for this purchase token": the content is never trusted. The server
 // re-reads the subscription from Google and records what Google answers, for the account the token is already
-// linked to. Disabled unless PLAY_BILLING_ENABLED=true; the push URL carries a secret token (PLAY_RTDN_TOKEN).
+// linked to. Disabled unless PLAY_BILLING_ENABLED=true. Authentication, strongest first: a Pub/Sub OIDC token signed
+// by Google for PLAY_RTDN_AUDIENCE and PLAY_RTDN_SERVICE_ACCOUNT; or the secret in the push URL (PLAY_RTDN_TOKEN).
 import crypto from 'node:crypto';
 import { googleAccessToken, interpretSubscription } from './play-billing.mjs';
+import { verifyPubSubJwt } from './play-auth.mjs';
 
 const TOKEN = /^[A-Za-z0-9._~-]{16,2048}$/;
 const MAX_BODY = 16384;
@@ -30,13 +32,18 @@ export default async function handler(request) {
     const packageName = env('PLAY_PACKAGE_NAME') || 'fr.titanapp.app';
     const allowedProducts = env('PLAY_PRODUCT_IDS').split(',').map(v => v.trim()).filter(Boolean);
     const pushToken = env('PLAY_RTDN_TOKEN');
+    const audience = env('PLAY_RTDN_AUDIENCE'), pushAccount = env('PLAY_RTDN_SERVICE_ACCOUNT');
+    const oidc = Boolean(audience && pushAccount);
     let account = null;
     try { account = JSON.parse(env('PLAY_SERVICE_ACCOUNT_JSON') || 'null'); } catch (_) { /* Fail closed below. */ }
     let validUrl = false;
     try { const parsed = new URL(url); validUrl = parsed.protocol === 'https:' && !parsed.username && !parsed.password && parsed.pathname === '/' && !parsed.search && !parsed.hash; } catch (_) { /* Fail closed. */ }
-    if (env('PLAY_BILLING_ENABLED') !== 'true' || !validUrl || !key || pushToken.length < 24 || allowedProducts.length === 0
+    if (env('PLAY_BILLING_ENABLED') !== 'true' || !validUrl || !key || (!oidc && pushToken.length < 24) || allowedProducts.length === 0
         || typeof account?.client_email !== 'string' || typeof account?.private_key !== 'string') return reply(503);
-    if (!sameSecret(new URL(request.url).searchParams.get('token') || '', pushToken)) return reply(401);
+    const authenticated = oidc
+        ? await verifyPubSubJwt(request.headers.get('authorization'), { audience, email: pushAccount })
+        : sameSecret(new URL(request.url).searchParams.get('token') || '', pushToken);
+    if (!authenticated) return reply(401);
 
     let notification;
     try {
@@ -48,8 +55,12 @@ export default async function handler(request) {
     if (!notification || typeof notification !== 'object') return reply(400);
     // Anything that is not a subscription event for our package is acknowledged and ignored, so Pub/Sub stops retrying it.
     if (notification.packageName !== packageName) return reply(200);
-    const purchaseToken = notification.subscriptionNotification?.purchaseToken;
-    if (!notification.subscriptionNotification || !TOKEN.test(purchaseToken || '')) return reply(200);
+    // A refund or revocation arrives either as a subscription notification (type 12) or as a voided-purchase notification
+    // (productType 1 = subscription). Both only name the token: the state is re-read from Google below.
+    const voided = notification.voidedPurchaseNotification && Number(notification.voidedPurchaseNotification.productType) === 1 ? notification.voidedPurchaseNotification : null;
+    const purchaseToken = voided ? voided.purchaseToken : notification.subscriptionNotification?.purchaseToken;
+    if ((!notification.subscriptionNotification && !voided) || !TOKEN.test(purchaseToken || '')) return reply(200);
+    const eventName = voided ? 'rtdn:voided' : `rtdn:${notification.subscriptionNotification.notificationType ?? 'unknown'}`;
 
     const databaseHeaders = { apikey: key, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (!key.startsWith('sb_secret_')) databaseHeaders.Authorization = `Bearer ${key}`;
@@ -62,14 +73,24 @@ export default async function handler(request) {
 
         const accessToken = await googleAccessToken(account);
         const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
-        if (lookup.status === 404 || lookup.status === 410) return reply(200);
+        // Google no longer knows a token it once sold (refunded, or an expired subscription past its retention): the account keeps no access from it.
+        if (lookup.status === 404 || lookup.status === 410) {
+            const gone = await rpc('titan_apply_entitlement_v1', {
+                p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: false, p_status: 'gone',
+                p_event_name: eventName, p_event_at: new Date().toISOString(), p_order_id: null, p_product_id: null, p_variant_id: null,
+                p_renews_at: null, p_ends_at: new Date().toISOString(), p_trial_ends_at: null, p_refunded_at: null
+            });
+            return gone.ok ? reply(200) : reply(503);
+        }
         if (!lookup.ok) return reply(503);
         const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
         if (subscription.error) return reply(200);
-        const eventAt = Number(notification.eventTimeMillis) > 0 ? new Date(Number(notification.eventTimeMillis)).toISOString() : new Date().toISOString();
+        // Stamped with the moment Google was read, not the notification's own time: the ledger keeps the latest write, and the
+        // freshest read must win over an older verification or a delayed, out-of-order notification.
+        const eventAt = new Date().toISOString();
         const applied = await rpc('titan_apply_entitlement_v1', {
             p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: subscription.active,
-            p_status: subscription.status, p_event_name: `rtdn:${notification.subscriptionNotification.notificationType ?? 'unknown'}`,
+            p_status: subscription.status, p_event_name: eventName,
             p_event_at: eventAt, p_order_id: subscription.orderId, p_product_id: subscription.productId, p_variant_id: null,
             p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt, p_trial_ends_at: null, p_refunded_at: null
         });

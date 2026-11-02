@@ -1,8 +1,10 @@
 // ADR-004 phase 3: verify a Google Play subscription purchase on the server, then record it as an access source.
 // The client only ever sends a purchase token; access is granted solely from Google's own answer. Disabled unless
-// PLAY_BILLING_ENABLED=true. Google endpoint paths and field names below follow the Android Publisher API as
-// remembered when this was written and MUST be re-read against Google's current documentation (ADR-004, phase 1)
-// before the first real purchase; the tests use a simulated Google.
+// PLAY_BILLING_ENABLED=true. Endpoints and fields were re-read on 02/11/2026 against the Android Publisher API v3
+// reference (purchases.subscriptionsv2.get; purchases.subscriptions.acknowledge, still the supported acknowledge call):
+// subscriptionState, lineItems[].productId / expiryTime / autoRenewingPlan, latestOrderId, linkedPurchaseToken,
+// acknowledgementState, testPurchase, externalAccountIdentifiers.obfuscatedExternalAccountId. The tests use a
+// simulated Google: a real purchase with a license-tester account is still the final proof.
 import crypto from 'node:crypto';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -16,7 +18,7 @@ const env = name => String(globalThis.Netlify?.env?.get(name) || '');
 const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const unavailable = () => reply(503, { error: 'unavailable' });
 
-async function network(url, init) {
+export async function network(url, init) {
     const response = await fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
     let data = null;
     try { data = await response.json(); } catch (_) { /* Upstream bodies are never reflected. */ }
@@ -60,6 +62,7 @@ export function interpretSubscription(resource, { allowedProducts, allowTestPurc
         renewsAt: active && line.autoRenewingPlan?.autoRenewEnabled && Number.isFinite(expiry) ? new Date(expiry).toISOString() : null,
         linkedPurchaseToken: typeof resource.linkedPurchaseToken === 'string' && TOKEN.test(resource.linkedPurchaseToken) ? resource.linkedPurchaseToken : null,
         needsAcknowledgement: resource.acknowledgementState === 'ACKNOWLEDGEMENT_STATE_PENDING',
+        boundAccount: typeof resource.externalAccountIdentifiers?.obfuscatedExternalAccountId === 'string' ? resource.externalAccountIdentifiers.obfuscatedExternalAccountId : null,
         startedAt: Date.parse(resource.startTime || '') || now
     };
 }
@@ -113,6 +116,9 @@ export default async function handler(request) {
         if (!lookup.ok) return unavailable();
         const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
         if (subscription.error) return reply(422, { error: subscription.error.toLowerCase() });
+        // The app sets the signed-in account id as the obfuscated account id when it opens the payment sheet. A purchase
+        // made for another account (or without one) is refused: a leaked token cannot be attached to a different player.
+        if (subscription.boundAccount !== owner.id) return reply(409, { error: subscription.boundAccount ? 'purchase_bound_to_other_account' : 'purchase_not_bound' });
 
         const applied = await rpc('titan_apply_entitlement_v1', {
             p_user_id: owner.id, p_source: 'google_play', p_external_id: body.purchase_token, p_is_active: subscription.active,
@@ -132,9 +138,12 @@ export default async function handler(request) {
             });
         }
         // Google refunds an unacknowledged purchase after three days: acknowledge only once access is recorded.
+        let acknowledged = !subscription.needsAcknowledgement;
         if (subscription.active && subscription.needsAcknowledgement) {
-            await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(subscription.productId)}/tokens/${encodeURIComponent(body.purchase_token)}:acknowledge`, { method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}' });
+            const ack = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(subscription.productId)}/tokens/${encodeURIComponent(body.purchase_token)}:acknowledge`, { method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}' });
+            // Access is already recorded; a failed acknowledgement is reported so the app retries (restore) before Google's 3-day refund.
+            acknowledged = ack.ok;
         }
-        return reply(200, { active: subscription.active, status: subscription.status, ends_at: subscription.endsAt });
+        return reply(200, { active: subscription.active, status: subscription.status, ends_at: subscription.endsAt, product_id: subscription.productId, acknowledged });
     } catch (_) { return unavailable(); }
 }
