@@ -49,7 +49,7 @@ sur un appareil réel ni sur émulateur.
 | Réglages | Sports favoris, confidentialité, rappels locaux hebdomadaires, retours haptiques | R |
 | Données | Export CSV des séances, export JSON complet (`export_own_data`) via la feuille de partage Android | TS |
 | Suppression | Suppression du compte dans l’application (`delete_own_account`), confirmation par saisie | TS, R |
-| TITAN+ | Écran « Bientôt disponible », aucun achat, aucune facturation | R ; CI : pas de permission BILLING |
+| TITAN+ | Écran « Bientôt disponible », aucun achat ni vérification de paiement ; bibliothèque Play Billing 9.1.0 incluse pour permettre la configuration des produits Play Console | R ; CI : permission BILLING obligatoire sur la branche de préparation |
 | Santé Connect (HC, REC-06/08) | Écran « Santé Connect » (Profil) : accord explicite avant toute lecture, lecture des 7 derniers jours en calendrier local seulement quand l'utilisateur touche un bouton, uniquement READ_STEPS et READ_EXERCISE ; pas = agrégat quotidien de Santé Connect (déjà sans double comptage), enregistrés sans créer de séance ni de récompense ; séances reconnues (11 sports) importées une par une, durée corrigeable, rapprochées par le serveur d'une séance déjà au journal ; arrêt (retire l'accord sur le serveur et dans Android) et archivage séparés ; un changement de compte écarte une réponse tardive ; rien vers les statistiques ni la publicité | U (`healthConnect.test.ts`, 8 cas), R (`healthConnectScreen.test.tsx`, 7 cas), contrôle des permissions du paquet en CI ; PAS d'essai sur téléphone ni de validation Play Console |
 | Chrono de repos de musculation (REC) | Dans l'éditeur d'exercices lestés : durées 1:00 / 1:30 / 2:00 / 3:00, bouton « Fait » sur chaque série qui lance le repos, +15 s, Passer, vibration discrète à la fin ; rien n'est enregistré ni envoyé ; le préremplissage depuis la série précédente existait déjà. Hors périmètre ici : GPS en direct (aucun module de localisation n'est installé) | U (`restTimer.test.ts`, 2 cas) ; PAS d'essai sur téléphone |
 | Connexion avec Google | Flux PKCE dans le navigateur du téléphone (aucun SDK Google, aucun module natif de plus) : le navigateur revient sur `titan://auth-callback?code=…`, le code devient une session ; réponse lue strictement, échec dit au joueur ; bouton visible seulement si la compilation le décide (`EXPO_PUBLIC_TITAN_GOOGLE=1`) ; TITAN reçoit le nom et l'e-mail | U, R (`googleAuth.test.tsx`) ; DÉPENDANCE EXTERNE : fournisseur Google activé dans Supabase, adresse `titan://auth-callback` autorisée, essai sur téléphone |
@@ -82,7 +82,7 @@ sur un appareil réel ni sur émulateur.
 
 - Types, tests Jest, bundle Metro de production.
 - APK et AAB release : identifiant `fr.titanapp.app`, `versionCode` > 300,
-  `targetSdk` ≥ 35, liste blanche de permissions, absence de BILLING et AD_ID,
+  `targetSdk` ≥ 35, liste blanche de permissions, présence de BILLING, absence de AD_ID,
   signature vérifiée, bundle pointant vers la production et jamais vers
   `10.0.2.2`, trafic en clair interdit.
 - E2E : Supabase local (structure de production + migrations appliquées en
