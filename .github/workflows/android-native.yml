@@ -7,7 +7,7 @@ name: Android natif (React Native)
 # Nothing is ever uploaded to Google Play by this workflow.
 on:
   push:
-    branches: [claude/tender-faraday-89ijgk]
+    branches: [claude/tender-faraday-89ijgk, codex/v11-play-billing-console-20261102]
     paths:
       - "mobile/**"
       - ".github/workflows/android-native.yml"
@@ -115,7 +115,9 @@ jobs:
           echo "versionCode=$code versionName=$name"
       - name: Clé de signature
         env:
-          SIGNING: ${{ inputs.signing || 'throwaway' }}
+          # One-off Play-console-unlock branch: build the upload-signed AAB without publishing it.
+          # Pull-request builds and all other branches still use disposable signing keys.
+          SIGNING: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/codex/v11-play-billing-console-20261102' && 'upload') || inputs.signing || 'throwaway' }}
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
