@@ -132,14 +132,15 @@ export function summarize(track: Track, activeMs: number): Summary {
 const xml = (s: string) => s.replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[c] as string);
 
 /** A standard GPX 1.1 file, one trkseg per recording stretch (so a pause is never drawn as a straight line). */
-export function toGpx(track: Track, name: string): string {
-  const withAlt = ascentM(track) !== null;
+export function toGpx(track: Track, name: string, opts: { time?: boolean; ele?: boolean } = {}): string {
+  const withAlt = opts.ele !== false && ascentM(track) !== null;
+  const withTime = opts.time !== false;
   const segs = track.segs
     .filter((s) => s.length)
     .map(
       (s) =>
         `<trkseg>${s
-          .map((f) => `<trkpt lat="${f.lat.toFixed(6)}" lon="${f.lon.toFixed(6)}">${withAlt && f.alt !== null ? `<ele>${f.alt.toFixed(1)}</ele>` : ""}<time>${new Date(f.t).toISOString()}</time></trkpt>`)
+          .map((f) => `<trkpt lat="${f.lat.toFixed(6)}" lon="${f.lon.toFixed(6)}">${withAlt && f.alt !== null ? `<ele>${f.alt.toFixed(1)}</ele>` : ""}${withTime ? `<time>${new Date(f.t).toISOString()}</time>` : ""}</trkpt>`)
           .join("")}</trkseg>`,
     )
     .join("");
@@ -211,4 +212,35 @@ export function projectTrack(track: Track, width: number, height: number, pad = 
   const first = track.segs.find((s) => s.length)![0]!;
   const lastSeg = [...track.segs].reverse().find((s) => s.length)!;
   return { segs, start: at(first), end: at(lastSeg[lastSeg.length - 1]!) };
+}
+
+/** For voluntary sharing: removes the first and last `meters` of the trace (measured along the path) so neither the start nor the end, often home, is
+    revealed. Returns null when the route is too short to hide both ends and still show something (never a partial protection). */
+export const SHARE_TRIM_M = 300;
+export function trimEnds(track: Track, meters = SHARE_TRIM_M): Track | null {
+  const pts = track.segs.flat();
+  if (pts.length < 4) return null;
+  const cum: number[] = [0];
+  const flatIdx: Fix[] = [];
+  let seg = -1;
+  const segOf: number[] = [];
+  track.segs.forEach((s, si) => s.forEach((f, i) => { flatIdx.push(f); segOf.push(si); void i; }));
+  for (let i = 1; i < flatIdx.length; i++) cum[i] = cum[i - 1]! + (segOf[i] === segOf[i - 1] ? haversine(flatIdx[i - 1]!, flatIdx[i]!) : 0);
+  void seg;
+  const total = cum[cum.length - 1]!;
+  if (total < meters * 2 + 150) return null;
+  const keepIdx = new Set<number>();
+  for (let i = 0; i < flatIdx.length; i++) if (cum[i]! >= meters && cum[i]! <= total - meters) keepIdx.add(i);
+  if (keepIdx.size < 2) return null;
+  const out: Track = { rejected: 0, segs: [] };
+  let k = 0;
+  for (const s of track.segs) {
+    const kept: Fix[] = [];
+    for (const f of s) {
+      if (keepIdx.has(k)) kept.push(f);
+      k++;
+    }
+    if (kept.length) out.segs.push(kept);
+  }
+  return out;
 }

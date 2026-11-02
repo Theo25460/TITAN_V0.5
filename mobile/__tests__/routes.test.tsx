@@ -1,6 +1,6 @@
 /* Route library: outbox that never duplicates and never blocks, list and detail screens (tile-less map, GPX export, deletion), private by design. */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { buildPending, flushRoutes, newRouteId, pendingRoutes, queueRoute, _resetForTests } from "../src/lib/routeSync";
+import { awaitSession, buildPending, flushRoutes, linkSavedSession, newRouteId, pendingLinks, pendingRoutes, queueRoute, _resetForTests } from "../src/lib/routeSync";
 import { addFix, emptyTrack, type Fix, type Track } from "../src/lib/gpsTrack";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -52,6 +52,36 @@ test("outboxes are per account; two flushes at once send once; a permanently ref
   expect((await flushRoutes("a", refused)).left).toBe(0);
 });
 
+test("the session saved from a recording is linked to its route: same sport, within two days, once, after the route itself; nothing is guessed", async () => {
+  await queueRoute("l1", mk("route-link-0001"));
+  await awaitSession("l1", "route-link-0001", "running", T0);
+  expect(await linkSavedSession("l1", "cycling", "evt-session-0001", T0 + 1000)).toBe(false); // another sport: no link
+  expect(await linkSavedSession("l1", "running", "evt-session-0001", T0 + 3 * 86400000)).toBe(false); // too late
+  expect(await linkSavedSession("l1", "running", "evt-session-0001", T0 + 60_000)).toBe(true);
+  expect(await linkSavedSession("l1", "running", "evt-session-0002", T0 + 61_000)).toBe(false); // the waiting slot was consumed
+  expect(await pendingLinks("l1")).toEqual([{ clientRouteId: "route-link-0001", eventId: "evt-session-0001", attempts: 0 }]);
+  const order: string[] = [];
+  const save = async (r: { clientRouteId: string }) => void order.push(`save:${r.clientRouteId}`);
+  const link = async (c: string, e: string) => void order.push(`link:${c}:${e}`);
+  await flushRoutes("l1", save, link);
+  expect(order).toEqual(["save:route-link-0001", "link:route-link-0001:evt-session-0001"]);
+  expect(await pendingLinks("l1")).toEqual([]);
+});
+
+test("a link waits while its route is still waiting, retries on network errors, and is dropped when refused for good", async () => {
+  await queueRoute("l2", mk("route-link-0002"));
+  await awaitSession("l2", "route-link-0002", "running", T0);
+  await linkSavedSession("l2", "running", "evt-session-0003", T0 + 1000);
+  const link = jest.fn(async () => undefined);
+  await flushRoutes("l2", async () => { throw new Error("network"); }, link);
+  expect(link).not.toHaveBeenCalled();
+  expect((await pendingLinks("l2")).length).toBe(1);
+  await flushRoutes("l2", async () => undefined, async () => { throw new Error("network"); });
+  expect((await pendingLinks("l2"))[0]!.attempts).toBe(1);
+  await flushRoutes("l2", async () => undefined, async () => { throw new Error("ROUTE_ALREADY_LINKED"); });
+  expect(await pendingLinks("l2")).toEqual([]);
+});
+
 /* ---- screens ---- */
 const mockApi = { routesList: jest.fn(), routeGet: jest.fn(), routeDelete: jest.fn() } as Record<string, jest.Mock>;
 const mockShare = jest.fn(async (..._a: unknown[]) => undefined);
@@ -88,7 +118,7 @@ test("library: empty state invites to record; a pending upload is announced", as
 });
 
 test("detail: map, figures, GPX export and deletion; no map server is contacted", async () => {
-  mockApi.routeGet.mockResolvedValue({ ...meta, track: encodeTrack(track(60)) });
+  mockApi.routeGet.mockResolvedValue({ ...meta, track: encodeTrack(track(400)) });
   mockApi.routeDelete.mockResolvedValue(true);
   const fetchSpy = jest.spyOn(global, "fetch");
   wrap(<RouteDetailScreen navigation={nav} route={{ params: { id: "r-1" } }} />);
@@ -97,6 +127,12 @@ test("detail: map, figures, GPX export and deletion; no map server is contacted"
   fireEvent.press(screen.getByTestId("route-export"));
   await waitFor(() => expect(mockShare).toHaveBeenCalled());
   expect(mockShare.mock.calls[0]).toEqual([expect.stringMatching(/^titan-running-2026-11-02\.gpx$/), expect.stringContaining("<trkpt"), "application/gpx+xml"]);
+  fireEvent.press(screen.getByTestId("route-share"));
+  await waitFor(() => expect(mockShare.mock.calls.length).toBe(2));
+  const shared = mockShare.mock.calls[1] as unknown[];
+  expect(shared[0]).toBe("titan-parcours-2026-11-02.gpx");
+  expect(String(shared[1])).not.toContain("<time>");
+  expect(String(shared[1])).not.toContain("<ele>");
   fireEvent.press(screen.getByTestId("route-delete"));
   await waitFor(() => expect(mockApi.routeDelete).toHaveBeenCalledWith("r-1"));
   await waitFor(() => expect(nav.goBack).toHaveBeenCalled());

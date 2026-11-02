@@ -98,6 +98,9 @@ jobs:
       EXPO_PUBLIC_TITAN_ADS_LIVE: ${{ inputs.ads == 'live' && '1' || '' }}
       EXPO_PUBLIC_TITAN_BILLING: ${{ inputs.billing && '1' || '' }}
       EXPO_PUBLIC_TITAN_GOOGLE: ${{ inputs.google_signin && '1' || '' }}
+      # Optional base map under routes: a repository VARIABLE (not a secret: a tile key is public in any client, so restrict it to the app package at the provider).
+      EXPO_PUBLIC_TITAN_TILES_URL: ${{ vars.TITAN_TILES_URL }}
+      EXPO_PUBLIC_TITAN_TILES_ATTRIBUTION: ${{ vars.TITAN_TILES_ATTRIBUTION }}
     outputs:
       version_code: ${{ steps.version.outputs.code }}
     steps:

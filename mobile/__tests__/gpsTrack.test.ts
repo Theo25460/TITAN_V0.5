@@ -1,4 +1,4 @@
-import { addFix, ascentM, currentSpeed, decodeTrack, distanceM, emptyTrack, encodeTrack, haversine, movingSeconds, projectTrack, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
+import { trimEnds, SHARE_TRIM_M, addFix, ascentM, currentSpeed, decodeTrack, distanceM, emptyTrack, encodeTrack, haversine, movingSeconds, projectTrack, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
 import { Gpx } from "../src/core";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -116,4 +116,21 @@ test("map projection fits the box without tiles, keeps north up and the aspect, 
   expect(pts.every((q) => q.x >= 0 && q.x <= 300 && q.y >= 0 && q.y <= 200)).toBe(true);
   expect(p.start!.y).toBeGreaterThan(p.end!.y); // heading north: the end is higher on screen
   expect(projectTrack(emptyTrack(), 300, 200)).toEqual({ segs: [], start: null, end: null });
+});
+
+test("sharing: the first and last 300 m are removed, a trace too short to hide both ends is refused, shared files carry no time or altitude", () => {
+  const long = build(400, (i) => ({ alt: 100 + i * 0.3 })); // about 2 km at 5 m/s
+  const t = trimEnds(long)!;
+  const pts = t.segs.flat();
+  const all = long.segs.flat();
+  expect(pts.length).toBeLessThan(all.length);
+  expect(haversine(all[0]!, pts[0]!)).toBeGreaterThanOrEqual(SHARE_TRIM_M - 10);
+  expect(haversine(all.at(-1)!, pts.at(-1)!)).toBeGreaterThanOrEqual(SHARE_TRIM_M - 10);
+  expect(pts.every((p) => haversine(p, all[0]!) >= SHARE_TRIM_M - 10 && haversine(p, all.at(-1)!) >= SHARE_TRIM_M - 10)).toBe(true);
+  expect(trimEnds(build(60))).toBeNull(); // about 300 m in all
+  expect(trimEnds(build(3))).toBeNull();
+  const gpx = toGpx(t, "Partage", { time: false, ele: false });
+  expect(gpx).not.toContain("<time>");
+  expect(gpx).not.toContain("<ele>");
+  expect(gpx).toContain("<trkpt");
 });

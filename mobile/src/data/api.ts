@@ -254,10 +254,12 @@ export const importDailySteps = (day: string, steps: number) => rpc<unknown>("ti
 export const archiveImported = (source: "health_connect") => rpc<unknown>("titan_archive_imported_v1", { p_source: source });
 
 /* ---------- Route library (private GPS traces) ---------- */
-export type RouteMeta = { id: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
+export type RouteMeta = { id: string; eventId?: string | null; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
 export type RouteFull = RouteMeta & { track: import("../lib/gpsTrack").EncodedTrack };
 export const routeSave = (p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown }) =>
   rpc<{ id: string; created: boolean }>("titan_route_save_v1", { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track });
+export const routeLink = (clientRouteId: string, eventId: string) => rpc<boolean>("titan_route_link_v1", { p_client_route_id: clientRouteId, p_event_id: eventId });
+export const routeForEvent = (eventId: string) => rpc<RouteMeta | null>("titan_route_for_event_v1", { p_event_id: eventId });
 export const routesList = () => rpc<RouteMeta[]>("titan_routes_v1", { p_limit: 100 });
 export const routeGet = (id: string) => rpc<RouteFull>("titan_route_get_v1", { p_id: id });
 export const routeDelete = (id: string) => rpc<boolean>("titan_route_delete_v1", { p_id: id });

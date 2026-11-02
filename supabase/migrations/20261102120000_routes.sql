@@ -7,7 +7,7 @@
 -- one segment per recording stretch (a pause is never bridged). Exported with the account, deleted with it, and deletable one by one.
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop function public.titan_route_save_v1(text,text,timestamptz,integer,integer,integer,jsonb), public.titan_routes_v1(integer,timestamptz), public.titan_route_get_v1(uuid),
--- public.titan_route_delete_v1(uuid); drop table private.titan_routes; then re-apply the extras helper of migration 57 (20261102100000_coach_tools.sql).
+-- public.titan_route_delete_v1(uuid), public.titan_route_link_v1(text,text), public.titan_route_for_event_v1(text); drop table private.titan_routes; then re-apply the extras helper of migration 57 (20261102100000_coach_tools.sql).
 
 create table if not exists private.titan_routes (
   id uuid primary key default gen_random_uuid(),
@@ -20,9 +20,11 @@ create table if not exists private.titan_routes (
   ascent_m integer check (ascent_m between 0 and 20000),
   points integer not null check (points between 2 and 3000),
   track jsonb not null,
+  event_id text check (event_id is null or event_id ~ '^[A-Za-z0-9_.:-]{8,80}$'), -- client_event_id of the session saved from this recording (set once, by its owner)
   created_at timestamptz not null default now(),
   unique (user_id, client_route_id)
 );
+create index if not exists titan_routes_user_event_idx on private.titan_routes (user_id, event_id) where event_id is not null;
 create index if not exists titan_routes_user_started_idx on private.titan_routes (user_id, started_at desc);
 alter table private.titan_routes enable row level security;
 revoke all on private.titan_routes from public, anon, authenticated;
@@ -86,7 +88,7 @@ as $function$
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   return coalesce((select jsonb_agg(jsonb_build_object('id', r.id, 'sport', r.sport, 'startedAt', r.started_at, 'distanceM', r.distance_m, 'durationS', r.duration_s,
-                                                       'ascentM', r.ascent_m, 'points', r.points) order by r.started_at desc)
+                                                       'ascentM', r.ascent_m, 'points', r.points, 'eventId', r.event_id) order by r.started_at desc)
                      from (select * from private.titan_routes where user_id = auth.uid() and (p_before is null or started_at < p_before)
                             order by started_at desc limit least(greatest(coalesce(p_limit, 50), 1), 100)) r), '[]'::jsonb);
 end;
@@ -102,7 +104,7 @@ as $function$
 declare v jsonb;
 begin
   if auth.uid() is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
-  select jsonb_build_object('id', r.id, 'sport', r.sport, 'startedAt', r.started_at, 'distanceM', r.distance_m, 'durationS', r.duration_s, 'ascentM', r.ascent_m, 'points', r.points, 'track', r.track)
+  select jsonb_build_object('id', r.id, 'sport', r.sport, 'startedAt', r.started_at, 'distanceM', r.distance_m, 'durationS', r.duration_s, 'ascentM', r.ascent_m, 'points', r.points, 'eventId', r.event_id, 'track', r.track)
     into v from private.titan_routes r where r.id = p_id and r.user_id = auth.uid();
   if v is null then raise exception 'ROUTE_NOT_FOUND' using errcode = '22023'; end if;
   return v;
@@ -122,10 +124,52 @@ begin
 end;
 $function$;
 
+-- AUTOMATIC LINK route <-> session: the app knows both ids once the session is saved. Linking is idempotent, owner-only, and can only point a route at ONE session
+-- (a second, different link is refused, so a route can never be re-attached to inflate anything: it earns nothing anyway). A session can have one route.
+create or replace function public.titan_route_link_v1(p_client_route_id text, p_event_id text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid(); v_current text; v_other uuid;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_event_id is null or p_event_id !~ '^[A-Za-z0-9_.:-]{8,80}$' then raise exception 'BAD_EVENT_ID' using errcode = '22023'; end if;
+  perform private.titan_rate_limit(v_uid, 'route_link', 120);
+  select event_id into v_current from private.titan_routes where user_id = v_uid and client_route_id = p_client_route_id for update;
+  if not found then return false; end if;
+  if v_current is not null then
+    if v_current = p_event_id then return true; end if;
+    raise exception 'ROUTE_ALREADY_LINKED' using errcode = '22023';
+  end if;
+  select id into v_other from private.titan_routes where user_id = v_uid and event_id = p_event_id;
+  if found then raise exception 'SESSION_ALREADY_HAS_ROUTE' using errcode = '22023'; end if;
+  update private.titan_routes set event_id = p_event_id where user_id = v_uid and client_route_id = p_client_route_id;
+  return true;
+end;
+$function$;
+
+create or replace function public.titan_route_for_event_v1(p_event_id text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare v jsonb;
+begin
+  if auth.uid() is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  select jsonb_build_object('id', r.id, 'sport', r.sport, 'startedAt', r.started_at, 'distanceM', r.distance_m, 'durationS', r.duration_s, 'ascentM', r.ascent_m, 'points', r.points, 'eventId', r.event_id)
+    into v from private.titan_routes r where r.user_id = auth.uid() and r.event_id = p_event_id;
+  return v; -- null when the session has no route
+end;
+$function$;
+
 revoke all on function public.titan_route_save_v1(text, text, timestamptz, integer, integer, integer, jsonb), public.titan_routes_v1(integer, timestamptz),
-  public.titan_route_get_v1(uuid), public.titan_route_delete_v1(uuid) from public, anon;
+  public.titan_route_get_v1(uuid), public.titan_route_delete_v1(uuid), public.titan_route_link_v1(text, text), public.titan_route_for_event_v1(text) from public, anon;
 grant execute on function public.titan_route_save_v1(text, text, timestamptz, integer, integer, integer, jsonb), public.titan_routes_v1(integer, timestamptz),
-  public.titan_route_get_v1(uuid), public.titan_route_delete_v1(uuid) to authenticated;
+  public.titan_route_get_v1(uuid), public.titan_route_delete_v1(uuid), public.titan_route_link_v1(text, text), public.titan_route_for_event_v1(text) to authenticated;
 
 -- The export of the account carries the routes (cumulative redefinition: every earlier section is kept).
 create or replace function private.titan_export_extras_v1(p_uid uuid)
@@ -173,7 +217,7 @@ as $function$
     'coachCheckins', coalesce((select jsonb_agg(jsonb_build_object('link_id', c.link_id, 'week', c.week_start, 'scores', c.scores, 'note', c.note, 'shared', c.shared) order by c.week_start)
                                  from private.titan_coach_checkins c join public.coach_links l on l.id = c.link_id where l.athlete_id = p_uid), '[]'::jsonb),
     'routes', coalesce((select jsonb_agg(jsonb_build_object('client_route_id', r.client_route_id, 'sport', r.sport, 'started_at', r.started_at, 'distance_m', r.distance_m, 'duration_s', r.duration_s,
-                          'ascent_m', r.ascent_m, 'points', r.points, 'track', r.track, 'created_at', r.created_at) order by r.started_at)
+                          'ascent_m', r.ascent_m, 'points', r.points, 'event_id', r.event_id, 'track', r.track, 'created_at', r.created_at) order by r.started_at)
                           from private.titan_routes r where r.user_id = p_uid), '[]'::jsonb));
 $function$;
 revoke all on function private.titan_export_extras_v1(uuid) from public, anon, authenticated;

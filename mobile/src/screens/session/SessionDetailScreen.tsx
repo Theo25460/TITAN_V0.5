@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Alert, StyleSheet, View } from "react-native";
+import { SessionRoute } from "./RoutesScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
@@ -188,6 +189,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
       <T variant="caption" tone="faint" center style={{ color: colors.tx4 }}>
         Les corrections ne changent jamais les récompenses déjà attribuées.
       </T>
+      {log.client_event_id ? <SessionRoute eventId={log.client_event_id} onOpen={(id) => navigation.navigate("Route", { id })} /> : null}
     </Screen>
   );
 }

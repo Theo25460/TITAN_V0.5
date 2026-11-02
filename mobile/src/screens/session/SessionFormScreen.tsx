@@ -25,6 +25,8 @@ import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, radius, space, TOUCH } from "../../theme/tokens";
+import { routeLink, routeSave } from "../../data/api";
+import { flushRoutes, linkSavedSession } from "../../lib/routeSync";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
 import { ExerciseEditor } from "./ExerciseEditor";
 
@@ -195,6 +197,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     try {
       const payload = await record.mutateAsync(draft);
       saved.current = true;
+      // A session saved from a GPS recording is linked to its route (same sport, within two days; nothing is guessed).
+      if (payload.details.client_event_id) linkSavedSession(owner, sport, payload.details.client_event_id).then(() => flushRoutes(owner, routeSave, routeLink)).catch(() => {});
       await clearDraft(owner);
       haptic("success");
       navigation.replace("SessionResult", { eventId: payload.details.client_event_id! });

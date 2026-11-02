@@ -74,3 +74,10 @@ Identifiant d'application `ca-app-pub-8126986266950187~1902494129` et les quatre
 5. **Play Console › Contenu de l'application** : Annonces = **Oui, l'application contient des annonces** ; Sécurité des données : cocher « Identifiants d'appareil ou autres » partagés pour la publicité (Google AdMob) ; Public cible **13 ans et plus**, pas « enfants » ; ID de publicité : réponse cohérente avec le manifeste (TITAN **retire** `AD_ID` : les annonces sont alors contextuelles, moins rémunératrices ; si tu préfères le revenu maximum, dis-le-moi : une ligne à changer + la déclaration « Utilise l'ID de publicité »).
 6. **Réel** : seulement après 1 à 5 et ton feu vert : Run workflow › `ads = live` et `signing = upload`. Les mêmes plafonds s'appliquent.
 Rappel : n'utilise jamais ton appareil personnel pour cliquer sur de vraies annonces (invalide le compte AdMob). Les builds `test` et le développement utilisent uniquement les annonces de test.
+
+## J. Fond de carte des parcours (facultatif, ta décision)
+Sans fournisseur, les parcours s'affichent sur un fond neutre, sans aucune requête de carte : c'est le plus privé. Pour un vrai fond de carte :
+1. Choisis un fournisseur de tuiles dont les conditions autorisent une application mobile (MapTiler, Stadia Maps, Mapbox, Thunderforest…). Le serveur de tuiles public d'OpenStreetMap n'est PAS fait pour cet usage : ne l'utilise pas.
+2. Crée une clé et **restreins-la au paquet `fr.titanapp.app`** (et à l'empreinte de signature) chez le fournisseur : une clé de tuiles est visible dans toute application, la restriction est sa protection.
+3. GitHub › Settings › Secrets and variables › Actions › **Variables** : `TITAN_TILES_URL` = l'adresse du fournisseur avec `{z}/{x}/{y}` et la clé, `TITAN_TILES_ATTRIBUTION` = le texte d'attribution exigé (ex. « © MapTiler © OpenStreetMap »).
+4. Relance un build : l'interrupteur « Afficher le fond de carte » apparaît dans le détail d'un parcours (désactivé par défaut). Mets à jour la politique de confidentialité : le fournisseur voit la zone consultée.

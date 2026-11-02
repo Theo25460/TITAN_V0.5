@@ -127,6 +127,8 @@ expected_rpc(signature, anon_execute, authenticated_execute, service_execute) as
   ('public.titan_routes_v1(integer,timestamptz)', false, true, null),
   ('public.titan_route_get_v1(uuid)', false, true, null),
   ('public.titan_route_delete_v1(uuid)', false, true, null),
+  ('public.titan_route_link_v1(text,text)', false, true, null),
+  ('public.titan_route_for_event_v1(text)', false, true, null),
   ('public.titan_coach_checkin_share_v1(uuid,date,boolean)', false, true, null),
   ('public.titan_challenge_result_v1(uuid)', false, true, null)
 ),

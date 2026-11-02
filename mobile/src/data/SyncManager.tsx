@@ -17,7 +17,7 @@ export function SyncManager() {
     const run = () => {
       syncNow(qc, owner).catch(() => {});
       // GPS routes wait in their own outbox; the server dedupes by client route id.
-      flushRoutes(owner, api.routeSave).catch(() => {});
+      flushRoutes(owner, api.routeSave, api.routeLink).catch(() => {});
     };
     run();
     const off = onReconnect(() => {

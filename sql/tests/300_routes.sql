@@ -47,6 +47,18 @@ begin
   assert public.zz_fails($q$select public.titan_route_save_v1('route-aaaa-0006', 'running', now(), 1, 1, 1, jsonb_build_object('v',1,'segs',jsonb_build_array(jsonb_build_array(jsonb_build_array(99999999,0,0,null),jsonb_build_array(1,1,1,null)))))$q$, 'BAD_TRACK'), 'latitude out of range';
   assert public.zz_fails($q$select public.titan_route_save_v1('route-aaaa-0007', 'running', now(), 1, 1, 1, public.zz_track(3001))$q$, 'TRACK_TOO_LARGE'), 'too many points';
   assert (select count(*) from private.titan_routes where user_id = a) = 1, 'a refused route writes nothing';
+  -- the link route <-> session: idempotent, once, one route per session, owner only
+  assert public.titan_route_link_v1('route-aaaa-0001', 'evt-session-0001'), 'linked';
+  assert public.titan_route_link_v1('route-aaaa-0001', 'evt-session-0001'), 'the same link again is fine';
+  assert public.zz_fails($q$select public.titan_route_link_v1('route-aaaa-0001', 'evt-session-0002')$q$, 'ROUTE_ALREADY_LINKED'), 'a route points at one session only';
+  assert not public.titan_route_link_v1('route-unknown-1', 'evt-session-0009'), 'unknown route';
+  assert public.zz_fails($q$select public.titan_route_link_v1('route-aaaa-0001', 'x')$q$, 'BAD_EVENT_ID'), 'bad event id';
+  assert (public.titan_route_for_event_v1('evt-session-0001')->>'id')::uuid = rid, 'found from the session';
+  assert public.titan_route_for_event_v1('evt-session-9999') is null, 'none for another session';
+  assert (public.titan_routes_v1()->0->>'eventId') = 'evt-session-0001', 'the list carries the link';
+  perform public.zz_as(b);
+  assert public.titan_route_for_event_v1('evt-session-0001') is null, 'b cannot see the link';
+  perform public.zz_as(a);
   -- a route earns nothing
   assert not exists (select 1 from public.training_logs where user_id = a), 'no session, XP or credit comes from a route';
   -- the export carries the routes

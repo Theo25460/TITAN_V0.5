@@ -8,9 +8,9 @@ import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Format, Sports } from "../../core";
 import { useOwner } from "../../data/auth";
-import { routeSave } from "../../data/api";
+import { routeLink, routeSave } from "../../data/api";
 import { saveDraft } from "../../data/drafts";
-import { buildPending, flushRoutes, queueRoute } from "../../lib/routeSync";
+import { awaitSession, buildPending, flushRoutes, queueRoute } from "../../lib/routeSync";
 import { shareTextFile } from "../../lib/exportFile";
 import { draftFromRecording } from "../../lib/gpsDraft";
 import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } from "../../lib/gpsNative";
@@ -105,12 +105,15 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       const draft = draftFromRecording(rec, sum);
       // The trace goes to the private route library through a durable outbox (idempotent); the session itself follows the usual path.
       const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: sum.start ?? rec.startedAt, distanceKm: sum.distanceKm, activeSeconds: sum.activeSeconds, ascent: sum.ascent });
-      if (pending) await queueRoute(owner, pending).catch(() => {});
+      if (pending) {
+        await queueRoute(owner, pending).catch(() => {});
+        await awaitSession(owner, pending.clientRouteId, rec.sport);
+      }
       saveDraft(owner, draft);
       await writeJSON(ownerKey("draft", owner), { draft, updatedAt: Date.now() }); // on disk before the recording is released
       await recorder.discard(owner);
       await setActiveOwner(null);
-      flushRoutes(owner, routeSave).catch(() => {});
+      flushRoutes(owner, routeSave, routeLink).catch(() => {});
       navigation.replace("SessionForm", { sport: rec.sport });
     }, "Enregistrement impossible");
 
