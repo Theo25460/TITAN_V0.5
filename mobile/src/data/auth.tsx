@@ -120,9 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!googleEnabled()) return;
     let alive = true;
+    const handled = new Set<string>();
     const handle = async (url: string | null) => {
       const cb = parseCallback(url);
-      if (!cb) return;
+      if (!cb || !url || handled.has(url)) return;
+      // getInitialURL and the event listener can receive the same redirect.
+      handled.add(url);
       try {
         if ("error" in cb) throw new Error(cb.error);
         const tokens = await exchange(cb.code);
