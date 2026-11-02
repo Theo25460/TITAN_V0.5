@@ -87,7 +87,8 @@
     ACCOUNT_CHANGED: "Le compte a changé. Recharge cet espace.",
     INVITE_UNAVAILABLE: "Ce code est indisponible, expiré ou déjà utilisé.",
     INVITE_LIMIT: "Plusieurs invitations attendent déjà. Annule celles qui ne servent plus.",
-    COACH_CAPACITY: "La capacité de suivi du coach est atteinte : 3 sportifs, 20 avec TITAN+.",
+    COACH_CAPACITY: "Toutes les places de suivi du coach sont prises. Un sportif peut quitter le suivi pour en libérer une.",
+    SEAT_CHURN_LIMIT: "Trop de nouveaux suivis ces 30 derniers jours : réessaie plus tard, ou garde les sportifs actuels.",
     ATHLETE_CAPACITY: "Cinq partages sont déjà actifs. Révoque ceux dont tu n’as plus besoin.",
     CONSENT_REQUIRED: "Le partage demande ton accord explicite.",
     COACH_CONFLICT: "Une modification plus récente existe. Actualise avant de recommencer.",
@@ -559,7 +560,8 @@
       <div id="co-panel-${mode}" role="tabpanel" aria-labelledby="co-tab-${mode}" tabindex="0" style="display:grid;gap:var(--s5)">
       ${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}
       ${snapshot ? `
-      <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2></div>
+      <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2>
+          ${mode === "coach" && snapshot.plan ? `<p class="asc-small asc-muted" data-co-plan>Offre ${snapshot.plan.plan === "coach_pro" ? "Coach Pro" : "Coach"} : ${snapshot.capacity} places, TITAN+ inclus pour chaque sportif suivi tant que le suivi est actif${snapshot.seatsUsed > snapshot.capacity ? ` · ${snapshot.seatsUsed - snapshot.capacity} sportif(s) au-delà des places n’ont plus TITAN+ inclus` : ""}.</p>` : ""}</div>
         <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-${mode === "coach" ? "invite" : "join"}>${icon("plus")} ${mode === "coach" ? "Créer une invitation" : "J’ai reçu un code"}</button></div>
         ${mode === "coach" && snapshot.invites?.length ? `<details class="co-invites"><summary>${snapshot.invites.length} invitation(s) en attente</summary>${snapshot.invites.map((v) => `<div class="asc-between"><span class="asc-small">Créée le ${esc(date(v.created_at))} · expire le ${esc(date(v.expires_at))}</span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-invite="${esc(v.id)}">Annuler</button></div>`).join("")}</details>` : ""}
       </section>
