@@ -3,7 +3,9 @@
 Rien ici n'est automatique ni déployé. Chaque étape dit où cliquer et quelle valeur saisir. Aucun secret ne doit entrer dans GitHub, un commit, un journal ou le cahier.
 
 ## A. Obtenir un AAB que Play accepte (déblocage des abonnements)
-1. GitHub › Actions › **Android natif (React Native)** › Run workflow › branche `claude/titan-cahier-charges-0k7cdn`, `signing` = `upload`, `version_code` = un nombre **supérieur à tous les versionCode déjà envoyés** (vide = 1000 + numéro d'exécution).
+1. GitHub › Actions › **Android natif (React Native)** › Run workflow › branche `codex/v11-finalization-20261102` (PR #128), `signing` = `upload`, `version_code` = un nombre **supérieur à tous les versionCode déjà envoyés** (vide = 1000 + numéro d'exécution).
+   - **Premier AAB (test interne, pour débloquer les abonnements)** : `billing` = coché, `ads` = `test`, et cocher `partial_release` (sinon le workflow refuse : un build Play complet exige `ads=live` ET `billing=true`, afin qu'aucune fonction commerciale ne reste éteinte par oubli).
+   - **AAB de sortie V1.1** : `ads` = `live`, `billing` = coché, `google_signin` selon la recette, `partial_release` décoché. Les publicités réelles ne se lancent qu'après les étapes de la section I et ton feu vert.
 2. Télécharger l'artefact `titan-android-<code>-upload` (pas « essai-NE-PAS-PUBLIER ») : le fichier `.aab`.
 3. Play Console › TITAN (`fr.titanapp.app`) › Tests › **Test interne** › Créer une version › envoyer l'AAB. Ne pas toucher à Production.
    Lien : https://play.google.com/console › TITAN › Tests et publication › Tests › Test interne.
