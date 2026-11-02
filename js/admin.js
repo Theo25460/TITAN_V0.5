@@ -743,12 +743,31 @@
             setSyncState('connecte', 'ok');
         } catch (error) {
             console.error('[TITAN ADMIN]', error);
+            if (error && error.sessionExpired) {
+                setGate(error.message);
+                setTimeout(() => { window.location.href = 'login.html?next=admin.html'; }, 1600);
+                return;
+            }
             setGate(error.message || 'Erreur de verification admin.', true);
         }
     }
 
+    /** An expired or missing session (not a missing permission): the answer is "sign in again", never a screen of zeros or a bare refusal. */
+    function isSessionError(error) {
+        if (!error) return false;
+        const text = String(error.message || error.error_description || '');
+        return error.status === 401 || error.code === 'PGRST301' || error.code === 'PGRST303' || /jwt (is )?expired|jwt expired|invalid jwt|not authenticated|auth session missing/i.test(text);
+    }
+
+    function sessionExpiredError() {
+        const error = new Error('Session expirée. Reconnecte-toi pour continuer : rien n\'a été modifié.');
+        error.sessionExpired = true;
+        return error;
+    }
+
     async function checkAdminAccess() {
         const rpc = await state.client.rpc('titan_admin_get_context_v1');
+        if (isSessionError(rpc.error)) throw sessionExpiredError();
         if (!rpc.error && rpc.data) {
             state.context = Object.assign({}, rpc.data, {
                 isAdmin: rpc.data.isAdmin === true || rpc.data.is_admin === true
@@ -849,7 +868,9 @@
             setSyncState('connecte', 'ok');
         } catch (error) {
             console.error('[TITAN ADMIN VIEW]', error);
-            view.innerHTML = errorMarkup(error);
+            view.innerHTML = error && error.sessionExpired
+                ? `<div class="panel empty-state"><strong>Session expirée</strong><p>${escapeHtml(error.message)}</p><a class="admin-btn" href="login.html?next=admin.html">Se reconnecter</a></div>`
+                : errorMarkup(error);
             setSyncState('erreur', 'error');
         }
     }
@@ -903,8 +924,10 @@
         `;
     }
 
+    // An unknown figure (not loaded, refused, failed) is shown as "—", NEVER as 0: a zero is a measurement.
     function safeNumber(value) {
-        return Number(value || 0).toLocaleString('fr-FR');
+        if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
+        return Number(value).toLocaleString('fr-FR');
     }
 
     function statCard(label, value, note) {
@@ -918,6 +941,13 @@
     }
 
     function trendPanel(title, trend) {
+        if (!trend) {
+            return `
+            <article class="chart-panel panel">
+                <h3>${escapeHtml(title)}</h3>
+                <p class="empty-state">Indisponible pour le moment. Ce n’est pas un zéro : actualise pour réessayer.</p>
+            </article>`;
+        }
         const max = Math.max(1, ...trend.map((item) => item.count));
         return `
             <article class="chart-panel panel">
@@ -937,6 +967,7 @@
 
     async function fetchDashboardStats() {
         const rpc = await state.client.rpc('titan_admin_dashboard_v1');
+        if (isSessionError(rpc.error)) throw sessionExpiredError();
         if (!rpc.error && rpc.data) {
             state.lastStats = rpc.data;
             return rpc.data;
@@ -956,13 +987,14 @@
         await Promise.all(pairs.map(async ([key, table]) => {
             output[key] = await countRows(table);
         }));
-        output.users_today = 0;
-        output.users_week = 0;
-        output.active_7d = 0;
-        output.activities_today = 0;
+        // The figures this fallback cannot compute stay unknown (null → "—"); it never invents a zero.
+        output.users_today = null;
+        output.users_week = null;
+        output.active_7d = null;
+        output.activities_today = null;
         output.reports_open = await countRows('reports');
-        output.contest_next_step = (Math.floor((output.contest_entries || 0) / 50) + 1) * 50;
-        output.suspicious_activities = 0;
+        output.contest_next_step = Number.isFinite(output.contest_entries) ? (Math.floor(output.contest_entries / 50) + 1) * 50 : null;
+        output.suspicious_activities = null;
         output.pages_published = await countRows('dynamic_pages');
         state.lastStats = output;
         return output;
@@ -970,8 +1002,9 @@
 
     async function countRows(table) {
         const { count, error } = await state.client.from(table).select('*', { count: 'exact', head: true });
-        if (error) return 0;
-        return count || 0;
+        if (isSessionError(error)) throw sessionExpiredError();
+        if (error || typeof count !== 'number') return null; // unknown, not zero
+        return count;
     }
 
     async function fetchTrend(table, column) {
@@ -986,7 +1019,8 @@
         });
         const since = `${days[0].key}T00:00:00.000Z`;
         const { data, error } = await state.client.from(table).select(column).gte(column, since).limit(1000);
-        if (error || !Array.isArray(data)) return days;
+        if (isSessionError(error)) throw sessionExpiredError();
+        if (error || !Array.isArray(data)) return null; // unknown, not seven empty days
         data.forEach((row) => {
             const key = String(row[column] || '').slice(0, 10);
             const item = days.find((day) => day.key === key);
