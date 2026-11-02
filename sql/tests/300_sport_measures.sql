@@ -7,8 +7,10 @@ begin
     select s.extra_fields into f from public.sports s where s.id = r.sport;
     if f is null then continue; end if; -- a sport absent from a lean test catalogue is not judged
     n := n + 1;
-    if (f -> 0 ->> 'id') is distinct from r.first_id then bad := bad || r.sport || ' '; end if;
-    if (select count(*) from jsonb_array_elements(f) x where (x->>'priority')::int <= r.cnt) <> r.cnt then bad := bad || r.sport || '(priority) '; end if;
+    -- Migration 50 reorders the measures across all 260 sports. Migration 31's IDs
+    -- remain supported for old records, but no longer have to be the first field.
+    if not exists(select 1 from jsonb_array_elements(f) x where x->>'id'=r.first_id) then bad := bad || r.sport || '(legacy ID) '; end if;
+    if (select count(*) from jsonb_array_elements(f) x where (x->>'priority')::int <= 3) <> 3 then bad := bad || r.sport || '(priority) '; end if;
     select array_agg(x ->> 'id') into ids from jsonb_array_elements(f) x;
     if (select count(*) from unnest(ids)) <> (select count(distinct i) from unnest(ids) i) then bad := bad || r.sport || '(duplicate id) '; end if;
     if exists (select 1 from jsonb_array_elements(f) x where x->>'type'='number' and ((x->>'min')::numeric > (x->>'max')::numeric)) then bad := bad || r.sport || '(bounds) '; end if;

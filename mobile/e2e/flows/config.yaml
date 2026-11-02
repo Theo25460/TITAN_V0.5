@@ -1,0 +1,10 @@
+# The journey builds on itself (same account A, then the switch to account B): fixed order, stop at the first failure.
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01-first-session
+    - 02-progress-adventure
+    - 03-offline
+    - 04-account-switch

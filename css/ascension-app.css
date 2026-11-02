@@ -440,6 +440,37 @@
 .seance-gpx label {
   cursor: pointer;
 }
+.gpx-preview {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+  margin-top: var(--s3);
+}
+.gpx-preview h3, .gpx-preview p, .gpx-figure { margin: 0; }
+.gpx-metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s3); margin: 0; }
+.gpx-metrics dt { color: var(--tx-3); font-size: 12px; }
+.gpx-metrics dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.gpx-figure svg { display: block; width: 100%; height: auto; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r2); }
+.gpx-figure polyline { fill: none; stroke: var(--cy); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.gpx-color-controls { margin-bottom: var(--s2); }
+.gpx-figure [data-color-mode="speed"] polyline, .gpx-figure [data-color-mode="grade"] polyline { stroke: var(--tx-3); }
+.gpx-color-line { stroke: var(--gpx-color); stroke-width: 3; stroke-linecap: round; }
+.gpx-band-0 { --gpx-color: #75baff; }
+.gpx-band-1 { --gpx-color: #7bdeb2; }
+.gpx-band-2 { --gpx-color: #f8d477; }
+.gpx-band-3 { --gpx-color: #ed9bca; }
+.gpx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; padding: 0; margin: var(--s2) 0; font-size: 12px; }
+.gpx-legend li { display: flex; align-items: center; gap: 5px; }
+.gpx-legend span { width: 14px; height: 3px; background: var(--gpx-color); }
+.gpx-unknown { --gpx-color: var(--tx-3); }
+.gpx-terrain { display: grid; gap: var(--s3); }
+.gpx-terrain h4 { margin: 0 0 var(--s2); }
+.gpx-terrain section { display: grid; gap: var(--s2); padding: var(--s3); background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r2); }
+.gpx-figure figcaption, .gpx-splits small { display: block; color: var(--tx-3); font-size: 12px; margin-top: 6px; }
+.gpx-table { max-height: 300px; overflow: auto; margin-top: var(--s2); }
+.gpx-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.gpx-table th, .gpx-table td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.gpx-table th:first-child { text-align: left; }
 .seance-exercises {
   display: grid;
   gap: var(--s3);
@@ -507,11 +538,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--s2);
+}
+.seance-more summary small {
+  flex-shrink: 0;
 }
 .seance-more summary::-webkit-details-marker {
   display: none;
 }
 .seance-more summary::after {
+  flex-shrink: 0;
   content: "+";
   color: var(--tx-3);
   font-size: 20px;
@@ -3759,3 +3795,48 @@
 .rv-mine[data-done="true"] .rv-text { color: var(--tx-2); }
 .rv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
 .rv-share { display: flex; gap: var(--s2); align-items: center; min-height: 44px; }
+/* Web activity hub: retain native file input accessibility within its visual button. */
+.seance-hub-upload { position: relative; overflow: hidden; margin-top: var(--s3); }
+.seance-hub-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.seance-hub-upload:focus-within { outline: 2px solid var(--cy); outline-offset: 3px; }
+[data-activity-hub] .asc-note { flex-wrap: wrap; }
+[data-activity-hub] select { width: 100%; min-width: 0; }
+[data-activity-hub] .asc-lead { margin-top: var(--s3); }
+.jr-add { margin-bottom: var(--s4); flex-wrap: wrap; }
+.co-analysis { display: grid; gap: var(--s3); padding: var(--s4); margin: var(--s3) 0; border: 1px solid var(--line); border-radius: var(--r2); background: var(--bg-2); min-width: 0; }
+.co-analysis h3, .co-analysis h4, .co-analysis p { margin: 0; }
+.co-analysis-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); margin: 0; }
+.co-analysis-stats dt { font-size: 12px; color: var(--tx-3); }
+.co-analysis-stats dd { margin: var(--s1) 0 0; font-size: clamp(17px, 2.2vw, 25px); font-weight: 700; overflow-wrap: anywhere; }
+.co-analysis-table { max-width: 100%; overflow-x: auto; }
+.co-analysis-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.co-analysis-table caption { text-align: left; color: var(--tx-3); padding-bottom: var(--s2); }
+.co-analysis-table th, .co-analysis-table td { padding: var(--s2) 5px; border-bottom: 1px solid var(--line); text-align: right; }
+.co-analysis-table th:first-child { text-align: left; }
+.co-analysis-table small { display: block; color: var(--tx-3); font-size: 11px; }
+.co-analysis-programme { display: grid; gap: var(--s2); }
+
+/* Fixed columns keep both periods and the delta visible on narrow Coach cards. */
+.co-comparison table { table-layout: fixed; }
+.co-comparison th, .co-comparison td { overflow-wrap: anywhere; vertical-align: top; }
+.co-comparison th:first-child { width: 28%; }
+@media (max-width: 600px) {
+  .co-comparison table { font-size: 11px; }
+  .co-comparison th, .co-comparison td { padding-inline: 3px; }
+  .co-comparison small { font-size: 10px; }
+}
+
+.co-roster-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: var(--s2); margin-top: var(--s2); }
+.co-roster-grid .co-person { width: 100%; min-width: 0; }
+.co-roster-grid strong, .co-roster-grid small { overflow-wrap: anywhere; }
+.co-calendar-nav { flex-wrap: wrap; }
+.co-calendar-nav strong { text-transform: capitalize; }
+.co-calendar-day { border-left: 2px solid var(--cy); padding-left: var(--s3); min-width: 0; }
+.co-calendar-day h4 { margin: 0 0 var(--s2); font-size: 14px; }
+.co-calendar-day ul { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s2); }
+.co-calendar-day li { display: grid; overflow-wrap: anywhere; gap: var(--s1); }
+[data-co-export] button { white-space: normal; }
+[data-co-roster-slot], [data-co-calendar-slot], [data-co-export-slot] { min-width: 0; }
+[data-co-export] { margin-block: var(--s3); }
+
+[data-co-legacy-nav][hidden] { display: none; }

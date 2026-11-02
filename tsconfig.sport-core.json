@@ -7,7 +7,10 @@
     "noUncheckedIndexedAccess": true,
     "target": "ES2022",
     "module": "CommonJS",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "types": []
   },
   "files": [
@@ -17,11 +20,13 @@
     "js/core/endurance.js",
     "js/core/titles.js",
     "js/core/gpx.js",
+    "js/core/coach-analysis.js",
     "js/core/format.js",
     "js/core/steps.js",
     "js/core/sport-navigation.js",
     "js/core/support-diagnostics.js",
     "types/sport-core-globals.d.ts",
-    "tests/typecheck/effort-contract.ts"
+    "tests/typecheck/effort-contract.ts",
+    "js/core/coach-workspace.js"
   ]
 }

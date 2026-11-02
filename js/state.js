@@ -1093,6 +1093,7 @@ window.applyGameData = function(data) {
         safeArray(data.sports).forEach(s => {
             if (s.is_active !== false) {
                 window.SPORTS_CONFIG[s.id] = {
+                    catalogSource: 'server',
                     label: s.label,
                     name: s.name || s.label,
                     slug: s.slug || s.id,

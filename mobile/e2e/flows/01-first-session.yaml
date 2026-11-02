@@ -1,0 +1,66 @@
+# Connexion avec un compte existant, onboarding et première séance confirmée par le serveur
+appId: fr.titanapp.app
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    when:
+        visible: ".*isn't responding.*"
+    commands:
+      - tapOn: "Wait"
+- extendedWaitUntil:
+    visible:
+      id: "welcome-login"
+    timeout: 60000
+- takeScreenshot: 01-accueil
+- tapOn:
+    id: "welcome-login"
+- tapOn:
+    id: "login-email"
+- inputText: "e2e-a@titan.test"
+- tapOn:
+    id: "login-password"
+- inputText: "TitanE2E-a-2026"
+- takeScreenshot: 02-connexion
+- tapOn:
+    id: "login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-next"
+    timeout: 30000
+- takeScreenshot: 03-onboarding-sports
+- tapOn:
+    id: "sport-running"
+- tapOn:
+    id: "onboarding-next"
+- takeScreenshot: 04-onboarding-rythme
+- tapOn:
+    id: "onboarding-next"
+- tapOn:
+    id: "onboarding-finish"
+- extendedWaitUntil:
+    visible:
+      id: "distance"
+    timeout: 30000
+- tapOn:
+    id: "distance"
+- inputText: "10"
+- waitForAnimationToEnd
+- tapOn:
+    id: "duration-m"
+- tapOn:
+    id: "duration-m"
+- inputText: "55"
+- takeScreenshot: 05-saisie-seance
+- tapOn:
+    id: "session-save"
+- extendedWaitUntil:
+    visible: ".*(XP confirmés|Récompense en vérification).*"
+    timeout: 30000
+- takeScreenshot: 06-resultat-serveur
+- tapOn:
+    id: "result-done"
+- extendedWaitUntil:
+    visible: ".*Athlete A.*"
+    timeout: 20000
+- takeScreenshot: 07-qg

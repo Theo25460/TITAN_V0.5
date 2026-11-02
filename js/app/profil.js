@@ -263,7 +263,7 @@
 
   function sourcesBlockHtml() {
     if (guest() || !sources || !sources.length) return "";
-    return `<section class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
+    return `<section id="sources" class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
       <div class="asc-list">${sources.map((x) => {
         const name = SOURCE_NAMES[x.source] || x.source;
         const since = x.granted_at ? new Date(x.granted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
