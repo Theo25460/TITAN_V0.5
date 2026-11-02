@@ -3840,3 +3840,8 @@
 [data-co-export] { margin-block: var(--s3); }
 
 [data-co-legacy-nav][hidden] { display: none; }
+
+/* Folded-phone cover display (~280 px): the rank name never overflows its card. */
+@media (max-width: 359px) {
+  .qg-rank-name { font-size: clamp(26px, 9vw, 34px); overflow-wrap: anywhere; }
+}

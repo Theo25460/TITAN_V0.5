@@ -969,3 +969,12 @@ a.pub-card:hover {
 .pub-article h2 {
   font-size: clamp(28px, 4.6vw, 40px);
 }
+
+/* Touch targets (WCAG 2.2 AA 2.5.8, comfortable thumb size): the stacked footer links and the folding summaries are tall enough to hit on a phone. */
+@media (pointer: coarse) {
+  .pub-nav a { display: inline-flex; align-items: center; min-height: 40px; }
+  .pub-footer nav { gap: 0; }
+  .pub-footer nav a { display: flex; align-items: center; min-height: 40px; }
+  .pub a.pub-link { min-height: 36px; }
+  .pub details > summary { min-height: 44px; display: flex; align-items: center; }
+}
