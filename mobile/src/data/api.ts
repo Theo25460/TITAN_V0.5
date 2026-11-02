@@ -245,6 +245,7 @@ export const deleteOwnAccount = () => rpc("delete_own_account", {}, 30000);
 
 /* ---------- Connected sources (Health Connect) ---------- */
 export const sourceConsent = (source: "health_connect", consent: boolean) => rpc<{ granted: boolean }>("titan_set_source_consent_v1", { p_source: source, p_granted: consent });
+export const dailyActivity = (from: string, to: string) => rpc<{ day: string; steps: number; sources?: string[]; updatedAt?: string }[]>("titan_daily_activity_v1", { p_from: from, p_to: to });
 export const sourcesStatus = () => rpc<unknown>("titan_sources_v1");
 export type ImportResult = { status: "imported" | "linked" | "duplicate"; log_id?: string };
 export const importActivity = (p: { externalId: string; sport: string; startedAt: string; minutes: number }) =>
