@@ -28,16 +28,17 @@ const table = (head, rows) => `<div class="pub-table" tabindex="0" role="region"
 /* ---------------------------------------------------------------- Privacy */
 doc({
   route: "/legal_privacy",
+  updated: "2 novembre 2026",
   file: "legal_privacy.html",
   title: "Politique de confidentialité | TITAN",
   h1: "Politique de confidentialité",
   eyebrow: "Confiance",
   ref: "Version 7",
   updated: "21 octobre 2026",
-  description: "Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité.",
+  description: "Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, aucune publicité sur le site.",
   body: `${legalNav}
 <h2>1. En bref</h2>
-<ul><li>TITAN est <strong>privé par défaut</strong> : ton journal, tes notes et tes statistiques ne sont visibles que par toi tant que tu n’en décides pas autrement.</li><li>Nous ne vendons aucune donnée et <strong>aucune publicité</strong> n’est chargée.</li><li>Les statistiques d’usage ne sont liées à ton compte qu’avec ton accord ; tu peux les refuser entièrement.</li><li>Tu peux <strong>exporter</strong> ou <strong>supprimer</strong> toutes tes données depuis Profil, à tout moment.</li></ul>
+<ul><li>TITAN est <strong>privé par défaut</strong> : ton journal, tes notes et tes statistiques ne sont visibles que par toi tant que tu n’en décides pas autrement.</li><li>Nous ne vendons aucune donnée. <strong>Aucune publicité n’est chargée sur le site web.</strong> Dans l’application Android, la version gratuite affiche quelques publicités Google AdMob, seulement après ton consentement et jamais pendant une séance ; TITAN+ et les offres Coach n’en affichent aucune.</li><li>Les statistiques d’usage ne sont liées à ton compte qu’avec ton accord ; tu peux les refuser entièrement.</li><li>Tu peux <strong>exporter</strong> ou <strong>supprimer</strong> toutes tes données depuis Profil, à tout moment.</li></ul>
 <h2>2. Responsable du traitement</h2>
 <p>L’équipe TITAN, projet indépendant porté par Théo et son cofondateur. Contact pour toute question ou demande liée à tes données : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>
 <h2>3. Données traitées et finalités</h2>
@@ -68,8 +69,8 @@ ${table(["Donnée", "Toi", "Tes amis acceptés", "Coach (si tu l’autorises)", 
 <ul><li><strong>Accord</strong> : les événements sont liés à ton compte pour comprendre les parcours (par exemple, combien de personnes enregistrent une deuxième séance).</li><li><strong>Pas encore de réponse</strong> : comptage anonyme, sans identifiant de compte ni d’appareil, sans référent.</li><li><strong>Refus</strong> : rien n’est envoyé.</li></ul>
 <p>Événements possibles : inscription, onboarding terminé, première et deuxième séance, objectif créé, record battu, campagne démarrée ou avancée, défi rejoint, récap hebdomadaire consulté, ouverture du paiement TITAN+, activation de TITAN+. Les seules propriétés acceptées sont des catégories (famille de sport, identifiant de sport, étape, monde, chapitre). Jamais de santé, de poids, de GPS, de note ni de texte libre. Conservation : 13 mois au plus.</p>
 <h2>7. Prestataires et transferts</h2>
-<ul><li><strong>Supabase</strong> : base de données, authentification et fonctions serveur.</li><li><strong>Netlify</strong> : hébergement du site et des fonctions.</li><li><strong>Resend</strong> : envoi des e-mails de réponse de l’assistance.</li><li><strong>Google Play</strong> : paiement de TITAN+ dans l’application Android, à son ouverture ; TITAN ne voit jamais tes coordonnées bancaires.</li></ul>
-<p>Certains prestataires peuvent traiter des données hors de l’Union européenne, dans le cadre de leurs engagements contractuels (clauses contractuelles types) et de leurs garanties de sécurité. Aucune donnée n’est transmise à des courtiers, régies publicitaires ou réseaux sociaux.</p>
+<ul><li><strong>Supabase</strong> : base de données, authentification et fonctions serveur.</li><li><strong>Netlify</strong> : hébergement du site et des fonctions.</li><li><strong>Resend</strong> : envoi des e-mails de réponse de l’assistance.</li><li><strong>Google Play</strong> : paiement de TITAN+ dans l’application Android, à son ouverture ; TITAN ne voit jamais tes coordonnées bancaires.</li><li><strong>Google AdMob</strong> (application Android, version gratuite seulement) : affiche les publicités. Après ton consentement (formulaire européen de Google), Google peut utiliser l’identifiant publicitaire de ton téléphone et des données techniques (adresse IP, modèle d’appareil). TITAN n’envoie à Google ni ton journal, ni tes séances, ni ta position. Tu peux changer ton choix dans Profil &gt; Confidentialité, ou réinitialiser ou supprimer l’identifiant publicitaire dans les réglages Android.</li></ul>
+<p>Certains prestataires peuvent traiter des données hors de l’Union européenne, dans le cadre de leurs engagements contractuels (clauses contractuelles types) et de leurs garanties de sécurité. Aucune donnée n’est transmise à des courtiers ou à des réseaux sociaux ; la seule régie publicitaire est Google AdMob, dans l’application Android, comme décrit ci-dessus.</p>
 <h2>8. Durées de conservation</h2>
 ${table(["Donnée", "Durée"], [
   ["Compte, journal, progression", "Tant que le compte existe. Suppression immédiate à ta demande."],
@@ -102,6 +103,7 @@ ${table(["Donnée", "Durée"], [
 /* ---------------------------------------------------------------- Terms */
 doc({
   route: "/legal_cgu",
+  updated: "2 novembre 2026",
   file: "legal_cgu.html",
   title: "Conditions générales d’utilisation | TITAN",
   h1: "Conditions d’utilisation",
@@ -113,7 +115,7 @@ doc({
 <div class="pub-note"><strong>Santé d’abord.</strong> TITAN est un journal et un outil de motivation. Ce n’est ni un dispositif médical, ni un diagnostic, ni un coaching professionnel. En cas de douleur, malaise, blessure, pathologie ou reprise après une longue pause, arrête-toi et consulte un professionnel de santé. Aucune récompense ne justifie de forcer.</div>
 <h2>1. Objet</h2><p>Ces conditions encadrent l’utilisation de TITAN (le « Service »), sur le web et en application installée. Créer un compte ou utiliser le Service vaut acceptation. Si tu les refuses, cesse d’utiliser le Service ; tu peux supprimer ton compte à tout moment.</p>
 <h2>2. Le Service</h2><p>TITAN est un projet indépendant, en amélioration continue. L’équipe fait de son mieux pour le garder disponible et fiable, sans pouvoir garantir l’absence d’interruption ou d’erreur. Les séances enregistrées hors ligne restent sur l’appareil jusqu’à leur envoi.</p>
-<h2>3. Accès gratuit</h2><p>Le journal, les analyses, la progression, quatre campagnes, la Communauté, l’Atelier et le coaching de trois sportifs sont gratuits, sans limite de durée et sans publicité.</p>
+<h2>3. Accès gratuit</h2><p>Le journal, les analyses, la progression, quatre campagnes, la Communauté, l’Atelier et le coaching de trois sportifs sont gratuits, sans limite de durée. Le site web n’affiche aucune publicité ; l’application Android gratuite affiche quelques publicités discrètes (Google AdMob), jamais pendant l’effort, et aucune avec TITAN+ ou les offres Coach.</p>
 <h2>4. TITAN+</h2>
 <p>4.1. <strong>Contenu</strong> : jusqu’à 20 routines nommées, jusqu’à 20 sportifs suivis dans l’espace coach et quatre pièces cosmétiques. TITAN+ n’augmente jamais l’XP, les crédits, les plafonds ni aucun avantage de progression.</p>
 <p>4.2. <strong>Paiement</strong> : TITAN+ n’est pas encore en vente. À son ouverture, il s’achètera uniquement dans l’application Android, via Google Play, qui présentera le prix, les taxes, le renouvellement, la rétractation et les remboursements avant validation. Aucun paiement n’est accepté sur le site. Les accès TITAN+ accordés manuellement restent valables.</p>
@@ -224,7 +226,7 @@ doc({
   title: "Centre de confiance : confidentialité, équité, sécurité | TITAN",
   h1: "Centre de confiance",
   eyebrow: "Confiance",
-  description: "Les engagements de TITAN : privé par défaut, aucune publicité, aucune progression vendue, données exportables et supprimables.",
+  description: "Les engagements de TITAN : privé par défaut, aucune progression vendue, données exportables et supprimables, aucune publicité sur le site.",
   body: `${legalNav}
 ${cards([
   ["lock", "Privé par défaut", "Journal privé, amis sur demande acceptée, profil public désactivé, coach seulement avec ton accord."],
@@ -339,11 +341,11 @@ doc({
   title: "Partenariats : clubs, salles, coachs et associations | TITAN",
   h1: "Construire avec les clubs<br>et les coachs",
   eyebrow: "Partenariats",
-  description: "Clubs, salles, associations et coachs : ce que TITAN peut apporter à vos sportifs, et nos conditions (aucune donnée revendue, aucune publicité).",
+  description: "Clubs, salles, associations et coachs : ce que TITAN peut apporter à vos sportifs, et nos conditions (aucune donnée revendue, aucune publicité sur le site).",
   image: "archipelago",
   body: `<p class="pub-lead">TITAN aide les sportifs à pratiquer régulièrement et à comprendre leurs progrès. Si vous accompagnez des sportifs, parlons-en.</p>
 <h2>Ce qui existe déjà</h2><ul><li><strong>Espace coach</strong> : suivi consenti, périmètre choisi par le sportif, propositions de séances. Trois sportifs gratuitement, vingt avec TITAN+. <a href="/pour-les-coachs">Voir le fonctionnement</a>.</li><li><strong>Guildes</strong> : un objectif d’effort hebdomadaire commun, pour un club ou une section.</li><li><strong>Expéditions</strong> : des saisons collectives où chaque minute d’effort compte pareil, quel que soit le sport.</li></ul>
-<h2>Nos conditions</h2><ul><li>Aucune donnée individuelle n’est partagée avec un partenaire sans le consentement explicite de la personne.</li><li>Aucune revente de données, aucune publicité.</li><li>Pas de progression achetable, y compris pour un partenaire.</li></ul>
+<h2>Nos conditions</h2><ul><li>Aucune donnée individuelle n’est partagée avec un partenaire sans le consentement explicite de la personne.</li><li>Aucune revente de données, aucune publicité sur le site.</li><li>Pas de progression achetable, y compris pour un partenaire.</li></ul>
 <h2>Nous écrire</h2><p><a href="mailto:${SUPPORT}?subject=Partenariat">${SUPPORT}</a> — présentez votre structure et ce que vous aimeriez construire.</p>`,
 });
 
@@ -464,7 +466,7 @@ seoGuide({
     ["Corriger sans tricher", `<p>Une erreur de saisie se corrige : les analyses et records se mettent à jour, l’XP ne bouge pas. Une séance archivée peut être restaurée.</p>`],
     ["Hors ligne et exportable", `<p>Une séance enregistrée sans réseau reste sur l’appareil et se synchronise toute seule. Tout ton journal s’exporte en CSV, toutes tes données en JSON.</p>`],
   ],
-  faqItems: [["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité."]],
+  faqItems: [["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité sur le site web."]],
 });
 seoGuide({
   route: "/progression-sportive",

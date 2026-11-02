@@ -60,7 +60,10 @@ test("V1 has no advertising and says nothing false about it (LEG12), and virtual
   const sellers = adsTxt.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
   assert.ok(sellers.every((l) => /^google\.com, pub-\d{10,20}, DIRECT, f08c47fec0942fa0$/.test(l)) && sellers.length <= 1, "ads.txt authorises at most the owner's single AdSense line, nothing else");
   const everything = [...pages.map((f) => readFileSync(new URL(f, root), "utf8")), ...readdirSync(new URL("js/", root), { recursive: true }).filter((f) => String(f).endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, root), "utf8"))].join("\n");
-  assert.ok(!/(doubleclick|googlesyndication|adservice\.google|pagead2|applovin|admob|ca-pub-\d)/i.test(everything), "no advertising network code or publisher id ships");
+  // 02/11/2026 (owner decision): AdMob ships in the ANDROID app. The privacy policy and terms name it in prose ("Google AdMob") as the law requires;
+  // that disclosure is the only allowed mention. Any ad network code, other network or publisher id on the web is still refused.
+  const withoutDisclosure = everything.replace(/Google AdMob/g, "");
+  assert.ok(!/(doubleclick|googlesyndication|adservice\.google|pagead2|applovin|admob|ca-pub-\d)/i.test(withoutDisclosure), "no advertising network code or publisher id ships");
   const cgu = readFileSync(new URL("legal_cgu.html", root), "utf8");
   assert.match(cgu, /sans valeur monétaire[\s\S]{0,120}ne s’achètent pas, ne se vendent pas, ne s’échangent pas et ne sont pas remboursables/);
   assert.match(readFileSync(new URL("js/app/atelier.js", root), "utf8"), /Elle ne s’achète pas/);

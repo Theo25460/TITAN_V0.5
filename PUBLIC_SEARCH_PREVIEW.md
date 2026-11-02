@@ -5,14 +5,14 @@ Cette référence reprend les métadonnées de l'accueil dans la branche de trav
 ```text
 TITAN — Journal sportif multisport, progression et aventure
 https://titan-app.fr/
-Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, sans publicité, privé par défaut.
+Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.
 ```
 
 Aperçu demandé pour le partage social :
 
 ```text
 TITAN — Journal sportif multisport, progression et aventure
-Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, sans publicité, privé par défaut.
+Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.
 Image: https://titan-app.fr/image/og-titan.jpg
 Favicon Google: https://titan-app.fr/favicon.ico
 ```

@@ -54,7 +54,7 @@ const homeFaq = faq([
 const home = page({
   route: "/",
   title: "TITAN — Journal sportif multisport, progression et aventure",
-  description: "Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, sans publicité, privé par défaut.",
+  description: "Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.",
   schema: [
     { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", availability: "https://schema.org/ComingSoon" }] },
     homeFaq.schema,
