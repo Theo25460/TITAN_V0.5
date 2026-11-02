@@ -1,11 +1,11 @@
--- Contrôle APRÈS les migrations V1.1 (20261028010000 → 20261102130000), à lancer sur la copie restaurée puis en production.
+-- Contrôle APRÈS les migrations V1.1 (20261028010000 → 20261102150000), à lancer sur la copie restaurée puis en production.
 -- LECTURE SEULE : un SELECT, uniquement historique et catalogues, aucune donnée de compte.
 -- Toutes les lignes blocking=true doivent avoir ok=true. Les 29 migrations de la V1 doivent déjà être appliquées.
 with
 expected_migrations(version) as (values
   ('20261028010000'), ('20261028020000'), ('20261028030000'), ('20261028040000'), ('20261028050000'),
   ('20261028060000'), ('20261028070000'), ('20261028080000'), ('20261028090000'), ('20261028100000'),
-  ('20261028110000'), ('20261028120000'), ('20261029090000'), ('20261029100000'), ('20261029110000'), ('20261029120000'), ('20261029130000'), ('20261029140000'), ('20261029150000'), ('20261029160000'), ('20261029160655'), ('20261029170000'), ('20261030090000'), ('20261030100000'), ('20261030110000'), ('20261030120000'), ('20261102090000'), ('20261102100000'), ('20261102110000'), ('20261102120000'), ('20261102130000')
+  ('20261028110000'), ('20261028120000'), ('20261029090000'), ('20261029100000'), ('20261029110000'), ('20261029120000'), ('20261029130000'), ('20261029140000'), ('20261029150000'), ('20261029160000'), ('20261029160655'), ('20261029170000'), ('20261030090000'), ('20261030100000'), ('20261030110000'), ('20261030120000'), ('20261102090000'), ('20261102100000'), ('20261102110000'), ('20261102120000'), ('20261102130000'), ('20261102140000'), ('20261102150000')
 ),
 api_roles as (
   select (select oid from pg_roles where rolname = 'anon') as anon_oid,
@@ -13,6 +13,7 @@ api_roles as (
          (select oid from pg_roles where rolname = 'service_role') as service_oid
 ),
 expected_tables(relation) as (values
+  ('private.adventure_journeys'), ('private.adventure_sensor_proofs'), ('private.adventure_effort_ledger'), ('private.adventure_encounter_rewards'), ('private.adventure_family_rewards'),
   ('private.titan_routes'), ('private.titan_periodic_quest_claims'), ('private.titan_source_consents'),
   ('private.titan_imported_activities'), ('private.titan_daily_activity'), ('private.titan_garmin_links'), ('private.titan_garmin_tokens'),
   ('private.titan_polls'), ('private.titan_poll_options'), ('private.titan_poll_votes'), ('private.titan_roadmap_items'), ('private.titan_roadmap_votes'), ('private.titan_pioneers'), ('private.titan_daily_intents'), ('private.titan_intent_cheers'), ('private.titan_common_quests'), ('private.titan_common_quest_members'), ('private.titan_buddies'), ('private.titan_buddy_nudges'), ('private.titan_seasons'), ('private.titan_season_members'), ('private.titan_ranking_optin'), ('private.titan_challenge_invites'), ('private.titan_challenge_results'), ('private.titan_world_goals'), ('private.titan_world_goal_members'), ('private.titan_clubs'), ('private.titan_club_members'), ('private.titan_club_announcements'), ('private.titan_club_bans'), ('private.titan_club_reports'), ('private.titan_factions'), ('private.titan_faction_members'), ('private.titan_pantheon_optin'), ('private.titan_club_trophies'), ('private.titan_plan_products'), ('private.titan_coach_templates'), ('private.titan_coach_messages'), ('private.titan_coach_checkins'), ('private.titan_coach_message_reports')
@@ -23,6 +24,9 @@ table_state as (
 ),
 -- anon_execute, authenticated_execute : droits attendus. Aucune fonction V1.1 n'est ouverte à PUBLIC.
 expected_rpc(signature, anon_execute, authenticated_execute, service_execute) as (values
+  ('public.titan_adventure_rpg_snapshot_v1(text)', false, true, null),
+  ('public.titan_adventure_rpg_action_v1(text,text,integer,integer)', false, true, null),
+  ('public.titan_adventure_attest_sensor_v1(uuid,numeric,numeric,text)', false, false, true),
   ('public.titan_find_profile_by_friend_code(text)', false, true, null),
   ('public.titan_list_my_friends()', false, true, null),
   ('public.titan_periodic_quests_v1()', false, true, null),
@@ -144,7 +148,7 @@ expected_indexes(relation, col) as (values
   ('public.titan_moments', 'log_id')
 ),
 checks(check_name, blocking, ok, detail) as (
-  select 'ledger:31 migrations V1.1', true,
+  select 'ledger:33 migrations V1.1', true,
     not exists(select 1 from expected_migrations e where not exists(select 1 from supabase_migrations.schema_migrations m where m.version = e.version)),
     'versions manquantes : ' || (select count(*) from expected_migrations e
       where not exists(select 1 from supabase_migrations.schema_migrations m where m.version = e.version))
@@ -198,6 +202,11 @@ checks(check_name, blocking, ok, detail) as (
       and pg_get_functiondef(to_regprocedure('public.export_own_data()')) like '%importedActivities%'
       and pg_get_functiondef(to_regprocedure('public.export_own_data()')) like '%adventureRewards%',
     'la définition d''export contient les clés ajoutées'
+  union all
+  select 'export:RPG conservé', true,
+    pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%adventureRpg%'
+      and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%titan_export_extras_before_rpg_v1%',
+    'le journal RPG complète les sections précédentes sans les remplacer'
   union all
   select 'trigger:jetons Garmin effacés avec le lien', true,
     exists(select 1 from pg_trigger t where t.tgrelid = to_regclass('private.titan_garmin_links') and t.tgname = 'titan_garmin_links_erase_tokens' and not t.tgisinternal),

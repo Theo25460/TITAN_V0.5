@@ -1,0 +1,47 @@
+let mockOwner = "a";
+let mockFlags = true;
+const mockCalls: { name: string; params: Record<string, unknown>; token: string }[] = [];
+jest.mock("../src/lib/supabase", () => ({ supabase: {
+  auth: { getSession: async () => ({ data: { session: { user: { id: mockOwner }, access_token: `token-${mockOwner}` } } }) },
+  rpc: (name: string, params: Record<string, unknown>) => ({ setHeader: (_key: string, token: string) => {
+    mockCalls.push({ name, params, token });
+    return Promise.resolve({ data: name === "titan_feature_flags_v1" ? { flags: { "screens.garmin": mockFlags } } : name === "titan_garmin_status_v1" ? { linked: false } : name === "titan_economy_limits" ? { messageMaxLength: 280, chatGuildCost: 0 } : name === "titan_list_guild_messages" ? [] : { id: "message-1" }, error: null });
+  } }),
+} }));
+import { connectGarmin, disconnectGarmin, loadGuildChat, postGuildMessage } from "../src/lib/nativeConnections";
+beforeEach(() => { mockOwner = "a"; mockFlags = true; mockCalls.length = 0; });
+const network = (status = 200, url = "https://connect.garmin.com/oauth/confirm") => jest.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({ ok: status === 200, status, json: async () => ({ url }) } as Response));
+
+test("Garmin requires explicit consent and a server flag; no request when either is missing", async () => {
+  const open = jest.fn(); const fetcher = network();
+  await expect(connectGarmin("a", false, open, fetcher)).rejects.toThrow();
+  expect(mockCalls).toHaveLength(0);
+  mockFlags = false;
+  await expect(connectGarmin("a", true, open, fetcher)).rejects.toThrow();
+  expect(fetcher).not.toHaveBeenCalled(); expect(open).not.toHaveBeenCalled();
+});
+test("Garmin grants the current account, pins its token, then opens the approved provider", async () => {
+  const open = jest.fn(async () => undefined); const fetcher = network();
+  await connectGarmin("a", true, open, fetcher);
+  expect(mockCalls.find((c) => c.name === "titan_set_source_consent_v1")).toMatchObject({ params: { p_source: "garmin", p_granted: true }, token: "Bearer token-a" });
+  expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: "Bearer token-a" } });
+  expect(open).toHaveBeenCalledWith("https://connect.garmin.com/oauth/confirm");
+});
+test("Garmin rejects unsafe redirects and a changed account before opening the browser", async () => {
+  const open = jest.fn(async () => undefined);
+  await expect(connectGarmin("a", true, open, network(200, "https://garmin.com.evil.test/"))).rejects.toThrow();
+  const fetcher = network(); fetcher.mockImplementationOnce(async () => { mockOwner = "b"; return { ok: true, json: async () => ({ url: "https://connect.garmin.com/oauth/confirm" }) } as Response; });
+  await expect(connectGarmin("a", true, open, fetcher)).rejects.toThrow("AUTH_REQUIRED"); expect(open).not.toHaveBeenCalled();
+});
+test("Garmin withdrawal still removes local authorization when the provider endpoint is down", async () => {
+  await disconnectGarmin("a", network(503));
+  expect(mockCalls).toEqual(expect.arrayContaining([expect.objectContaining({ name: "titan_set_source_consent_v1", params: { p_source: "garmin", p_granted: false } }), expect.objectContaining({ name: "titan_garmin_unlink_v1" })]));
+});
+test("guild chat reads current rules, validates content and never sends under a replacement account", async () => {
+  expect(await loadGuildChat("a")).toEqual({ messages: [], maxLength: 280, cost: 0 });
+  await expect(postGuildMessage("a", " ", 280)).rejects.toThrow();
+  await expect(postGuildMessage("a", "x".repeat(281), 280)).rejects.toThrow();
+  await postGuildMessage("a", "  Salut la guilde  ", 280);
+  expect(mockCalls.at(-1)).toMatchObject({ name: "titan_send_guild_message", params: { p_content: "Salut la guilde" }, token: "Bearer token-a" });
+  mockOwner = "b"; await expect(postGuildMessage("a", "ancien compte", 280)).rejects.toThrow("AUTH_REQUIRED");
+});

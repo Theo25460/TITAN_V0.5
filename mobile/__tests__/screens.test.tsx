@@ -305,3 +305,13 @@ describe("loading", () => {
     show(<S.World {...props({ id: "aube" })} />);
   });
 });
+
+describe("discipline-specific native entry", () => {
+  test("cycling exposes cadence and watts, and optional fields expand", () => {
+    show(<S.Form {...props({ sport: "cycling" })} />);
+    expect(screen.getByText("Cadence moyenne")).toBeTruthy();
+    expect(screen.getByText("Puissance moyenne")).toBeTruthy();
+    fireEvent.press(screen.getByText("Autres mesures (facultatif)"));
+    expect(screen.getByText("Puissance maximale")).toBeTruthy();
+  });
+});

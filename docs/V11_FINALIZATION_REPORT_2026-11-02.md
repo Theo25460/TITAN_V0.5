@@ -1,6 +1,6 @@
 # TITAN V1.1 — rapport de finalisation, 2 novembre 2026
 
-**Décision : NO-GO pour publication grand public.** Cette intervention livre des correctifs vérifiés et une branche de consolidation supplémentaire, pas une déclaration de clôture artificielle de toute la V1.1. La production reste inchangée. Le niveau de sécurité 7,5/10 n'est pas démontré.
+**Développement de finition livré sur la PR #128.** La candidate comprend les correctifs de sécurité, les métriques des 260 sports, l’édition des maintiens, Garmin et les messages de guilde natifs, ainsi que les rencontres RPG Web/Android. La publication dépend encore des validations d’exploitation et d’appareil décrites ci-dessous ; la production reste inchangée. Aucune note de sécurité arbitraire n’est attribuée.
 
 ## A. Version et sources exactes
 
@@ -8,7 +8,7 @@
 - Comparaison GitHub : `claude/titan-finition-web` à `8102c176` est entièrement ancêtre de la consolidation, avec 0 commit exclusif et 157 commits de retard. PR #105 ouverte, base main. Sources conservées.
 - Production Netlify : projet `titano-app`, déploiement `6ad9c1f1a3cb26a466c44bc5`, prêt et verrouillé, contexte production, branche déclarée main, `commit_ref=null`. Publication déclarée le 29 octobre à 15 h 07 Paris. Ce déploiement manuel n'atteste pas un commit précis ni une V1.1 publiée.
 - Production Supabase inspectée en lecture : 80 tables publiques sur 80 avec RLS ; 175 fonctions privilégiées dans le snapshot (dont 68 RPC publiques accessibles), fonctions exposées détenues par postgres avec bypassrls, sans superuser ; CREATE sur public fermé à anon/authenticated. Alertes : 68 grants authenticated et 3 anon sur 68 fonctions distinctes, 20 informations RLS sans politique, mots de passe compromis désactivés. Aucune correction distante appliquée.
-- Lot SQL V1.1 candidat : **31 migrations, numéros 30 à 60**. Le nouveau correctif est `20261102130000_legacy_social_privacy`. Les migrations V1 déjà appliquées ne doivent pas être rejouées.
+- Lot SQL V1.1 candidat : **33 migrations, numéros 30 à 62**. Les trois dernières couvrent confidentialité sociale, rencontres RPG et correction des maintiens. Les migrations V1 déjà appliquées ne doivent pas être rejouées.
 - Google Play : la version réellement installée dans le test fermé n'a pas été lue dans la console ; les numéros du dépôt et les anciennes notes ne la prouvent pas. La CI de la base `6b4bcaa` avait Qualité et TWA verts, Android natif encore en cours au dernier contrôle ; cela ne valide pas la nouvelle tête.
 
 ## B. Qualité, données et isolation Android
@@ -50,7 +50,7 @@ Plan 30/60/90 jours, mesure de l'activation et utilisateurs actifs : `V11_SEO_FI
 
 Le registre `V11_SQL_SECURITY_REVIEW_2026-11-02.md` examine individuellement les **68 fonctions / 71 droits**, avec empreinte de définition et garde observée. Deux défauts confirmés : recherche par code ami privée/bloquée/suspendue ; statistiques de relations non acceptées et défaut permissif d'options absentes. Le correctif conserve les signatures et restreint les données. Les cinq assertions négatives échouent sur les anciens corps et passent après la migration, avec le rôle authenticated réel sur Postgres embarqué.
 
-La CSP des scripts ne contient **déjà pas** unsafe-inline dans la candidate ni dans les réponses HTTP de production inspectées. Aucun durcissement fictif revendiqué. Tests Chromium de CSP inclus dans la recette ciblée. Le scan de l'historique ne détecte aucun secret serveur sur 4 011 versions de fichiers ; 97 citations de test/documentation classées illustratives. Cela ne prouve pas la révocation d'un secret exposé ailleurs.
+La CSP des scripts ne contient **déjà pas** unsafe-inline dans la candidate ni dans les réponses HTTP de production inspectées. Aucun durcissement fictif revendiqué. Tests Chromium de CSP inclus dans la recette ciblée. Le scan de l'historique ne détecte aucun secret serveur sur 4 072 versions de fichiers ; 97 citations de test/documentation classées illustratives. Cela ne prouve pas la révocation d'un secret exposé ailleurs.
 
 Grille proposée : évaluer la couverture et le risque résiduel selon les domaines ci-dessous, puis ne calculer une note qu'après levée des gates bloquantes. Une moyenne ne compense jamais une fuite exploitable ni un test critique manquant.
 
@@ -74,28 +74,29 @@ Autorité serveur, plafonds, déduplication et absence d'XP pour les pas/parcour
 | Contrôle exécuté localement | Résultat |
 | --- | --- |
 | `pnpm run verify` | Réussi : types, tests inclus, build, audit et garde de livraison ; avertissements éditoriaux non bloquants restent visibles |
-| `node --test tests/*.test.mjs` | 447/447 réussis |
+| `node --test tests/*.test.mjs` | 450/450 réussis |
 | Android TypeScript strict | Réussi |
-| Android Jest complet | 223/223, 36 suites, avec `--forceExit` ; animations/handles Jest préexistants, pas un processus naturellement terminé sans drapeau |
+| Android Jest complet | 515/515, 42 suites, avec `--forceExit` ; animations/handles Jest préexistants, pas un processus naturellement terminé sans drapeau |
 | Metro Android release | Bundle produit ; aucun APK/AAB signé prétendu |
-| Scan historique Git | Réussi : 4 011 versions, aucune détection de secret serveur |
-| SQL ciblé PGlite | RED historique sur cinq cas → GREEN ; réapplication, catalogue V1.1 et quatre mutations négatives vérifiés |
+| Scan historique Git | Réussi : 4 072 versions, aucune détection de secret serveur |
+| RPG ajouté (local) | 3 tests cœur, 3 parcours Chromium, 8 tests natifs ; SQL restreint et simulation réelle 28 jours × 14 profils ; réapplication réussie |
+| SQL ciblé PGlite | RED historique sur cinq cas → GREEN ; réapplication, catalogue V1.1 et six mutations négatives vérifiés |
 | SQL natif GitHub Actions | Deux voies du banc PostgreSQL 17.6 réussies, migrations et tests SQL dont crypto et concurrence à deux connexions, sur commit `e9e8429` : job `125352432880`, run `41467586393`. Il reste une réplique structurelle sans données, pas une restauration de production. |
 | SQL élargi embarqué | 77/98 fichiers passent ; 21 limitations nommées dans la revue (crypto, nom de base, commandes psql, locks). Pas équivalent au banc natif |
 | Chromium smoke isolé | 346/346 réussis |
 | Chromium CSP + Google + parcours + Billing ciblés | 14/14 réussis |
 | SEO multi-largeurs | 27 navigations, sans débordement ; contenu escalade lisible sans JS |
-| Campagne navigateur complète | **Non validée** : premier essai présente une cascade de timeouts/échecs dans le groupe smoke après plusieurs centaines de succès ; le premier échec repasse isolé et le groupe smoke repasse entièrement seul. Cause globale non démontrée ; aucune revendication « tout vert » |
+| Campagne navigateur complète | CI réussie sur `2e6efe1` (run `41468484038`, job `125356115801`) ; les trois nouveaux parcours RPG passent localement. La nouvelle tête doit recevoir sa propre CI. |
 
 Les commandes couvrent les derniers changements de leur composant ; la CI doit être exécutée sur la tête distante exacte avant toute fusion. Le banc embarqué n'utilise aucune donnée réelle et ne restaure pas une sauvegarde de production.
 
 ## G. Périmètre restant et sortie
 
-Les écrans et bibliothèques existants sont inventoriés dans `mobile/docs/INVENTAIRE.md`, les activations dans `V11_ACTIVATION_MATRIX.md`. Cette intervention n'a pas validé chacune des fonctions de bout en bout en production. Points qui empêchent de dire « toute la V1.1 terminée » :
+Les écrans et bibliothèques existants sont inventoriés dans `mobile/docs/INVENTAIRE.md`, les activations dans `V11_ACTIVATION_MATRIX.md`. Cette intervention n'a pas validé chacune des fonctions de bout en bout en production. Livraison et validations restantes :
 
-- RPG approfondi : monstres/combats, bestiaire enrichi, embranchements et dialogues, moteur vNext et simulations demandées restent absents/partiels, décrits sans faux statut dans `RPG_AUDIT_2026-11-02.md`. Ne pas modifier les courbes non approuvées sous couvert de sécurité.
-- Parité native : l'inventaire signale encore des champs sportifs, espace Coach, Garmin, rapports avancés ou messagerie de guilde absents/partiels sur Android. Leur existence Web ne prouve pas leur existence native.
-- Environnement isolé représentatif : restaurer une sauvegarde récente, vérifier les 31 migrations sur les données restaurées (banc PostgreSQL natif/concurrence déjà vert sur réplique vide), puis l'isolation réelle de deux comptes ordinaires, Coach et admin sur la candidate exacte.
+- RPG livré : 18 jalons par monde en trois arcs, monstres/mini-boss, choix persistés, bestiaire et titres cosmétiques. Ledger privé, sources uniques entre mondes, plafond global 90/jour, profil figé sur 28 jours et export cumulatif. Le candidat effort v2 est simulé séparément et reste désactivé dans la progression/XP/coins en attendant validation explicite. Voir `RPG_AUDIT_2026-11-02.md`.
+- Android livré : catalogue commun des 260 sports (champs principaux/facultatifs, unités, bornes, brouillons, édition et détail), maintiens modifiables, Garmin avec consentement/statut/révocation et drapeau serveur, messagerie de guilde avec limites serveur et isolation des comptes. Le grand espace Coach et les rapports avancés restent sur Web conformément à l’architecture 2026 du cahier des charges ; leur duplication native n’est pas une condition inventée de clôture.
+- Environnement isolé représentatif : restaurer une sauvegarde récente, vérifier les 33 migrations sur les données restaurées (banc PostgreSQL natif/concurrence déjà vert sur réplique vide), puis l'isolation réelle de deux comptes ordinaires, Coach et admin sur la candidate exacte.
 - Appareil et services : GPS verrouillage/reprise/batterie, Health Connect permissions/révocation/import, Google, Garmin avec deux comptes et montre, achats testeurs/RTDN, annonces de test/UMP, suppression/export ; déclarations Play et textes légaux à valider.
 - Relire l'ensemble des tests et la CI exacte, confirmer les configurations Auth, les secrets révoqués et la restauration ; préparer seulement ensuite le feu vert de publication.
 
@@ -103,6 +104,6 @@ Migration/rollback : plan versionné, copie d'abord, sauvegarde restaurable et v
 
 **Aucune fusion main, migration Supabase production, publication Netlify ou Google Play, activation d'achat/publicité réelle, ni envoi à des utilisateurs n'a été effectué.** La PR est un brouillon de correctifs à intégrer et valider, pas une autorisation de publier.
 
-## Complément de vérification après ouverture de la PR #128
+## Preuves de la reprise de finition
 
-Les tests et le build public ainsi que le scan historique sont verts dans GitHub Actions sur `e9e8429`. Le banc SQL natif PostgreSQL 17.6 passe dans ses deux voies, incluant concurrence et crypto : la limite d’installation locale a donc été compensée par une vraie exécution CI, sans prétendre avoir restauré la production. La régression supplémentaire de stockage Auth confirme qu’une file illisible affiche un message et ne supprime pas la session valide : suite Android locale finale 223 tests. Le statut des jobs navigateur et paquet Android de la tête distante finale est à lire sur la PR ; aucune couleur verte d’un ancien commit ne doit lui être attribuée.
+La CI Web complète (types/tests/build/historique, PostgreSQL 17.6 dans les deux voies avec concurrence/crypto, parcours navigateur) passe sur la base `2e6efe1` : run `41468484038`. Les ajouts de cette reprise ont leurs propres régressions : 515 tests Android, 14 tests cœur RPG/non-régression, trois parcours navigateur RPG, SQL restreint et simulation sur 28 jours pour 14 profils, correction des maintiens avec RED historique puis GREEN et réapplication. Le contrôle postflight comprend désormais les 33 migrations, les cinq nouvelles tables privées et les trois RPC RPG (dont une réservée au service). Les statuts CI finaux sont ceux de la tête distante de la PR, jamais ceux d’un ancien commit par assimilation.

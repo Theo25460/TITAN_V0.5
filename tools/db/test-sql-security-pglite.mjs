@@ -48,6 +48,7 @@ try {
   await run('sql/tests/300_legacy_social_privacy.sql');
   console.log('GREEN: lookup, acceptance, omitted flags, stats withdrawal, two-way blocks; reapplication passes.');
 
+  for (const f of migrations.filter((f) => f > fix)) await run('supabase/migrations/' + f);
   const versions = migrations.filter((f) => f.slice(0, 14) > '20261021020000').map((f) => f.slice(0, 14));
   assert(versions.every((v) => /^\d{14}$/.test(v)));
   await db.exec('insert into supabase_migrations.schema_migrations(version) values '
@@ -58,12 +59,14 @@ try {
     ['grant select on private.titan_routes to authenticated;', 'private.titan_routes:API grants'],
     ['alter table private.titan_routes disable row level security;', 'private.titan_routes:RLS'],
     ['grant execute on function public.titan_find_profile_by_friend_code(text) to anon;', 'titan_find_profile_by_friend_code'],
-    ['grant execute on function public.titan_list_my_friends() to anon;', 'titan_list_my_friends']
+    ['grant execute on function public.titan_list_my_friends() to anon;', 'titan_list_my_friends'],
+    ['grant select on private.adventure_effort_ledger to authenticated;', 'private.adventure_effort_ledger:API grants'],
+    ['grant execute on function public.titan_adventure_attest_sensor_v1(uuid,numeric,numeric,text) to authenticated;', 'titan_adventure_attest_sensor_v1']
   ]) {
     await db.exec('begin;' + mutation);
     assert((await gate()).rows.some((r) => r.blocking && r.ok !== true && r.check.includes(expected)), expected);
     await db.exec('rollback;');
   }
-  console.log('GREEN: V1.1 catalog gates; all four added negative probes blocked and rolled back.');
+  console.log('GREEN: V1.1 catalog gates; all six added negative probes blocked and rolled back.');
   console.log('LIMIT: native PostgreSQL, pgcrypto, psql include/meta-commands and concurrency still require the normal bench.');
 } finally { await db.close(); }

@@ -14,6 +14,7 @@ import { useToast } from "../../components/Toast";
 import { Format, Progress, Sports, Training } from "../../core";
 import { recordText, sessionRecords } from "../../core/moment";
 import { RPE_TEXT } from "../../core/session";
+import { metricFields } from "../../core/sportMetrics";
 import { useLogs, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
@@ -174,6 +175,13 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
           </Card>
         </Section>
       ) : null}
+
+      {metricFields(log.sport, true).some((f) => extras[f.id] !== undefined && extras[f.id] !== null && extras[f.id] !== "") ? <Section title="Mesures enregistrées">
+        <Card tone="flat" style={{ gap: 8 }}>
+          {metricFields(log.sport, true).filter((f) => extras[f.id] !== undefined && extras[f.id] !== null && extras[f.id] !== "").map((f) => <View key={f.id} style={{ gap: 2 }}><T variant="caption" tone="muted">{f.label}</T><T variant="small">{typeof extras[f.id] === "boolean" ? extras[f.id] ? "Oui" : "Non" : String(extras[f.id])}{f.unit ? ` ${f.unit}` : ""}</T></View>)}
+          <T variant="caption" tone="faint">Valeurs enregistrées avec cette séance ; les champs absents restent inconnus.</T>
+        </Card>
+      </Section> : null}
 
       <View style={{ gap: space.s3 }}>
         <Button label="Refaire cette séance" icon="copy" kind="secondary" onPress={() => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: log.id })} />

@@ -79,3 +79,43 @@ describe("effort and level rules (mirror of titan_effort_v300)", () => {
     expect(EffortRules.rank(10).name).toBe("Gardien");
   });
 });
+
+describe("native discipline metrics", () => {
+  test("typed metric values survive build and payload serialization", () => {
+    const draft = { ...freshDraft("cycling", NOW), distance: "32", extras: { cadence: "88", avg_power: "185,5", surface: "Route", unknown: 42 } };
+    const payload = toPayload(buildSession(draft, NOW), "cycling", ID, "UTC", false, NOW.getTime());
+    expect(JSON.parse(JSON.stringify(payload)).details.extras).toEqual({ cadence: 88, avg_power: 185.5, surface: "Route" });
+  });
+  test("blank, malformed, extreme and hidden metrics never become invented measurements", () => {
+    for (const value of ["", "12oops", Infinity, -1, 999999, true, {}, []]) {
+      const d = { ...freshDraft("cycling", NOW), distance: "10", extras: { cadence: value } };
+      expect(toPayload(buildSession(d, NOW), "cycling", ID, "UTC", false, NOW.getTime()).details.extras).toEqual({});
+    }
+    const d = { ...freshDraft("football", NOW), durM: "60", extras: { position: "Défenseur", saves: 3, goals: 0 } };
+    expect(toPayload(buildSession(d, NOW), "football", ID, "UTC", false, NOW.getTime()).details.extras).toEqual({ position: "Défenseur", goals: 0 });
+  });
+  test("hold-only practice uses the recorded seconds and retains every hold", () => {
+    const d = freshDraft("bodyweight", NOW);
+    d.exercises = [{ name: "Gainage", variant: "", kind: "hold", sets: [{ weight: "", reps: "", rir: "", seconds: "45" }, { weight: "", reps: "", rir: "", seconds: "30" }] }];
+    const b = buildSession(d, NOW);
+    expect(b.errors).toEqual([]);
+    const p = toPayload(b, "bodyweight", ID, "UTC", false, NOW.getTime());
+    expect(p).toMatchObject({ val: 1.25, unit: "min" });
+    expect(p.details.exercises?.[0]).toMatchObject({ kind: "hold", holdSeconds: 75, setRows: [{ seconds: 45 }, { seconds: 30 }] });
+  });
+});
+
+test.each(["1.5", "3601", "-5", "oops"])("invalid timed sets (%s) are blocked before payload sanitation", (seconds) => {
+  const d = freshDraft("bodyweight", NOW);
+  d.exercises = [{ name: "Gainage", variant: "", kind: "hold", sets: [{ weight: "", reps: "", rir: "", seconds }] }];
+  expect(buildSession({ ...d, durM: "10" }, NOW).errors.some((e) => e.field === "exercises")).toBe(true);
+});
+
+test("holds never count as repetitions or lifted volume, including loaded holds", () => {
+  const d = freshDraft("muscu_gym", NOW);
+  d.exercises = [{ name: "Gainage lesté", variant: "", kind: "hold", sets: [{ weight: "10", reps: "", rir: "", seconds: "60" }] }];
+  const p = toPayload(buildSession(d, NOW), "muscu_gym", ID, "UTC");
+  expect(p).toMatchObject({ val: 1, unit: "min" });
+  expect(p.details.exercises?.[0]).toMatchObject({ kind: "hold", totalReps: 0, volume: 0, holdSeconds: 60 });
+  expect(p.details.exercises?.[0].setRows[0]).not.toHaveProperty("reps");
+});

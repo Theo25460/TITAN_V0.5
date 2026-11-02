@@ -64,6 +64,14 @@
 
 ## Execution ledger
 
+### Reprise demandée — finir le code, consommation maîtrisée
+
+- Direction confirmée : poursuivre les fonctions commencées, pas seulement un audit ; mettre à jour le cahier natif en place.
+- Réutiliser l’architecture existante et les règles serveur. Le score Adventure vNext est parallèle aux XP/crédits, jamais un remplacement non validé.
+- Chantiers indépendants : métriques natives des 260 sports et correction des maintiens ; RPG (rencontres, bestiaire, narration, score parallèle/simulations) ; Garmin/guilde natifs et intégration/CI par le responsable.
+- Coach : respecter le cahier, qui place le grand espace de travail sur le Web en 2026 ; ne pas inventer une obligation de dupliquer chaque écran Web sur Android. Les comptes/droits/données partagés restent requis.
+- Vérifier les changements par lots, puis une campagne finale consolidée ; ne pas relancer les mêmes audits sans changement pertinent.
+
 - Baseline: 6b4bcaa; work isolated, source branches untouched, production read-only.
 - Confirmed corrections and red/green regressions: GPS outboxes, session queue, auth/draft/receipt isolation; SQL legacy privacy; ads ceilings/effort/tutorial/consent; Play response ordering.
 - Independent final review reproduced queue account leakage and requested strict-read readiness; regression tests added before fixes.

@@ -29,6 +29,7 @@ import { routeLink, routeSave } from "../../data/api";
 import { flushRoutes, linkSavedSession } from "../../lib/routeSync";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
 import { ExerciseEditor } from "./ExerciseEditor";
+import { SportMetricsEditor } from "./SportMetricsEditor";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -55,7 +56,9 @@ function prefillFrom(log: TrainingLog, base: SessionDraft): SessionDraft {
       sets: (e.setRows?.length ? e.setRows : [{ weight: e.weight || 0, reps: e.reps || 0, rir: null }]).map((s) => ({ weight: s.weight ? String(s.weight) : "", reps: s.reps ? String(s.reps) : "", rir: s.rir === null || s.rir === undefined ? "" : String(s.rir), seconds: s.seconds ? String(s.seconds) : "" })),
     }));
   const x = (det.extras || {}) as Record<string, unknown>;
-  if (x.climbing_discipline) d.climbing = { ...d.climbing, discipline: x.climbing_discipline === "Voie" ? "Voie" : "Bloc", location: x.location === "Extérieur" ? "Extérieur" : "Salle", system: String(x.grade_system || d.climbing.system), belay: String(x.belay || "") };
+  d.extras = { ...x };
+  if (x.pool) d.pool = String(x.pool);
+  if (x.climbing_discipline) d.climbing = { ...d.climbing, discipline: x.climbing_discipline === "Voie" ? "Voie" : "Bloc", location: x.location === "Extérieur" ? "Extérieur" : "Salle", system: String(x.grade_system || d.climbing.system), belay: String(x.belay || ""), attempts: x.attempts == null ? "" : String(x.attempts), successes: x.successful_routes == null ? "" : String(x.successful_routes), best: String(x.max_done || "") };
   return d;
 }
 
@@ -372,6 +375,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </>
         )}
       </Section>
+
+      <SportMetricsEditor sport={sport} values={draft.extras} onChange={(extras) => setDraft({ extras })} plus={profile?.is_elite} error={errors?.field?.startsWith("extras.") ? errors.message : null} />
 
       <Card tone="flat" style={{ gap: space.s3 }}>
         <View style={styles.row}>

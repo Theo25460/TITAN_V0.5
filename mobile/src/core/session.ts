@@ -3,6 +3,7 @@
    val/val1/val2/duration fields, same exercise rows, same bounds. The server recomputes effort and rewards. */
 import { Sports, type SportForm } from "./index";
 import type { Exercise, SessionDetails, TrainingPayload } from "./types";
+import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
 
 export type SetDraft = { weight: string; reps: string; rir: string; seconds: string };
 export type ExerciseDraft = { name: string; variant: string; kind: "weighted" | "bodyweight" | "hold"; sets: SetDraft[] };
@@ -25,6 +26,7 @@ export type SessionDraft = {
   climbing: ClimbingDraft;
   rpe: number | null;
   note: string;
+  extras?: Record<string, unknown>;
   gpx?: { movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; points: number } | null;
 };
 
@@ -87,8 +89,8 @@ export function performedAt(d: SessionDraft, now = new Date()): Date | null {
   return Number.isNaN(at.getTime()) ? null : at;
 }
 
-function exercisesPayload(d: SessionDraft): Exercise[] {
-  return d.exercises
+export function exerciseDraftPayload(exercises: ExerciseDraft[]): Exercise[] {
+  return exercises
     .filter((e) => e.name.trim())
     .map((e) => {
       const kind = e.kind || "weighted";
@@ -105,6 +107,22 @@ function exercisesPayload(d: SessionDraft): Exercise[] {
     .filter((e) => e.setRows.length);
 }
 
+export function exerciseDrafts(exercises: Exercise[] = []): ExerciseDraft[] {
+  return exercises.map((e) => ({ name: e.name, variant: e.variant || "", kind: e.kind || "weighted", sets: (e.setRows || []).map((s) => ({ weight: String(s.weight ?? 0), reps: String(s.reps ?? ""), rir: s.rir == null ? "" : String(s.rir), seconds: String(s.seconds ?? "") })) }));
+}
+
+export function exerciseDraftError(exercises: ExerciseDraft[]): string | null {
+  for (const e of exercises) for (const s of e.sets) {
+    const values = e.kind === "hold" ? [[s.seconds, 1, 3600, true], [s.weight, 0, 1000, false]] : [[s.reps, 1, 500, true], [s.weight, 0, 1000, false], [s.rir, 0, 10, false]];
+    for (const [raw, min, max, integer] of values) {
+      if (raw === "") continue;
+      const n = num(raw);
+      if (n === null || n < Number(min) || n > Number(max) || (integer && !Number.isInteger(n))) return e.kind === "hold" ? "Un maintien dure de 1 à 3 600 secondes entières ; la charge va de 0 à 1 000 kg." : "Vérifie les séries : 1 à 500 répétitions entières, 0 à 1 000 kg et RIR de 0 à 10.";
+    }
+  }
+  return null;
+}
+
 export type BuildResult = { details: SessionDetails; errors: { message: string; field: string | null }[]; unit: string; val: number; at: Date | null; form: SportForm };
 
 /** Same validation and same payload as the website form. */
@@ -116,6 +134,12 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
   const dur = draftDuration(d);
   const at = performedAt(d, now);
   const data: SessionDetails = { note: d.note.trim(), tags: [], extras: {}, bio: d.rpe ? { rpe: d.rpe } : {} };
+  const exerciseError = exerciseDraftError(d.exercises);
+  if (exerciseError) fail(exerciseError, "exercises");
+  for (const field of metricFields(sport, true)) {
+    const value = d.extras?.[field.id];
+    if (value !== undefined && value !== null && value !== "" && metricVisible(field, d.extras || {}) && metricValue(field, value) === undefined) fail(`Vérifie « ${field.label} »${field.type === "number" ? ` (${field.min ?? 0} à ${field.max ?? 1000000}${field.unit ? ` ${field.unit}` : ""})` : ""}.`, `extras.${field.id}`);
+  }
   if (!at) fail("Choisis une date valide.", "date");
   else if (at.getTime() > now.getTime() + 60000) fail("La date ne peut pas être dans le futur.", d.when === "other" ? "date" : "time");
   else data.performedAt = at.toISOString();
@@ -142,14 +166,18 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     data.val1 = m ?? undefined;
     (data.extras as Record<string, unknown>).pool = d.pool;
   } else if (form === "strength") {
-    data.exercises = exercisesPayload(d);
+    data.exercises = exerciseDraftPayload(d.exercises);
     if (!data.exercises.length && dur === null) fail("Ajoute au moins une série complète (exercice et répétitions), ou une durée.", "exercises");
     if (!data.exercises.length && dur !== null) {
       data.unitOverride = "min";
       data.val1 = dur;
     }
+    if (data.exercises.length && data.exercises.every((e) => e.kind === "hold")) {
+      data.val1 = Math.round(data.exercises.reduce((sum, e) => sum + e.setRows.reduce((n, s) => n + (s.seconds || 0), 0), 0) / 60 * 100) / 100;
+      data.unitOverride = "min";
+    }
   } else if (form === "bodyweight") {
-    data.exercises = exercisesPayload(d);
+    data.exercises = exerciseDraftPayload(d.exercises);
     const reps = data.exercises.filter((e) => e.kind !== "hold").reduce((n, e) => n + e.setRows.reduce((a, r) => a + (r.reps || 0), 0), 0);
     if (reps > 0) {
       data.val1 = reps;
@@ -157,7 +185,11 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     } else if (dur !== null) {
       data.val1 = dur;
       data.unitOverride = "min";
-    } else fail("Ajoute des répétitions, des maintiens avec une durée, ou une durée.", "exercises");
+    } else {
+      const seconds = data.exercises.reduce((n, e) => n + e.setRows.reduce((sum, s) => sum + (s.seconds || 0), 0), 0);
+      if (seconds > 0) { data.val1 = Math.round(seconds / 60 * 100) / 100; data.unitOverride = "min"; }
+      else fail("Ajoute des répétitions, des maintiens avec une durée, ou une durée.", "exercises");
+    }
   } else if (form === "climbing") {
     const c = d.climbing;
     if (dur === null) fail("Indique la durée de la séance.", "duration");
@@ -190,6 +222,7 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
       if (unit === "h" && dur) data.unitOverride = "min";
     }
   }
+  data.extras = { ...(d.extras || {}), ...data.extras };
   unit = data.unitOverride || unit;
   let val = Number(data.val1) || 0;
   if (!val && data.exercises?.length) {
@@ -217,22 +250,23 @@ export function sanitizeExercises(exercises: unknown): Exercise[] {
   return exercises
     .slice(0, 80)
     .map((ex: Exercise) => {
+      const kind = ["weighted", "bodyweight", "hold"].includes(String(ex?.kind)) ? (ex.kind as Exercise["kind"]) : "weighted";
       const setRows = Array.isArray(ex?.setRows)
         ? ex.setRows.slice(0, 30).map((set) => {
             const seconds = optionalInt(set?.seconds, 3600);
-            const row: { weight: number; reps: number; rir: number | null; seconds?: number } = {
+            const row: { weight: number; reps?: number; rir: number | null; seconds?: number } = {
               weight: Math.max(0, Math.min(toNumber(set?.weight, 0), 1000)),
               reps: seconds ? 1 : Math.max(1, Math.min(parseInt(String(set?.reps || 0), 10) || 1, 500)),
               rir: optionalInt(set?.rir, 10),
             };
             if (seconds) row.seconds = seconds;
+            if (kind === "hold") { delete row.reps; row.rir = null; }
             return row;
           })
         : [];
       const sets = setRows.length || Math.max(0, Math.min(parseInt(String(ex?.sets || 0), 10) || 0, 100));
-      const totalReps = setRows.length ? setRows.reduce((sum, s) => sum + s.reps, 0) : Math.max(0, Math.min(parseInt(String(ex?.totalReps || 0), 10) || 0, 50000));
-      const volume = setRows.length ? setRows.reduce((sum, s) => sum + s.weight * s.reps, 0) : Math.max(0, Math.min(toNumber(ex?.volume, 0), 10000000));
-      const kind = ["weighted", "bodyweight", "hold"].includes(String(ex?.kind)) ? (ex.kind as Exercise["kind"]) : "weighted";
+      const totalReps = kind === "hold" ? 0 : setRows.length ? setRows.reduce((sum, s) => sum + (s.reps || 0), 0) : Math.max(0, Math.min(parseInt(String(ex?.totalReps || 0), 10) || 0, 50000));
+      const volume = kind === "hold" ? 0 : setRows.length ? setRows.reduce((sum, s) => sum + s.weight * (s.reps || 0), 0) : Math.max(0, Math.min(toNumber(ex?.volume, 0), 10000000));
       const clean: Exercise = {
         name: String(ex?.name || "").replace(/\s+/g, " ").trim().slice(0, 80),
         variant: String(ex?.variant || "").replace(/\s+/g, " ").trim().slice(0, 60),
@@ -249,12 +283,12 @@ export function sanitizeExercises(exercises: unknown): Exercise[] {
       if (kind === "hold") clean.holdSeconds = setRows.reduce((sum, s) => sum + (s.seconds || 0), 0);
       return clean;
     })
-    .filter((ex) => ex.name && (ex.sets || 0) > 0 && (ex.reps || 0) > 0);
+    .filter((ex) => ex.name && (ex.sets || 0) > 0 && (ex.kind === "hold" ? (ex.holdSeconds || 0) > 0 : (ex.reps || 0) > 0));
 }
 
-function sanitizeExtras(extras: unknown, sport: string): Record<string, unknown> {
+function sanitizeExtras(extras: unknown, sport: string, plus = false): Record<string, unknown> {
   const raw = (extras && typeof extras === "object" ? extras : {}) as Record<string, unknown>;
-  const clean: Record<string, unknown> = {};
+  const clean: Record<string, unknown> = sanitizeMetrics(sport, raw, plus);
   if (Sports.formOf(sport) === "climbing") {
     const selections: Record<string, string[]> = { climbing_discipline: ["Bloc", "Voie"], belay: [...BELAYS], location: ["Salle", "Extérieur"], grade_system: ["Français voie", "Fontainebleau bloc", "V-scale bloc"] };
     for (const [key, options] of Object.entries(selections)) if (options.includes(String(raw[key]))) clean[key] = raw[key];
@@ -281,7 +315,7 @@ export function sanitizeDetails(details: SessionDetails, sport: string, now = Da
   out.performedAt = Number.isFinite(at.getTime()) && at.getTime() <= now + 60000 ? at.toISOString() : "";
   out.note = String(details.note || "").replace(/\s+/g, " ").trim().slice(0, noteLimit(plus));
   out.tags = [];
-  out.extras = sanitizeExtras(details.extras, sport);
+  out.extras = sanitizeExtras(details.extras, sport, plus);
   if (details.gpxStats) {
     const clamp = (v: unknown, max: number) => Math.max(0, Math.min(toNumber(v, 0), max));
     out.gpxStats = {

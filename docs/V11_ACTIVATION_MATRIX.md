@@ -39,4 +39,6 @@ Rien n'est « cassé » : chaque fonction développée est derrière un interrup
 Aucune condition de sécurité n'a été retirée ou assouplie pour « débloquer » une fonction. Le refus d'un achat fait pour un autre compte, l'absence de publicité sans droits connus, le consentement avant le SDK sont des protections volontaires.
 
 ## Correctif de confidentialité avant ouverture (02/11/2026)
-La migration 60 (`20261102130000_legacy_social_privacy`) rejoint le lot V1.1 : 31 migrations au total, numérotées 30 à 60. Elle ferme deux lectures héritées (code ami privé/bloqué/suspendu et statistiques d’une relation non acceptée). Aucun drapeau ne remplace ce correctif serveur. Elle est testée sur base jetable et doit suivre le même processus de copie restaurée, recette puis autorisation avant production.
+La migration 60 (`20261102130000_legacy_social_privacy`) rejoint le lot V1.1 : 33 migrations au total, numérotées 30 à 62. Elle ferme deux lectures héritées (code ami privé/bloqué/suspendu et statistiques d’une relation non acceptée). Aucun drapeau ne remplace ce correctif serveur. Elle est testée sur base jetable et doit suivre le même processus de copie restaurée, recette puis autorisation avant production.
+
+La finition ajoute les migrations 61 (rencontres RPG, journal privé, attestation capteurs service uniquement et export) et 62 (édition des maintiens). Les écrans Android métriques, Garmin et messages de guilde utilisent les contrats réels, sans activer les services à distance. Le candidat effort v2 reste un simulateur parallèle ; aucune bascule XP/coins.

@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { WorldPathMap } from "../../components/WorldPathMap";
+import { AdventureEncounters } from "../../components/AdventureEncounters";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -17,6 +18,8 @@ import { useToast } from "../../components/Toast";
 import { CampaignEncounters, Codex, Format, Progress, type Chapter } from "../../core";
 import { guardianImages, worldImages } from "../../core/images";
 import { useAdventure, useAdventureAction } from "../../data/hooks";
+import { useOwner } from "../../data/auth";
+import type { AdventureWorld } from "../../data/adventureRpg";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
@@ -24,6 +27,7 @@ import { colors, radius, space } from "../../theme/tokens";
 
 /** One world: where you are on its nine-chapter path, what stands in the way, and what your next real session does. */
 export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootParams, "World">) {
+  const owner = useOwner();
   const world = Codex.worlds.find((w) => w.id === route.params.id) ?? Codex.worlds[0];
   const q = useAdventure();
   const action = useAdventureAction();
@@ -100,6 +104,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </View>
       </View>
       <T tone="muted">{done ? world.ending : world.intro}</T>
+      {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
 
       {locked ? (
         <Card style={{ gap: 6 }}>

@@ -1,6 +1,6 @@
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { View } from "react-native";
 import { Button } from "../../components/Button";
 import { Field } from "../../components/Field";
@@ -9,31 +9,40 @@ import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Format, Sports } from "../../core";
-import { num, type ExerciseDraft } from "../../core/session";
+import { exerciseDraftError, exerciseDraftPayload, exerciseDrafts, num, type ExerciseDraft } from "../../core/session";
+import { metricFields, metricPatch, metricValue, metricVisible } from "../../core/sportMetrics";
 import type { SessionPatch } from "../../data/api";
-import { useLogs, useUpdateSession } from "../../data/hooks";
+import { useLogs, useProfile, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import type { RootParams } from "../../navigation/types";
 import { space } from "../../theme/tokens";
 import { ExerciseEditor } from "./ExerciseEditor";
+import { SportMetricsEditor } from "./SportMetricsEditor";
+import { useOnline } from "../../lib/network";
+import { useOwner } from "../../data/auth";
 
 /** Correction of a synchronised session through titan_update_training_session (revision check, server validation). */
 export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionEdit">) {
   const { logs, archived } = useLogs();
   const update = useUpdateSession();
+  const online = useOnline();
+  const owner = useOwner();
+  const currentOwner = useRef(owner);
+  currentOwner.current = owner;
+  const plus = useProfile().data?.is_elite || false;
   const toast = useToast();
   const log = [...logs, ...archived].find((l) => l.id === route.params.id);
   const d = log?.details || {};
   const hasExercises = !!d.exercises?.length;
-  const holds = d.exercises?.some((e) => e.kind === "hold");
   const [date, setDate] = useState(log ? new Date(log.date) : new Date());
   const [value, setValue] = useState(log && !hasExercises ? String(log.val).replace(".", ",") : "");
   const initialDur = Number(d.duration || d.val2) || 0;
-  const [durM, setDurM] = useState(initialDur ? String(Math.round(initialDur)) : "");
+  const [durM, setDurM] = useState(initialDur ? String(initialDur) : log?.unit === "min" && !hasExercises ? String(log.val) : "");
   const [note, setNote] = useState(String(d.note || ""));
   const [exercises, setExercises] = useState<ExerciseDraft[]>(
-    (d.exercises || []).map((e) => ({ name: e.name, variant: e.variant || "", kind: e.kind || "weighted", sets: (e.setRows || []).map((s) => ({ weight: String(s.weight ?? 0), reps: String(s.reps ?? ""), rir: s.rir === null || s.rir === undefined ? "" : String(s.rir), seconds: "" })) })),
+    exerciseDrafts(d.exercises),
   );
+  const [extras, setExtras] = useState<Record<string, unknown>>({ ...d.extras });
   const [error, setError] = useState<string | null>(null);
   if (!log) return <Screen><EmptyState title="Séance introuvable" /></Screen>;
 
@@ -57,7 +66,8 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
   }
 
   async function save() {
-    if (!log) return;
+    if (!log || update.isPending) return;
+    if (!online) return setError("Une connexion est nécessaire pour corriger une séance synchronisée.");
     setError(null);
     const patch: SessionPatch = {};
     if (Math.abs(date.getTime() - new Date(log.date).getTime()) > 30000) {
@@ -70,7 +80,7 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       if (v !== Number(log.val)) patch.val = v;
     }
     const dm = num(durM);
-    if (unit === "min") {
+    if (unit === "min" && !hasExercises) {
       if (!(dm && dm > 0 && dm <= 1440)) return setError("La durée va de 1 minute à 24 heures.");
       if (dm !== Number(log.val)) patch.val = dm;
     } else if ((dm ?? 0) !== initialDur) {
@@ -78,20 +88,24 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       patch.duration = dm;
     }
     if (note.trim() !== String(d.note || "")) patch.note = note.trim();
-    if (hasExercises && !holds) {
-      const clean = exercises
-        .filter((e) => e.name.trim())
-        .map((e) => ({ name: e.name.trim(), variant: e.variant, setRows: e.sets.filter((s) => (num(s.reps) || 0) > 0).map((s) => ({ weight: num(s.weight) || 0, reps: Math.round(num(s.reps) || 0), rir: num(s.rir) })) }))
-        .filter((e) => e.setRows.length);
+    if (hasExercises) {
+      const exerciseError = exerciseDraftError(exercises);
+      if (exerciseError) return setError(exerciseError);
+      const clean = exerciseDraftPayload(exercises);
       if (!clean.length) return setError("Garde au moins un exercice avec une série complète.");
-      if (JSON.stringify(clean) !== JSON.stringify((d.exercises || []).map((e) => ({ name: e.name, variant: e.variant || "", setRows: (e.setRows || []).map((s) => ({ weight: s.weight || 0, reps: s.reps || 0, rir: s.rir ?? null })) })))) patch.exercises = clean;
+      if (JSON.stringify(clean) !== JSON.stringify(exerciseDraftPayload(exerciseDrafts(d.exercises)))) patch.exercises = clean;
     }
+    for (const f of metricFields(log.sport, plus)) if (extras[f.id] !== "" && extras[f.id] != null && metricVisible(f, extras) && metricValue(f, extras[f.id]) === undefined) return setError(`Vérifie « ${f.label} ».`);
+    const changedExtras = metricPatch(log.sport, d.extras || {}, extras, plus);
+    if (Object.keys(changedExtras).length) patch.extras = changedExtras;
     if (!Object.keys(patch).length) return navigation.goBack();
     try {
       await update.mutateAsync({ log, patch });
+      if (currentOwner.current !== owner) return;
       toast({ kind: "ok", title: "Séance corrigée" });
       navigation.goBack();
     } catch (e) {
+      if (currentOwner.current !== owner) return;
       setError(errorMessage(e));
     }
   }
@@ -102,7 +116,7 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       footer={
         <View style={{ gap: 6 }}>
           {error ? <T variant="small" tone="err" accessibilityRole="alert">{error}</T> : null}
-          <Button label="Enregistrer la correction" loading={update.isPending} onPress={save} />
+          <Button label="Enregistrer la correction" disabled={!online} loading={update.isPending} onPress={save} />
         </View>
       }
     >
@@ -113,7 +127,8 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       </View>
       {!hasExercises && unit !== "min" ? <Field label={valueLabel} value={value} onChangeText={setValue} keyboardType="decimal-pad" /> : null}
       <Field label={unit === "min" ? "Durée (minutes)" : "Durée en minutes (facultatif)"} value={durM} onChangeText={setDurM} keyboardType="decimal-pad" />
-      {hasExercises ? holds ? <T variant="small">Les exercices de maintien se corrigent depuis le site pour l’instant.</T> : <ExerciseEditor exercises={exercises} onChange={setExercises} bodyweight={Sports.formOf(log.sport) === "bodyweight"} /> : null}
+      {hasExercises ? <ExerciseEditor exercises={exercises} onChange={setExercises} bodyweight={Sports.formOf(log.sport) === "bodyweight"} /> : null}
+      <SportMetricsEditor sport={log.sport} values={extras} onChange={setExtras} plus={plus} skip={[]} />
       <Field label="Note" value={note} onChangeText={setNote} multiline style={{ minHeight: 84, textAlignVertical: "top" }} />
       <T variant="caption" tone="faint">
         La correction ne modifie jamais l’XP ni les crédits déjà accordés.

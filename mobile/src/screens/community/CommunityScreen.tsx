@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Alert, Share, StyleSheet, View } from "react-native";
 import { Avatar } from "../../components/Avatar";
+import { GuildChat } from "../../components/GuildChat";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
@@ -307,6 +308,7 @@ function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; o
         ))}
       </Section>
       <Button kind="ghost" label="Quitter la guilde" onPress={() => Alert.alert("Quitter la guilde ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Quitter", style: "destructive", onPress: () => onAct("gl", () => api.guildLeave(), "Guilde quittée") }])} />
+      <GuildChat key={g.guild_id} />
     </>
   );
 }

@@ -257,7 +257,7 @@ export const archiveImported = (source: "health_connect") => rpc<unknown>("titan
 export type RouteMeta = { id: string; eventId?: string | null; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
 export type RouteFull = RouteMeta & { track: import("../lib/gpsTrack").EncodedTrack };
 /** Private data must use the token of the checked owner, including if Auth changes before fetch starts. */
-async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<T> {
+export async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<T> {
   const session = await assertOwner(owner);
   const { data, error } = await withTimeout(supabase.rpc(name, params).setHeader("Authorization", `Bearer ${session!.access_token}`));
   if (error) throw error;
