@@ -573,6 +573,7 @@
             <p class="asc-small asc-muted">${list.length === 1 ? `Suivi depuis le ${esc(date(l.accepted_at))} · ` : ""}Partage depuis le ${esc(date(l.since_date))} · ${l.sport ? esc(SP().label(l.sport)) : "Tous les sports"} · ${l.share_details ? "détails techniques inclus" : "mesures essentielles"} · ${l.share_notes ? "notes incluses" : "notes privées"}</p>
             <div class="asc-row-flex">${mode === "athlete" ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-scope>${icon("settings")} Modifier mon partage</button>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-propose>${icon("plus")} Proposer une séance</button>`}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-revoke>Arrêter le partage</button></div></section>
           <div data-co-calendar-slot>${calendarHtml()}</div>
+          <div data-co-tools-slot></div>
           <section class="asc-section"><div class="asc-section-head"><h2>Séances proposées</h2><span class="asc-small asc-muted">${assignments ? `${assignments.total} au total` : "…"}</span></div>
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
@@ -584,7 +585,16 @@
       </div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
+    mountTools();
     if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
+  }
+
+  function mountTools() {
+    const slot = root.querySelector("[data-co-tools-slot]"), l = current();
+    if (!slot || !l || !feature("screens.coachtools") || !window.TitanCoachTools) { return; }
+    const job = viewContext;
+    if (!job || !sameContext(job)) return;
+    window.TitanCoachTools.mount(slot, { client: job.client, link: l.id, mode, ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot), propose });
   }
 
   function onTabKey(e) {
