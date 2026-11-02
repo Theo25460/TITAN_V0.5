@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, "claude/titan-finition-web", "codex/v11-finalization-20261102"]
 
 permissions:
   contents: read
@@ -45,6 +45,14 @@ jobs:
 
       - name: Rechercher des secrets dans tout l'historique git
         run: pnpm run history-scan
+
+      - name: Archiver le site vérifié sans déploiement
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan-public-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
 
   e2e:
     name: Parcours navigateur (Playwright)
