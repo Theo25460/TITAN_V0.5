@@ -32,6 +32,7 @@ for(const width of [360,1280])test(`profile conflict, reload and explicit recove
   await page.evaluate(async()=>{window.state.user.name='Pending local';await window.saveState({forceCloud:true});});assert.equal(writes.length,1);assert.equal(writes[0].token,`Bearer ${token}`);
   await page.evaluate(async()=>{for(let i=0;i<100;i++)await window.saveState({forceCloud:true});});assert.equal(writes.length,1);
   await page.locator('#titan-profile-recovery').waitFor();name='Other device';revision++;
+  await page.evaluate(()=>window.titanSafeClearCache());assert(await page.evaluate(()=>Object.keys(localStorage).some(k=>k.startsWith('titan_profile_edits_v2_'))),'sign-out cache clearing preserves unsent profile copies');
   await page.reload();await page.waitForFunction(()=>window.titanCloudHistoryLoadedAt);assert.equal(writes.length,1,'reload never retries stale preference writes');
   assert.equal(await page.evaluate(()=>window.state.user.name),'Other device');assert(await page.evaluate(()=>window.titanGetProfileRecovery().some(r=>r.preferences.user.name==='Pending local')));
   assert(await page.locator('#titan-profile-recovery').isVisible());const box=await page.locator('#titan-profile-recovery').boundingBox();assert(box.x>=-1&&box.x+box.width<=width+1,'recovery stays within the viewport');

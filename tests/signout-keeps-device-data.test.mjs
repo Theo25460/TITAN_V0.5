@@ -28,6 +28,8 @@ test("sign-out cache cleaning keeps pending sessions, drafts and guest markers, 
     titan_training_draft_user_a: "{}",
     titan_guest_device_id_v1: "guest-1",
     titan_guest_imported_v1: "1",
+    titan_profile_control_v2_user_a: "{\"blocked\":true}",
+    titan_profile_edits_v2_user_a_snapshot: "{\"preferences\":{}}",
   };
   const removed = {
     titan_supabase_auth_v1: "token",
@@ -42,4 +44,15 @@ test("sign-out cache cleaning keeps pending sessions, drafts and guest markers, 
   for (const key of Object.keys(kept)) assert.equal(store[key], kept[key], `${key} must survive a sign-out`);
   for (const key of Object.keys(removed)) assert.equal(Object.hasOwn(store, key), false, `${key} must be removed`);
   assert.equal(cleared(), true, "sessionStorage cleared");
+});
+
+test("explicit owner erasure removes only that owner's profile copies and circuit", () => {
+  const own = {"titan_profile_control_v2_user-a":"{}","titan_profile_edits_v2_user-a_copy":"saved A"};
+  const other = {"titan_profile_control_v2_user-ab":"{}","titan_profile_edits_v2_user-ab_copy":"saved B"};
+  const {window,store} = device({...own,...other});
+  let invalidated=null;window.titanInvalidateProfileWrites=owner=>{invalidated=owner;};
+  window.titanForgetOwnerDrafts("user-a");
+  assert.equal(invalidated,"user-a");
+  for(const key of Object.keys(own))assert.equal(Object.hasOwn(store,key),false);
+  for(const key of Object.keys(other))assert.equal(store[key],other[key]);
 });
