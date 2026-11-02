@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./core";
+import { GpsAccountGuard } from "./components/GpsAccountGuard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { AuthProvider } from "./data/auth";
@@ -42,6 +43,7 @@ export default function App() {
               <NavigationContainer theme={theme} linking={linking}>
                 <StatusBar style="light" />
                 <SyncManager />
+                <GpsAccountGuard />
                 <ErrorBoundary>
                   <RootNavigator />
                 </ErrorBoundary>

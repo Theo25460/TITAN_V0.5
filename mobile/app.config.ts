@@ -30,7 +30,7 @@ const config: ExpoConfig = {
     // Session tokens and the pending-session queue must not be restored onto another device by Android backups.
     allowBackup: false,
     softwareKeyboardLayoutMode: "resize",
-    permissions: ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "android.permission.POST_NOTIFICATIONS", "android.permission.VIBRATE", "android.permission.health.READ_STEPS", "android.permission.health.READ_EXERCISE", "android.permission.RECEIVE_BOOT_COMPLETED"],
+    permissions: ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "com.android.vending.BILLING", "android.permission.POST_NOTIFICATIONS", "android.permission.VIBRATE", "android.permission.health.READ_STEPS", "android.permission.health.READ_EXERCISE", "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.ACCESS_FINE_LOCATION", "android.permission.FOREGROUND_SERVICE", "android.permission.FOREGROUND_SERVICE_LOCATION"],
     blockedPermissions: [
       "android.permission.READ_EXTERNAL_STORAGE",
       "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -40,7 +40,8 @@ const config: ExpoConfig = {
       "android.permission.READ_PHONE_STATE",
       "android.permission.RECORD_AUDIO",
       "android.permission.CAMERA",
-      "android.permission.ACCESS_FINE_LOCATION",
+      // Never needed: the recording runs as a user-started foreground service, which needs no background location.
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
       "android.permission.ACCESS_COARSE_LOCATION",
       "android.permission.READ_MEDIA_IMAGES",
       "android.permission.READ_MEDIA_VIDEO",
@@ -70,6 +71,15 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    [
+      "expo-location",
+      {
+        // Foreground service only: location is read while the athlete has started a recording (visible notification).
+        isAndroidBackgroundLocationEnabled: false,
+        isAndroidForegroundServiceEnabled: true,
+        locationWhenInUsePermission: "TITAN utilise ta position uniquement pendant une séance que tu enregistres.",
+      },
+    ],
     [
       "expo-splash-screen",
       {
@@ -118,6 +128,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/with-release-signing",
+    "./plugins/with-play-billing",
   ],
   extra: {
     supabaseUrl: "https://oubmftfufwwzwpgvrcag.supabase.co",

@@ -21,6 +21,6 @@ export const ownerKey = (scope: string, owner: string) => `titan.${scope}.v1:${o
 /** Removes every local trace of an account except its unsent sessions (kept so nothing is lost on sign-out). */
 export async function forgetAccountCache(owner: string, { keepQueue = true }: { keepQueue?: boolean } = {}) {
   const keys = await AsyncStorage.getAllKeys();
-  const mine = keys.filter((k) => k.endsWith(`:${owner}`) && !(keepQueue && (k.startsWith("titan.queue.") || k.startsWith("titan.draft."))));
+  const mine = keys.filter((k) => k.endsWith(`:${owner}`) && !(keepQueue && (k.startsWith("titan.queue.") || k.startsWith("titan.draft.") || k.startsWith("titan.gps.v1"))));
   if (mine.length) await AsyncStorage.multiRemove(mine);
 }

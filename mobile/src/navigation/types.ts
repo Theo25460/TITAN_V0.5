@@ -18,6 +18,7 @@ export type RootParams = {
   Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
   SessionForm: { sport: string; duplicateOf?: string } ;
+  GpsRecord: { sport: string };
   SessionResult: { eventId: string };
   SessionDetail: { id: string };
   SessionEdit: { id: string };

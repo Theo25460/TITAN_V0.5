@@ -25,6 +25,7 @@ import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, radius, space, TOUCH } from "../../theme/tokens";
+import { GPS_SPORTS } from "../../lib/gpsTrack";
 import { ExerciseEditor } from "./ExerciseEditor";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -279,6 +280,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
+            {GPS_SPORTS.has(sport) ? <Button small icon="play" label="Enregistrer avec le GPS" onPress={() => navigation.navigate("GpsRecord", { sport })} testID="gps-open" /> : null}
             <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
             <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
             {durationBlock("Durée", true)}

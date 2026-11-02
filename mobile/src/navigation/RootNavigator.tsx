@@ -20,6 +20,7 @@ import { PublicCardScreen } from "../screens/profile/PublicCardScreen";
 import { PendingScreen } from "../screens/session/PendingScreen";
 import { SessionDetailScreen } from "../screens/session/SessionDetailScreen";
 import { SessionEditScreen } from "../screens/session/SessionEditScreen";
+import { GpsRecordScreen } from "../screens/session/GpsRecordScreen";
 import { SessionFormScreen } from "../screens/session/SessionFormScreen";
 import { SessionResultScreen } from "../screens/session/SessionResultScreen";
 import { AboutScreen } from "../screens/settings/AboutScreen";
@@ -76,6 +77,7 @@ function SignedIn() {
     <Stack.Navigator screenOptions={stackOptions}>
       {needsOnboarding ? <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} /> : null}
       <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+      <Stack.Screen name="GpsRecord" component={GpsRecordScreen} options={{ title: "Enregistrement GPS" }} />
       <Stack.Screen name="SessionForm" component={SessionFormScreen} options={{ title: "Séance" }} />
       <Stack.Screen name="SessionResult" component={SessionResultScreen} options={{ headerShown: false, animation: "fade_from_bottom", gestureEnabled: false }} />
       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: "Séance" }} />
