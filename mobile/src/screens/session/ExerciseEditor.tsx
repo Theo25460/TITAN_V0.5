@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Chip } from "../../components/Chip";
@@ -7,14 +8,56 @@ import { Tap } from "../../components/Pressable";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { COMMON_EXERCISES, COMMON_MOVES, emptyExercise, emptySet, type ExerciseDraft } from "../../core/session";
+import { haptic } from "../../lib/haptics";
+import { adjustRest, DEFAULT_REST, REST_PRESETS, restDone, restLabel, restLeft, startRest, type RestState } from "../../lib/restTimer";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
+
+/** Countdown between sets: a tap on "Fait" starts it, a gentle haptic ends it. Nothing is stored. */
+function RestBar({ rest, onChange, preset, onPreset }: { rest: RestState; onChange: (r: RestState) => void; preset: number; onPreset: (s: number) => void }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!rest) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (restDone(rest, t)) {
+        haptic("success");
+        onChange(null);
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, [rest, onChange]);
+  return (
+    <View style={styles.rest} accessibilityRole="timer" accessibilityLabel={rest ? `Repos, ${restLeft(rest, now)} secondes restantes` : "Chrono de repos"}>
+      <Icon name="timer" size={20} color={colors.cy} />
+      {rest ? (
+        <>
+          <T variant="bodyStrong" style={{ flex: 1 }}>
+            Repos {restLabel(restLeft(rest, now))}
+          </T>
+          <Button label="+15 s" kind="ghost" small onPress={() => onChange(adjustRest(rest, Date.now(), 15))} />
+          <Button label="Passer" kind="ghost" small onPress={() => onChange(null)} />
+        </>
+      ) : (
+        <View style={styles.wrap}>
+          {REST_PRESETS.map((sec) => (
+            <Chip key={sec} label={restLabel(sec)} selected={preset === sec} onPress={() => onPreset(sec)} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
 
 /** Exercises with per-set rows (charge, répétitions, RIR) or holds in seconds, like the website. */
 export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggestions = [] }: { exercises: ExerciseDraft[]; onChange: (e: ExerciseDraft[]) => void; bodyweight: boolean; error?: boolean; suggestions?: string[] }) {
   const names = [...new Set([...suggestions, ...(bodyweight ? COMMON_MOVES : COMMON_EXERCISES)])].slice(0, 16);
+  const [rest, setRest] = useState<RestState>(null);
+  const [preset, setPreset] = useState<number>(DEFAULT_REST);
   const update = (i: number, patch: Partial<ExerciseDraft>) => onChange(exercises.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   return (
     <View style={{ gap: space.s3 }}>
+      {bodyweight ? null : <RestBar rest={rest} onChange={setRest} preset={preset} onPreset={setPreset} />}
       {exercises.map((ex, i) => (
         <View key={i} style={[styles.card, error && !ex.name.trim() && i === 0 && { borderColor: colors.err }]}>
           <View style={styles.head}>
@@ -67,7 +110,7 @@ export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggest
                 </T>
               </>
             )}
-            <View style={{ width: 40 }} />
+            <View style={{ width: 88 }} />
           </View>
           {ex.sets.map((s, k) => (
             <View key={k} style={styles.setRow}>
@@ -91,6 +134,9 @@ export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggest
                   </View>
                 </>
               )}
+              <Tap onPress={() => { haptic("light"); setRest(startRest(Date.now(), preset)); }} accessibilityLabel={`Série ${k + 1} faite, lancer le repos`} style={styles.iconBtn}>
+                <Icon name="check" size={18} color={colors.cy} />
+              </Tap>
               <Tap onPress={() => update(i, { sets: ex.sets.length > 1 ? ex.sets.filter((_, m) => m !== k) : [emptySet()] })} accessibilityLabel={`Retirer la série ${k + 1}`} style={styles.iconBtn}>
                 <Icon name="minus" size={18} color={colors.tx3} />
               </Tap>
@@ -120,6 +166,7 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   setsHead: { flexDirection: "row", gap: 6, alignItems: "center" },
   setRow: { flexDirection: "row", gap: 6, alignItems: "center" },
+  rest: { flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s2, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
   colN: { width: 34, textAlign: "center" },
   col: { flex: 1 },
   colSmall: { flex: 0.7 },
