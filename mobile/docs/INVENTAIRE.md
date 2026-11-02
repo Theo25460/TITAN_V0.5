@@ -1,4 +1,4 @@
-# TITAN Android — inventaire des fonctionnalités (mis à jour le 21/10/2026, lot de finition)
+# TITAN Android — inventaire des fonctionnalités (mis à jour le 02/11/2026 : guide et retours)
 
 Référence : Web V1 consolidé (`codex/final-web-rc-20261021`, commit `a74e3b4`) et
 base Supabase de production (`oubmftfufwwzwpgvrcag`, migrations jusqu’à
@@ -50,6 +50,8 @@ sur un appareil réel ni sur émulateur.
 | Données | Export CSV des séances, export JSON complet (`export_own_data`) via la feuille de partage Android | TS |
 | Suppression | Suppression du compte dans l’application (`delete_own_account`), confirmation par saisie | TS, R |
 | TITAN+ | Écran « Bientôt disponible », aucun achat, aucune facturation | R ; CI : pas de permission BILLING |
+| Guide de démarrage (V11-78) | Trois étapes facultatives (enregistrer, retrouver dans le Journal, faire avancer l'aventure), chacune ouvre le vrai écran ; passable, rouvrible depuis Assistance | U, R (`screens.test.tsx`) ; pas encore exercé sur téléphone |
+| Retours (V11-79) | Problème ou idée, message vérifié (10 à 1 500 caractères), informations techniques facultatives et visibles avant l'envoi, e-mail préparé que l'utilisateur relit et envoie lui-même ; aucun ticket serveur, aucune confirmation inventée | U (`feedback.test.ts`), R |
 | Android | Icône adaptative et monochrome issues du logo, écran de démarrage, barre de navigation basse, retour arrière natif, mode sombre, réduction des animations, cibles tactiles 48 dp | CI (contrôles du paquet) |
 
 ## Partiel

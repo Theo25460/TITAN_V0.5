@@ -1,5 +1,5 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
@@ -67,6 +67,8 @@ const S = {
   Account: require("../src/screens/settings/AccountScreen").AccountScreen,
   Privacy: require("../src/screens/settings/PrivacyScreen").PrivacyScreen,
   Help: require("../src/screens/settings/HelpScreen").HelpScreen,
+  Guide: require("../src/screens/settings/GuideScreen").GuideScreen,
+  Feedback: require("../src/screens/settings/FeedbackScreen").FeedbackScreen,
   Legal: require("../src/screens/settings/LegalScreen").LegalScreen,
   Plus: require("../src/screens/settings/TitanPlusScreen").TitanPlusScreen,
   Delete: require("../src/screens/settings/DeleteAccountScreen").DeleteAccountScreen,
@@ -196,6 +198,50 @@ describe("with account data", () => {
   test("Réglages, compte, confidentialité, aide, légal, TITAN+, suppression", () => {
     for (const C of [S.Settings, S.Sports, S.Account, S.Privacy, S.Help, S.Legal, S.Plus, S.Delete]) show(<C />);
     expect(screen.getByText("Supprimer définitivement ton compte")).toBeTruthy();
+  });
+  test("Guide de démarrage : trois étapes facultatives qui ouvrent les vrais écrans", () => {
+    nav.navigate.mockClear(); nav.goBack.mockClear();
+    show(<S.Guide navigation={nav} />);
+    expect(screen.getByText("1. Enregistre une séance")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-open"));
+    expect(nav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: "Record" });
+    fireEvent.press(screen.getByTestId("guide-next"));
+    expect(screen.getByText("2. Retrouve-la dans le Journal")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-open"));
+    expect(nav.navigate).toHaveBeenLastCalledWith("Journal");
+    fireEvent.press(screen.getByTestId("guide-next"));
+    expect(screen.getByText("3. Fais avancer ton aventure")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-open"));
+    expect(nav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: "Adventure" });
+    fireEvent.press(screen.getByTestId("guide-prev"));
+    expect(screen.getByText("2. Retrouve-la dans le Journal")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("guide-skip"));
+    expect(nav.goBack).toHaveBeenCalledTimes(1);
+  });
+  test("Retour : message vérifié, informations techniques facultatives, e-mail ouvert par l'utilisateur", async () => {
+    const { Linking } = require("react-native");
+    const open = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+    show(<S.Feedback />);
+    fireEvent.press(screen.getByTestId("feedback-send"));
+    expect(screen.getByText(/au moins 10 caractères/)).toBeTruthy();
+    expect(open).not.toHaveBeenCalled();
+    fireEvent.changeText(screen.getByTestId("feedback-text"), "Le chronomètre s’arrête quand je verrouille l’écran.");
+    fireEvent.press(screen.getByTestId("feedback-send"));
+    await screen.findByTestId("feedback-opened");
+    const url = decodeURIComponent(String(open.mock.calls[0][0]));
+    expect(url).toContain("mailto:titanteam.app@gmail.com");
+    expect(url).toContain("Problème");
+    expect(url).not.toContain("Informations techniques");
+    open.mockClear();
+    fireEvent.press(screen.getByLabelText("Ajouter des informations techniques"));
+    expect(screen.getByText(/Ce qui sera ajouté au message/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("feedback-send"));
+    await waitFor(() => expect(open).toHaveBeenCalled());
+    expect(decodeURIComponent(String(open.mock.calls[0][0]))).toContain("Informations techniques");
+    open.mockRejectedValueOnce(new Error("no mail app"));
+    fireEvent.press(screen.getByTestId("feedback-send"));
+    await screen.findByTestId("feedback-failed");
+    open.mockRestore();
   });
   test("Accès : accueil, connexion, inscription, onboarding", () => {
     show(<S.Welcome {...props()} />);

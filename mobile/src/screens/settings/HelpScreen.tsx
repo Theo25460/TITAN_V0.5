@@ -1,3 +1,4 @@
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Linking } from "react-native";
 import { Card } from "../../components/Card";
 import { Group, ListRow } from "../../components/ListRow";
@@ -5,6 +6,7 @@ import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
 import { T } from "../../components/Text";
 import { SITE_URL, SUPPORT_EMAIL } from "../../lib/config";
+import type { RootParams } from "../../navigation/types";
 
 const FAQ: [string, string][] = [
   ["Mes séances sont-elles sauvegardées hors ligne ?", "Oui. Une séance est d’abord enregistrée sur ton téléphone, puis envoyée dès que la connexion revient. Le badge orange de l’onglet Progrès indique les séances en attente."],
@@ -18,9 +20,13 @@ function mail(subject: string) {
   Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`TITAN Android — ${subject}`)}`);
 }
 
-export function HelpScreen() {
+export function HelpScreen({ navigation }: NativeStackScreenProps<RootParams, "Help">) {
   return (
     <Screen>
+      <Group title="Premiers pas">
+        <ListRow icon="play" title="Guide de démarrage" subtitle="3 étapes, facultatif" onPress={() => navigation.navigate("Guide")} />
+        <ListRow icon="edit" title="Envoyer un retour" subtitle="Un problème ou une idée" onPress={() => navigation.navigate("Feedback")} last />
+      </Group>
       <Section title="Questions fréquentes">
         {FAQ.map(([q, a]) => (
           <Card key={q} style={{ gap: 6 }}>

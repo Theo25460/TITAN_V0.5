@@ -35,6 +35,8 @@ export type RootParams = {
   Sports: undefined;
   PublicCard: undefined;
   Help: undefined;
+  Guide: undefined;
+  Feedback: undefined;
   Legal: undefined;
   About: undefined;
   TitanPlus: undefined;
