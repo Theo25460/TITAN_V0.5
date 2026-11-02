@@ -14,7 +14,7 @@ Faits relevés dans le dépôt à la tête de branche, **après** le développem
 | Parcours : confidentialité | privé par construction ; partage GPX sans début ni fin (`SHARE_TRIM_M`) ; suppression et export de compte | tests `routes`, `gpsTrack`, SQL |
 | Secrets | aucun secret dans le dépôt ; identifiants AdMob = identifiants publics ; clés de service Play/Garmin/Google uniquement en variables d'environnement | `run_secret_scanning` à relancer avant fusion ; tests d'hôtes tiers |
 | Billing | vérification serveur (subscriptionsv2), liaison à l'identifiant de compte obfusqué, RTDN authentifiée (OIDC ou jeton), dernier événement gagne | `tests/play-*.test.mjs` |
-| AdMob | consentement UMP avant `initialize()`, permissions AD_ID/ADSERVICES retirées, jamais d'annonce Premium, éteint par défaut | `mobile/src/ads/*`, tests `ads*` |
+| AdMob | consentement UMP avant `initialize()`, AD_ID présent sous consentement, permissions Privacy Sandbox retirées, jamais d'annonce Premium, éteint par défaut | `mobile/src/ads/*`, tests `ads*` |
 | Dépendances Web (`pnpm audit --prod`) | aucune vulnérabilité | exécuté |
 | Dépendances Android (`npm audit --omit=dev`) | 24 signalements, tous transitifs de l'outillage Expo (`@expo/cli`, `node-forge`, `zod`) ; code de build, **pas embarqué dans l'APK** ; correctif = montée de version Expo, à planifier hors de cette livraison | exécuté |
 

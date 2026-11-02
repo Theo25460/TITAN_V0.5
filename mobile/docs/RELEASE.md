@@ -42,7 +42,7 @@ installables pour tester, refusés par Play Console.
    - collectées : adresse e-mail et identifiant de compte (gestion du compte) ; activité sportive saisie, notes, traces GPX
      importées (fonctionnalité de l'application) ; nom affiché et contenus partagés volontairement avec des amis ;
    - aucune donnée partagée avec des tiers à des fins publicitaires, aucune publicité, aucun identifiant publicitaire
-     (`AD_ID` retiré du manifeste), aucune statistique d'usage côté application Android ;
+     (`AD_ID` présent pour AdMob, sous consentement ; attribution et sujets Privacy Sandbox retirés), aucune statistique d'usage côté application Android ;
    - chiffrement en transit (HTTPS) ; suppression du compte possible dans l'application (Profil › Compte › Supprimer)
      ou par e-mail à titanteam.app@gmail.com (URL publique de suppression du site à renseigner quand elle sera déployée).
 4. **Contient des publicités** : Non. **Achats intégrés** : non proposés dans cette version (TITAN+ « bientôt disponible »). La bibliothèque Google Play Billing 9.1.0 et sa permission sont présentes dans les nouveaux builds de préparation à la console, mais aucun achat n'est possible. Voir `PLAY_BILLING_PREP.md`.

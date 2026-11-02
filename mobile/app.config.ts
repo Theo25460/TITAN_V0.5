@@ -45,8 +45,8 @@ const config: ExpoConfig = {
       "android.permission.ACCESS_COARSE_LOCATION",
       "android.permission.READ_MEDIA_IMAGES",
       "android.permission.READ_MEDIA_VIDEO",
-      "com.google.android.gms.permission.AD_ID",
-      // The ad SDK declares these too; TITAN keeps the privacy-first stance (contextual ads, no attribution/topics APIs).
+      // com.google.android.gms.permission.AD_ID is NOT blocked: AdMob needs the advertising id (consent-gated by UMP) to serve and cap ads normally.
+      // The Privacy Sandbox APIs below stay blocked: TITAN uses no attribution or topics.
       "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
       "android.permission.ACCESS_ADSERVICES_AD_ID",
       "android.permission.ACCESS_ADSERVICES_TOPICS",

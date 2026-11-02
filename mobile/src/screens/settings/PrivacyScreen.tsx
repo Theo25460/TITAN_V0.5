@@ -49,7 +49,7 @@ export function PrivacyScreen() {
       </Group>
       {!online ? <T variant="caption" tone="warn">Hors ligne : la confidentialité se règle avec une connexion.</T> : null}
       <T variant="caption" tone="faint">
-        {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob après ton consentement ; TITAN ne lit pas ton identifiant publicitaire." : "L’application Android ne collecte aucune statistique d’usage, aucune publicité et aucun identifiant publicitaire."}
+        {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob après ton consentement. Google peut alors utiliser l’identifiant publicitaire de ton téléphone (tu peux le réinitialiser ou le supprimer dans les réglages Android) ; TITAN lui-même ne le lit pas." : "L’application Android ne collecte aucune statistique d’usage et n’affiche aucune publicité dans cette version."}
       </T>
       {ADS_BUILD && !p.is_elite ? (
         <Group>

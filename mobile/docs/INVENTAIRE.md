@@ -89,7 +89,7 @@ sur un appareil réel ni sur émulateur.
 
 - Types, tests Jest, bundle Metro de production.
 - APK et AAB release : identifiant `fr.titanapp.app`, `versionCode` > 300,
-  `targetSdk` ≥ 35, liste blanche de permissions, présence de BILLING, absence de AD_ID,
+  `targetSdk` ≥ 35, liste blanche de permissions, présence de BILLING, présence de AD_ID (AdMob) et absence des permissions Privacy Sandbox,
   signature vérifiée, bundle pointant vers la production et jamais vers
   `10.0.2.2`, trafic en clair interdit.
 - E2E : Supabase local (structure de production + migrations appliquées en
