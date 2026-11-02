@@ -6,7 +6,7 @@
      the session with a visible reason instead of retrying forever. */
 import { useSyncExternalStore } from "react";
 import { toAppError } from "../lib/errors";
-import { ownerKey, readJSON, writeJSON } from "../lib/storage";
+import { ownerKey, readJSONStrict as readJSON, writeJSON } from "../lib/storage";
 import type { TrainingLog, TrainingPayload } from "../core/types";
 import { assertOwner, submitSession, type SubmitReceipt } from "./api";
 
@@ -28,6 +28,8 @@ const listeners = new Set<Listener>();
 let writeChain: Promise<unknown> = Promise.resolve();
 let flushing: Promise<FlushResult> | null = null;
 let flushAgain = false;
+let loadEpoch = 0;
+let readyOwner: string | null = null;
 
 function emit() {
   snapshot = { owner: state.owner, items: state.items, sending: state.sending };
@@ -46,15 +48,27 @@ async function persist(owner: string, items: QueueItem[]) {
 }
 
 export async function loadQueue(owner: string | null) {
-  state.owner = owner;
-  state.items = owner ? (await readJSON<QueueItem[]>(ownerKey("queue", owner), [])).filter((i) => i && i.ownerId === owner && i.payload?.details?.client_event_id) : [];
-  emit();
+  const epoch = ++loadEpoch;
+  readyOwner = null;
+  if (state.owner !== owner) {
+    state.owner = owner;
+    state.items = [];
+    emit();
+  }
+  await serial(async () => {
+    const items = owner ? (await readJSON<QueueItem[]>(ownerKey("queue", owner), [])).filter((i) => i && i.ownerId === owner && i.payload?.details?.client_event_id) : [];
+    if (epoch !== loadEpoch || state.owner !== owner) return;
+    state.items = items;
+    readyOwner = owner;
+    emit();
+  });
 }
 
 /** The session is stored durably before the promise resolves; only then may the UI celebrate. */
 export function enqueue(owner: string, payload: TrainingPayload): Promise<QueueItem> {
   return serial(async () => {
     if (state.owner !== owner) throw new Error("Le compte a changé. Rien n’a été enregistré.");
+    if (readyOwner !== owner) throw new Error("Ton journal local n’a pas pu être chargé. Réessaie avant d’enregistrer une nouvelle séance.");
     const id = payload.details.client_event_id!;
     const item: QueueItem = { key: `${owner}:${id}`, ownerId: owner, payload: JSON.parse(JSON.stringify(payload)), status: "pending", queuedAt: new Date().toISOString(), attempts: 0 };
     const items = [...state.items.filter((i) => i.key !== item.key), item];
@@ -69,7 +83,7 @@ export function enqueue(owner: string, payload: TrainingPayload): Promise<QueueI
 
 function replace(owner: string, mutate: (items: QueueItem[]) => QueueItem[]) {
   return serial(async () => {
-    const current = state.owner === owner ? state.items : await readJSON<QueueItem[]>(ownerKey("queue", owner), []);
+    const current = state.owner === owner && readyOwner === owner ? state.items : await readJSON<QueueItem[]>(ownerKey("queue", owner), []);
     const items = mutate(current);
     await persist(owner, items);
     if (state.owner === owner) {
@@ -95,6 +109,7 @@ export function flushQueue(owner: string, onSent?: (eventId: string, receipt: Su
     const receipts: Record<string, SubmitReceipt> = {};
     let sent = 0;
     let offline = false;
+    if (state.owner !== owner || readyOwner !== owner) return { sent, remaining: 0, receipts, offline };
     try {
       await assertOwner(owner);
     } catch {
@@ -107,7 +122,7 @@ export function flushQueue(owner: string, onSent?: (eventId: string, receipt: Su
         if (state.owner !== owner || item.ownerId !== owner || item.status !== "pending") continue;
         try {
           await assertOwner(owner);
-          const receipt = await submitSession(item.payload);
+          const receipt = await submitSession(owner, item.payload);
           const eventId = item.payload.details.client_event_id!;
           receipts[eventId] = receipt;
           await discard(owner, item.key);

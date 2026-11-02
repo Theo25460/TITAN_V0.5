@@ -1,6 +1,6 @@
 # TITAN V1.1 — pourquoi des fonctions sont encore masquées, et comment les allumer (02/11/2026)
 
-Rien n'est « cassé » : chaque fonction développée est derrière un interrupteur volontairement éteint, et plusieurs dépendent de migrations qui ne sont **pas appliquées en production** (les 29 migrations V1 le sont ; les migrations V1.1 30 à 58 ne le sont pas). Ce document est la source de vérité. Aucune ligne n'a été allumée par Claude.
+Rien n'est « cassé » : chaque fonction développée est derrière un interrupteur volontairement éteint, et plusieurs dépendent de migrations qui ne sont **pas appliquées en production** (les 29 migrations V1 le sont ; les migrations V1.1 30 à 60 ne le sont pas). Ce document est la source de vérité. Aucune ligne n'a été allumée par Claude.
 
 ## 1. Les quatre niveaux d'interrupteurs
 | Niveau | Où se règle | Effet |
@@ -37,3 +37,6 @@ Rien n'est « cassé » : chaque fonction développée est derrière un interrup
 
 ## 4. Ce qui n'est PAS une cause
 Aucune condition de sécurité n'a été retirée ou assouplie pour « débloquer » une fonction. Le refus d'un achat fait pour un autre compte, l'absence de publicité sans droits connus, le consentement avant le SDK sont des protections volontaires.
+
+## Correctif de confidentialité avant ouverture (02/11/2026)
+La migration 60 (`20261102130000_legacy_social_privacy`) rejoint le lot V1.1 : 31 migrations au total, numérotées 30 à 60. Elle ferme deux lectures héritées (code ami privé/bloqué/suspendu et statistiques d’une relation non acceptée). Aucun drapeau ne remplace ce correctif serveur. Elle est testée sur base jetable et doit suivre le même processus de copie restaurée, recette puis autorisation avant production.

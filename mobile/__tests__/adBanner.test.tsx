@@ -1,18 +1,19 @@
 /* The banner is a policy-gated, labelled, collapsible slot: it renders nothing unless everything allows it, and gives its
    space back at once when there is no ad. The native SDK is replaced by a fake; no network, no real ad unit. */
-import { act, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 process.env.EXPO_PUBLIC_TITAN_ADS = "1";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("react-native").Platform.OS = "android";
-const mockState = { profile: { is_elite: false } as { is_elite: boolean } | undefined, online: true, effort: null as unknown };
+const mockState = { profile: { is_elite: false } as { is_elite: boolean } | undefined, online: true, effort: null as unknown, timer: { elapsed: 0, started: null as number | null }, draftsReady: true, gpsReadFails: false };
 const mockAds = { phase: "ready", canRequestAds: true, privacyOptions: false };
 const mockProps: { current: Record<string, unknown> | null } = { current: null };
 const mockStart = jest.fn();
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
-jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: mockState.profile }) }));
+jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: mockState.profile }), usePrefs: () => ({ favoriteSports: [] }), useLogs: () => ({ active: [] }) }));
+jest.mock("../src/data/drafts", () => ({ useDrafts: () => ({ ready: mockState.draftsReady, timer: mockState.timer }) }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => mockState.online }));
-jest.mock("../src/lib/gpsNative", () => ({ recorder: { load: async () => mockState.effort, subscribe: () => () => undefined } }));
+jest.mock("../src/lib/gpsNative", () => ({ recorder: { load: async () => { if (mockState.gpsReadFails) throw new Error("disk unavailable"); return mockState.effort; }, subscribe: () => () => undefined } }));
 jest.mock("../src/ads/sdk", () => ({
   adsManager: {
     subscribe: () => () => undefined,
@@ -35,7 +36,7 @@ const { LIVE_UNITS, TEST_UNITS, bannerUnit, interstitialUnit, ADS_LIVE } = requi
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 const reset = () => {
-  Object.assign(mockState, { profile: { is_elite: false }, online: true, effort: null });
+  Object.assign(mockState, { profile: { is_elite: false }, online: true, effort: null, timer: { elapsed: 0, started: null }, draftsReady: true, gpsReadFails: false });
   Object.assign(mockAds, { phase: "ready", canRequestAds: true });
   mockProps.current = null;
   mockStart.mockClear();
@@ -51,9 +52,10 @@ test("a free account with consent gets a labelled banner on a TEST unit while th
   expect(mockStart).toHaveBeenCalled();
 });
 
-test("Premium (own, coach, or a seat included by a coach: all is_elite) sees nothing and never starts the consent flow", () => {
+test("Premium (own, coach, or a seat included by a coach: all is_elite) sees nothing and never starts the consent flow", async () => {
   mockState.profile = { is_elite: true };
   render(<AdBanner placement="stats" />);
+  await act(async () => {});
   expect(screen.queryByTestId("fake-banner")).toBeNull();
   expect(screen.queryByText("Publicité")).toBeNull();
   expect(mockStart).not.toHaveBeenCalled();
@@ -64,6 +66,10 @@ test.each([
   ["no consent", () => (mockAds.canRequestAds = false)],
   ["SDK not ready", () => (mockAds.phase = "starting")],
   ["offline", () => (mockState.online = false)],
+  ["a running workout", () => (mockState.timer = { elapsed: 0, started: Date.now() })],
+  ["a paused workout", () => (mockState.timer = { elapsed: 5000, started: null })],
+  ["GPS state cannot be read", () => (mockState.gpsReadFails = true)],
+  ["workout state is unread", () => (mockState.draftsReady = false)],
   ["a GPS recording is open", () => (mockState.effort = { status: "recording", owner: "owner-a" })],
 ])("nothing is rendered: %s", async (_label, arrange) => {
   arrange();
@@ -95,4 +101,23 @@ test("the owner's production units are the ones configured, used only in live mo
   const fs = require("fs") as typeof import("fs");
   const src = ["../src/ads/sdk.ts", "../src/ads/useAds.ts", "../src/components/AdBanner.tsx", "../src/ads/useSessionInterstitial.ts"].map((f) => fs.readFileSync(require.resolve(f), "utf8")).join("\n");
   expect(src).not.toMatch(/nativeReserved/);
+});
+
+test("the interactive guide suppresses ads across its real-screen visits until closed", async () => {
+  const { GuideScreen } = require("../src/screens/settings/GuideScreen");
+  const { SafeAreaProvider } = require("react-native-safe-area-context");
+  const navigation = { navigate: jest.fn(), goBack: jest.fn() };
+  const frame = (guide: boolean) => <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, right: 0, bottom: 0, left: 0 } }}>
+    {guide ? <GuideScreen navigation={navigation} /> : null}
+    <AdBanner placement="journal" />
+  </SafeAreaProvider>;
+  const view = render(frame(true));
+  await screen.findByTestId("guide-step-concept");
+  expect(screen.queryByTestId("fake-banner")).toBeNull();
+  fireEvent.press(screen.getByTestId("guide-next"));
+  fireEvent.press(screen.getByTestId("guide-open"));
+  expect(navigation.navigate).toHaveBeenCalledWith("Sports");
+  expect(screen.queryByTestId("fake-banner")).toBeNull();
+  view.rerender(frame(false));
+  expect(await screen.findByTestId("fake-banner")).toBeTruthy();
 });

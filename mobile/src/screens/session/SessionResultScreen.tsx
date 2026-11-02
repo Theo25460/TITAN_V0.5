@@ -18,6 +18,7 @@ import { momentShare } from "../../data/api";
 import { useAdventure, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { useReceipt } from "../../data/receipts";
+import { useOwner } from "../../data/auth";
 import { errorMessage } from "../../lib/errors";
 import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
@@ -27,10 +28,11 @@ import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
 /** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
 export function SessionResultScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionResult">) {
   const { eventId } = route.params;
+  const owner = useOwner();
   const insets = useSafeAreaInsets();
   const online = useOnline();
   const toast = useToast();
-  const receipt = useReceipt(eventId);
+  const receipt = useReceipt(owner, eventId);
   const queue = useQueue();
   const { logs, active } = useLogs();
   const prefs = usePrefs();

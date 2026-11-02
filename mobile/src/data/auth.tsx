@@ -62,18 +62,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [notice, setNotice] = useState<string | null>(null);
   const ownerRef = useRef<string | null>(null);
+  const applyEpoch = useRef(0);
   const explicitSignOut = useRef(false);
 
   const apply = useCallback(async (next: Session | null) => {
+    const epoch = ++applyEpoch.current;
     const owner = next?.user.id ?? null;
+    const current = () => epoch === applyEpoch.current && ownerRef.current === owner;
     const previous = ownerRef.current;
     if (owner !== previous) {
       ownerRef.current = owner;
       await enterAccount(owner, previous);
+      if (!current()) return;
       if (owner) {
         // First connection of a brand-new account: create its profile row through the server function.
         try {
           const profile = await fetchProfile(owner);
+          if (!current()) return;
           if (!profile) {
             const meta = next?.user.user_metadata ?? {};
             await createProfile(String(meta.username || meta.full_name || "Agent").slice(0, 24));
@@ -88,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     }
+    if (!current()) return;
     setSession(next);
     setStatus(next ? "signedIn" : "signedOut");
   }, []);
@@ -112,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => {
       alive = false;
+      applyEpoch.current++;
       data.subscription.unsubscribe();
     };
   }, [apply]);

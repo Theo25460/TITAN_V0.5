@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Platform } from "react-native";
 import { useOwner } from "../data/auth";
+import { useDrafts } from "../data/drafts";
+import { adsSuppression } from "./suppression";
 import { useProfile } from "../data/hooks";
 import { recorder } from "../lib/gpsNative";
 import type { Recording } from "../lib/gpsRecorder";
@@ -13,21 +15,26 @@ import { bannerAllowed, type Context, type Verdict } from "./policy";
 export function useEffortActive(): boolean {
   const owner = useOwner();
   // Unknown (not read yet) counts as "active": no advertising flashes before we know whether an effort is open.
-  const [rec, setRec] = useState<Recording | null | undefined>(undefined);
+  const [loaded, setLoaded] = useState<{ owner: string; rec: Recording | null } | null>(null);
   useEffect(() => {
     let alive = true;
-    recorder.load(owner).then((r) => alive && setRec(r)).catch(() => alive && setRec(null));
-    const off = recorder.subscribe((r) => alive && setRec(r?.owner === owner || r === null ? r : null));
+    recorder.load(owner).then((rec) => alive && setLoaded({ owner, rec })).catch(() => {});
+    const off = recorder.subscribe((rec) => {
+      if (alive && (rec === null || rec.owner === owner)) setLoaded({ owner, rec });
+    });
     return () => {
       alive = false;
       off();
     };
   }, [owner]);
-  return rec === undefined || (rec !== null && rec.status !== "ended");
+  return !loaded || loaded.owner !== owner || (loaded.rec !== null && loaded.rec.status !== "ended");
 }
 
 /** What the advertising policy needs to know right now. Premium comes from the server-validated profile (is_elite also covers a seat included by a coach). */
 export function useAdContext(): Context & { enabled: boolean } {
+  const owner = useOwner();
+  const draft = useDrafts();
+  const tutorial = useSyncExternalStore(adsSuppression.subscribe, () => adsSuppression.get(owner));
   const profile = useProfile().data;
   const online = useOnline();
   const effort = useEffortActive();
@@ -42,10 +49,10 @@ export function useAdContext(): Context & { enabled: boolean } {
       consent: state.canRequestAds,
       sdkReady: state.phase === "ready",
       online,
-      sessionActive: effort,
+      sessionActive: effort || tutorial || !draft.ready || draft.timer.started !== null || draft.timer.elapsed > 0,
       busy: false,
     }),
-    [enabled, profile, online, effort, state],
+    [enabled, profile, online, effort, state, tutorial, draft.ready, draft.timer.started, draft.timer.elapsed],
   );
 }
 

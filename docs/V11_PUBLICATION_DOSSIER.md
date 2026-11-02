@@ -4,8 +4,8 @@ Ce document ne déclenche rien. Chaque étape ci-dessous exige l'accord explicit
 
 ## 1. Base de données (Supabase)
 1. Copie isolée de la production (branche Supabase ou projet de test) ; jamais la production en premier.
-2. Appliquer les migrations 30 à 59 dans l'ordre (`docs/V11_RELEASE_PLAN.md`, une ligne par migration, vérifiée par `tests/production-plan.test.mjs`).
-3. Banc : `bash tools/db/test-migrations.sh`, puis `tools/db/postflight-v11.sql` et `tools/db/test-v11-gates.py` (attend 30 migrations dans le registre).
+2. Appliquer les migrations 30 à 60 dans l'ordre (`docs/V11_RELEASE_PLAN.md`, une ligne par migration, vérifiée par `tests/production-plan.test.mjs`).
+3. Banc : `bash tools/db/test-migrations.sh`, puis `tools/db/postflight-v11.sql` et `tools/db/test-v11-gates.py` (attend 31 migrations dans le registre).
 4. Sauvegarde avant production, puis application, puis postflight. Retour arrière : les migrations sont additives ; les fonctionnalités se coupent par drapeaux (`titan_feature_flags_v1`), sans supprimer de données.
 
 ## 2. Web (Netlify) — après accord

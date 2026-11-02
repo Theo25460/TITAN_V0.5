@@ -27,14 +27,15 @@ test("a session is counted once, whatever the number of screens reporting it", (
   expect(after(80).seen).toHaveLength(RULES.seenKeep);
 });
 
-test("no interstitial during the first two sessions, then at most one every five sessions", () => {
+test("no interstitial during the first two sessions, first eligible at five and then at most one every five sessions", () => {
   expect(interstitialAllowed(after(1), ctx(), true)).toEqual({ ok: false, why: "discovery" });
   expect(interstitialAllowed(after(2), ctx(), true)).toEqual({ ok: false, why: "discovery" });
-  expect(interstitialAllowed(after(3), ctx(), true)).toEqual({ ok: true });
-  let s = recordShown(after(3), T);
-  for (const n of [4, 5, 6, 7]) s = countSession(s, `x${n}`);
+  for (const n of [3, 4]) expect(interstitialAllowed(after(n), ctx(), true)).toEqual({ ok: false, why: "every-n-sessions" });
+  expect(interstitialAllowed(after(5), ctx(), true)).toEqual({ ok: true });
+  let s = recordShown(after(5), T);
+  for (const n of [6, 7, 8, 9]) s = countSession(s, `x${n}`);
   expect(interstitialAllowed(s, ctx({ now: T + 3 * 3600_000 }), true)).toEqual({ ok: false, why: "every-n-sessions" });
-  s = countSession(s, "x8");
+  s = countSession(s, "x10");
   expect(interstitialAllowed(s, ctx({ now: T + 3 * 3600_000 }), true)).toEqual({ ok: true });
 });
 

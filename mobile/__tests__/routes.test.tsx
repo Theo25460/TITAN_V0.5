@@ -11,7 +11,7 @@ const track = (n: number): Track => {
 };
 const mk = (id?: string) => buildPending({ track: track(60), sport: "running", startedAt: T0, distanceKm: 0.3, activeSeconds: 59, ascent: 12, id })!;
 
-beforeEach(() => _resetForTests());
+beforeEach(() => { _resetForTests(); mockShare.mockClear(); });
 
 test("a finished recording becomes one pending route with a stable id; ids look like the server expects", () => {
   const p = mk("route-test-0001");
@@ -38,7 +38,7 @@ test("the outbox sends oldest first, once, and keeps what failed; queueing the s
   expect(await flushRoutes("o1", save)).toEqual({ sent: 0, left: 0 });
 });
 
-test("outboxes are per account; two flushes at once send once; a permanently refused route stops blocking after five tries", async () => {
+test("outboxes are per account; two flushes at once send once; a refused route stays recoverable after five tries", async () => {
   await queueRoute("a", mk("route-aaaa-0003"));
   expect(await pendingRoutes("b")).toHaveLength(0);
   let calls = 0;
@@ -49,7 +49,7 @@ test("outboxes are per account; two flushes at once send once; a permanently ref
   await queueRoute("a", mk("route-aaaa-0004"));
   const refused = async () => { throw new Error("TRACK_TOO_LARGE"); };
   for (let i = 0; i < 4; i++) expect((await flushRoutes("a", refused)).left).toBe(1);
-  expect((await flushRoutes("a", refused)).left).toBe(0);
+  expect((await flushRoutes("a", refused)).left).toBe(1);
 });
 
 test("the session saved from a recording is linked to its route: same sport, within two days, once, after the route itself; nothing is guessed", async () => {
@@ -68,7 +68,7 @@ test("the session saved from a recording is linked to its route: same sport, wit
   expect(await pendingLinks("l1")).toEqual([]);
 });
 
-test("a link waits while its route is still waiting, retries on network errors, and is dropped when refused for good", async () => {
+test("a link waits while its route is still waiting and remains recoverable after any refusal", async () => {
   await queueRoute("l2", mk("route-link-0002"));
   await awaitSession("l2", "route-link-0002", "running", T0);
   await linkSavedSession("l2", "running", "evt-session-0003", T0 + 1000);
@@ -79,7 +79,7 @@ test("a link waits while its route is still waiting, retries on network errors, 
   await flushRoutes("l2", async () => undefined, async () => { throw new Error("network"); });
   expect((await pendingLinks("l2"))[0]!.attempts).toBe(1);
   await flushRoutes("l2", async () => undefined, async () => { throw new Error("ROUTE_ALREADY_LINKED"); });
-  expect(await pendingLinks("l2")).toEqual([]);
+  expect(await pendingLinks("l2")).toEqual([expect.objectContaining({ eventId: "evt-session-0003", attempts: 2 })]);
 });
 
 /* ---- screens ---- */
@@ -113,8 +113,16 @@ test("library: empty state invites to record; a pending upload is announced", as
   mockApi.routesList.mockResolvedValue([]);
   await queueRoute("o1", mk("route-aaaa-0009"));
   wrap(<RoutesScreen navigation={nav} />);
-  expect(await screen.findByText("Aucun parcours pour le moment")).toBeTruthy();
   expect(await screen.findByText(/1 parcours en attente d’envoi/)).toBeTruthy();
+});
+
+test("library: an unsent trace remains exportable while the server is unavailable", async () => {
+  mockShare.mockClear();
+  mockApi.routesList.mockRejectedValue(new Error("offline"));
+  await queueRoute("o1", mk("route-offline-0001"));
+  wrap(<RoutesScreen navigation={nav} />);
+  fireEvent.press(await screen.findByTestId("pending-export-route-offline-0001"));
+  await waitFor(() => expect(mockShare).toHaveBeenCalledWith(expect.stringMatching(/\.gpx$/), expect.stringContaining("<trkpt"), "application/gpx+xml"));
 });
 
 test("detail: map, figures, GPX export and deletion; no map server is contacted", async () => {
@@ -134,7 +142,7 @@ test("detail: map, figures, GPX export and deletion; no map server is contacted"
   expect(String(shared[1])).not.toContain("<time>");
   expect(String(shared[1])).not.toContain("<ele>");
   fireEvent.press(screen.getByTestId("route-delete"));
-  await waitFor(() => expect(mockApi.routeDelete).toHaveBeenCalledWith("r-1"));
+  await waitFor(() => expect(mockApi.routeDelete).toHaveBeenCalledWith("o1", "r-1"));
   await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
   expect(fetchSpy).not.toHaveBeenCalled();
 });

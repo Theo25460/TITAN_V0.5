@@ -57,6 +57,21 @@
       "note": "Community link in js/config.js; the player leaves the site by clicking."
     },
     {
+      "host": "thebmc.co.uk",
+      "kind": "link",
+      "note": "Climbing-grade source linked from suivi-escalade.html. User-initiated navigation only; no script, image, preconnect or automatic request to this host."
+    },
+    {
+      "host": "services.thebmc.co.uk",
+      "kind": "link",
+      "note": "BMC climbing reference PDF linked from suivi-escalade.html. User-initiated navigation only; no embedded PDF or automatic request to this host."
+    },
+    {
+      "host": "www.mammut.com",
+      "kind": "link",
+      "note": "Climbing-grade source linked from suivi-escalade.html. User-initiated navigation only; no script, image, preconnect or automatic request to this host."
+    },
+    {
       "host": "acscdn.com",
       "kind": "disabled",
       "note": "Adcash script URL in js/config.js; adsEnabled is false and the host is not in the CSP script-src, so nothing loads."

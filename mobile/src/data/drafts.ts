@@ -11,35 +11,47 @@ type Stored = { draft: SessionDraft; updatedAt: number } | null;
 let current: { owner: string | null; stored: Stored; timer: Stopwatch } = { owner: null, stored: null, timer: { elapsed: 0, started: null } };
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
+let loadEpoch = 0;
 
 export async function loadDrafts(owner: string) {
+  const epoch = ++loadEpoch;
   const stored = await readJSON<Stored>(ownerKey("draft", owner), null);
   const timer = await readJSON<Stopwatch>(ownerKey("draft-timer", owner), { elapsed: 0, started: null });
+  if (epoch !== loadEpoch) return;
   current = { owner, stored: stored && Date.now() - stored.updatedAt < 2 * DAY ? stored : null, timer };
   emit();
 }
 
-let saveTimer: ReturnType<typeof setTimeout> | undefined;
+const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
 export function saveDraft(owner: string, draft: SessionDraft) {
-  current = { ...current, stored: { draft, updatedAt: Date.now() } };
-  emit();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    writeJSON(ownerKey("draft", owner), current.stored).catch(() => {});
-  }, 250);
+  const stored = { draft, updatedAt: Date.now() };
+  if (current.owner === owner) {
+    current = { ...current, stored };
+    emit();
+  }
+  clearTimeout(saveTimers.get(owner));
+  saveTimers.set(owner, setTimeout(() => {
+    saveTimers.delete(owner);
+    writeJSON(ownerKey("draft", owner), stored).catch(() => {});
+  }, 250));
 }
 
 export async function clearDraft(owner: string) {
-  clearTimeout(saveTimer);
-  current = { ...current, stored: null, timer: { elapsed: 0, started: null } };
-  emit();
+  clearTimeout(saveTimers.get(owner));
+  saveTimers.delete(owner);
+  if (current.owner === owner) {
+    current = { ...current, stored: null, timer: { elapsed: 0, started: null } };
+    emit();
+  }
   await remove(ownerKey("draft", owner));
   await remove(ownerKey("draft-timer", owner));
 }
 
 export function setStopwatch(owner: string, timer: Stopwatch) {
-  current = { ...current, timer };
-  emit();
+  if (current.owner === owner) {
+    current = { ...current, timer };
+    emit();
+  }
   writeJSON(ownerKey("draft-timer", owner), timer).catch(() => {});
 }
 
@@ -61,7 +73,7 @@ export function useDrafts() {
   useEffect(() => {
     if (owner && store.owner !== owner) loadDrafts(owner).catch(() => {});
   }, [owner, store.owner]);
-  return store.owner === owner ? store : { owner, stored: null, timer: { elapsed: 0, started: null } };
+  return store.owner === owner ? { ...store, ready: true } : { owner, stored: null, timer: { elapsed: 0, started: null }, ready: false };
 }
 
 export function useDraftSport() {

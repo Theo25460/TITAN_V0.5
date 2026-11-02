@@ -26,7 +26,6 @@ jest.mock("../src/lib/gpsNative", () => {
 });
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () => ({ owner: "owner-a" }) }));
 jest.mock("../src/data/drafts", () => ({ saveDraft: (...a: unknown[]) => mockDraft(...a) }));
-jest.mock("../src/lib/storage", () => ({ ownerKey: (s: string, o: string) => `${s}:${o}`, writeJSON: jest.fn(async () => undefined) }));
 jest.mock("../src/lib/exportFile", () => ({ shareTextFile: jest.fn(async () => undefined) }));
 jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
 
@@ -54,7 +53,7 @@ beforeEach(() => {
 test("explains why the position is needed before asking, and keeps the manual path", async () => {
   show();
   expect(await screen.findByText(/Pourquoi TITAN te demande ta position/)).toBeTruthy();
-  expect(screen.getByText(/reste sur ce téléphone/)).toBeTruthy();
+  expect(screen.getByText(/reste sur ce téléphone pendant l’enregistrement/)).toBeTruthy();
   fireEvent.press(screen.getByText("Saisir la séance à la main"));
   expect(nav.replace).toHaveBeenCalledWith("SessionForm", { sport: "running" });
 });

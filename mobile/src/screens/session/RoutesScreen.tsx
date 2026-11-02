@@ -104,17 +104,36 @@ function MapButton({ label, hint, onPress }: { label: string; hint: string; onPr
 /** The athlete's private route library. Nothing here is shared with anyone. */
 export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, "Routes">) {
   const owner = useOwner();
-  const q = useQuery({ queryKey: routeKey(owner), queryFn: api.routesList });
+  const toast = useToast();
+  const [exporting, setExporting] = useState<string | null>(null);
+  const q = useQuery({ queryKey: routeKey(owner), queryFn: () => api.routesList(owner) });
   const waiting = useQuery({ queryKey: ["routes-outbox", owner], queryFn: () => pendingRoutes(owner) });
-  if (q.isLoading && !q.data) return <Screen><LoadingCards count={2} /></Screen>;
-  if (q.error && !q.data) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
+  if (q.isLoading && !q.data && !waiting.data?.length) return <Screen><LoadingCards count={2} /></Screen>;
+  if (q.error && !q.data && !waiting.data?.length) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
   const list = q.data ?? [];
+  const refresh = () => { q.refetch(); waiting.refetch(); };
   return (
-    <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isRefetching} onRefresh={refresh}>
       <T variant="eyebrow" tone="accent">Mes parcours</T>
       <T tone="muted">Tes traces GPS, gardées pour toi seul. Elles ne sont jamais partagées ni publiées, et se suppriment une par une.</T>
-      {waiting.data?.length ? <T variant="small" tone="warn">{waiting.data.length} parcours en attente d’envoi : ils partiront dès que le réseau revient.</T> : null}
-      {list.length === 0 ? (
+      {q.error ? <T tone="warn">La bibliothèque en ligne est indisponible. Tes parcours en attente restent sur ce téléphone.</T> : null}
+      {waiting.data?.length ? <T variant="small" tone="warn">{waiting.data.length} parcours en attente d’envoi. Ils restent sur ce téléphone jusqu’à confirmation du serveur.</T> : null}
+      {waiting.data?.map((r) => (
+        <Card key={r.clientRouteId}>
+          <T variant="bodyStrong">{Sports.label(r.sport)} · {when(r.startedAt)}</T>
+          <T variant="small" tone={r.rejected ? "warn" : "muted"}>{r.rejected ? "Envoi refusé : la trace est conservée. Garde une copie GPX avant de contacter l’assistance." : "Envoi à réessayer. Tu peux déjà garder une copie GPX."}</T>
+          <Button small kind="secondary" label="Exporter le parcours en attente" testID={`pending-export-${r.clientRouteId}`} loading={exporting === r.clientRouteId} onPress={async () => {
+            if (exporting) return;
+            setExporting(r.clientRouteId);
+            try {
+              await shareTextFile(`titan-${r.sport}-${r.startedAt.slice(0, 10)}.gpx`, toGpx(decodeTrack(r.track), Sports.label(r.sport)), "application/gpx+xml");
+            } catch {
+              toast({ kind: "err", title: "Export impossible", message: "Ta trace reste conservée. Réessaie dans un instant." });
+            } finally { setExporting(null); }
+          }} />
+        </Card>
+      ))}
+      {list.length === 0 && !waiting.data?.length ? (
         <Card>
           <T variant="bodyStrong">Aucun parcours pour le moment</T>
           <T variant="small" tone="muted">Enregistre une course, une marche ou une sortie à vélo avec le GPS : la trace apparaîtra ici.</T>
@@ -141,8 +160,8 @@ export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, 
 /** The map of the route linked to a session, inside the session detail (nothing at all when the session has no route). */
 export function SessionRoute({ eventId, onOpen }: { eventId: string; onOpen: (id: string) => void }) {
   const owner = useOwner();
-  const meta = useQuery({ queryKey: [...routeKey(owner), "event", eventId], queryFn: () => api.routeForEvent(eventId), staleTime: 60_000 });
-  const full = useQuery({ queryKey: [...routeKey(owner), meta.data?.id ?? "none"], queryFn: () => api.routeGet(meta.data!.id), enabled: !!meta.data?.id });
+  const meta = useQuery({ queryKey: [...routeKey(owner), "event", eventId], queryFn: () => api.routeForEvent(owner, eventId), staleTime: 60_000 });
+  const full = useQuery({ queryKey: [...routeKey(owner), meta.data?.id ?? "none"], queryFn: () => api.routeGet(owner, meta.data!.id), enabled: !!meta.data?.id });
   const [basemap, setBasemap] = useState(false);
   useEffect(() => {
     readJSON<boolean>("titan.basemap.v1", false).then(setBasemap);
@@ -161,7 +180,7 @@ export function RouteDetailScreen({ navigation, route }: NativeStackScreenProps<
   const owner = useOwner();
   const qc = useQueryClient();
   const toast = useToast();
-  const q = useQuery({ queryKey: [...routeKey(owner), route.params.id], queryFn: () => api.routeGet(route.params.id) });
+  const q = useQuery({ queryKey: [...routeKey(owner), route.params.id], queryFn: () => api.routeGet(owner, route.params.id) });
   const [busy, setBusy] = useState(false);
   const [basemap, setBasemap] = useState(false);
   useEffect(() => {
@@ -200,7 +219,7 @@ export function RouteDetailScreen({ navigation, route }: NativeStackScreenProps<
   const remove = async () => {
     setBusy(true);
     try {
-      await api.routeDelete(r.id);
+      await api.routeDelete(owner, r.id);
       qc.invalidateQueries({ queryKey: routeKey(owner) });
       navigation.goBack();
     } catch (e) {

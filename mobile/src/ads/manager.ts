@@ -19,6 +19,7 @@ export function createAdsManager(load: () => AdsSdk, now: () => number = Date.no
   let state: AdsState = { phase: "idle", canRequestAds: false, privacyOptions: false };
   let starting: Promise<AdsState> | null = null;
   let failedAt = 0;
+  let operation = 0;
   const listeners = new Set<() => void>();
   const set = (next: AdsState) => {
     state = next;
@@ -27,18 +28,22 @@ export function createAdsManager(load: () => AdsSdk, now: () => number = Date.no
   const fromInfo = (i: ConsentInfo | void | undefined, phase: Phase): AdsState => ({ phase, canRequestAds: !!i?.canRequestAds, privacyOptions: i?.privacyOptionsRequirementStatus === "REQUIRED" });
 
   async function run(): Promise<AdsState> {
+    const current = ++operation;
     set({ ...state, phase: "starting" });
     try {
       const sdk = load();
       await sdk.consent.requestInfoUpdate({ tagForUnderAgeOfConsent: false });
       const info = await sdk.consent.loadAndShowConsentFormIfRequired();
+      if (current !== operation) return state;
       if (!info.canRequestAds) {
         set(fromInfo(info, "denied"));
         return state;
       }
       await sdk.configure();
+      if (current !== operation) return state;
       set(fromInfo(info, "ready"));
     } catch {
+      if (current !== operation) return state;
       failedAt = now();
       set({ ...state, phase: "error", canRequestAds: false });
     }
@@ -61,12 +66,15 @@ export function createAdsManager(load: () => AdsSdk, now: () => number = Date.no
     },
     /** Opens Google's privacy-options form; if the choice now allows ads, starts the SDK. */
     async openPrivacyOptions(): Promise<AdsState> {
+      const current = ++operation;
       try {
         const sdk = load();
         await sdk.consent.showPrivacyOptionsForm();
         const info = await sdk.consent.getConsentInfo();
+        if (current !== operation) return state;
         if (info.canRequestAds && state.phase !== "ready") {
           await sdk.configure();
+          if (current !== operation) return state;
           set(fromInfo(info, "ready"));
         } else set(fromInfo(info, info.canRequestAds ? "ready" : "denied"));
       } catch {

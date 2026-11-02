@@ -155,7 +155,7 @@ export function useRecordSession() {
 }
 
 export function syncNow(qc: ReturnType<typeof useQueryClient>, owner: string) {
-  return flushQueue(owner, (eventId, receipt) => rememberReceipt(eventId, receipt)).then((r) => {
+  return flushQueue(owner, (eventId, receipt) => rememberReceipt(owner, eventId, receipt)).then((r) => {
     if (r.sent > 0) invalidateAfterSession(qc, owner);
     return r;
   });

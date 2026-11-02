@@ -198,7 +198,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       const payload = await record.mutateAsync(draft);
       saved.current = true;
       // A session saved from a GPS recording is linked to its route (same sport, within two days; nothing is guessed).
-      if (payload.details.client_event_id) linkSavedSession(owner, sport, payload.details.client_event_id).then(() => flushRoutes(owner, routeSave, routeLink)).catch(() => {});
+      if (payload.details.client_event_id) linkSavedSession(owner, sport, payload.details.client_event_id).then(() => flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event))).catch(() => {});
       await clearDraft(owner);
       haptic("success");
       navigation.replace("SessionResult", { eventId: payload.details.client_event_id! });

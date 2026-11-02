@@ -67,7 +67,7 @@ export function interstitialAllowed(s: AdState, c: Context, ready: boolean): Ver
   if (c.busy) return no("busy");
   if (!ready) return no("not-ready");
   if (s.sessions <= RULES.discoverySessions) return no("discovery");
-  if (s.lastShownSession > 0 && s.sessions - s.lastShownSession < RULES.everySessions) return no("every-n-sessions");
+  if (s.sessions - s.lastShownSession < RULES.everySessions) return no("every-n-sessions");
   if (s.lastShownAt !== null && c.now - s.lastShownAt < RULES.minGapMs) return no("min-gap");
   const today = s.day === localDay(c.now) ? s.today : 0;
   if (today >= RULES.perDay) return no("daily-cap");

@@ -5,7 +5,7 @@ import type { TrainingPayload } from "../src/core/types";
 const mockSubmit = jest.fn();
 let mockSessionOwner: string | null = "owner-a";
 jest.mock("../src/data/api", () => ({
-  submitSession: (p: unknown) => mockSubmit(p),
+  submitSession: (owner: string, p: unknown) => mockSubmit(owner, p),
   assertOwner: async (owner: string) => {
     if (mockSessionOwner !== owner) throw Object.assign(new Error("AUTH_REQUIRED"), { code: "AUTH_REQUIRED" });
     return { user: { id: owner } };
@@ -42,7 +42,7 @@ test("successful send removes the session and returns the server receipt", async
   expect(r.receipts.e1.xp).toBe(300);
   expect(queue.queueSnapshot().items).toHaveLength(0);
   // The exact frozen payload is what the server receives (idempotent receipt per client_event_id).
-  expect(mockSubmit).toHaveBeenCalledWith(payload("e1"));
+  expect(mockSubmit).toHaveBeenCalledWith("owner-a", payload("e1"));
 });
 
 test("network failure keeps the session pending and stops the run", async () => {
@@ -81,4 +81,30 @@ test("provisional journal entries hide sessions already confirmed", () => {
   const items = [{ key: "a:e1", ownerId: "a", payload: payload("e1"), status: "pending" as const, queuedAt: "2026-10-20T10:00:00Z", attempts: 0 }];
   expect(queue.provisionalLogs(items, new Set(["e1"]))).toHaveLength(0);
   expect(queue.provisionalLogs(items, new Set())[0]).toMatchObject({ id: "e1", syncStatus: "pending", xp: 0 });
+});
+
+test("a delayed account load cannot put the previous account's sessions in the new queue", async () => {
+  await queue.enqueue("owner-a", payload("private-a"));
+  const original = (AsyncStorage.getItem as jest.Mock).getMockImplementation()!;
+  let release!: (value: string | null) => void;
+  const saved = await AsyncStorage.getItem("titan.queue.v1:owner-a");
+  (AsyncStorage.getItem as jest.Mock).mockImplementationOnce(() => new Promise<string | null>((r) => { release = r; }));
+  const old = queue.loadQueue("owner-a");
+  await Promise.resolve();
+  const next = queue.loadQueue("owner-b");
+  release(saved);
+  await Promise.all([old, next]);
+  expect(queue.queueSnapshot()).toMatchObject({ owner: "owner-b", items: [] });
+  await queue.enqueue("owner-b", payload("new-b"));
+  expect(JSON.parse((await AsyncStorage.getItem("titan.queue.v1:owner-b"))!).map((i: { ownerId: string }) => i.ownerId)).toEqual(["owner-b"]);
+  (AsyncStorage.getItem as jest.Mock).mockImplementation(original);
+});
+
+test("a failed queue load cannot let a new save overwrite the unread sessions", async () => {
+  await queue.enqueue("owner-a", payload("keep-a"));
+  await queue.loadQueue(null);
+  (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error("disk-unavailable"));
+  await expect(queue.loadQueue("owner-a")).rejects.toThrow("disk-unavailable");
+  await expect(queue.enqueue("owner-a", payload("new-a"))).rejects.toThrow();
+  expect(JSON.parse((await AsyncStorage.getItem("titan.queue.v1:owner-a"))!).map((i: { payload: TrainingPayload }) => i.payload.details.client_event_id)).toEqual(["keep-a"]);
 });

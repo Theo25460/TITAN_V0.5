@@ -104,3 +104,9 @@ Localisation exacte de l'hébergement Netlify, de Paddle et de Resend ; contrats
 ## Ajout du 29/10/2026 — balise GA4
 
 ID public : G-WYXQPP00H2. Intégration au build de la branche V1.1, PAS publiée. La balise Google n’est chargée qu’après consentement distinct via js/ga4-consent.js ; refus = aucun script ni appel Google, retrait possible sur chaque page. Nouveaux hôtes listés dans docs/third-party-hosts.json : www.googletagmanager.com et *.google-analytics.com. CSP limitée aux domaines GA4. Avant production : vérification des durées de conservation, du transfert international, d’outils de blocage et de la validation RGPD des textes ; tests consentement/refus/retrait et page_view.
+
+## Ajout du 02/11/2026 — sources du guide escalade
+
+`suivi-escalade.html` contient des liens de référence vers `thebmc.co.uk`, `services.thebmc.co.uk` (PDF BMC) et `www.mammut.com`. Ces trois hôtes sont classés `link` dans l’inventaire machine. Ils sont ouverts uniquement si la personne active le lien et quitte TITAN ; aucun script, image, document intégré, préconnexion ou préchargement ne les contacte à l’affichage de la page. La navigation externe transmet les informations habituelles d’une requête web au site choisi (notamment adresse IP et en-têtes du navigateur, référent selon la politique du navigateur) ; TITAN n’ajoute aucun identifiant de compte ni donnée sportive à ces URL.
+
+Cette documentation n’autorise aucun chargement automatique supplémentaire : les contrôles existants d’inventaire, de requêtes au chargement et de CSP restent inchangés.

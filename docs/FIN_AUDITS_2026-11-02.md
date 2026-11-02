@@ -1,5 +1,7 @@
 # Audits finaux V1.1 (FIN-SEC, FIN-CHEAT, FIN-SEO) — 2026-11-02
 
+> ÉTAT HISTORIQUE, SUPPLANTÉ le 2 novembre par `V11_FINALIZATION_REPORT_2026-11-02.md`, `V11_SQL_SECURITY_REVIEW_2026-11-02.md`, `V11_MONETIZATION_REVIEW_2026-11-02.md` et `V11_SEO_FINAL_2026-11-02.md`. Deux défauts SQL de confidentialité et plusieurs défauts Android/paiement ont depuis été reproduits puis corrigés sur candidate. La conclusion ci-dessous « aucun correctif nécessaire » ne représente donc plus l’état actuel. Décision actuelle : NO-GO publication.
+
 Faits relevés dans le dépôt à la tête de branche, **après** le développement. Rien n'a été déployé ni appliqué en production.
 
 ## FIN-SEC

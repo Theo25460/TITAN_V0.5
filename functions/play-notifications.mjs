@@ -72,12 +72,14 @@ export default async function handler(request) {
         if (typeof owner.data !== 'string') return reply(200);
 
         const accessToken = await googleAccessToken(account);
+        // Capture before awaiting Google so an older delayed response cannot outrank a newer verification.
+        const eventAt = new Date().toISOString();
         const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
         // Google no longer knows a token it once sold (refunded, or an expired subscription past its retention): the account keeps no access from it.
         if (lookup.status === 404 || lookup.status === 410) {
             const gone = await rpc('titan_apply_entitlement_v1', {
                 p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: false, p_status: 'gone',
-                p_event_name: eventName, p_event_at: new Date().toISOString(), p_order_id: null, p_product_id: null, p_variant_id: null,
+                p_event_name: eventName, p_event_at: eventAt, p_order_id: null, p_product_id: null, p_variant_id: null,
                 p_renews_at: null, p_ends_at: new Date().toISOString(), p_trial_ends_at: null, p_refunded_at: null
             });
             return gone.ok ? reply(200) : reply(503);
@@ -85,9 +87,7 @@ export default async function handler(request) {
         if (!lookup.ok) return reply(503);
         const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
         if (subscription.error) return reply(200);
-        // Stamped with the moment Google was read, not the notification's own time: the ledger keeps the latest write, and the
-        // freshest read must win over an older verification or a delayed, out-of-order notification.
-        const eventAt = new Date().toISOString();
+        // Notification timestamps are untrusted; use the server-side Google request start captured above.
         const applied = await rpc('titan_apply_entitlement_v1', {
             p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: subscription.active,
             p_status: subscription.status, p_event_name: eventName,

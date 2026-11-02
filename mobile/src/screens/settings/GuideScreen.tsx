@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { View } from "react-native";
+import { adsSuppression } from "../../ads/suppression";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -24,6 +25,7 @@ type Props = NativeStackScreenProps<RootParams, "Guide">;
     screen. No advertising here, and no permission is requested by the tour itself. */
 export function GuideScreen({ navigation }: Props) {
   const owner = useOwner();
+  useLayoutEffect(() => adsSuppression.begin(owner), [owner]);
   const [tour, setTour] = useState<TourState | null>(null);
   // Optional mini-goals read the REAL state: they tick themselves when the person does the thing, and are never required.
   const prefs = usePrefs();

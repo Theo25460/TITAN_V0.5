@@ -82,3 +82,18 @@ test("listeners hear every change", async () => {
   await m.start();
   expect(seen).toEqual(["starting", "ready"]);
 });
+
+test("a consent withdrawal wins over an older SDK startup still in flight", async () => {
+  const s = sdk();
+  let configured!: () => void;
+  s.api.configure = () => new Promise<void>((resolve) => { configured = resolve; });
+  const manager = createAdsManager(() => s.api);
+  const starting = manager.start();
+  await Promise.resolve();
+  await Promise.resolve();
+  s.api.consent.getConsentInfo = async () => ({ canRequestAds: false, privacyOptionsRequirementStatus: "REQUIRED" });
+  await manager.openPrivacyOptions();
+  configured();
+  await starting;
+  expect(manager.get()).toMatchObject({ phase: "denied", canRequestAds: false });
+});

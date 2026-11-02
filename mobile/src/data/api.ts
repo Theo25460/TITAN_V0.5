@@ -131,8 +131,8 @@ export type SubmitReceipt = {
 };
 
 /** Idempotent: the server keeps a receipt per client_event_id and replays it for an identical retry. */
-export async function submitSession(payload: TrainingPayload): Promise<SubmitReceipt> {
-  const data = await rpc<SubmitReceipt[] | SubmitReceipt>("titan_submit_training_session", {
+export async function submitSession(owner: string, payload: TrainingPayload): Promise<SubmitReceipt> {
+  const data = await ownerRpc<SubmitReceipt[] | SubmitReceipt>(owner, "titan_submit_training_session", {
     p_sport: payload.sport,
     p_category: payload.category,
     p_val: payload.val,
@@ -256,10 +256,17 @@ export const archiveImported = (source: "health_connect") => rpc<unknown>("titan
 /* ---------- Route library (private GPS traces) ---------- */
 export type RouteMeta = { id: string; eventId?: string | null; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
 export type RouteFull = RouteMeta & { track: import("../lib/gpsTrack").EncodedTrack };
-export const routeSave = (p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown }) =>
-  rpc<{ id: string; created: boolean }>("titan_route_save_v1", { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track });
-export const routeLink = (clientRouteId: string, eventId: string) => rpc<boolean>("titan_route_link_v1", { p_client_route_id: clientRouteId, p_event_id: eventId });
-export const routeForEvent = (eventId: string) => rpc<RouteMeta | null>("titan_route_for_event_v1", { p_event_id: eventId });
-export const routesList = () => rpc<RouteMeta[]>("titan_routes_v1", { p_limit: 100 });
-export const routeGet = (id: string) => rpc<RouteFull>("titan_route_get_v1", { p_id: id });
-export const routeDelete = (id: string) => rpc<boolean>("titan_route_delete_v1", { p_id: id });
+/** Private data must use the token of the checked owner, including if Auth changes before fetch starts. */
+async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<T> {
+  const session = await assertOwner(owner);
+  const { data, error } = await withTimeout(supabase.rpc(name, params).setHeader("Authorization", `Bearer ${session!.access_token}`));
+  if (error) throw error;
+  return data as T;
+}
+export const routeSave = (owner: string, p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown }) =>
+  ownerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v1", { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track });
+export const routeLink = (owner: string, clientRouteId: string, eventId: string) => ownerRpc<boolean>(owner, "titan_route_link_v1", { p_client_route_id: clientRouteId, p_event_id: eventId });
+export const routeForEvent = (owner: string, eventId: string) => ownerRpc<RouteMeta | null>(owner, "titan_route_for_event_v1", { p_event_id: eventId });
+export const routesList = (owner: string) => ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", { p_limit: 100 });
+export const routeGet = (owner: string, id: string) => ownerRpc<RouteFull>(owner, "titan_route_get_v1", { p_id: id });
+export const routeDelete = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_route_delete_v1", { p_id: id });

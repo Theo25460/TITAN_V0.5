@@ -33,6 +33,7 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
             if (now() - started > budgetMs) break; // the rest is picked up by the next run
             checked++;
             try {
+                const eventAt = new Date().toISOString();
                 const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(row.external_id)}`, { method: 'GET', headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
                 let payload;
                 if (lookup.status === 404 || lookup.status === 410) {
@@ -45,7 +46,7 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
                         : { p_is_active: s.active, p_status: s.status, p_order_id: s.orderId, p_product_id: s.productId, p_renews_at: s.renewsAt, p_ends_at: s.endsAt };
                 } else { failed++; continue; } // Google unavailable: change nothing, try again next hour
                 const applied = await rpc('titan_apply_entitlement_v1', {
-                    p_user_id: row.user_id, p_source: 'google_play', p_external_id: row.external_id, p_event_name: 'reconcile', p_event_at: new Date().toISOString(),
+                    p_user_id: row.user_id, p_source: 'google_play', p_external_id: row.external_id, p_event_name: 'reconcile', p_event_at: eventAt,
                     p_variant_id: null, p_trial_ends_at: null, p_refunded_at: null, ...payload
                 });
                 if (applied.ok) updated++; else failed++;

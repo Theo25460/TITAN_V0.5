@@ -78,7 +78,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
     try {
       await fn();
     } catch (e) {
-      toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : "Réessaie dans un instant." });
+      toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : (e as Error).message === "ROUTE_OUTBOX_FULL" ? "20 parcours attendent déjà leur envoi. Ta trace reste sur ce téléphone : exporte-la ou synchronise tes parcours avant de réessayer." : "Réessaie dans un instant. Ta trace reste sur ce téléphone." });
     } finally {
       setBusy(false);
     }
@@ -104,16 +104,16 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       const sum = recorder.summary(rec);
       const draft = draftFromRecording(rec, sum);
       // The trace goes to the private route library through a durable outbox (idempotent); the session itself follows the usual path.
-      const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: sum.start ?? rec.startedAt, distanceKm: sum.distanceKm, activeSeconds: sum.activeSeconds, ascent: sum.ascent });
+      const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: sum.start ?? rec.startedAt, distanceKm: sum.distanceKm, activeSeconds: sum.activeSeconds, ascent: sum.ascent, id: `gps-${rec.startedAt.toString(36)}` });
       if (pending) {
-        await queueRoute(owner, pending).catch(() => {});
+        await queueRoute(owner, pending);
         await awaitSession(owner, pending.clientRouteId, rec.sport);
       }
       saveDraft(owner, draft);
       await writeJSON(ownerKey("draft", owner), { draft, updatedAt: Date.now() }); // on disk before the recording is released
       await recorder.discard(owner);
       await setActiveOwner(null);
-      flushRoutes(owner, routeSave, routeLink).catch(() => {});
+      flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event)).catch(() => {});
       navigation.replace("SessionForm", { sport: rec.sport });
     }, "Enregistrement impossible");
 
@@ -141,7 +141,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
         <T variant="h1">{Sports.label(sport)}</T>
         <Card>
           <T variant="bodyStrong">Pourquoi TITAN te demande ta position</T>
-          <T tone="muted">Pour mesurer ta distance, ton allure ou ta vitesse et dessiner ta trace. Elle n’est utilisée que pendant une séance que tu démarres, avec une notification visible, et reste sur ce téléphone : seuls les totaux sont enregistrés dans ton journal.</T>
+          <T tone="muted">Pour mesurer ta distance, ton allure ou ta vitesse et dessiner ta trace. Elle n’est utilisée que pendant une séance que tu démarres, avec une notification visible. Elle reste sur ce téléphone pendant l’enregistrement, puis rejoint ta bibliothèque privée quand tu enregistres la séance.</T>
           <T tone="muted">L’enregistrement continue écran verrouillé tant qu’il est en cours. Tu peux le mettre en pause ou le terminer à tout moment.</T>
         </Card>
         {denied ? (
@@ -206,7 +206,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       {ended ? (
         <>
           <Button kind="secondary" icon="route" label="Exporter la trace GPX" onPress={exportGpx} />
-          <T variant="caption" tone="faint">La trace est privée : elle n’est jamais publiée. Exporte-la avant d’enregistrer si tu veux la garder.</T>
+          <T variant="caption" tone="faint">La trace est privée : elle n’est jamais publiée. Elle sera conservée dans Mes parcours ; tu peux aussi en garder une copie GPX.</T>
           <Button kind="ghost" label="Abandonner cette séance" onPress={discard} />
         </>
       ) : (

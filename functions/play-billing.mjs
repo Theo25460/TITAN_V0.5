@@ -111,6 +111,8 @@ export default async function handler(request) {
 
         const accessToken = await googleAccessToken(account);
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
+        // Order by when the Google read starts: a delayed older response must not overwrite a newer read.
+        const eventAt = new Date().toISOString();
         const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(body.purchase_token)}`, { method: 'GET', headers: googleHeaders });
         if (lookup.status === 404 || lookup.status === 410 || lookup.status === 400) return reply(422, { error: 'purchase_not_found' });
         if (!lookup.ok) return unavailable();
@@ -122,7 +124,7 @@ export default async function handler(request) {
 
         const applied = await rpc('titan_apply_entitlement_v1', {
             p_user_id: owner.id, p_source: 'google_play', p_external_id: body.purchase_token, p_is_active: subscription.active,
-            p_status: subscription.status, p_event_name: 'verify', p_event_at: new Date().toISOString(), p_order_id: subscription.orderId,
+            p_status: subscription.status, p_event_name: 'verify', p_event_at: eventAt, p_order_id: subscription.orderId,
             p_product_id: subscription.productId, p_variant_id: null, p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt,
             p_trial_ends_at: null, p_refunded_at: null
         });
@@ -132,7 +134,7 @@ export default async function handler(request) {
         if (subscription.linkedPurchaseToken) {
             await rpc('titan_apply_entitlement_v1', {
                 p_user_id: owner.id, p_source: 'google_play', p_external_id: subscription.linkedPurchaseToken, p_is_active: false,
-                p_status: 'replaced', p_event_name: 'replaced', p_event_at: new Date().toISOString(), p_order_id: null,
+                p_status: 'replaced', p_event_name: 'replaced', p_event_at: eventAt, p_order_id: null,
                 p_product_id: subscription.productId, p_variant_id: null, p_renews_at: null, p_ends_at: new Date().toISOString(),
                 p_trial_ends_at: null, p_refunded_at: null
             });

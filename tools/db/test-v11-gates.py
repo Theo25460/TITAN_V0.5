@@ -22,7 +22,7 @@ if not query('select current_database()').startswith('titan_test_'):
 
 ROOT = Path(__file__).resolve().parents[2]
 versions = sorted(p.name[:14] for p in (ROOT / 'supabase/migrations').glob('*.sql') if p.name[:14] > '20261021020000')
-assert len(versions) == 30, 'the V1.1 lot is thirty migrations'
+assert len(versions) == 31, 'the V1.1 lot is thirty-one migrations'
 SEED = 'insert into supabase_migrations.schema_migrations(version) values ' + ','.join(f"('{v}')" for v in versions) + ' on conflict(version) do nothing;'
 SQL = (ROOT / 'tools/db/postflight-v11.sql').read_text().strip()
 assert SQL.endswith(';')
@@ -54,7 +54,7 @@ def negative(mutation, expected):
     print(f'RED confirmed: postflight-v11 blocks {expected}.')
 
 
-negative(f"delete from supabase_migrations.schema_migrations where version='{versions[-1]}';", 'ledger:30 migrations')
+negative(f"delete from supabase_migrations.schema_migrations where version='{versions[-1]}';", 'ledger:31 migrations')
 negative("insert into supabase_migrations.schema_migrations(version) values ('29990101000000');", 'ledger:unexpected migration')
 negative('grant select on private.titan_source_consents to authenticated;', 'private.titan_source_consents:API grants')
 negative('alter table private.titan_daily_activity disable row level security;', 'private.titan_daily_activity:RLS')
@@ -67,5 +67,9 @@ negative('revoke execute on function public.titan_garmin_ingest_v1(text,jsonb) f
 negative('grant select on private.titan_garmin_links to anon;', 'private.titan_garmin_links:API grants')
 negative('grant select on private.titan_garmin_tokens to authenticated;', 'private.titan_garmin_tokens:API grants')
 negative('grant execute on function public.titan_garmin_tokens_get_v1(uuid) to authenticated;', 'titan_garmin_tokens_get_v1')
+negative('grant select on private.titan_routes to authenticated;', 'private.titan_routes:API grants')
+negative('alter table private.titan_routes disable row level security;', 'private.titan_routes:RLS')
+negative('grant execute on function public.titan_find_profile_by_friend_code(text) to anon;', 'titan_find_profile_by_friend_code')
+negative('grant execute on function public.titan_list_my_friends() to anon;', 'titan_list_my_friends')
 negative('drop trigger titan_garmin_links_erase_tokens on private.titan_garmin_links;', 'jetons Garmin effacés')
 print('OK: every V1.1 gate probe rolled back.')

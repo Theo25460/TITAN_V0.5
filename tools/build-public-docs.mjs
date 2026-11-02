@@ -407,18 +407,32 @@ seoGuide({
 seoGuide({
   route: "/suivi-escalade",
   file: "suivi-escalade.html",
-  title: "Suivi d’escalade : cotations, essais et réussites | TITAN",
-  h1: "Ton escalade,<br>cotation par cotation",
-  eyebrow: "Escalade",
-  description: "Bloc ou voie, cotations françaises, Fontainebleau et V-scale tenues séparées, essais et réussites : un suivi d’escalade qui garde le contexte.",
+  title: "Cotations de bloc : Fontainebleau, V-scale et suivi | TITAN",
+  h1: "Comprendre les cotations,<br>suivre ton escalade",
+  eyebrow: "Escalade · bloc et voie",
+  description: "Lis les cotations de bloc Fontainebleau et V-scale, distingue bloc et voie, puis garde tes essais et réussites dans un journal d’escalade gratuit.",
   image: "aurora",
-  lead: "Bloc, voie, salle ou falaise : TITAN garde chaque cotation dans son système et son contexte, pour des comparaisons qui ont un sens.",
+  lead: "Que signifie 6A+ ? Peut-on comparer un bloc et une voie ? Des repères pour lire une cotation, puis noter tes séances sans perdre leur contexte.",
   sections: [
-    ["Ce que tu notes", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort.</p>`],
-    ["Des systèmes qui ne se mélangent pas", `<p>Les cotations françaises, Fontainebleau et V-scale restent séparées. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p>`],
-    ["Voir sa progression", `<p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, avec les séances sources.</p>`],
+    ["Lire une cotation de bloc", `<p>En <strong>Fontainebleau</strong> (Font ou Fb), la difficulté augmente avec le chiffre, puis la lettre et le signe + : <strong>6A, 6A+, 6B, 6B+, 6C, 6C+, 7A</strong>. Cette suite illustre l’ordre, pas toute l’échelle. En <strong>V-scale</strong>, on rencontre par exemple V0, V1, V2, puis des nombres croissants.</p>
+      ${table(["Système", "Exemple", "Ce qu’il faut garder"], [
+        ["Fontainebleau · bloc", "6A+", "Le système Font/Fb et la cotation complète"],
+        ["V-scale · bloc", "V3", "Le système V, sans conversion automatique"],
+        ["Française · voie", "6a+", "La discipline voie et le mode d’assurage"],
+        ["Couleur de salle", "Bleu", "Le nom de la salle et sa propre légende"],
+      ])}
+      <p>La notation habituelle distingue les majuscules du bloc (6A) et les minuscules de la voie (6a). Les couleurs dépendent de la salle ; demande sa légende. Les cotations restent des appréciations : le style et l’ouverture changent le ressenti.</p>
+      <p class="pub-fine">Repères vérifiés le 2 novembre 2026 : <a href="https://thebmc.co.uk/en/indoor-climbing-grades-explained">British Mountaineering Council — comprendre les cotations en salle (en anglais)</a>.</p>`],
+    ["Équivalences : garder le système d’origine", `<p>Un tableau Font/V peut aider à se repérer, mais une conversion reste approximative. Une cotation de bloc ne décrit pas la même pratique qu’une cotation de voie. TITAN conserve donc <strong>la cotation dans son système d’origine</strong> et ne transforme pas un 6A en V3 ni en 6a.</p><p>Tu changes de salle ? Garde le lieu et le style dans tes notes plutôt que d’assimiler deux couleurs identiques. Tu passes dehors ? Le niveau réussi en salle ne garantit pas la réussite sur le rocher.</p><p class="pub-fine">Pour approfondir : <a href="https://www.mammut.com/fr/fr/stories-guides/bouldering-difficulty-scales-explained-climbers-guide">Mammut — échelles de bloc et limites des conversions</a> ; <a href="https://services.thebmc.co.uk/media/files/Skills/Leaflets/New%20Rock%20Climbers.pdf">BMC — débuter sur le rocher (PDF, en anglais)</a>.</p>`],
+    ["Un exemple de carnet, sans fausse progression", `<p><strong>Exemple fictif de lecture du carnet</strong> : mardi, tu notes une meilleure réussite en 6A Font, 8 essais et 3 réussites. Jeudi, tu notes 6A+ Font, 12 essais et 4 réussites. Tu as réussi une cotation supérieure dans ce système, mais ces deux séances seules ne prouvent pas une progression durable.</p><p>Ajoute dans tes notes ce que les nombres oublient : même salle ou même secteur, dalle ou dévers, nouveau bloc ou passage déjà travaillé. Un essai non réussi garde son intérêt dans le carnet ; ne le saisis pas comme meilleure réussite. Le prochain repère peut être de refaire un passage avec moins d’essais, sans viser une cotation plus haute.</p>`],
+    ["Ce que tu notes dans TITAN", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p><p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, avec les séances sources. <a href="/comprendre-mes-donnees">Comprendre les mesures et leurs limites</a> ou <a href="/journal-entrainement">découvrir le journal, les corrections et l’export</a>.</p>`],
   ],
-  faqItems: [["Puis-je mélanger salle et falaise ?", "Oui : le lieu et le mode d’assurage sont gardés pour comparer ce qui est comparable."]],
+  faqItems: [
+    ["Que veut dire 6A+ en bloc ?", "Dans le système Fontainebleau, 6A+ se situe entre 6A et 6B. Garde le nom du système avec la cotation pour éviter de la confondre avec une voie."],
+    ["Une couleur correspond-elle toujours à la même cotation ?", "Non. Consulte la légende de ta salle et garde le lieu dans ton carnet. TITAN ne convertit pas une couleur en cotation."],
+    ["Puis-je comparer un bloc 6A et une voie 6a ?", "Pas comme deux performances équivalentes. TITAN sépare la discipline et le système de cotation pour garder le contexte."],
+    ["Le carnet d’escalade est-il gratuit ?", "Oui. Le journal et ses exports sont gratuits et sans publicité sur le web. Tu peux essayer sans compte ; les séances restent alors sur cet appareil."],
+  ],
 });
 seoGuide({
   route: "/suivi-sportif",
