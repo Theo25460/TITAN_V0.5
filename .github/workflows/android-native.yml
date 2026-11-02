@@ -159,9 +159,10 @@ jobs:
           target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
           if [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
           "$bt/aapt2" dump permissions "$apk" | tee permissions.txt
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|android.permission.health.(READ_STEPS|READ_EXERCISE)\b|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|android.permission.health.(READ_STEPS|READ_EXERCISE)\b|com.android.vending.BILLING|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
-          if grep -q "BILLING\|AD_ID" permissions.txt; then echo "::error::facturation ou identifiant publicitaire présent"; exit 1; fi
+          if ! grep -q "com.android.vending.BILLING" permissions.txt; then echo "::error::permission Billing absente dans le paquet"; exit 1; fi
+          if grep -q "AD_ID" permissions.txt; then echo "::error::identifiant publicitaire présent"; exit 1; fi
           "$bt/apksigner" verify --print-certs "$apk" | tee signature.txt
           # An upload build must carry the registered upload key, or Play Console rejects the bundle.
           if [ "$SIGNING_LABEL" = "upload" ] && ! grep -q "SHA-256 digest: 8e359edea72e48f0760d1b7ff66494439bba4b5f7385de44c7cfa5929dec205c" signature.txt; then
