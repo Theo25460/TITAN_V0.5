@@ -13,13 +13,28 @@ import { space } from "../../theme/tokens";
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootParams, "Login">) {
-  const { signIn, notice, clearNotice } = useAuth();
+  const { signIn, signInWithGoogle, notice, clearNotice } = useAuth();
   const online = useOnline();
   const [email, setEmail] = useState(route.params?.email ?? "");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
   const passwordRef = useRef<TextInput>(null);
+
+  async function google() {
+    if (busy) return;
+    if (!online) return setErrors({ form: "La connexion Google demande Internet." });
+    setBusy(true);
+    setErrors({});
+    clearNotice();
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      setErrors({ form: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit() {
     if (busy) return;
@@ -56,6 +71,7 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </T>
       ) : null}
       <Button label={busy ? "Connexion…" : "Se connecter"} loading={busy} onPress={submit} testID="login-submit" />
+      <Button label="Continuer avec Google" kind="secondary" loading={busy} onPress={google} testID="login-google" />
       <Button label="Mot de passe oublié ?" kind="ghost" onPress={() => navigation.navigate("Forgot", { email })} />
       <Button label="Créer un compte" kind="secondary" onPress={() => navigation.replace("Signup")} />
     </Screen>
