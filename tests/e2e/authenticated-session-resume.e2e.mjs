@@ -21,6 +21,8 @@ for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offli
  // A bounded test: a hang then fails with its own name instead of cancelling the whole browser job after 25 minutes.
  test(`authenticated resume: ${lostAck?'committed receipt lost':mode==='offline'?'browser offline':'server unavailable'} then reload and retry at ${width}px`,{timeout:90000},async()=>{
   const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
+  // CI runners are slow: a route handler waiting on the local server must give up well inside the test budget, and teardown must never wait for it (it hung the whole test three times).
+  context.setDefaultTimeout(15000);
   const now=Math.floor(Date.now()/1000),user={id:OWNER,email:'resume@example.test',aud:'authenticated',app_metadata:{},user_metadata:{}};
   const token=[Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url'),Buffer.from(JSON.stringify({sub:OWNER,aud:'authenticated',role:'authenticated',iat:now,exp:now+3600})).toString('base64url'),'synthetic-signature'].join('.');
   await context.addInitScript(session=>{if(!localStorage.getItem('titan_supabase_auth_v1'))localStorage.setItem('titan_supabase_auth_v1',JSON.stringify(session));},{access_token:token,refresh_token:'synthetic-refresh',token_type:'bearer',expires_in:3600,expires_at:now+3600,user});
@@ -87,6 +89,6 @@ for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offli
    const durable=await page.evaluate(owner=>window.TitanQueue.readHistory(owner),OWNER);
    assert.equal(durable.length,1);assert.equal(durable[0].id,LOG);assert.equal(durable[0].val,5);assert.equal(durable[0].details.duration,30);
    assert.equal(serverLogs.length,1);assert.equal(grants,1);assert.deepEqual(errors,[]);
-  }finally{await context.unrouteAll({behavior:'wait'});await context.close();}
+  }finally{await context.unrouteAll({behavior:'ignoreErrors'});await context.close();}
  });
 }
