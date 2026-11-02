@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AppState } from "react-native";
 import { onReconnect } from "../lib/network";
+import { flushRoutes } from "../lib/routeSync";
+import * as api from "./api";
 import { useAuth } from "./auth";
 import { keys, syncNow } from "./hooks";
 
@@ -14,6 +16,8 @@ export function SyncManager() {
     if (!owner) return;
     const run = () => {
       syncNow(qc, owner).catch(() => {});
+      // GPS routes wait in their own outbox; the server dedupes by client route id.
+      flushRoutes(owner, api.routeSave).catch(() => {});
     };
     run();
     const off = onReconnect(() => {

@@ -148,3 +148,67 @@ export function toGpx(track: Track, name: string): string {
 
 /** Sports for which a live GPS recording makes sense (distance-based, outdoors). */
 export const GPS_SPORTS = new Set(["running", "trail", "walking", "hiking", "cycling", "cycling_road", "mtb", "gravel", "cyclocross"]);
+
+/* ---- Route library: compact, privacy-neutral encoding (the server stores it as is; nothing here leaves the phone on its own) ---- */
+export type EncodedTrack = { v: 1; t0: number; segs: (number | null)[][][] };
+export const MAX_ROUTE_POINTS = 3000;
+
+/** lat/lon in 1e-5 degrees (about 1 m), time in seconds since the first fix, altitude in decimetres or null when not reliable.
+    Longer traces are thinned evenly (first and last fix of every segment always kept) to stay under the server ceiling. */
+export function encodeTrack(track: Track, maxPoints = MAX_ROUTE_POINTS): EncodedTrack | null {
+  const segs = track.segs.filter((s) => s.length > 0);
+  const total = segs.reduce((n, s) => n + s.length, 0);
+  if (total < 2) return null;
+  const t0 = segs[0]![0]!.t;
+  const reliable = ascentM(track) !== null;
+  const step = total > maxPoints ? total / maxPoints : 1;
+  const out: EncodedTrack = { v: 1, t0, segs: [] };
+  let kept = 0;
+  for (const s of segs) {
+    const pts: (number | null)[][] = [];
+    for (let i = 0; i < s.length; i++) {
+      const last = i === s.length - 1;
+      if (!last && i !== 0 && step > 1 && Math.floor(i / step) === Math.floor((i - 1) / step)) continue;
+      const f = s[i]!;
+      pts.push([Math.round(f.lat * 1e5), Math.round(f.lon * 1e5), Math.max(0, Math.round((f.t - t0) / 1000)), reliable && f.alt !== null ? Math.round(f.alt * 10) : null]);
+      kept++;
+    }
+    out.segs.push(pts);
+  }
+  return kept >= 2 ? thinTo(out, maxPoints) : null;
+}
+function thinTo(doc: EncodedTrack, max: number): EncodedTrack | null {
+  let n = doc.segs.reduce((a, s) => a + s.length, 0);
+  while (n > max) {
+    // drop every second interior point of the longest segment until the ceiling holds
+    const seg = doc.segs.reduce((a, b) => (b.length > a.length ? b : a));
+    for (let i = seg.length - 2; i >= 1; i -= 2) seg.splice(i, 1);
+    n = doc.segs.reduce((a, s) => a + s.length, 0);
+  }
+  return n >= 2 ? doc : null;
+}
+
+export function decodeTrack(doc: EncodedTrack): Track {
+  return {
+    rejected: 0,
+    segs: doc.segs.map((s) => s.map((p) => ({ lat: (p[0] as number) / 1e5, lon: (p[1] as number) / 1e5, t: doc.t0 + (p[2] as number) * 1000, alt: p[3] === null ? null : (p[3] as number) / 10, altAcc: p[3] === null ? null : 5, acc: 5 }))),
+  };
+}
+
+/** Projection for a map without tiles (no request, so a route never reveals where you are to a map server): equirectangular, fitted in a box. */
+export function projectTrack(track: Track, width: number, height: number, pad = 12): { segs: { x: number; y: number }[][]; start: { x: number; y: number } | null; end: { x: number; y: number } | null } {
+  const pts = track.segs.flat();
+  if (pts.length < 2) return { segs: [], start: null, end: null };
+  const lats = pts.map((p) => p.lat);
+  const lons = pts.map((p) => p.lon);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const k = Math.cos((((minLat + maxLat) / 2) * Math.PI) / 180);
+  const w = Math.max((maxLon - minLon) * k, 1e-6), h = Math.max(maxLat - minLat, 1e-6);
+  const scale = Math.min((width - 2 * pad) / w, (height - 2 * pad) / h);
+  const ox = (width - w * scale) / 2, oy = (height - h * scale) / 2;
+  const at = (p: Fix) => ({ x: ox + (p.lon - minLon) * k * scale, y: height - (oy + (p.lat - minLat) * scale) });
+  const segs = track.segs.filter((s) => s.length).map((s) => s.map(at));
+  const first = track.segs.find((s) => s.length)![0]!;
+  const lastSeg = [...track.segs].reverse().find((s) => s.length)!;
+  return { segs, start: at(first), end: at(lastSeg[lastSeg.length - 1]!) };
+}

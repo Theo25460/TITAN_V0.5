@@ -62,6 +62,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
             <View style={{ flexDirection: "row", gap: 6 }}>
               <Chip label={`Journal (${q.logs.length})`} selected={!showArchived} onPress={() => setShowArchived(false)} />
               <Chip label={`Archives (${q.archived.length})`} icon="archive" selected={showArchived} onPress={() => setShowArchived(true)} />
+              <Chip label="Mes parcours" icon="route" onPress={() => navigation.navigate("Routes")} testID="journal-routes" />
             </View>
             <AdBanner placement="journal" />
           </View>

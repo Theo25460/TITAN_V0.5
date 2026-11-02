@@ -1,4 +1,4 @@
-import { addFix, ascentM, currentSpeed, distanceM, emptyTrack, haversine, movingSeconds, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
+import { addFix, ascentM, currentSpeed, decodeTrack, distanceM, emptyTrack, encodeTrack, haversine, movingSeconds, projectTrack, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
 import { Gpx } from "../src/core";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -80,4 +80,40 @@ test("the exported GPX re-imports with the website reader and matches the live f
 
 test("haversine sanity", () => {
   expect(haversine({ lat: 48.85, lon: 2.35 }, { lat: 48.86, lon: 2.35 })).toBeGreaterThan(1100);
+});
+
+test("route encoding: compact integers, pauses stay separate segments, round-trips within a metre, altitude only when reliable", () => {
+  let t = build(40, (i) => ({ alt: 100 + i * 0.5 }));
+  t = addFix(t, { ...fix(100), t: T0 + 700_000 }, true);
+  t = addFix(t, { ...fix(101), t: T0 + 701_000 });
+  const doc = encodeTrack(t)!;
+  expect(doc.v).toBe(1);
+  expect(doc.segs).toHaveLength(2);
+  expect(doc.segs[0]).toHaveLength(40);
+  expect(doc.segs[0]![0]).toEqual([Math.round(48.85 * 1e5), Math.round(2.35 * 1e5), 0, 1000]);
+  const back = decodeTrack(doc);
+  expect(back.segs[0]![10]!.lat).toBeCloseTo(t.segs[0]![10]!.lat, 4);
+  expect(haversine(back.segs[0]![10]!, t.segs[0]![10]!)).toBeLessThan(1.5);
+  expect(back.segs[0]![10]!.t).toBe(t.segs[0]![10]!.t);
+  const noAlt = encodeTrack(build(30, () => ({ alt: null, altAcc: null })))!;
+  expect(noAlt.segs[0]!.every((p) => p[3] === null)).toBe(true);
+  expect(encodeTrack(build(1))).toBeNull();
+});
+
+test("a very long trace is thinned under the ceiling, keeping its first and last point", () => {
+  const long = build(5000);
+  const doc = encodeTrack(long, 1000)!;
+  const n = doc.segs.flat().length;
+  expect(n).toBeLessThanOrEqual(1000);
+  expect(doc.segs[0]![0]![2]).toBe(0);
+  expect(doc.segs[0]!.at(-1)![2]).toBe(4999);
+  expect(encodeTrack(long)!.segs.flat().length).toBeLessThanOrEqual(3000);
+});
+
+test("map projection fits the box without tiles, keeps north up and the aspect, marks start and end", () => {
+  const p = projectTrack(build(60), 300, 200);
+  const pts = p.segs.flat();
+  expect(pts.every((q) => q.x >= 0 && q.x <= 300 && q.y >= 0 && q.y <= 200)).toBe(true);
+  expect(p.start!.y).toBeGreaterThan(p.end!.y); // heading north: the end is higher on screen
+  expect(projectTrack(emptyTrack(), 300, 200)).toEqual({ segs: [], start: null, end: null });
 });
