@@ -72,7 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const previous = ownerRef.current;
     if (owner !== previous) {
       ownerRef.current = owner;
-      await enterAccount(owner, previous);
+      try {
+        await enterAccount(owner, previous);
+      } catch {
+        if (!current()) return;
+        // Keep Auth valid, but the unread queue remains unready and refuses new writes instead of overwriting it.
+        setNotice("Ton stockage local est indisponible. Tes séances en attente ne seront pas écrasées. Redémarre TITAN pour réessayer avant d’enregistrer une nouvelle séance.");
+        setSession(next);
+        setStatus(next ? "signedIn" : "signedOut");
+        return;
+      }
       if (!current()) return;
       if (owner) {
         // First connection of a brand-new account: create its profile row through the server function.

@@ -130,3 +130,7 @@ Une tentative complémentaire des 98 fichiers SQL sous PGlite a donné **77 réu
 | Assertion de présence du verrou advisory dans `pg_locks` en échec sur moteur embarqué ; aucune preuve de verrouillage/concurrence tirée de ce moteur | `300_risk_analysis.sql` |
 
 Le banc natif `tools/db/test-migrations.sh`, son chemin `RELEASE_SQL=supabase/release-300.sql` et les scripts de concurrence à deux connexions **restent requis** sur PostgreSQL natif avec pgcrypto, uuid-ossp, pg_trgm, psql et capacité de créer une base `titan_test_`. PostgreSQL natif n'a pas pu être installé dans cette session (contraintes uid/filesystem de l'environnement). L'absence de ces vérifications empêche de conclure à une validation SQL complète de publication. Le réglage Auth et les vérifications PostgREST restent ouverts.
+
+## Complément CI natif — après ce premier audit local
+
+Le responsable a relu les journaux du job GitHub `125352432880` / run `41467586393`, commit `e9e8429` : succès des deux voies du banc sous PostgreSQL 17.6, dont migrations, tests SQL et contrats de concurrence à deux connexions (séances, achats, droits, vues, assistance, aventure, limites, recours/récompenses). La limitation PGlite ci-dessus reste une description de ce premier essai embarqué ; le banc natif a maintenant été exécuté. Il s’agit toujours d’une réplique structurelle jetable, pas d’une sauvegarde restaurée contenant les données de production. Aucun SQL de ce lot n’a été modifié après cette exécution ; relire néanmoins la CI de la tête finale avant fusion.

@@ -63,7 +63,7 @@ Grille proposée : évaluer la couverture et le risque résiduel selon les domai
 | Android, santé et GPS | 15 % | Types/tests/bundle, durabilité et comptes renforcés ; appareil, build signé, permissions et intégrations réelles non validés |
 | Confidentialité, résilience, exploitation | 15 % | Exports/suppression existants et correctifs de confidentialité ; restauration réelle récente, configuration fournisseur et surveillance non attestées |
 
-**Note finale : non attribuable de manière défendable sur ces seules preuves ; 7,5/10 non atteint au sens de la démonstration demandée.** L'ancien 6/10 était une estimation partielle d'un autre état. Les comparer comme des mesures exactes serait trompeur. Mots de passe compromis encore signalés désactivés ; disponibilité/forfait et activation à vérifier côté fournisseur. Rotation/révocation Google historique non confirmée. Aucun changement de configuration production effectué.
+**Note finale : non attribuable de manière défendable sur ces seules preuves ; 7,5/10 non atteint au sens de la démonstration demandée.** L'ancien 6/10 était une estimation partielle d'un autre état. Les comparer comme des mesures exactes serait trompeur. Mots de passe compromis encore signalés désactivés : contrôle fournisseur en lecture confirme un forfait **Free**. Cette protection est réservée au forfait **Pro et supérieur**, à partir de **25 USD/mois**, hors dépassements et taxes éventuelles ([documentation](https://supabase.com/docs/guides/auth/password-security), [tarification consultée le 2 novembre](https://supabase.com/pricing)). Aucun changement de forfait ni dépense engagé. Le minimum client existant de huit caractères et les messages génériques sont conservés ; ils ne remplacent pas un contrôle serveur des mots de passe compromis ni une configuration Auth vérifiée. Rotation/révocation Google historique non confirmée. Aucun changement de configuration production effectué.
 
 Risque mineur hérité de la liste d'amis : ordre calculé depuis niveau/nom bruts alors que les valeurs peuvent être masquées, révélant un ordre relatif. Relevé par le relecteur, non présenté comme corrigé.
 
@@ -76,10 +76,11 @@ Autorité serveur, plafonds, déduplication et absence d'XP pour les pas/parcour
 | `pnpm run verify` | Réussi : types, tests inclus, build, audit et garde de livraison ; avertissements éditoriaux non bloquants restent visibles |
 | `node --test tests/*.test.mjs` | 447/447 réussis |
 | Android TypeScript strict | Réussi |
-| Android Jest complet | 222/222, 36 suites, avec `--forceExit` ; animations/handles Jest préexistants, pas un processus naturellement terminé sans drapeau |
+| Android Jest complet | 223/223, 36 suites, avec `--forceExit` ; animations/handles Jest préexistants, pas un processus naturellement terminé sans drapeau |
 | Metro Android release | Bundle produit ; aucun APK/AAB signé prétendu |
 | Scan historique Git | Réussi : 4 011 versions, aucune détection de secret serveur |
 | SQL ciblé PGlite | RED historique sur cinq cas → GREEN ; réapplication, catalogue V1.1 et quatre mutations négatives vérifiés |
+| SQL natif GitHub Actions | Deux voies du banc PostgreSQL 17.6 réussies, migrations et tests SQL dont crypto et concurrence à deux connexions, sur commit `e9e8429` : job `125352432880`, run `41467586393`. Il reste une réplique structurelle sans données, pas une restauration de production. |
 | SQL élargi embarqué | 77/98 fichiers passent ; 21 limitations nommées dans la revue (crypto, nom de base, commandes psql, locks). Pas équivalent au banc natif |
 | Chromium smoke isolé | 346/346 réussis |
 | Chromium CSP + Google + parcours + Billing ciblés | 14/14 réussis |
@@ -94,10 +95,14 @@ Les écrans et bibliothèques existants sont inventoriés dans `mobile/docs/INVE
 
 - RPG approfondi : monstres/combats, bestiaire enrichi, embranchements et dialogues, moteur vNext et simulations demandées restent absents/partiels, décrits sans faux statut dans `RPG_AUDIT_2026-11-02.md`. Ne pas modifier les courbes non approuvées sous couvert de sécurité.
 - Parité native : l'inventaire signale encore des champs sportifs, espace Coach, Garmin, rapports avancés ou messagerie de guilde absents/partiels sur Android. Leur existence Web ne prouve pas leur existence native.
-- Environnement isolé représentatif : restaurer une sauvegarde récente, vérifier les 31 migrations et le banc PostgreSQL natif/concurrence, puis l'isolation réelle de deux comptes ordinaires, Coach et admin sur la candidate exacte.
+- Environnement isolé représentatif : restaurer une sauvegarde récente, vérifier les 31 migrations sur les données restaurées (banc PostgreSQL natif/concurrence déjà vert sur réplique vide), puis l'isolation réelle de deux comptes ordinaires, Coach et admin sur la candidate exacte.
 - Appareil et services : GPS verrouillage/reprise/batterie, Health Connect permissions/révocation/import, Google, Garmin avec deux comptes et montre, achats testeurs/RTDN, annonces de test/UMP, suppression/export ; déclarations Play et textes légaux à valider.
 - Relire l'ensemble des tests et la CI exacte, confirmer les configurations Auth, les secrets révoqués et la restauration ; préparer seulement ensuite le feu vert de publication.
 
 Migration/rollback : plan versionné, copie d'abord, sauvegarde restaurable et vérifiée ; ne pas rejouer le lot V1 ; ne pas rétrograder vers les deux RPC de confidentialité vulnérables pour un simple retour frontend. Les drapeaux ferment les nouvelles surfaces mais ne remplacent pas les contrôles serveur.
 
 **Aucune fusion main, migration Supabase production, publication Netlify ou Google Play, activation d'achat/publicité réelle, ni envoi à des utilisateurs n'a été effectué.** La PR est un brouillon de correctifs à intégrer et valider, pas une autorisation de publier.
+
+## Complément de vérification après ouverture de la PR #128
+
+Les tests et le build public ainsi que le scan historique sont verts dans GitHub Actions sur `e9e8429`. Le banc SQL natif PostgreSQL 17.6 passe dans ses deux voies, incluant concurrence et crypto : la limite d’installation locale a donc été compensée par une vraie exécution CI, sans prétendre avoir restauré la production. La régression supplémentaire de stockage Auth confirme qu’une file illisible affiche un message et ne supprime pas la session valide : suite Android locale finale 223 tests. Le statut des jobs navigateur et paquet Android de la tête distante finale est à lire sur la PR ; aucune couleur verte d’un ancien commit ne doit lui être attribuée.
