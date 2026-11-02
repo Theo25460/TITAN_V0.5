@@ -45,7 +45,7 @@ installables pour tester, refusés par Play Console.
      (`AD_ID` retiré du manifeste), aucune statistique d'usage côté application Android ;
    - chiffrement en transit (HTTPS) ; suppression du compte possible dans l'application (Profil › Compte › Supprimer)
      ou par e-mail à titanteam.app@gmail.com (URL publique de suppression du site à renseigner quand elle sera déployée).
-4. **Contient des publicités** : Non. **Achats intégrés** : aucun dans cette version (TITAN+ « bientôt disponible »).
+4. **Contient des publicités** : Non. **Achats intégrés** : non proposés dans cette version (TITAN+ « bientôt disponible »). La bibliothèque Google Play Billing 9.1.0 et sa permission sont présentes dans les nouveaux builds de préparation à la console, mais aucun achat n'est possible. Voir `PLAY_BILLING_PREP.md`.
 5. Classification du contenu : questionnaire IARC (pas de contenu sensible ; fonctions sociales entre amis avec
    blocage et signalement côté serveur).
 6. Catégorie : Santé et remise en forme. Politique de confidentialité : https://titan-app.fr/legal_privacy.
