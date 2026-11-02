@@ -37,6 +37,12 @@ appId: fr.titanapp.app
 - tapOn:
     id: "session-note"
 - inputText: "E2E hors ligne"
+# The form now carries the sport-specific optional metrics: close the keyboard and bring the save button into view before tapping it.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "session-save"
+    direction: DOWN
 - tapOn:
     id: "session-save"
 - extendedWaitUntil:
