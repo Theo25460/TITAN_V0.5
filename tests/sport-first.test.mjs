@@ -34,7 +34,7 @@ test('release assets use the same release version', async () => {
   const serviceWorker = await read('sw.js');
   assert.match(config, /version: "300\.0"/);
   assert.match(config, /TITAN_ASSET_VERSION = "300\.0"/);
-  assert.match(serviceWorker, /titan-os-v301-encounters/);
+  assert.match(serviceWorker, /titan-os-v301-profile-sync-20261102-r2/);
   assert.match(serviceWorker, /\[\/\* PRECACHE \*\/\]/);
   const { readdir } = await import('node:fs/promises');
   for (const file of (await readdir('.')).filter((f) => f.endsWith('.html'))) {
