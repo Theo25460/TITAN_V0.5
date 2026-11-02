@@ -5,13 +5,15 @@
 - Projet Supabase : `oubmftfufwwzwpgvrcag`
 - Package Android : `fr.titanapp.app`
 - Client Google OAuth créé pour **Android** (public) : `623091962913-5cjuq9lj78unlk4j38irpjq1v3ld2t1j.apps.googleusercontent.com`
+- Client Google OAuth créé pour **Web** (public) : `623091962913-bfmt5ov7mjb9bbbodb5kmanlt2tdrraf.apps.googleusercontent.com`
+- Secret OAuth Web : **non communiqué**. Ne jamais stocker sa valeur dans le dépôt ni dans un Google Doc. Le saisir uniquement dans Supabase Auth → Providers → Google.
 - L'empreinte SHA-1 Play a été récupérée par le propriétaire pour ce client Android. Ne pas l'inventer ; un build local signé avec un autre certificat requiert un autre client Google Android.
 - La branche de consolidation Claude `claude/titan-cahier-charges-0k7cdn` contient déjà le parcours Google Web et Android protégé par des flags. Ne pas intégrer une seconde implémentation parallèle (la PR #125 est une candidate expérimentale, pas le chemin cible de consolidation).
 
 ## Étapes manuelles strictement nécessaires (Google Cloud / Supabase Auth)
 
-1. Google Cloud → Auth Platform → Clients : **créer un client supplémentaire de type Application Web** dans le même projet Google Cloud. Nom libre, par exemple « TITAN Web ». Origine Javascript : `https://titan-app.fr`. URI de redirection Google : `https://oubmftfufwwzwpgvrcag.supabase.co/auth/v1/callback`. Récupérer **Client ID Web** + **Client Secret Web**. Ne jamais coller le secret sur GitHub.
-2. Supabase Dashboard → projet ci-dessus → Authentication → Providers → Google : activer Google. Remplir **Client IDs** avec l'ID du client Web **en premier** puis l'ID Android donné ci-dessus, séparés par une virgule si l'interface demande plusieurs identifiants. Renseigner **le secret du client Web** dans le champ prévu. Garder ce secret hors du code et de toute discussion.
+1. Google Cloud → Auth Platform → Clients : client **Application Web** déjà créé, ID public consigné plus haut. Vérifier l'origine Javascript `https://titan-app.fr` et l'URI de redirection Google `https://oubmftfufwwzwpgvrcag.supabase.co/auth/v1/callback`. Le **Client Secret Web** reste dans Google Cloud jusqu'à sa saisie directe dans Supabase : ne jamais le coller dans GitHub.
+2. Supabase Dashboard → projet ci-dessus → Authentication → Providers → Google : activer Google. Renseigner **Client IDs** avec `623091962913-bfmt5ov7mjb9bbbodb5kmanlt2tdrraf.apps.googleusercontent.com,623091962913-5cjuq9lj78unlk4j38irpjq1v3ld2t1j.apps.googleusercontent.com` (Web en premier, Android ensuite). Renseigner **le secret du client Web** dans le champ prévu. Aucun secret dans le code, les logs ou la documentation.
 3. Supabase Authentication → URL Configuration : Site URL `https://titan-app.fr`. Dans **Redirect URLs**, autoriser les retours utilisés par le code réel de la branche Claude : `https://titan-app.fr/**` (ou des chemins précis autorisés) et **`titan://auth-callback`**. Important : `titan://auth-callback` est différent de `titan://auth/callback`; seul le premier est utilisé par la version Claude de TITAN.
 4. Google Cloud → Audience : vérifier que le type d'application est Externe ; pendant Testing, ajouter les testeurs autorisés ou publier suivant les exigences Google.
 5. Seulement une fois la configuration opérationnelle sur un banc d'essai : activer côté serveur le flag **`auth.google`** et côté build Android **`EXPO_PUBLIC_TITAN_GOOGLE=1`**. Ne pas le faire avant, les boutons seraient visibles alors que les fournisseurs ne sont pas prêts.
