@@ -36,6 +36,7 @@ export type RootParams = {
   PublicCard: undefined;
   Help: undefined;
   Guide: undefined;
+  HealthConnect: undefined;
   Feedback: undefined;
   Legal: undefined;
   About: undefined;

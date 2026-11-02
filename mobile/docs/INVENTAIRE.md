@@ -50,6 +50,7 @@ sur un appareil réel ni sur émulateur.
 | Données | Export CSV des séances, export JSON complet (`export_own_data`) via la feuille de partage Android | TS |
 | Suppression | Suppression du compte dans l’application (`delete_own_account`), confirmation par saisie | TS, R |
 | TITAN+ | Écran « Bientôt disponible », aucun achat, aucune facturation | R ; CI : pas de permission BILLING |
+| Santé Connect (HC, REC-06/08) | Écran « Santé Connect » (Profil) : accord explicite avant toute lecture, lecture des 7 derniers jours en calendrier local seulement quand l'utilisateur touche un bouton, uniquement READ_STEPS et READ_EXERCISE ; pas = agrégat quotidien de Santé Connect (déjà sans double comptage), enregistrés sans créer de séance ni de récompense ; séances reconnues (11 sports) importées une par une, durée corrigeable, rapprochées par le serveur d'une séance déjà au journal ; arrêt (retire l'accord sur le serveur et dans Android) et archivage séparés ; un changement de compte écarte une réponse tardive ; rien vers les statistiques ni la publicité | U (`healthConnect.test.ts`, 8 cas), R (`healthConnectScreen.test.tsx`, 7 cas), contrôle des permissions du paquet en CI ; PAS d'essai sur téléphone ni de validation Play Console |
 | Guide de démarrage (V11-78) | Trois étapes facultatives (enregistrer, retrouver dans le Journal, faire avancer l'aventure), chacune ouvre le vrai écran ; passable, rouvrible depuis Assistance | U, R (`screens.test.tsx`) ; pas encore exercé sur téléphone |
 | Retours (V11-79) | Problème ou idée, message vérifié (10 à 1 500 caractères), informations techniques facultatives et visibles avant l'envoi, e-mail préparé que l'utilisateur relit et envoie lui-même ; aucun ticket serveur, aucune confirmation inventée | U (`feedback.test.ts`), R |
 | Android | Icône adaptative et monochrome issues du logo, écran de démarrage, barre de navigation basse, retour arrière natif, mode sombre, réduction des animations, cibles tactiles 48 dp | CI (contrôles du paquet) |
@@ -71,7 +72,7 @@ sur un appareil réel ni sur émulateur.
 | --- | --- |
 | Espace coach | Hors périmètre de cette première version Android |
 | Comparaisons et rapports avancés | Fonctions Premium côté site, dépendent de migrations non appliquées |
-| Health Connect, Garmin, montres | Non commencé |
+| Garmin, montres | Garmin : côté serveur et site, pas d'écran Android ; montres non commencé |
 | Notifications push serveur | Seuls les rappels locaux existent |
 | Mesure d’audience | Volontairement absente |
 

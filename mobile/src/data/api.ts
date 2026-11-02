@@ -242,3 +242,12 @@ export const saveCard = (enabled: boolean, show: Record<string, boolean>, newLin
 /* ---------- Account ---------- */
 export const exportOwnData = () => rpc<Record<string, unknown>>("export_own_data", {}, 30000);
 export const deleteOwnAccount = () => rpc("delete_own_account", {}, 30000);
+
+/* ---------- Connected sources (Health Connect) ---------- */
+export const sourceConsent = (source: "health_connect", consent: boolean) => rpc<{ granted: boolean }>("titan_set_source_consent_v1", { p_source: source, p_granted: consent });
+export const sourcesStatus = () => rpc<unknown>("titan_sources_v1");
+export type ImportResult = { status: "imported" | "linked" | "duplicate"; log_id?: string };
+export const importActivity = (p: { externalId: string; sport: string; startedAt: string; minutes: number }) =>
+  rpc<ImportResult>("titan_import_activity_v1", { p_source: "health_connect", p_external_id: p.externalId, p_sport: p.sport, p_started_at: p.startedAt, p_duration_minutes: p.minutes, p_distance_km: null });
+export const importDailySteps = (day: string, steps: number) => rpc<unknown>("titan_import_daily_activity_v1", { p_source: "health_connect", p_day: day, p_steps: steps });
+export const archiveImported = (source: "health_connect") => rpc<unknown>("titan_archive_imported_v1", { p_source: source });

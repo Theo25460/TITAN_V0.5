@@ -159,7 +159,7 @@ jobs:
           target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
           if [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
           "$bt/aapt2" dump permissions "$apk" | tee permissions.txt
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|android.permission.health.(READ_STEPS|READ_EXERCISE)\b|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           if grep -q "BILLING\|AD_ID" permissions.txt; then echo "::error::facturation ou identifiant publicitaire présent"; exit 1; fi
           "$bt/apksigner" verify --print-certs "$apk" | tee signature.txt

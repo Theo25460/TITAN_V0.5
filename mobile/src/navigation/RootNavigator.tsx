@@ -27,6 +27,7 @@ import { AccountScreen } from "../screens/settings/AccountScreen";
 import { DeleteAccountScreen } from "../screens/settings/DeleteAccountScreen";
 import { FeedbackScreen } from "../screens/settings/FeedbackScreen";
 import { GuideScreen } from "../screens/settings/GuideScreen";
+import { HealthConnectScreen } from "../screens/settings/HealthConnectScreen";
 import { HelpScreen } from "../screens/settings/HelpScreen";
 import { LegalScreen } from "../screens/settings/LegalScreen";
 import { NotificationsScreen } from "../screens/settings/NotificationsScreen";
@@ -94,6 +95,7 @@ function SignedIn() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Rappels" }} />
       <Stack.Screen name="Sports" component={SportsScreen} options={{ title: "Mes sports" }} />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: "Assistance" }} />
+      <Stack.Screen name="HealthConnect" component={HealthConnectScreen} options={{ title: "Santé Connect" }} />
       <Stack.Screen name="Guide" component={GuideScreen} options={{ title: "Bien démarrer" }} />
       <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ title: "Un retour" }} />
       <Stack.Screen name="Legal" component={LegalScreen} options={{ title: "Informations légales" }} />
