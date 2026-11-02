@@ -46,3 +46,7 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 5. Retour arrière frontend : déploiement Netlify précédent si nécessaire, avec connaissance que la boucle reviendrait ; ne jamais vider les caches de données, files ou copies de récupération. Aucun rollback SQL nécessaire.
 
 Aucun déploiement, écriture SQL, migration, nettoyage de données, dépense ou changement Auth de production effectué par cette intervention.
+
+## Environnement CI corrigé pendant la contre-expertise
+
+La première CI a bloqué avant Playwright : `ubuntu-latest` avait changé vers Ubuntu 26.04, non pris en charge par Playwright 1.56.1. Le job navigateur est fixé sur Ubuntu 24.04, sans changer ni retirer ses tests. Le scan historique V1 a aussi retrouvé cinq contenus déjà explicitement classés dans la V1.1 : quatre exports de variables de signature (aucune valeur littérale) et un ancien fichier de métadonnées du scanner. Les quatre lignes ont été relues indépendamment ; seuls leurs hashes exacts et celui du fichier de métadonnées sont reconnus, sans modifier le détecteur ou exclure des répertoires. Les nouvelles raisons ne citent plus la syntaxe qui provoquait le faux positif. Les résultats finaux de la CI sont à lire sur les têtes des PR ; une ancienne exécution rouge n’est pas présentée comme verte.
