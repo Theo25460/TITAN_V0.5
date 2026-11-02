@@ -1,8 +1,10 @@
 /* Realistic account data (shapes copied from the production RPC/table contracts) for screen rendering tests. */
 import type { AdventureSnapshot, Goal, Profile, TrainingLog } from "../src/core/types";
 
+/** The fixtures live in a fixed week (Wednesday evening) so that week- and day-based figures do not depend on the day the tests run. */
+export const REFERENCE_NOW = new Date(2026, 9, 28, 21, 0, 0, 0);
 const day = (n: number, h = 18) => {
-  const d = new Date();
+  const d = new Date(REFERENCE_NOW);
   d.setDate(d.getDate() - n);
   d.setHours(h, 0, 0, 0);
   return d.toISOString();

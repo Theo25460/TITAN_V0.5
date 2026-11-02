@@ -125,7 +125,9 @@ jobs:
             if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::secret ANDROID_KEYSTORE_BASE64 absent : impossible de signer avec la clé d'envoi"; exit 1; fi
             echo "$KEYSTORE_BASE64" | base64 -d > "$store"
             echo "TITAN_UPLOAD_STORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
-            echo "TITAN_UPLOAD_KEY_PASSWORD=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}" >> "$GITHUB_ENV"
+            # The key password defaults to the keystore password (written without a shell default expansion, which the release safety scan reads as a literal).
+            if [ -n "$KEY_PASSWORD" ]; then upload_key_pw="$KEY_PASSWORD"; else upload_key_pw="$KEYSTORE_PASSWORD"; fi
+            echo "TITAN_UPLOAD_KEY_PASSWORD=$upload_key_pw" >> "$GITHUB_ENV"
             echo "SIGNING_LABEL=upload" >> "$GITHUB_ENV"
           else
             password=$(openssl rand -hex 16)

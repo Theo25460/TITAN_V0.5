@@ -1,7 +1,7 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
+import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
 const mockState = { empty: false, loading: false };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
@@ -92,6 +92,11 @@ const show = (el: ReactElement) =>
   );
 const props = (params: object = {}) => ({ navigation: nav, route: { key: "k", name: "x", params } });
 
+beforeAll(() => {
+  // Only the clock is frozen (on the fixtures' reference evening); timers, microtasks and interactions keep running normally.
+  jest.useFakeTimers({ now: REFERENCE_NOW, doNotFake: ["nextTick", "setImmediate", "clearImmediate", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "queueMicrotask", "requestAnimationFrame", "cancelAnimationFrame", "requestIdleCallback", "cancelIdleCallback", "performance", "hrtime"] });
+});
+afterAll(() => { jest.useRealTimers(); });
 beforeEach(() => {
   mockState.empty = false;
   mockState.loading = false;
@@ -104,13 +109,14 @@ describe("with account data", () => {
     expect(screen.getByText(/Niveau 4/)).toBeTruthy();
     expect(screen.getByText("Ma semaine")).toBeTruthy();
   });
-  test("Progrès : semaine, tendances, maîtrise", () => {
+  test("Progrès : semaine, tendances, maîtrise", async () => {
     show(<S.Progress />);
     expect(screen.getByText("Cette semaine")).toBeTruthy();
     fireEvent.press(screen.getByText("Tendances"));
     expect(screen.getByText("Tes questions")).toBeTruthy();
     expect(screen.getByText("Où va mon temps ?")).toBeTruthy();
-    expect(screen.getByText("Combien de semaines ai-je tenues ?")).toBeTruthy();
+    // The secondary figures are computed after the first paint (src/lib/deferred.ts): wait for them instead of reading them at once.
+    expect(await screen.findByText("Combien de semaines ai-je tenues ?")).toBeTruthy();
     expect(screen.getByText("Sur la durée")).toBeTruthy();
     fireEvent.press(screen.getByText("Maîtrise"));
     expect(screen.getByText("Maîtrise par discipline")).toBeTruthy();
