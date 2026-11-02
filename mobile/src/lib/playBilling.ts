@@ -7,12 +7,14 @@ import { SITE_URL } from "./config";
 
 export const BILLING_BUILD = process.env.EXPO_PUBLIC_TITAN_BILLING === "1";
 
-/** The three subscriptions, by Play product id (to confirm in Play Console; the server's allow-list is the real gate). */
+/** The three subscriptions, by Play product id (to confirm in Play Console; the server's allow-list is the real gate).
+    The perks are what the offer gives; the PRICE is never written here: it comes from Google Play. */
 export const PLANS = [
-  { id: "titan_plus", kind: "plus", name: "TITAN+", perks: ["Analyses plus poussées", "Davantage de confort de personnalisation"] },
-  { id: "coach", kind: "coach", name: "Coach", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Toute la suite Coach"] },
-  { id: "coach_pro", kind: "coach", name: "Coach Pro", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Exactement la même suite Coach : tu paies la capacité"] },
+  { id: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Analyses plus poussées", "Davantage de confort de personnalisation", "Aucune publicité"] },
+  { id: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Toute la suite Coach : calendrier, séances, messages, check-ins"] },
+  { id: "coach_pro", kind: "coach", name: "Coach Pro", tagline: "Pour accompagner 15 sportifs", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Exactement la même suite Coach : tu paies la capacité, pas des fonctions"] },
 ] as const;
+export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progresser", perks: ["Journal, statistiques de base et records", "Progression, aventure et quêtes", "Enregistrement manuel et GPS", "Publicités rares et discrètes, jamais pendant l’effort"] } as const;
 export type PlanId = (typeof PLANS)[number]["id"];
 
 /* The subset of expo-iap used here; the real module is loaded lazily, tests inject a fake. */
@@ -39,7 +41,7 @@ export const _setIapForTests = (l: IapLib | null) => {
   lib = l;
 };
 
-export type Offer = { id: PlanId; name: string; perks: readonly string[]; price: string; offerToken: string };
+export type Offer = { id: PlanId; name: string; tagline: string; perks: readonly string[]; price: string; offerToken: string };
 
 /** The offers Google Play actually returns for this account, with Google's own formatted price. A product Play does not know is simply absent. */
 export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
@@ -49,7 +51,7 @@ export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
   for (const plan of PLANS) {
     const p = products.find((x) => x.id === plan.id);
     const offer = p?.subscriptionOffers?.find((o) => o.offerTokenAndroid);
-    if (p && offer?.offerTokenAndroid) out.push({ id: plan.id, name: plan.name, perks: plan.perks, price: offer.displayPrice || p.displayPrice, offerToken: offer.offerTokenAndroid });
+    if (p && offer?.offerTokenAndroid) out.push({ id: plan.id, name: plan.name, tagline: plan.tagline, perks: plan.perks, price: offer.displayPrice || p.displayPrice, offerToken: offer.offerTokenAndroid });
   }
   return out;
 }
