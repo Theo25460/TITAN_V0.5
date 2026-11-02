@@ -65,10 +65,13 @@ appId: fr.titanapp.app
     id: "tab-adventure"
 - tapOn:
     id: "world-aube"
-- extendedWaitUntil:
-    visible:
+# The world screen now carries the server-backed encounters card above the chapter card: the claim button sits below the fold.
+# It is still required to exist (scrollUntilVisible fails if the chapter is not ready), it just has to be scrolled to.
+- scrollUntilVisible:
+    element:
       id: "world-claim"
-    timeout: 30000
+    direction: DOWN
+    timeout: 45000
 - takeScreenshot: 14-chapitre-pret
 - tapOn:
     id: "world-claim"
@@ -77,8 +80,9 @@ appId: fr.titanapp.app
     timeout: 20000
 - takeScreenshot: 15-insigne-revele
 - tapOn: "Continuer l’aventure"
-- extendedWaitUntil:
-    visible: "Chapitre 2/9.*"
-    timeout: 20000
+- scrollUntilVisible:
+    element: "Chapitre 2/9.*"
+    direction: UP
+    timeout: 30000
 - takeScreenshot: 15b-chapitre-valide
 - back
