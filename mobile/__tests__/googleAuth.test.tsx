@@ -48,3 +48,21 @@ describe("Google sign-in (Android)", () => {
     await waitFor(() => expect(onError).toHaveBeenCalledWith("Google n’est pas disponible pour le moment."));
   });
 });
+
+describe("PKCE storage", () => {
+  const { createPkceStorage } = require("../src/lib/googleAuth");
+  const fake = () => { const m = new Map<string, string>(); return { m, getItem: async (k: string) => m.get(k) ?? null, setItem: async (k: string, v: string) => void m.set(k, v), removeItem: async (k: string) => void m.delete(k) }; };
+  it("persists only the code verifier and keeps the session in memory", async () => {
+    const secure = fake();
+    const s = createPkceStorage(secure);
+    await s.setItem("titan-google-code-verifier", "v");
+    await s.setItem("titan-google", "SESSION-TOKENS");
+    expect([...secure.m.keys()]).toEqual(["titan-google-code-verifier"]);
+    expect(await s.getItem("titan-google")).toBe("SESSION-TOKENS");
+    s.wipeMemory();
+    expect(await s.getItem("titan-google")).toBeNull();
+    expect(await s.getItem("titan-google-code-verifier")).toBe("v"); // survives an app restart
+    await s.removeItem("titan-google-code-verifier");
+    expect(secure.m.size).toBe(0);
+  });
+});
