@@ -33,8 +33,13 @@
     },
     {
       "host": "www.googleapis.com",
+      "kind": "server-side",
+      "note": "functions/play-auth.mjs reads Google's public signing keys (https://www.googleapis.com/oauth2/v3/certs, no personal data sent) to verify the Pub/Sub push token of Play notifications; also the OAuth scope identifier string in functions/play-billing.mjs. Off unless PLAY_BILLING_ENABLED=true. Never contacted by the browser."
+    },
+    {
+      "host": "accounts.google.com",
       "kind": "reference",
-      "note": "OAuth scope identifier string (https://www.googleapis.com/auth/androidpublisher) in functions/play-billing.mjs; no request is made to this address."
+      "note": "Issuer identifier string (https://accounts.google.com) checked in the Pub/Sub token by functions/play-auth.mjs; no request is made to this address."
     },
     {
       "host": "play.google.com",
