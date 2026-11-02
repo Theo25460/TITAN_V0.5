@@ -58,6 +58,7 @@
         ${signup ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm auth-forgot" data-forgot>Mot de passe oublié ?</button>`}
       </form>
       <div class="auth-or"><span>ou</span></div>
+      ${signup ? "" : `<button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-google>Continuer avec Google</button>`}
       <button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-guest>${icon("offline")} Essayer sans compte</button>
       <p class="asc-small asc-faint auth-guest-note">Mode découverte : tes séances restent sur cet appareil. Tu pourras les rattacher à un compte plus tard.</p>`;
   }
@@ -197,6 +198,34 @@
     }
   }
 
+  async function google(button) {
+    if (operation) return;
+    const c = await ready();
+    if (!c) return message("Le service de connexion est indisponible. Vérifie ton réseau puis réessaie.");
+    const task = begin("Redirection vers Google…", button);
+    if (!task) return;
+    let redirected = false;
+    try {
+      // Stay on the same TITAN account database. Supabase links verified identities when eligible.
+      const callback = new URL("/login", SITE);
+      callback.searchParams.set("google", "1");
+      callback.searchParams.set("next", nextUrl());
+      const { error } = await c.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: callback.toString() },
+      });
+      if (error) throw error;
+      // The browser navigates to Google; do not create a second auth session.
+      redirected = true;
+    } catch (error) {
+      message(/provider.*(disabled|not enabled|unsupported)/i.test(String(error?.message || error))
+        ? "La connexion Google n’est pas encore activée dans TITAN. Utilise ton e-mail pour le moment."
+        : human(error));
+    } finally {
+      if (!redirected) finish(task, true);
+    }
+  }
+
   async function forgot(button) {
     if (operation) return;
     clearValidation();
@@ -279,6 +308,7 @@
       b.innerHTML = icon(show ? "eyeOff" : "eye");
       return;
     }
+    if (b.hasAttribute("data-google")) return google(b);
     if (b.hasAttribute("data-forgot")) return forgot(b);
     if (b.hasAttribute("data-guest")) return guest(b);
     if (b.dataset.resend) return resend(b);
@@ -302,6 +332,10 @@
     try {
       const session = (await (await ready())?.auth.getSession())?.data?.session;
       if (session?.user) {
+        if (new URLSearchParams(location.search).get("google") === "1") {
+          location.replace(nextUrl());
+          return;
+        }
         $("#auth").insertAdjacentHTML("afterbegin", `<p class="asc-note">${icon("check")}<span>Tu es déjà connecté. <a href="${esc(nextUrl())}">Continuer</a></span></p>`);
       }
     } catch {}
