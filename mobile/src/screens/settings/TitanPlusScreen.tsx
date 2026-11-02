@@ -1,3 +1,4 @@
+import { ADS_BUILD } from "../../ads/adIds";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
@@ -102,7 +103,7 @@ export function TitanPlusScreen() {
         <T variant="small">• Toutes les statistiques sportives de base, le journal et les records.</T>
         <T variant="small">• La progression, l’aventure et ses gardiens : battables sans payer.</T>
         <T variant="small">• Les crédits gagnés par l’effort et l’Atelier.</T>
-        <T variant="small">• Aucune publicité.</T>
+        <T variant="small">{ADS_BUILD ? "• Peu de publicités, jamais pendant l’effort ; aucune avec TITAN+ ou une offre Coach." : "• Aucune publicité."}</T>
       </Card>
       {live ? <T variant="caption" tone="faint">Abonnement mensuel renouvelé automatiquement, résiliable à tout moment dans Google Play. Les cosmétiques ne s’achètent jamais avec de l’argent.</T> : null}
     </Screen>

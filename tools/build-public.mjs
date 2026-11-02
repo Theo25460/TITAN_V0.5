@@ -9,6 +9,7 @@ const publicDirs = ['css', 'js', 'licenses', 'assets'];
 const publicFiles = [
   '404.html',
   'ads.txt',
+  'app-ads.txt',
   'favicon.ico',
   'googleb8fedd43e28cf7d4.html',
   'manifest.json',

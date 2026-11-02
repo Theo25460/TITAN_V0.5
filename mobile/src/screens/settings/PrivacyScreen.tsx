@@ -1,3 +1,7 @@
+import { useSyncExternalStore } from "react";
+import { ADS_BUILD } from "../../ads/adIds";
+import { adsManager } from "../../ads/sdk";
+import { Button } from "../../components/Button";
 import { Group } from "../../components/ListRow";
 import { Screen } from "../../components/Screen";
 import { ErrorState, LoadingCards } from "../../components/States";
@@ -23,6 +27,7 @@ export function PrivacyScreen() {
   const toast = useToast();
   const online = useOnline();
   const p = profile.data;
+  const ads = useSyncExternalStore(adsManager.subscribe, adsManager.get);
   if (profile.isLoading && !p) return <Screen><LoadingCards count={1} /></Screen>;
   if (!p) return <Screen><ErrorState error={profile.error} onRetry={() => profile.refetch()} /></Screen>;
   const privacy = { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false, ...(p.privacy || {}) };
@@ -44,8 +49,27 @@ export function PrivacyScreen() {
       </Group>
       {!online ? <T variant="caption" tone="warn">Hors ligne : la confidentialité se règle avec une connexion.</T> : null}
       <T variant="caption" tone="faint">
-        L’application Android ne collecte aucune statistique d’usage, aucune publicité et aucun identifiant publicitaire.
+        {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob après ton consentement ; TITAN ne lit pas ton identifiant publicitaire." : "L’application Android ne collecte aucune statistique d’usage, aucune publicité et aucun identifiant publicitaire."}
       </T>
+      {ADS_BUILD && !p.is_elite ? (
+        <Group>
+          <T variant="bodyStrong">Publicité</T>
+          <T variant="small" tone="muted">
+            TITAN gratuit affiche peu de publicités, jamais pendant un effort. Tu peux revoir ton choix de consentement à tout moment. TITAN+ et les offres Coach n’en affichent aucune.
+          </T>
+          <Button
+            small
+            kind="secondary"
+            label="Gérer mes choix publicitaires"
+            testID="ads-privacy-options"
+            onPress={async () => {
+              await adsManager.start();
+              await adsManager.openPrivacyOptions();
+            }}
+          />
+          {ads.phase === "denied" ? <T variant="caption" tone="faint">Publicités désactivées d’après ton choix.</T> : null}
+        </Group>
+      ) : null}
     </Screen>
   );
 }

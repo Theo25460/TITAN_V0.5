@@ -46,6 +46,10 @@ const config: ExpoConfig = {
       "android.permission.READ_MEDIA_IMAGES",
       "android.permission.READ_MEDIA_VIDEO",
       "com.google.android.gms.permission.AD_ID",
+      // The ad SDK declares these too; TITAN keeps the privacy-first stance (contextual ads, no attribution/topics APIs).
+      "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
+      "android.permission.ACCESS_ADSERVICES_AD_ID",
+      "android.permission.ACCESS_ADSERVICES_TOPICS",
       // Added by libraries but unused by TITAN: Wi-Fi details (netinfo), biometric unlock (secure-store),
       // install referrer (expo-application) and launcher badge counters (notifications).
       "android.permission.ACCESS_WIFI_STATE",
@@ -71,6 +75,17 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    [
+      "react-native-google-mobile-ads",
+      {
+        // Final AdMob application id (owner-provided). It is the app id, NOT an ad unit id.
+        androidAppId: "ca-app-pub-8126986266950187~1902494129",
+        // Nothing starts before Google's consent form has run (see src/ads/manager.ts).
+        delayAppMeasurementInit: true,
+        optimizeInitialization: true,
+        optimizeAdLoading: true,
+      },
+    ],
     [
       "expo-location",
       {

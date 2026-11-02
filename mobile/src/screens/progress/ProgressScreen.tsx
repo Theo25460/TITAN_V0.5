@@ -1,3 +1,4 @@
+import { AdBanner } from "../../components/AdBanner";
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -207,6 +208,7 @@ export function ProgressScreen() {
                 <T variant="small">Ton ADN se précise à partir de 5 séances.</T>
               )}
             </Card>
+            <AdBanner placement="stats" />
             <Section title="Maîtrise par discipline">
               <T variant="caption" tone="faint">
                 La maîtrise mesure la pratique (heures et semaines), jamais la performance.

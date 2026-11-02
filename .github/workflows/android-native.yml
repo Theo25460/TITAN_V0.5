@@ -30,6 +30,22 @@ on:
         description: "versionName"
         required: false
         default: "1.0.0"
+      ads:
+        description: "Publicités AdMob : off (aucune), test (annonces de TEST de Google, sûres), live (vraies annonces : exige signing=upload et l'accord explicite du propriétaire)"
+        required: true
+        default: "off"
+        type: choice
+        options: ["off", test, live]
+      billing:
+        description: "Achats Google Play (EXPO_PUBLIC_TITAN_BILLING=1) : false par défaut, true seulement pour l'essai avec compte testeur de licence"
+        required: false
+        default: false
+        type: boolean
+      google_signin:
+        description: "Connexion Google (EXPO_PUBLIC_TITAN_GOOGLE=1) : false par défaut"
+        required: false
+        default: false
+        type: boolean
       e2e:
         description: "Lancer le parcours sur émulateur Android"
         required: false
@@ -76,6 +92,12 @@ jobs:
     needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Everything below is OFF unless a person switches it on for a manual build. Real ads additionally need the upload key (checked in the next step).
+    env:
+      EXPO_PUBLIC_TITAN_ADS: ${{ (inputs.ads == 'test' || inputs.ads == 'live') && '1' || '' }}
+      EXPO_PUBLIC_TITAN_ADS_LIVE: ${{ inputs.ads == 'live' && '1' || '' }}
+      EXPO_PUBLIC_TITAN_BILLING: ${{ inputs.billing && '1' || '' }}
+      EXPO_PUBLIC_TITAN_GOOGLE: ${{ inputs.google_signin && '1' || '' }}
     outputs:
       version_code: ${{ steps.version.outputs.code }}
     steps:
@@ -113,6 +135,11 @@ jobs:
           echo "TITAN_VERSION_CODE=$code" >> "$GITHUB_ENV"
           echo "TITAN_VERSION_NAME=$name" >> "$GITHUB_ENV"
           echo "versionCode=$code versionName=$name"
+      - name: Garde-fou des publicités réelles
+        run: |
+          if [ "${{ inputs.ads }}" = "live" ] && [ "${{ inputs.signing }}" != "upload" ]; then
+            echo "::error::ads=live exige signing=upload (build destiné à Play) et l'accord du propriétaire"; exit 1
+          fi
       - name: Clé de signature
         env:
           SIGNING: ${{ inputs.signing || 'throwaway' }}
@@ -170,6 +197,9 @@ jobs:
           # Android 14+: the location service must declare its foreground service type, or startForeground() throws.
           "$bt/aapt2" dump xmltree "$apk" --file AndroidManifest.xml > manifest-tree.txt
           grep -A6 "LocationTaskService" manifest-tree.txt | grep -q "foregroundServiceType" || { echo "::error::service de localisation sans foregroundServiceType"; exit 1; }
+          # AdMob: the application id (not an ad unit id) is set once, and no advertising-id / attribution / topics permission ships (privacy-first).
+          grep -q "ca-app-pub-8126986266950187~1902494129" manifest-tree.txt || { echo "::error::identifiant d'application AdMob absent ou différent"; exit 1; }
+          if grep -qE "ACCESS_ADSERVICES|permission.AD_ID" permissions.txt; then echo "::error::permission publicitaire de suivi présente"; exit 1; fi
           # Billing: print the library version that actually ended up in the build (informational, never a secret).
           grep -h "billingclient" android/app/build.gradle || true
           # One Play Billing Library in the final app, whatever pulls it in (our plugin and the purchase module must agree).

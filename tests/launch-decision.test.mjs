@@ -77,3 +77,12 @@ test("V1.1 (V11-10): no public page or app screen still talks about a pending se
   assert.ok(!/campagnes complètes et les nouvelles analyses sont en préparation/.test(index));
   assert.match(index, /Quatre mondes/);
 });
+
+test("app-ads.txt declares exactly the owner's AdMob seller line, is built into the site, and is served as plain text (the web itself shows no advertising)", () => {
+  const body = readFileSync(new URL("app-ads.txt", root), "utf8");
+  assert.equal(body, "google.com, pub-8126986266950187, DIRECT, f08c47fec0942fa0\n");
+  assert.ok(readFileSync(new URL("tools/build-public.mjs", root), "utf8").includes("'app-ads.txt'"), "copied to dist");
+  const toml = readFileSync(new URL("netlify.toml", root), "utf8");
+  assert.match(toml, /for = "\/app-ads\.txt"\s*\n\s*\[headers\.values\]\s*\n\s*Content-Type = "text\/plain; charset=utf-8"/);
+  assert.ok(!/from = "\/app-ads\.txt"/.test(toml), "no redirect of the file");
+});

@@ -806,6 +806,19 @@ status = 200
   [headers.values]
     Cache-Control = "public, max-age=3600"
 
+# AdMob discovers the Android seller declaration here: plain text, never HTML, never redirected (the owner's domain must match the developer website in Google Play Console).
+[[headers]]
+  for = "/app-ads.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/ads.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
 [[headers]]
   for = "/robots.txt"
   [headers.values]

@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -49,6 +50,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
       haptic("success");
     }
   }, [status]);
+
+  // After-session advertising: counted only when the server confirmed a non-historical session; shown (if ever) at "Terminer", never delaying it.
+  const maybeAd = useSessionInterstitial(eventId, status === "confirmed", !!log && !log.details?.historical);
 
   const metrics = useMemo(() => (log ? sessionMetrics(log) : []), [log]);
   const records = useMemo(() => (log && status === "confirmed" ? sessionRecords(logs, log) : []), [logs, log, status]);
@@ -323,7 +327,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           {status === "confirmed" && !shared && !historical ? <Button small label="Partager" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
           <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
         </View>
-        <Button label="Terminer" onPress={() => navigation.navigate("Tabs", { screen: "QG" })} testID="result-done" />
+        <Button label="Terminer" onPress={() => { maybeAd().catch(() => {}); navigation.navigate("Tabs", { screen: "QG" }); }} testID="result-done" />
       </View>
     </View>
   );

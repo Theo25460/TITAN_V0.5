@@ -1,3 +1,4 @@
+import { AdBanner } from "../../components/AdBanner";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { RefreshControl, ScrollView, SectionList, View } from "react-native";
@@ -62,6 +63,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
               <Chip label={`Journal (${q.logs.length})`} selected={!showArchived} onPress={() => setShowArchived(false)} />
               <Chip label={`Archives (${q.archived.length})`} icon="archive" selected={showArchived} onPress={() => setShowArchived(true)} />
             </View>
+            <AdBanner placement="journal" />
           </View>
         }
         renderSectionHeader={({ section }) => (

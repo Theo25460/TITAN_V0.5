@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
+import { AdBanner } from "../../components/AdBanner";
 import { Button } from "../../components/Button";
 import { CadenceNotches } from "../../components/Cadence";
 import { Card } from "../../components/Card";
@@ -221,6 +222,7 @@ export function HomeScreen() {
                 </View>
               </Section>
             ) : null}
+            <AdBanner placement="hq" />
           </>
         )}
       </Screen>

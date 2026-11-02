@@ -1,3 +1,4 @@
+import { ADS_BUILD } from "../../ads/adIds";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,7 +34,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
         <Reveal style={{ gap: space.s3 }}>
           <T variant="display">Ton sport réel.{"\n"}Une progression qui dure.</T>
           <T variant="body" tone="muted">
-            Gratuit, sans publicité, sans achat pour progresser.
+            {ADS_BUILD ? "Gratuit pour progresser. Publicités rares et discrètes, jamais pendant l’effort, retirées avec TITAN+." : "Gratuit, sans publicité, sans achat pour progresser."}
           </T>
         </Reveal>
         <View accessibilityRole="list">
