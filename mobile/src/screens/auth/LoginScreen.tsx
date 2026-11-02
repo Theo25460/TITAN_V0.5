@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useRef, useState } from "react";
 import { type TextInput, View } from "react-native";
 import { Button } from "../../components/Button";
+import { GoogleButton } from "../../components/GoogleButton";
 import { Field } from "../../components/Field";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
@@ -56,6 +57,7 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </T>
       ) : null}
       <Button label={busy ? "Connexion…" : "Se connecter"} loading={busy} onPress={submit} testID="login-submit" />
+      <GoogleButton onError={(form) => setErrors({ form })} />
       <Button label="Mot de passe oublié ?" kind="ghost" onPress={() => navigation.navigate("Forgot", { email })} />
       <Button label="Créer un compte" kind="secondary" onPress={() => navigation.replace("Signup")} />
     </Screen>
