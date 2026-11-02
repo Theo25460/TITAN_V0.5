@@ -1,9 +1,11 @@
 /* Authentication with the same Supabase accounts as titan-app.fr. The session (access + refresh token) is kept in the
    Android Keystore; switching or losing the account clears every cached view of the previous one. */
 import type { Session } from "@supabase/supabase-js";
+import { Linking } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SITE_URL } from "../lib/config";
 import { toAppError } from "../lib/errors";
+import { beginGoogleOAuth, completeGoogleOAuthCallback, isGoogleOAuthCallback } from "../lib/googleOAuth";
 import { forgetAccountCache } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { createProfile, fetchProfile } from "./api";
@@ -21,6 +23,7 @@ type AuthValue = {
   notice: string | null;
   clearNotice(): void;
   signIn(email: string, password: string): Promise<void>;
+  signInWithGoogle(): Promise<void>;
   signUp(name: string, email: string, password: string): Promise<{ needsConfirmation: boolean }>;
   resendConfirmation(email: string): Promise<void>;
   resetPassword(email: string): Promise<void>;
@@ -60,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState<string | null>(null);
   const ownerRef = useRef<string | null>(null);
   const explicitSignOut = useRef(false);
+  const processedGoogleCallbacks = useRef(new Set<string>());
 
   const apply = useCallback(async (next: Session | null) => {
     const owner = next?.user.id ?? null;
@@ -91,6 +95,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
+    async function handleGoogleUrl(url: string | null) {
+      if (!url || !isGoogleOAuthCallback(url) || processedGoogleCallbacks.current.has(url)) return;
+      processedGoogleCallbacks.current.add(url);
+      try {
+        await completeGoogleOAuthCallback(url);
+      } catch (error) {
+        if (alive) setNotice((error as Error).message);
+      }
+    }
+    Linking.getInitialURL().then(handleGoogleUrl).catch(() => {});
+    const linkSubscription = Linking.addEventListener("url", ({ url }) => { void handleGoogleUrl(url); });
     supabase.auth
       .getSession()
       .then(({ data }) => {
@@ -109,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => {
       alive = false;
+      linkSubscription.remove();
       data.subscription.unsubscribe();
     };
   }, [apply]);
@@ -124,6 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signIn(email, password) {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw new Error(toAppError(error).message);
+      },
+      async signInWithGoogle() {
+        setNotice(null);
+        await beginGoogleOAuth();
       },
       async signUp(name, email, password) {
         const { data, error } = await supabase.auth.signUp({
