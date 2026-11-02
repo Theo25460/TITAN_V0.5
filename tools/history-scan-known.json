@@ -14,6 +14,31 @@
       "blob": "5c3e70420d",
       "kind": "keystore password assigned a literal",
       "reason": "Reviewed by Codex on 21/10/2026: false positive in a separate branch workflow, line 122. Shell parameter expansion references existing environment variables with a fallback; no credential literal. Exact content hash only; the Android branch is not integrated into WEB."
+    },
+    {
+      "blob": "ba5268d0d0",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex 2026-11-02: historical Android workflow only copies an existing environment variable through shell expansion into the CI environment; no credential literal. Exact reviewed content only."
+    },
+    {
+      "blob": "29a54fd1cf",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex 2026-11-02: historical Android workflow only copies an existing environment variable through shell expansion into the CI environment; no credential literal. Exact reviewed content only."
+    },
+    {
+      "blob": "ec7c6afd49",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex 2026-11-02: historical Android workflow only copies an existing environment variable through shell expansion into the CI environment; no credential literal. Exact reviewed content only."
+    },
+    {
+      "blob": "a129bfb880",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex 2026-11-02: historical Android workflow only copies an existing environment variable through shell expansion into the CI environment; no credential literal. Exact reviewed content only."
+    },
+    {
+      "blob": "6c784ec0a9",
+      "kind": "keystore password assigned a literal",
+      "reason": "Reviewed by Codex 2026-11-02: historical allowlist metadata quotes detector category names and variable names, no credential; exact reviewed content only."
     }
   ]
 }
