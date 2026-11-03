@@ -520,7 +520,8 @@ function pushProfileStateToCloud() {
         titanProfileSendingSignature=titanProfileSignature(snapshot);
         try { titanProtectProfile(snapshot,'pending'); } catch (_) { control.blocked=true;titanProfileStatus('error','Copie locale impossible : sauvegarde cloud suspendue pour protéger tes modifications.');return titanProfileError('PROFILE_LOCAL_BACKUP_FAILED'); }
         let error;
-        if (navigator.onLine===false) error=titanProfileError('PROFILE_OFFLINE');
+        if(!Number.isInteger(snapshot.meta?.profileVersion)) error=titanProfileError('PROFILE_READ_REQUIRED');
+        else if (navigator.onLine===false) error=titanProfileError('PROFILE_OFFLINE');
         else {
             try { error=await pushProfileStateToCloudOnce({owner,client,current,snapshot}); }
             catch (cause) { error=cause; }
@@ -600,6 +601,7 @@ window.addEventListener('titan:account-changing',()=>document.getElementById('ti
 window.addEventListener('online',()=>{
     if(!isCloudUser()) return;
     const owner=window.state.user.id,control=titanProfileControl(owner);
+    if(!titanProfileCopies(owner).length)return;
     if(!control.blocked && control.accepted!==titanProfileSignature(window.state)) titanScheduleProfile(owner,Math.max(0,control.retryAt-Date.now()));
 });
 
@@ -1620,7 +1622,7 @@ async function titanReadCloudProfile() {
 window.syncWithSupabase=function(){
     const owner=window.state?.user?.id,client=window.titanClient;
     if(titanProfileDeletedOwners.has(owner))return Promise.resolve({ok:false});
-    if(titanProfilePulls.has(owner)) return titanProfilePulls.get(owner);
+    // An explicit newer refresh supersedes older reads through titanProfileSyncGeneration.
     const promise=Promise.resolve().then(async()=>{
         if(titanProfilePush) await titanProfilePush;
         if(window.state?.user?.id!==owner || window.titanClient!==client) return;
