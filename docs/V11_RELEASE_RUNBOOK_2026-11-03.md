@@ -36,6 +36,11 @@ Mesures avant (référence ci-dessus) puis après, en lecture seule :
 2. Exécuter `tools/db/postflight-v11.sql` puis `python3 tools/db/test-v11-gates.py` (le contrôle attend exactement 33 migrations V1.1 dans le registre : vérifié dans le script).
 3. Retour arrière : fonctions et tables nouvelles se coupent par les drapeaux `titan_feature_flags_v1` ; aucun retour SQL destructif n'est prévu. Ne pas rétablir d'ancienne fonction sociale (deux défauts de confidentialité ont été corrigés par `20261102130000`).
 
+### Étape 4 bis — Drapeaux à créer et activer (rien ne s'allume tout seul)
+Après les migrations, ces fonctions V1.1 restent **invisibles** tant que leur drapeau n'existe pas ou est éteint (Centre de contrôle › Drapeaux, `titan_admin_feature_flag_set_v1`). Liste complète à relire avec `docs/V11_ACTIVATION_MATRIX.md` :
+`screens.coachtools`, `screens.coachworkspace`, `screens.coachcalendar`, `screens.coachexport`, `screens.coachanalysis`, `screens.consultations`, `screens.intents`, `screens.commonquest`, `screens.buddy`, `screens.seasons`, `screens.ranking`, `screens.duels`, `screens.worldgoal`, `screens.clubs`, `screens.factions`, `screens.pantheon`, `screens.garmin` (avec `GARMIN_ENABLED` côté serveur), `screens.routes`, `screens.gpxterrain`, `screens.activityhub`, `auth.google`. **Jamais** `ads.web`.
+Activer par paliers (pourcentage de déploiement du drapeau), en commençant par un compte de test. Les trois derniers (clubs publics, factions, panthéon) demandent qu'une personne soit désignée pour traiter les signalements.
+
 ### Étape 5 — Candidate finale
 Build Android signé : GitHub › Actions › Android natif › Run workflow › branche `codex/v11-finalization-20261102`, `signing=upload`, `billing` coché, `ads=live` (après l'étape 6) ou `partial_release` pour un premier envoi en test interne ; `google_signin` coché si Google est configuré. Détails : `docs/PLAY_BILLING_GPS_OWNER_STEPS.md`.
 
