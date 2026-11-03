@@ -32,10 +32,10 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 
 ## Validation
 
-- Seize régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures fusionnées, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
+- Dix-sept régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures fusionnées, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
 - Chromium avec vrai SDK Supabase et serveur HTTP simulé : 360/1280 px, 100 sauvegardes inchangées = 0 écriture, 100 sauvegardes après conflit = une seule écriture refusée, reload = aucune réécriture, reprise volontaire avec version fraîche et XP conservés.
 - Parcours associés : timeout/503, accusé perdu, mode hors ligne et reprise de séance ; 9 tests navigateur réussis par variante, sans contacter les données réelles.
-- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 349/349 ; port V1.1 467/467. La CI doit porter sur les têtes exactes publiées dans les PR.
+- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 350/350 ; port V1.1 468/468. La CI doit porter sur les têtes exactes publiées dans les PR.
 
 ## Mise en service à autoriser
 
@@ -52,3 +52,5 @@ Aucun déploiement, écriture SQL, migration, nettoyage de données, dépense ou
 La première CI a bloqué avant Playwright : `ubuntu-latest` avait changé vers Ubuntu 26.04, non pris en charge par Playwright 1.56.1. Le job navigateur est fixé sur Ubuntu 24.04, sans changer ni retirer ses tests. Le scan historique V1 a aussi retrouvé cinq contenus déjà explicitement classés dans la V1.1 : quatre exports de variables de signature (aucune valeur littérale) et un ancien fichier de métadonnées du scanner. Les quatre lignes ont été relues indépendamment ; seuls leurs hashes exacts et celui du fichier de métadonnées sont reconnus, sans modifier le détecteur ou exclure des répertoires. Les nouvelles raisons ne citent plus la syntaxe qui provoquait le faux positif. Les résultats finaux de la CI sont à lire sur les têtes des PR ; une ancienne exécution rouge n’est pas présentée comme verte.
 
 Les copies et le circuit de profil survivent à la déconnexion/au nettoyage de cache comme les séances en attente. L’effacement explicite d’un propriétaire retire ses copies et invalide ses envois en vol ; une réponse tardive ne recrée pas ses données. La suppression d’un compte ne touche pas les copies d’un autre compte. Régressions sur le nettoyage réel et sur la réponse tardive après effacement.
+
+Une modification compensatoire (retour à la valeur précédente pendant un envoi) est copiée avant son délai de reprise. Quand une écriture intermédiaire est encore incertaine, aucune base de merge non confirmée n’est supposée ; la copie reste complète et sa réapplication explicite.

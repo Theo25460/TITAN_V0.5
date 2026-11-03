@@ -428,6 +428,7 @@ window.titanCleanProfileName = window.titanCleanProfileName || function(value) {
 // Owner-bound, durable profile outbox. Training logs keep their existing separate queue.
 let titanProfilePush = null;
 let titanProfilePushOwner = null;
+let titanProfileSendingSignature = null;
 const titanProfileControls = new Map();
 const titanProfilePulls = new Map();
 const titanProfileDeletedOwners = new Set();
@@ -481,12 +482,12 @@ function titanProfileCopies(owner) {
     }
     return copies;
 }
-function titanProtectProfile(state, reason) {
+function titanProtectProfile(state, reason, uncertain=false) {
     const owner=state?.user?.id, signature=titanProfileSignature(state);
-    const existing=titanProfileCopies(owner).find(row=>row.signature===signature);
+    const existing=titanProfileCopies(owner).find(row=>row.signature===signature && (!uncertain || row.baseline===null));
     if (existing) return existing.key;
     const key=TITAN_PROFILE_EDITS+owner+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    localStorage.setItem(key,JSON.stringify({owner,signature,reason,at:new Date().toISOString(),version:state.meta?.profileVersion,baseline:titanProfileControl(owner).accepted?JSON.parse(titanProfileControl(owner).accepted):null,preferences:titanProfilePreferences(state)}));
+    localStorage.setItem(key,JSON.stringify({owner,signature,reason,at:new Date().toISOString(),version:state.meta?.profileVersion,baseline:!uncertain && titanProfileControl(owner).accepted?JSON.parse(titanProfileControl(owner).accepted):null,preferences:titanProfilePreferences(state)}));
     return key;
 }
 function titanProfileStatus(status,message) { try { window.titanSetSyncStatus?.(status,message); } catch (_) {} }
@@ -516,6 +517,7 @@ function pushProfileStateToCloud() {
     titanProfilePush=Promise.resolve().then(async()=>{
         if (!current()) return titanProfileError('PROFILE_OWNER_CHANGED');
         const snapshot=cloneProfileStateForCloud(window.state);
+        titanProfileSendingSignature=titanProfileSignature(snapshot);
         try { titanProtectProfile(snapshot,'pending'); } catch (_) { control.blocked=true;titanProfileStatus('error','Copie locale impossible : sauvegarde cloud suspendue pour protéger tes modifications.');return titanProfileError('PROFILE_LOCAL_BACKUP_FAILED'); }
         let error;
         if (navigator.onLine===false) error=titanProfileError('PROFILE_OFFLINE');
@@ -541,7 +543,7 @@ function pushProfileStateToCloud() {
         }
         return error;
     }).catch(error=>{control.blocked=true;return error;}).finally(()=>{
-        titanProfilePush=null;titanProfilePushOwner=null;
+        titanProfilePush=null;titanProfilePushOwner=null;titanProfileSendingSignature=null;
         if (current() && !control.blocked && !control.failures && control.accepted!==titanProfileSignature(window.state)) titanScheduleProfile(owner,window.TITAN_CLOUD_SYNC_DELAY_MS||2000);
         titanRenderProfileRecovery();
     });
@@ -1030,8 +1032,9 @@ window.saveState = function(options = {}) {
     localStorage.setItem(window.STATE_KEY, JSON.stringify(cloneStateForLocalStorage(window.state)));
     if(!saveOptions.localOnly && isCloudUser()) {
         const owner=window.state.user.id,control=titanProfileControl(owner);
-        if(control.accepted!==titanProfileSignature(window.state)) {
-            try { titanProtectProfile(window.state,'pending'); }
+        const uncertain=titanProfilePushOwner===owner && titanProfileSendingSignature && titanProfileSendingSignature!==titanProfileSignature(window.state);
+        if(uncertain || control.accepted!==titanProfileSignature(window.state)) {
+            try { titanProtectProfile(window.state,'pending',Boolean(uncertain)); }
             catch (_) { control.blocked=true;titanProfileStatus('error','Copie locale impossible : sauvegarde suspendue pour protéger tes modifications.');return Promise.resolve(titanProfileError('PROFILE_LOCAL_BACKUP_FAILED')); }
         }
     }
