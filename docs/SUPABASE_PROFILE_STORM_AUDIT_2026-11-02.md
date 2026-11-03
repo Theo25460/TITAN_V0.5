@@ -12,7 +12,7 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 |---|---|
 | Conflits | Le verrou en mémoire était perdu au rechargement, et un seul propriétaire pouvait être mémorisé. Circuit par compte, persistant sur l’appareil ; aucune réécriture automatique après conflit. |
 | Sauvegardes identiques | Les appels d’interface pouvaient encore réémettre le même profil, y compris après succès. Comparaison canonique des seules préférences enregistrables, sans horodatages ni XP ; aucune RPC si rien n’a changé. |
-| Rechargement | `forceCloud:false` ne signifiait pas local seulement : une lecture pouvait déclencher une nouvelle écriture. Chemin `localOnly` explicite et lectures simultanées fusionnées. |
+| Rechargement | `forceCloud:false` ne signifiait pas local seulement : une lecture pouvait déclencher une nouvelle écriture. Chemin `localOnly` explicite et une relecture explicite plus récente prioritaire. |
 | Réponses tardives | Propriétaire/client/transition capturés ; session vérifiée et jeton fixé sur la requête réelle. Une réponse A n’altère pas B. Version retournée conservée dans le cache sans effacer les nouvelles saisies. |
 | Protection des préférences | Copie durable, distincte par compte et par contenu dès saveState, avant même le délai d’envoi, et avant remplacement cloud. Historique et XP restent serveur ; séances en attente dans leur file existante. Si la copie locale ne peut pas être écrite, envoi refusé. |
 | Reprise | Carte de récupération : comparaison, téléchargement JSON, réapplication volontaire après une lecture cloud fraîche et CAS (comparaison à trois versions quand une base confirmée est connue, pour garder les champs modifiés indépendamment sur un autre appareil), retrait explicite après confirmation. Aucun remplacement aveugle du cloud. |
@@ -32,10 +32,10 @@ Le déploiement public Netlify reste `6ad9c1f1a3cb26a466c44bc5`. Les fichiers pu
 
 ## Validation
 
-- Dix-sept régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures fusionnées, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
+- Dix-neuf régressions exécutent le vrai module `state.js` : single-flight/réentrance, contenu identique, changement pendant envoi, version en cache, conflit persistant multi-comptes, reload, relectures explicites plus récentes prioritaires, jeton, réponse tardive, backoff borné, refus permanent, stockage refusé et récupération.
 - Chromium avec vrai SDK Supabase et serveur HTTP simulé : 360/1280 px, 100 sauvegardes inchangées = 0 écriture, 100 sauvegardes après conflit = une seule écriture refusée, reload = aucune réécriture, reprise volontaire avec version fraîche et XP conservés.
 - Parcours associés : timeout/503, accusé perdu, mode hors ligne et reprise de séance ; 9 tests navigateur réussis par variante, sans contacter les données réelles.
-- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 350/350 ; port V1.1 468/468. La CI doit porter sur les têtes exactes publiées dans les PR.
+- `pnpm run verify` sur chaque variante : types, tests, build, audit et garde de livraison réussis ; avertissements éditoriaux existants conservés. Suites unitaires complètes : V1 354/354 ; port V1.1 472/472. La CI doit porter sur les têtes exactes publiées dans les PR.
 
 ## Mise en service à autoriser
 
@@ -54,3 +54,5 @@ La première CI a bloqué avant Playwright : `ubuntu-latest` avait changé vers 
 Les copies et le circuit de profil survivent à la déconnexion/au nettoyage de cache comme les séances en attente. L’effacement explicite d’un propriétaire retire ses copies et invalide ses envois en vol ; une réponse tardive ne recrée pas ses données. La suppression d’un compte ne touche pas les copies d’un autre compte. Régressions sur le nettoyage réel et sur la réponse tardive après effacement.
 
 Une modification compensatoire (retour à la valeur précédente pendant un envoi) est copiée avant son délai de reprise. Quand une écriture intermédiaire est encore incertaine, aucune base de merge non confirmée n’est supposée ; la copie reste complète et sa réapplication explicite.
+
+La campagne complète a relevé une tentative de profil sans intention de sauvegarde au seul retour online : supprimée, une copie en attente est désormais requise. Une version absente impose une lecture cloud avant toute écriture. Le contrat de rafraîchissement explicite plus récent prioritaire est conservé (test de bootstrap), sans modifier les tests pour accepter une réponse obsolète. Cache HTTP de sept jours : nouvelles URL versionnées pour state.js et training-store.js dans toutes les pages ; préchargement du Service Worker avec cache reload pour éviter la réutilisation HTTP d’un ancien script.
