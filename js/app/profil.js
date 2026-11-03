@@ -37,6 +37,7 @@
   let wornTask = null; // a title change in flight
   let showcase = null; // showcase [{key,label}] (server, V11-23); null until read
   let showcaseTask = null;
+  let garminLinked = null; // true/false once titan_garmin_status_v1 answered (an authorised source is not necessarily linked); null = unknown
   let sources = null; // connected activity sources [{source,granted,imported,...}] (server, V11-30); null until read
   let sourcesTask = null;
   let pioneer = null; // Pionnier badge {granted, cohort} (server, V11-60); null until read
@@ -201,6 +202,7 @@
       const fresh = await context.client.rpc("titan_sources_v1").setHeader("Authorization", `Bearer ${session.access_token}`);
       if (sourcesTask !== job || !bitsCurrent(job)) return false;
       if (!fresh.error && Array.isArray(fresh.data)) sources = fresh.data.filter((x) => x && typeof x.source === "string");
+      if (kind === "revoke" && source === "garmin") garminLinked = false;
       return true;
     } catch (error) {
       if (sourcesTask === job && bitsCurrent(job)) throw error;
@@ -255,7 +257,7 @@
   }
 
   function garminConnectHtml() {
-    if (!garminOn() || (sources || []).some((x) => x.source === "garmin" && x.granted)) return "";
+    if (!garminOn() || ((sources || []).some((x) => x.source === "garmin" && x.granted) && garminLinked !== false)) return "";
     return `<section class="asc-section" data-garmin-block aria-labelledby="pf-garmin"><div class="asc-section-head"><h2 id="pf-garmin">Garmin</h2></div>
       <p class="asc-small asc-muted">Relie ta montre Garmin : tes séances arrivent dans ton journal sans les saisir. Tu choisis ce que Garmin partage sur son écran, tu peux tout retirer ici à tout moment, et rien n’est repris sans ton accord.</p>
       <button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect ${garminTask ? "disabled aria-busy=\"true\"" : ""}>${icon("cloudUp")} Connecter Garmin</button></section>`;
@@ -269,7 +271,7 @@
         const since = x.granted_at ? new Date(x.granted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
         const busy = sourcesTask ? " disabled" : "";
         return `<div class="asc-row" data-source="${esc(x.source)}"><span class="asc-row-icon">${icon("cloudUp")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(name)} · ${x.granted ? "autorisée" : "retirée"}</span>
-          <span class="asc-row-sub">${x.granted ? `Autorisée depuis le ${esc(since)}. ` : "Plus aucune séance n’est reçue. "}${Number(x.imported) || 0} séance${x.imported > 1 ? "s" : ""} reçue${x.imported > 1 ? "s" : ""} et gardée${x.imported > 1 ? "s" : ""} dans ton journal${x.linked ? `, ${x.linked} rattachée${x.linked > 1 ? "s" : ""} à une séance déjà saisie` : ""}.</span></span></div>
+          <span class="asc-row-sub">${x.granted ? `Autorisée depuis le ${esc(since)}. ${x.source === "garmin" && garminLinked === false ? "La liaison avec Garmin n’est pas terminée : utilise « Connecter Garmin » ci-dessus. " : ""}` : "Plus aucune séance n’est reçue. "}${Number(x.imported) || 0} séance${x.imported > 1 ? "s" : ""} reçue${x.imported > 1 ? "s" : ""} et gardée${x.imported > 1 ? "s" : ""} dans ton journal${x.linked ? `, ${x.linked} rattachée${x.linked > 1 ? "s" : ""} à une séance déjà saisie` : ""}.</span></span></div>
         <div class="asc-row-flex">${x.granted ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-source-revoke="${esc(x.source)}"${busy}>Retirer l’accès</button>` : ""}${x.imported > 0 ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-source-archive="${esc(x.source)}"${busy}>Archiver ce que ${esc(name)} a apporté</button>` : ""}</div>`;
       }).join("")}</div>
       <p class="asc-small asc-faint">Retirer l’accès arrête les imports. Tes récompenses déjà reçues restent acquises ; archiver retire seulement les séances reçues du journal.</p></section>`;
@@ -468,6 +470,7 @@
     showcase = null;
     showcaseTask = null;
     sources = null;
+    garminLinked = null;
     pioneer = null;
     sourcesTask = null;
     cardUnavailable = false;
@@ -537,6 +540,16 @@
         if (!bitsCurrent(job)) return;
         await readBitsSession(job);
         if (bitsCurrent(job) && !v.error && Array.isArray(v.data)) sources = v.data.filter((x) => x && typeof x.source === "string");
+      } catch {}
+      // The consent is given BEFORE the Garmin screen: when the player leaves that screen without finishing, the source is authorised but not
+      // linked. The real link state decides whether "Connecter Garmin" stays offered.
+      try {
+        if ((sources || []).some((x) => x.source === "garmin" && x.granted)) {
+          const g = await within(job.context.client.rpc("titan_garmin_status_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
+          if (!bitsCurrent(job)) return;
+          await readBitsSession(job);
+          if (bitsCurrent(job) && !g.error && g.data && typeof g.data.linked === "boolean") garminLinked = g.data.linked;
+        }
       } catch {}
     } catch {
       if (bitsCurrent(job)) cardFailed = true;

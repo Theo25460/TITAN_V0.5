@@ -31,11 +31,12 @@ async function newPage(width = 390) {
 }
 const OWNER = "00000000-0000-4000-8000-000000000322";
 
-async function profilePage({ sources = [] } = {}) {
+async function profilePage({ sources = [], garminStatus } = {}) {
   const f = await newPage(), { page } = f;
   await page.goto(BASE + "/profile", { waitUntil: "load" });
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready");
-  await page.evaluate(({ owner, sources }) => {
+  await page.evaluate(({ owner, sources, garminStatus }) => {
+    window.garminStatus = garminStatus;
     window.sourceCalls = [];
     window.sourceRows = sources;
     const realFetch = window.fetch.bind(window);
@@ -51,6 +52,7 @@ async function profilePage({ sources = [] } = {}) {
         if (name === "titan_displayed_title") return { data: { key: null, label: null }, error: null };
         if (name === "delete_own_account") { window.recordOrder?.("delete_own_account"); return { data: { userId: owner }, error: null }; }
         if (name === "titan_sources_v1") return { data: window.sourceRows, error: null };
+        if (name === "titan_garmin_status_v1") return window.garminStatus === undefined ? { data: null, error: { code: "PGRST202", message: "Could not find the function" } } : { data: { linked: window.garminStatus }, error: null };
         if (name === "titan_set_source_consent_v1") { window.sourceCalls.push([name, args]); window.sourceRows = window.sourceRows.map(x => ({ ...x, granted: false })); return { data: {}, error: null }; }
         if (name === "titan_archive_imported_v1") { window.sourceCalls.push([name, args]); window.sourceRows = window.sourceRows.map(x => ({ ...x, imported: 0 })); return { data: 4, error: null }; }
         if (name === "titan_showcase_v1") return { data: window.showcaseKeys.map(key => ({ key, label: key === "exp:automne-2026" ? "Passe-brume" : null })), error: null };
@@ -71,7 +73,7 @@ async function profilePage({ sources = [] } = {}) {
     const snapshot = { ...window.TitanAdventure.snapshot, owner, rewards };
     window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
     dispatchEvent(new CustomEvent("titan:history-updated"));
-  }, { owner: OWNER, sources });
+  }, { owner: OWNER, sources, garminStatus });
   return f;
 }
 
@@ -224,8 +226,8 @@ test("account deletion: a Garmin link is withdrawn first, best effort, and a fai
   } finally { await context.close(); }
 });
 
-async function withFlag(flag, sources = []) {
-  const f = await profilePage({ sources });
+async function withFlag(flag, sources = [], garminStatus) {
+  const f = await profilePage({ sources, garminStatus });
   const { page } = f;
   await page.evaluate(flag => {
     window.titanFlags = { enabled: (key, fallback) => key === "screens.garmin" ? flag : fallback };
@@ -287,6 +289,30 @@ test("garmin connect: once linked, the button gives way to the source line, and 
     await page.waitForFunction(() => window.sourceCalls.length === 1);
     assert.deepEqual(calls, ["action=disconnect|Bearer synthetic-showcase-token"]);
     assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }]);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+
+test("garmin connect: authorised but never linked (the player left the Garmin screen), the button stays offered and the source line says so", async () => {
+  const row = { source: "garmin", granted: true, granted_at: "2026-11-03T14:33:00Z", revoked_at: null, imported: 0, linked: 0 };
+  const { page, context, errors } = await withFlag(true, [row], false);
+  try {
+    const block = page.locator("[data-sources-block]");
+    await block.waitFor();
+    await page.locator("[data-garmin-connect]").waitFor({ timeout: 8000 });
+    assert.match(await block.innerText(), /La liaison avec Garmin n’est pas terminée/);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("garmin connect: linked (status answers linked), the button gives way to the source line", async () => {
+  const row = { source: "garmin", granted: true, granted_at: "2026-11-03T14:33:00Z", revoked_at: null, imported: 1, linked: 0 };
+  const { page, context, errors } = await withFlag(true, [row], true);
+  try {
+    await page.locator("[data-sources-block]").waitFor();
+    assert.equal(await page.locator("[data-garmin-connect]").count(), 0);
+    assert.doesNotMatch(await page.locator("[data-sources-block]").innerText(), /n’est pas terminée/);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
