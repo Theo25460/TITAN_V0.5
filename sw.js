@@ -1,13 +1,13 @@
 // TITAN 301 — offline shell. The precache list is generated at build time (tools/build-public.mjs) from the
 // assets the app pages really load, so it cannot drift from the HTML.
-const CACHE_NAME = 'titan-os-v301-profile-sync-20261102-r2';
+const CACHE_NAME = 'titan-os-v301-profile-sync-20261103-r3';
 const ASSETS_TO_CACHE = [/* PRECACHE */];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       const results = await Promise.allSettled(
-        ASSETS_TO_CACHE.map((asset) => cache.add(asset))
+        ASSETS_TO_CACHE.map((asset) => cache.add(new Request(new URL(asset, self.location.href), { cache: 'reload' })))
       );
       const failures = results.filter((result) => result.status === 'rejected').length;
       if (failures > 0) { const pages=await self.clients.matchAll();pages.forEach(page=>page.postMessage({type:'OFFLINE_CACHE_PARTIAL',failures})); }
