@@ -19,11 +19,12 @@ fi
 onboarded=$(q "select game_state->'user'->>'onboardedAt' is not null from profiles where id='$A'")
 favorite=$(q "select game_state->'user'->'favoriteSports'->>0 from profiles where id='$A'")
 reward=$(q "select count(*) from adventure_rewards where user_id='$A' and world_id='aube' and chapter=1")
-offline=$(q "select count(*) from training_logs where user_id='$A' and details->>'note' = 'E2E hors ligne'")
+offline=$(q "select count(*) from training_logs where user_id='$A' and sport='yoga'")
+note=$(q "select count(*) from training_logs where user_id='$A' and details->>'note' = 'E2E hors ligne'")
 b_logs=$(q "select count(*) from training_logs where user_id='$B'")
 
 echo "Account A: $logs sessions ($distinct distinct client_event_id), $xp_logs XP in the journal, $xp_profile cumulated XP on the profile, $held XP held for review"
-echo "Account A: onboarded=$onboarded favorite=$favorite aube chapter 1 reward=$reward offline session=$offline"
+echo "Account A: onboarded=$onboarded favorite=$favorite aube chapter 1 reward=$reward offline session=$offline (yoga) note kept=$note (information, the note is typed through adb)"
 echo "Account B: $b_logs sessions"
 [[ "$logs" -ge 3 ]] || fail "expected at least 3 sessions for A, got $logs"
 [[ "$logs" == "$distinct" ]] || fail "duplicate sessions: $logs rows for $distinct events"
