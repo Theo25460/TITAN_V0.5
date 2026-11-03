@@ -1,0 +1,42 @@
+name: Sonde production (lecture seule)
+
+# Manual, read-only probe of the public endpoints (titan-app.fr and Garmin). No credential, no write, no user account.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Site publié
+        run: |
+          for p in / /profile /app-ads.txt /robots.txt /sitemap.xml "/auth/garmin/callback?code=probe&state=probe" "/.netlify/functions/garmin?action=start"; do
+            printf '%s -> ' "$p"
+            curl -sS -o /dev/null -m 20 -w '%{http_code} %{redirect_url}\n' -X "$([ "${p#/.netlify}" != "$p" ] && echo POST || echo GET)" "https://titan-app.fr$p" || echo "erreur réseau"
+          done
+          echo '--- version publiée (marqueurs V1.1) ---'
+          curl -sS -m 20 https://titan-app.fr/profile | grep -oE 'v300\.[0-9]+' | sort -u | head -5 || true
+          curl -sS -m 20 https://titan-app.fr/js/main.js | head -c 0 || true
+          curl -sSI -m 20 https://titan-app.fr/ | grep -iE '^(server|x-nf-request-id|age|cache-status)' || true
+      - name: Garmin (hôtes et écran de consentement, sans secret)
+        run: |
+          CLIENT_ID=4682950e-7439-4d6f-98fb-80d8b7e6ef73
+          echo '--- écran de consentement (client public) ---'
+          curl -sS -o /tmp/auth.html -m 20 -w 'HTTP %{http_code} -> %{url_effective}\n' -L \
+            "https://connect.garmin.com/oauth2Confirm?response_type=code&client_id=${CLIENT_ID}&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256&redirect_uri=https%3A%2F%2Ftitan-app.fr%2Fauth%2Fgarmin%2Fcallback&state=probe" || true
+          grep -ioE '(invalid[_ a-z]*client|unauthori[sz]ed[_ a-z]*|redirect[_ a-z]*(mismatch|invalid)|error[^<]{0,80})' /tmp/auth.html | head -5 || true
+          echo '--- point de jeton (sans secret, code factice) : comparaison des deux hôtes ---'
+          for t in https://diauth.garmin.com/di-oauth2-service/oauth/token https://connectapi.garmin.com/di-oauth2-service/oauth/token; do
+            printf '%s -> ' "$t"
+            curl -sS -m 20 -w ' [HTTP %{http_code}]\n' -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
+              --data "grant_type=authorization_code&client_id=${CLIENT_ID}&code=probe&code_verifier=probe&redirect_uri=https%3A%2F%2Ftitan-app.fr%2Fauth%2Fgarmin%2Fcallback" "$t" | head -c 300 || echo "erreur réseau"
+          done
+          echo '--- API (jeton factice : 401 attendu) ---'
+          for u in user/id user/permissions; do
+            printf '%s -> ' "$u"
+            curl -sS -o /dev/null -m 20 -w '%{http_code}\n' -H 'Authorization: Bearer probe' "https://apis.garmin.com/wellness-api/rest/$u" || echo "erreur réseau"
+          done
