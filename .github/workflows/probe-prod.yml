@@ -3,6 +3,9 @@ name: Sonde production (lecture seule)
 # Manual, read-only probe of the public endpoints (titan-app.fr and Garmin). No credential, no write, no user account.
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/probe-prod.yml"
 
 permissions:
   contents: read
