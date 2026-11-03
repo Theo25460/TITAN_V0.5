@@ -34,12 +34,17 @@ appId: fr.titanapp.app
     element:
       id: "session-note"
     direction: DOWN
-- tapOn:
-    id: "session-note"
-- waitForAnimationToEnd
-- inputText: "E2E hors ligne"
-# Prove the text really reached the field before saving (the server check later expects exactly this note, once).
-- assertVisible: ".*E2E hors ligne.*"
+# Typing through adb sometimes lands before the field has focus (seen on CI: the text never appeared). Retry the whole entry, and prove the text
+# really reached the field before saving: the server check later expects exactly this note, once.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "session-note"
+      - waitForAnimationToEnd
+      - eraseText
+      - inputText: "E2E hors ligne"
+      - assertVisible: ".*E2E hors ligne.*"
 - takeScreenshot: 16a-note-saisie
 # The form now carries the sport-specific optional metrics: bring the save button into view before tapping it.
 # No hideKeyboard: on Android it sends BACK when the keyboard is already closed, which would leave the form (flaky). While typing, the footer
