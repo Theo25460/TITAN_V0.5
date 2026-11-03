@@ -136,6 +136,8 @@
   root.titanSafeClearCache = () => {
     for (const key of Object.keys(localStorage)) {
       if (
+        !key.startsWith("titan_profile_edits_v2_") &&
+        !key.startsWith("titan_profile_control_v2_") &&
         !key.startsWith("titan_training_draft_") &&
         !key.startsWith("titan_seance_draft_") &&
         !key.startsWith("titan_seance_timer_") &&
@@ -150,6 +152,11 @@
   };
   // Drafts kept by titanSafeClearCache: legacy key, then the session draft/timer of js/app/seance.js.
   root.titanForgetOwnerDrafts = (ownerId) => {
+    root.titanInvalidateProfileWrites?.(ownerId);
+    try { for (const key of Object.keys(localStorage)) {
+      if (key !== `titan_profile_control_v2_${ownerId}` && !key.startsWith(`titan_profile_edits_v2_${ownerId}_`)) continue;
+      try { localStorage.removeItem(key); } catch { /* keep the remaining owner erasure paths running */ }
+    } } catch { /* unavailable storage must not stop IndexedDB erasure */ }
     for (const key of [`titan_training_draft_${ownerId}`, `titan_seance_draft_v3:${ownerId}`, `titan_seance_timer_v3:${ownerId}`, `titan_onboarding_draft_v1:${ownerId}`]) {
       try {
         localStorage.removeItem(key);
