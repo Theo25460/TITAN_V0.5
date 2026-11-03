@@ -1,5 +1,8 @@
 # TITAN V1.1 — dossier de lancement et audits finaux (3 novembre 2026)
 
+> **STATUT À JOUR : voir `docs/V11_STATUT_REEL_2026-11-03.md`.** Les 33 migrations sont présentes en production, le registre est réconcilié, les drapeaux sont créés. Toute mention contraire ci-dessous est périmée.
+
+
 Tête de référence : `codex/v11-finalization-20261102` à `fc58569` (PR #128). Hotfix V1 : PR #129, tête `939ee0d`, base `claude/titan-finition-web` (V1 publiée `8102c17`). Rien de ce document n'a été exécuté en production. Chaque étape marquée **FEU VERT** exige l'accord explicite du propriétaire.
 
 ## 1. État réel mesuré

@@ -1,5 +1,8 @@
 # Dossier de publication TITAN V1.1 (préparé, rien publié)
 
+> **STATUT À JOUR : voir `docs/V11_STATUT_REEL_2026-11-03.md`.** Les 33 migrations sont présentes en production, le registre est réconcilié, les drapeaux sont créés. Toute mention contraire ci-dessous est périmée.
+
+
 Ce document ne déclenche rien. Chaque étape ci-dessous exige l'accord explicite du propriétaire.
 
 ## 1. Base de données (Supabase)

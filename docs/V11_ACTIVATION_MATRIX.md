@@ -1,5 +1,8 @@
 # TITAN V1.1 — pourquoi des fonctions sont encore masquées, et comment les allumer (02/11/2026)
 
+> **STATUT À JOUR : voir `docs/V11_STATUT_REEL_2026-11-03.md`.** Les 33 migrations sont présentes en production, le registre est réconcilié, les drapeaux sont créés. Toute mention contraire ci-dessous est périmée.
+
+
 Rien n'est « cassé » : chaque fonction développée est derrière un interrupteur volontairement éteint, et plusieurs dépendent de migrations qui ne sont **pas appliquées en production** (les 29 migrations V1 le sont ; les migrations V1.1 30 à 60 ne le sont pas). Ce document est la source de vérité. Aucune ligne n'a été allumée par Claude.
 
 ## 1. Les quatre niveaux d'interrupteurs

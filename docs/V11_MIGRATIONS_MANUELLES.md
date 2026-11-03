@@ -1,5 +1,8 @@
 # Procédure manuelle — appliquer les 33 migrations V1.1 en production
 
+> **STATUT À JOUR : voir `docs/V11_STATUT_REEL_2026-11-03.md`.** Les 33 migrations sont présentes en production, le registre est réconcilié, les drapeaux sont créés. Toute mention contraire ci-dessous est périmée.
+
+
 À exécuter **par le propriétaire** (rien n'a été appliqué en production par l'assistant). La base de production s'arrête à `20261021020000` (75 migrations). Les migrations sont additives ; chaque fichier se joue tel quel, **dans cet ordre**, un par un, en s'arrêtant à la première erreur.
 
 ## Avant
