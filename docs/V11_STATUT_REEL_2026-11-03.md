@@ -18,3 +18,10 @@ Ce document fait foi. Il remplace tout statut contraire dans les autres document
 
 ## Android
 - AAB signé (clé d'envoi), versionCode 1200, versionName 1.1.0, `ads=live`, `billing=true`, `google_signin=true` : artefact GitHub `titan-android-1200-upload` (run 41606702981). Non envoyé à Google Play : aucun secret de compte de service Play dans GitHub ; envoi à faire dans la Play Console.
+
+## Mise à jour 3 novembre 2026, 15 h UTC — le Web V1.1 est en production
+- **Netlify** : déploiement courant `6ae9f59bc122811c55574f97` (commit `cdeaeb8`), publié automatiquement (le verrou a été levé par le propriétaire). Sonde de production : `app-ads.txt` 200, `/auth/garmin/callback` → 302 vers `/profile?garmin=error` avec un état factice (comportement attendu), `garmin?action=start` et `action=push` sans identifiants → 401 : la configuration Garmin est **valide au runtime** (une configuration invalide répondrait 503).
+- **Garmin, premier essai réel (14 h 33 UTC)** : consentement accordé, `action=start` → 200 (adresse Garmin construite). **Aucun retour sur `/auth/garmin/callback` n'a été reçu**, aucun lien n'existe en base : Garmin n'a pas renvoyé le joueur (écran Garmin abandonné ou refusé côté Garmin). L'écran affiché par Garmin à ce moment est la seule preuve manquante. Correctif de code (`cdeaeb8`) : tant que le lien n'est pas établi, « Connecter Garmin » reste proposé (avant, le consentement seul le masquait).
+- **Health Connect** : preuve réelle en production à 14 h 47 UTC — consentement et import de 7 jours de pas par un appareil Android (`titan_daily_activity`, 7 lignes).
+- **Drapeaux** : les 21 sont à 100 % (décision du propriétaire, 13 h 58 UTC).
+- **Incident de conflits de profil** : toujours environ 300 par tranche de 5 minutes (1 par seconde) à 15 h UTC, inchangé après la mise en ligne. Source probable : un ou quelques onglets/appareils restés ouverts avec l'ancien script (le message affiché dans cet onglet est « Modifié sur un autre appareil : recharge la page »). Le correctif ne s'applique qu'après rechargement.
