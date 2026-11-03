@@ -51,3 +51,5 @@ jobs:
           for t in https://diauth.garmin.com/di-oauth2-service/oauth/token https://connectapi.garmin.com/di-oauth2-service/oauth/token; do
             printf '%s -> ' "$t"; curl -sS -m 20 -o /tmp/t.txt -w '[HTTP %{http_code}] ' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data "grant_type=authorization_code&client_id=${CLIENT_ID}&code=probe&code_verifier=probe&redirect_uri=https%3A%2F%2Ftitan-app.fr%2Fauth%2Fgarmin%2Fcallback" "$t"; head -c 120 /tmp/t.txt | tr '\n' ' '; echo
           done
+
+# sonde relancée le 3 novembre 2026, 14h45 UTC : contrôle du déploiement publié
