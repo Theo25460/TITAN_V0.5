@@ -34,7 +34,7 @@ try:
         first_in.write(f"set application_name='{tag}_first';\n" + setup + f"select {call}; select pg_sleep(3); commit;")
         second_in.write(f"set application_name='{tag}_second';\n" + setup + f"""do $$ begin
           begin perform {call}; assert false,'stale claim must fail';
-          exception when serialization_failure then assert sqlerrm='ADVENTURE_CONFLICT',sqlerrm; end;
+          exception when sqlstate 'PT409' then assert sqlerrm='ADVENTURE_CONFLICT',sqlerrm; end;
         end $$; select '{{"conflict":true}}'::json; commit;""")
         first_in.seek(0)
         first = subprocess.Popen(PSQL + ["-At"], stdin=first_in, stdout=first_out, stderr=first_out)
