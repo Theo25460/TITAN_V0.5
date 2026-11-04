@@ -45,3 +45,14 @@ test("progress is kept per account and a damaged record falls back to the start"
   await AsyncStorage.setItem("titan.tour.v1:e", JSON.stringify({ v: 1, step: 77, done: false, dismissed: false }));
   expect((await loadTour("e")).step).toBe(11);
 });
+
+test("the last known tour state is remembered so the QG card never appears a frame late (V12-05)", async () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { loadTour, peekTour, saveTour, goTo, freshTour } = require("../src/lib/tour");
+  expect(peekTour("owner-peek")).toBeNull();
+  await loadTour("owner-peek");
+  expect(peekTour("owner-peek")).toEqual(freshTour());
+  await saveTour("owner-peek", goTo(freshTour(), 3));
+  expect(peekTour("owner-peek").step).toBe(3);
+  expect(peekTour("someone-else")).toBeNull();
+});

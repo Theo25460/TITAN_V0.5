@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 import { healthConnect } from "../lib/healthConnect";
 import { ownerKey, readJSON, writeJSON } from "../lib/storage";
 import { localDay, shouldAutoSync, summarize, validGoal, type StepsView } from "../lib/steps";
@@ -56,6 +57,7 @@ export function useSteps() {
       if (alive.current) setConnected(ok);
       return ok;
     } catch {
+      if (alive.current) setConnected(false);
       return false;
     }
   }, [hc]);
@@ -95,6 +97,16 @@ export function useSteps() {
     // once per QG opening
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [owner]);
+
+  // Coming back to TITAN after a walk: read again (same 30-minute guard and same consent checks as the opening refresh).
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next === "active") refreshRef.current(true).catch(() => {});
+    });
+    return () => sub.remove();
+  }, []);
 
   const view: StepsView = summarize(q.data ?? [], localDay(new Date()), goal);
   return { view, goal, setGoal, refresh, syncing, error, connected, loading: q.isLoading, hasAny: (q.data?.length ?? 0) > 0, failed: !!q.error && !q.data };

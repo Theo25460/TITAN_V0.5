@@ -24,8 +24,13 @@ test("shows today's number, the goal and the honest 30-day line", () => {
   render(<StepsCard />);
   expect(screen.getByText("6 500")).toBeTruthy();
   expect(screen.getByText("Objectif 10 000")).toBeTruthy();
+  // Compact by default: the week, the 30 days and the goal editor wait behind one tap (V12-31).
+  expect(screen.queryByText(/30 jours/)).toBeNull();
+  expect(screen.getByTestId("steps-toggle").props.accessibilityLabel).toBe("Voir la semaine et l’objectif");
+  fireEvent.press(screen.getByTestId("steps-toggle"));
   expect(screen.getByText(/30 jours : 6 500 par jour en moyenne \(1 jour avec chiffre\)/)).toBeTruthy();
   expect(screen.getByText("Modifier l’objectif")).toBeTruthy();
+  expect(screen.getByTestId("steps-toggle").props.accessibilityLabel).toBe("Masquer le détail");
 });
 
 test("no number today is said plainly and is never shown as zero", () => {
@@ -71,4 +76,20 @@ test("manual refresh is a button; an error keeps the received data on screen", (
   expect(s.refresh).toHaveBeenCalledWith(false);
   expect(screen.getByText("1 200")).toBeTruthy();
   expect(screen.getByText(/Les pas déjà reçus restent affichés/)).toBeTruthy();
+});
+
+test("while the steps and the permission check are pending, a placeholder holds the room instead of popping in (V12-05)", () => {
+  mockSteps.value = base([], null, { loading: true, hasAny: false, connected: null });
+  const { rerender } = render(<StepsCard />);
+  expect(screen.getByTestId("steps-loading")).toBeTruthy();
+  expect(screen.queryByText("Pas de chiffre pour aujourd’hui pour le moment.")).toBeNull();
+  // Loaded but the permission check has not answered yet: still the placeholder, never a premature "no number".
+  mockSteps.value = base([], null, { loading: false, hasAny: false, connected: null });
+  rerender(<StepsCard />);
+  expect(screen.getByTestId("steps-loading")).toBeTruthy();
+  // The answer arrives: the invitation replaces the placeholder.
+  mockSteps.value = base([], null, { loading: false, hasAny: false, connected: false });
+  rerender(<StepsCard />);
+  expect(screen.queryByTestId("steps-loading")).toBeNull();
+  expect(screen.getByTestId("steps-connect")).toBeTruthy();
 });
