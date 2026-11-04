@@ -13,6 +13,7 @@ import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { Ring } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
+import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Screen } from "../../components/Screen";
 import { Section, Stat, StatRow } from "../../components/Section";
 import { SessionRow } from "../../components/SessionRow";
@@ -49,6 +50,9 @@ export function HomeScreen() {
     [active, goals.data, prefs, adventure.data, queue.items, planToday],
   );
   const action = useMemo(() => Progress.nextAction(ctx), [ctx]);
+  // Whatever the priority of the day is, recording a session is always one tap away: repeat the last one, or open the Séance tab.
+  const heroRecords = !!action.cta && action.cta.href.startsWith("/training");
+  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   // The secondary markers sit below the fold and cost as much as the main action (nextAction calls insights itself):
   // they are computed once the first frame is on screen.
   const insights = useAfterPaint(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]) ?? [];
@@ -124,6 +128,12 @@ export function HomeScreen() {
               ) : null}
               {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
             </Card>
+
+            {heroRecords ? null : repeat ? (
+              <RepeatLastCard log={repeat} compact />
+            ) : (
+              <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
+            )}
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
             <StepsCard />

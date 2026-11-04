@@ -12,7 +12,10 @@ if (process.env.TITAN_PREVIEW === "1") {
     "src/data/auth": "preview/mocks/auth.tsx",
     "src/lib/supabase": "preview/mocks/supabase.ts",
   };
+  // Native-only SDKs cannot be bundled for the browser: the preview gets an inert stub instead.
+  const nativeOnly = new Set(["react-native-google-mobile-ads", "expo-iap", "react-native-health-connect"]);
   config.resolver.resolveRequest = (context, moduleName, platform) => {
+    if (nativeOnly.has(moduleName)) return { type: "sourceFile", filePath: path.join(__dirname, "preview/mocks/native-stub.js") };
     const resolved = context.resolveRequest(context, moduleName, platform);
     if (resolved.type !== "sourceFile") return resolved;
     const rel = path.relative(__dirname, resolved.filePath).split(path.sep).join("/").replace(/\.(tsx?|jsx?)$/, "");

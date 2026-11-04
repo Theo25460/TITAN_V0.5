@@ -15,7 +15,7 @@ export function lastSessionToRepeat(active: TrainingLog[]): TrainingLog | null {
 
 /** "Refaire ma dernière séance" (V12-13/32/33): one tap opens the normal form pre-filled with the previous values.
     The date and the draft are never reused silently and nothing is recorded until the player validates the form. */
-export function RepeatLastCard({ log }: { log: TrainingLog }) {
+export function RepeatLastCard({ log, compact = false }: { log: TrainingLog; compact?: boolean }) {
   const navigation = useNavigation();
   const fam = Sports.familyOf(log.sport);
   const minutes = Progress.minutesOf(log).minutes;
@@ -35,9 +35,11 @@ export function RepeatLastCard({ log }: { log: TrainingLog }) {
           <T variant="small" numberOfLines={2}>
             {Sports.label(log.sport)} · {summary}
           </T>
-          <T variant="caption" tone="faint">
-            Valeurs préremplies, tu vérifies avant d’enregistrer.
-          </T>
+          {compact ? null : (
+            <T variant="caption" tone="faint">
+              Valeurs préremplies, tu vérifies avant d’enregistrer.
+            </T>
+          )}
         </View>
         <Icon name="chevron" color={colors.tx3} />
       </View>

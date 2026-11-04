@@ -110,6 +110,18 @@ describe("with account data", () => {
     expect(screen.getByText(/Athlète Test/)).toBeTruthy();
     expect(screen.getByText(/Niveau 4/)).toBeTruthy();
     expect(screen.getByText("Ma semaine")).toBeTruthy();
+    // Recording is always one tap from the QG, whatever the priority of the day is (V12-31).
+    expect(screen.queryByText("Refaire ma dernière séance") ?? screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
+  });
+  test("QG sans historique : une invitation claire à enregistrer la première séance", () => {
+    mockState.empty = true;
+    try {
+      show(<S.Home />);
+      expect(screen.queryByText("Refaire ma dernière séance")).toBeNull();
+      expect(screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
+    } finally {
+      mockState.empty = false;
+    }
   });
   test("Progrès : semaine, tendances, maîtrise", async () => {
     show(<S.Progress />);
