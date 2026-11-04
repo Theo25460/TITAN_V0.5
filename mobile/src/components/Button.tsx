@@ -38,7 +38,7 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
     >
       <View style={styles.row}>
         {loading ? <ActivityIndicator color={palette.fg} size="small" /> : icon ? <Icon name={icon} size={small ? 18 : 20} color={palette.fg} strokeWidth={2} /> : null}
-        <T variant="title" numberOfLines={1} style={[styles.label, small && { fontSize: 14 }]} color={palette.fg}>
+        <T variant="title" numberOfLines={2} style={[styles.label, small && { fontSize: 14 }]} color={palette.fg}>
           {label}
         </T>
       </View>
@@ -48,7 +48,7 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
 
 const styles = StyleSheet.create({
   base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, justifyContent: "center", overflow: "hidden" },
-  small: { minHeight: TOUCH - 8, paddingHorizontal: 14 },
+  small: { minHeight: TOUCH, paddingHorizontal: 14 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  label: { fontFamily: fonts.textHeavy, flexShrink: 1 },
+  label: { fontFamily: fonts.textHeavy, flexShrink: 1, textAlign: "center" },
 });
