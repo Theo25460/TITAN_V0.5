@@ -1341,3 +1341,126 @@ html[data-motion="reduced"] *::after {
   .asc-me-level { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 6.5em; }
 }
 .asc-grid-2 > * { min-width: 0; }
+
+/* ---------- First-run guide (V12-06) ----------
+   The guide overlay is injected by js/ui.js on every app page. Its styles used to live only in the legacy css/style.css, which no
+   Ascension page loads any more: the guide was therefore appended unstyled at the bottom of the page (raw "Bienvenue dans TITAN OS."
+   text and step titles under the content). The styles belong to the design system so the overlay is always a fixed, dismissible dialog. */
+.titan-first-run-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 100020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(3, 5, 8, 0.86);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-med, 240ms) var(--ease, ease);
+  font-family: var(--font-text, system-ui, sans-serif);
+}
+.titan-first-run-guide.active { opacity: 1; pointer-events: auto; }
+.titan-guide-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: min(520px, 100%);
+  max-height: min(720px, calc(100dvh - 36px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line-2, rgba(150, 180, 205, 0.2));
+  border-radius: var(--r2, 12px);
+  background: linear-gradient(180deg, var(--bg-3, #141c24), var(--bg-1, #090d12));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  padding: 24px;
+  color: var(--tx, #eef3f7);
+}
+.titan-guide-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2, rgba(150, 180, 205, 0.2));
+  border-radius: var(--r1, 8px);
+  background: transparent;
+  color: var(--tx-2, #a8b6c3);
+  cursor: pointer;
+}
+.titan-guide-close:hover { color: var(--tx, #eef3f7); border-color: var(--cy-line, rgba(61, 217, 232, 0.38)); }
+.titan-guide-kicker {
+  margin-bottom: 6px;
+  color: var(--cy, #3dd9e8);
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.titan-guide-panel h2 {
+  margin: 0;
+  padding-right: 48px;
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.titan-guide-copy { margin: 10px 0 18px; color: var(--tx-2, #a8b6c3); font-size: 0.94rem; line-height: 1.55; }
+.titan-guide-steps { display: grid; gap: 8px; margin: 0 0 18px; }
+.titan-guide-step {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line, rgba(150, 180, 205, 0.11));
+  border-radius: var(--r1, 8px);
+  background: var(--bg-2, #0e141a);
+}
+.titan-guide-step i {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cy-line, rgba(61, 217, 232, 0.38));
+  border-radius: var(--r1, 8px);
+  background: var(--cy-soft, rgba(61, 217, 232, 0.12));
+  color: var(--cy, #3dd9e8);
+  font-size: 1.15rem;
+  font-style: normal;
+}
+.titan-guide-step strong { display: block; color: var(--tx, #eef3f7); font-family: var(--font-display, system-ui, sans-serif); font-size: 0.86rem; font-weight: 700; }
+.titan-guide-step span { display: block; margin-top: 2px; color: var(--tx-3, #7f909f); font-size: 0.8rem; line-height: 1.4; }
+.titan-guide-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.titan-guide-primary,
+.titan-guide-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: var(--r1, 8px);
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.titan-guide-primary { width: 100%; border: 0; background: var(--cy, #3dd9e8); color: var(--cy-ink, #02181b); }
+.titan-guide-secondary { border: 1px solid var(--line-3, rgba(150, 180, 205, 0.32)); background: transparent; color: var(--tx, #eef3f7); }
+.titan-guide-close:focus-visible,
+.titan-guide-primary:focus-visible,
+.titan-guide-secondary:focus-visible { outline: 2px solid var(--cy-2, #8ceaf2); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .titan-first-run-guide { align-items: flex-end; padding: 10px 10px calc(10px + var(--safe-b, 0px)); }
+  .titan-guide-panel { max-height: calc(100dvh - 24px); padding: 20px 16px; }
+  .titan-guide-actions { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .titan-first-run-guide { transition: none; } }

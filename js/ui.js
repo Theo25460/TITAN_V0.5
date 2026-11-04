@@ -743,13 +743,13 @@ window.updateGlobalUI = function() {
                 <button class="titan-guide-close" type="button" data-act="close-guide" aria-label="Fermer le guide">
                     ${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}
                 </button>
-                <div class="titan-guide-kicker">Premiere connexion</div>
+                <div class="titan-guide-kicker">Première connexion</div>
                 <h2 id="titan-guide-title">Bienvenue dans TITAN OS.</h2>
-                <p class="titan-guide-copy">Le parcours reste volontairement court: tu lis le QG, tu enregistres une seance, puis tu regardes ce qui bouge: XP, credits, charge, radar, boss, journal et prochain cap.</p>
+                <p class="titan-guide-copy">Le parcours reste volontairement court : tu lis le QG, tu enregistres une séance, puis tu regardes ce qui bouge : XP, crédits, charge, radar, boss, journal et prochain cap.</p>
                 <div class="titan-guide-steps">
                     <div class="titan-guide-step">
                         <i class="ri-dashboard-3-line"></i>
-                        <div><strong>1. QG</strong><span>Lis seulement la priorite, le coach et tes limites de semaine. Le reste attend dans les modules.</span></div>
+                        <div><strong>1. QG</strong><span>Lis seulement la priorité, le coach et tes limites de semaine. Le reste attend dans les modules.</span></div>
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-run-line"></i>
@@ -757,19 +757,19 @@ window.updateGlobalUI = function() {
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-coin-line"></i>
-                        <div><strong>3. Economie</strong><span>XP et credits montent avec les missions, mais les plafonds evitent de finir trop vite.</span></div>
+                        <div><strong>3. Économie</strong><span>XP et crédits montent avec les missions, mais les plafonds évitent de finir trop vite.</span></div>
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-sword-line"></i>
-                        <div><strong>4. Aventure</strong><span>Les boss donnent du sens a tes efforts. Le combat contre toi-meme arrive plus tard dans la campagne.</span></div>
+                        <div><strong>4. Aventure</strong><span>Les boss donnent du sens à tes efforts. Le combat contre toi-meme arrive plus tard dans la campagne.</span></div>
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-line-chart-line"></i>
-                        <div><strong>5. Progres</strong><span>Va dans Progres pour comprendre charge, fraicheur, radar, records contextualises, plateaux et duels contre toi.</span></div>
+                        <div><strong>5. Progrès</strong><span>Va dans Progrès pour comprendre charge, fraîcheur, radar, records contextualises, plateaux et duels contre toi.</span></div>
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-team-line"></i>
-                        <div><strong>6. Reseau</strong><span>Amis, guilde et messages restent secondaires: utiles, mais jamais obligatoires pour jouer.</span></div>
+                        <div><strong>6. Réseau</strong><span>Amis, guilde et messages restent secondaires: utiles, mais jamais obligatoires pour jouer.</span></div>
                     </div>
                     <div class="titan-guide-step">
                         <i class="ri-store-3-line"></i>
@@ -782,7 +782,7 @@ window.updateGlobalUI = function() {
                 </div>
                 <div class="titan-guide-actions">
                     <button type="button" class="btn-primary titan-guide-primary" data-act="close-guide" data-href="training.html">
-                        <i class="ri-flashlight-line"></i> Premiere mission
+                        <i class="ri-flashlight-line"></i> Première mission
                     </button>
                     <button type="button" class="titan-guide-secondary" data-act="close-guide" data-href="guide.html#guide-demarrage">
                         <i class="ri-compass-3-line"></i> Guide complet
