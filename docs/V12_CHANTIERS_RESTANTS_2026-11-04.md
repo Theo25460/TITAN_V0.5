@@ -4,6 +4,7 @@ Complète `V12_ANDROID_UX_POLISH_2026-11-04.md`. Rien ici n'est « validé » : 
 Périmètre rappelé : aucune migration, aucun changement des règles serveur XP/RPG ni de la synchronisation des profils (Astra).
 
 ## 1. Pas → RPG (V12-02, V12-39) — contrat proposé pour la revue serveur, **non implémenté**
+_Mise à jour : le compteur TITAN existe désormais (§1bis) ; pour qu'il alimente le RPG, la source `titan_pedometer` doit être acceptée côté serveur avec les mêmes règles (plus-haut-atteint, plafonds, fenêtre de jours)._
 
 **Ce qui existe** (`20261028100000_daily_activity.sql`) : `titan_import_daily_activity_v1(source, jour, pas)` remplace le total du jour
 (`on conflict … do update`) ; consentement vérifié à chaque écriture ; plafond 200 000 ; plusieurs sources ne s'additionnent jamais
@@ -20,6 +21,16 @@ Périmètre rappelé : aucune migration, aucun changement des règles serveur XP
 **Tests serveur à écrire par Astra** : même total envoyé 5× → un seul gain ; total qui baisse puis remonte → pas de double ; deux sources même jour → maximum, un gain ; jour hors fenêtre → refus ; consentement révoqué → refus ; compte suspendu → refus ; export de données inclut l'historique.
 
 **Côté client (prêt à brancher, rien à changer avant le contrat)** : `data/steps.ts` envoie déjà le total du jour, relit à l'ouverture et au retour au premier plan (garde 30 min). Il restera à afficher la réponse « avancé de… » dans `StepsCard` et la jauge dans l'Aventure, et à remplacer la phrase « ne créent ni séance ni récompense » **le jour où** la règle est en production — pas avant.
+
+## 1bis. Compteur de pas TITAN (livré dans cette passe, **à valider sur capteur réel**)
+
+**Pourquoi** : Santé Connect ne donne pas de pas instantanés et exige une synchronisation ; l'utilisateur voulait un compteur propre à TITAN, qui bouge quand on marche.
+**Comment** : module natif Expo local `mobile/modules/titan-pedometer` (Kotlin) lisant le capteur matériel `TYPE_STEP_COUNTER` (total cumulé depuis le démarrage). `lib/stepLedger.ts` en tire des pas par jour ; `data/pedometer.ts` partage l'état par compte ; `data/steps.ts` fusionne avec Santé Connect **sans additionner** (le plus élevé du jour gagne et nomme sa source).
+**Comportement honnête** : désactivé par défaut ; la permission Android « activité physique » n'est demandée qu'à l'activation ; le nombre bouge **pendant que TITAN est ouvert** ; les pas faits TITAN fermé sont rattrapés à l'ouverture (partagés à minuit selon les heures d'éveil et signalés « estimés ») ; rien ne tourne en arrière-plan (ni service, ni verrou) ; avant la première lecture, aucun chiffre ; redémarrage du téléphone géré ; plafond de plausibilité par heure.
+**Limites connues, dites** : (1) TITAN fermé, rien n'est compté en direct — le compteur matériel garde le total, TITAN le relit ; (2) le compteur matériel peut être remis à zéro par certains constructeurs : géré comme un redémarrage, au prix d'un possible manque ; (3) les pas TITAN **restent sur le téléphone** : la fonction serveur n'accepte que la source `health_connect`. Les envoyer au compte (web, RPG) demande une source `titan_pedometer` côté serveur (Astra) ; (4) la distance affichée est une approximation (foulée de 0,75 m).
+**CI** : le contrôle du paquet exige désormais la permission `ACTIVITY_RECOGNITION` (preuve que le module est lié) et l'autorise dans la liste blanche.
+**Recette** : sur un téléphone réel, activer, marcher 100 pas écran allumé (le nombre doit monter en ~1 s), verrouiller, marcher 200 pas, rouvrir (rattrapage), redémarrer le téléphone, vérifier : pas de baisse, pas de doublon, pas de saut ; refuser la permission → message clair ; Samsung (One UI) et un fabricant à gestion de batterie agressive.
+**À relire par le propriétaire (non modifié ici)** : la politique de confidentialité (`legal_privacy.html`) ne mentionne pas le capteur de pas du téléphone ; la déclaration « sécurité des données » de Google Play doit refléter que les pas comptés restent sur l'appareil.
 
 ## 2. Google OAuth Android (V12-03)
 

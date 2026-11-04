@@ -19,6 +19,10 @@
 | V12-38 | « Depuis ta dernière visite » au QG : séances confirmées uniquement, après ≥ 18 h d'absence, fermable, rien si rien ne s'est passé, jamais de série ni de jour manqué ; dernière visite gardée par compte | 4 tests | Test J+1 / J+7 sur appareil |
 | V12-35 | « Comment ça marche ? » repliable sur l'Aventure : séance → chapitre → balise → gardien → repos (vocabulaire vérifié contre `WorldScreen`) | 1 test | 4 testeurs sur 5 expliquent le lien activité → quête → chapitre |
 | V12-41 | Un `Button` ne relance pas une action asynchrone en cours ; les appuis rapides sur une action synchrone ne sont jamais avalés ; une erreur libère le bouton | 4 tests | Parcours critique sur téléphone 3–4 Go |
+| V12-01 (suite) | **Compteur de pas TITAN** (capteur du téléphone, sans tiers) : carte à anneau « En direct », écran Mes pas, fusion sans addition avec Santé Connect | 17 tests (registre + store, capteur simulé) + 15 tests UI ; aperçu avec capteur simulé (6 491 → 6 500 en 3 s) | **Validation sur capteur matériel** ; compilation Kotlin par la CI |
+| V12-43 | « Sources et capteurs » : un écran, un vocabulaire (autorisé / reçu / intégré) | 3 tests | Recette Garmin/Santé Connect réels |
+| V12-30/31 | QG refondu : priorité → refaire → tableau du jour (pas + semaine) → ascension → visite guidée → un repère | tests écrans, captures 320/360 | Test d'usage 10 s / 60 s |
+| Web/Android | « TITAN sur le site » : porte vers analyses, coach, GPX, exports, prévision ; principe dans `V12_REFONTE_UX_PRODUIT_2026-11-04.md` | 1 test | — |
 
 ## Non traité ici, avec la raison
 - **V12-02 (pas → RPG)** : exige une règle serveur (plafond, idempotence). Hors périmètre imposé. Les textes disent donc toujours que les pas ne créent ni séance ni récompense.
@@ -28,6 +32,6 @@
 - **V12-23/29** : largeur lisible 720 dp et bouton/RPE adaptatifs hérités de la branche de départ ; rotation, pliables et matrice d'appareils réels restent à faire. Le verrou `orientation: "portrait"` n'a pas été modifié (Android 16 l'ignore de toute façon ≥ 600 dp).
 
 ## Vérifications exécutées (4 nov. 2026)
-- `npm run typecheck` : OK. `npx jest` (mobile) : 51 suites, 551 tests verts (base de départ : 44 suites, 526 tests).
+- `npm run typecheck` : OK. `npx jest` (mobile) : 55 suites, 584 tests verts (base de départ : 44 suites, 526 tests).
 - `expo export:embed --platform android` (bundle de production) : OK, 1650 modules.
 - Banc d'aperçu web (`TITAN_PREVIEW=1`) : de nouveau exportable (SDK natifs stubbés, uniquement dans ce mode) ; captures dans `mobile/docs/v12-captures/`. Données fictives, Chromium : **pas une preuve Android**.
