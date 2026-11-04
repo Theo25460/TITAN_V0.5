@@ -16,17 +16,17 @@ Rien ici n'est automatique ni déployé. Chaque étape dit où cliquer et quelle
 Play Console › TITAN › **Monétiser avec Play › Produits › Abonnements** › Créer un abonnement :
 | Identifiant produit | Nom | Forfait de base | Prix |
 |---|---|---|---|
-| `titan_plus` | TITAN+ | `mensuel`, renouvelable chaque mois | **à décider par Théo** |
-| `coach` | Coach | `mensuel`, renouvelable | 20 € |
-| `coach_pro` | Coach Pro | `mensuel`, renouvelable | 40 € |
-Ces identifiants sont ceux du code (`mobile/src/lib/playBilling.ts` et la liste du serveur). S'ils diffèrent, dis-le-moi : un seul fichier à changer. Un profil de paiement marchand peut être demandé.
+| `titan01` (**à confirmer dans la console**) | TITAN+ | `mensuel`, renouvelable chaque mois | 4,99 € |
+| `titan02` (tag `titan-coach`) | Coach | `mensuel`, renouvelable | 19,99 € |
+| `titan03` (tag `coach-ultra`) | Coach Ultra | `mensuel`, renouvelable | 39,99 € |
+Les abonnements sont créés (18 ans et plus). Les tags ne sont pas des identifiants. Les identifiants du code sont `PLUS_SKU` (défaut `titan01`, surchargeable par `EXPO_PUBLIC_TITAN_PLUS_SKU` à la compilation), `titan02` et `titan03` dans `mobile/src/lib/playBilling.ts` ; le serveur lit `PLAY_PRODUCT_IDS`. Aucun prix n'est écrit dans l'application : ils viennent de Google Play. Si l'identifiant de TITAN+ diffère de `titan01`, l'offre TITAN+ n'apparaît simplement pas (rien n'est deviné). Un profil de paiement marchand peut être demandé.
 
 ## C. Accès du serveur à l'API Google Play (compte de service)
 1. Google Cloud (projet lié à la Play Console) › IAM et administration › Comptes de service › Créer (nom : `titan-play-billing`), puis Clés › Ajouter une clé › JSON. **Le fichier ne quitte jamais ta machine, sauf pour la variable Netlify ci-dessous.**
 2. Play Console › Utilisateurs et autorisations › Inviter l'adresse e-mail du compte de service › autorisations de l'application TITAN : « Afficher les informations financières », « Gérer les commandes et les abonnements ».
 3. Netlify › Variables d'environnement (contexte Production seulement quand tu décides d'ouvrir) :
    - `PLAY_SERVICE_ACCOUNT_JSON` = le contenu du fichier JSON
-   - `PLAY_PRODUCT_IDS` = `titan_plus,coach,coach_pro`
+   - `PLAY_PRODUCT_IDS` = `titan01,titan02,titan03` (remplacer `titan01` par l'identifiant réel de TITAN+) ; **cette variable n'a pas pu être posée par l'assistant (API Netlify refusée en écriture)**
    - `PLAY_PACKAGE_NAME` = `fr.titanapp.app` (facultatif, valeur par défaut)
    - `PLAY_BILLING_ENABLED` = `false` pour l'instant (`true` seulement pendant l'essai testeur puis à l'ouverture)
    - `PLAY_ALLOW_TEST_PURCHASES` = `true` **pendant l'essai seulement**, puis supprimer
@@ -40,12 +40,12 @@ Ces identifiants sont ceux du code (`mobile/src/lib/playBilling.ts` et la liste 
 5. Play Console › Envoyer une notification de test : doit répondre 200.
 
 ## E. Base de données (après ton accord, jamais sans)
-Appliquer sur une COPIE d'abord, puis en production seulement avec ton « oui » : migrations V1.1 dont `20261102090000_coach_seats` et `20261102110000_play_reconcile`. Puis rattacher les produits aux offres (une fois). La fonction exige un compte **administrateur** : dans l'éditeur SQL de Supabase, remplace `<ID-ADMIN>` par l'identifiant (uuid) de ton compte TITAN administrateur et exécute le tout d'un bloc :
+Appliquer sur une COPIE d'abord, puis en production seulement avec ton « oui » : migrations V1.1 dont `20261102090000_coach_seats` et `20261102110000_play_reconcile`. Puis rattacher les produits aux offres (une fois). **État du 4 novembre 2026 : `titan02` → `coach` et `titan03` → `coach_pro` sont déjà inscrits en production (données de configuration, inertes tant que la facturation est éteinte) ; il ne reste que TITAN+.** La fonction exige un compte **administrateur** : dans l'éditeur SQL de Supabase, remplace `<ID-ADMIN>` par l'identifiant (uuid) de ton compte TITAN administrateur et exécute le tout d'un bloc :
 ```sql
 select set_config('request.jwt.claims', json_build_object('sub', '<ID-ADMIN>', 'role', 'authenticated')::text, true);
-select public.titan_plan_product_set_v1('titan_plus', 'titan_plus');
-select public.titan_plan_product_set_v1('coach', 'coach');
-select public.titan_plan_product_set_v1('coach_pro', 'coach_pro');
+select public.titan_plan_product_set_v1('titan01', 'titan_plus'); -- identifiant réel de TITAN+
+select public.titan_plan_product_set_v1('titan02', 'coach');
+select public.titan_plan_product_set_v1('titan03', 'coach_pro'); -- affiché « Coach Ultra » ; la clé interne ne change pas
 select * from public.titan_plan_product_list_v1();
 ```
 (Signature lue dans `supabase/migrations/20261102090000_coach_seats.sql` : `(p_product text, p_plan text)`. À faire d'abord sur la copie.)
