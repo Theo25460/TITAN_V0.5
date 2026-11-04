@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { View } from "react-native";
+import { ProfileRecovery } from "../../components/ProfileRecovery";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Field } from "../../components/Field";
@@ -84,6 +85,7 @@ export function AccountScreen() {
 
   return (
     <Screen keyboard>
+      <ProfileRecovery />
       <Card style={{ gap: space.s3 }}>
         <Field label="Nom affiché" value={name} onChangeText={setName} maxLength={24} />
         <Button small kind="secondary" label="Enregistrer le nom" loading={save.isPending} disabled={!online || name.trim() === (profile.data?.username ?? "")} onPress={rename} />
