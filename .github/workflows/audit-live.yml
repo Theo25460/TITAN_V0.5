@@ -1,0 +1,45 @@
+name: Audit du site publié (lecture seule)
+
+# Audits the PUBLISHED site (titan-app.fr), not the repository: pages, SEO, sign-in surface, Google OAuth redirect allow-list, the six server
+# functions, and a real browser at three widths. Read-only: it never signs in and never writes anything.
+# Runs by hand, on every pull request that touches this audit, and once a day.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 5 * * *"
+  pull_request:
+    paths:
+      - "tools/audit-live.mjs"
+      - ".github/workflows/audit-live.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit de titan-app.fr
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Audit
+        run: node tools/audit-live.mjs https://titan-app.fr | tee audit.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-live
+          path: |
+            audit.log
+            audit-login-360.png
+          retention-days: 14
+          if-no-files-found: ignore
