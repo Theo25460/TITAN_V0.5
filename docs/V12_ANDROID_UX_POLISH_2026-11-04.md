@@ -23,6 +23,9 @@
 | V12-43 | « Sources et capteurs » : un écran, un vocabulaire (autorisé / reçu / intégré) | 3 tests | Recette Garmin/Santé Connect réels |
 | V12-30/31 | QG refondu : priorité → refaire → tableau du jour (pas + semaine) → ascension → visite guidée → un repère | tests écrans, captures 320/360 | Test d'usage 10 s / 60 s |
 | Web/Android | « TITAN sur le site » : porte vers analyses, coach, GPX, exports, prévision ; principe dans `V12_REFONTE_UX_PRODUIT_2026-11-04.md` | 1 test | — |
+| V12-36 | **Révélation de progression** (signature) : anneau d'XP, braises, blason au niveau supérieur, record en ambre ; seulement sur reçu serveur ; passable ; sans animation si réduite — Android (`ProgressReveal`) et web (fenêtre de séance) | 7 tests + 4 tests web ; captures Android et web | Ressenti réel (durée, fluidité) sur téléphone modeste |
+| V12-08 (suite) | Plus aucun pop-up système : calendrier/molettes TITAN, interrupteur TITAN, explications TITAN avant les permissions, repli `Alert` supprimé, sélecteur natif désinstallé | 9 + 3 tests | Vérifier sur appareil le geste Retour et les molettes |
+| Identité | Blasons de rang et balise (vectoriel, 7 rangs), au profil/QG/Aventure/web | 7 tests + 4 tests web | Revue visuelle par le propriétaire |
 
 ## Non traité ici, avec la raison
 - **V12-02 (pas → RPG)** : exige une règle serveur (plafond, idempotence). Hors périmètre imposé. Les textes disent donc toujours que les pas ne créent ni séance ni récompense.
@@ -32,7 +35,7 @@
 - **V12-23/29** : largeur lisible 720 dp et bouton/RPE adaptatifs hérités de la branche de départ ; rotation, pliables et matrice d'appareils réels restent à faire. Le verrou `orientation: "portrait"` n'a pas été modifié (Android 16 l'ignore de toute façon ≥ 600 dp).
 
 ## Vérifications exécutées (4 nov. 2026)
-- Local : `npm run typecheck` OK ; `npx jest` (mobile) : 56 suites, 589+ tests verts (départ : 44 suites, 526 tests) ; bundle Android de production OK ; balayage `scripts/preview-overflow.mjs` : 32 écrans × 320/360/412/600/840 dp, aucun débordement horizontal.
+- Local : `npm run typecheck` OK ; `npx jest` (mobile) : 58 suites, 607 tests verts (départ : 44 suites, 526 tests) ; bundle Android de production OK ; balayage `scripts/preview-overflow.mjs` : 32 écrans × 320/360/412/600/840 dp, aucun débordement horizontal.
 - **CI « Android natif » (run 146, commit 52d23fe), lue sur GitHub** : types + tests + bundle ✔ ; **compilation Gradle de l'APK et de l'AAB release avec le module `titan-pedometer` ✔** ; contrôle du paquet ✔ (il exige `ACTIVITY_RECOGNITION` dans le manifeste final, preuve que le module est lié) ; parcours Maestro sur émulateur Android 14 ✔ (première séance, progression, hors ligne, GPS, changement de compte).
 - Banc d'aperçu web (`TITAN_PREVIEW=1`) : captures dans `mobile/docs/v12-captures/`. Données fictives, Chromium : **pas une preuve Android**. Aucun téléphone réel n'a été utilisé : aucun V12-XX n'est « validé ».
 - Les commits postérieurs à 52d23fe (tirer pour actualiser relit aussi Santé Connect, documents) n'étaient pas encore passés en CI à la rédaction.
