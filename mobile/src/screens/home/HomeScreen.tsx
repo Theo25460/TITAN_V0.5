@@ -88,8 +88,6 @@ export function HomeScreen() {
             <Avatar id={snap?.avatar} frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={34} />
           </Tap>
         </View>
-        <TourCard />
-        <StepsCard />
         <T variant="h1">
           {hello}, {name}
         </T>
@@ -126,6 +124,10 @@ export function HomeScreen() {
               ) : null}
               {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
             </Card>
+
+            {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
+            <StepsCard />
+            <TourCard />
 
             <Section title="Ma semaine" action="Ajuster" onAction={() => navigation.navigate("Plan")}>
               <Card style={{ gap: space.s4 }}>
