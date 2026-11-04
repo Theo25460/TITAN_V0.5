@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import type { ReactElement } from "react";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
-jest.setTimeout(20000);
+jest.setTimeout(60000); // the CI runner is slow when every suite runs in parallel: a screen test took 43 s there against ~20 s locally
 const mockState = { empty: false, loading: false };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
 const mockMutation = () => ({ mutate: jest.fn(), mutateAsync: jest.fn(async () => ({})), isPending: false });
