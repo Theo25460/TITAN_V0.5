@@ -20,10 +20,11 @@ import { SportQuestions } from "./Questions";
 
 type View_ = "week" | "trends" | "mastery";
 
-const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" }[] = [
+const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" | "Steps" }[] = [
   { icon: "journal", label: "Journal", route: "Journal" },
   { icon: "trophy", label: "Records", route: "Records" },
   { icon: "target", label: "Objectifs", route: "Goals" },
+  { icon: "run", label: "Mes pas", route: "Steps" },
   { icon: "calendar", label: "Semaine type", route: "Plan" },
 ];
 
@@ -251,6 +252,6 @@ export function ProgressScreen() {
 const styles = StyleSheet.create({
   // Wraps to two rows on a narrow window or a large system font instead of cutting "Semaine type" to "Semaine ty…" (V12-24).
   links: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
-  link: { flexGrow: 1, flexBasis: 72, paddingHorizontal: 4, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
+  link: { flexGrow: 1, flexBasis: 96, paddingHorizontal: 4, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
   lvl: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });
