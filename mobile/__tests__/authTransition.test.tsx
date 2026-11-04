@@ -10,7 +10,7 @@ jest.mock("../src/lib/supabase", () => ({ supabase: { auth: {
   getSession: async () => ({ data: { session: { user: { id: "a" }, access_token: "token-a" } } }),
   onAuthStateChange: (cb: typeof mockAuthEvent) => { mockAuthEvent = cb; return { data: { subscription: { unsubscribe: jest.fn() } } }; },
 } } }));
-jest.mock("../src/lib/googleAuth", () => ({ googleEnabled: () => false }));
+jest.mock("../src/lib/googleAuth", () => ({ googleEnabled: () => false, createReturnWatch: () => ({ start: jest.fn(), foreground: jest.fn(), received: jest.fn(), pending: () => false }), watchAppState: () => () => {}, GOOGLE_NO_RETURN: "x", parseCallback: () => null }));
 jest.mock("../src/data/api", () => ({ fetchProfile: (owner: string) => mockFetch(owner), createProfile: jest.fn() }));
 jest.mock("../src/data/queue", () => ({ loadQueue: (owner: string | null) => mockLoadQueue(owner) }));
 jest.mock("../src/data/logsCache", () => ({ readLogsCache: jest.fn(async () => null) }));

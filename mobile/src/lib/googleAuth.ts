@@ -4,7 +4,7 @@
    Nothing is shown unless the build says the provider is ready (EXPO_PUBLIC_TITAN_GOOGLE=1): the provider and the redirect address must first be
    switched on in the Supabase dashboard and the Google console, which is an external step. TITAN receives the name and the e-mail address only. */
 import { createClient, type Session } from "@supabase/supabase-js";
-import { Linking } from "react-native";
+import { AppState, Linking } from "react-native";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
 import { secureSessionStorage } from "./secureStorage";
 
@@ -65,3 +65,55 @@ export async function exchange(code: string): Promise<Pick<Session, "access_toke
   pkceStorage.wipeMemory();
   return tokens;
 }
+
+/** What the player is told when the browser came back to TITAN without the titan://auth-callback answer (V12-03): typically a Redirect URL
+ *  that Supabase does not accept, so the sign-in ended on the website. Honest and actionable; it never claims the account is signed in. */
+export const GOOGLE_NO_RETURN = "La connexion Google n’a pas été terminée dans l’application. Si tu as vu le site TITAN s’ouvrir, reviens ici et réessaie, ou connecte-toi avec ton e-mail : rien n’a été créé ni modifié.";
+
+/** Watches one Google attempt: started when the browser opens; if the app is foregrounded again and no callback arrives within `graceMs`,
+ *  `onMissing` fires once. A callback (or a new attempt) cancels it. The timers are injected for tests. */
+export function createReturnWatch({ onMissing, graceMs = 4000, minAwayMs = 1500, now = Date.now, schedule = setTimeout, cancel = clearTimeout }: {
+  onMissing: () => void;
+  graceMs?: number;
+  minAwayMs?: number;
+  now?: () => number;
+  schedule?: (fn: () => void, ms: number) => unknown;
+  cancel?: (h: never) => void;
+}) {
+  let startedAt: number | null = null;
+  let timer: unknown = null;
+  const clear = () => {
+    if (timer !== null) cancel(timer as never);
+    timer = null;
+  };
+  return {
+    /** The browser was opened. */
+    start() {
+      clear();
+      startedAt = now();
+    },
+    /** The app is in the foreground again. */
+    foreground() {
+      if (startedAt === null || now() - startedAt < minAwayMs) return;
+      clear();
+      timer = schedule(() => {
+        timer = null;
+        if (startedAt !== null) {
+          startedAt = null;
+          onMissing();
+        }
+      }, graceMs);
+    },
+    /** The callback arrived (success or error): nothing is missing. */
+    received() {
+      startedAt = null;
+      clear();
+    },
+    pending: () => startedAt !== null,
+  };
+}
+
+export const watchAppState = (watch: ReturnType<typeof createReturnWatch>) => {
+  const sub = AppState.addEventListener("change", (s) => { if (s === "active") watch.foreground(); });
+  return () => sub.remove();
+};
