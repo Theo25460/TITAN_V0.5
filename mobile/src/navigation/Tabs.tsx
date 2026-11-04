@@ -38,8 +38,10 @@ export function Tabs() {
         tabBarActiveTintColor: colors.cy,
         tabBarInactiveTintColor: colors.tx3,
         tabBarHideOnKeyboard: true,
+        // From 600 dp the library puts the label beside the icon, and the raised "+" then covers "Séance" (unfolded phone, tablet, split window).
+        tabBarLabelPosition: "below-icon",
         animation: "shift",
-        tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: 64 + insets.bottom, paddingTop: 6, paddingBottom: insets.bottom + 6 },
+        tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: 70 + insets.bottom, paddingTop: 6, paddingBottom: insets.bottom + 8 },
         tabBarLabel: ({ children, color }) => <TabLabel color={color}>{children}</TabLabel>,
         tabBarIcon: ({ color, focused }) =>
           route.name === "Record" ? (
@@ -62,7 +64,7 @@ export function Tabs() {
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: fonts.textBold, fontSize: 11, textAlign: "center", marginTop: 2 },
+  label: { fontFamily: fonts.textBold, fontSize: 11, textAlign: "center" },
   record: { width: 46, height: 34, borderRadius: 12, backgroundColor: colors.cy, alignItems: "center", justifyContent: "center", marginTop: -2 },
   recordOn: { backgroundColor: colors.cy2 },
 });

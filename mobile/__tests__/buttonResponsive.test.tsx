@@ -72,3 +72,24 @@ describe("Button double activation (V12-41)", () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 });
+
+describe("Screen footer in short windows (V12-23)", () => {
+  const withHeight = (h: number) => (
+    <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 900, height: h }, insets: { top: 0, bottom: 0, left: 0, right: 0 } }}>
+      <Screen footer={<Text>Enregistrer</Text>}><Text>Contenu</Text></Screen>
+    </SafeAreaProvider>
+  );
+  test("the footer is inside the scrolling content when the window is short, fixed otherwise", () => {
+    const dims = require("react-native/Libraries/Utilities/useWindowDimensions");
+    const spy = jest.spyOn(dims, "default");
+    spy.mockReturnValue({ width: 900, height: 480, scale: 1, fontScale: 1 });
+    const short = render(withHeight(480));
+    const inScroll = short.UNSAFE_getByType(ScrollView).findAll((n) => n.props.children === "Enregistrer");
+    expect(inScroll.length).toBeGreaterThan(0);
+    short.unmount();
+    spy.mockReturnValue({ width: 900, height: 1100, scale: 1, fontScale: 1 });
+    const tall = render(withHeight(1100));
+    expect(tall.UNSAFE_getByType(ScrollView).findAll((n) => n.props.children === "Enregistrer")).toHaveLength(0);
+    spy.mockRestore();
+  });
+});

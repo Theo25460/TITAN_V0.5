@@ -1,9 +1,12 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { forwardRef, useEffect, useState, type ReactNode } from "react";
-import { Keyboard, KeyboardAvoidingView, RefreshControl, ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
+import { Keyboard, KeyboardAvoidingView, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View, type ScrollViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, space } from "../theme/tokens";
 import { OfflineBanner } from "./OfflineBanner";
+
+/** Window height (dp) under which the footer stops being fixed. */
+export const SHORT_WINDOW = 520;
 
 type Props = ScrollViewProps & {
   children: ReactNode;
@@ -30,7 +33,11 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
       hide.remove();
     };
   }, [footer]);
-  const floating = !!footer && !typing;
+  // Landscape, split window, small fold: under this height a fixed footer would leave the form a sliver, so it scrolls with the content.
+  const { height } = useWindowDimensions();
+  const short = height < SHORT_WINDOW;
+  const scrollsWithContent = !!footer && short;
+  const floating = !!footer && !typing && !short;
   let headerHeight = 0;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -50,8 +57,9 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
         {...rest}
       >
         {children}
+        {scrollsWithContent ? <View style={{ paddingTop: space.s2 }}>{footer}</View> : null}
       </ScrollView>
-      {footer ? <View style={[floating ? styles.footer : styles.footerInline, { paddingBottom: typing ? space.s3 : insets.bottom + space.s3 }]}><View style={styles.readableWidth}>{footer}</View></View> : null}
+      {footer && !scrollsWithContent ? <View style={[floating ? styles.footer : styles.footerInline, { paddingBottom: typing ? space.s3 : insets.bottom + space.s3 }]}><View style={styles.readableWidth}>{footer}</View></View> : null}
     </View>
   );
   if (!keyboard) return body;
