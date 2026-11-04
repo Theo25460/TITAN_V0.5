@@ -1,0 +1,55 @@
+name: Sonde production (lecture seule)
+
+# Read-only probe of public endpoints (titan-app.fr, Supabase auth settings, Garmin hosts). No credential is used or printed;
+# repository secrets are only tested for presence (true/false), never echoed.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/probe-prod.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HAS_PLAY_SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      HAS_GOOGLE_CLIENT: ${{ secrets.GOOGLE_WEB_CLIENT_ID != '' }}
+    steps:
+      - name: Site publié
+        run: |
+          for p in / /profile /app-ads.txt /sitemap.xml "/auth/garmin/callback?code=probe&state=probe"; do
+            printf '%s -> ' "$p"; curl -sS -o /dev/null -m 20 -w '%{http_code} %{redirect_url}\n' "https://titan-app.fr$p" || echo "erreur réseau"
+          done
+          printf 'POST garmin?action=start -> '; curl -sS -o /dev/null -m 20 -w '%{http_code}\n' -X POST "https://titan-app.fr/.netlify/functions/garmin?action=start" || true
+          printf 'POST garmin?action=push (sans jeton) -> '; curl -sS -o /dev/null -m 20 -w '%{http_code}\n' -X POST "https://titan-app.fr/.netlify/functions/garmin?action=push" || true
+          echo '--- marqueur de version ---'
+          curl -sS -m 20 https://titan-app.fr/profile -o /tmp/profile.html || true
+          grep -oE '(app|ascension)[a-z-]*\.(js|css)\?v=[0-9a-z.]+' /tmp/profile.html | sort -u | head -8 || true
+      - name: Supabase Auth (réglages publics) et Google
+        run: |
+          KEY=$(curl -sS -m 20 https://titan-app.fr/js/config.js 2>/dev/null | grep -oE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' | head -1 || true)
+          echo "clé publique lue sur le site : $([ -n "$KEY" ] && echo oui || echo non)"
+          if [ -n "$KEY" ]; then
+            curl -sS -m 20 -H "apikey: $KEY" https://oubmftfufwwzwpgvrcag.supabase.co/auth/v1/settings | python3 -c "import sys,json; d=json.load(sys.stdin); print('providers:', {k:v for k,v in d.get('external',{}).items() if v}); print('disable_signup:', d.get('disable_signup'), 'mailer_autoconfirm:', d.get('mailer_autoconfirm'))"
+            printf 'authorize google -> '
+            curl -sS -o /dev/null -m 20 -H "apikey: $KEY" -w '%{http_code} %{redirect_url}\n' "https://oubmftfufwwzwpgvrcag.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Ftitan-app.fr%2Flogin%3Fvia%3Dgoogle" | sed -E 's/(client_id=)[^&]*/\1<masqué>/'
+          fi
+      - name: Secrets présents (booléens)
+        run: |
+          echo "PLAY_SERVICE_ACCOUNT_JSON présent : $HAS_PLAY_SA"
+          echo "ANDROID_KEYSTORE_BASE64 présent : $HAS_KEYSTORE"
+          echo "GOOGLE_WEB_CLIENT_ID présent : $HAS_GOOGLE_CLIENT"
+      - name: Garmin (hôtes, sans secret)
+        run: |
+          CLIENT_ID=4682950e-7439-4d6f-98fb-80d8b7e6ef73
+          for u in user/id user/permissions; do printf '%s -> ' "$u"; curl -sS -o /dev/null -m 20 -w '%{http_code}\n' -H 'Authorization: Bearer probe' "https://apis.garmin.com/wellness-api/rest/$u" || echo "erreur réseau"; done
+          for t in https://diauth.garmin.com/di-oauth2-service/oauth/token https://connectapi.garmin.com/di-oauth2-service/oauth/token; do
+            printf '%s -> ' "$t"; curl -sS -m 20 -o /tmp/t.txt -w '[HTTP %{http_code}] ' -X POST -H 'Content-Type: application/x-www-form-urlencoded' --data "grant_type=authorization_code&client_id=${CLIENT_ID}&code=probe&code_verifier=probe&redirect_uri=https%3A%2F%2Ftitan-app.fr%2Fauth%2Fgarmin%2Fcallback" "$t"; head -c 120 /tmp/t.txt | tr '\n' ' '; echo
+          done
+
+# sonde relancée le 3 novembre 2026, 14h45 UTC : contrôle du déploiement publié

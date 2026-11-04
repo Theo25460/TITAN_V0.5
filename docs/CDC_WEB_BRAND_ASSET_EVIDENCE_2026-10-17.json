@@ -1,0 +1,134 @@
+{
+  "checked_at": "2026-10-17T09:20:53.163439+00:00",
+  "source_commit": "e363c78b66158cb04908c51c3e4f3641068dfa91",
+  "method": "Anonymous HTTPS GET, urllib.request timeout15s,4workers, redirects followed. Raw bytes compared with local assets. Pillow decodes remote bytes read-only. Not an OS installation or proof of search/social cache refresh.",
+  "results": [
+    {
+      "path": "/favicon.ico",
+      "checked_at": "2026-10-17T09:20:40.844866+00:00",
+      "local_sha256": "8f3e9463deb5efae7d1c80b8011ff62d78cb5bc3210f9e342255324b68c52864",
+      "status": 200,
+      "final_url": "https://titan-app.fr/favicon.ico",
+      "content_type": "image/vnd.microsoft.icon",
+      "bytes": 1335,
+      "remote_sha256": "8f3e9463deb5efae7d1c80b8011ff62d78cb5bc3210f9e342255324b68c52864",
+      "matches_local": true,
+      "format": "ICO",
+      "width": 48,
+      "height": 48,
+      "frames": [
+        [
+          48,
+          48
+        ]
+      ]
+    },
+    {
+      "path": "/image/logo.png",
+      "checked_at": "2026-10-17T09:20:40.845524+00:00",
+      "local_sha256": "d9ef0c462232533af06dbb997bee09b5418af5a5840caab505dca344aeb32d06",
+      "status": 200,
+      "final_url": "https://titan-app.fr/image/logo.png",
+      "content_type": "image/png",
+      "bytes": 12087,
+      "remote_sha256": "d9ef0c462232533af06dbb997bee09b5418af5a5840caab505dca344aeb32d06",
+      "matches_local": true,
+      "format": "PNG",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/image/logo-192.png",
+      "checked_at": "2026-10-17T09:20:40.845989+00:00",
+      "local_sha256": "c1a9e7ff84a763fcaf636ecefd57fb7c1f90bdca8134cc4146dd7cf82cd8f14a",
+      "status": 200,
+      "final_url": "https://titan-app.fr/image/logo-192.png",
+      "content_type": "image/png",
+      "bytes": 2816,
+      "remote_sha256": "c1a9e7ff84a763fcaf636ecefd57fb7c1f90bdca8134cc4146dd7cf82cd8f14a",
+      "matches_local": true,
+      "format": "PNG",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "path": "/image/logo-512.png",
+      "checked_at": "2026-10-17T09:20:40.846427+00:00",
+      "local_sha256": "061a243b9d3fe307969ab7e2bccaad45ac19b222ec1d87a1a7b9c9b7e3965c70",
+      "status": 200,
+      "final_url": "https://titan-app.fr/image/logo-512.png",
+      "content_type": "image/png",
+      "bytes": 6921,
+      "remote_sha256": "061a243b9d3fe307969ab7e2bccaad45ac19b222ec1d87a1a7b9c9b7e3965c70",
+      "matches_local": true,
+      "format": "PNG",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "/image/apple-touch-icon.png",
+      "checked_at": "2026-10-17T09:20:46.643200+00:00",
+      "local_sha256": "e65b7cdc7dd6444cfe397df59a3a25bc71df88c9724dbf7adcf8e2c7742b01b4",
+      "status": 200,
+      "final_url": "https://titan-app.fr/image/apple-touch-icon.png",
+      "content_type": "image/png",
+      "bytes": 2447,
+      "remote_sha256": "e65b7cdc7dd6444cfe397df59a3a25bc71df88c9724dbf7adcf8e2c7742b01b4",
+      "matches_local": true,
+      "format": "PNG",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "path": "/image/og-titan.jpg",
+      "checked_at": "2026-10-17T09:20:47.079723+00:00",
+      "local_sha256": "fffe1e440b890e1fa1672f118159665ff2951ef1851a6856772f1cdc30d343c9",
+      "status": 200,
+      "final_url": "https://titan-app.fr/image/og-titan.jpg",
+      "content_type": "image/jpeg",
+      "bytes": 96943,
+      "remote_sha256": "fffe1e440b890e1fa1672f118159665ff2951ef1851a6856772f1cdc30d343c9",
+      "matches_local": true,
+      "format": "JPEG",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "path": "/manifest.json",
+      "checked_at": "2026-10-17T09:20:47.118224+00:00",
+      "local_sha256": "8e95c76287bb0c4fe5a3642c6a2306c85e28f5da7b5cb7c2186877734397d9c6",
+      "status": 200,
+      "final_url": "https://titan-app.fr/manifest.json",
+      "content_type": "application/json",
+      "bytes": 1676,
+      "remote_sha256": "8e95c76287bb0c4fe5a3642c6a2306c85e28f5da7b5cb7c2186877734397d9c6",
+      "matches_local": true,
+      "remote_manifest_icons": [
+        {
+          "src": "/image/logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        },
+        {
+          "src": "/image/logo-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
+        },
+        {
+          "src": "/image/logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "maskable"
+        },
+        {
+          "src": "/image/logo-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "maskable"
+        }
+      ]
+    }
+  ]
+}

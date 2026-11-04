@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 function load() {
   const window = { SPORTS_CONFIG: {
@@ -42,6 +43,90 @@ test("cadence holds a week by active days, ignores rest and pause weeks", () => 
   assert.equal(c.remaining, 1);
   assert.equal(c.reachable, true);
   assert.equal(c.weeks.length, 8);
+});
+
+test("soft streak (IDEA06): rest days inside a week cost nothing, and a missed week never takes back weeks already held", () => {
+  // Three held weeks, a fully empty week, then two more held weeks: the lifetime count only ever grows.
+  const week = (monday) => [0, 2, 4].map((d) => { const x = new Date(`${monday}T07:00:00`); x.setDate(x.getDate() + d); return log(`${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}T07:00:00`); });
+  const held = ["2026-08-31", "2026-09-07", "2026-09-14", "2026-09-28"].flatMap(week);
+  const before = P.cadence(held, { target: 3, now: new Date("2026-09-20T12:00:00") });
+  const after = P.cadence([...held, ...week("2026-10-05")], { target: 3, now: new Date("2026-10-11T12:00:00") });
+  assert.equal(before.lifetimeHeld, 3);
+  assert.equal(after.lifetimeHeld, 5, "the empty week between did not reset anything");
+  const gap = after.weeks.find((w) => w.start === "2026-09-21");
+  assert.equal(gap.state, "missed");
+  // The target counts days, not a chain: 3 active days with 4 rest days hold the week.
+  assert.equal(after.weeks.find((w) => w.start === "2026-10-05").state, "held");
+  // A week the player puts on pause is not counted as missed.
+  const paused = P.cadence(held, { target: 3, now: new Date("2026-10-11T12:00:00"), pauses: ["2026-09-21"] });
+  assert.equal(paused.weeks.find((w) => w.start === "2026-09-21").state, "pause");
+});
+
+test("progressive discovery (ACT06): screens are introduced when they become concrete, last in line, and never for ever", () => {
+  const day = (d) => `2026-09-${String(d).padStart(2, "0")}T07:00:00`;
+  const base = [1, 3, 5, 8, 10].map((d, i) => log(day(d), { val: 5 + i, details: { duration: 30 + i } }));
+  const ids = (logs, extra = {}) => P.insights({ logs, now: new Date("2026-09-12T12:00:00"), ...extra }).map((i) => i.id);
+  assert.ok(!ids(base.slice(0, 2)).some((id) => id.startsWith("discover")), "nothing in the first sessions");
+  const five = P.insights({ logs: base, now: new Date("2026-09-12T12:00:00") });
+  assert.ok(five.some((i) => i.id === "discover-goals"), "a goal is suggested once there are five sessions and none set");
+  assert.ok(five.some((i) => i.id === "discover-records"), "records are introduced once one exists");
+  assert.ok(!P.insights({ logs: base, now: new Date("2026-09-12T12:00:00"), goals: [{ id: "g" }] }).some((i) => i.id === "discover-goals"), "not when a goal already exists");
+  assert.ok(five.filter((i) => i.id.startsWith("discover")).every((i) => i.priority < 40), "always below a real recommendation");
+  assert.ok(P.nextAction({ logs: base, now: new Date("2026-09-12T12:00:00") }).priority === undefined || P.nextAction({ logs: base, now: new Date("2026-09-12T12:00:00") }).priority >= 0, "the hero still resolves");
+  // After the first weeks the introductions stop on their own.
+  const late = P.insights({ logs: base, now: new Date("2026-12-12T12:00:00") });
+  assert.ok(!late.some((i) => i.id.startsWith("discover")), "no discovery after sixty days");
+  const many = Array.from({ length: 45 }, (_, i) => log(`2026-09-${String(1 + (i % 28)).padStart(2, "0")}T0${i % 9}:00:00`, { val: 5 + (i % 4) }));
+  assert.ok(!P.insights({ logs: many, now: new Date("2026-09-30T12:00:00") }).some((i) => i.id.startsWith("discover")), "no discovery for an established player");
+});
+
+test("cadence keeps every local week across spring clock changes", () => {
+  for (const anchor of ["2026-03-30T12:00:00", "2026-03-09T12:00:00"]) {
+    const now = new Date(anchor);
+    const previous = new Date(now);
+    previous.setDate(previous.getDate() - 7);
+    const paused = new Date(now);
+    paused.setDate(paused.getDate() - 14);
+    const key = (d) => W.TitanFormat.dateKey(d);
+    const c = P.cadence([log(previous.toISOString())], { now, target: 1, pauses: [key(paused)], window: 3 });
+    assert.deepEqual(Array.from(c.weeks, (w) => w.start), [key(paused), key(previous), key(now)]);
+    assert.equal(c.weeks[0].state, "pause");
+    assert.equal(c.weeks[1].state, "held");
+  }
+});
+
+test("cadence calendar regressions pass in UTC, Paris and American time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^cadence holds|^cadence keeps", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
+});
+
+test("weekly recap keeps Sunday and excludes Monday across clock changes", () => {
+  for (const [now, monday, sunday, next] of [
+    ["2026-03-30T12:00:00", "2026-03-23", "2026-03-29", "2026-03-30"],
+    ["2026-10-26T12:00:00", "2026-10-19", "2026-10-25", "2026-10-26"],
+    ["2026-03-09T12:00:00", "2026-03-02", "2026-03-08", "2026-03-09"],
+    ["2026-11-02T12:00:00", "2026-10-26", "2026-11-01", "2026-11-02"],
+  ]) {
+    const logs = [log(`${monday}T00:00:00`), log(`${sunday}T23:30:00`), log(`${next}T00:00:00`)];
+    const r = P.recap(logs, { now: new Date(now) });
+    assert.equal(W.TitanFormat.dateKey(r.from), monday);
+    assert.equal(W.TitanFormat.dateKey(r.to), sunday);
+    assert.equal(r.week.sessions, 2, `${now}: the two sessions belong to the completed week`);
+  }
+});
+
+test("weekly recap compares the same local weekday and hour", () => {
+  const logs = [log("2026-03-25T17:30:00"), log("2026-03-25T18:30:00")];
+  const r = P.recap(logs, { now: new Date("2026-04-01T18:00:00"), current: true });
+  assert.equal(r.baseline.weeks, 1);
+  assert.equal(r.baseline.sessions, 1, "18:30 last Wednesday is later than 18:00 this Wednesday");
+});
+
+test("weekly recap calendar boundaries pass in four time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^weekly recap keeps|^weekly recap compares", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
 });
 
 test("mastery needs both practice hours and practised weeks", () => {
@@ -159,4 +244,31 @@ test("a planned session for today becomes a recommendation until something is re
   assert.match(p.why, /semaine type/);
   const done = P.insights({ logs: [log("2026-10-07T07:00:00", { sport: "yoga", unit: "min", val: 30 })], now: NOW, plan });
   assert.equal(done.find((i) => i.id === "plan-today"), undefined);
+});
+
+test('campaign objectives require both active days and guardian effort', () => {
+  assert.equal(typeof P.campaignProgress, 'function', 'shared campaign objective reader exists');
+  const c = { chapter: 9, target: 3, effort_target: 150, evidence: { days: 3, effort: 40 } };
+  const p = P.campaignProgress(c);
+  assert.equal(p.ready, false);
+  assert.equal(p.percent, 27);
+  assert.equal(p.objectives[1].remaining, 110);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 2, effort: 150 } }).ready, false);
+  assert.equal(P.campaignProgress({ ...c, evidence: { days: 3, effort: 150 } }).ready, true);
+});
+test('campaign objectives preserve legacy day-only and annotated routes', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  const p = P.campaignProgress({ chapter: 9, target: 3, route: 'journal', evidence: { days: 3 } });
+  assert.equal(p.ready, true);
+  assert.equal(p.objectives.length, 1);
+  assert.match(p.objectives[0].label, /annotée/);
+});
+test('campaign objectives distinguish departure and completion without phantom targets', () => {
+  assert.equal(typeof P.campaignProgress, 'function');
+  assert.equal(P.campaignProgress({ chapter: 0 }).status, 'not_started');
+  assert.equal(P.campaignProgress({ chapter: 10 }).status, 'complete');
+  assert.equal(P.campaignProgress({ chapter: 1, target: 0 }).ready, false);
+  const p = P.campaignProgress({ chapter: 1, target: 2, evidence: { days: 9 } });
+  assert.equal(p.objectives[0].value, 2);
+  assert.equal(p.percent, 100);
 });

@@ -10,7 +10,7 @@
   const I = () => window.TitanInsights;
   const DAY = 86400000;
   const owner = () => window.state?.user?.id;
-  const guest = () => String(owner() || "").startsWith("guest_");
+  const guest = () => !owner() || String(owner()).startsWith("guest_");
   const isoDay = (d = new Date()) => new Date(d).toISOString().slice(0, 10);
   const date = (v) => new Date(String(v).length === 10 ? v + "T12:00:00Z" : v).toLocaleDateString("fr-FR", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
 
@@ -27,12 +27,68 @@
   let fromDate = isoDay(Date.now() - 29 * DAY);
   let toDate = isoDay();
 
+  // A view and every action retain the same owner, client and transition epoch.
+  const context = () => ({ owner: owner(), client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const sameContext = (job) => !!job && job.owner === owner() && job.client === window.titanClient && job.epoch === window.titanAccountTransition?.epoch && !guest() && !window.titanAccountTransition?.active;
+  let viewContext = null;
+  const sheets = new Set();
+  function own(dialog) {
+    sheets.add(dialog);
+    dialog.addEventListener("close", () => sheets.delete(dialog), { once: true });
+    return dialog;
+  }
+  function invalidate() {
+    resetWorkspace();
+    ++seq;
+    ++detailSeq;
+    snapshot = sessions = assignments = viewContext = null;
+    selected = "";
+    mode = "athlete";
+    fromDate = isoDay(Date.now() - 29 * DAY);
+    toDate = isoDay();
+    error = "";
+    loading = !guest();
+    for (const dialog of sheets) {
+      if (dialog.open) dialog.close();
+      dialog.remove();
+    }
+    sheets.clear();
+    render();
+  }
+  function requireContext(job) {
+    if (sameContext(job)) return;
+    // An obsolete completion must never erase a newer view.
+    if (job === viewContext || (viewContext && !sameContext(viewContext))) invalidate();
+    throw Error("ACCOUNT_CHANGED");
+  }
+  function activeView() {
+    if (sameContext(viewContext)) return true;
+    invalidate();
+    return false;
+  }
+  function confirm(options) {
+    const job = viewContext;
+    if (!activeView()) return;
+    const before = new Set(document.querySelectorAll("dialog"));
+    let dialog;
+    const result = window.titanShell.confirm({ ...options, action: async () => {
+      requireContext(job);
+      if (!dialog?.open || !dialog.isConnected) return;
+      await options.action(job);
+      requireContext(job);
+    } });
+    dialog = [...document.querySelectorAll("dialog")].find(d => !before.has(d));
+    if (dialog) own(dialog);
+    return result;
+  }
+
   const MESSAGES = {
     AUTH_REQUIRED: "Connecte-toi pour utiliser le partage privé.",
     ACCOUNT_CHANGED: "Le compte a changé. Recharge cet espace.",
     INVITE_UNAVAILABLE: "Ce code est indisponible, expiré ou déjà utilisé.",
     INVITE_LIMIT: "Plusieurs invitations attendent déjà. Annule celles qui ne servent plus.",
-    COACH_CAPACITY: "La capacité de suivi du coach est atteinte : 3 sportifs, 20 avec TITAN+.",
+    COACH_CAPACITY: "Toutes les places de suivi du coach sont prises. Un sportif peut quitter le suivi pour en libérer une.",
+    SEAT_CHURN_LIMIT: "Trop de nouveaux suivis ces 30 derniers jours : réessaie plus tard, ou garde les sportifs actuels.",
     ATHLETE_CAPACITY: "Cinq partages sont déjà actifs. Révoque ceux dont tu n’as plus besoin.",
     CONSENT_REQUIRED: "Le partage demande ton accord explicite.",
     COACH_CONFLICT: "Une modification plus récente existe. Actualise avant de recommencer.",
@@ -45,10 +101,18 @@
   };
   const human = (e) => MESSAGES[e?.message] || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
 
-  async function rpc(action, data = {}) {
-    const id = owner();
-    const session = (await window.titanClient?.auth.getSession())?.data?.session;
-    if (!id || session?.user?.id !== id) throw Error("AUTH_REQUIRED");
+  async function rpc(action, data = {}, job = viewContext) {
+    requireContext(job);
+    const receipt = await job.client?.auth.getSession();
+    requireContext(job);
+    const session = receipt?.data?.session;
+    if (receipt?.error || !session?.access_token || session?.user?.id !== job.owner) {
+      invalidate();
+      loading = false;
+      error = MESSAGES.AUTH_REQUIRED;
+      render();
+      throw Error("AUTH_REQUIRED");
+    }
     const response = await fetch(`${window.TITAN_SUPABASE_URL}/rest/v1/rpc/titan_coach_portal`, {
       method: "POST",
       headers: { apikey: window.TITAN_SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
@@ -56,7 +120,7 @@
       signal: AbortSignal.timeout(15000),
     });
     const result = await response.json();
-    if (owner() !== id) throw Error("ACCOUNT_CHANGED");
+    requireContext(job);
     if (!response.ok) throw Error(result.message || "UNAVAILABLE");
     return result;
   }
@@ -65,18 +129,17 @@
   const current = () => links().find((l) => l.id === selected);
 
   async function load() {
-    const id = owner();
-    if (!id) return;
+    if (viewContext && !sameContext(viewContext)) invalidate();
+    if (guest() || window.titanAccountTransition?.active) return invalidate();
+    const job = context();
     const s = ++seq;
-    if (guest()) {
-      loading = false;
-      return render();
-    }
+    viewContext = job;
     try {
-      const next = await rpc("snapshot");
-      if (s !== seq || id !== owner()) return;
+      const next = await rpc("snapshot", {}, job);
+      if (s !== seq || !sameContext(job)) return;
       const prev = current();
       snapshot = next;
+      viewContext = job;
       loading = false;
       error = "";
       if (!links().some((l) => l.id === selected)) selected = links()[0]?.id || "";
@@ -87,6 +150,7 @@
       render();
       if (selected) loadDetail();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       if (s !== seq) return;
       snapshot = null;
       loading = false;
@@ -96,15 +160,17 @@
   }
 
   async function loadDetail({ moreSessions = false, moreAssignments = false } = {}) {
+    const job = viewContext;
+    if (!activeView()) return;
     const link = current();
     if (!link) return;
     const s = ++detailSeq;
     try {
       const [logs, tasks] = await Promise.all([
-        moreAssignments ? Promise.resolve(sessions) : rpc("sessions", { link_id: link.id, from_date: fromDate, to_date: toDate, offset: moreSessions ? sessions?.rows.length || 0 : 0 }),
-        moreSessions ? Promise.resolve(assignments) : rpc("assignments", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }),
+        moreAssignments ? Promise.resolve(sessions) : rpc("sessions", { link_id: link.id, from_date: fromDate, to_date: toDate, offset: moreSessions ? sessions?.rows.length || 0 : 0 }, job),
+        moreSessions ? Promise.resolve(assignments) : rpc("assignments", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }, job),
       ]);
-      if (s !== detailSeq || current()?.id !== link.id) return;
+      if (s !== detailSeq || !sameContext(job) || current()?.id !== link.id) return;
       if ((logs && logs.revision !== link.revision) || (tasks && tasks.revision !== link.revision)) {
         sessions = null;
         assignments = null;
@@ -116,6 +182,7 @@
       error = "";
       render();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       if (s !== detailSeq) return;
       sessions = null;
       assignments = null;
@@ -127,23 +194,60 @@
 
   /* ---------- Forms in sheets ---------- */
   function formSheet({ title, eyebrow = "Coaching · partage privé", body, submit, onSubmit }) {
+    const job = viewContext;
+    if (!activeView()) return;
     const form = document.createElement("form");
     form.className = "asc-stack";
-    form.innerHTML = `${body}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
-    const d = window.titanShell.sheet({ title, eyebrow, body: form });
+    form.innerHTML = `${body}${onSubmit ? '<p class="asc-small asc-muted" role="status" data-co-progress></p>' : ""}<p class="asc-small jr-edit-error" role="alert"></p>${onSubmit ? `<div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">${esc(submit)}</button></div>` : `<button type="button" class="asc-btn asc-btn-secondary" data-cancel>Fermer</button>`}`;
+    const d = own(window.titanShell.sheet({ title, eyebrow, body: form }));
+    let pending = false;
+    let controlStates = [];
+    const progress = form.querySelector("[data-co-progress]");
+    // Keep the live status outside the busy form so its update is not deferred.
+    if (progress) {
+      form.parentElement.classList.add("asc-stack");
+      form.after(progress);
+    }
+    const errorText = form.querySelector(".jr-edit-error");
+    const setPending = (value) => {
+      pending = value;
+      form.setAttribute("aria-busy", String(value));
+      if (progress) progress.textContent = value ? "Envoi en cours…" : "";
+      if (value) {
+        controlStates = [...form.querySelectorAll("input, select, textarea, button"), d.querySelector("[data-close]")].map(control => [control, control.disabled]);
+        controlStates.forEach(([control]) => { control.disabled = true; });
+      } else controlStates.forEach(([control, disabled]) => { control.disabled = disabled; });
+    };
+    form.setAttribute("aria-busy", "false");
+    // Block user dismissal while sending; account cleanup and preview chaining can still close().
+    d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+    d.addEventListener("click", e => {
+      if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
     form.querySelector("[data-cancel]").addEventListener("click", () => d.close());
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!onSubmit) return;
+      if (!onSubmit || pending || !d.open || !d.isConnected) return;
+      if (!sameContext(job)) { if (job === viewContext || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       const btn = form.querySelector("[type=submit]");
-      btn.disabled = true;
+      // Capture consent before disabling controls: disabled fields are excluded from FormData.
+      const data = new FormData(form);
+      errorText.textContent = "";
+      setPending(true);
       try {
-        await onSubmit(new FormData(form), d);
+        await onSubmit(data, d, job);
+        if (!sameContext(job)) return;
         if (d.open) d.close();
         load();
       } catch (err) {
-        form.querySelector(".jr-edit-error").textContent = human(err);
-        btn.disabled = false;
+        if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
+        if (!d.open || !d.isConnected) return;
+        errorText.textContent = human(err);
+        setPending(false);
+        if ([...document.querySelectorAll("dialog[open]")].at(-1) === d) btn.focus();
       }
     });
     return d;
@@ -168,16 +272,18 @@
       title: "J’ai reçu une invitation",
       body: `<label class="asc-field"><span>Code privé du coach</span><input class="asc-input" name="token" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="48" maxlength="48" required placeholder="48 caractères"></label><p class="asc-small asc-muted">Vérifie l’identité de la personne avant d’accepter. TITAN ne vérifie pas les qualifications d’un coach.</p>`,
       submit: "Vérifier le code",
-      onSubmit: async (f, d) => {
+      onSubmit: async (f, d, job) => {
         const token = String(f.get("token")).trim();
-        const preview = await rpc("preview", { token });
+        const preview = await rpc("preview", { token }, job);
+        if (!sameContext(job) || !d.open) return;
         d.close();
         formSheet({
           title: `Partager avec ${preview.coach_name || "ce coach"}`,
           body: `${scopeFields()}<label class="auth-check"><input type="checkbox" name="consent" required><span><strong>J’autorise ce coach</strong> à consulter les données choisies et à me proposer des séances. Révocable à tout moment.</span></label>`,
           submit: "Activer ce partage",
-          onSubmit: async (data) => {
-            const r = await rpc("accept", { token, ...scopeData(data), consent: data.has("consent") });
+          onSubmit: async (data, _dialog, job) => {
+            const r = await rpc("accept", { token, ...scopeData(data), consent: data.has("consent") }, job);
+            if (!sameContext(job)) return;
             mode = "athlete";
             selected = r.id;
           },
@@ -187,14 +293,23 @@
   }
 
   async function invite(btn) {
+    const job = viewContext;
+    if (!activeView()) return;
     btn.disabled = true;
     try {
-      const r = await rpc("invite");
+      const r = await rpc("invite", {}, job);
+      if (!sameContext(job)) return;
       const body = `<p class="asc-small">Transmets ce code à une seule personne. Elle choisira ce qu’elle accepte de partager. Il expire le ${esc(date(r.expires_at))} et ne sert qu’une fois.</p><label class="asc-field"><span>Code privé</span><input class="asc-input asc-num" readonly value="${esc(r.token)}" id="co-token"></label><button type="button" class="asc-btn asc-btn-secondary" id="co-copy">${icon("copy")} Copier</button>`;
-      formSheet({ title: "Ton invitation est prête", body });
-      document.getElementById("co-copy").addEventListener("click", () => navigator.clipboard?.writeText(r.token).then(() => window.titanShell.toast({ type: "ok", title: "Code copié" })));
+      const dialog = formSheet({ title: "Ton invitation est prête", body });
+      dialog.querySelector("#co-copy").addEventListener("click", () => {
+        if (!sameContext(job) || !dialog.open) return;
+        navigator.clipboard?.writeText(r.token).then(() => {
+          if (sameContext(job) && dialog.open) window.titanShell.toast({ type: "ok", title: "Code copié" });
+        }).catch(() => {});
+      });
       load();
     } catch (e) {
+      if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       window.titanShell.toast({ type: "warn", message: human(e) });
     } finally {
       btn.disabled = false;
@@ -211,7 +326,7 @@
         <label class="asc-field"><span>Consignes</span><textarea name="instructions" maxlength="2000" placeholder="Échauffement, blocs, intensité, retour au calme…">${esc(copy?.instructions || "")}</textarea></label>
         <p class="asc-small asc-muted">L’athlète accepte ou décline. Rien n’est ajouté à son journal sans lui.</p>`,
       submit: "Envoyer la proposition",
-      onSubmit: (f) => rpc("assign", { link_id: l.id, ...Object.fromEntries(f) }),
+      onSubmit: (f, _dialog, job) => rpc("assign", { link_id: l.id, ...Object.fromEntries(f) }, job),
     });
   }
 
@@ -225,21 +340,168 @@
           ? `<label class="asc-field"><span>Séance de ton journal</span><select name="session_id">${logs.map((x) => `<option value="${esc(x.id)}">${esc(SP().label(x.sport))} · ${esc(date(x.date))}</option>`).join("")}</select></label><p class="asc-small asc-muted">Le serveur vérifie qu’elle t’appartient et n’est reliée à aucune autre proposition.</p>`
           : `<p class="asc-small">Aucune séance de ${esc(SP().label(task.sport).toLowerCase())} récente dans ton journal. Enregistre-la d’abord.</p><a class="asc-btn asc-btn-primary" href="/training?sport=${encodeURIComponent(task.sport)}">Enregistrer la séance</a>`,
         submit: "Confirmer la réalisation",
-        onSubmit: logs.length ? (f) => rpc("assignment_status", { id: task.id, revision: task.revision, status, session_id: f.get("session_id") }) : null,
+        onSubmit: logs.length ? (f, _dialog, job) => rpc("assignment_status", { id: task.id, revision: task.revision, status, session_id: f.get("session_id") }, job) : null,
       });
     }
     const titles = { cancelled: "Annuler la proposition", accepted: "Accepter cette séance", declined: "Décliner cette séance" };
-    window.titanShell.confirm({
+    confirm({
       title: titles[status],
       message: `${task.title} · ${date(task.planned_date)}`,
       detail: "Le statut sera visible par ton partenaire de suivi. Ton journal ne change pas.",
-      action: () => rpc(status === "cancelled" ? "cancel_assignment" : "assignment_status", { id: task.id, revision: task.revision, status }).then(load).catch((e) => {
+      action: (job) => rpc(status === "cancelled" ? "cancel_assignment" : "assignment_status", { id: task.id, revision: task.revision, status }, job).then(() => { if (sameContext(job)) return load(); }).catch((e) => {
         throw new Error(human(e));
       }),
     });
   }
 
+  const workspace = () => window.TitanCoachWorkspace;
+  const feature = key => window.titanFlags?.enabled?.(key, false) === true;
+  const coachView = () => mode === "coach" && sameContext(viewContext) && !!snapshot;
+  let rosterQuery = "", rosterSport = "", calendarMonth = isoDay().slice(0,7), calendarStatus = "";
+  let exportSeq = 0, exportTask = null, exportStatus = "", exportError = "";
+  function cancelExport() { ++exportSeq; exportTask = null; exportStatus = exportError = ""; }
+  function resetWorkspace() { rosterQuery = rosterSport = calendarStatus = ""; calendarMonth = isoDay().slice(0,7); cancelExport(); }
+  function rosterResultsHtml() {
+    const list = workspace()?.roster({links:snapshot?.links||[], owner:owner(), query:rosterQuery, sport:rosterSport}) || [];
+    return `<p class="asc-small asc-muted" role="status">${list.length} suivi(s) affiché(s). Le filtre porte sur le sport autorisé, pas sur les séances pratiquées.</p>
+      ${list.length ? `<div class="co-roster-grid">${list.map(l=>`<button type="button" class="co-person" data-link="${esc(l.id)}" aria-pressed="${l.id===selected}"><span><strong>${esc(l.athlete_name||"Compte TITAN")}</strong><small>${l.sport ? esc(SP().label(l.sport)) : "Tous les sports partagés"} · depuis le ${esc(date(l.since_date))}</small></span></button>`).join("")}</div>` : `<p class="asc-small">Aucun suivi ne correspond à ces filtres.</p>`}`;
+  }
+  function rosterHtml() {
+    if (!coachView() || !feature("screens.coachworkspace")) return "";
+    const sports = [...new Set(links().map(l=>l.sport).filter(Boolean))].sort();
+    return `<section class="co-card asc-stack" data-co-roster aria-labelledby="co-roster-title"><h2 id="co-roster-title" class="asc-h3">Mes athlètes</h2>
+      <div class="asc-form-grid"><label class="asc-field"><span>Rechercher un athlète</span><input type="search" class="asc-input" id="co-roster-query" data-roster-query maxlength="80" value="${esc(rosterQuery)}"></label>
+      <label class="asc-field"><span>Sport partagé</span><select id="co-roster-sport" data-roster-sport><option value="">Tous les sports</option>${sports.map(s=>`<option value="${esc(s)}"${s===rosterSport?" selected":""}>${esc(SP().label(s))}</option>`).join("")}</select></label></div>
+      <div data-roster-results>${rosterResultsHtml()}</div><p class="asc-small asc-faint">Vue des partages actifs uniquement. Choisis un athlète pour lire son suivi ; aucun historique supplémentaire n’est chargé par les filtres.</p></section>`;
+  }
+  function calendarHtml() {
+    if (!coachView() || !current() || !assignments || !feature("screens.coachcalendar")) return "";
+    const c = workspace()?.calendar({assignments,month:calendarMonth,status:calendarStatus});
+    if (!c?.available) return "";
+    const title = new Date(calendarMonth+"-01T12:00:00Z").toLocaleDateString("fr-FR",{timeZone:"UTC",month:"long",year:"numeric"});
+    return `<section class="co-card asc-stack" data-co-calendar aria-labelledby="co-calendar-title"><h3 id="co-calendar-title" class="asc-h3">Calendrier des propositions</h3>
+      <div class="asc-row-flex co-calendar-nav"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-calendar-move="-1" aria-label="Mois précédent"${workspace().shiftMonth(calendarMonth,-1)?"":" disabled"}>${icon("chevronLeft")} Précédent</button><strong aria-live="polite">${esc(title)}</strong><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-calendar-move="1" aria-label="Mois suivant"${workspace().shiftMonth(calendarMonth,1)?"":" disabled"}>Suivant ${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-calendar-today>Mois actuel</button></div>
+      <label class="asc-field"><span>Statut des propositions</span><select id="co-calendar-status" data-calendar-status><option value="">Tous les statuts</option>${Object.entries(LABELS).map(([key,label])=>`<option value="${key}"${calendarStatus===key?" selected":""}>${label}</option>`).join("")}</select></label>
+      <p class="asc-small asc-muted">${c.complete?"Toutes les propositions chargées":"Calendrier partiel"} · ${c.loaded} / ${c.total??"?"} propositions chargées · dates UTC. ${c.complete?"":"Charge les précédentes dans la liste pour compléter ce calendrier."}</p>
+      ${c.days.length ? `<div class="asc-stack">${c.days.map(d=>`<div class="co-calendar-day" data-calendar-day><h4>${esc(date(d.date))}</h4><ul>${d.rows.map(t=>`<li data-calendar-task><strong>${esc(t.title||"Séance proposée")}</strong><span class="asc-small asc-muted">${esc(SP().label(t.sport))} · ${esc(LABELS[t.status])}</span></li>`).join("")}</ul></div>`).join("")}</div>` : `<p class="asc-small">Aucune proposition parmi les données chargées pour ce mois et ce filtre.${c.complete?"":" Ce résultat ne décrit pas les pages encore absentes."}</p>`}
+      <p class="asc-small asc-faint">Ce calendrier organise les propositions existantes. Une séance déclinée ou en attente n’est pas une séance manquée.</p></section>`;
+  }
+  function exportHtml() {
+    if (!coachView() || !current() || !feature("screens.coachexport")) return "";
+    return `<section class="co-card asc-stack" data-co-export aria-labelledby="co-export-title"><h3 id="co-export-title" class="asc-h3">Exporter ce suivi</h3>
+      <p class="asc-small asc-muted">CSV des séances de la période appliquée, après nouvelle vérification du partage. Date UTC, sport, valeur/unité et durée renseignée uniquement ; notes, santé et localisation exclues.</p>
+      <button type="button" class="asc-btn asc-btn-secondary" data-co-export-csv${exportTask?" disabled":""}>${icon("download")} Exporter les séances partagées (CSV)</button>
+      <p class="asc-small asc-muted" role="status" data-export-status>${esc(exportStatus)}</p><p class="asc-small jr-edit-error" role="alert" data-export-error>${esc(exportError)}</p>
+      <p class="asc-small asc-faint">Le fichier est privé. Une copie déjà téléchargée ne peut pas être rappelée après la révocation du partage ; conserve-la uniquement pour ce suivi.</p></section>`;
+  }
+  function refreshSlot(selector, html) {
+    const slot = root?.querySelector(selector);
+    if (!slot) return;
+    const focus = slot.contains(document.activeElement) ? document.activeElement : null;
+    const id=focus?.id, selection=focus&&typeof focus.selectionStart==="number"?[focus.selectionStart,focus.selectionEnd]:null;
+    slot.innerHTML=html;
+    const next=id?slot.querySelector(`#${id}`):null;
+    if(next){next.focus({preventScroll:true});if(selection&&next.setSelectionRange)next.setSelectionRange(...selection);}
+  }
+  function refreshWorkspace() {
+    if (!feature("screens.coachexport")) cancelExport();
+    refreshSlot("[data-co-roster-slot]",rosterHtml());
+    refreshSlot("[data-co-calendar-slot]",calendarHtml());
+    refreshSlot("[data-co-export-slot]",exportHtml());
+    const legacy=root?.querySelector("[data-co-legacy-nav]"),overview=mode==="coach"&&feature("screens.coachworkspace");
+    if(legacy)legacy.hidden=overview;
+    root?.querySelector(".co-layout")?.classList.toggle("is-single",links().length===1||overview);
+  }
+  async function exportCsv() {
+    if (!coachView() || !current() || !feature("screens.coachexport") || exportTask) return;
+    const job=viewContext, link={...current()}, from=fromDate, to=toDate, id=++exportSeq;
+    exportTask=id;exportStatus="Vérification du partage…";exportError="";
+    const alive=()=>exportTask===id&&exportSeq===id&&sameContext(job)&&mode==="coach"&&feature("screens.coachexport")&&current()?.id===link.id&&current()?.revision===link.revision&&fromDate===from&&toDate===to;
+    const check=()=>{if(!alive())throw Error("EXPORT_CANCELLED");};
+    const progress=message=>{check();exportStatus=message;refreshSlot("[data-co-export-slot]",exportHtml());};
+    const checkSnapshot=s=>{
+      const fresh=s?.links?.find(l=>l.id===link.id);
+      if(s?.owner!==job.owner||!fresh||fresh.revoked_at||fresh.coach_id!==job.owner||fresh.athlete_id!==link.athlete_id||fresh.revision!==link.revision||fresh.since_date!==link.since_date||fresh.sport!==link.sport||fresh.share_details!==link.share_details||fresh.share_notes!==link.share_notes)throw Error("SHARING_UNAVAILABLE");
+    };
+    refreshSlot("[data-co-export-slot]",exportHtml());
+    try {
+      checkSnapshot(await rpc("snapshot",{},job));check();
+      let envelope=null, rows=[];
+      for(let page=0;page<100;page++){
+        progress(`Lecture des séances partagées… ${rows.length} reçues.`);
+        const next=await rpc("sessions",{link_id:link.id,from_date:from,to_date:to,offset:rows.length},job);check();
+        if(next?.owner!==job.owner||next.link_id!==link.id||next.revision!==link.revision||!Array.isArray(next.rows)||next.rows.length>100||!Number.isSafeInteger(next.total)||next.total<0||next.total>10000||next.from_date<link.since_date)throw Error("EXPORT_INVALID");
+        if(envelope&&(next.total!==envelope.total||next.from_date!==envelope.from_date||next.to_date!==envelope.to_date))throw Error("EXPORT_INVALID");
+        envelope=next;rows.push(...next.rows);
+        if(rows.length>next.total||(!next.rows.length&&rows.length<next.total))throw Error("EXPORT_INVALID");
+        if(rows.length===next.total)break;
+      }
+      const result=workspace()?.csv({sessions:{...envelope,rows},owner:job.owner,linkId:link.id,revision:link.revision,from,to});
+      if(!result?.available)throw Error("EXPORT_INVALID");
+      progress("Dernière vérification du partage…");checkSnapshot(await rpc("snapshot",{},job));check();
+      const url=URL.createObjectURL(new Blob([result.text],{type:"text/csv;charset=utf-8"}));
+      const a=document.createElement("a");a.href=url;a.download=`titan-coach-${result.from}-${result.to}.csv`;
+      try{document.body.append(a);a.click();}finally{a.remove();URL.revokeObjectURL(url);}
+      exportStatus=`${result.count} séance(s) exportée(s).`;
+    } catch(e) {
+      if(alive()) { exportStatus="";exportError=e.message==="SHARING_UNAVAILABLE"?"Le partage a changé ou a été révoqué. Recharge ce suivi avant d’exporter.":"Export non confirmé : données incomplètes, modifiées ou indisponibles. Réessaie après actualisation."; }
+    } finally {
+      if(exportTask===id){exportTask=null;refreshSlot("[data-co-export-slot]",exportHtml());}
+    }
+  }
+
   /* ---------- Rendering ---------- */
+  function comparisonHtml() {
+    const c = window.TitanCoachAnalysis?.compare({sessions, assignments, from:fromDate, to:toDate});
+    if (!c?.available) {
+      const reason = c?.reason === "incomplete"
+        ? "Charge toutes les pages de séances et de propositions avant de comparer."
+        : "La période sélectionnée et le partage doivent couvrir au moins 14 jours complets en UTC. Aucun accès antérieur au consentement n’est demandé.";
+      return `<p class="asc-small asc-muted" data-ca-comparison-unavailable>Comparaison non disponible : ${esc(reason)}</p>`;
+    }
+    const signed = n => n > 0 ? `+${n}` : String(n);
+    const duration = (a) => a.sessions === 0 ? "0 min" : a.minutes === null ? "Non disponible" : a.minutes === 0 ? "0 min" : F().duration(a.minutes);
+    const durationChange = n => n === null ? "Durées incomplètes" : n === 0 ? "0 min" : `${n > 0 ? "+" : "−"}${F().duration(Math.abs(n))}`;
+    const rate = a => a.adherencePercent === null ? "Aucune échéance" : `${a.adherencePercent} % (${a.completed}/${a.due})`;
+    const periodHead = (_a, label) => `<th scope="col">${label}</th>`;
+    return `<div class="co-analysis-programme co-comparison" data-ca-comparison><h4>Évolution · 7 jours complets</h4>
+      <p class="asc-small asc-muted">Deux périodes consécutives de 7 jours en UTC, au sein du partage sélectionné. La journée en cours est exclue. Écarts absolus, sans objectif imposé ni diagnostic.</p>
+      <p class="asc-small asc-muted">Précédente : ${esc(c.previous.from)} au ${esc(c.previous.to)}.<br>Récente : ${esc(c.current.from)} au ${esc(c.current.to)}.</p>
+      <div class="co-analysis-table" tabindex="0" role="region" aria-label="Comparaison des périodes, tableau défilant"><table><caption>Dernière période complète et période précédente · données partagées chargées</caption>
+      <thead><tr><th scope="col">Mesure</th>${periodHead(c.previous, "Précédente")}${periodHead(c.current, "Récente")}<th scope="col">Écart</th></tr></thead>
+      <tbody><tr><th scope="row">Séances</th><td data-ca-previous-sessions>${c.previous.sessions}</td><td data-ca-current-sessions>${c.current.sessions}</td><td data-ca-session-delta>${signed(c.delta.sessions)}</td></tr>
+      <tr><th scope="row">Jours actifs</th><td>${c.previous.activeDays}</td><td>${c.current.activeDays}</td><td>${signed(c.delta.activeDays)}</td></tr>
+      <tr><th scope="row">Durée renseignée</th><td>${esc(duration(c.previous))}<small>${c.previous.measuredSessions}/${c.previous.sessions} renseignées</small></td><td>${esc(duration(c.current))}<small>${c.current.measuredSessions}/${c.current.sessions} renseignées</small></td><td>${esc(durationChange(c.delta.minutes))}</td></tr>
+      <tr><th scope="row">Prévu / réalisé</th><td>${esc(rate(c.previous))}</td><td>${esc(rate(c.current))}</td><td>${c.delta.adherencePoints === null ? "Non comparable" : `${signed(c.delta.adherencePoints)} points`}</td></tr></tbody></table></div>
+      ${c.sports.length ? `<div class="co-analysis-table" tabindex="0" role="region" aria-label="Évolution par sport, tableau défilant"><table data-ca-sport-trends><caption>Évolution par sport · séances et durée renseignée</caption><thead><tr><th scope="col">Sport</th><th scope="col">Précédente</th><th scope="col">Récente</th><th scope="col">Écart</th></tr></thead><tbody>${c.sports.map(s=>`<tr><th scope="row">${esc(s.sport === "unknown" ? "Sport non renseigné" : SP().label(s.sport))}</th><td>${s.previous.sessions} séance(s)<small>${esc(duration(s.previous))} · ${s.previous.measuredSessions}/${s.previous.sessions} renseignées</small></td><td>${s.current.sessions} séance(s)<small>${esc(duration(s.current))} · ${s.current.measuredSessions}/${s.current.sessions} renseignées</small></td><td>${signed(s.delta.sessions)} séance(s)<small>${esc(durationChange(s.delta.minutes))}</small></td></tr>`).join("")}</tbody></table></div>` : `<p class="asc-small asc-muted">Aucune séance dans ces deux périodes entièrement chargées.</p>`}
+      <p class="asc-small asc-faint">Un écart de durée exige une durée renseignée pour chaque séance des deux périodes. Sans séance, 0 min décrit uniquement le journal partagé. Aucun pourcentage de hausse calculé depuis zéro. Le prévu/réalisé utilise les propositions acceptées échues, pas une estimation de l’effort.</p>
+    </div>`;
+  }
+
+  function analysisHtml() {
+    if (mode !== "coach" || !sameContext(viewContext) || !current() || !sessions || !assignments || window.titanFlags?.enabled?.("screens.coachanalysis", false) !== true) return "";
+    const a = window.TitanCoachAnalysis?.analyse({sessions, assignments, from:fromDate, to:toDate});
+    if (!a?.available) return "";
+    const partial = !a.sessionComplete || !a.assignmentComplete;
+    const knownDuration = value => value === null ? "Non disponible" : value === 0 ? "0 min" : F().duration(value);
+    return `<section class="co-analysis" data-co-analysis aria-labelledby="co-analysis-title">
+      <div><p class="asc-eyebrow cy">Analyse du suivi</p><h3 id="co-analysis-title">Bilan des données partagées</h3><p class="asc-small asc-muted">Du ${esc(date(a.from))} au ${esc(date(a.to))} · jours UTC · uniquement le partage de cet athlète.</p></div>
+      ${partial ? `<p class="asc-note" data-ca-partial>${icon("info")}<span>Bilan partiel : ${a.sessionLoaded} / ${a.sessionTotal ?? "?"} séances et ${a.assignmentLoaded} / ${a.assignmentTotal ?? "?"} propositions chargées. Les chiffres portent sur les pages reçues ; charge la suite dans les listes pour les compléter.</span></p>` : ""}
+      <dl class="co-analysis-stats"><div><dt>Séances dans la période</dt><dd data-ca-sessions>${a.sessions}</dd></div><div><dt>Durée renseignée</dt><dd data-ca-minutes>${esc(knownDuration(a.minutes))}</dd></div><div><dt>Jours avec séance</dt><dd>${a.activeDays}</dd></div></dl>
+      <p class="asc-small asc-muted">${a.measuredSessions} séance(s) avec une durée · ${a.missingDuration} séance(s) sans durée exploitable. Aucune durée déduite des kilomètres, répétitions ou charges.</p>
+      ${a.sports.length ? `<div class="co-analysis-table"><table data-ca-sports><caption>Répartition sur les séances partagées chargées</caption><thead><tr><th scope="col">Sport</th><th scope="col">Séances</th><th scope="col">Durée renseignée</th></tr></thead><tbody>${a.sports.map(s=>`<tr><th scope="row">${esc(s.sport === "unknown" ? "Sport non renseigné" : SP().label(s.sport))}</th><td>${s.sessions}</td><td>${esc(knownDuration(s.minutes))}<small>${s.measuredSessions} / ${s.sessions} renseignées</small></td></tr>`).join("")}</tbody></table></div>` : `<p class="asc-small asc-muted">Aucune séance partagée chargée dans cette période.</p>`}
+      <div class="co-analysis-programme"><h4>Prévu / réalisé</h4><p data-ca-adherence>${a.assignmentComplete ? (a.due ? `<strong>${a.adherencePercent} %</strong> · ${a.completed} / ${a.due} propositions acceptées échues réalisées.` : "Aucune proposition acceptée arrivée à échéance.") : "Taux non disponible : charge toutes les propositions pour le calculer."}</p>
+        <p class="asc-small asc-faint">Seulement les propositions acceptées dont le jour prévu précède aujourd’hui (UTC), dans la période sélectionnée. Une proposition refusée, annulée, en attente ou prévue aujourd’hui n’est pas un échec.</p></div>
+      ${comparisonHtml()}
+      <p class="asc-small asc-faint">Charge sRPE indisponible : le partage actuel ne transmet pas le ressenti. Ces durées ne sont ni une charge d’entraînement, ni des calories, ni de l’XP. Aucun accès supplémentaire ni donnée de santé déduite.</p>
+    </section>`;
+  }
+
+  function refreshAnalysis() {
+    const slot = root?.querySelector("[data-co-analysis-slot]");
+    if (slot) slot.innerHTML = analysisHtml();
+  }
+
   const LABELS = { proposed: "À accepter", accepted: "Prévue", declined: "Déclinée", completed: "Réalisée", cancelled: "Annulée" };
   function taskCards() {
     return (assignments?.rows || [])
@@ -277,6 +539,8 @@
 
   function render() {
     if (!root) return;
+    root.setAttribute("aria-busy", String(loading && !guest()));
+    const focusedMode = root.contains(document.activeElement) ? document.activeElement.closest('[role="tab"][data-mode]')?.dataset.mode : null;
     if (guest()) {
       root.innerHTML = `<section class="asc-hero co-intro"><p class="asc-eyebrow cy">Sportifs · coachs · éducateurs</p><h2 class="cm-exp-title">Un suivi qui se construit à deux.</h2>
         <p class="asc-lead">Le coach crée une invitation. Le sportif choisit la période, le sport et les détails qu’il partage, et peut tout arrêter à tout moment. Le coach propose des séances ; le sportif les accepte ou non.</p>
@@ -291,35 +555,69 @@
     const list = links();
     const l = current();
     root.innerHTML = `
-      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace"><button type="button" role="tab" data-mode="athlete" aria-selected="${mode === "athlete"}">${icon("user")} Je suis sportif</button><button type="button" role="tab" data-mode="coach" aria-selected="${mode === "coach"}">${icon("group")} J’accompagne</button></div>
+      <div class="asc-seg co-mode" role="tablist" aria-label="Mon espace">${[["athlete", "user", "Je suis sportif"], ["coach", "group", "J’accompagne"]].map(([id, symbol, label]) => `<button type="button" role="tab" id="co-tab-${id}" data-mode="${id}" aria-controls="co-panel-${id}" aria-selected="${mode === id}" tabindex="${(focusedMode || mode) === id ? 0 : -1}">${icon(symbol)} ${label}</button>`).join("")}</div>
       <p class="asc-note">${icon("shield")}<span>Un partage choisi, limité et révocable. Le coach ne modifie jamais ton journal ; les séances partagées ne sont gardées qu’en mémoire.</span></p>
+      <div id="co-panel-${mode}" role="tabpanel" aria-labelledby="co-tab-${mode}" tabindex="0" style="display:grid;gap:var(--s5)">
       ${error ? `<p class="asc-note err">${icon("alert")}<span>${esc(error)}</span></p>` : ""}
       ${snapshot ? `
-      <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2></div>
+      <section class="asc-section co-head"><div class="asc-between"><div><p class="asc-eyebrow">${mode === "coach" ? "Les sportifs que j’accompagne" : "Mes partages"}</p><h2 class="asc-h2">${mode === "coach" ? `${list.length} / ${snapshot.capacity} suivis` : `${list.length} partage${list.length > 1 ? "s" : ""} actif${list.length > 1 ? "s" : ""}`}</h2>
+          ${mode === "coach" && snapshot.plan ? `<p class="asc-small asc-muted" data-co-plan>Offre ${snapshot.plan.plan === "coach_pro" ? "Coach Ultra" : "Coach"} : ${snapshot.capacity} places, TITAN+ inclus pour chaque sportif suivi tant que le suivi est actif${snapshot.seatsUsed > snapshot.capacity ? ` · ${snapshot.seatsUsed - snapshot.capacity} sportif(s) au-delà des places n’ont plus TITAN+ inclus` : ""}.</p>` : ""}</div>
         <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-${mode === "coach" ? "invite" : "join"}>${icon("plus")} ${mode === "coach" ? "Créer une invitation" : "J’ai reçu un code"}</button></div>
         ${mode === "coach" && snapshot.invites?.length ? `<details class="co-invites"><summary>${snapshot.invites.length} invitation(s) en attente</summary>${snapshot.invites.map((v) => `<div class="asc-between"><span class="asc-small">Créée le ${esc(date(v.created_at))} · expire le ${esc(date(v.expires_at))}</span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-invite="${esc(v.id)}">Annuler</button></div>`).join("")}</details>` : ""}
       </section>
-      ${list.length ? `<div class="co-layout${list.length === 1 ? " is-single" : ""}">
-        ${list.length === 1 ? "" : `<nav class="co-people" aria-label="Suivis">`}${list.length === 1 ? "" : list.map((x) => `<button type="button" class="co-person" data-link="${esc(x.id)}" aria-pressed="${x.id === selected}">${icon(mode === "coach" ? "user" : "group")}<span><strong>${esc((mode === "coach" ? x.athlete_name : x.coach_name) || "Compte TITAN")}</strong><small>Depuis le ${esc(date(x.accepted_at))}</small></span></button>`).join("") + "</nav>"}
+      <div data-co-roster-slot>${rosterHtml()}</div>
+      ${list.length ? `<div class="co-layout${list.length === 1 || mode === "coach" && feature("screens.coachworkspace") ? " is-single" : ""}">
+        ${list.length === 1 ? "" : `<nav class="co-people" data-co-legacy-nav aria-label="Suivis"${mode === "coach" && feature("screens.coachworkspace")?" hidden":""}>`}${list.length === 1 ? "" : list.map((x) => `<button type="button" class="co-person" data-link="${esc(x.id)}" aria-pressed="${x.id === selected}">${icon(mode === "coach" ? "user" : "group")}<span><strong>${esc((mode === "coach" ? x.athlete_name : x.coach_name) || "Compte TITAN")}</strong><small>Depuis le ${esc(date(x.accepted_at))}</small></span></button>`).join("") + "</nav>"}
         ${l ? `<div class="co-detail">
           <section class="co-card"><div class="asc-between"><h3 class="asc-h3">${esc((mode === "coach" ? l.athlete_name : l.coach_name) || "Mon suivi")}</h3><span class="asc-chip">Partage actif</span></div>
             <p class="asc-small asc-muted">${list.length === 1 ? `Suivi depuis le ${esc(date(l.accepted_at))} · ` : ""}Partage depuis le ${esc(date(l.since_date))} · ${l.sport ? esc(SP().label(l.sport)) : "Tous les sports"} · ${l.share_details ? "détails techniques inclus" : "mesures essentielles"} · ${l.share_notes ? "notes incluses" : "notes privées"}</p>
             <div class="asc-row-flex">${mode === "athlete" ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-scope>${icon("settings")} Modifier mon partage</button>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-propose>${icon("plus")} Proposer une séance</button>`}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-revoke>Arrêter le partage</button></div></section>
+          <div data-co-calendar-slot>${calendarHtml()}</div>
+          <div data-co-tools-slot></div>
           <section class="asc-section"><div class="asc-section-head"><h2>Séances proposées</h2><span class="asc-small asc-muted">${assignments ? `${assignments.total} au total` : "…"}</span></div>
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
             <form class="co-period" data-period><label class="asc-field"><span>Du</span><input class="asc-input" type="date" name="from" value="${fromDate}" max="${isoDay()}" required></label><label class="asc-field"><span>Au</span><input class="asc-input" type="date" name="to" value="${toDate}" max="${isoDay()}" required></label><button type="submit" class="asc-btn asc-btn-secondary">Appliquer</button></form><p class="asc-small asc-faint">Dates incluses · 366 jours au plus · le début réel respecte le consentement du sportif.</p>
+            <div data-co-analysis-slot>${analysisHtml()}</div><div data-co-export-slot>${exportHtml()}</div>
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="asc-empty"><h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
+      </div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
+    mountTools();
+    if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
+  }
+
+  function mountTools() {
+    const slot = root.querySelector("[data-co-tools-slot]"), l = current();
+    if (!slot || !l || !feature("screens.coachtools") || !window.TitanCoachTools) { return; }
+    const job = viewContext;
+    if (!job || !sameContext(job)) return;
+    window.TitanCoachTools.mount(slot, { client: job.client, link: l.id, mode, ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot), propose });
+  }
+
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('[role="tab"][data-mode]');
+    if (!tab || !root.contains(tab)) return;
+    const tabs = [...root.querySelectorAll('.co-mode [role="tab"]')], index = tabs.indexOf(tab);
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs.forEach((button, i) => { button.tabIndex = i === next ? 0 : -1; });
+    tabs[next].focus();
+  }
+
+  function onTabExit(e) {
+    if (!e.target.matches('[role="tab"][data-mode]') || (root.contains(e.relatedTarget) && e.relatedTarget?.closest('.co-mode'))) return;
+    root.querySelectorAll('.co-mode [role="tab"]').forEach(tab => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 
   function onClick(e) {
     const b = e.target.closest("button");
-    if (!b || !root.contains(b)) return;
+    if (!b || !root.contains(b) || !activeView()) return;
     if (b.dataset.mode) {
+      resetWorkspace();
       mode = b.dataset.mode;
       selected = links()[0]?.id || "";
       sessions = null;
@@ -330,7 +628,14 @@
     }
     if (b.hasAttribute("data-invite")) return invite(b);
     if (b.hasAttribute("data-join")) return join();
+    if (b.hasAttribute("data-co-export-csv")) return exportCsv();
+    if (b.hasAttribute("data-calendar-move") || b.hasAttribute("data-calendar-today")) {
+      calendarMonth=b.hasAttribute("data-calendar-today")?isoDay().slice(0,7):workspace().shiftMonth(calendarMonth,Number(b.dataset.calendarMove))||calendarMonth;
+      const target=b.hasAttribute("data-calendar-today")?"[data-calendar-today]":`[data-calendar-move="${b.dataset.calendarMove}"]`;
+      refreshSlot("[data-co-calendar-slot]",calendarHtml());root.querySelector(target)?.focus({preventScroll:true});return;
+    }
     if (b.dataset.link) {
+      cancelExport();calendarMonth=isoDay().slice(0,7);calendarStatus="";
       selected = b.dataset.link;
       sessions = null;
       assignments = null;
@@ -341,16 +646,16 @@
     }
     if (b.hasAttribute("data-scope")) {
       const l = current();
-      return formSheet({ title: "Choisir ce que je partage", body: scopeFields(l), submit: "Enregistrer mes choix", onSubmit: (f) => rpc("scope", { link_id: l.id, revision: l.revision, ...scopeData(f) }) });
+      return formSheet({ title: "Choisir ce que je partage", body: scopeFields(l), submit: "Enregistrer mes choix", onSubmit: (f, _dialog, job) => rpc("scope", { link_id: l.id, revision: l.revision, ...scopeData(f) }, job) });
     }
     if (b.hasAttribute("data-revoke")) {
       const l = current();
-      return window.titanShell.confirm({
+      return confirm({
         title: "Arrêter ce partage ?",
         message: `Le suivi avec ${(mode === "coach" ? l.athlete_name : l.coach_name) || "cette personne"} s’arrête. Les séances ne sont plus accessibles ; ton journal reste intact.`,
         confirmLabel: "Révoquer",
         danger: true,
-        action: () => rpc("revoke", { link_id: l.id, revision: l.revision }).then(() => ((selected = ""), (sessions = null), (assignments = null), load())).catch((err) => {
+        action: (job) => rpc("revoke", { link_id: l.id, revision: l.revision }, job).then(() => { if (!sameContext(job)) return; selected = ""; sessions = assignments = null; return load(); }).catch((err) => {
           throw new Error(human(err));
         }),
       });
@@ -359,7 +664,7 @@
     if (b.dataset.reuse) return propose(assignments?.rows.find((t) => t.id === b.dataset.reuse));
     if (b.dataset.task) return taskAction(assignments?.rows.find((t) => t.id === b.dataset.task), b.dataset.status);
     if (b.dataset.cancelInvite)
-      return window.titanShell.confirm({ title: "Annuler cette invitation ?", message: "Le code ne pourra plus être accepté. Les suivis actifs restent.", confirmLabel: "Annuler l’invitation", action: () => rpc("cancel_invite", { id: b.dataset.cancelInvite }).then(load) });
+      return confirm({ title: "Annuler cette invitation ?", message: "Le code ne pourra plus être accepté. Les suivis actifs restent.", confirmLabel: "Annuler l’invitation", action: (job) => rpc("cancel_invite", { id: b.dataset.cancelInvite }, job).then(() => { if (sameContext(job)) return load(); }) });
     if (b.hasAttribute("data-more-tasks")) return loadDetail({ moreAssignments: true });
     if (b.hasAttribute("data-more-sessions")) return loadDetail({ moreSessions: true });
   }
@@ -367,7 +672,9 @@
   function onSubmit(e) {
     if (!e.target.matches("[data-period]")) return;
     e.preventDefault();
+    if (!activeView()) return;
     const f = new FormData(e.target);
+    cancelExport();
     fromDate = f.get("from");
     toDate = f.get("to");
     sessions = null;
@@ -375,6 +682,12 @@
     loadDetail();
   }
 
+  function onWorkspaceInput(e) {
+    if (!activeView() || !coachView()) return;
+    if (e.target.matches("[data-roster-query]")) {rosterQuery=e.target.value.slice(0,80);const results=root.querySelector("[data-roster-results]");if(results)results.innerHTML=rosterResultsHtml();}
+    if (e.target.matches("[data-roster-sport]")) {rosterSport=e.target.value;const results=root.querySelector("[data-roster-results]");if(results)results.innerHTML=rosterResultsHtml();}
+    if (e.target.matches("[data-calendar-status]")) {calendarStatus=e.target.value;refreshSlot("[data-co-calendar-slot]",calendarHtml());}
+  }
   let booted = false;
   function start() {
     root = document.getElementById("coaching");
@@ -383,15 +696,23 @@
     booted = true;
     SP()?.ensure?.();
     root.addEventListener("click", onClick);
+    root.addEventListener("keydown", onTabKey);
+    root.addEventListener("focusout", onTabExit);
     root.addEventListener("submit", onSubmit);
+    root.addEventListener("input", onWorkspaceInput);
+    root.addEventListener("change", onWorkspaceInput);
     render();
     load();
   }
+  window.addEventListener("titan:account-changing", () => booted && invalidate());
+  window.addEventListener("titan:flags-updated", () => {if(booted){refreshAnalysis();refreshWorkspace();}});
+  window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("online", () => booted && load());
   document.addEventListener("visibilitychange", () => {
     if (!booted) return;
     if (!document.hidden) load();
     else {
+      cancelExport();
       sessions = null;
       assignments = null;
     }

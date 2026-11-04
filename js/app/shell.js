@@ -32,7 +32,7 @@
     { id: "communaute", label: "Communauté", href: "/social", icon: "group" },
     { id: "coaching", label: "Coaching", href: "/coaching", icon: "shield" },
     { id: "atelier", label: "Atelier", href: "/boutique", icon: "sparkle" },
-    { id: "aide", label: "Aide", href: "/service", icon: "help" },
+    { id: "aide", label: "Assistance", href: "/service", icon: "help" },
   ];
   /* Pages of a territory; a page opts in with <nav class="asc-subnav" data-subnav></nav>. */
   const SUBNAV = {
@@ -82,16 +82,22 @@
     };
   }
 
-  /* Equipped cosmetics as last confirmed by the server (titan_atelier / profile row). Display only:
-     TITAN+ pieces fall back to the default look as soon as the local status says the plan ended. */
+  /* Server-resolved appearance is distinct from the raw profile preference. Permanent purchases
+     remain visible after Titan+ ends; temporary access expires. Old servers use a conservative fallback. */
   const PLUS_PIECES = new Set(["frame-aegis", "frame-frost", "map-aurora", "card-obsidian"]);
   function look() {
-    const a = window.state?.user?.appearance || {};
+    const u = window.state?.user || {};
+    const access = window.titanAppearanceAccess?.owner === u.id ? window.titanAppearanceAccess : null;
+    const a = access?.appearance || u.appearance || {};
+    const ends = access ? access.endsAt : u.elite_ends_at;
+    const plus = u.is_elite === true && !u.elite_refunded_at && (!ends || Date.parse(ends) > Date.now()) && (!access || access.plusActive);
     const out = {};
     for (const k of ["frame", "map", "card"]) {
       const v = String(a[k] || "");
       if (!/^[a-z]+-[a-z]+$/.test(v) || v.endsWith("-default") || v === "frame-standard") continue;
-      if (PLUS_PIECES.has(v) && window.state?.user?.is_elite !== true) continue;
+      if (access) {
+        if (!access.permanent.includes(v) && !(plus && access.temporary.includes(v))) continue;
+      } else if (PLUS_PIECES.has(v) && !plus) continue;
       out[k] = v;
     }
     return out;
@@ -115,6 +121,21 @@
     return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Nouvelle séance" : t.label}</span></a>`;
   }
 
+  // Restore only the exact navigation destination whose node this render replaces.
+  function retainNavigationFocus() {
+    const active = document.activeElement;
+    const region = active?.closest(".asc-rail, .asc-topbar, .asc-tabbar, [data-subnav]");
+    const selector = active?.matches("a[href]") ? "a[href]" : active?.matches("[data-shell-more]") ? "[data-shell-more]" : null;
+    if (!region || !selector) return () => {};
+    const href = active.getAttribute("href");
+    const peers = () => [...region.querySelectorAll(selector)].filter(el => el.getAttribute("href") === href);
+    const position = peers().indexOf(active);
+    return () => {
+      if (active.isConnected || document.activeElement !== document.body || document.querySelector("dialog[open]")) return;
+      peers()[position]?.focus({ preventScroll: true });
+    };
+  }
+
   function render() {
     const root = document.body;
     if (!root.classList.contains("asc")) return;
@@ -129,6 +150,7 @@
       }
       return;
     }
+    const restoreFocus = retainNavigationFocus();
     const u = user();
     syncState = computeSync();
     const title = document.body.dataset.title || document.title.split("—")[0].trim();
@@ -160,7 +182,7 @@
     top.innerHTML = `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
       ${isHome ? '<span style="flex:1"></span>' : ""}
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Aide"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Assistance"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
       <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
         <span class="asc-sync" data-state="${syncState.state}"></span>
         <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>
@@ -196,6 +218,7 @@
       t.setAttribute("aria-live", "polite");
       root.append(t);
     }
+    restoreFocus();
   }
 
   let renderQueued = false;
@@ -233,6 +256,7 @@
 
   /* ---------- Sheets ---------- */
   function sheet({ title = "", eyebrow = "", body = "", onClose } = {}) {
+    const restoreFocus = retainNavigationFocus();
     const d = document.createElement("dialog");
     d.className = "asc-sheet";
     d.setAttribute("aria-label", title);
@@ -247,6 +271,7 @@
     d.addEventListener("close", () => {
       d.remove();
       onClose?.();
+      restoreFocus();
     });
     document.body.append(d);
     d.showModal();
@@ -256,33 +281,75 @@
   /** Accessible confirmation; resolves true only on an explicit confirm. `action` may be async and throw. */
   function confirm({ title = "", message = "", detail = "", confirmLabel = "Confirmer", danger = false, action } = {}) {
     return new Promise((resolve) => {
-      let done = false;
+      let done = false, pending = false;
       const body = document.createElement("div");
       body.className = "asc-stack";
-      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small" role="alert" data-error></p>
+      body.innerHTML = `${message ? `<p>${esc(message)}</p>` : ""}${detail ? `<p class="asc-small asc-muted">${esc(detail)}</p>` : ""}<p class="asc-small asc-muted" role="status" data-progress></p><p class="asc-small" role="alert" data-error></p>
         <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="button" class="asc-btn ${danger ? "asc-btn-danger" : "asc-btn-primary"}" data-ok>${esc(confirmLabel)}</button></div>`;
       const d = sheet({ title, body, onClose: () => !done && resolve(false) });
-      body.querySelector("[data-cancel]").addEventListener("click", () => d.close());
+      const cancel = body.querySelector("[data-cancel]");
+      cancel.addEventListener("click", () => d.close());
       const ok = body.querySelector("[data-ok]");
+      const close = d.querySelector("[data-close]");
+      const progress = body.querySelector("[data-progress]");
+      const errorText = body.querySelector("[data-error]");
+      const setPending = value => {
+        pending = value;
+        d.setAttribute("aria-busy", String(value));
+        ok.disabled = cancel.disabled = close.disabled = value;
+        progress.textContent = value ? "Action en cours…" : "";
+      };
+      // Block user dismissal only. Account guards must still be able to call close().
+      d.addEventListener("cancel", e => { if (pending) e.preventDefault(); });
+      d.addEventListener("click", e => {
+        if (pending && (e.target === d || e.target.closest?.("[data-close], [data-cancel]"))) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+      }, true);
       ok.addEventListener("click", async () => {
-        ok.disabled = true;
+        if (pending || done || !d.open) return;
+        errorText.textContent = "";
+        setPending(true);
         try {
           if (action) await action();
           done = true;
           resolve(true);
           d.close();
         } catch (error) {
-          body.querySelector("[data-error]").textContent = error?.message || "Action impossible pour le moment.";
-          ok.disabled = false;
+          errorText.textContent = error?.message || "Action impossible pour le moment.";
+          setPending(false);
+          if (d.open) ok.focus();
         }
       });
-      setTimeout(() => ok.focus(), 30);
+      (danger ? cancel : ok).focus();
     });
   }
+
+  /* Calmer interface on request; the system "reduce motion" setting is always honoured by the stylesheet. */
+  const MOTION_KEY = "titan_motion_v1";
+  function motionReduced() {
+    try { return localStorage.getItem(MOTION_KEY) === "reduced"; } catch { return false; }
+  }
+  function applyMotion() {
+    if (motionReduced()) document.documentElement.setAttribute("data-motion", "reduced");
+    else document.documentElement.removeAttribute("data-motion");
+  }
+  applyMotion();
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-motion-toggle]");
+    if (!button) return;
+    try { localStorage.setItem(MOTION_KEY, motionReduced() ? "default" : "reduced"); } catch {}
+    applyMotion();
+    button.setAttribute("aria-pressed", String(motionReduced()));
+    const sub = button.querySelector(".asc-row-sub");
+    if (sub) sub.textContent = motionReduced() ? "Activées : mouvements limités dans TITAN" : "Désactivées : TITAN suit les réglages de ton appareil";
+  });
 
   /* Secondary destinations on mobile: one tap from the top bar, out of the main tab bar. */
   function openMore() {
     const body = `<nav class="asc-list" aria-label="Plus">${SECONDARY.map((t) => `<a class="asc-row" href="${t.href}"${territory() === t.id ? ' aria-current="page"' : ""}><span class="asc-row-icon">${icon(t.icon)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(t.label)}</span><span class="asc-row-sub">${esc(MORE_HINTS[t.id] || "")}</span></span>${icon("chevron")}</a>`).join("")}</nav>
+      <button type="button" class="asc-row asc-more-motion" data-motion-toggle aria-pressed="${motionReduced()}"><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">${motionReduced() ? "Activées : mouvements limités dans TITAN" : "Désactivées : TITAN suit les réglages de ton appareil"}</span></span></button>
       <p class="asc-small asc-faint asc-more-legal"><a href="/legal_cgu">Conditions</a> · <a href="/legal_privacy">Confidentialité</a> · <a href="/changelog">Nouveautés</a></p>`;
     sheet({ title: "Plus", body });
   }
@@ -295,6 +362,123 @@
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-shell-more]")) openMore();
   });
+
+  /* ---------- Verification request alert (BOT06) ----------
+     An administrator can ask a player to confirm something; the request stays readable on /recours. While one is open
+     this alert is shown on every app page. It informs and links; it never blocks or decides anything. */
+  const VERIFY_RECHECK_MS = 5 * 60 * 1000;
+  let verifyCheckedAt = 0;
+  let verifyOwner = null;
+  let verifyRun = 0;
+  function showVerifyAlert(open) {
+    const main = document.querySelector("main");
+    let el = document.querySelector("[data-verify-alert]");
+    if (!open || !main) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "asc-verify-alert";
+      el.setAttribute("role", "alert");
+      el.setAttribute("data-verify-alert", "");
+      main.prepend(el);
+    }
+    const text = `${open > 1 ? "Des vérifications te sont demandées" : "Une vérification t’est demandée"} par l’équipe TITAN. Aucune sanction automatique : lis la demande et réponds.`;
+    el.innerHTML = `${icon("info")}<span>${esc(text)}</span><a class="asc-btn asc-btn-secondary" href="/recours#verification">Lire et répondre</a>`;
+  }
+  async function checkVerification(force) {
+    const u = user();
+    const client = window.titanClient;
+    if (u.guest || !u.id || !client || typeof client.rpc !== "function" || document.body?.dataset?.shell === "none") return;
+    if (verifyOwner !== u.id) { verifyOwner = u.id; verifyCheckedAt = 0; showVerifyAlert(0); }
+    if (!force && Date.now() - verifyCheckedAt < VERIFY_RECHECK_MS) return;
+    verifyCheckedAt = Date.now();
+    const run = ++verifyRun;
+    try {
+      const { data, error } = await client.rpc("titan_my_verification_requests_v1");
+      if (run !== verifyRun || user().id !== u.id) return;
+      // An older server without this function simply shows nothing.
+      showVerifyAlert(error ? 0 : Math.max(0, Number(data?.open) || 0));
+    } catch {
+      if (run === verifyRun) showVerifyAlert(0);
+    }
+  }
+  window.titanRefreshVerificationAlert = () => checkVerification(true);
+  window.addEventListener("titan:account-changing", () => { verifyRun++; verifyOwner = null; verifyCheckedAt = 0; showVerifyAlert(0); });
+  ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => checkVerification(ev === "titan:account-changed")));
+
+  /* ---------- Feature flags (IDEA10, ADS17) ----------
+     window.titanFlags.enabled("ads.web", true) answers with the server's value for this player when the flag exists, and with
+     the given default when it does not (or when the server has none yet, or is out of reach). A flag the server switched off is
+     false whatever the default, so a network, format or screen can be stopped without a release. Values are cached on the
+     device for ten minutes, per account. Nothing in the app consumes a flag yet. */
+  const FLAGS_TTL_MS = 10 * 60 * 1000;
+  let flagValues = {};
+  let flagsOwner = null;
+  let flagsAt = 0;
+  let flagsRun = 0;
+  const flagsCacheKey = (id) => "titan_flags_v1:" + (id || "anon");
+  function flagsIdentity() {
+    const u = user();
+    return u.guest || !u.id ? null : u.id;
+  }
+  function readFlagsCache(id) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(flagsCacheKey(id)) || "null");
+      if (raw && typeof raw.at === "number" && raw.flags && typeof raw.flags === "object") return raw;
+    } catch {}
+    return null;
+  }
+  function cleanFlags(input) {
+    const out = {};
+    if (input && typeof input === "object") for (const [k, v] of Object.entries(input)) if (typeof v === "boolean" && /^[a-z][a-z0-9_.-]{2,48}$/.test(k)) out[k] = v;
+    return out;
+  }
+  let flagsInFlight = null;
+  const FLAGS_RETRY_MS = 60 * 1000;
+  function refreshFlags(force) {
+    // One request at a time; a failure is not retried before a minute, so a server without the function is not hammered.
+    if (flagsInFlight && !force) return flagsInFlight;
+    flagsInFlight = doRefreshFlags(force).finally(() => { flagsInFlight = null; });
+    return flagsInFlight;
+  }
+  async function doRefreshFlags(force) {
+    const id = flagsIdentity();
+    if (flagsOwner !== id) {
+      flagsOwner = id;
+      const cached = readFlagsCache(id);
+      const before = JSON.stringify(flagValues);
+      flagValues = cached ? cleanFlags(cached.flags) : {};
+      flagsAt = cached ? cached.at : 0;
+      if (JSON.stringify(flagValues) !== before) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+    }
+    if (!force && Date.now() - flagsAt < FLAGS_TTL_MS) return;
+    const run = ++flagsRun;
+    const retryLater = () => { if (run === flagsRun) flagsAt = Math.max(flagsAt, Date.now() - FLAGS_TTL_MS + FLAGS_RETRY_MS); };
+    try {
+      const client = window.titanClient || (typeof window.waitForTitanSupabase === "function" ? await window.waitForTitanSupabase() : null);
+      if (!client || typeof client.rpc !== "function") return retryLater();
+      const { data, error } = await client.rpc("titan_feature_flags_v1");
+      if (run !== flagsRun || flagsIdentity() !== id) return;
+      // An older server without the function keeps what the device already has; the caller's default applies otherwise.
+      if (error || !data || typeof data !== "object") return retryLater();
+      const next = cleanFlags(data.flags);
+      const changed = JSON.stringify(next) !== JSON.stringify(flagValues);
+      flagValues = next;
+      flagsAt = Date.now();
+      try { localStorage.setItem(flagsCacheKey(id), JSON.stringify({ at: flagsAt, flags: flagValues })); } catch {}
+      if (changed) window.dispatchEvent(new CustomEvent("titan:flags-updated"));
+    } catch {
+      retryLater();
+    }
+  }
+  window.titanFlags = {
+    enabled: (key, fallback = false) => (typeof flagValues[key] === "boolean" ? flagValues[key] : Boolean(fallback)),
+    refresh: () => refreshFlags(true),
+  };
+  window.addEventListener("titan:account-changing", () => { flagsRun++; flagsOwner = null; flagValues = {}; flagsAt = 0; });
+  ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => refreshFlags(ev === "titan:account-changed")));
 
   /* ---------- Legacy compatibility ---------- */
   window.titanShell = { refresh, toast, sheet, confirm, user, look, territories: TERRITORIES, esc };
@@ -325,4 +509,6 @@
   );
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render);
   else render();
+  // A signed-in account is served after its session is ready (account-changed / history-updated); only a visitor needs an initial read.
+  setTimeout(() => { if (!flagsIdentity()) refreshFlags(false); }, 0);
 })();

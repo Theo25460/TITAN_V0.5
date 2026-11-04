@@ -69,6 +69,14 @@ const ex = (weight, reps = 10, variant = "") => ({
   setRows: [{ weight, reps, rir: null }],
 });
 
+test('all four campaigns start freely in discovery', async()=>{
+ const {A}=env({browser:true});await A.refresh();
+ for(const world of ['aube','marees','forge','aurores']){
+  await A.action('start',{world,route:'rhythm'});
+  assert.equal(A.snapshot.campaigns.find(c=>c.id===world).chapter,1);
+ }
+});
+
 test("records exclude archived/future sessions and compare whole distances with explicit tolerance", () => {
   const { I } = env();
   const rows = [
@@ -206,10 +214,8 @@ test("guest campaign cannot consume old sessions, double claim or convert a clai
     () => A.action("claim", { world: "aube", chapter: 1 }),
     /QUEST_INCOMPLETE/,
   );
-  await assert.rejects(
-    () => A.action("start", { world: "forge" }),
-    /TITAN_PLUS_REQUIRED/,
-  );
+  await A.action("start", { world: "forge", route: "rhythm" });
+  assert.equal(A.snapshot.campaigns.find(c=>c.id==='forge').chapter,1);
 });
 test("guest action never reports success when persistent storage fails", async () => {
   const { A } = env({ browser: true, storageFailure: true });
@@ -263,4 +269,110 @@ test("initial rendering restores only the matching owner's cached character", ()
   assert.equal(A.status,'cached');
   const wrong=env({browser:true,seed:{'titan_adventure_v1:guest_test':JSON.stringify({...saved,owner:'someone-else'})}});
   assert.equal(wrong.A.snapshot,null);
+});
+
+// Run the real engine and storage. Only the cloud HTTP/auth boundaries are synthetic.
+function cloudCharacter({ revision = 1, chapter = 1, avatar = "scout" } = {}) {
+  return { version: 1, owner: "owner-a", level: 1, xp: 0, next_level_xp: 500,
+    credits: 0, plus: false, avatar, selected_world: "aube", revision,
+    generated_at: "2026-10-10T12:00:00Z",
+    rewards: chapter > 1 ? [{ world: "aube", chapter: 1, source_ids: ["session-1"], earned_at: "2026-10-10T12:00:00Z" }] : [],
+    campaigns: [{ id: "aube", tier: "free", chapter, route: "rhythm", started_at: "2026-10-09T12:00:00Z",
+      target: chapter === 1 ? 1 : 2, effort_target: 0, evidence: { days: chapter === 1 ? 1 : 0, effort: 0, source_ids: chapter === 1 ? ["session-1"] : [] }, completed_at: null }] };
+}
+async function cloudAdventure() {
+  const fixture = env({ browser: true }), { window, context, A } = fixture;
+  const requests = [];
+  window.state.user.id = "owner-a";
+  window.TITAN_SUPABASE_URL = "https://synthetic.invalid";
+  window.TITAN_SUPABASE_ANON_KEY = "synthetic-key";
+  window.titanClient = { auth: { getSession: async () => ({ data: { session: { user: { id: "owner-a" }, access_token: "synthetic-token" } } }) } };
+  context.fetch = (url, init) => {
+    const response = (data, ok = true) => ({ ok, json: async () => data });
+    if (!requests.length) { requests.push({ name: url.split("/").at(-1) }); return Promise.resolve(response(cloudCharacter())); }
+    return new Promise(resolve => requests.push({ name: url.split("/").at(-1), params: JSON.parse(init.body),
+      respond: (data, ok = true) => resolve(response(data, ok)) }));
+  };
+  await A.refresh();
+  return { ...fixture, requests };
+}
+const requestStarted = () => new Promise(setImmediate);
+
+test("adventure confirmation: an overlapping old read cannot remove a confirmed chapter or avatar", async () => {
+  for (const action of ["claim", "avatar"]) {
+    const { A, storage, requests } = await cloudAdventure();
+    const mutation = A.action(action, action === "claim" ? { world: "aube", chapter: 1 } : { avatar: "ranger" });
+    await requestStarted();
+    const reading = A.refresh({ force: true });
+    await requestStarted();
+    assert.equal(requests[1].name, "titan_adventure_action");
+    assert.equal(requests[1].params.p_revision, 1);
+    requests[1].respond(cloudCharacter({ revision: 2, chapter: action === "claim" ? 2 : 1, avatar: action === "avatar" ? "ranger" : "scout" }));
+    await mutation;
+    requests[2].respond(cloudCharacter());
+    await reading;
+    assert.equal(A.snapshot.revision, 2);
+    assert.equal(A.snapshot.campaigns[0].chapter, action === "claim" ? 2 : 1);
+    assert.equal(A.snapshot.rewards.length, action === "claim" ? 1 : 0);
+    assert.equal(A.snapshot.avatar, action === "avatar" ? "ranger" : "scout");
+    assert.equal(JSON.parse(storage.get("titan_adventure_v1:owner-a")).revision, 2);
+  }
+});
+
+test("adventure confirmation: an overlapping read failure cannot downgrade confirmed progress to cached", async () => {
+  const { A, requests } = await cloudAdventure();
+  const mutation = A.action("claim", { world: "aube", chapter: 1 }); await requestStarted();
+  const reading = A.refresh({ force: true }); await requestStarted();
+  requests[1].respond(cloudCharacter({ revision: 2, chapter: 2 })); await mutation;
+  requests[2].respond({ message: "Synthetic read failure" }, false); await reading;
+  assert.equal(A.snapshot.revision, 2);
+  assert.equal(A.status, "ready");
+  assert.equal(A.error, null);
+});
+
+test("adventure confirmation: the next normal refresh does not reuse a superseded pending read", async () => {
+  const { A, requests } = await cloudAdventure();
+  const mutation = A.action("claim", { world: "aube", chapter: 1 }); await requestStarted();
+  const obsolete = A.refresh({ force: true }); await requestStarted();
+  requests[1].respond(cloudCharacter({ revision: 2, chapter: 2 })); await mutation;
+  const fresh = A.refresh(); await requestStarted();
+  assert.equal(requests.length, 4, "a new cloud read starts after confirmation");
+  requests[3].respond(cloudCharacter({ revision: 3, chapter: 2, avatar: "ranger" })); await fresh;
+  requests[2].respond(cloudCharacter()); await obsolete;
+  assert.equal(A.snapshot.revision, 3);
+  assert.equal(A.snapshot.avatar, "ranger");
+});
+
+test("adventure mutation: a normal refresh does not reuse a read invalidated when the action starts", async () => {
+  const { A, requests } = await cloudAdventure();
+  const obsolete = A.refresh(); await requestStarted();
+  const mutation = A.action("claim", { world: "aube", chapter: 1 }); await requestStarted();
+  const fresh = A.refresh(); await requestStarted();
+  assert.equal(requests.length, 4, "a read invalidated by the action is no longer deduplicated");
+  requests[3].respond(cloudCharacter()); await fresh;
+  requests[2].respond(cloudCharacter({ revision: 2, chapter: 2 })); await mutation;
+  requests[1].respond(cloudCharacter()); await obsolete;
+  assert.equal(A.snapshot.revision, 2);
+});
+
+test("adventure mutation: a failed action leaves its overlapping successful read usable", async () => {
+  const { A, requests } = await cloudAdventure();
+  const mutation = A.action("claim", { world: "aube", chapter: 1 });
+  const rejected = assert.rejects(mutation, /ADVENTURE_CONFLICT/); await requestStarted();
+  const reading = A.refresh({ force: true }); await requestStarted();
+  requests[1].respond({ message: "ADVENTURE_CONFLICT" }, false); await rejected;
+  requests[2].respond(cloudCharacter({ revision: 2, chapter: 2 })); await reading;
+  assert.equal(A.snapshot.revision, 2);
+  assert.equal(A.snapshot.rewards.length, 1);
+  assert.equal(A.status, "ready");
+});
+
+test('legacy adventure paywall refusal explains the free-region server update',()=>{
+ const {A}=env({browser:true});assert.match(A.message(Error('TITAN_PLUS_REQUIRED')),/pas accessible pour le moment/);
+});
+
+test('guardian refusal message refers to the displayed personal target',()=>{
+ const {A}=env({browser:true});
+ assert.match(A.message(Error('GUARDIAN_EFFORT_INCOMPLETE')),/objectif affiché/);
+ assert.doesNotMatch(A.message(Error('GUARDIAN_EFFORT_INCOMPLETE')),/150/);
 });

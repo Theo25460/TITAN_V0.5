@@ -3,7 +3,16 @@
    official XP, level and campaigns come from the server; discovery values are labelled as estimates. */
 (function () {
   "use strict";
-  const goalCache = new Map();
+  let goalContext = null;
+  let goalReadSequence = 0;
+  let goalCache = null;
+
+  function invalidateGoals() {
+    goalContext = null;
+    goalCache = null;
+    goalReadSequence++;
+  }
+  window.addEventListener("titan:account-changing", invalidateGoals);
 
   const owner = () => window.state?.user?.id || null;
   const isGuest = (id = owner()) => !id || String(id).startsWith("guest_");
@@ -20,8 +29,22 @@
 
   async function goals({ force = false } = {}) {
     const id = owner();
-    if (!id) return [];
-    if (!force && goalCache.has(id)) return goalCache.get(id);
+    if (!id || window.titanAccountTransition?.active) {
+      invalidateGoals();
+      return [];
+    }
+    const client = window.titanClient;
+    const epoch = window.titanAccountTransition?.epoch;
+    if (!goalContext || goalContext.owner !== id || goalContext.client !== client || goalContext.epoch !== epoch) {
+      invalidateGoals();
+      goalContext = { owner: id, client, epoch };
+    }
+    const ctx = goalContext;
+    if (!force && goalCache) return goalCache;
+    const request = ++goalReadSequence;
+    const current = () => goalContext === ctx && request === goalReadSequence && owner() === id
+      && window.titanClient === client && window.titanAccountTransition?.epoch === epoch
+      && !window.titanAccountTransition?.active;
     const key = `titan_goals_v1:${id}`;
     const fromCache = () => {
       try {
@@ -32,10 +55,11 @@
       }
     };
     let list = fromCache();
-    if (!isGuest(id) && window.titanClient && navigator.onLine) {
+    if (!isGuest(id) && client && navigator.onLine) {
       try {
-        const { data, error } = await window.titanClient.from("sport_goals").select("*").eq("user_id", id).order("id").limit(500);
-        if (!error && Array.isArray(data) && owner() === id) {
+        const { data, error } = await client.from("sport_goals").select("*").eq("user_id", id).order("id").limit(500);
+        if (!current()) return [];
+        if (!error && Array.isArray(data)) {
           list = data;
           try {
             localStorage.setItem(key, JSON.stringify(data));
@@ -43,8 +67,8 @@
         }
       } catch {}
     }
-    if (owner() !== id) return [];
-    goalCache.set(id, list);
+    if (!current()) return [];
+    goalCache = list;
     return list;
   }
 

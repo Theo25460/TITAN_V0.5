@@ -34,7 +34,7 @@ test('release assets use the same release version', async () => {
   const serviceWorker = await read('sw.js');
   assert.match(config, /version: "300\.0"/);
   assert.match(config, /TITAN_ASSET_VERSION = "300\.0"/);
-  assert.match(serviceWorker, /titan-os-v300-ascension/);
+  assert.match(serviceWorker, /titan-os-v301-profile-sync-20261104-r1/);
   assert.match(serviceWorker, /\[\/\* PRECACHE \*\/\]/);
   const { readdir } = await import('node:fs/promises');
   for (const file of (await readdir('.')).filter((f) => f.endsWith('.html'))) {
@@ -59,8 +59,8 @@ test('public discovery pages are indexable, canonical and content-rich', async (
     assert.equal((html.match(/<h1\b/g) || []).length, 1);
     assert.match(html, /class="pub-faq"/);
     assert.match(html, /"@type":"FAQPage"/);
-    assert.match(html, /ascension\.css\?v=300\.0/);
-    assert.match(html, /public\.css\?v=300\.0/);
+    assert.match(html, /ascension\.css\?v=300\.\d+/);
+    assert.match(html, /<link rel="stylesheet" href="\/css\/public\.css\?v=300\.\d+">/);
     assert.match(sitemap, new RegExp(`<loc>https://titan-app\\.fr${route}</loc>`));
   }
 });

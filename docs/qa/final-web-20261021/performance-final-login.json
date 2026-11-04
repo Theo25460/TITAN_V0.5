@@ -1,0 +1,31 @@
+{
+  "code": "14f8bbb",
+  "local_static_without_compression": true,
+  "third_parties_blocked": true,
+  "rows": [
+    {
+      "run": "login-mobile-run3",
+      "score": 83,
+      "lcp_ms": 3753,
+      "tbt_ms": 0,
+      "cls": 0.0002833266253265773,
+      "benchmark": 2775.5
+    },
+    {
+      "run": "login-mobile-run2",
+      "score": 83,
+      "lcp_ms": 3753,
+      "tbt_ms": 0,
+      "cls": 0.039343723019647406,
+      "benchmark": 2651
+    },
+    {
+      "run": "login-mobile-run1",
+      "score": 82,
+      "lcp_ms": 3758,
+      "tbt_ms": 0,
+      "cls": 0.039343723019647406,
+      "benchmark": 2596
+    }
+  ]
+}

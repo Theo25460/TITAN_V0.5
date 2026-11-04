@@ -425,55 +425,220 @@ window.titanCleanProfileName = window.titanCleanProfileName || function(value) {
     }
 };
 
-// One profile save at a time: a second save waits and leaves with the version returned by the first,
-// instead of racing it into PROFILE_VERSION_CONFLICT.
+// Owner-bound, durable profile outbox. Training logs keep their existing separate queue.
 let titanProfilePush = null;
-let titanProfilePushAgain = false;
-function pushProfileStateToCloud() {
-    if (titanProfilePush) {
-        titanProfilePushAgain = true;
-        return titanProfilePush;
-    }
-    titanProfilePush = pushProfileStateToCloudOnce().finally(() => {
-        titanProfilePush = null;
-        if (titanProfilePushAgain) {
-            titanProfilePushAgain = false;
-            pushProfileStateToCloud();
+let titanProfilePushOwner = null;
+let titanProfileSendingSignature = null;
+const titanProfileControls = new Map();
+const titanProfilePulls = new Map();
+const titanProfileDeletedOwners = new Set();
+const TITAN_PROFILE_PREFS = ['name','avatar','weeklyGoalSessions','favoriteSports','favorites','schedule','gymRoutines','goals','sportGoals','onboardingComplete','preferredSports','units','theme','notifications','lastSessionSummary','cadencePauses','onboardedAt'];
+const TITAN_PROFILE_EDITS = 'titan_profile_edits_v2_';
+function titanProfilePreferences(state) {
+    const user = {};
+    for (const key of TITAN_PROFILE_PREFS) if (state?.user?.[key] !== undefined) user[key] = state.user[key];
+    return { user, privacy: state?.user?.privacy || { publicProfile:false,showStats:false,socialPresence:false,friendRankings:false }, last_week_id:state?.user?.last_week_id || '', last_seen_news_version:state?.user?.last_seen_news_version || null };
+}
+function titanProfileCanonical(value) {
+    const stable = v => Array.isArray(v) ? v.map(stable) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])) : v;
+    return JSON.stringify(stable(value));
+}
+function titanProfileSignature(value) { return titanProfileCanonical(titanProfilePreferences(value)); }
+function titanMergeProfilePreferences(base, local, cloud) {
+    if(base===undefined || base===null) return JSON.parse(JSON.stringify(local));
+    if(titanProfileCanonical(base)===titanProfileCanonical(local)) return cloud;
+    if(base && local && cloud && typeof base==='object' && typeof local==='object' && typeof cloud==='object' && !Array.isArray(base) && !Array.isArray(local) && !Array.isArray(cloud)) {
+        const merged={...cloud};
+        for(const key of new Set([...Object.keys(base),...Object.keys(local)])) {
+            if(titanProfileCanonical(base[key])===titanProfileCanonical(local[key])) continue;
+            if(local[key]===undefined) delete merged[key];
+            else merged[key]=titanMergeProfilePreferences(base[key],local[key],cloud[key]);
         }
+        return merged;
+    }
+    return local;
+}
+function titanProfileControl(owner) {
+    if (!titanProfileControls.has(owner)) {
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem('titan_profile_control_v2_'+owner) || '{}'); } catch (_) {}
+        titanProfileControls.set(owner, { accepted:saved.accepted, blocked:saved.blocked === true, retryAt:Number(saved.retryAt)||0, failures:Number(saved.failures)||0, timer:null });
+    }
+    const control = titanProfileControls.get(owner);
+    // Another tab may have observed a conflict. Never ignore its durable circuit breaker.
+    try { if (JSON.parse(localStorage.getItem('titan_profile_control_v2_'+owner)||'{}').blocked) control.blocked = true; } catch (_) {}
+    return control;
+}
+function titanSaveProfileControl(owner, control) {
+    localStorage.setItem('titan_profile_control_v2_'+owner,JSON.stringify({accepted:control.accepted,blocked:control.blocked,retryAt:control.retryAt,failures:control.failures}));
+}
+function titanProfileCopies(owner) {
+    const copies = [];
+    for(let i=0;i<localStorage.length;i++) {
+        const key=localStorage.key(i);
+        if (!key?.startsWith(TITAN_PROFILE_EDITS+owner+'_')) continue;
+        const row=JSON.parse(localStorage.getItem(key));
+        if (row?.owner===owner && row.preferences?.user) copies.push({...row,key});
+    }
+    return copies;
+}
+function titanProtectProfile(state, reason, uncertain=false) {
+    const owner=state?.user?.id, signature=titanProfileSignature(state);
+    const existing=titanProfileCopies(owner).find(row=>row.signature===signature && (!uncertain || row.baseline===null));
+    if (existing) return existing.key;
+    const key=TITAN_PROFILE_EDITS+owner+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    localStorage.setItem(key,JSON.stringify({owner,signature,reason,at:new Date().toISOString(),version:state.meta?.profileVersion,baseline:!uncertain && titanProfileControl(owner).accepted?JSON.parse(titanProfileControl(owner).accepted):null,preferences:titanProfilePreferences(state)}));
+    return key;
+}
+function titanProfileStatus(status,message) { try { window.titanSetSyncStatus?.(status,message); } catch (_) {} }
+function titanProfileError(code) { return {code,message:code}; }
+function titanIsProfileVersionConflict(error) { return String(error?.code)==='40001'||String(error?.message||'').includes('PROFILE_VERSION_CONFLICT'); }
+function titanScheduleProfile(owner, delay) {
+    const control=titanProfileControl(owner);
+    if (control.timer || control.blocked) return;
+    control.timer=setTimeout(()=>{control.timer=null;if(window.state?.user?.id===owner) pushProfileStateToCloud();},delay);
+}
+function pushProfileStateToCloud() {
+    const owner=window.state?.user?.id;
+    if (!window.titanClient || !isCloudUser()) return Promise.resolve(null);
+    if (titanProfileDeletedOwners.has(owner)) return Promise.resolve(titanProfileError('PROFILE_OWNER_DELETED'));
+    const control=titanProfileControl(owner);
+    if (control.blocked) return Promise.resolve(titanProfileError('PROFILE_SYNC_REVIEW_REQUIRED'));
+    if (titanProfilePulls.has(owner)) return Promise.resolve(titanProfileError('PROFILE_READ_IN_PROGRESS'));
+    if (Date.now()<control.retryAt) return Promise.resolve(titanProfileError('PROFILE_SYNC_BACKOFF'));
+    if (titanProfilePush) {
+        if (titanProfilePushOwner===owner) return titanProfilePush;
+        return titanProfilePush.then(()=>window.state?.user?.id===owner?pushProfileStateToCloud():titanProfileError('PROFILE_OWNER_CHANGED'));
+    }
+    if (control.accepted===titanProfileSignature(window.state)) return Promise.resolve(null);
+    const client=window.titanClient, epoch=window.titanAccountTransition?.epoch;
+    const current=()=>!titanProfileDeletedOwners.has(owner) && window.state?.user?.id===owner && window.titanClient===client && window.titanAccountTransition?.epoch===epoch;
+    titanProfilePushOwner=owner;
+    titanProfilePush=Promise.resolve().then(async()=>{
+        if (!current()) return titanProfileError('PROFILE_OWNER_CHANGED');
+        const snapshot=cloneProfileStateForCloud(window.state);
+        titanProfileSendingSignature=titanProfileSignature(snapshot);
+        try { titanProtectProfile(snapshot,'pending'); } catch (_) { control.blocked=true;titanProfileStatus('error','Copie locale impossible : sauvegarde cloud suspendue pour protéger tes modifications.');return titanProfileError('PROFILE_LOCAL_BACKUP_FAILED'); }
+        let error;
+        if(!Number.isInteger(snapshot.meta?.profileVersion)) error=titanProfileError('PROFILE_READ_REQUIRED');
+        else if (navigator.onLine===false) error=titanProfileError('PROFILE_OFFLINE');
+        else {
+            try { error=await pushProfileStateToCloudOnce({owner,client,current,snapshot}); }
+            catch (cause) { error=cause; }
+        }
+        if(control.deleted) return titanProfileError('PROFILE_OWNER_DELETED');
+        if (error) {
+            const transient=!error.code || ['PROFILE_OFFLINE','TIMEOUT','FETCH_FAILED'].includes(error.code) || Number(error.status)>=500;
+            control.failures=Math.min(6,control.failures+1);
+            control.blocked=titanIsProfileVersionConflict(error)||!transient||control.failures>=6;
+            control.retryAt=Date.now()+Math.min(300000,30000*2**(control.failures-1));
+            try { titanSaveProfileControl(owner,control); } catch (_) { control.blocked=true; }
+            if (current()) titanProfileStatus('error',control.blocked?'Préférences locales conservées : compare les copies avant de les réappliquer.':'Sauvegarde en attente. Copie locale conservée ; nouvelle tentative espacée.');
+            if (!control.blocked && navigator.onLine!==false) titanScheduleProfile(owner,Math.max(0,control.retryAt-Date.now()));
+        } else {
+            control.accepted=titanProfileSignature(snapshot);control.failures=0;control.retryAt=0;
+            try {
+                titanSaveProfileControl(owner,control);
+                for (const row of titanProfileCopies(owner)) if(row.signature===control.accepted) localStorage.removeItem(row.key);
+            } catch (_) { control.blocked=true; }
+        }
+        return error;
+    }).catch(error=>{control.blocked=true;return error;}).finally(()=>{
+        titanProfilePush=null;titanProfilePushOwner=null;titanProfileSendingSignature=null;
+        if (current() && !control.blocked && !control.failures && control.accepted!==titanProfileSignature(window.state)) titanScheduleProfile(owner,window.TITAN_CLOUD_SYNC_DELAY_MS||2000);
+        titanRenderProfileRecovery();
     });
     return titanProfilePush;
 }
 
-async function pushProfileStateToCloudOnce() {
+window.titanInvalidateProfileWrites=function(owner){
+    titanProfileDeletedOwners.add(owner);
+    const control=titanProfileControls.get(owner);
+    if(control){control.deleted=true;if(control.timer)clearTimeout(control.timer);}
+    titanProfileControls.delete(owner);
+    if(window.state?.user?.id===owner)++titanProfileSyncGeneration;
+};
+window.titanGetProfileRecovery=function(){
+    if(!isCloudUser() || window.titanAccountTransition?.active || titanProfileDeletedOwners.has(window.state.user.id)) return [];
+    try { return titanProfileCopies(window.state.user.id); } catch (_) { return []; }
+};
+window.titanRestoreProfileRecovery=async function(key){
+    const owner=window.state?.user?.id,row=window.titanGetProfileRecovery().find(r=>r.key===key);
+    if(!row || !window.confirm?.('Réappliquer ces préférences à la version cloud actuelle ? Les champs de cette copie remplaceront les mêmes champs cloud. Les séances, XP et crédits ne changent pas.')) return false;
+    const result=await window.syncWithSupabase();
+    if(!result?.ok || window.state?.user?.id!==owner) return false;
+    const desired=titanMergeProfilePreferences(row.baseline,row.preferences,titanProfilePreferences(window.state));
+    for(const name of TITAN_PROFILE_PREFS) if(Object.prototype.hasOwnProperty.call(desired.user,name)) window.state.user[name]=desired.user[name];
+    window.state.user.privacy=desired.privacy;
+    window.state.user.last_week_id=desired.last_week_id;
+    window.state.user.last_seen_news_version=desired.last_seen_news_version;
+    const control=titanProfileControl(owner);control.blocked=false;control.failures=0;control.retryAt=0;
+    titanSaveProfileControl(owner,control);
+    const error=await window.saveState({forceCloud:true});
+    if(!error && !control.blocked){localStorage.removeItem(row.key);titanRenderProfileRecovery();return true;}
+    return false;
+};
+function titanRenderProfileRecovery(){
+    if(typeof document.createElement!=='function' || !document.body) return;
+    document.getElementById('titan-profile-recovery')?.remove();
+    const copies=window.titanGetProfileRecovery();if(!copies.length) return;
+    const owner=window.state.user.id, card=document.createElement('section');card.id='titan-profile-recovery';card.className='asc-card';card.style.padding='16px';
+    const title=document.createElement('h2');title.textContent='Préférences locales à vérifier';card.appendChild(title);
+    const help=document.createElement('p');help.textContent='Ces copies restent sur cet appareil. Compare-les à ton profil cloud avant de réappliquer. Les séances restent dans leur file séparée.';card.appendChild(help);
+    for(const row of copies){
+        const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');
+        summary.textContent='Copie du '+row.at;pre.textContent=JSON.stringify(row.preferences,null,2);pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';details.append(summary,pre);
+        const button=(label,run)=>{const b=document.createElement('button');b.type='button';b.className='asc-btn asc-btn-secondary';b.textContent=label;b.addEventListener('click',()=>{if(window.state?.user?.id===owner&&!window.titanAccountTransition?.active)Promise.resolve().then(run).catch(()=>titanProfileStatus('error','La copie est conservée. Opération non confirmée.'));});details.appendChild(b);};
+        button('Télécharger la copie',()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(row,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='titan-preferences-locales.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+        button('Réappliquer ces préférences',()=>window.titanRestoreProfileRecovery(row.key));
+        button('Garder le cloud et retirer cette copie',async()=>{if(!window.confirm('Retirer uniquement cette copie locale ? Télécharge-la d’abord si tu veux la conserver.'))return;const result=await window.syncWithSupabase();if(!result?.ok||window.state?.user?.id!==owner)return;localStorage.removeItem(row.key);if(!titanProfileCopies(owner).length){const c=titanProfileControl(owner);c.blocked=false;c.failures=0;titanSaveProfileControl(owner,c);}titanRenderProfileRecovery();});
+        card.appendChild(details);
+    }
+    const host=document.querySelector('main')||document.body;host.prepend(card);
+}
+window.addEventListener('titan:history-updated',titanRenderProfileRecovery);
+window.addEventListener('titan:account-changing',()=>document.getElementById('titan-profile-recovery')?.remove());
+window.addEventListener('online',()=>{
+    if(!isCloudUser()) return;
+    const owner=window.state.user.id,control=titanProfileControl(owner);
+    if(!titanProfileCopies(owner).length)return;
+    if(!control.blocked && control.accepted!==titanProfileSignature(window.state)) titanScheduleProfile(owner,Math.max(0,control.retryAt-Date.now()));
+});
+
+async function pushProfileStateToCloudOnce(request) {
+    const {owner,client,current,snapshot:stateSnapshot}=request;
+    if(!current()) return titanProfileError('PROFILE_OWNER_CHANGED');
+    const sessionResult=await withTitanTimeout(client.auth.getSession(),4000,'Session du profil');
+    if(!current() || sessionResult?.data?.session?.user?.id!==owner || !sessionResult.data.session.access_token) return titanProfileError('AUTH_REQUIRED');
+    const token=sessionResult.data.session.access_token;
     if (!window.titanClient || !isCloudUser()) return null;
 
     if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Sauvegarde…');
     window.lastCloudSync = Date.now();
-    const stateSnapshot = cloneProfileStateForCloud(window.state);
-    const avatarValue = String(window.state.user.avatar || '').trim();
+    const avatarValue = String(stateSnapshot.user.avatar || '').trim();
     const safeAvatar = /^avatar_\d+\.png$/i.test(avatarValue) || /^[a-z0-9_-]+_\d+\.(png|jpe?g|webp|gif)$/i.test(avatarValue)
         ? avatarValue
         : null;
     const updatePayload = {
         game_state: stateSnapshot,
-        username: window.titanCleanProfileName(window.state.user.name) || 'Agent',
+        username: window.titanCleanProfileName(stateSnapshot.user.name) || 'Agent',
         avatar: safeAvatar,
-        inventory: window.state.user.inventory,
-        friend_code: window.state.user.friend_code,
-        privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
-        streak_count: window.state.user.streak_count,
-        last_week_id: window.state.user.last_week_id,
+        inventory: stateSnapshot.user.inventory,
+        friend_code: stateSnapshot.user.friend_code,
+        privacy: stateSnapshot.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
+        streak_count: stateSnapshot.user.streak_count,
+        last_week_id: stateSnapshot.user.last_week_id,
         updated_at: new Date().toISOString()
     };
 
-    if (window.state.user.last_seen_news_version) {
-        updatePayload.last_seen_news_version = window.state.user.last_seen_news_version;
+    if (stateSnapshot.user.last_seen_news_version) {
+        updatePayload.last_seen_news_version = stateSnapshot.user.last_seen_news_version;
     }
 
     if (typeof window.titanClient.rpc === 'function') {
         try {
             const { data, error } = await withTitanTimeout(
-                window.titanClient.rpc('titan_save_profile_state', {
+                client.rpc('titan_save_profile_state', {
                     p_state: stateSnapshot,
                     p_username: updatePayload.username,
                     p_avatar: updatePayload.avatar,
@@ -482,27 +647,26 @@ async function pushProfileStateToCloudOnce() {
                     p_streak_count: updatePayload.streak_count || 0,
                     p_last_week_id: updatePayload.last_week_id || '',
                     p_last_seen_news_version: updatePayload.last_seen_news_version || null
-                }),
+                }).setHeader('Authorization', 'Bearer '+token),
                 7000,
                 'Sauvegarde profil cloud'
             );
 
             if (!error) {
+                if(data?.id!==owner || !Number.isInteger(data?.state_version)) return titanProfileError('PROFILE_RECEIPT_INVALID');
+                if(!current()) return null;
                 applyCloudProfileStateResult(data);
+                localStorage.setItem(window.STATE_KEY,JSON.stringify(cloneStateForLocalStorage(window.state)));
                 recordProfileSyncDiagnostic('synced', {
                     mode: 'rpc',
-                    userId: window.state.user.id,
+                    userId: stateSnapshot.user.id,
                     updatedAt: data?.updated_at || new Date().toISOString()
                 });
                 if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
-                if (typeof window.titanRefreshProgressionSnapshot === 'function') {
-                    window.titanRefreshProgressionSnapshot({ silent: true }).catch(refreshError => {
-                        trackDbSoftIssue('progression.snapshot.after_profile_sync', refreshError);
-                    });
-                }
                 return null;
             }
 
+            if(!current()) return error;
             recordProfileSyncDiagnostic('error', {
                 mode: 'rpc_required',
                 code: error.code || '',
@@ -511,6 +675,7 @@ async function pushProfileStateToCloudOnce() {
             trackDbIssue('profiles.state.rpc', error);
             return error;
         } catch (rpcError) {
+            if(!current()) return rpcError;
             recordProfileSyncDiagnostic('error', {
                 mode: 'rpc_required',
                 code: rpcError?.code || '',
@@ -536,7 +701,7 @@ async function pushProfileStateToCloudOnce() {
 function applyCloudProfileStateResult(profileResult) {
     const profile = profileResult && typeof profileResult === 'object' ? profileResult : {};
     if (!window.state?.user) return;
-    if (profile.state_version) window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version});
+    if (Number.isInteger(profile.state_version)) window.state.meta=Object.assign({},window.state.meta,{profileVersion:Math.max(Number(window.state.meta?.profileVersion)||0,profile.state_version)});
     if (profile.friend_code) window.state.user.friend_code = profile.friend_code;
     if (typeof profile.is_elite !== 'undefined') window.state.user.is_elite = profile.is_elite === true;
     if (typeof profile.is_tester !== 'undefined') window.state.user.is_tester = profile.is_tester === true;
@@ -861,16 +1026,25 @@ window.createDefaultState = function() {
 // 4. SAUVEGARDE (LOCALE & CLOUD)
 window.saveState = function(options = {}) {
     if (!window.state) return;
+    if(titanProfileDeletedOwners.has(window.state.user?.id)) return Promise.resolve(titanProfileError('PROFILE_OWNER_DELETED'));
 
     const saveOptions = (options === true) ? { forceCloud: true } : options;
     ensureStateIntegrity();
     window.state.meta.updatedAt = new Date().toISOString();
     localStorage.setItem(window.STATE_KEY, JSON.stringify(cloneStateForLocalStorage(window.state)));
+    if(!saveOptions.localOnly && isCloudUser()) {
+        const owner=window.state.user.id,control=titanProfileControl(owner);
+        const uncertain=titanProfilePushOwner===owner && titanProfileSendingSignature && titanProfileSendingSignature!==titanProfileSignature(window.state);
+        if(uncertain || control.accepted!==titanProfileSignature(window.state)) {
+            try { titanProtectProfile(window.state,'pending',Boolean(uncertain)); }
+            catch (_) { control.blocked=true;titanProfileStatus('error','Copie locale impossible : sauvegarde suspendue pour protéger tes modifications.');return Promise.resolve(titanProfileError('PROFILE_LOCAL_BACKUP_FAILED')); }
+        }
+    }
     if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('local', 'Sur cet appareil');
 
     if (typeof window.updateGlobalUI === 'function') window.updateGlobalUI();
 
-    if (window.titanClient && isCloudUser()) {
+    if (!saveOptions.localOnly && window.titanClient && isCloudUser()) {
         const now = Date.now();
         const delay = window.TITAN_CLOUD_SYNC_DELAY_MS || 2000;
         const elapsed = now - (window.lastCloudSync || 0);
@@ -897,6 +1071,9 @@ window.loadServerData = async function() {
     window.TITAN_DB_STATUS.issues = [];
     window.TITAN_DB_STATUS.softIssues = [];
     const CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+    // IDEA09: the shared catalogues (sports, shop, creatures...) change rarely. A copy younger than this is reused without asking the
+    // server again; the per-account tables are always read. The admin screens always read the live catalogues.
+    const CATALOG_REUSE_MS = 10 * 60 * 1000;
 
     const cached = localStorage.getItem(window.CACHE_KEY);
     let cachedData = null;
@@ -943,6 +1120,17 @@ window.loadServerData = async function() {
         ];
 
         const page=location.pathname.replace(/\.html$/, '');
+        const catalogAge = cachedAt ? Date.now() - cachedAt : Number.POSITIVE_INFINITY;
+        const reuseCatalog = catalogAge >= 0 && catalogAge <= CATALOG_REUSE_MS && !/admin/.test(page)
+            && Array.isArray(cachedData?.sports) && cachedData.sports.length > 0;
+        if (reuseCatalog) {
+            const cachedKeyByTable = { mobs: 'mobs', bosses: 'bosses', creatures: 'creatures', talents: 'talents', sports: 'sports', achievements_config: 'achievements', global_config: 'globalConf', fun_stats: 'funStats', shop_items: 'shopItems' };
+            queries.forEach((entry, index) => {
+                const key = cachedKeyByTable[entry[0]];
+                if (key) queries[index] = [entry[0], Promise.resolve({ data: Array.isArray(cachedData[key]) ? cachedData[key] : null, error: null })];
+            });
+            window.TITAN_DB_STATUS.catalogReused = true;
+        }
         const gamePage=/adventure|talents|boutique|trophies|admin/.test(page);
         const optional=new Set(['mobs','bosses','creatures','talents','fun_stats','shop_items','shop_history']);
         if(!gamePage)queries.forEach((entry,index)=>{if(optional.has(entry[0]))queries[index]=[entry[0],Promise.resolve({data:null,error:null})];});
@@ -1019,7 +1207,7 @@ window.loadServerData = async function() {
         if (window.TITAN_DB_STATUS.issues.length === 0 && window.TITAN_DB_STATUS.softIssues.length === 0) {
             localStorage.setItem(window.CACHE_KEY, JSON.stringify({
                 version: 'v2',
-                cachedAt: Date.now(),
+                cachedAt: reuseCatalog ? cachedAt : Date.now(),
                 data: freshData
             }));
             window.TITAN_DB_STATUS.cache = { source: 'network', stale: false, ageMs: 0 };
@@ -1079,6 +1267,7 @@ window.applyGameData = function(data) {
         safeArray(data.sports).forEach(s => {
             if (s.is_active !== false) {
                 window.SPORTS_CONFIG[s.id] = {
+                    catalogSource: 'server',
                     label: s.label,
                     name: s.name || s.label,
                     slug: s.slug || s.id,
@@ -1172,6 +1361,35 @@ function withTitanTimeout(promise, timeoutMs, scope) {
 
 window.titanWithTimeout = withTitanTimeout;
 
+// Separate raw profile preferences from cosmetics resolved by the authenticated server.
+// This cache is memory-only and bound to its owner; never part of game_state/profile writes.
+window.titanAppearanceAccess = null;
+window.titanApplyAtelierAppearance = function(data, ownerId) {
+    const u = window.state?.user;
+    if (!u || u.id !== ownerId || !data || (data.owner && data.owner !== ownerId) || !Array.isArray(data.items) || !data.appearance || typeof data.appearance !== 'object') return false;
+    const owned = data.items.filter(i => i.owned === true);
+    const permanent = i => i.permanent === true || (typeof i.permanent === 'undefined' && i.unlock !== 'plus' && !i.plus_access);
+    window.titanAppearanceAccess = {
+        owner: ownerId, appearance: Object.assign({}, data.appearance),
+        permanent: owned.filter(permanent).map(i => i.cosmetic),
+        temporary: owned.filter(i => !permanent(i)).map(i => i.cosmetic),
+        plusActive: data.plus?.active === true, endsAt: data.plus?.ends_at || null
+    };
+    u.appearance = Object.assign({}, data.appearance);
+    u.is_elite = data.plus?.active === true;
+    u.elite_ends_at = data.plus?.ends_at || null;
+    if (Object.prototype.hasOwnProperty.call(data.plus || {}, 'refunded_at')) u.elite_refunded_at = data.plus.refunded_at;
+    return true;
+};
+window.titanSyncAppearance = async function() {
+    const ownerId = window.state?.user?.id;
+    if (!ownerId || String(ownerId).startsWith('guest_') || !window.titanClient?.rpc) return false;
+    try {
+        const {data, error} = await withTitanTimeout(window.titanClient.rpc('titan_atelier'), 4000, 'Apparence');
+        return !error && window.titanApplyAtelierAppearance(data, ownerId);
+    } catch { return false; } // Old/missing RPC or offline: keep the conservative profile fallback.
+};
+
 window.titanRetry = async function(task, options = {}) {
     const retries = Math.max(0, parseInt(options.retries, 10) || 0);
     const delayMs = Math.max(0, parseInt(options.delayMs, 10) || 250);
@@ -1190,15 +1408,32 @@ window.titanRetry = async function(task, options = {}) {
 };
 
 // 6. SYNC PROFIL UTILISATEUR (AUTH)
-window.syncWithSupabase = async function() {
-    if (!window.titanClient) {
+let titanProfileSyncGeneration = 0;
+window.titanAccountTransition = { active: false, owner: null, epoch: 0 };
+function beginTitanAccountTransition(owner) {
+    window.titanAccountTransition = { active: true, owner, epoch: window.titanAccountTransition.epoch + 1 };
+    window.dispatchEvent(new CustomEvent('titan:account-changing'));
+}
+// Called synchronously by auth, before deferred profile/history work can run.
+window.titanInvalidateAccountSession = function(owner) {
+    ++titanProfileSyncGeneration;
+    beginTitanAccountTransition(owner);
+};
+async function titanReadCloudProfile() {
+    const client = window.titanClient;
+    const generation = ++titanProfileSyncGeneration;
+    let expectedOwner = window.state?.user?.id;
+    const current = () => generation === titanProfileSyncGeneration
+        && window.titanClient === client && window.state?.user?.id === expectedOwner;
+    if (!client) {
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('offline', 'Connexion indisponible');
         return;
     }
 
     try {
         if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('pending', 'Récupération…');
-        const sessionResult = await withTitanTimeout(window.titanClient.auth.getSession(), 4000, 'Session Supabase');
+        const sessionResult = await withTitanTimeout(client.auth.getSession(), 4000, 'Session Supabase');
+        if (!current()) return;
         if (sessionResult.error) {
             trackDbIssue('auth.session', sessionResult.error);
             return;
@@ -1206,28 +1441,33 @@ window.syncWithSupabase = async function() {
 
         const { data: { session } } = sessionResult;
         if (!session) {
+            if (expectedOwner && !String(expectedOwner).startsWith('guest_')) beginTitanAccountTransition(null);
             if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus('local', 'Sur cet appareil');
             return;
         }
+        if (session.user.id !== expectedOwner) beginTitanAccountTransition(session.user.id);
 
-        let { data: profile, error } = await withTitanTimeout(window.titanClient
+        let { data: profile, error } = await withTitanTimeout(client
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle(), 4000, 'Profil Supabase');
+        if (!current()) return;
 
         if (error) {
             trackDbIssue('profiles.select', error);
             return;
         }
 
+        if(profile && profile.id!==session.user.id) throw new Error('PROFILE_OWNER_MISMATCH');
         if (!profile) {
             if (!window.state) createDefaultState();
             window.state.user.id = session.user.id;
+            expectedOwner = session.user.id;
             ensureStateIntegrity();
             const signupName = session.user.user_metadata?.username || session.user.user_metadata?.full_name || "Agent";
 
-            if (!window.titanClient.rpc || typeof window.titanClient.rpc !== 'function') {
+            if (!client.rpc || typeof client.rpc !== 'function') {
                 const rpcRequiredError = new Error('PROFILE_CREATE_RPC_REQUIRED');
                 rpcRequiredError.code = 'PROFILE_CREATE_RPC_REQUIRED';
                 trackDbIssue('profiles.create.rpc', rpcRequiredError);
@@ -1236,7 +1476,7 @@ window.syncWithSupabase = async function() {
 
             const stateSnapshot = cloneProfileStateForCloud(window.state);
             const { data: createdProfile, error: createProfileError } = await withTitanTimeout(
-                window.titanClient.rpc('titan_save_profile_state', {
+                client.rpc('titan_save_profile_state', {
                     p_state: stateSnapshot,
                     p_username: window.titanCleanProfileName(signupName) || 'Agent',
                     p_avatar: window.state.user.avatar || null,
@@ -1249,6 +1489,7 @@ window.syncWithSupabase = async function() {
                 5000,
                 'Creation profil RPC'
             );
+            if (!current()) return;
 
             if (createProfileError) {
                 trackDbIssue('profiles.create.rpc', createProfileError);
@@ -1262,7 +1503,8 @@ window.syncWithSupabase = async function() {
             const reason = profile.suspension_reason || "Compte suspendu par l'administration TITAN OS.";
             if (window.showNotification) window.showNotification('error', 'ACCES SUSPENDU', reason);
             else console.warn('[ACCES SUSPENDU]', reason);
-            await window.titanClient.auth.signOut();
+            await client.auth.signOut();
+            if (!current()) return;
             localStorage.removeItem(window.STATE_KEY);
             createDefaultState();
             saveState({ forceCloud: false });
@@ -1271,12 +1513,13 @@ window.syncWithSupabase = async function() {
         }
 
         if (!profile.friend_code) {
-            if (window.titanClient.rpc) {
+            if (client.rpc) {
                 const { data: assignedCode, error: assignError } = await withTitanTimeout(
-                    window.titanClient.rpc('titan_assign_friend_code'),
+                    client.rpc('titan_assign_friend_code'),
                     4000,
                     'Generation code ami'
                 );
+                if (!current()) return;
                 if (!assignError && assignedCode) {
                     profile.friend_code = assignedCode;
                 } else if (assignError && assignError.code !== 'PGRST202') {
@@ -1292,11 +1535,16 @@ window.syncWithSupabase = async function() {
         }
 
         const localStateBeforeSync = window.state ? cloneStateForCloud(window.state) : null;
+        const profileControl=titanProfileControl(session.user.id);
+        const effectiveCloud={user:{...profile.game_state?.user,name:profile.username||profile.game_state?.user?.name,avatar:profile.avatar||profile.game_state?.user?.avatar,privacy:profile.privacy||profile.game_state?.user?.privacy,last_week_id:profile.last_week_id,last_seen_news_version:profile.last_seen_news_version}};
+        if(localStateBeforeSync?.user?.id===session.user.id && localStateBeforeSync.meta?.profileVersion!==undefined && titanProfileSignature(localStateBeforeSync)!==titanProfileSignature(effectiveCloud) && profileControl.accepted!==titanProfileSignature(localStateBeforeSync)) titanProtectProfile(localStateBeforeSync,'cloud_reload');
         const localBelongsToSession = localStateBeforeSync?.user?.id === session.user.id;
         const localUpdatedAt = getStateUpdatedAtValue(localStateBeforeSync);
         const cloudUpdatedAt = getStateUpdatedAtValue(profile.game_state) || (profile.updated_at ? Date.parse(profile.updated_at) : 0);
         const localNeedsReview = !!(localBelongsToSession && localUpdatedAt && (!cloudUpdatedAt || localUpdatedAt > cloudUpdatedAt + 1000));
         const keepLocalGameState = false;
+        profileControl.blocked=true;
+        titanSaveProfileControl(session.user.id,profileControl);
         if (typeof window.titanMaybeSubmitCacheReconciliation === 'function') {
             window.titanMaybeSubmitCacheReconciliation(localStateBeforeSync);
         }
@@ -1321,6 +1569,8 @@ window.syncWithSupabase = async function() {
         if (!keepLocalGameState && profile.inventory) window.state.user.inventory = profile.inventory;
         window.state.inventory = window.state.user.inventory;
         window.state.user.is_elite = (profile.is_elite === true);
+        window.state.user.elite_ends_at = profile.elite_ends_at || null;
+        window.state.user.elite_refunded_at = profile.elite_refunded_at || null;
         if (profile.appearance && typeof profile.appearance === 'object') window.state.user.appearance = profile.appearance;
         window.state.user.is_tester = (profile.is_tester === true);
         window.state.user.is_suspended = (profile.is_suspended === true);
@@ -1334,34 +1584,69 @@ window.syncWithSupabase = async function() {
         if (profile.last_seen_news_version) window.state.user.last_seen_news_version = profile.last_seen_news_version;
 
         window.state.user.id = profile.id || session.user.id;
+        window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version});
+        expectedOwner = session.user.id;
         ensureStateIntegrity();
+        if (!current()) return;
+        // Only the server snapshot is acknowledged, never edits made during awaited history work.
+        const confirmedProfileSignature=titanProfileSignature(window.state);
+        profileControl.accepted=confirmedProfileSignature;
+        if (window.titanAccountTransition.active) {
+            window.titanAccountTransition = { ...window.titanAccountTransition, active: false, owner: expectedOwner };
+            window.dispatchEvent(new CustomEvent('titan:account-changed'));
+        }
+        await window.titanSyncAppearance();
+        if (!current()) return;
 
-        const historyResult = await window.TitanTraining.paginate(window.titanClient,session.user.id);
+        const historyResult = await window.TitanTraining.paginate(client,session.user.id);
+        if (!current()) return;
         await window.TitanQueue.migrate();
+        if (!current()) return;
         const pending=await window.TitanQueue.refresh();
+        if (!current()) return;
         const confirmed=historyResult.logs.map(l=>({...l,cat:l.category,syncStatus:'confirmed'}));
         const ids=new Set(confirmed.map(l=>l.client_event_id));
         const provisional=pending.filter(i=>i.ownerId===session.user.id&&!ids.has(i.payload.details.client_event_id)).map(i=>({...i.payload,id:i.payload.details.client_event_id,client_event_id:i.payload.details.client_event_id,cat:i.payload.category,xp:0,syncStatus:i.status}));
         await window.TitanQueue.saveHistory(session.user.id,confirmed);
+        if (!current()) return;
         window.titanCloudHistoryLoadedAt=Date.now();
         window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
         window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
         window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.total});
+        profileControl.accepted=confirmedProfileSignature;
+        profileControl.blocked=titanProfileCopies(expectedOwner).length>0;
+        profileControl.failures=0;profileControl.retryAt=0;
+        titanSaveProfileControl(expectedOwner,profileControl);
         window.dispatchEvent(new CustomEvent('titan:history-updated'));
 
         // Legacy wagers are not settled by the browser.
 
         ensureStateIntegrity();
-        saveState({ forceCloud: keepLocalGameState });
+        saveState({ localOnly: !keepLocalGameState, forceCloud: keepLocalGameState });
         if (typeof window.updateGlobalUI === 'function') window.updateGlobalUI();
         if (document.getElementById('history-list') && typeof window.renderHistory === 'function') window.renderHistory();
         if (document.getElementById('sports-grid') && typeof window.renderSports === 'function') window.renderSports();
-        if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
+        if (profileControl.blocked) titanProfileStatus('error','Préférences locales protégées : compare les copies avant de les réappliquer.');
+        else if (typeof window.titanSetSyncStatus === 'function') window.titanSetSyncStatus(window.TitanQueue?.list().length ? 'pending' : 'cloud', window.TitanQueue?.list().length ? 'Séance(s) en attente' : 'Synchronisé');
+        return {ok:true,owner:expectedOwner};
     } catch (e) {
+        if (!current()) return;
         console.error("Erreur Sync:", e);
         trackDbIssue('syncWithSupabase', e);
         window.dispatchEvent(new CustomEvent('titan:history-error'));
     }
+};
+
+window.syncWithSupabase=function(){
+    const owner=window.state?.user?.id,client=window.titanClient;
+    if(titanProfileDeletedOwners.has(owner))return Promise.resolve({ok:false});
+    // An explicit newer refresh supersedes older reads through titanProfileSyncGeneration.
+    const promise=Promise.resolve().then(async()=>{
+        if(titanProfilePush) await titanProfilePush;
+        if(window.state?.user?.id!==owner || window.titanClient!==client) return;
+        return titanReadCloudProfile();
+    }).finally(()=>{if(titanProfilePulls.get(owner)===promise)titanProfilePulls.delete(owner);titanRenderProfileRecovery();});
+    titanProfilePulls.set(owner,promise);return promise;
 };
 
 window.checkDailyReset = async function() {

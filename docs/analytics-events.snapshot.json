@@ -1,0 +1,30 @@
+{
+  "comment": "Noms d'événements d'analyse publiés. Additif seulement : retirer ou renommer un nom casse les historiques (voir docs/ANALYTICS_EVENTS_V300.md). Ajouter un événement = l'ajouter ici, dans la doc et dans le contrat SQL.",
+  "events": [
+    "analysis_comparison_viewed",
+    "analysis_report_exported",
+    "analysis_report_viewed",
+    "analysis_view_created",
+    "analysis_view_deleted",
+    "analysis_view_opened",
+    "analysis_view_renamed",
+    "campaign_progress",
+    "campaign_started",
+    "challenge_joined",
+    "dynamic_page_opened",
+    "first_session",
+    "goal_created",
+    "onboarding_completed",
+    "premium_activated",
+    "premium_checkout_started",
+    "record_unlocked",
+    "second_session",
+    "signup",
+    "sport_navigation_filtered",
+    "sport_navigation_searched",
+    "support_category_selected",
+    "support_opened",
+    "support_submission_result",
+    "weekly_recap_viewed"
+  ]
+}

@@ -61,8 +61,8 @@
   function snapshot() {
     if (snapshotIndex) return snapshotIndex;
     snapshotIndex = new Map();
-    for (const [id, label, unit, cat, profile, aliases, sort] of root.TITAN_SPORTS_SNAPSHOT || [])
-      snapshotIndex.set(id, { id, label, unit, cat, balanceProfile: profile, aliases: String(aliases || "").split("|").filter(Boolean), sortOrder: sort });
+    for (const [id, label, unit, cat, profile, aliases, sort, fields] of root.TITAN_SPORTS_SNAPSHOT || [])
+      snapshotIndex.set(id, { id, label, unit, cat, balanceProfile: profile, aliases: String(aliases || "").split("|").filter(Boolean), sortOrder: sort, extraFields: fields || [] });
     return snapshotIndex;
   }
 
@@ -71,10 +71,15 @@
     root.SPORTS_CONFIG = root.SPORTS_CONFIG || {};
     let added = 0;
     for (const [id, s] of snapshot()) {
-      if (root.SPORTS_CONFIG[id]) continue;
+      if (root.SPORTS_CONFIG[id]) {
+        if (root.SPORTS_CONFIG[id].catalogSource === 'fallback') Object.assign(root.SPORTS_CONFIG[id], {
+          extraFields: JSON.parse(JSON.stringify(s.extraFields)), catalogSource: 'offline', offline: true,
+        });
+        continue;
+      }
       root.SPORTS_CONFIG[id] = {
         label: s.label, name: s.label, unit: s.unit, cat: s.cat, balanceProfile: s.balanceProfile,
-        extraFields: [], aliases: s.aliases, sortOrder: s.sortOrder, offline: true,
+        extraFields: JSON.parse(JSON.stringify(s.extraFields)), aliases: s.aliases, sortOrder: s.sortOrder, offline: true, catalogSource: 'offline',
         formType: s.unit === "km" ? "gps_full" : "duration",
       };
       added++;
@@ -89,6 +94,13 @@
   function label(id) {
     const s = snapshot().get(id);
     return LABELS[id] || s?.label || conf(id)?.label || String(id || "Séance").replace(/_/g, " ");
+  }
+
+  /** Online rows carry aliases in trackingSummary; keep the offline vocabulary as a fallback. */
+  function aliasesOf(id) {
+    const c = conf(id) || {};
+    const groups = [c.aliases, c.trackingSummary?.aliases, snapshot().get(id)?.aliases];
+    return [...new Set(groups.flatMap((list) => Array.isArray(list) ? list.filter((s) => typeof s === "string") : []))];
   }
 
   function profileOf(id) {
@@ -139,7 +151,7 @@
     const results = [];
     for (const id of Object.keys(root.SPORTS_CONFIG)) {
       const lab = norm(label(id));
-      const aliases = (conf(id)?.aliases || snapshot().get(id)?.aliases || []).map(norm);
+      const aliases = aliasesOf(id).map(norm);
       let score = 0;
       if (expanded.has(id)) score = Math.max(score, 120 - [...expanded].indexOf(id));
       if (lab === q) score = Math.max(score, 110);
@@ -156,7 +168,7 @@
     return results.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "fr")).slice(0, limit);
   }
 
-  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, POPULAR, norm, ensure, conf, label, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
+  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
   root.TitanSports = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

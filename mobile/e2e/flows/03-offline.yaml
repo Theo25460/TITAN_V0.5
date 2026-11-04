@@ -1,0 +1,75 @@
+# Séance hors ligne, conservation après fermeture de l'application, envoi unique au retour du réseau
+appId: fr.titanapp.app
+---
+- launchApp
+- runFlow:
+    when:
+        visible: ".*isn't responding.*"
+    commands:
+      - tapOn: "Wait"
+- extendedWaitUntil:
+    visible:
+      id: "tab-record"
+    timeout: 30000
+- setAirplaneMode: enabled
+- tapOn:
+    id: "tab-record"
+- extendedWaitUntil:
+    visible:
+      id: "offline-banner"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "sport-yoga"
+    direction: DOWN
+- tapOn:
+    id: "sport-yoga"
+- waitForAnimationToEnd
+- tapOn:
+    id: "duration-m"
+- tapOn:
+    id: "duration-m"
+- inputText: "20"
+- scrollUntilVisible:
+    element:
+      id: "session-note"
+    direction: DOWN
+# The optional note is typed through adb, which on CI sometimes lands before the field has focus or leaves the text hidden behind the keyboard
+# (seen in several runs). It must not decide whether the OFFLINE SESSION itself works: the server check identifies that session by its sport and
+# counts it exactly once, and reports the note as information. The text is still entered, checked when visible, and photographed for diagnosis.
+- tapOn:
+    id: "session-note"
+- waitForAnimationToEnd
+- inputText: "E2E hors ligne"
+- assertVisible:
+    text: ".*E2E hors ligne.*"
+    optional: true
+- takeScreenshot: 16a-note-saisie
+# The form now carries the sport-specific optional metrics: bring the save button into view before tapping it.
+# No hideKeyboard: on Android it sends BACK when the keyboard is already closed, which would leave the form (flaky). While typing, the footer
+# joins the end of the scrolled content, so scrolling reaches it.
+- scrollUntilVisible:
+    element:
+      id: "session-save"
+    direction: DOWN
+    timeout: 30000
+    visibilityPercentage: 100
+- tapOn:
+    id: "session-save"
+- extendedWaitUntil:
+    visible: "Gardée sur ce téléphone"
+    timeout: 30000
+- takeScreenshot: 16-hors-ligne-garde
+- tapOn:
+    id: "result-done"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: ".*en attente d’envoi.*"
+    timeout: 30000
+- takeScreenshot: 17-relance-en-attente
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible: ".*en attente d’envoi.*"
+    timeout: 90000
+- takeScreenshot: 18-synchronise

@@ -266,7 +266,7 @@ body.asc {
   display: flex;
   align-items: center;
   gap: var(--s3);
-  background: rgba(5, 7, 10, 0.86);
+  background: rgba(5, 7, 10, 0.99); /* near-opaque: text scrolling underneath must not show through (visual audit 21/10/2026) */
   backdrop-filter: saturate(140%) blur(14px);
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   border-bottom: 1px solid var(--line);
@@ -364,7 +364,7 @@ body.asc {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
-  background: rgba(7, 10, 14, 0.94);
+  background: rgba(7, 10, 14, 0.99);
   backdrop-filter: saturate(140%) blur(16px);
   -webkit-backdrop-filter: saturate(140%) blur(16px);
   border-top: 1px solid var(--line);
@@ -1245,6 +1245,15 @@ button.asc-row:hover {
     scroll-behavior: auto !important;
   }
 }
+/* Same calm experience when the user asks for it in TITAN, whatever the system setting says. */
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
 
 /* ---------- Utilities ---------- */
 .asc-stack {
@@ -1301,3 +1310,34 @@ button.asc-row:hover {
   margin-top: var(--s4);
   text-align: center;
 }
+
+/* Routes (GPS traces seen on the web): a plain drawing of the trace, no map server. */
+.jr-routes { margin-bottom: var(--s3, 12px); }
+.rt-map { width: 100%; height: auto; display: block; border: 1px solid var(--line-2); border-radius: 14px; }
+.rt-map-bg { fill: var(--bg-2); }
+.rt-line { stroke: var(--cy); }
+.rt-start { fill: var(--ok, #4ade80); }
+.rt-end { fill: var(--am); }
+.rt-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: baseline; }
+.rt-dot.rt-start { background: var(--ok, #4ade80); }
+.rt-dot.rt-end { background: var(--am); }
+.rt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rt-legend { margin: 6px 0 0; }
+
+/* Touch targets (WCAG 2.2 AA 2.5.8): text links outside a paragraph, check boxes, radios and folding summaries are never smaller than a thumb allows. */
+@media (pointer: coarse) {
+  .asc-link { min-height: 32px; }
+  input[type="checkbox"], input[type="radio"] { min-width: 24px; min-height: 24px; }
+  details > summary { min-height: 44px; display: flex; align-items: center; }
+}
+
+/* Very narrow screens (folded phone cover display ~280 px, small phones with a large font): a long button label wraps instead of pushing the page wider than the screen. */
+@media (max-width: 359px) {
+  .asc-btn:not(.asc-btn-icon) { white-space: normal; line-height: 1.2; padding-block: 10px; text-align: center; max-width: 100%; }
+}
+@media (max-width: 359px) {
+  .asc-topbar { gap: var(--s2); padding-inline: var(--s3); }
+  .asc-me { min-width: 0; flex: 0 1 auto; }
+  .asc-me-level { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 6.5em; }
+}
+.asc-grid-2 > * { min-width: 0; }

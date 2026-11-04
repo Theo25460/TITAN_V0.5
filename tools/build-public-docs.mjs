@@ -9,7 +9,7 @@ import { icon, SITE, E, typical, page, faq, finalCta, cards, esc } from "./lib/p
 const UPDATED = "5 octobre 2026";
 const SUPPORT = "titanteam.app@gmail.com";
 
-const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexable = true, image = "forge" }) =>
+const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexable = true, image = "forge", updated = UPDATED }) =>
   writeFileSync(
     file,
     page({
@@ -18,25 +18,27 @@ const doc = ({ route, file, title, h1, eyebrow, description, ref, body, indexabl
       description,
       image,
       indexable,
-      body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1>${ref ? `<p class="pub-fine">${ref} · mise à jour le ${UPDATED}</p>` : ""}</div></header>
+      body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1>${ref ? `<p class="pub-fine">${ref} · mise à jour le ${updated}</p>` : ""}</div></header>
         <div class="pub-wrap"><div class="pub-doc">${body}</div></div>`,
     }),
   );
-const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a></nav>`;
+const legalNav = `<nav class="pub-toc" aria-label="Documents" style="margin-bottom:32px"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions d’utilisation</a><a href="/legal_mentions">Mentions légales</a><a href="/legal_hub">Centre de confiance</a><a href="/regles-communaute">Règles de la communauté</a><a href="/supprimer-mon-compte">Supprimer mon compte</a></nav>`;
 const table = (head, rows) => `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 
 /* ---------------------------------------------------------------- Privacy */
 doc({
   route: "/legal_privacy",
+  updated: "2 novembre 2026",
   file: "legal_privacy.html",
   title: "Politique de confidentialité | TITAN",
   h1: "Politique de confidentialité",
   eyebrow: "Confiance",
-  ref: "Version 5",
-  description: "Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, sans publicité.",
+  ref: "Version 7",
+  updated: "21 octobre 2026",
+  description: "Quelles données TITAN traite, pourquoi, pendant combien de temps, qui peut les voir et comment exercer tes droits : privé par défaut, aucune publicité sur le site.",
   body: `${legalNav}
 <h2>1. En bref</h2>
-<ul><li>TITAN est <strong>privé par défaut</strong> : ton journal, tes notes et tes statistiques ne sont visibles que par toi tant que tu n’en décides pas autrement.</li><li>Nous ne vendons aucune donnée et <strong>aucune publicité</strong> n’est chargée.</li><li>Les statistiques d’usage ne sont liées à ton compte qu’avec ton accord ; tu peux les refuser entièrement.</li><li>Tu peux <strong>exporter</strong> ou <strong>supprimer</strong> toutes tes données depuis Profil, à tout moment.</li></ul>
+<ul><li>TITAN est <strong>privé par défaut</strong> : ton journal, tes notes et tes statistiques ne sont visibles que par toi tant que tu n’en décides pas autrement.</li><li>Nous ne vendons aucune donnée. <strong>Aucune publicité n’est chargée sur le site web.</strong> Dans l’application Android, la version gratuite affiche quelques publicités Google AdMob, seulement après ton consentement et jamais pendant une séance ; TITAN+ et les offres Coach n’en affichent aucune.</li><li>Les statistiques d’usage ne sont liées à ton compte qu’avec ton accord ; tu peux les refuser entièrement.</li><li>Tu peux <strong>exporter</strong> ou <strong>supprimer</strong> toutes tes données depuis Profil, à tout moment.</li></ul>
 <h2>2. Responsable du traitement</h2>
 <p>L’équipe TITAN, projet indépendant porté par Théo et son cofondateur. Contact pour toute question ou demande liée à tes données : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>
 <h2>3. Données traitées et finalités</h2>
@@ -47,7 +49,7 @@ ${table(["Catégorie", "Données", "Pourquoi", "Base légale"], [
   ["Communauté", "Code ami, demandes, amitiés, blocages, Moments partagés, encouragements, défis, participations aux expéditions, guilde et messages", "Fonctions sociales et modération", "Exécution du service ; intérêt légitime (sécurité)"],
   ["Coaching", "Invitations (empreinte du code), liens, périmètre choisi, propositions et leur statut", "Suivi entre un sportif et son coach", "Exécution du service, avec le consentement explicite du sportif"],
   ["Profil public", "Uniquement les blocs que tu actives (nom, niveau, totaux, sports, distinctions)", "Carte d’athlète accessible par lien", "Consentement (désactivé par défaut)"],
-  ["TITAN+", "Identifiants d’abonnement Paddle, statut, dates de renouvellement ou de fin", "Activer et gérer l’abonnement", "Exécution du contrat"],
+  ["TITAN+", "Identifiants d’abonnement (Google Play), statut, dates de renouvellement ou de fin", "Activer et gérer l’abonnement", "Exécution du contrat"],
   ["Statistiques d’usage", "Événements produit (liste au §6), page, date", "Améliorer TITAN", "Consentement, ou mesure anonyme sans identifiant"],
   ["Sécurité", "Journaux techniques, adresse IP chez nos prestataires, signalements", "Protéger les comptes, prévenir la fraude", "Intérêt légitime"],
 ])}
@@ -67,24 +69,31 @@ ${table(["Donnée", "Toi", "Tes amis acceptés", "Coach (si tu l’autorises)", 
 <ul><li><strong>Accord</strong> : les événements sont liés à ton compte pour comprendre les parcours (par exemple, combien de personnes enregistrent une deuxième séance).</li><li><strong>Pas encore de réponse</strong> : comptage anonyme, sans identifiant de compte ni d’appareil, sans référent.</li><li><strong>Refus</strong> : rien n’est envoyé.</li></ul>
 <p>Événements possibles : inscription, onboarding terminé, première et deuxième séance, objectif créé, record battu, campagne démarrée ou avancée, défi rejoint, récap hebdomadaire consulté, ouverture du paiement TITAN+, activation de TITAN+. Les seules propriétés acceptées sont des catégories (famille de sport, identifiant de sport, étape, monde, chapitre). Jamais de santé, de poids, de GPS, de note ni de texte libre. Conservation : 13 mois au plus.</p>
 <h2>7. Prestataires et transferts</h2>
-<ul><li><strong>Supabase</strong> : base de données, authentification et fonctions serveur.</li><li><strong>Netlify</strong> : hébergement du site et fonction de réception des paiements.</li><li><strong>Paddle</strong> : vendeur officiel et paiement de TITAN+ ; TITAN ne voit jamais tes coordonnées bancaires.</li></ul>
-<p>Certains prestataires peuvent traiter des données hors de l’Union européenne, dans le cadre de leurs engagements contractuels (clauses contractuelles types) et de leurs garanties de sécurité. Aucune donnée n’est transmise à des courtiers, régies publicitaires ou réseaux sociaux.</p>
+<ul><li><strong>Supabase</strong> : base de données, authentification et fonctions serveur.</li><li><strong>Netlify</strong> : hébergement du site et des fonctions.</li><li><strong>Resend</strong> : envoi des e-mails de réponse de l’assistance.</li><li><strong>Google Play</strong> : paiement de TITAN+ dans l’application Android, à son ouverture ; TITAN ne voit jamais tes coordonnées bancaires.</li><li><strong>Google AdMob</strong> (application Android, version gratuite seulement) : affiche les publicités. Après ton consentement (formulaire européen de Google), Google peut utiliser l’identifiant publicitaire de ton téléphone et des données techniques (adresse IP, modèle d’appareil). TITAN n’envoie à Google ni ton journal, ni tes séances, ni ta position. Tu peux changer ton choix dans Profil &gt; Confidentialité, ou réinitialiser ou supprimer l’identifiant publicitaire dans les réglages Android.</li></ul>
+<p>Certains prestataires peuvent traiter des données hors de l’Union européenne, dans le cadre de leurs engagements contractuels (clauses contractuelles types) et de leurs garanties de sécurité. Aucune donnée n’est transmise à des courtiers ou à des réseaux sociaux ; la seule régie publicitaire est Google AdMob, dans l’application Android, comme décrit ci-dessus.</p>
 <h2>8. Durées de conservation</h2>
 ${table(["Donnée", "Durée"], [
   ["Compte, journal, progression", "Tant que le compte existe. Suppression immédiate à ta demande."],
   ["Inscription jamais confirmée et vide", "30 jours"],
   ["Compte sans aucune activité (connexion, session, séance)", "3 ans, sauf abonnement TITAN+ en cours"],
   ["Messages de discussion", "48 à 72 heures selon l’espace"],
-  ["Statistiques d’usage", "13 mois au plus"],
-  ["Données de facturation", "Chez Paddle, selon ses obligations légales"],
+  ["Statistiques d’usage", "13 mois"],
+  ["Demandes d’assistance", "6 mois ; 13 mois pour un paiement ou un remboursement ; 12 mois pour l’exercice de tes droits"],
+  ["Copie technique des événements de facturation (le paiement lui-même est chez Google)", "13 mois ; le contenu de l’événement est vidé si tu supprimes ton compte"],
+  ["Journaux d’administration et d’audit, signaux anti-triche, signalements traités", "12 mois"],
+  ["Décisions de modération et recours tranchés", "24 mois ; si tu as supprimé ton compte, ton identité et le détail des signalements sont retirés (le motif écrit par l’équipe est conservé)"],
+  ["Retenues de récompenses réglées", "3 mois"],
+  ["Journal des actions sociales (amitiés, blocages)", "90 jours"],
+  ["Sauvegardes techniques", "Chez le fournisseur de base de données, selon son propre calendrier"],
 ])}
+<p>Ces durées sont appliquées automatiquement chaque jour. Quand tu supprimes ton compte, ce que tu as produit (séances, objectifs, messages, signalements de bug, demandes) est effacé et ce qui doit rester pour la sécurité ne garde plus ton identité. Détail et marche à suivre : <a href="/supprimer-mon-compte">Supprimer mon compte</a>.</p>
 <h2>9. Stockage sur ton appareil</h2>
 <p>TITAN conserve sur ton appareil : ta session, les séances en attente d’envoi (pour le mode hors ligne), tes brouillons, tes préférences et tes choix de confidentialité. Aucun traceur publicitaire. Effacer les données du site supprime cette copie locale, pas les données de ton compte ; les séances non envoyées seraient perdues.</p>
 <h2>10. Tes droits</h2>
 <ul><li><strong>Accès et portabilité</strong> : Profil &gt; Exporter toutes mes données (JSON) et Exporter mon journal (CSV).</li><li><strong>Rectification</strong> : modifie une séance, ton nom ou tes réglages dans l’application.</li><li><strong>Effacement</strong> : Profil &gt; Supprimer mon compte. Suppression définitive des données du compte.</li><li><strong>Opposition, limitation, retrait du consentement</strong> : dans les réglages, ou en écrivant à <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</li></ul>
 <p>Nous répondons sous un mois. Tu peux introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>11. Mineurs</h2>
-<p>Avant 15 ans, l’utilisation de TITAN et de ses fonctions sociales nécessite l’accord d’un représentant légal. Les profils restent privés par défaut pour tous.</p>
+<p>TITAN est ouvert à partir de 13 ans. Les mineurs l’utilisent avec l’accord d’un adulte, représentant légal, en particulier pour les fonctions sociales. Les profils restent privés par défaut pour tous.</p>
 <h2>12. Sécurité</h2>
 <p>Les données de chaque compte sont isolées par des règles d’accès en base. Les récompenses, achats et partages sont validés par le serveur. Aucune clé secrète n’est présente dans l’application. En cas de faille suspectée, écris-nous immédiatement.</p>
 <h2>13. Modifications</h2>
@@ -94,21 +103,23 @@ ${table(["Donnée", "Durée"], [
 /* ---------------------------------------------------------------- Terms */
 doc({
   route: "/legal_cgu",
+  updated: "2 novembre 2026",
   file: "legal_cgu.html",
   title: "Conditions générales d’utilisation | TITAN",
   h1: "Conditions d’utilisation",
   eyebrow: "Confiance",
-  ref: "Version 5",
+  ref: "Version 6",
+  updated: "21 octobre 2026",
   description: "Les règles d’utilisation de TITAN : service, santé, TITAN+, monnaie virtuelle, communauté, coaching, profil public, triche et responsabilités.",
   body: `${legalNav}
 <div class="pub-note"><strong>Santé d’abord.</strong> TITAN est un journal et un outil de motivation. Ce n’est ni un dispositif médical, ni un diagnostic, ni un coaching professionnel. En cas de douleur, malaise, blessure, pathologie ou reprise après une longue pause, arrête-toi et consulte un professionnel de santé. Aucune récompense ne justifie de forcer.</div>
 <h2>1. Objet</h2><p>Ces conditions encadrent l’utilisation de TITAN (le « Service »), sur le web et en application installée. Créer un compte ou utiliser le Service vaut acceptation. Si tu les refuses, cesse d’utiliser le Service ; tu peux supprimer ton compte à tout moment.</p>
 <h2>2. Le Service</h2><p>TITAN est un projet indépendant, en amélioration continue. L’équipe fait de son mieux pour le garder disponible et fiable, sans pouvoir garantir l’absence d’interruption ou d’erreur. Les séances enregistrées hors ligne restent sur l’appareil jusqu’à leur envoi.</p>
-<h2>3. Accès gratuit</h2><p>Le journal, les analyses, la progression, deux campagnes, la Communauté, l’Atelier et le coaching de trois sportifs sont gratuits, sans limite de durée et sans publicité.</p>
+<h2>3. Accès gratuit</h2><p>Le journal, les analyses, la progression, quatre campagnes, la Communauté, l’Atelier et le coaching de trois sportifs sont gratuits, sans limite de durée. Le site web n’affiche aucune publicité ; l’application Android gratuite affiche quelques publicités discrètes (Google AdMob), jamais pendant l’effort, et aucune avec TITAN+ ou les offres Coach.</p>
 <h2>4. TITAN+</h2>
-<p>4.1. <strong>Contenu</strong> : deux campagnes supplémentaires, jusqu’à 20 routines nommées, jusqu’à 20 sportifs suivis dans l’espace coach et quatre pièces cosmétiques. TITAN+ n’augmente jamais l’XP, les crédits, les plafonds ni aucun avantage de progression.</p>
-<p>4.2. <strong>Paiement</strong> : Paddle est le vendeur officiel. Le prix, les taxes, le renouvellement, la rétractation et les remboursements sont présentés par Paddle avant validation et régis par ses conditions.</p>
-<p>4.3. <strong>Résiliation</strong> : depuis le lien de gestion de l’e-mail de reçu Paddle ou via le support. L’accès reste actif jusqu’à la fin de la période payée. À la fin de l’abonnement, ton journal, ta progression, tes insignes et tes crédits sont conservés ; les pièces TITAN+ reviennent au style d’origine et les campagnes TITAN+ ne peuvent plus être poursuivies.</p>
+<p>4.1. <strong>Contenu</strong> : jusqu’à 20 routines nommées, jusqu’à 20 sportifs suivis dans l’espace coach et quatre pièces cosmétiques. TITAN+ n’augmente jamais l’XP, les crédits, les plafonds ni aucun avantage de progression.</p>
+<p>4.2. <strong>Paiement</strong> : TITAN+ n’est pas encore en vente. À son ouverture, il s’achètera uniquement dans l’application Android, via Google Play, qui présentera le prix, les taxes, le renouvellement, la rétractation et les remboursements avant validation. Aucun paiement n’est accepté sur le site. Les accès TITAN+ accordés manuellement restent valables.</p>
+<p>4.3. <strong>Résiliation</strong> : dans Google Play. L’accès reste actif jusqu’à la fin de la période payée. À la fin de l’abonnement, ton journal, ta progression, tes insignes et tes crédits sont conservés ; les pièces TITAN+ reviennent au style d’origine.</p>
 <h2>5. Monnaie et biens virtuels</h2><p>Les crédits, niveaux, insignes, titres et pièces cosmétiques sont des éléments de jeu sans valeur monétaire. Ils ne s’achètent pas, ne se vendent pas, ne s’échangent pas et ne sont pas remboursables. Les crédits se gagnent uniquement avec les séances, dans les mêmes limites pour tous.</p>
 <h2>6. Équité et triche</h2><p>Il est interdit d’automatiser des séances, de saisir des séances fictives pour gagner des récompenses, d’exploiter une faille ou de modifier les données envoyées au serveur. Les récompenses sont calculées et plafonnées par le serveur ; une séance saisie plus de 30 jours après sa date entre au journal sans XP. En cas d’abus, l’équipe peut annuler des récompenses, limiter une fonction ou suspendre un compte.</p>
 <h2>7. Communauté</h2><p>Les amitiés nécessitent l’accord des deux personnes. Tu es responsable de ce que tu publies (nom affiché, Moments, messages de guilde, intitulés de défis). Sont interdits : harcèlement, propos haineux ou discriminatoires, contenus illégaux, spam, informations personnelles de tiers. Tu peux bloquer une personne ; l’équipe peut retirer un contenu signalé.</p>
@@ -116,7 +127,7 @@ doc({
 <h2>9. Profil public et images</h2><p>Le profil public est désactivé par défaut. En l’activant, tu acceptes que toute personne disposant du lien voie les blocs que tu as choisis. Tu peux le désactiver ou changer de lien à tout moment. Les images partagées sont créées sur ton appareil ; une fois envoyées ailleurs, elles échappent au contrôle de TITAN.</p>
 <h2>10. Propriété intellectuelle</h2><p>L’univers, les textes, les illustrations, le code et les règles propres à TITAN appartiennent à l’équipe éditrice, sous réserve des composants tiers (licences libres citées dans les mentions légales). Ton journal t’appartient.</p>
 <h2>11. Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>.</p>
-<h2>12. Mineurs</h2><p>Avant 15 ans, l’accord d’un représentant légal est nécessaire, en particulier pour les fonctions sociales et TITAN+.</p>
+<h2>12. Mineurs</h2><p>TITAN est ouvert à partir de 13 ans. Les mineurs l’utilisent avec l’accord d’un adulte, représentant légal, en particulier pour les fonctions sociales et TITAN+.</p>
 <h2>13. Droit applicable</h2><p>Droit français, sous réserve des règles impératives protégeant les consommateurs. En cas de difficulté, écris d’abord à <a href="mailto:${SUPPORT}">${SUPPORT}</a> pour trouver une solution amiable ; tu peux aussi recourir à un médiateur de la consommation ou aux juridictions compétentes.</p>`,
 });
 
@@ -132,11 +143,80 @@ doc({
   body: `${legalNav}
 <h2>Éditeur</h2><p>TITAN est un projet indépendant de suivi sportif et de progression, développé par deux amis d’université.</p><p><strong>Équipe éditrice et responsable de publication</strong> : équipe TITAN, représentée par Théo et son cofondateur.<br>Contact : <a href="mailto:${SUPPORT}">${SUPPORT}</a></p>
 <p><strong>Statut</strong> : projet étudiant en version publique. L’adresse postale, le numéro d’immatriculation et, le cas échéant, les informations TVA seront publiés ici dès qu’une structure juridique porte le service ; ils ne sont pas inventés en attendant.</p>
-<h2>Hébergement et prestataires</h2><ul><li><strong>Site</strong> : Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis — netlify.com</li><li><strong>Comptes et données</strong> : Supabase, Inc. — supabase.com</li><li><strong>Paiement TITAN+</strong> : Paddle, vendeur officiel. TITAN ne collecte pas les numéros de carte bancaire.</li></ul>
+<h2>Hébergement et prestataires</h2><ul><li><strong>Site</strong> : Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis — netlify.com</li><li><strong>Comptes et données</strong> : Supabase, Inc. — supabase.com</li><li><strong>Paiement TITAN+</strong> : Google Play, dans l’application Android, à l’ouverture de l’offre (pas encore en vente). TITAN ne collecte pas les numéros de carte bancaire.</li></ul>
 <h2>Propriété intellectuelle</h2><p>Le code, les textes, les règles de progression, les mondes, gardiens et personnages, ainsi que l’identité visuelle de TITAN, sont protégés. Certains éléments de code, de texte et d’illustration ont été produits avec l’assistance d’outils d’intelligence artificielle ; l’équipe reste responsable de leur choix, de leur vérification et de leur publication. Toute reproduction non autorisée est interdite.</p>
 <h2>Composants libres</h2><ul><li>Archivo et Manrope — polices sous licence SIL Open Font License, hébergées par TITAN.</li><li>supabase-js — licence MIT.</li><li>qrcode-generator (Kazuhiko Arase) — licence MIT.</li></ul>
 <h2>Responsabilité</h2><p>TITAN est fourni en l’état. Les informations affichées sont des repères personnels, pas des avis médicaux ou professionnels. Chacun reste responsable de sa pratique sportive.</p>
 <h2>Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>. Contact RGPD : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
+});
+
+/* ---------------------------------------------------------------- Community rules and moderation (LEG47) */
+doc({
+  route: "/regles-communaute",
+  file: "regles-communaute.html",
+  title: "Règles de la communauté et modération | TITAN",
+  h1: "Règles de la communauté et modération",
+  eyebrow: "Confiance",
+  ref: "Version 1",
+  updated: "21 octobre 2026",
+  description: "Ce qui est interdit dans la communauté TITAN, comment signaler, ce que l’équipe peut décider, ce qui est automatique ou non, et comment contester une décision.",
+  body: `${legalNav}
+<div class="pub-note"><strong>En une phrase.</strong> La communauté TITAN est faite pour s’encourager à bouger. Une personne de l’équipe décide de toute sanction, la motive, et tu peux la contester.</div>
+<h2>Ce qui est interdit</h2>
+<ul><li>Le harcèlement, les menaces et les propos haineux ou discriminatoires.</li><li>Les contenus illégaux.</li><li>L’usurpation d’identité : se faire passer pour une autre personne ou pour l’équipe.</li><li>La fraude et la triche : séances fictives, automatisation, exploitation d’une faille (voir les <a href="/legal_cgu">conditions d’utilisation</a>, article 6).</li><li>Le spam.</li><li>Les informations personnelles de tiers.</li></ul>
+<p>Cela vaut pour ce que tu écris ou choisis d’afficher : nom affiché, Moments, messages de guilde et de discussion, intitulés de défis. Tu peux à tout moment bloquer une personne.</p>
+<h2>Signaler un contenu ou un comportement</h2>
+<p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> en indiquant où tu as vu le problème (espace, date, nom affiché). Une personne de l’équipe lit chaque signalement. TITAN est un projet indépendant : nous ne garantissons pas de délai de réponse, et un signalement abusif peut lui-même être sanctionné.</p>
+<h2>Ce que l’équipe peut décider</h2>
+${table(["Mesure", "Ce qu’elle change", "Ce qu’elle ne change pas"], [
+  ["Retirer un message", "Un message de discussion signalé n’est plus visible des autres. Un nom affiché ou un autre contenu contraire aux règles est traité au cas par cas, par écrit.", "Ton compte."],
+  ["Demander une vérification", "Une alerte s’affiche dans TITAN ; tu lis la demande et tu réponds une fois depuis la page <a href=\"/recours\">Recours</a>.", "Rien d’automatique : répondre ne déclenche aucune sanction."],
+  ["Mettre une séance à l’écart", "La séance reste dans ton journal mais ne compte plus dans les classements ni les récompenses compétitives.", "Les XP et crédits déjà acquis."],
+  ["Suspendre le compte", "Tu ne peux plus écrire dans TITAN : enregistrer une séance ou un objectif, acheter, ajouter des amis ou écrire dans la communauté, modifier ton profil, ni envoyer une demande d’assistance depuis l’application (écris alors par e-mail). Aucune durée n’est fixée d’avance : la suspension dure jusqu’à ce que l’équipe la lève, par exemple après un recours accepté.", "Ta progression et tes données, qui ne sont pas supprimées. Tu peux toujours supprimer ton compte, ou demander tes données par e-mail."],
+  ["Bloquer le compte", "Réservé aux cas graves, décidé par une personne de l’équipe avec l’outil d’administration. Un recours contre un blocage est examiné à part par l’équipe.", "Tes droits sur tes données."],
+])}
+<h2>Ce qui est automatique, et ce qui ne l’est pas</h2>
+<p>Un calcul automatique repère des séances inhabituelles (par exemple une vitesse impossible, deux séances qui se chevauchent ou une fréquence hors norme). Il sert à <strong>classer les comptes à examiner</strong> et à expliquer pourquoi, point par point, à la personne qui les examine. Il peut aussi <strong>retenir environ 24 heures</strong> les XP et crédits d’une séance à risque élevé, ou d’une séance qu’il ne peut pas évaluer (par exemple une séance saisie longtemps après sa date) : sans décision de l’équipe, ils sont crédités ensuite, et rien de ce qui est déjà acquis n’est jamais repris. Si ton compte est suspendu, les retenues restent en attente tant que la suspension dure. Ce calcul peut se tromper.</p>
+<p>Il ne suspend ni ne bloque aucun compte. Toute suspension, tout blocage et toute mise à l’écart d’une séance sont décidés par une personne, avec un motif écrit, enregistrés avec son auteur et annulables.</p>
+<h2>Contester une décision</h2>
+<p>Si une séance est mise à l’écart ou si ton compte est suspendu, ouvre la page <a href="/recours">Recours</a> (connecté) et explique ce qui s’est passé, entre 10 et 500 caractères. Une personne de l’équipe relit ta demande et te répond avec une note que tu peux lire. Tu peux avoir cinq recours en attente ; après un refus, un nouveau recours sur le même objet est possible au bout de 7 jours. Accepter un recours lève la mise à l’écart ou la suspension.</p>
+<h2>Combien de temps c’est conservé</h2>
+<p>Les décisions de modération et les recours tranchés sont conservés 24 mois (une suspension encore en vigueur, ou une décision non annulée, est conservée tant qu’elle compte) ; les demandes de vérification et tes réponses, 12 mois. Sans ton identité si tu as supprimé ton compte (voir <a href="/legal_privacy">confidentialité</a> et <a href="/supprimer-mon-compte">suppression du compte</a>).</p>
+<h2>Autres recours</h2>
+<p>Tu peux aussi écrire à <a href="mailto:${SUPPORT}">${SUPPORT}</a>, ou introduire une réclamation auprès de la CNIL (cnil.fr) pour tes données personnelles.</p>`,
+});
+
+/* ---------------------------------------------------------------- Account deletion (public, required by Google Play) */
+doc({
+  route: "/supprimer-mon-compte",
+  file: "supprimer-mon-compte.html",
+  title: "Supprimer mon compte et mes données | TITAN",
+  h1: "Supprimer mon compte TITAN",
+  eyebrow: "Confiance",
+  ref: "Version 1",
+  updated: "20 octobre 2026",
+  description: "Comment supprimer ton compte TITAN et tes données depuis l’application ou par e-mail, ce qui est effacé tout de suite, ce qui est conservé et combien de temps.",
+  body: `${legalNav}
+<h2>Depuis l’application ou le site</h2>
+<ol><li>Connecte-toi à TITAN (application Android ou <a href="/login">titan-app.fr</a>).</li><li>Ouvre <strong>Profil</strong>, puis la section <strong>Compte et données</strong>.</li><li>Si tu veux garder une copie, choisis d’abord <strong>Exporter toutes mes données</strong>.</li><li>Choisis <strong>Supprimer mon compte</strong>, écris <strong>SUPPRIMER</strong> pour confirmer, puis valide.</li></ol>
+<p>La suppression est immédiate et définitive : elle ne peut pas être annulée.</p>
+<h2>Si tu ne peux plus te connecter</h2>
+<p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> <strong>depuis l’adresse e-mail du compte</strong>, avec l’objet « Suppression de compte ». Nous supprimons le compte et te confirmons par e-mail, au plus tard sous un mois.</p>
+<h2>Si tu es abonné à TITAN+</h2>
+<p>Supprimer le compte ne résilie pas l’abonnement. Si tu t’es abonné dans l’application Android, résilie-le d’abord dans Google Play pour ne plus être facturé.</p>
+<h2>Ce qui est effacé tout de suite</h2>
+<ul><li>Ton profil, tes séances, tes objectifs, ta progression, tes achats et ta collection.</li><li>Tes amitiés, tes défis, tes messages et ton appartenance à une guilde (si tu en étais le chef, elle passe au membre le plus ancien).</li><li>Tes demandes d’assistance, tes recours, tes signalements de bug et tes messages de contact.</li><li>Les copies techniques de tes messages dans le journal d’audit.</li><li>Les données de ton compte conservées sur ton appareil.</li></ul>
+<h2>Ce qui est conservé, sans ton identité, et combien de temps</h2>
+${table(["Donnée", "Ce qui reste", "Durée"], [
+  ["Statistiques d’usage", "événements anonymes", "13 mois"],
+  ["Copie technique des événements de facturation", "identifiants techniques ; le contenu de l’événement est vidé quand le compte est supprimé", "13 mois"],
+  ["Décisions de modération", "type et date de la décision et motif écrit par l’administrateur, sans ton identité", "24 mois"],
+  ["Journaux d’administration, signaux anti-triche, signalements traités", "traces sans identité", "12 mois"],
+  ["Journal d’équilibre du jeu (montants, types d’opération)", "sans identité ni texte", "conservé : garantit l’équité du jeu pour les autres joueurs"],
+])}
+<p>Ces durées sont appliquées automatiquement chaque jour. Les sauvegardes techniques du fournisseur de base de données expirent selon son propre calendrier. Le paiement d’un abonnement relève de Google, qui conserve ses données selon ses propres obligations légales.</p>
+<h2>Tes autres droits</h2>
+<p>Accès, export, rectification, opposition : voir la <a href="/legal_privacy">politique de confidentialité</a>. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).</p>`,
 });
 
 /* ---------------------------------------------------------------- Trust centre */
@@ -146,7 +226,7 @@ doc({
   title: "Centre de confiance : confidentialité, équité, sécurité | TITAN",
   h1: "Centre de confiance",
   eyebrow: "Confiance",
-  description: "Les engagements de TITAN : privé par défaut, aucune publicité, aucune progression vendue, données exportables et supprimables, paiements opérés par Paddle.",
+  description: "Les engagements de TITAN : privé par défaut, aucune progression vendue, données exportables et supprimables, aucune publicité sur le site.",
   body: `${legalNav}
 ${cards([
   ["lock", "Privé par défaut", "Journal privé, amis sur demande acceptée, profil public désactivé, coach seulement avec ton accord."],
@@ -154,7 +234,7 @@ ${cards([
   ["eye", "Pas de publicité", "Aucun script publicitaire, aucune revente de données."],
   ["download", "Tes données, à toi", "Export JSON et CSV, suppression du compte en un geste depuis Profil."],
 ], 2)}
-<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li></ul>
+<h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li><li><a href="/regles-communaute">Règles de la communauté</a> — ce qui est interdit, comment signaler, ce que l’équipe peut faire, comment contester.</li><li><a href="/supprimer-mon-compte">Supprimer mon compte</a> — comment, et ce qui est effacé ou conservé.</li></ul>
 <h2>Nous écrire</h2><p>Question, demande RGPD, signalement d’un contenu ou d’une faille : <a href="mailto:${SUPPORT}">${SUPPORT}</a>.</p>`,
 });
 
@@ -167,7 +247,7 @@ const helpFaq = [
   ["Comment corriger ou supprimer une séance ?", "Journal, puis la séance : « Modifier » ou « Archiver ». Les analyses et les records se mettent à jour ; l’XP n’est pas redonnée."],
   ["Comment installer TITAN sur mon téléphone ?", "Android (Chrome) : menu ⋮ puis « Installer l’application ». iPhone (Safari) : bouton Partager puis « Sur l’écran d’accueil »."],
   ["Comment exporter ou supprimer mes données ?", "Profil, section Compte et données : export JSON complet, export CSV du journal, suppression définitive du compte."],
-  ["Comment arrêter TITAN+ ?", "Depuis le lien de gestion de l’e-mail de reçu Paddle, ou en nous écrivant. L’accès reste actif jusqu’à la fin de la période payée."],
+  ["Comment arrêter TITAN+ ?", "TITAN+ n’est pas encore en vente. À son ouverture, l’abonnement se gère dans Google Play ; l’accès reste actif jusqu’à la fin de la période payée."],
   ["Quelqu’un me harcèle.", "Bloque la personne depuis Communauté (menu de l’ami), puis écris-nous avec le nom affiché et ce qui s’est passé."],
 ];
 const help = faq(helpFaq, "Les réponses rapides");
@@ -206,7 +286,7 @@ const releases = [
   ]],
   ["200", "Renaissance", "13 septembre 2026", ["Univers de quatre mondes, personnages, campagnes et gardiens.", "Objectifs datés, records contextualisés, espace coach consenti."]],
   ["90", "Le sport d’abord", "31 juillet 2026", ["Saisie recentrée sur le sport, musculation par séries, journal unifié avec calendrier."]],
-  ["88", "Catalogue multisport", "30 juillet 2026", ["Plus de 260 sports avec recherche par nom, alias et famille."]],
+  ["88", "Catalogue multisport", "30 juillet 2026", ["260 sports avec recherche par nom, alias et famille."]],
 ];
 doc({
   route: "/changelog",
@@ -261,11 +341,11 @@ doc({
   title: "Partenariats : clubs, salles, coachs et associations | TITAN",
   h1: "Construire avec les clubs<br>et les coachs",
   eyebrow: "Partenariats",
-  description: "Clubs, salles, associations et coachs : ce que TITAN peut apporter à vos sportifs, et nos conditions (aucune donnée revendue, aucune publicité).",
+  description: "Clubs, salles, associations et coachs : ce que TITAN peut apporter à vos sportifs, et nos conditions (aucune donnée revendue, aucune publicité sur le site).",
   image: "archipelago",
   body: `<p class="pub-lead">TITAN aide les sportifs à pratiquer régulièrement et à comprendre leurs progrès. Si vous accompagnez des sportifs, parlons-en.</p>
 <h2>Ce qui existe déjà</h2><ul><li><strong>Espace coach</strong> : suivi consenti, périmètre choisi par le sportif, propositions de séances. Trois sportifs gratuitement, vingt avec TITAN+. <a href="/pour-les-coachs">Voir le fonctionnement</a>.</li><li><strong>Guildes</strong> : un objectif d’effort hebdomadaire commun, pour un club ou une section.</li><li><strong>Expéditions</strong> : des saisons collectives où chaque minute d’effort compte pareil, quel que soit le sport.</li></ul>
-<h2>Nos conditions</h2><ul><li>Aucune donnée individuelle n’est partagée avec un partenaire sans le consentement explicite de la personne.</li><li>Aucune revente de données, aucune publicité.</li><li>Pas de progression achetable, y compris pour un partenaire.</li></ul>
+<h2>Nos conditions</h2><ul><li>Aucune donnée individuelle n’est partagée avec un partenaire sans le consentement explicite de la personne.</li><li>Aucune revente de données, aucune publicité sur le site.</li><li>Pas de progression achetable, y compris pour un partenaire.</li></ul>
 <h2>Nous écrire</h2><p><a href="mailto:${SUPPORT}?subject=Partenariat">${SUPPORT}</a> — présentez votre structure et ce que vous aimeriez construire.</p>`,
 });
 
@@ -329,18 +409,32 @@ seoGuide({
 seoGuide({
   route: "/suivi-escalade",
   file: "suivi-escalade.html",
-  title: "Suivi d’escalade : cotations, essais et réussites | TITAN",
-  h1: "Ton escalade,<br>cotation par cotation",
-  eyebrow: "Escalade",
-  description: "Bloc ou voie, cotations françaises, Fontainebleau et V-scale tenues séparées, essais et réussites : un suivi d’escalade qui garde le contexte.",
+  title: "Cotations de bloc : Fontainebleau, V-scale et suivi | TITAN",
+  h1: "Comprendre les cotations,<br>suivre ton escalade",
+  eyebrow: "Escalade · bloc et voie",
+  description: "Lis les cotations de bloc Fontainebleau et V-scale, distingue bloc et voie, puis garde tes essais et réussites dans un journal d’escalade gratuit.",
   image: "aurora",
-  lead: "Bloc, voie, salle ou falaise : TITAN garde chaque cotation dans son système et son contexte, pour des comparaisons qui ont un sens.",
+  lead: "Que signifie 6A+ ? Peut-on comparer un bloc et une voie ? Des repères pour lire une cotation, puis noter tes séances sans perdre leur contexte.",
   sections: [
-    ["Ce que tu notes", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort.</p>`],
-    ["Des systèmes qui ne se mélangent pas", `<p>Les cotations françaises, Fontainebleau et V-scale restent séparées. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p>`],
-    ["Voir sa progression", `<p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, avec les séances sources.</p>`],
+    ["Lire une cotation de bloc", `<p>En <strong>Fontainebleau</strong> (Font ou Fb), la difficulté augmente avec le chiffre, puis la lettre et le signe + : <strong>6A, 6A+, 6B, 6B+, 6C, 6C+, 7A</strong>. Cette suite illustre l’ordre, pas toute l’échelle. En <strong>V-scale</strong>, on rencontre par exemple V0, V1, V2, puis des nombres croissants.</p>
+      ${table(["Système", "Exemple", "Ce qu’il faut garder"], [
+        ["Fontainebleau · bloc", "6A+", "Le système Font/Fb et la cotation complète"],
+        ["V-scale · bloc", "V3", "Le système V, sans conversion automatique"],
+        ["Française · voie", "6a+", "La discipline voie et le mode d’assurage"],
+        ["Couleur de salle", "Bleu", "Le nom de la salle et sa propre légende"],
+      ])}
+      <p>La notation habituelle distingue les majuscules du bloc (6A) et les minuscules de la voie (6a). Les couleurs dépendent de la salle ; demande sa légende. Les cotations restent des appréciations : le style et l’ouverture changent le ressenti.</p>
+      <p class="pub-fine">Repères vérifiés le 2 novembre 2026 : <a href="https://thebmc.co.uk/en/indoor-climbing-grades-explained">British Mountaineering Council — comprendre les cotations en salle (en anglais)</a>.</p>`],
+    ["Équivalences : garder le système d’origine", `<p>Un tableau Font/V peut aider à se repérer, mais une conversion reste approximative. Une cotation de bloc ne décrit pas la même pratique qu’une cotation de voie. TITAN conserve donc <strong>la cotation dans son système d’origine</strong> et ne transforme pas un 6A en V3 ni en 6a.</p><p>Tu changes de salle ? Garde le lieu et le style dans tes notes plutôt que d’assimiler deux couleurs identiques. Tu passes dehors ? Le niveau réussi en salle ne garantit pas la réussite sur le rocher.</p><p class="pub-fine">Pour approfondir : <a href="https://www.mammut.com/fr/fr/stories-guides/bouldering-difficulty-scales-explained-climbers-guide">Mammut — échelles de bloc et limites des conversions</a> ; <a href="https://services.thebmc.co.uk/media/files/Skills/Leaflets/New%20Rock%20Climbers.pdf">BMC — débuter sur le rocher (PDF, en anglais)</a>.</p>`],
+    ["Un exemple de carnet, sans fausse progression", `<p><strong>Exemple fictif de lecture du carnet</strong> : mardi, tu notes une meilleure réussite en 6A Font, 8 essais et 3 réussites. Jeudi, tu notes 6A+ Font, 12 essais et 4 réussites. Tu as réussi une cotation supérieure dans ce système, mais ces deux séances seules ne prouvent pas une progression durable.</p><p>Ajoute dans tes notes ce que les nombres oublient : même salle ou même secteur, dalle ou dévers, nouveau bloc ou passage déjà travaillé. Un essai non réussi garde son intérêt dans le carnet ; ne le saisis pas comme meilleure réussite. Le prochain repère peut être de refaire un passage avec moins d’essais, sans viser une cotation plus haute.</p>`],
+    ["Ce que tu notes dans TITAN", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p><p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, avec les séances sources. <a href="/comprendre-mes-donnees">Comprendre les mesures et leurs limites</a> ou <a href="/journal-entrainement">découvrir le journal, les corrections et l’export</a>.</p>`],
   ],
-  faqItems: [["Puis-je mélanger salle et falaise ?", "Oui : le lieu et le mode d’assurage sont gardés pour comparer ce qui est comparable."]],
+  faqItems: [
+    ["Que veut dire 6A+ en bloc ?", "Dans le système Fontainebleau, 6A+ se situe entre 6A et 6B. Garde le nom du système avec la cotation pour éviter de la confondre avec une voie."],
+    ["Une couleur correspond-elle toujours à la même cotation ?", "Non. Consulte la légende de ta salle et garde le lieu dans ton carnet. TITAN ne convertit pas une couleur en cotation."],
+    ["Puis-je comparer un bloc 6A et une voie 6a ?", "Pas comme deux performances équivalentes. TITAN sépare la discipline et le système de cotation pour garder le contexte."],
+    ["Le carnet d’escalade est-il gratuit ?", "Oui. Le journal et ses exports sont gratuits et sans publicité sur le web. Tu peux essayer sans compte ; les séances restent alors sur cet appareil."],
+  ],
 });
 seoGuide({
   route: "/suivi-sportif",
@@ -372,7 +466,7 @@ seoGuide({
     ["Corriger sans tricher", `<p>Une erreur de saisie se corrige : les analyses et records se mettent à jour, l’XP ne bouge pas. Une séance archivée peut être restaurée.</p>`],
     ["Hors ligne et exportable", `<p>Une séance enregistrée sans réseau reste sur l’appareil et se synchronise toute seule. Tout ton journal s’exporte en CSV, toutes tes données en JSON.</p>`],
   ],
-  faqItems: [["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité."]],
+  faqItems: [["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité sur le site web."]],
 });
 seoGuide({
   route: "/progression-sportive",
@@ -404,7 +498,7 @@ seoGuide({
     ["Les pauses font partie du sport", `<p>Vacances, blessure, examens : déclare une semaine en pause, elle ne compte ni pour ni contre toi. Ton niveau, ta maîtrise et tes insignes restent.</p>`],
     ["Un monde qui réagit", `<p>Chaque jour actif allume une balise ; les gardiens récompensent la constance ; les expéditions te font avancer avec les autres. <a href="/aventures-sportives">L’aventure</a>.</p>`],
   ],
-  faqItems: [["TITAN+ est-il nécessaire pour rester motivé ?", "Non. Cadence, progression, deux campagnes et la Communauté sont gratuits."]],
+  faqItems: [["TITAN+ est-il nécessaire pour rester motivé ?", "Non. Cadence, progression, quatre campagnes et la Communauté sont gratuits."]],
 });
 
 /* ---------------------------------------------------------------- 404 */

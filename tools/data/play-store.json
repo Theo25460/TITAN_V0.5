@@ -1,0 +1,4 @@
+{
+  "_comment": "GP12/GP13: public Google Play listing URL. Leave empty until the listing is public and the link works: while empty, no page contains any Play Store link, meta tag or script. Then run: node tools/build-public-site.mjs && node tools/build-public-docs.mjs",
+  "url": ""
+}

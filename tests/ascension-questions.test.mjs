@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 function load() {
   const window = { SPORTS_CONFIG: {
@@ -30,6 +31,20 @@ test("weekly series ends with the current week and counts minutes", () => {
   assert.equal(s[3].minutes, 60);
   assert.equal(s[3].sessions, 2);
   assert.equal(s[2].minutes, 60);
+});
+
+test("question weeks include a late Sunday but never the following Monday", () => {
+  for (const [now, sunday, next] of [["2026-10-26T12:00:00", "2026-10-25", "2026-10-26"], ["2026-11-02T12:00:00", "2026-11-01", "2026-11-02"]]) {
+    const logs = [{ ...run(1, 5, 30), date: `${sunday}T23:30:00` }, { ...run(1, 5, 40), date: `${next}T00:00:00` }];
+    const s = Q.weeklySeries(logs, { weeks: 2, now: new Date(now) });
+    assert.deepEqual(Array.from(s, (w) => w.minutes), [30, 40]);
+  }
+});
+
+test("question calendar boundaries pass in four time zones", () => {
+  for (const TZ of ["UTC", "Europe/Paris", "America/New_York", "America/Sao_Paulo"]) {
+    execFileSync(process.execPath, ["--test", "--test-name-pattern=^question weeks", new URL(import.meta.url).pathname], { env: { ...process.env, TZ }, stdio: "pipe" });
+  }
 });
 
 test("volume trend needs eight complete weeks and compares 4 against 4", () => {

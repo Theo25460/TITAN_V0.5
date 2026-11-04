@@ -32,8 +32,8 @@ begin
   exception when others then assert sqlerrm = 'PURCHASE_LIMIT_ONCE', sqlerrm; end;
   begin
     perform public.titan_purchase_shop_item('cos_frame_aegis');
-    assert false, 'TITAN+ piece is not for sale';
-  exception when others then assert sqlerrm = 'NOT_FOR_SALE', sqlerrm; end;
+    assert false, 'formerly TITAN+ piece needs 1400 credits';
+  exception when check_violation then assert sqlerrm = 'NO_FUNDS', sqlerrm; end;
   begin
     perform public.titan_purchase_shop_item('cos_frame_sentinel');
     assert false, 'rank piece is not for sale';
