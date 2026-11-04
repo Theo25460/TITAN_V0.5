@@ -308,6 +308,15 @@
     }});
   }
 
+  /* Families whose whole catalogue is unfolded in the picker (V12-07): the picker shows the popular sports first and keeps the 260
+     sports one tap away, without a second search field or a long page by default. */
+  const openFamilies = new Set();
+  const familyTotals = () => {
+    const out = {};
+    for (const s of S_().all()) out[s.family] = (out[s.family] || 0) + 1;
+    return out;
+  };
+
   function pickHtml() {
     const recents = recentSports();
     const last3 = recents.slice(0, 3);
@@ -319,6 +328,12 @@
     for (const id of S_().POPULAR) if (window.SPORTS_CONFIG?.[id]) byFam[S_().familyOf(id)].push(id);
     for (const s of S_().all().sort((a, b) => (window.SPORTS_CONFIG[a.id]?.sortOrder ?? 999) - (window.SPORTS_CONFIG[b.id]?.sortOrder ?? 999)))
       if (byFam[s.family] && byFam[s.family].length < 8 && !byFam[s.family].includes(s.id)) byFam[s.family].push(s.id);
+    const totals = familyTotals();
+    for (const f of fams) {
+      if (!openFamilies.has(f)) continue;
+      // Unfolded: every sport of the family, alphabetical, the popular ones no longer first.
+      byFam[f] = S_().all().filter((s) => s.family === f).map((s) => s.id).sort((a, b) => S_().label(a).localeCompare(S_().label(b), "fr"));
+    }
     return `
       <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait&#8239;?</h1></div></header>
       <nav class="asc-subnav" data-subnav></nav>
@@ -337,7 +352,7 @@
       }).join("")}</div></section>` : ""}
       ${routines.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes routines</h2></div><div class="asc-list">${routines.map((r) => `<button type="button" class="asc-row" data-routine="${esc(r.id)}"><span class="asc-row-icon">${icon("layers")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${r.exercises.length} exercice${r.exercises.length > 1 ? "s" : ""}</span></span>${icon("chevron")}</button>`).join("")}</div></section>` : ""}
       <section class="asc-section"><div class="asc-section-head"><h2>Par famille</h2></div>
-        <div class="seance-families">${fams.map((f) => `<div class="seance-family"><p class="asc-eyebrow">${icon(S_().FAMILY_ICON[f])} ${esc(S_().FAMILY_LABEL[f])}</p><div class="seance-chips">${byFam[f].map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`).join("")}</div></div>`).join("")}</div>
+        <div class="seance-families">${fams.map((f) => `<div class="seance-family"><p class="asc-eyebrow">${icon(S_().FAMILY_ICON[f])} ${esc(S_().FAMILY_LABEL[f])}</p><div class="seance-chips" id="family-${esc(f)}">${byFam[f].map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`).join("")}${totals[f] > 8 ? `<button type="button" class="seance-chip seance-chip-more" data-family-more="${esc(f)}" aria-expanded="${openFamilies.has(f)}" aria-controls="family-${esc(f)}">${openFamilies.has(f) ? "Réduire" : `Voir les ${totals[f]} sports`}</button>` : ""}</div></div>`).join("")}</div>
       </section>`;
   }
 
@@ -860,6 +875,13 @@
         manualRequested = true; hubOpen = false; S = fresh(); clearDraft();
         history.replaceState(null,"","/training?mode=manual"); render(); root.querySelector("#sport-q")?.focus();
       });
+    }
+    if (t.dataset.familyMore) {
+      const f = t.dataset.familyMore;
+      if (openFamilies.has(f)) openFamilies.delete(f); else openFamilies.add(f);
+      render();
+      root.querySelector(`[data-family-more="${f}"]`)?.focus({ preventScroll: true });
+      return;
     }
     if (t.dataset.sport) return choose(t.dataset.sport);
     if (t.dataset.act === "clear-gpx") {

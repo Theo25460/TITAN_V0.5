@@ -281,6 +281,14 @@
   font-size: 14px;
   transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
 }
+.seance-chip {
+  min-height: 44px;
+}
+.seance-chip-more {
+  border-style: dashed;
+  border-color: var(--cy-line);
+  color: var(--cy);
+}
 .seance-chip .t-icon {
   width: 17px;
   height: 17px;
