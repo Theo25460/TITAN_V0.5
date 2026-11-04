@@ -21,6 +21,10 @@ import { PendingScreen } from "../screens/session/PendingScreen";
 import { SessionDetailScreen } from "../screens/session/SessionDetailScreen";
 import { SessionEditScreen } from "../screens/session/SessionEditScreen";
 import { RouteDetailScreen, RoutesScreen } from "../screens/session/RoutesScreen";
+import { WebHubScreen } from "../screens/settings/WebHubScreen";
+import { SourcesScreen } from "../screens/settings/SourcesScreen";
+import { CareerScreen } from "../screens/progress/CareerScreen";
+import { StepsScreen } from "../screens/steps/StepsScreen";
 import { GpsRecordScreen } from "../screens/session/GpsRecordScreen";
 import { SessionFormScreen } from "../screens/session/SessionFormScreen";
 import { SessionResultScreen } from "../screens/session/SessionResultScreen";
@@ -89,6 +93,7 @@ function SignedIn() {
       <Stack.Screen name="Pending" component={PendingScreen} options={{ title: "Envois en attente" }} />
       <Stack.Screen name="Journal" component={JournalScreen} options={{ title: "Journal" }} />
       <Stack.Screen name="Records" component={RecordsScreen} options={{ title: "Records" }} />
+      <Stack.Screen name="Career" component={CareerScreen} options={{ title: "Ma carrière" }} />
       <Stack.Screen name="Goals" component={GoalsScreen} options={{ title: "Objectifs" }} />
       <Stack.Screen name="Plan" component={PlanScreen} options={{ title: "Ma semaine type" }} />
       <Stack.Screen name="World" component={WorldScreen} options={{ title: "Aventure" }} />
@@ -101,6 +106,9 @@ function SignedIn() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Rappels" }} />
       <Stack.Screen name="Sports" component={SportsScreen} options={{ title: "Mes sports" }} />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: "Assistance" }} />
+      <Stack.Screen name="WebHub" component={WebHubScreen} options={{ title: "TITAN sur le site" }} />
+      <Stack.Screen name="Sources" component={SourcesScreen} options={{ title: "Sources et capteurs" }} />
+      <Stack.Screen name="Steps" component={StepsScreen} options={{ title: "Mes pas" }} />
       <Stack.Screen name="HealthConnect" component={HealthConnectScreen} options={{ title: "Santé Connect" }} />
       <Stack.Screen name="Garmin" component={GarminScreen} options={{ title: "Garmin" }} />
       <Stack.Screen name="Guide" component={GuideScreen} options={{ title: "Bien démarrer" }} />

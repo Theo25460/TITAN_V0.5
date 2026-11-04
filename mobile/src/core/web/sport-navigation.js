@@ -1,15 +1,19 @@
 /* Shared, read-only navigation over sport summaries. Never changes sessions or their results. */
 (function (root) {
   "use strict";
+  /** @param {unknown} v */
   const norm = (v) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’'_/().-]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  /** @param {any} v */
   const date = (v) => Number.isFinite(Date.parse(v)) ? Date.parse(v) : 0;
+  /** @param {any} a @param {any} b */
   const alphabetical = (a, b) => String(a.label || a.sport).localeCompare(String(b.label || b.sport), "fr") || String(a.sport).localeCompare(String(b.sport));
 
+  /** @param {any[] | null | undefined} entries @param {Record<string, any>} [options] */
   function select(entries, options = {}) {
     const q = norm(options.query);
     const favorites = new Set(Array.isArray(options.favorites) ? options.favorites : []);
     const now = Number.isFinite(options.now) ? options.now : Date.now();
-    const list = (entries || []).filter((s) => {
+    const list = (entries || []).filter((/** @type {any} */ s) => {
       if (options.hideEmpty !== false && !s.hasData) return false;
       if (options.sport && options.sport !== "all" && s.sport !== options.sport) return false;
       if (options.family && options.family !== "all" && s.family !== options.family) return false;
@@ -18,7 +22,7 @@
       const aliases = Array.isArray(s.aliases) ? s.aliases : [];
       return !q || [s.label, s.sport, ...aliases].some((v) => norm(v).includes(q));
     });
-    list.sort((a, b) => {
+    list.sort((/** @type {any} */ a, /** @type {any} */ b) => {
       if (options.sort === "recent") return date(b.sortLast || b.last) - date(a.sortLast || a.last) || alphabetical(a, b);
       if (options.sort === "mastery") return (Number(b.level) || 0) - (Number(a.level) || 0) || (Number(b.minutes) || 0) - (Number(a.minutes) || 0) || alphabetical(a, b);
       return alphabetical(a, b);
@@ -31,6 +35,6 @@
   }
 
   const api = { select };
-  root.TitanSportNavigation = api;
+  /** @type {any} */ (root).TitanSportNavigation = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

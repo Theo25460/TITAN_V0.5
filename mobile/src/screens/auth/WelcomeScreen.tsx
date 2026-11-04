@@ -83,7 +83,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  heroWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  heroWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" },
   content: { flex: 1, justifyContent: "space-between", paddingHorizontal: space.s5, gap: space.s4 },
   step: { flexDirection: "row", gap: space.s3, minHeight: 74 },
   rail: { width: 48, alignItems: "center" },

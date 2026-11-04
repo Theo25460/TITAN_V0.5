@@ -4,14 +4,19 @@ import { SITE_URL } from "./config";
 type Network = typeof fetch;
 type Current = () => boolean;
 const valid = (current: Current) => { if (!current()) throw new Error("AUTH_REQUIRED"); };
-export type GarminState = { enabled: boolean; linked: boolean; linked_at?: string; last_event_at?: string };
+/** Four things that are never confused: authorised (the person said yes), connected (the Garmin account is linked), received (an activity arrived), integrated (it is in the journal). */
+export type GarminState = { enabled: boolean; linked: boolean; linked_at?: string; last_event_at?: string; authorized: boolean; imported: number; attached: number; last_import_at?: string };
+type SourceRow = { source?: string; granted?: boolean; imported?: number; linked?: number; last_import_at?: string };
 export async function readGarmin(owner: string): Promise<GarminState> {
-  const [flags, status] = await Promise.all([
+  const [flags, status, sources] = await Promise.all([
     ownerRpc<{ flags?: Record<string, boolean> }>(owner, "titan_feature_flags_v1", {}),
     ownerRpc<{ linked: boolean; linked_at?: string; last_event_at?: string }>(owner, "titan_garmin_status_v1", {}),
+    // The consent and the counters are a second reading: when it fails the screen still tells the truth about the link itself.
+    ownerRpc<SourceRow[]>(owner, "titan_sources_v1", {}).catch(() => null),
   ]);
   if (typeof status?.linked !== "boolean") throw new Error("GARMIN_UNAVAILABLE");
-  return { ...status, enabled: flags?.flags?.["screens.garmin"] === true };
+  const row = Array.isArray(sources) ? sources.find((x) => x?.source === "garmin") : undefined;
+  return { ...status, enabled: flags?.flags?.["screens.garmin"] === true, authorized: row?.granted === true, imported: Number(row?.imported) || 0, attached: Number(row?.linked) || 0, last_import_at: row?.last_import_at ?? undefined };
 }
 async function provider(owner: string, action: "start" | "disconnect", network: Network, current: Current) {
   const session = await assertOwner(owner); valid(current);

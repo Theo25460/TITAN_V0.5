@@ -95,14 +95,14 @@ export function TitanPlusScreen() {
       {PLANS.map((plan) => {
         const o = offerOf(plan.id);
         return (
-          <Card key={plan.id} tone={plan.kind === "coach" ? "amber" : "accent"} style={{ gap: 6 }} testID={`plan-${plan.id}`}>
+          <Card key={plan.id} tone={plan.kind === "coach" ? "amber" : "accent"} style={{ gap: 6 }} testID={`plan-${plan.plan}`}>
             <T variant="h3">{plan.name}</T>
             <T variant="caption" tone="faint">{plan.tagline}</T>
             <T variant="bodyStrong">{o ? o.price : live ? "Pas encore proposé" : "Bientôt disponible"}</T>
             {plan.perks.map((p) => (
               <T key={p} variant="small">• {p}</T>
             ))}
-            {o && !profile?.is_elite ? <Button label={busy === o.id ? "Ouverture de Google Play…" : "S’abonner"} loading={busy === o.id} disabled={!!busy} onPress={() => subscribe(o)} testID={`subscribe-${o.id}`} /> : null}
+            {o && !profile?.is_elite ? <Button label={busy === o.id ? "Ouverture de Google Play…" : "S’abonner"} loading={busy === o.id} disabled={!!busy} onPress={() => subscribe(o)} testID={`subscribe-${plan.plan}`} /> : null}
           </Card>
         );
       })}

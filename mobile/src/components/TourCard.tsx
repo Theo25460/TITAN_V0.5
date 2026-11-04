@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useOwner } from "../data/auth";
-import { dismiss, loadTour, progressLabel, saveTour, shouldOffer, TOUR_STEPS, type TourState } from "../lib/tour";
+import { dismiss, loadTour, peekTour, progressLabel, saveTour, shouldOffer, TOUR_STEPS, type TourState } from "../lib/tour";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { T } from "./Text";
@@ -11,7 +11,7 @@ import { T } from "./Text";
 export function TourCard() {
   const owner = useOwner();
   const navigation = useNavigation();
-  const [tour, setTour] = useState<TourState | null>(null);
+  const [tour, setTour] = useState<TourState | null>(() => peekTour(owner));
   useEffect(() => {
     let alive = true;
     loadTour(owner).then((s) => alive && setTour(s));

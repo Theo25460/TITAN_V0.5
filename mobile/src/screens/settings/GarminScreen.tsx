@@ -37,10 +37,14 @@ export function GarminScreen() {
     } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   return <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
-    <T variant="h1">Garmin</T>
     <T tone="muted">Tes activités peuvent rejoindre ton journal après ton autorisation. Les pas seuls ne donnent pas d’XP. Les doublons sont contrôlés côté serveur.</T>
     {q.isLoading ? <LoadingCards count={1} /> : q.error ? <ErrorState error={q.error} onRetry={() => q.refetch()} title="Garmin indisponible" /> : <>
-      <Card><T variant="bodyStrong">{q.data?.linked ? "Compte Garmin connecté" : "Aucun compte Garmin connecté"}</T><T tone="muted">{q.data?.last_event_at ? `Dernière réception : ${new Date(q.data.last_event_at).toLocaleString("fr-FR")}` : "Aucune réception d’activité confirmée."}</T></Card>
+      <Card testID="garmin-states" style={{ gap: 6 }}>
+        <T variant="bodyStrong">{q.data?.linked ? "Compte Garmin connecté" : q.data?.authorized ? "Autorisé, liaison à terminer" : "Aucun compte Garmin connecté"}</T>
+        <T tone="muted" testID="garmin-authorized">Autorisation : {q.data?.authorized ? "donnée" : "non donnée"}</T>
+        <T tone="muted" testID="garmin-received">{q.data?.last_event_at ? `Dernière activité reçue : ${new Date(q.data.last_event_at).toLocaleString("fr-FR")}` : "Aucune activité reçue de Garmin pour l’instant."}</T>
+        <T tone="muted" testID="garmin-integrated">{q.data?.imported ? `${q.data.imported} activité${q.data.imported > 1 ? "s" : ""} intégrée${q.data.imported > 1 ? "s" : ""} à ton journal${q.data.attached ? `, ${q.data.attached} rattachée${q.data.attached > 1 ? "s" : ""} à une séance déjà saisie` : ""}.` : "Aucune activité intégrée au journal."}</T>
+      </Card>
       {!q.data?.enabled ? <T tone="warn">La connexion Garmin n’est pas encore activée pour cette version. Tu peux toujours retirer une autorisation existante.</T> : !q.data.linked ? <>
         <ToggleRow label="J’autorise l’import de mes activités Garmin dans TITAN" value={consent} onChange={setConsent} disabled={busy} />
         <Button label="Connecter Garmin" disabled={!consent} loading={busy} onPress={() => run(false)} testID="garmin-connect" />

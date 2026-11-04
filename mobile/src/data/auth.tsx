@@ -5,7 +5,7 @@ import { Linking } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SITE_URL } from "../lib/config";
 import { toAppError } from "../lib/errors";
-import { exchange, googleEnabled, parseCallback, startGoogle } from "../lib/googleAuth";
+import { createReturnWatch, exchange, GOOGLE_NO_RETURN, googleEnabled, parseCallback, startGoogle, watchAppState } from "../lib/googleAuth";
 import { forgetAccountCache } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { createProfile, fetchProfile } from "./api";
@@ -132,6 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [apply]);
 
+  // One Google attempt at a time is watched: back in the app without the callback = told, never silent (V12-03).
+  const googleWatch = useRef<ReturnType<typeof createReturnWatch> | null>(null);
+  if (!googleWatch.current) googleWatch.current = createReturnWatch({ onMissing: () => setNotice(GOOGLE_NO_RETURN) });
+  useEffect(() => (googleEnabled() ? watchAppState(googleWatch.current!) : undefined), []);
+
   // The browser comes back with titan://auth-callback?code=…: the code becomes a session (a failure is told, never silent).
   useEffect(() => {
     if (!googleEnabled()) return;
@@ -140,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handle = async (url: string | null) => {
       const cb = parseCallback(url);
       if (!cb || !url || handled.has(url)) return;
+      googleWatch.current?.received();
       // getInitialURL and the event listener can receive the same redirect.
       handled.add(url);
       try {
@@ -169,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw new Error(toAppError(error).message);
       },
       async signInWithGoogle() {
-        try { await startGoogle(); } catch (e) { throw new Error(toAppError(e).message); }
+        try { await startGoogle(); googleWatch.current?.start(); } catch (e) { throw new Error(toAppError(e).message); }
       },
       async signUp(name, email, password) {
         const { data, error } = await supabase.auth.signUp({

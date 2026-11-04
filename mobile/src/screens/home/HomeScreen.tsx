@@ -2,19 +2,20 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "../../components/Avatar";
-import { Brand } from "../../components/Brand";
-import { StepsCard } from "../../components/StepsCard";
+import { Reveal } from "../../components/Motion";
+import { QgBanner } from "../../components/QgBanner";
+import { SinceCard, useLastVisit } from "../../components/SinceCard";
+import { TodayStrip } from "../../components/TodayStrip";
 import { TourCard } from "../../components/TourCard";
 import { AdBanner } from "../../components/AdBanner";
 import { Button } from "../../components/Button";
-import { CadenceNotches } from "../../components/Cadence";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { Ring } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
+import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Screen } from "../../components/Screen";
-import { Section, Stat, StatRow } from "../../components/Section";
+import { Section } from "../../components/Section";
 import { SessionRow } from "../../components/SessionRow";
 import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
@@ -23,6 +24,8 @@ import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../dat
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
 import { useAfterPaint } from "../../lib/deferred";
+import { useSteps } from "../../data/steps";
+import { dayOfYear, voiceLine } from "../../lib/voice";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
@@ -38,6 +41,8 @@ export function HomeScreen() {
   const adventure = useAdventure();
   const prefs = usePrefs();
   const queue = useQueue();
+  const visit = useLastVisit();
+  const steps = useSteps();
   const { active } = logsQ;
 
   const planToday = useMemo(() => {
@@ -49,6 +54,9 @@ export function HomeScreen() {
     [active, goals.data, prefs, adventure.data, queue.items, planToday],
   );
   const action = useMemo(() => Progress.nextAction(ctx), [ctx]);
+  // Whatever the priority of the day is, recording a session is always one tap away: repeat the last one, or open the Séance tab.
+  const heroRecords = !!action.cta && action.cta.href.startsWith("/training");
+  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   // The secondary markers sit below the fold and cost as much as the main action (nextAction calls insights itself):
   // they are computed once the first frame is on screen.
   const insights = useAfterPaint(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]) ?? [];
@@ -67,6 +75,10 @@ export function HomeScreen() {
   const name = profile.data?.username || "Athlète";
   const hour = new Date().getHours();
   const hello = hour < 5 ? "Bonne nuit" : hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const todayKey = new Date().toDateString();
+  const sessionsToday = active.filter((l) => new Date(l.date).toDateString() === todayKey).length;
+  const daysAway = visit.since ? Math.floor((Date.now() - visit.since) / 86_400_000) : null;
+  const voice = voiceLine({ hour, dayOfYear: dayOfYear(new Date()), sessions: active.length, sessionsToday, weekDays: cadence.currentDays, weekTarget: cadence.target, chapterReady: !!cp?.ready, worldName: world?.name ?? null, stepsRatio: null, daysAway });
   const loading = (logsQ.isLoading && !logsQ.data) || (profile.isLoading && !profile.data);
 
   const refresh = () => {
@@ -74,25 +86,24 @@ export function HomeScreen() {
     profile.refetch();
     adventure.refetch();
     goals.refetch();
+    // The usual gesture also reads Santé Connect again (when it is connected): no "Synchroniser" button to hunt for. TITAN's own counter is live already.
+    if (steps.connected) steps.refresh(false).catch(() => {});
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <Screen tab refreshing={logsQ.isRefetching} onRefresh={refresh}>
-        <View style={styles.top}>
-          <Brand size={30} />
-          <Tap onPress={() => navigation.navigate("Tabs", { screen: "Profile" })} accessibilityLabel={`Profil de ${name}, niveau ${level}`} style={styles.me}>
-            <T variant="caption" tone="muted">
-              Niv. {level}
-            </T>
-            <Avatar id={snap?.avatar} frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={34} />
-          </Tap>
-        </View>
-        <TourCard />
-        <StepsCard />
-        <T variant="h1">
-          {hello}, {name}
-        </T>
+        <QgBanner
+          greeting={`${hello}, ${name}`}
+          line={voice}
+          level={level}
+          rankName={rank.name}
+          avatar={snap?.avatar}
+          frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")}
+          image={world ? worldImages[world.image] : null}
+          accent={world?.color}
+          onProfile={() => navigation.navigate("Tabs", { screen: "Profile" })}
+        />
 
         {queue.items.length ? (
           <Card onPress={() => navigation.navigate("Pending")} tone="flat" accessibilityLabel="Voir les séances en attente d’envoi">
@@ -113,52 +124,36 @@ export function HomeScreen() {
           <ErrorState error={logsQ.error} onRetry={() => logsQ.refetch()} />
         ) : (
           <>
-            <Card tone={action.tone === "am" ? "amber" : "accent"} style={{ gap: space.s3 }}>
-              <T variant="eyebrow" tone={action.tone === "am" ? "amber" : "accent"}>
-                {action.tone === "am" ? "Moment remarquable" : action.tone === "err" ? "Attention" : action.tone === "ok" ? "Aujourd’hui" : "À faire maintenant"}
-              </T>
-              <T variant="h2">{action.title}</T>
-              <T tone="muted">{action.text}</T>
-              {action.why ? (
-                <T variant="caption" tone="faint">
-                  Pourquoi : {action.why}
+            <Reveal order={1}>
+              <Card tone={action.tone === "am" ? "amber" : "accent"} style={{ gap: space.s3 }}>
+                <T variant="eyebrow" tone={action.tone === "am" ? "amber" : "accent"}>
+                  {action.tone === "am" ? "Moment remarquable" : action.tone === "err" ? "Attention" : action.tone === "ok" ? "Aujourd’hui" : "À faire maintenant"}
                 </T>
-              ) : null}
-              {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
-            </Card>
-
-            <Section title="Ma semaine" action="Ajuster" onAction={() => navigation.navigate("Plan")}>
-              <Card style={{ gap: space.s4 }}>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <T variant="numLarge">
-                      {cadence.currentDays}
-                      <T variant="h3" tone="faint">
-                        /{cadence.target}
-                      </T>
-                    </T>
-                    <T variant="small">jours actifs cette semaine</T>
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <T variant="num" tone="accent">
-                      {cadence.held}/{cadence.window}
-                    </T>
-                    <T variant="caption" tone="faint">
-                      semaines tenues
-                    </T>
-                  </View>
-                </View>
-                <CadenceNotches cadence={cadence} />
-                <T variant="caption" tone="muted">
-                  {cadence.remaining === 0 ? "Semaine tenue. Le repos fait aussi partie de la progression." : cadence.reachable ? `Encore ${cadence.remaining} jour${cadence.remaining > 1 ? "s" : ""} actif${cadence.remaining > 1 ? "s" : ""} pour tenir la semaine (${cadence.daysLeftInWeek} jour${cadence.daysLeftInWeek > 1 ? "s" : ""} restant${cadence.daysLeftInWeek > 1 ? "s" : ""}).` : "Pas de série à casser : une semaine calme ne t’enlève rien."}
-                </T>
-                <StatRow flat>
-                  <Stat label="séances" value={String(week.sessions)} />
-                  <Stat label="de pratique" value={Format.duration(week.minutes)} />
-                  <Stat label="XP gagnés" value={Format.number(week.xp)} tone="accent" />
-                </StatRow>
+                <T variant="h2">{action.title}</T>
+                <T tone="muted">{action.text}</T>
+                {action.why ? (
+                  <T variant="caption" tone="faint">
+                    Pourquoi : {action.why}
+                  </T>
+                ) : null}
+                {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
               </Card>
-            </Section>
+            </Reveal>
+
+            <Reveal order={2}>
+              {heroRecords ? null : repeat ? (
+                <RepeatLastCard log={repeat} compact />
+              ) : (
+                <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
+              )}
+            </Reveal>
+
+            <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
+
+            {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
+            <Reveal order={3}>
+              <TodayStrip steps={steps} cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
+            </Reveal>
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
               <Card style={{ gap: space.s4 }}>
@@ -200,18 +195,22 @@ export function HomeScreen() {
               </Card>
             </Section>
 
+            {/* The visit is an invitation, never the first thing on the QG: it comes after the player's own numbers and ascension. */}
+            <TourCard />
+
             {insights.length ? (
-              <Section title="Repères">
-                {insights.map((i) => (
-                  <Card key={i.id} tone="flat" style={{ gap: 6 }}>
-                    <T variant="bodyStrong">{i.title}</T>
-                    <T variant="small">{i.text}</T>
-                    {i.why ? (
-                      <T variant="caption" tone="faint">
-                        {i.why}
-                      </T>
-                    ) : null}
-                    {i.cta ? <Button small kind="ghost" label={i.cta.label} onPress={() => navigateHref(navigation, i.cta!.href)} style={{ alignSelf: "flex-start" }} /> : null}
+              <Section title="Repère">
+                {insights.slice(0, 1).map((i) => (
+                  <Card key={i.id} tone="flat" onPress={i.cta ? () => navigateHref(navigation, i.cta!.href) : undefined} accessibilityLabel={i.cta ? `${i.title}. ${i.cta.label}` : undefined} style={{ gap: 6 }} testID="qg-insight">
+                    <View style={styles.row}>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <T variant="bodyStrong">{i.title}</T>
+                        <T variant="small" numberOfLines={3}>
+                          {i.text}
+                        </T>
+                      </View>
+                      {i.cta ? <Icon name="chevron" size={18} color={colors.tx3} /> : null}
+                    </View>
                   </Card>
                 ))}
               </Section>

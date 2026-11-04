@@ -20,10 +20,12 @@ import { SportQuestions } from "./Questions";
 
 type View_ = "week" | "trends" | "mastery";
 
-const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" }[] = [
+const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" | "Steps" | "Career" }[] = [
+  { icon: "crown", label: "Ma carrière", route: "Career" },
   { icon: "journal", label: "Journal", route: "Journal" },
   { icon: "trophy", label: "Records", route: "Records" },
   { icon: "target", label: "Objectifs", route: "Goals" },
+  { icon: "run", label: "Mes pas", route: "Steps" },
   { icon: "calendar", label: "Semaine type", route: "Plan" },
 ];
 
@@ -120,7 +122,7 @@ export function ProgressScreen() {
           {LINKS.map((l) => (
             <Tap key={l.route} onPress={() => navigation.navigate(l.route)} accessibilityLabel={l.label} style={styles.link}>
               <Icon name={l.icon} size={22} color={colors.cy} />
-              <T variant="caption" tone="default" numberOfLines={1}>
+              <T variant="caption" tone="default" numberOfLines={2} center>
                 {l.label}
               </T>
             </Tap>
@@ -141,7 +143,7 @@ export function ProgressScreen() {
         ) : q.error && !q.data ? (
           <ErrorState error={q.error} onRetry={() => q.refetch()} />
         ) : !active.length ? (
-          <EmptyState icon="chart" title="Tes statistiques commencent ici" text="Enregistre une séance : semaine, tendances, records et maîtrises se construisent avec ton journal." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+          <EmptyState brand icon="chart" title="Tes statistiques commencent ici" text="Enregistre une séance : semaine, tendances, records et maîtrises se construisent avec ton journal." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
         ) : view === "week" ? (
           <>
             <RecapCard recap={current} title="Cette semaine" />
@@ -249,7 +251,8 @@ export function ProgressScreen() {
 }
 
 const styles = StyleSheet.create({
-  links: { flexDirection: "row", gap: space.s2 },
-  link: { flex: 1, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
+  // Wraps to two rows on a narrow window or a large system font instead of cutting "Semaine type" to "Semaine ty…" (V12-24).
+  links: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  link: { flexGrow: 1, flexBasis: 96, paddingHorizontal: 4, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
   lvl: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });

@@ -1,8 +1,10 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
-import { Alert, Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
+import { RankCrest, rankIdOf } from "../../components/Crest";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Icon } from "../../components/Icon";
@@ -70,16 +72,20 @@ export function ProfileScreen() {
             ) : null}
           </View>
         </View>
-        <View style={{ gap: 6 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <T variant="caption" tone="muted">
-              Vers le niveau {level + 1}
-            </T>
-            <T variant="caption" tone="faint">
-              {Format.number(xp)} / {Format.number(need)} XP
-            </T>
+        {/* The rank, as heraldry (it grows richer with the rank the server confirms), beside the progress to the next level: never in the header, where it squeezed the name. */}
+        <View style={styles.levelRow}>
+          <RankCrest rank={rankIdOf(level)} size={88} />
+          <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+              <T variant="caption" tone="muted" numberOfLines={1} style={{ flexShrink: 1 }}>
+                Vers le niveau {level + 1}
+              </T>
+              <T variant="caption" tone="faint" numberOfLines={1}>
+                {Format.number(xp)} / {Format.number(need)} XP
+              </T>
+            </View>
+            <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
           </View>
-          <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
         </View>
         <StatRow flat>
           <Stat label="séances" value={Format.number(dna.sessions)} />
@@ -129,8 +135,8 @@ export function ProfileScreen() {
         <Group title="Compte">
           <ListRow icon="user" title="Compte et sécurité" subtitle={email ?? undefined} onPress={() => navigation.navigate("Account")} />
           <ListRow icon="run" title="Mes sports" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map((s) => Sports.label(s)).join(", ") : "Choisir mes sports favoris"} onPress={() => navigation.navigate("Sports")} />
-          <ListRow icon="cloud" title="Santé Connect" subtitle="Pas et séances de ton téléphone" onPress={() => navigation.navigate("HealthConnect")} />
-          <ListRow icon="cloud" title="Garmin" subtitle="Connexion, état et retrait de l’autorisation" onPress={() => navigation.navigate("Garmin")} />
+          <ListRow icon="globe" title="TITAN sur le site" subtitle="Analyses, coach, exports : le TITAN complet" onPress={() => navigation.navigate("WebHub")} testID="profile-web" />
+          <ListRow icon="cloud" title="Sources et capteurs" subtitle="Compteur de pas, Santé Connect, Garmin, GPS" onPress={() => navigation.navigate("Sources")} testID="profile-sources" />
           <ListRow icon="lock" title="Confidentialité" onPress={() => navigation.navigate("Privacy")} />
           <ListRow icon="bell" title="Rappels" onPress={() => navigation.navigate("Notifications")} />
           <ListRow icon="settings" title="Réglages de l’application" onPress={() => navigation.navigate("Settings")} last />
@@ -152,6 +158,7 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", gap: space.s4, alignItems: "center" },
+  levelRow: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   mastery: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   level: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });

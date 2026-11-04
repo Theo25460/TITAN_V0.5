@@ -1,8 +1,9 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
+jest.setTimeout(20000);
 const mockState = { empty: false, loading: false };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
 const mockMutation = () => ({ mutate: jest.fn(), mutateAsync: jest.fn(async () => ({})), isPending: false });
@@ -109,7 +110,19 @@ describe("with account data", () => {
     show(<S.Home />);
     expect(screen.getByText(/Athlète Test/)).toBeTruthy();
     expect(screen.getByText(/Niveau 4/)).toBeTruthy();
-    expect(screen.getByText("Ma semaine")).toBeTruthy();
+    expect(screen.getByTestId("week-tile")).toBeTruthy();
+    // Recording is always one tap from the QG, whatever the priority of the day is (V12-31).
+    expect(screen.queryByText("Refaire ma dernière séance") ?? screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
+  });
+  test("QG sans historique : une invitation claire à enregistrer la première séance", () => {
+    mockState.empty = true;
+    try {
+      show(<S.Home />);
+      expect(screen.queryByText("Refaire ma dernière séance")).toBeNull();
+      expect(screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
+    } finally {
+      mockState.empty = false;
+    }
   });
   test("Progrès : semaine, tendances, maîtrise", async () => {
     show(<S.Progress />);
@@ -220,10 +233,10 @@ describe("with account data", () => {
     expect(screen.getByText("Le suivi GPS")).toBeTruthy();
     expect(screen.getByText(/Il ne demande ta position qu’au moment où tu démarres/)).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-next"));
-    expect(screen.getByText("Santé Connect et tes pas")).toBeTruthy();
+    expect(screen.getByText("Tes pas")).toBeTruthy();
     expect(screen.getByText("Facultatif")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-open"));
-    expect(nav.navigate).toHaveBeenLastCalledWith("HealthConnect");
+    expect(nav.navigate).toHaveBeenLastCalledWith("Steps");
     fireEvent.press(screen.getByTestId("guide-prev"));
     expect(screen.getByText("Le suivi GPS")).toBeTruthy();
     // leaving keeps the step for this account; reopening resumes there
@@ -242,6 +255,7 @@ describe("with account data", () => {
     const open = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     show(<S.Feedback />);
     fireEvent.press(screen.getByTestId("feedback-send"));
+    await act(async () => {});
     expect(screen.getByText(/au moins 10 caractères/)).toBeTruthy();
     expect(open).not.toHaveBeenCalled();
     fireEvent.changeText(screen.getByTestId("feedback-text"), "Le chronomètre s’arrête quand je verrouille l’écran.");

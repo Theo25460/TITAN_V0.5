@@ -16,7 +16,7 @@ beforeEach(() => { mockOwner = "a"; [mockRead, mockConnect, mockDisconnect, mock
 test("Garmin cannot connect before explicit consent and preserves an honest failure", async () => {
   mockConnect.mockRejectedValue(new Error("offline")); show(<GarminScreen />);
   const button = await screen.findByTestId("garmin-connect"); fireEvent.press(button); expect(mockConnect).not.toHaveBeenCalled();
-  fireEvent(screen.getByRole("switch"), "valueChange", true);
+  fireEvent.press(screen.getByRole("switch"));
   fireEvent.press(button);
   await waitFor(() => expect(mockConnect).toHaveBeenCalledTimes(1));
   expect(await screen.findByText(/La demande n’a pas été confirmée/)).toBeTruthy();

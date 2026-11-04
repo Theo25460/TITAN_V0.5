@@ -1,9 +1,12 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { forwardRef, useEffect, useState, type ReactNode } from "react";
-import { Keyboard, KeyboardAvoidingView, RefreshControl, ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
+import { Keyboard, KeyboardAvoidingView, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View, type ScrollViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, space } from "../theme/tokens";
 import { OfflineBanner } from "./OfflineBanner";
+
+/** Window height (dp) under which the footer stops being fixed. */
+export const SHORT_WINDOW = 520;
 
 type Props = ScrollViewProps & {
   children: ReactNode;
@@ -30,7 +33,11 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
       hide.remove();
     };
   }, [footer]);
-  const floating = !!footer && !typing;
+  // Landscape, split window, small fold: under this height a fixed footer would leave the form a sliver, so it scrolls with the content.
+  const { height } = useWindowDimensions();
+  const short = height < SHORT_WINDOW;
+  const scrollsWithContent = !!footer && short;
+  const floating = !!footer && !typing && !short;
   let headerHeight = 0;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -46,12 +53,13 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.cy} colors={[colors.cy]} progressBackgroundColor={colors.bg3} /> : undefined}
-        contentContainerStyle={[padded && styles.padded, { paddingBottom: (tab ? space.s7 : insets.bottom + space.s7) + (floating ? 84 : 0) }, contentContainerStyle]}
+        contentContainerStyle={[styles.readableWidth, padded && styles.padded, { paddingBottom: (tab ? space.s7 : insets.bottom + space.s7) + (floating ? 84 : 0) }, contentContainerStyle]}
         {...rest}
       >
         {children}
+        {scrollsWithContent ? <View style={{ paddingTop: space.s2 }}>{footer}</View> : null}
       </ScrollView>
-      {footer ? <View style={[floating ? styles.footer : styles.footerInline, { paddingBottom: typing ? space.s3 : insets.bottom + space.s3 }]}>{footer}</View> : null}
+      {footer && !scrollsWithContent ? <View style={[floating ? styles.footer : styles.footerInline, { paddingBottom: typing ? space.s3 : insets.bottom + space.s3 }]}><View style={styles.readableWidth}>{footer}</View></View> : null}
     </View>
   );
   if (!keyboard) return body;
@@ -64,6 +72,9 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
+  // A readable maximum width prevents giant forms and cards on tablets and unfolded phones.
+  // It remains 100% on compact devices and in Android split-screen mode.
+  readableWidth: { width: "100%", maxWidth: 720, alignSelf: "center" },
   padded: { paddingHorizontal: space.s4, paddingTop: space.s4, gap: space.s4 },
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: space.s4, paddingTop: space.s3, backgroundColor: "rgba(5,7,10,0.96)", borderTopWidth: 1, borderTopColor: colors.line },
   footerInline: { paddingHorizontal: space.s4, paddingTop: space.s3, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.line },

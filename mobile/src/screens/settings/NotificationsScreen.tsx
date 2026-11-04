@@ -1,4 +1,4 @@
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "../../components/Picker";
 import { useEffect, useState } from "react";
 import { Linking, View } from "react-native";
 import { Button } from "../../components/Button";
@@ -10,6 +10,8 @@ import { ToggleRow } from "../../components/Toggle";
 import { useToast } from "../../components/Toast";
 import { useOwner } from "../../data/auth";
 import { useSavePrefs } from "../../data/hooks";
+import { ask } from "../../components/Dialog";
+import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { applyReminders, DEFAULT_REMINDERS, ensurePermission, type ReminderSettings } from "../../lib/reminders";
 import { ownerKey, readJSON, writeJSON } from "../../lib/storage";
 import { space } from "../../theme/tokens";
@@ -29,7 +31,7 @@ export function NotificationsScreen() {
   if (!s) return <Screen>{null}</Screen>;
 
   async function update(next: ReminderSettings) {
-    if ((next.weeklyRecap || next.training) && !(await ensurePermission())) {
+    if ((next.weeklyRecap || next.training) && !(await ensurePermission(() => ask(PERMISSION_COPY.notifications.title, PERMISSION_COPY.notifications.message, { confirmLabel: PERMISSION_COPY.notifications.confirmLabel })))) {
       setDenied(true);
       return;
     }

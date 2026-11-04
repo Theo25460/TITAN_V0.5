@@ -5,7 +5,8 @@ import { haptic } from "../lib/haptics";
 import { useReducedMotion } from "../lib/motion";
 import { colors, radius, space } from "../theme/tokens";
 import { Button } from "./Button";
-import { Icon } from "./Icon";
+import { BeaconEmblem } from "./Crest";
+import { Embers } from "./Embers";
 import { T } from "./Text";
 
 export type RevealContent = { color: string; eyebrow: string; title: string; insignia: string; text: string; next?: string | null };
@@ -36,9 +37,10 @@ export function RewardReveal({ content, onClose }: { content: RevealContent | nu
       <Pressable style={styles.scrim} onPress={onClose} accessibilityRole="button" accessibilityLabel="Fermer">
         <Pressable style={styles.panel} accessibilityViewIsModal onPress={() => {}}>
           <View style={styles.stage}>
-            <Animated.View style={[styles.halo, { borderColor: c, opacity: halo.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1.9] }) }] }]} />
-            <Animated.View style={[styles.medal, { borderColor: c, backgroundColor: `${c}22`, transform: [{ scale: medal }, { rotate: medal.interpolate({ inputRange: [0, 1], outputRange: ["-25deg", "0deg"] }) }] }]}>
-              <Icon name="medal" size={54} color={c} strokeWidth={1.6} />
+            <Embers seed={7} count={26} palette={[c, "#FFFFFF", colors.am]} />
+            <Animated.View style={[styles.halo, { borderColor: c, opacity: halo.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [0.8, 2.2] }) }] }]} />
+            <Animated.View style={{ transform: [{ scale: medal.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] }) }], opacity: medal }}>
+              <BeaconEmblem color={c} size={132} />
             </Animated.View>
           </View>
           <T variant="eyebrow" center color={c}>
@@ -73,7 +75,7 @@ export function RewardReveal({ content, onClose }: { content: RevealContent | nu
 const styles = StyleSheet.create({
   scrim: { flex: 1, backgroundColor: "rgba(2,4,6,0.82)", alignItems: "center", justifyContent: "center", padding: space.s5 },
   panel: { width: "100%", maxWidth: 420, borderRadius: radius.r4, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line2, padding: space.s6, gap: space.s3, alignItems: "center" },
-  stage: { width: 150, height: 150, alignItems: "center", justifyContent: "center", marginBottom: space.s2 },
+  stage: { width: 170, height: 170, alignItems: "center", justifyContent: "center", marginBottom: space.s2 },
   halo: { position: "absolute", width: 120, height: 120, borderRadius: 60, borderWidth: 2 },
   medal: { width: 116, height: 116, borderRadius: 58, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   insignia: { alignSelf: "stretch", gap: 2, paddingVertical: space.s3, borderRadius: radius.r2, borderWidth: 1, backgroundColor: colors.bg2 },

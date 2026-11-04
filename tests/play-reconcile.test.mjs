@@ -39,7 +39,11 @@ async function run(callback, { env = {}, rows = due } = {}) {
 const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_entitlement_v1')).map(c => c.body);
 
 test('disabled or misconfigured: nothing is read or written', async () => {
-    await run(async calls => { assert.equal((await handler(new Request('https://x.test'))).status, 503); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: 'false' } });
+    // Off on purpose: 200 "disabled", no call at all (no hourly 503 in the logs while billing is closed).
+    await run(async calls => { const r = await handler(new Request('https://x.test')); assert.equal(r.status, 200); assert.equal((await r.json()).disabled, true); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: 'false' } });
+    await run(async calls => { const r = await handler(new Request('https://x.test')); assert.equal(r.status, 200); assert.equal((await r.json()).disabled, true); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: '' } });
+    // Switched on but misconfigured: still a real 503.
+    await run(async calls => { assert.equal((await handler(new Request('https://x.test'))).status, 503); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: 'true', PLAY_SERVICE_ACCOUNT_JSON: '' } });
     await run(async calls => { assert.equal((await handler(new Request('https://x.test'))).status, 503); assert.deepEqual(calls, []); }, { env: { PLAY_PRODUCT_IDS: '' } });
 });
 

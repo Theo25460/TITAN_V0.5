@@ -79,7 +79,7 @@ describe("Santé Connect", () => {
     const l = lib({ requestPermission: jest.fn(async () => []) });
     _setHealthConnectForTests(createHealthConnect(l));
     show();
-    expect(await screen.findByText(/Ce que TITAN lit, seulement quand tu le demandes/)).toBeTruthy();
+    expect(await screen.findByText(/Ce que TITAN lit, seulement avec ton accord/)).toBeTruthy();
     expect(screen.getByText(/ni fréquence cardiaque, sommeil, poids, calories ou position/)).toBeTruthy();
     expect(screen.queryByTestId("hc-steps")).toBeNull();
     fireEvent.press(screen.getByTestId("hc-authorize"));

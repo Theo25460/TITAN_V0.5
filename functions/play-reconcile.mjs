@@ -16,7 +16,10 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
     let validUrl = false;
     try { const parsed = new URL(url); validUrl = parsed.protocol === 'https:' && !parsed.username && !parsed.password && parsed.pathname === '/' && !parsed.search && !parsed.hash; } catch (_) { /* Fail closed. */ }
     const summary = (status, extra = {}) => new Response(JSON.stringify({ checked: 0, updated: 0, failed: 0, ...extra }), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
-    if (env('PLAY_BILLING_ENABLED') !== 'true' || !validUrl || !key || allowedProducts.length === 0
+    // Switched off on purpose (billing not opened yet): the hourly run reports "disabled" with 200, so Netlify's error log is not polluted by an expected state.
+    // Switched ON but misconfigured (missing secret, bad product list) stays a 503: that one is a real alert.
+    if (env('PLAY_BILLING_ENABLED') !== 'true') return summary(200, { disabled: true });
+    if (!validUrl || !key || allowedProducts.length === 0
         || typeof account?.client_email !== 'string' || typeof account?.private_key !== 'string') return summary(503);
 
     const databaseHeaders = { apikey: key, 'Content-Type': 'application/json', Accept: 'application/json' };

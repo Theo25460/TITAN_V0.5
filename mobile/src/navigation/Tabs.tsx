@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, type IconName } from "../components/Icon";
 import { useQueue } from "../data/queue";
@@ -16,6 +16,17 @@ const Tab = createBottomTabNavigator<TabParams>();
 
 const ICONS: Record<keyof TabParams, IconName> = { QG: "home", Progress: "chart", Record: "plus", Adventure: "compass", Profile: "user" };
 
+/** The bar has a fixed height and five slots: its labels follow the system font size up to 1.3x (like Material navigation bars),
+    beyond that the icons and the accessibility labels carry the meaning. Everything else in the app scales further. */
+export const TAB_LABEL_SCALE_CAP = 1.3;
+export function TabLabel({ children, color }: { children: string; color: string }) {
+  return (
+    <Text maxFontSizeMultiplier={TAB_LABEL_SCALE_CAP} numberOfLines={1} style={[styles.label, { color }]}>
+      {children}
+    </Text>
+  );
+}
+
 export function Tabs() {
   const insets = useSafeAreaInsets();
   const queue = useQueue();
@@ -27,9 +38,11 @@ export function Tabs() {
         tabBarActiveTintColor: colors.cy,
         tabBarInactiveTintColor: colors.tx3,
         tabBarHideOnKeyboard: true,
+        // From 600 dp the library puts the label beside the icon, and the raised "+" then covers "Séance" (unfolded phone, tablet, split window).
+        tabBarLabelPosition: "below-icon",
         animation: "shift",
-        tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: 64 + insets.bottom, paddingTop: 6, paddingBottom: insets.bottom + 6 },
-        tabBarLabelStyle: { fontFamily: fonts.textBold, fontSize: 11 },
+        tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: 70 + insets.bottom, paddingTop: 6, paddingBottom: insets.bottom + 8 },
+        tabBarLabel: ({ children, color }) => <TabLabel color={color}>{children}</TabLabel>,
         tabBarIcon: ({ color, focused }) =>
           route.name === "Record" ? (
             <View style={[styles.record, focused && styles.recordOn]}>
@@ -51,6 +64,7 @@ export function Tabs() {
 }
 
 const styles = StyleSheet.create({
+  label: { fontFamily: fonts.textBold, fontSize: 11, textAlign: "center" },
   record: { width: 46, height: 34, borderRadius: 12, backgroundColor: colors.cy, alignItems: "center", justifyContent: "center", marginTop: -2 },
   recordOn: { backgroundColor: colors.cy2 },
 });

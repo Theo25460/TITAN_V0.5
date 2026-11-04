@@ -6,6 +6,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./core";
 import { GpsAccountGuard } from "./components/GpsAccountGuard";
+import { DialogHost } from "./components/Dialog";
+import { PickerHost } from "./components/Picker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { AuthProvider } from "./data/auth";
@@ -48,6 +50,8 @@ export default function App() {
                   <RootNavigator />
                 </ErrorBoundary>
               </NavigationContainer>
+              <DialogHost />
+              <PickerHost />
             </ToastProvider>
           </AuthProvider>
         </PersistQueryClientProvider>

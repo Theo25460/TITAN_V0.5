@@ -18,6 +18,7 @@ require("./web/campaign-quests.js");
 require("./web/campaign-encounters.js");
 require("./web/sport-navigation.js");
 require("./web/gpx.js");
+require("./web/career.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,3 +154,26 @@ export const CampaignEncounters = g.TitanCampaignEncounters as { describe(c: unk
 
 export type GpxResult = { ok: true; points: number; ignoredPoints: number; distanceKm: number; movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; start: string | null } | { ok: false; error: string; points: number };
 export const Gpx = g.TitanGpx as { analyse(text: string): GpxResult };
+
+export type CareerRange = "7d" | "30d" | "year" | "all";
+export type CareerLens = "run" | "hike" | "bike" | "swim" | "strength" | "multi";
+export type Career = {
+  range: CareerRange; from: string | null; first: string | null; empty: boolean; excluded: number;
+  totals: { sessions: number; activeDays: number; sports: number; minutes: number; measuredSessions: number; unmeasuredSessions: number };
+  calories: { available: false };
+  distance: { footKm: number; footSessions: number; bikeKm: number; bikeSessions: number; swimMeters: number; swimSessions: number; otherKm: number; footMinutes: number; bikeMinutes: number; swimMinutes: number; runKm: number; runMinutes: number; footElevation: number; bikeElevation: number; footPace: number | null; bikeKmh: number | null };
+  elevation: { meters: number; sessions: number };
+  steps: { total: number; days: number; firstDay: string; estimatedKm: number } | null;
+  strength: { sessions: number; sets: number; reps: number; volumeKg: number; loadedSets: number; heaviestKg: number };
+  lenses: CareerLens[];
+  families: { id: Family; label: string; sessions: number; minutes: number; share: number }[];
+  sports: { sport: string; label: string; family: Family; sessions: number; minutes: number; km: number }[];
+  records: { id: string; kind: RecordEntry["kind"]; sport: string; sportLabel: string; label: string; value: number | string; unit: string; date: string }[];
+  milestones: { id: string; date: string; title: string; detail: string; tone: "amber" | "cyan"; sport: string }[];
+  timeline: { id: string; date: string; sport: string; label: string; minutes: number | null; km: number | null }[];
+  rpg: { level: number | null; id: string | null; name: string | null; xp: number | null };
+};
+export const CareerRules = g.TitanCareer as {
+  build(logs: TrainingLog[], opts?: { now?: Date | number; range?: CareerRange; stepDays?: { day: string; steps: number }[] | null; rank?: { level?: number; id?: string; name?: string } | null; xp?: number | null }): Career;
+  STEP_KM: number;
+};

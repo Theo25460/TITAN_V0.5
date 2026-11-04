@@ -53,13 +53,14 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
         refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => q.refetch()} colors={[colors.cy]} progressBackgroundColor={colors.bg3} />}
         ListHeaderComponent={
           <View style={{ gap: space.s3, marginBottom: space.s2 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+            {/* The chips slide to the screen edge (a bleed of the page margin), not into a cut at the margin. */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.s4 }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.s4 }}>
               <Chip label="Tous les sports" selected={!sport} onPress={() => setSport(null)} />
               {sports.map((s) => (
                 <Chip key={s} label={Sports.label(s)} selected={sport === s} onPress={() => setSport(sport === s ? null : s)} />
               ))}
             </ScrollView>
-            <View style={{ flexDirection: "row", gap: 6 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
               <Chip label={`Journal (${q.logs.length})`} selected={!showArchived} onPress={() => setShowArchived(false)} />
               <Chip label={`Archives (${q.archived.length})`} icon="archive" selected={showArchived} onPress={() => setShowArchived(true)} />
               <Chip label="Mes parcours" icon="route" onPress={() => navigation.navigate("Routes")} testID="journal-routes" />
@@ -85,7 +86,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
           showArchived ? (
             <EmptyState icon="archive" title="Aucune séance archivée" />
           ) : (
-            <EmptyState icon="journal" title={sport ? "Aucune séance de ce sport" : "Ton journal est vide"} text="Chaque séance enregistrée apparaît ici, même hors ligne." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+            <EmptyState brand={!sport} icon="journal" title={sport ? "Aucune séance de ce sport" : "Ton journal est vide"} text="Chaque séance enregistrée apparaît ici, même hors ligne." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
           )
         }
       />

@@ -391,7 +391,7 @@
       const left = Number(g.target) - p.value;
       const unit = { distance: "km", minutes: "min", sessions: "séance", days: "jour actif" }[g.metric] || "";
       const leftText =
-        g.metric === "distance" ? f.distance(left) : g.metric === "minutes" ? f.duration(left) : f.plural(Math.ceil(left), unit, unit + "s");
+        g.metric === "distance" ? f.distance(left) : g.metric === "minutes" ? f.duration(left) : f.plural(Math.ceil(left), unit, g.metric === "days" ? "jours actifs" : unit + "s");
       out.push({
         id: `goal-${g.id}`,
         priority: 80 + Math.round(p.ratio * 10),

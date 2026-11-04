@@ -1,16 +1,18 @@
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "../../components/Picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { usePreventRemove } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, type ScrollView, StyleSheet, View } from "react-native";
+import { type ScrollView, StyleSheet, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Field } from "../../components/Field";
 import { Icon } from "../../components/Icon";
 import { Tap } from "../../components/Pressable";
+import { RpeSelector } from "../../components/RpeSelector";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
@@ -24,7 +26,7 @@ import { clearDraft, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../..
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, radius, space, TOUCH } from "../../theme/tokens";
+import { colors, familyColors, space, TOUCH } from "../../theme/tokens";
 import { routeLink, routeSave } from "../../data/api";
 import { flushRoutes, linkSavedSession } from "../../lib/routeSync";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
@@ -399,15 +401,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       </Card>
 
       <Section title="Ressenti (RPE)">
-        <View style={styles.rpe} accessibilityRole="radiogroup" accessibilityLabel="Effort perçu de 1 à 10">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-            <Tap key={n} onPress={() => setDraft({ rpe: draft.rpe === n ? null : n })} accessibilityRole="radio" accessibilityState={{ checked: draft.rpe === n }} accessibilityLabel={`${n}, ${RPE_TEXT[n]}`} style={[styles.rpeItem, draft.rpe === n && styles.rpeOn, draft.rpe !== null && n <= draft.rpe && n !== draft.rpe && { backgroundColor: colors.cySoft }]}>
-              <T variant="bodyStrong" color={draft.rpe === n ? colors.cyInk : colors.tx}>
-                {n}
-              </T>
-            </Tap>
-          ))}
-        </View>
+        <RpeSelector value={draft.rpe} onChange={(rpe) => setDraft({ rpe })} />
         <T variant="caption" tone="faint">
           {draft.rpe ? `${draft.rpe}/10 · ${RPE_TEXT[draft.rpe]}` : "Facultatif. 5 = modéré par défaut pour le calcul de l’effort."}
         </T>
@@ -439,7 +433,4 @@ const styles = StyleSheet.create({
   sportHead: { flexDirection: "row", alignItems: "center", gap: 8 },
   famDot: { width: 10, height: 10, borderRadius: 5 },
   change: { minHeight: TOUCH, paddingHorizontal: 8, justifyContent: "center" },
-  rpe: { flexDirection: "row", gap: 4 },
-  rpeItem: { flex: 1, height: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
-  rpeOn: { backgroundColor: colors.cy, borderColor: colors.cy },
 });

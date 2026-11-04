@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Runtime permission (Android 10+): asked by the app, on the screen that explains the step counter. -->
+  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+  <!-- The step counter is a hardware sensor; the app still works, without this feature, on a phone that has none. -->
+  <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false"/>
+</manifest>

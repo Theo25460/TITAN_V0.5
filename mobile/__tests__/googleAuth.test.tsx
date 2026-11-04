@@ -66,3 +66,53 @@ describe("PKCE storage", () => {
     expect(secure.m.size).toBe(0);
   });
 });
+
+describe("Return watch: back in the app without the callback (V12-03)", () => {
+  const { createReturnWatch, GOOGLE_NO_RETURN } = require("../src/lib/googleAuth");
+  const rig = () => {
+    let t = 0;
+    const timers: { fn: () => void; ms: number; id: number }[] = [];
+    const onMissing = jest.fn();
+    const watch = createReturnWatch({ onMissing, graceMs: 4000, now: () => t, schedule: (fn: () => void, ms: number) => { const id = timers.length + 1; timers.push({ fn, ms, id }); return id; }, cancel: (id: number) => { const i = timers.findIndex((x) => x.id === id); if (i >= 0) timers.splice(i, 1); } });
+    return { watch, onMissing, timers, advance: (ms: number) => { t += ms; } };
+  };
+  test("tells the player when the browser returned but no callback came", () => {
+    const r = rig();
+    r.watch.start();
+    r.advance(8000); // the player went through Google in the browser
+    r.watch.foreground();
+    expect(r.timers).toHaveLength(1);
+    r.timers[0].fn(); // grace period over, still nothing
+    expect(r.onMissing).toHaveBeenCalledTimes(1);
+    expect(r.watch.pending()).toBe(false);
+    expect(GOOGLE_NO_RETURN).toMatch(/rien n’a été créé/);
+  });
+  test("a callback inside the grace period cancels the message", () => {
+    const r = rig();
+    r.watch.start();
+    r.advance(8000);
+    r.watch.foreground();
+    r.watch.received();
+    expect(r.timers).toHaveLength(0);
+    expect(r.onMissing).not.toHaveBeenCalled();
+  });
+  test("a quick foreground blip (permission sheet, notification shade) is not a return, and nothing is watched without an attempt", () => {
+    const r = rig();
+    r.watch.foreground();
+    expect(r.timers).toHaveLength(0);
+    r.watch.start();
+    r.advance(300);
+    r.watch.foreground();
+    expect(r.timers).toHaveLength(0);
+    expect(r.watch.pending()).toBe(true);
+  });
+  test("a new attempt replaces the previous one", () => {
+    const r = rig();
+    r.watch.start();
+    r.advance(8000);
+    r.watch.foreground();
+    r.watch.start();
+    expect(r.timers).toHaveLength(0);
+    expect(r.watch.pending()).toBe(true);
+  });
+});

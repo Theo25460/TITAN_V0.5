@@ -33,10 +33,10 @@ beforeEach(() => (mockProfile.data = { is_elite: false }));
 afterAll(() => billing._setIapForTests(null));
 
 test("four cards; each price is exactly what Google Play returned; a missing product says so; no price is invented", async () => {
-  fake([{ id: "titan_plus", price: "4,99 € / mois" }, { id: "coach", price: "20,00 € / mois" }]);
+  fake([{ id: "titan01", price: "4,99 € / mois" }, { id: "titan02", price: "19,99 € / mois" }]);
   show();
   expect(await screen.findByText("4,99 € / mois")).toBeTruthy();
-  expect(screen.getByText("20,00 € / mois")).toBeTruthy();
+  expect(screen.getByText("19,99 € / mois")).toBeTruthy();
   expect(screen.getByTestId("plan-free")).toBeTruthy();
   expect(screen.getByTestId("plan-coach_pro")).toBeTruthy();
   expect(screen.getByText("Pas encore proposé")).toBeTruthy();
@@ -46,8 +46,8 @@ test("four cards; each price is exactly what Google Play returned; a missing pro
   expect(screen.getByTestId("restore-purchases")).toBeTruthy();
 });
 
-test("coach cards state the shared suite and the capacity, Coach and Coach Pro differ only by capacity", async () => {
-  fake([{ id: "coach", price: "x" }, { id: "coach_pro", price: "y" }]);
+test("coach cards state the shared suite and the capacity, Coach and Coach Ultra differ only by capacity", async () => {
+  fake([{ id: "titan02", price: "x" }, { id: "titan03", price: "y" }]);
   show();
   await screen.findByText("x");
   expect(screen.getByText("• 5 sportifs suivis bénéficient de TITAN+")).toBeTruthy();
@@ -57,7 +57,7 @@ test("coach cards state the shared suite and the capacity, Coach and Coach Pro d
 
 test("an account that already has access sees no buy button, only a way to manage in Google Play", async () => {
   mockProfile.data = { is_elite: true };
-  fake([{ id: "titan_plus", price: "4,99 € / mois" }]);
+  fake([{ id: "titan01", price: "4,99 € / mois" }]);
   show();
   await screen.findByText("4,99 € / mois");
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();

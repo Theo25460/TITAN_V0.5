@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SessionRoute } from "./RoutesScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -42,25 +42,31 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   const extras = (d.extras || {}) as Record<string, unknown>;
   const records = confirmed && !log.archived_at ? sessionRecords(logs, log) : [];
 
-  function archive() {
+  /* Archiving and restoring are reversible: no "are you sure?", the action happens and "Annuler" is one tap away (V12-17). */
+  async function archive() {
     if (!log) return;
     const toArchive = !log.archived_at;
-    Alert.alert(toArchive ? "Archiver cette séance ?" : "Restaurer cette séance ?", toArchive ? "Elle quitte ton journal et tes statistiques. L’XP déjà gagnée reste acquise. Tu peux la restaurer depuis le journal." : "Elle revient dans ton journal et tes statistiques.", [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: toArchive ? "Archiver" : "Restaurer",
-        style: toArchive ? "destructive" : "default",
-        onPress: async () => {
-          try {
-            await update.mutateAsync({ log, patch: { archived: toArchive } });
-            toast({ kind: "ok", title: toArchive ? "Séance archivée" : "Séance restaurée" });
-            if (toArchive) navigation.goBack();
-          } catch (e) {
-            toast({ kind: "err", title: "Modification impossible", message: errorMessage(e) });
-          }
-        },
-      },
-    ]);
+    try {
+      const row = await update.mutateAsync({ log, patch: { archived: toArchive } });
+      toast({
+        kind: "ok",
+        title: toArchive ? "Séance archivée" : "Séance restaurée",
+        message: toArchive ? "Elle quitte ton journal et tes statistiques. L’XP déjà gagnée reste acquise." : undefined,
+        action: toArchive
+          ? {
+              label: "Annuler",
+              onPress: () =>
+                update
+                  .mutateAsync({ log: row, patch: { archived: false } })
+                  .then(() => toast({ kind: "ok", title: "Séance restaurée" }))
+                  .catch((e) => toast({ kind: "err", title: "Restauration impossible", message: errorMessage(e) })),
+            }
+          : undefined,
+      });
+      if (toArchive) navigation.goBack();
+    } catch (e) {
+      toast({ kind: "err", title: "Modification impossible", message: errorMessage(e) });
+    }
   }
 
   return (

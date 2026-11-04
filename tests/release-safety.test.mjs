@@ -190,7 +190,7 @@ test('public build excludes hidden image editor files and directories while pres
     'image/boss/guardian.webp':'real-image', 'image/boss/plain.png':'real-png',
     'image/boss/.guardian.png.editor-temp':'temporary-original', 'image/.draft/hidden.webp':'temporary-draft',
   };
-  for(const page of ['aujourdhui','training','journal','stats','records','objectifs','prevoir','adventure','profile','social','coaching','boutique','onboarding','login','service']) files[page+'.html']='<h1>Page</h1>';
+  for(const page of ['aujourdhui','training','journal','stats','records','carriere','objectifs','prevoir','adventure','profile','social','coaching','boutique','onboarding','login','service']) files[page+'.html']='<h1>Page</h1>';
   for(const asset of ['scout-s','ranger-s','keeper-s','artisan-s','navigator-s','sentinel-s','guardian-aube-s','guardian-marees-s','guardian-forge-s','guardian-aurores-s','valley-small','valley-xs','archipelago-xs','forge-xs','aurora-xs']) files['assets/renaissance/'+asset+'.webp']='image';
   const dir=sandbox(files,{git:false});
   try{

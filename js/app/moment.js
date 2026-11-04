@@ -93,7 +93,7 @@
       if (capped) lines.push(Number(r.xp) > 0 ? `Plafond de fair-play atteint : ${F().number(r.xp)} XP comptés sur ${F().number(r.requested_xp)}.` : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP.");
       else lines.push("Confirmée par le serveur.");
       if (Number(r.leveled_up) > 0) lines.push(`Niveau ${F().number(r.level_after)} atteint.`);
-      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null };
+      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
     }
     const offline = !navigator.onLine;
     return { state: "pending", big: window.TitanData?.rulesV300?.() ? `≈ ${F().number(est.xp)} XP` : "Enregistrée", sub: offline ? "Hors ligne : la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
@@ -134,11 +134,52 @@
       <span class="asc-row-sub">${esc(world?.name || "Aventure")} · ${days}/${c.target} jour${c.target > 1 ? "s" : ""} actif${c.target > 1 ? "s" : ""}${log.syncStatus === "confirmed" ? "" : " · mis à jour après confirmation"}</span></span>${icon("chevron")}</a>`;
   }
 
-  function html(log) {
+  /* La révélation de progression (web): the XP ring fills, the number counts up, embers rise, and on a new level the rank crest strikes into place.
+     Decorative (aria-hidden: the text of the reward right below says everything); only for a gain the server confirmed; once per opening of the sheet;
+     the final state is shown at once with "reduire les animations". */
+  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  function hero(log, play) {
+    const rw = reward(log);
+    if (!(rw.state === "confirmed" || rw.state === "capped") || !(rw.xp > 0) || !window.TitanCrest) return "";
+    const level = rw.levelAfter || 1;
+    const need = Math.max(1, E().levelRequirement ? E().levelRequirement(level) : 1);
+    const after = rw.xpAfter === null ? 0 : Math.max(0, Math.min(1, rw.xpAfter / need));
+    const from = rw.levelUp ? 0 : Math.max(0, Math.min(1, Math.max(0, (rw.xpAfter ?? 0) - rw.xp) / need));
+    const to = rw.levelUp ? 1 : after;
+    const animate = play && !reducedMotion();
+    const rank = window.TitanCrest.rankIdOf(level);
+    return `<section class="moment-hero${animate ? "" : " struck"}" aria-hidden="true" data-level-up="${rw.levelUp ? 1 : 0}" data-play="${animate ? 1 : 0}" data-to="${to}" style="--accent:${window.TitanCrest.ACCENT[rank]}">
+      <div class="moment-ring">
+        <svg viewBox="0 0 120 120"><circle class="mr-track" cx="60" cy="60" r="52"/><circle class="mr-fill" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 * (1 - (animate ? from : to))).toFixed(2)}"/></svg>
+        <div class="moment-ring-center"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></div>
+        ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 132)}</div>` : ""}
+        <div class="moment-embers"></div>
+      </div>
+    </section>`;
+  }
+  function playHero(root) {
+    const h = root.querySelector(".moment-hero[data-play='1']");
+    if (!h) return;
+    const fill = h.querySelector(".mr-fill"), num = h.querySelector(".moment-ring-xp"), embers = h.querySelector(".moment-embers");
+    const to = Number(h.dataset.to) || 0, xp = Number(num?.dataset.count) || 0;
+    const burst = (n, colors) => { for (let i = 0; i < n; i++) { const e = document.createElement("span"); e.className = "ember"; e.style.cssText = `--s:${(2 + Math.random() * 4).toFixed(1)}px;--c:${colors[i % colors.length]};--dx:${((Math.random() - 0.5) * 120).toFixed(0)}px;--ry:-${(70 + Math.random() * 150).toFixed(0)}px;--d:${(1.1 + Math.random()).toFixed(2)}s;--dl:${(Math.random() * 0.5).toFixed(2)}s;margin-left:${((Math.random() - 0.5) * 120).toFixed(0)}px`; embers.appendChild(e); } };
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      fill.style.strokeDashoffset = String(100 * (1 - to));
+      burst(22, ["#3DD9E8", "#8CEAF2", "#FFFFFF"]);
+      const t0 = performance.now();
+      const step = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); const v = k <= 0 ? 0 : Math.round(xp * (1 - Math.pow(1 - k, 3))); if (num) num.textContent = "+" + F().number(v); if (k < 1) requestAnimationFrame(step); else if (num) num.textContent = "+" + F().number(xp); };
+      requestAnimationFrame(step);
+      if (h.dataset.levelUp === "1") setTimeout(() => { h.classList.add("struck"); burst(34, [h.style.getPropertyValue("--accent") || "#F4BB54", "#FFFFFF", "#F4BB54"]); }, 1450);
+      else setTimeout(() => h.classList.add("struck"), 1450);
+    }));
+  }
+
+  function html(log, play) {
     const rw = reward(log);
     const recs = records(log);
     const m = metrics(log);
     return `<div class="moment" data-state="${rw.state}">
+      ${hero(log, play)}
       <dl class="moment-metrics">${m.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
         <p class="moment-xp asc-num">${esc(rw.big)}</p>
@@ -168,7 +209,9 @@
     let closed = false, focusTimer = null;
     const when = F().relativeDay(log.date);
     const body = document.createElement("div");
-    body.innerHTML = html(current(log));
+    let played = false;
+    const firstHtml = () => { const l = current(log); const play = !played && l.syncStatus === "confirmed"; const out = html(l, play); if (play && out.includes("moment-hero")) played = true; return out; };
+    body.innerHTML = firstHtml();
     const broken = records(current(log)).filter((r) => !r.first);
     if (broken.length) window.TitanAnalytics?.track("record_unlocked", { kind: broken[0].kind, family: S().familyOf(log.sport) });
     const historical = E().isHistorical(log.date);
@@ -202,7 +245,8 @@
       const selector = action?.hasAttribute("data-moment") ? `[data-moment="${CSS.escape(action.dataset.moment)}"]`
         : action ? `a[href="${CSS.escape(action.getAttribute("href"))}"]` : null;
       const l = current(log);
-      body.innerHTML = html(l);
+      body.innerHTML = firstHtml();
+      playHero(body);
       if (selector) restoreAction(selector);
       if (!wasConfirmed && l.syncStatus === "confirmed") {
         wasConfirmed = true;
@@ -225,12 +269,13 @@
         }).then(() => restoreAction("[data-moment='share']"));
       }
     });
+    playHero(body);
     window.addEventListener("titan:history-updated", update);
     window.addEventListener("titan:adventure-updated", update);
     window.addEventListener("titan:account-changing", closeForAccount);
     window.addEventListener("titan:account-changed", closeForAccount);
     focusTimer = setTimeout(() => {
-      if (live() && topmost() && [initialFocus, document.body, dialog].includes(document.activeElement)) body.querySelector("[data-moment='done']")?.focus();
+      if (live() && topmost() && [initialFocus, document.body, dialog].includes(document.activeElement)) body.querySelector("[data-moment='done']")?.focus({ preventScroll: true }); // scrolling to the button would hide the progression above it
     }, 30);
     return dialog;
   }

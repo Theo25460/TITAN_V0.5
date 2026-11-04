@@ -26,6 +26,7 @@ export type RootParams = {
   SessionEdit: { id: string };
   Journal: { sport?: string } | undefined;
   Records: undefined;
+  Career: undefined;
   Goals: undefined;
   Plan: undefined;
   World: { id: string };
@@ -40,6 +41,9 @@ export type RootParams = {
   Help: undefined;
   Guide: undefined;
   HealthConnect: undefined;
+  Steps: undefined;
+  Sources: undefined;
+  WebHub: undefined;
   Garmin: undefined;
   Feedback: undefined;
   Legal: undefined;

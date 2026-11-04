@@ -178,6 +178,17 @@ to = "/objectifs.html"
 status = 200
 
 [[redirects]]
+from = "/carriere.html"
+to = "/carriere"
+status = 301
+force = true
+
+[[redirects]]
+from = "/carriere"
+to = "/carriere.html"
+status = 200
+
+[[redirects]]
 from = "/records.html"
 to = "/records"
 status = 301
@@ -1063,6 +1074,16 @@ X-Robots-Tag = "noindex, nofollow"
 
 [[headers]]
 for = "/objectifs.html"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/carriere"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/carriere.html"
 [headers.values]
 X-Robots-Tag = "noindex, nofollow"
 

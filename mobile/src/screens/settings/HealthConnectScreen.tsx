@@ -67,7 +67,7 @@ export function HealthConnectScreen() {
     setAccess(granted);
     if (!granted.steps && !granted.exercise) { setNotice("Aucune autorisation donnée dans Santé Connect : rien n’est lu."); return; }
     await api.sourceConsent("health_connect", true);
-    if (current(asked)) { setConsent(true); toast({ kind: "ok", title: "Santé Connect autorisé", message: "TITAN ne lit rien tant que tu n’appuies pas sur un bouton." }); }
+    if (current(asked)) { setConsent(true); toast({ kind: "ok", title: "Santé Connect autorisé", message: "Tes pas sont relus à l’ouverture de TITAN et quand tu actualises. Tu peux retirer l’accès à tout moment." }); }
   });
 
   const syncSteps = () => run(async (asked) => {
@@ -129,8 +129,8 @@ export function HealthConnectScreen() {
   return (
     <Screen>
       <Card style={{ gap: 8 }}>
-        <T variant="bodyStrong">Ce que TITAN lit, seulement quand tu le demandes</T>
-        <T variant="small">Tes pas et tes séances d’exercice des 7 derniers jours. Rien en arrière-plan, ni fréquence cardiaque, sommeil, poids, calories ou position. Rien n’est envoyé aux statistiques ni à la publicité.</T>
+        <T variant="bodyStrong">Ce que TITAN lit, seulement avec ton accord</T>
+        <T variant="small">Tes pas et tes séances d’exercice des 7 derniers jours. Une fois autorisés, tes pas sont relus à l’ouverture de TITAN (au plus toutes les 30 minutes) et quand tu appuies sur Actualiser ; tes séances, seulement quand tu les importes. Rien en arrière-plan, ni fréquence cardiaque, sommeil, poids, calories ou position. Rien n’est envoyé aux statistiques ni à la publicité.</T>
         <T variant="small">Les pas s’affichent, sans jamais créer de séance, d’XP ni de récompense. Une séance importée passe par les mêmes règles que celles saisies à la main : aucune récompense en plus.</T>
       </Card>
       {!connected ? (

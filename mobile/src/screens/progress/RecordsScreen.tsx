@@ -56,13 +56,13 @@ export function RecordsScreen() {
   if (!records.length)
     return (
       <Screen>
-        <EmptyState icon="trophy" title="Pas encore de record" text="Tes meilleures distances, durées, charges et cotations apparaîtront ici, chacune reliée à la séance d’origine." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+        <EmptyState brand icon="trophy" title="Pas encore de record" text="Tes meilleures distances, durées, charges et cotations apparaîtront ici, chacune reliée à la séance d’origine." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
       </Screen>
     );
 
   return (
     <Screen>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.s4 }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.s4 }}>
         <Chip label="Tous" selected={!sport} onPress={() => setSport(null)} />
         {sports.map((s) => (
           <Chip key={s} label={Sports.label(s)} selected={sport === s} onPress={() => setSport(sport === s ? null : s)} />

@@ -4,7 +4,7 @@
 import type { IconName } from "../components/Icon";
 import { ownerKey, readJSON, writeJSON } from "./storage";
 
-export type Target = "sports" | "record" | "journal" | "adventure" | "community" | "goals" | "health" | "plus" | "progress";
+export type Target = "sports" | "record" | "journal" | "adventure" | "community" | "goals" | "health" | "steps" | "plus" | "progress";
 export type TourGoalId = "favorites" | "firstSession" | "stepsGoal";
 export type TourStep = { id: string; icon: IconName; title: string; text: string; action?: { label: string; target: Target }; optional?: boolean; goal?: { id: TourGoalId; text: string } };
 
@@ -14,7 +14,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   { id: "hq", icon: "home", title: "Le QG", text: "Ton point de départ : ta semaine, tes pas du jour, ta prochaine étape et tes dernières séances, en un coup d’œil." },
   { id: "manual", icon: "plus", title: "Enregistrer une séance", text: "Choisis le sport : le formulaire s’adapte (durée, distance, séries…). Sans connexion, la séance reste sur ton téléphone et part toute seule au retour du réseau.", action: { label: "Ouvrir « Séance »", target: "record" }, goal: { id: "firstSession", text: "Enregistre une première séance, même courte" } },
   { id: "gps", icon: "route", title: "Le suivi GPS", text: "Pour la course, la marche, le vélo : démarre, mets en pause, termine. TITAN mesure distance, allure et dénivelé fiable, et continue écran verrouillé. Il ne demande ta position qu’au moment où tu démarres, et ta trace reste sur ton téléphone.", action: { label: "Voir « Séance »", target: "record" } },
-  { id: "health", icon: "heart", title: "Santé Connect et tes pas", text: "Si tu le veux, TITAN lit tes pas et tes activités depuis Santé Connect, seulement quand tu le demandes. Les pas ne créent ni séance ni récompense.", action: { label: "Voir Santé Connect", target: "health" }, optional: true, goal: { id: "stepsGoal", text: "Fixe un objectif de pas (depuis le QG)" } },
+  { id: "health", icon: "heart", title: "Tes pas", text: "TITAN peut compter tes pas avec le capteur de ton téléphone, sans compte tiers : tu l’actives en un geste et le nombre bouge pendant que tu marches. Santé Connect reste facultatif, pour les pas de ta montre. Les pas ne créent ni séance ni récompense.", action: { label: "Voir mes pas", target: "steps" }, optional: true, goal: { id: "stepsGoal", text: "Fixe un objectif de pas" } },
   { id: "xp", icon: "bolt", title: "XP et niveaux", text: "Chaque séance rapporte de l’XP selon l’effort réel (durée, intensité), jamais selon le sport. Le serveur confirme tes gains : ils ne se perdent pas et ne se doublent pas." },
   { id: "worlds", icon: "mountain", title: "Les quatre mondes", text: "Tes efforts allument les balises de l’aventure : quatre mondes, des chapitres, des gardiens à vaincre. Se reposer fait aussi partie du jeu.", action: { label: "Ouvrir l’aventure", target: "adventure" } },
   { id: "community", icon: "group", title: "Quêtes, défis et communauté", text: "Entre amis, avec ton code ami : défis par lien, quêtes communes, saisons. Tout est choisi par toi, privé par défaut.", action: { label: "Ouvrir la communauté", target: "community" } },
@@ -35,8 +35,18 @@ export const restart = (): TourState => freshTour();
 export const shouldOffer = (s: TourState) => !s.done && !s.dismissed;
 export const progressLabel = (s: TourState) => `Étape ${s.step + 1} sur ${TOUR_STEPS.length}`;
 
+/** Last known tour state per account, kept in memory so a screen that remounts starts from the answer instead of from "unknown"
+    (an invitation that appears one frame late pushes the whole QG down: V12-05). */
+const known = new Map<string, TourState>();
+export const peekTour = (owner: string): TourState | null => known.get(owner) ?? null;
+
 export async function loadTour(owner: string): Promise<TourState> {
   const s = await readJSON<TourState>(ownerKey("tour", owner), freshTour());
-  return s && s.v === 1 ? { ...s, step: clamp(s.step) } : freshTour();
+  const tour = s && s.v === 1 ? { ...s, step: clamp(s.step) } : freshTour();
+  known.set(owner, tour);
+  return tour;
 }
-export const saveTour = (owner: string, s: TourState) => writeJSON(ownerKey("tour", owner), s).catch(() => {});
+export const saveTour = (owner: string, s: TourState) => {
+  known.set(owner, s);
+  return writeJSON(ownerKey("tour", owner), s).catch(() => {});
+};
