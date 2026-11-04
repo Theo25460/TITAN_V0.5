@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
+import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
@@ -26,6 +27,7 @@ export function RecordScreen() {
     for (const l of active) if (!seen.has(l.sport) && Sports.conf(l.sport)) seen.set(l.sport, l.date);
     return [...seen.entries()].slice(0, 6);
   }, [active]);
+  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   const open = (sport: string) => navigation.navigate("SessionForm", { sport });
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
   const popular = Sports.POPULAR.filter((s) => !favorites.includes(s) && !recent.some(([r]) => r === s));
@@ -51,6 +53,8 @@ export function RecordScreen() {
               <Icon name="chevron" color={colors.cy} />
             </View>
           </Card>
+        ) : repeat ? (
+          <RepeatLastCard log={repeat} />
         ) : null}
         <SportSearch onPick={open} />
         {favorites.length ? (
