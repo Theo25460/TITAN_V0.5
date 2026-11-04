@@ -1,5 +1,5 @@
 [build]
-  command = "node tools/build-public.mjs"
+  command = "node tools/check-release-guard.mjs && node tools/build-public.mjs"
   publish = "dist"
 
 [build.environment]
