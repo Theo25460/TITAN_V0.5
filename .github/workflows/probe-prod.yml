@@ -40,12 +40,7 @@ jobs:
           curl -sS -m 30 https://titan-app.fr/js/app/auth.js -o /tmp/auth.js || true
           check "le bouton « Continuer avec Google » est dans auth.js servi" 'grep -q "Continuer avec Google" /tmp/auth.js'
           check "la lecture du drapeau auth.google est dans auth.js servi" 'grep -q "auth.google" /tmp/auth.js'
-          check "la page de connexion charge le SDK Supabase avant config.js" 'python3 - <<PY
-import re,sys
-h=open("/tmp/login.html",encoding="utf8").read()
-a=h.find("/js/vendor/supabase-"); b=h.find("/js/config.js")
-sys.exit(0 if 0<=a<b else 1)
-PY'
+          check "la page de connexion charge le SDK Supabase avant config.js" 'python3 -c "import sys; h=open(\"/tmp/login.html\",encoding=\"utf8\").read(); a=h.find(\"/js/vendor/supabase-\"); b=h.find(\"/js/config.js\"); sys.exit(0 if 0<=a<b else 1)"'
           for f in "garmin?action=start" "garmin?action=push" ; do
             code=$(curl -sS -o /dev/null -m 20 -w '%{http_code}' -X POST "https://titan-app.fr/.netlify/functions/$f" || echo 000)
             check "fonction $f répond (pas 404/5xx) : $code" '[ "$code" != "404" ] && [ "${code:0:1}" != "5" ] && [ "$code" != "000" ]'
