@@ -5,6 +5,7 @@ import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../src/core";
+import { DialogHost } from "../src/components/Dialog";
 import { ToastProvider } from "../src/components/Toast";
 import { RootNavigator } from "../src/navigation/RootNavigator";
 import { colors, fonts } from "../src/theme/tokens";
@@ -63,6 +64,7 @@ export default function PreviewApp() {
             <NavigationContainer ref={ref} theme={theme} onReady={open}>
               <RootNavigator />
             </NavigationContainer>
+            <DialogHost />
           </ToastProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
