@@ -1,0 +1,60 @@
+import { useNavigation } from "@react-navigation/native";
+import { StyleSheet, View } from "react-native";
+import { useSteps } from "../data/steps";
+import { colors, space } from "../theme/tokens";
+import { Card } from "./Card";
+import { Icon } from "./Icon";
+import { Ring } from "./Progress";
+import { StepsCardView, StepsTile } from "./StepsCard";
+import { T } from "./Text";
+
+type Cadence = { currentDays: number; target: number; held: number; window: number };
+
+/** The week as a tile: a ring of active days against the goal. The detail (notches, minutes, XP) lives in Progrès. */
+export function WeekTile({ cadence, sessions }: { cadence: Cadence; sessions: number }) {
+  const navigation = useNavigation() as unknown as { navigate: (n: string, p?: object) => void };
+  const reached = cadence.target > 0 && cadence.currentDays >= cadence.target;
+  const tint = reached ? colors.ok : colors.cy;
+  return (
+    <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} testID="week-tile" style={styles.tile} accessibilityLabel={`Ma semaine : ${cadence.currentDays} jours actifs sur ${cadence.target}, ${sessions} séance${sessions > 1 ? "s" : ""}. Ouvrir Progrès.`}>
+      <View style={styles.top}>
+        <Ring value={cadence.target ? cadence.currentDays / cadence.target : 0} size={56} stroke={6} color={tint}>
+          <Icon name={reached ? "check" : "calendar"} size={20} color={tint} />
+        </Ring>
+      </View>
+      <View>
+        <T variant="num" numberOfLines={1}>
+          {cadence.currentDays}
+          <T variant="small" tone="faint">
+            /{cadence.target}
+          </T>
+        </T>
+        <T variant="caption" tone="faint" numberOfLines={2}>
+          jours actifs · {sessions} séance{sessions > 1 ? "s" : ""}
+        </T>
+      </View>
+    </Card>
+  );
+}
+
+/** "Aujourd'hui" at a glance (Garmin / Apple-style rings): steps and week side by side. With no step number yet, the week tile stays
+    alone and the steps card below it invites to count (own counter first, Santé Connect second) or holds the room while it loads. */
+export function TodayStrip({ cadence, sessions }: { cadence: Cadence; sessions: number }) {
+  const s = useSteps();
+  const hasNumber = !s.failed && !s.loading && s.hasAny;
+  return (
+    <View style={{ gap: space.s3 }} testID="today-strip">
+      <View style={styles.row}>
+        {hasNumber ? <StepsTile s={s} /> : null}
+        <WeekTile cadence={cadence} sessions={sessions} />
+      </View>
+      {hasNumber ? null : <StepsCardView s={s} />}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: { flexDirection: "row", gap: space.s3, alignItems: "stretch" },
+  tile: { flex: 1, minWidth: 0, justifyContent: "space-between", gap: space.s3, padding: space.s3 },
+  top: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+});

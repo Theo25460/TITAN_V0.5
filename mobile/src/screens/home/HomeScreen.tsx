@@ -5,18 +5,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
-import { StepsCard } from "../../components/StepsCard";
+import { TodayStrip } from "../../components/TodayStrip";
 import { TourCard } from "../../components/TourCard";
 import { AdBanner } from "../../components/AdBanner";
 import { Button } from "../../components/Button";
-import { CadenceNotches } from "../../components/Cadence";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { Ring } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
 import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Screen } from "../../components/Screen";
-import { Section, Stat, StatRow } from "../../components/Section";
+import { Section } from "../../components/Section";
 import { SessionRow } from "../../components/SessionRow";
 import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
@@ -140,41 +139,7 @@ export function HomeScreen() {
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
-            <StepsCard />
-            <TourCard />
-
-            <Section title="Ma semaine" action="Ajuster" onAction={() => navigation.navigate("Plan")}>
-              <Card style={{ gap: space.s4 }}>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <T variant="numLarge">
-                      {cadence.currentDays}
-                      <T variant="h3" tone="faint">
-                        /{cadence.target}
-                      </T>
-                    </T>
-                    <T variant="small">jours actifs cette semaine</T>
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <T variant="num" tone="accent">
-                      {cadence.held}/{cadence.window}
-                    </T>
-                    <T variant="caption" tone="faint">
-                      semaines tenues
-                    </T>
-                  </View>
-                </View>
-                <CadenceNotches cadence={cadence} />
-                <T variant="caption" tone="muted">
-                  {cadence.remaining === 0 ? "Semaine tenue. Le repos fait aussi partie de la progression." : cadence.reachable ? `Encore ${cadence.remaining} jour${cadence.remaining > 1 ? "s" : ""} actif${cadence.remaining > 1 ? "s" : ""} pour tenir la semaine (${cadence.daysLeftInWeek} jour${cadence.daysLeftInWeek > 1 ? "s" : ""} restant${cadence.daysLeftInWeek > 1 ? "s" : ""}).` : "Pas de série à casser : une semaine calme ne t’enlève rien."}
-                </T>
-                <StatRow flat>
-                  <Stat label="séances" value={String(week.sessions)} />
-                  <Stat label="de pratique" value={Format.duration(week.minutes)} />
-                  <Stat label="XP gagnés" value={Format.number(week.xp)} tone="accent" />
-                </StatRow>
-              </Card>
-            </Section>
+            <TodayStrip cadence={cadence} sessions={week.sessions} />
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
               <Card style={{ gap: space.s4 }}>
@@ -216,18 +181,22 @@ export function HomeScreen() {
               </Card>
             </Section>
 
+            {/* The visit is an invitation, never the first thing on the QG: it comes after the player's own numbers and ascension. */}
+            <TourCard />
+
             {insights.length ? (
-              <Section title="Repères">
-                {insights.map((i) => (
-                  <Card key={i.id} tone="flat" style={{ gap: 6 }}>
-                    <T variant="bodyStrong">{i.title}</T>
-                    <T variant="small">{i.text}</T>
-                    {i.why ? (
-                      <T variant="caption" tone="faint">
-                        {i.why}
-                      </T>
-                    ) : null}
-                    {i.cta ? <Button small kind="ghost" label={i.cta.label} onPress={() => navigateHref(navigation, i.cta!.href)} style={{ alignSelf: "flex-start" }} /> : null}
+              <Section title="Repère">
+                {insights.slice(0, 1).map((i) => (
+                  <Card key={i.id} tone="flat" onPress={i.cta ? () => navigateHref(navigation, i.cta!.href) : undefined} accessibilityLabel={i.cta ? `${i.title}. ${i.cta.label}` : undefined} style={{ gap: 6 }} testID="qg-insight">
+                    <View style={styles.row}>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <T variant="bodyStrong">{i.title}</T>
+                        <T variant="small" numberOfLines={3}>
+                          {i.text}
+                        </T>
+                      </View>
+                      {i.cta ? <Icon name="chevron" size={18} color={colors.tx3} /> : null}
+                    </View>
                   </Card>
                 ))}
               </Section>

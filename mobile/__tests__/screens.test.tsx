@@ -109,7 +109,7 @@ describe("with account data", () => {
     show(<S.Home />);
     expect(screen.getByText(/Athlète Test/)).toBeTruthy();
     expect(screen.getByText(/Niveau 4/)).toBeTruthy();
-    expect(screen.getByText("Ma semaine")).toBeTruthy();
+    expect(screen.getByTestId("week-tile")).toBeTruthy();
     // Recording is always one tap from the QG, whatever the priority of the day is (V12-31).
     expect(screen.queryByText("Refaire ma dernière séance") ?? screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
   });

@@ -39,7 +39,8 @@ describe("QG steps card", () => {
     mockSteps.value = base([{ day: today, steps: 1234, sources: ["titan"] }], 8000, { source: "titan", own: own({ enabled: true, permission: "granted", live: true }) });
     render(<StepsCard />);
     expect(screen.getByTestId("steps-live")).toBeTruthy();
-    expect(screen.getByTestId("steps-freshness").props.children.join("")).toMatch(/En direct · compteur de ton téléphone/);
+    expect(screen.getByTestId("steps-freshness").props.children.join("")).toMatch(/Compteur de ton téléphone/);
+    expect(screen.getAllByText(/En direct/)).toHaveLength(1); // said once: the badge
   });
 
   test("a delayed source is never called live", () => {

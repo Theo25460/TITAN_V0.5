@@ -71,7 +71,7 @@ export function StepsScreen() {
         <View style={styles.status}>
           {status.live ? <View style={styles.dot} /> : null}
           <T variant="caption" tone={status.level === "fresh" ? "accent" : "warn"} center testID="steps-freshness">
-            {status.text}
+            {status.live ? `En direct · ${status.text}` : status.text}
           </T>
         </View>
         {s.own.partialFirstDay && s.source === "titan" && s.own.startedAt ? (

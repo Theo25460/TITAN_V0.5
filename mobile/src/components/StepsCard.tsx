@@ -15,7 +15,7 @@ const go = (navigation: unknown, name: string) => (navigation as { navigate: (n:
 
 /** One honest line under the number: where it comes from and how fresh it is. Never "temps réel" for a delayed source. */
 export function stepsStatus(s: { source: "titan" | "health_connect" | null; own: { live: boolean; partialFirstDay: boolean; startedAt: number | null }; view: { lastUpdate: string | null } }, now: number) {
-  if (s.source === "titan" && s.own.live) return { live: true, text: "En direct · compteur de ton téléphone", level: "fresh" as const };
+  if (s.source === "titan" && s.own.live) return { live: true, text: "Compteur de ton téléphone", level: "fresh" as const };
   if (s.source === "titan") return { live: false, text: "Compteur TITAN · mis à jour à l’ouverture de l’app", level: "old" as const };
   const f = freshness(s.view.lastUpdate, now);
   return { live: false, text: s.source === "health_connect" ? `Santé Connect · ${f.label}` : f.label, level: f.level };
@@ -24,7 +24,53 @@ export function stepsStatus(s: { source: "titan" | "health_connect" | null; own:
 /** Steps of the day on the QG: a ring, the number, the goal. Tap for the week, the goal and the sources. Honest by construction: a day
     without a number says so (never 0), two sources are never added, and the invitations only appear when they bring something. */
 export function StepsCard() {
-  const s = useSteps();
+  return <StepsCardView s={useSteps()} />;
+}
+
+type StepsState = ReturnType<typeof useSteps>;
+
+/** The compact tile of the "today" strip: the ring, the number, the goal. Only shown once there is a number to show. */
+export function StepsTile({ s }: { s: StepsState }) {
+  const navigation = useNavigation();
+  const v = s.view;
+  const status = stepsStatus(s, Date.now());
+  const reached = v.ratio !== null && v.ratio >= 1;
+  const tint = reached ? colors.ok : colors.cy;
+  const label = v.today === null ? "Pas de chiffre pour aujourd’hui" : `${stepsText(v.today)} pas aujourd’hui`;
+  return (
+    <Card onPress={() => go(navigation, "Steps")} testID="steps-tile" style={styles.tile} accessibilityLabel={`${label}${v.goal ? `, objectif ${stepsText(v.goal)}` : ""}. ${status.text}. Ouvrir le détail des pas.`}>
+      <View style={styles.tileTop}>
+        <Ring value={v.ratio ?? 0} size={56} stroke={6} color={tint}>
+          <Icon name={reached ? "check" : "run"} size={20} color={tint} />
+        </Ring>
+        {status.live ? (
+          <View style={styles.live} testID="steps-live">
+            <View style={styles.dot} />
+            <T variant="caption" tone="accent">
+              En direct
+            </T>
+          </View>
+        ) : null}
+      </View>
+      <View>
+        {v.today !== null ? (
+          <T variant="num" numberOfLines={1} adjustsFontSizeToFit>
+            {stepsText(v.today)}
+          </T>
+        ) : (
+          <T variant="small" tone="muted">
+            Pas de chiffre
+          </T>
+        )}
+        <T variant="caption" tone="faint" numberOfLines={2}>
+          {v.goal ? `pas · sur ${stepsText(v.goal)}` : "pas aujourd’hui"}
+        </T>
+      </View>
+    </Card>
+  );
+}
+
+export function StepsCardView({ s }: { s: StepsState }) {
   const navigation = useNavigation();
   if (s.failed) return null;
 
@@ -89,7 +135,9 @@ export function StepsCard() {
         </Ring>
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
           <View style={styles.head}>
-            <T variant="eyebrow">Pas du jour</T>
+            <T variant="caption" tone="muted" numberOfLines={1} style={{ flexShrink: 1 }}>
+              Pas du jour
+            </T>
             {status.live ? (
               <View style={styles.live} testID="steps-live">
                 <View style={styles.dot} />
@@ -121,6 +169,8 @@ export function StepsCard() {
 }
 
 const styles = StyleSheet.create({
+  tile: { flex: 1, minWidth: 0, justifyContent: "space-between", gap: space.s3, padding: space.s3 },
+  tileTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: space.s2 },
   row: { flexDirection: "row", alignItems: "center", gap: space.s4 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
   live: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 20 },

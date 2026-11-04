@@ -10,6 +10,8 @@ import { ToastProvider } from "../src/components/Toast";
 import { RootNavigator } from "../src/navigation/RootNavigator";
 import { colors, fonts } from "../src/theme/tokens";
 import { rememberReceipt } from "../src/data/receipts";
+import { _setPedometerForTests, createPedometer } from "../src/lib/pedometer";
+import { localDay } from "../src/lib/steps";
 import { logs } from "./fixtures";
 import { previewState } from "./state";
 
@@ -20,6 +22,30 @@ if (previewState.route === "SessionResult" && ["record", "levelup", "held"].incl
   const held = previewState.params.eventId === "held";
   rememberReceipt("owner-a", run.client_event_id ?? run.id, { log_id: run.id, xp: run.xp, credits: Math.floor(run.xp / 10), credits_after: 2380, xp_after: up ? 240 : 1850, level_after: up ? 8 : 7, level_bonus: 0, leveled_up: up ? 1 : 0, requested_xp: run.xp, requested_credits: Math.floor(run.xp / 10), weekly_xp_remaining: 4000, weekly_credits_remaining: 400, server_version: "preview", ...(held ? { reward_held: true, held_xp: run.xp, held_credits: Math.floor(run.xp / 10), release_at: new Date(Date.now() + 6 * 3600000).toISOString() } : {}) });
   previewState.params.eventId = run.client_event_id ?? run.id;
+}
+
+// #QG&state=steps: TITAN's own step counter switched on, with a simulated sensor that keeps walking, so the live card and the steps screen can be reviewed.
+if (typeof window !== "undefined" && window.location.hash.includes("state=steps")) {
+  const BOOT = Date.now() - 6 * 3_600_000;
+  let total = 50_000;
+  const days: Record<string, number> = {};
+  const week = [7420, 10380, 6120, 8890, 12040, 5230];
+  week.forEach((n, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (week.length - i));
+    days[localDay(d)] = n;
+  });
+  days[localDay(new Date())] = 6482;
+  const t0 = Date.now() - 8 * 86_400_000;
+  window.localStorage.setItem("titan.pedometer.v1:owner-a", JSON.stringify({ v: 1, boot: BOOT, last: total, lastAt: Date.now(), days, est: {}, firstAt: t0 }));
+  window.localStorage.setItem("titan.pedometer-on.v1:owner-a", "true");
+  window.localStorage.setItem("titan.steps-goal.v1:owner-a", "8000");
+  const subs = new Set<(e: { total: number; at: number }) => void>();
+  setInterval(() => { total += 3; subs.forEach((f) => f({ total, at: Date.now() })); }, 1200);
+  _setPedometerForTests(createPedometer(
+    { isAvailable: () => true, bootEpochMs: () => BOOT, readTotalAsync: async () => total, addListener: (_e, cb) => { subs.add(cb); return { remove: () => subs.delete(cb) }; } },
+    { check: async () => true, request: async () => "granted" },
+  ));
 }
 
 const TABS = ["QG", "Progress", "Record", "Adventure", "Profile"];
