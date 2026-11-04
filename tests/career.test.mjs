@@ -156,3 +156,13 @@ test("a pace comes from running only, and each lane keeps its own elevation", ()
   assert.equal(c.distance.bikeElevation, 500);
   assert.equal(c.elevation.meters, 1400);
 });
+
+test("records: the specific ones first, and only one \"longest duration\" instead of one per sport", () => {
+  const c = build([
+    log("running", 3, "km", 10.4, { duration: 55 }), log("cycling", 5, "km", 60, { duration: 120 }),
+    log("muscu_gym", 7, "kg", 80, { duration: 200 }), log("swimming", 9, "m", 1500, { duration: 40 }),
+  ], { now: NOW, range: "all" });
+  assert.equal(c.records.filter((r) => r.kind === "duration").length, 1);
+  assert.equal(c.records.at(-1).kind, "duration");
+  assert.equal(c.records.at(-1).sport, "muscu_gym", "the longest one overall");
+});

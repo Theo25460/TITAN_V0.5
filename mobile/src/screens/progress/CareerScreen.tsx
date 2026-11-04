@@ -8,7 +8,6 @@ import { Icon, type IconName } from "../../components/Icon";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
-import { Segmented } from "../../components/Segmented";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Format, type Career, type CareerRange } from "../../core";
@@ -102,7 +101,7 @@ function Lenses({ c }: { c: Career }) {
       ) : null}
       {c.lenses.includes("multi") ? (
         <Lens icon="layers" title="Tes pratiques" color={colors.cy}>
-          <ShareBar parts={c.families.map((f) => ({ id: f.id, label: `${f.label} · ${f.sessions}`, share: f.share || 1 / c.families.length, color: familyColors[f.id] ?? colors.cy }))} />
+          <ShareBar parts={c.families.map((f) => ({ id: f.id, label: f.label, share: f.share || 1 / c.families.length, color: familyColors[f.id] ?? colors.cy }))} />
           {c.sports.slice(0, 5).map((s) => (
             <View key={s.sport} style={styles.rowLine}>
               <T variant="small" tone="default" style={{ flex: 1 }} numberOfLines={1}>
@@ -150,7 +149,15 @@ export function CareerScreen() {
       ) : (
         <T variant="h1">Ma carrière sportive</T>
       )}
-      <Segmented value={range} onChange={setRange} options={RANGES} accessibilityLabel="Période" />
+      <View style={styles.ranges} accessibilityRole="tablist" accessibilityLabel="Période" testID="career-ranges">
+        {RANGES.map((r) => (
+          <Tap key={r.value} haptics={false} accessibilityRole="tab" accessibilityLabel={r.label} accessibilityState={{ selected: range === r.value }} onPress={() => setRange(r.value)} style={[styles.range, range === r.value && styles.rangeOn]}>
+            <T variant="caption" color={range === r.value ? colors.cyInk : colors.tx2} center>
+              {r.label}
+            </T>
+          </Tap>
+        ))}
+      </View>
       {loading ? (
         <LoadingCards />
       ) : error ? (
@@ -284,7 +291,10 @@ const styles = StyleSheet.create({
   lensHead: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   lensIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg3 },
   rowLine: { flexDirection: "row", alignItems: "center", gap: space.s2, minHeight: 28 },
-  more: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-end", minHeight: 40 },
+  more: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-end", minHeight: 48, paddingHorizontal: space.s2 },
+  ranges: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  range: { flexGrow: 1, flexBasis: "22%", minWidth: 84, minHeight: 44, paddingHorizontal: space.s3, borderRadius: radius.r2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  rangeOn: { backgroundColor: colors.cy, borderColor: colors.cy },
   moment: { flexDirection: "row", alignItems: "flex-start", gap: space.s3 },
   dot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
   session: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 48, borderRadius: radius.r2 },

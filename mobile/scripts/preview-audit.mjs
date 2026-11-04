@@ -15,7 +15,7 @@ if (!dist) throw new Error("usage: preview-audit.mjs <exportDir> [largeur ...]")
 const WIDTHS = widths.length ? widths.map(Number) : [320, 360, 412];
 let chromium;
 try { ({ chromium } = createRequire(resolve(process.cwd(), "../package.json"))("playwright")); } catch { ({ chromium } = createRequire(import.meta.url)("playwright")); }
-const SCREENS = ["QG", "QG&state=steps", "QG&state=empty", "Progress", "Record", "SessionForm?sport=running", "SessionForm?sport=muscu_gym", "Journal", "Records", "Goals", "Plan", "Adventure", "World?id=aube", "Profile", "Atelier", "Community", "Settings", "Account", "Sports", "Help", "Notifications", "Sources&state=steps", "Steps&state=steps", "WebHub", "Guide", "Welcome", "Login", "Signup", "TitanPlus", "Privacy"];
+const SCREENS = ["QG", "QG&state=steps", "QG&state=empty", "Progress", "Record", "SessionForm?sport=running", "SessionForm?sport=muscu_gym", "Journal", "Records", "Career", "Career&state=empty", "Goals", "Plan", "Adventure", "World?id=aube", "Profile", "Atelier", "Community", "Settings", "Account", "Sports", "Help", "Notifications", "Sources&state=steps", "Steps&state=steps", "WebHub", "Guide", "Welcome", "Login", "Signup", "TitanPlus", "Privacy"];
 
 const TAB_SCREENS = new Set(["QG", "Progress", "Record", "Adventure", "Profile"]);
 const types = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".ttf": "font/ttf", ".webp": "image/webp", ".png": "image/png" };

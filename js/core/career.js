@@ -255,8 +255,12 @@
     try {
       const insights = I();
       if (insights?.records) {
-        records = insights.records(all, "all", nowMs).filter((r) => new Date(r.log.date).getTime() >= from)
+        const all_ = insights.records(all, "all", nowMs).filter((r) => new Date(r.log.date).getTime() >= from)
           .map((r) => ({ id: r.id, kind: r.kind, sport: r.sport, sportLabel: labelOf(r.sport), label: r.label, value: r.value, unit: r.unit, date: new Date(r.log.date).toISOString() }));
+        // « Plus longue durée » exists for every sport and would repeat itself: only the single longest one is kept, the specific records come first.
+        const specific = all_.filter((r) => r.kind !== "duration");
+        const longest = all_.filter((r) => r.kind === "duration").sort((a, b) => Number(b.value) - Number(a.value))[0];
+        records = longest ? [...specific, longest] : specific;
       }
     } catch (_) { /* a records failure never hides the rest of the page */ }
 

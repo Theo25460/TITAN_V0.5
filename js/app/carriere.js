@@ -58,6 +58,7 @@
     if (c.lenses.includes("multi"))
       out.push(`<section class="asc-panel cr-lens" data-lens><h3>${icon("layers")} Tes pratiques</h3>
         <div class="cr-share" role="img" aria-label="${esc(c.families.map((f) => `${f.label} ${Math.round(f.share * 100)} %`).join(", "))}">${c.families.map((f) => `<span style="flex:${Math.max(0.02, f.share || 1 / c.families.length)}" data-family="${esc(f.id)}"></span>`).join("")}</div>
+        <p class="asc-small asc-muted cr-legend">${c.families.map((f) => `${esc(f.label)} ${Math.round(f.share * 100)} %`).join(" · ")}</p>
         <ul class="cr-list">${c.sports.slice(0, 5).map((s) => `<li><span>${esc(s.label)}</span><span class="asc-muted">${s.sessions} séance${s.sessions > 1 ? "s" : ""}${s.minutes ? ` · ${esc(F().duration(s.minutes))}` : ""}</span></li>`).join("")}</ul></section>`);
     return out.join("");
   }
