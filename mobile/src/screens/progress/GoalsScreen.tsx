@@ -1,6 +1,7 @@
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";

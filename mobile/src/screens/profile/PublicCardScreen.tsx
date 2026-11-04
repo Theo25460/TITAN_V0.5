@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Share, View } from "react-native";
+import { Share, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Group } from "../../components/ListRow";

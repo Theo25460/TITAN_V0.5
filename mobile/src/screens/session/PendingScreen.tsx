@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";

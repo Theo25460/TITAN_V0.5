@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { SessionRoute } from "./RoutesScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
 import { GuildChat } from "../../components/GuildChat";
 import { Button } from "../../components/Button";

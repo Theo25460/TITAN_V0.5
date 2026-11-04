@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
-import { Alert, Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, View } from "react-native";
+import { Alert } from "../../components/Dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Card } from "../../components/Card";
