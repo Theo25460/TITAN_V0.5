@@ -3,6 +3,9 @@
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
 
+import { listProfileCopies, preferenceBase, preferenceSignature, protectPreferences, removeProfileCopy } from "./profileCopies";
+import { isOnline } from "../lib/network";
+
 const TIMEOUT_MS = 20000;
 
 /** Rejects after the timeout so a stalled request never freezes a screen. */
@@ -67,17 +70,36 @@ export type Preferences = {
   name?: string;
 };
 
-export async function savePreferences(profile: Profile, prefs: Preferences, opts: { username?: string; privacy?: Privacy } = {}) {
-  return rpc<Record<string, unknown>>("titan_save_profile_state", {
-    p_state: { user: prefs, meta: { profileVersion: profile.state_version } },
-    p_username: opts.username ?? profile.username ?? "Agent",
-    p_avatar: null,
-    p_inventory: {},
-    p_privacy: opts.privacy ?? profile.privacy ?? {},
-    p_streak_count: null,
-    p_last_week_id: profile.last_week_id ?? "",
-    p_last_seen_news_version: null,
-  });
+// Reserve synchronously: a second intent must not be mistaken for an unchanged profile.
+const preferenceFlights = new Map<string, Promise<Profile>>();
+export function savePreferences(profile: Profile, prefs: Preferences, opts: { username?: string; privacy?: Privacy } = {}): Promise<Profile> {
+  const edit = JSON.parse(JSON.stringify({ prefs, ...opts }));
+  const previous = preferenceFlights.get(profile.id);
+  const sending = Promise.resolve().then(async () => {
+    const session = await assertOwner(profile.id);
+    const uncertain = !!previous || (await listProfileCopies(profile.id)).length > 0;
+    const base = preferenceBase(profile, edit);
+    if (!uncertain && preferenceSignature(base) === preferenceSignature(edit)) return profile;
+    const copy = await protectPreferences(profile.id, edit, uncertain ? null : base);
+    if (previous) throw new Error("PROFILE_SAVE_IN_PROGRESS");
+    if (!Number.isInteger(profile.state_version)) throw new Error("PROFILE_READ_REQUIRED");
+    if (!isOnline()) throw new Error("Network offline; preferences preserved");
+    await assertOwner(profile.id);
+    const { data, error } = await withTimeout(supabase.rpc("titan_save_profile_state", {
+      p_state: { user: edit.prefs, meta: { profileVersion: profile.state_version } },
+      p_username: edit.username ?? profile.username ?? "Agent",
+      p_avatar: null, p_inventory: {},
+      p_privacy: edit.privacy ?? profile.privacy ?? {},
+      p_streak_count: null, p_last_week_id: profile.last_week_id ?? "", p_last_seen_news_version: null,
+    }).setHeader("Authorization", `Bearer ${session.access_token}`));
+    if (error) throw error;
+    if (!data || data.id !== profile.id || !Number.isInteger(data.state_version)) throw new Error("PROFILE_RECEIPT_INVALID");
+    await assertOwner(profile.id);
+    await removeProfileCopy(profile.id, copy.key);
+    return { ...profile, ...data } as Profile;
+  }).finally(() => { if (preferenceFlights.get(profile.id) === sending) preferenceFlights.delete(profile.id); });
+  if (!previous) preferenceFlights.set(profile.id, sending);
+  return sending;
 }
 
 /* ---------- Training log ---------- */
