@@ -13,6 +13,8 @@ import { saveDraft } from "../../data/drafts";
 import { awaitSession, buildPending, flushRoutes, queueRoute } from "../../lib/routeSync";
 import { shareTextFile } from "../../lib/exportFile";
 import { draftFromRecording } from "../../lib/gpsDraft";
+import { ask } from "../../components/Dialog";
+import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } from "../../lib/gpsNative";
 import type { Recording } from "../../lib/gpsRecorder";
 import { currentSpeed } from "../../lib/gpsTrack";
@@ -86,7 +88,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
 
   const start = () =>
     run(async () => {
-      const perm = await ensureLocationPermission();
+      const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
       if (perm !== "ok") return setDenied(perm);
       setDenied(null);
       const other = await getActiveOwner();

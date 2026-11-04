@@ -1,7 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Alert } from "../../components/Dialog";
+import { Alert, ask } from "../../components/Dialog";
+import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { Button } from "../../components/Button";
 import { BarChart } from "../../components/Charts";
 import { Card } from "../../components/Card";
@@ -36,7 +37,8 @@ export function StepsScreen() {
 
   const toggleOwn = async (on: boolean) => {
     if (on) {
-      const r = await s.own.enable();
+      const r = await s.own.enable(() => ask(PERMISSION_COPY.steps.title, PERMISSION_COPY.steps.message, { confirmLabel: PERMISSION_COPY.steps.confirmLabel }));
+      if (r === "cancelled") return;
       if (r === "unsupported") toast({ kind: "warn", title: "Pas de capteur de pas", message: "Ce téléphone n’a pas de compteur de pas matériel." });
       else if (r === "blocked") toast({ kind: "warn", title: "Autorisation refusée", message: "Réactive « activité physique » pour TITAN dans les réglages d’Android." });
       else if (r === "denied") toast({ kind: "warn", title: "Autorisation nécessaire", message: "Android demande « activité physique » pour lire le capteur." });

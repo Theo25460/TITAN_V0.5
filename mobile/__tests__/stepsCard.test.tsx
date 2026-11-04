@@ -106,7 +106,7 @@ describe("Steps screen", () => {
     screenOf();
     expect(screen.getByText("3 000")).toBeTruthy();
     expect(screen.getByText(/Encore 5 000 pas/)).toBeTruthy();
-    fireEvent(screen.getByTestId("steps-own-toggle"), "valueChange", true);
+    fireEvent.press(screen.getByTestId("steps-own-toggle"));
     expect(enable).toHaveBeenCalled();
     expect(await screen.findByText("Autorisation refusée")).toBeTruthy();
   });
@@ -146,6 +146,6 @@ describe("Steps screen", () => {
     mockSteps.value = base([], null, { hasAny: false, own: own({ supported: false }) });
     screenOf();
     expect(screen.getByText(/n’a pas de capteur de pas/)).toBeTruthy();
-    expect(screen.getByTestId("steps-own-toggle").props.disabled).toBe(true);
+    expect(screen.getByTestId("steps-own-toggle").props.accessibilityState.disabled).toBe(true);
   });
 });

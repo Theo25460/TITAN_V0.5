@@ -1,4 +1,4 @@
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "../../components/Picker";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { Button } from "../../components/Button";

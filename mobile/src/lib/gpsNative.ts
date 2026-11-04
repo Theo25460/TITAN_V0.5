@@ -70,11 +70,12 @@ if (!TaskManager.isTaskDefined(GPS_TASK)) {
 export type StartResult = "ok" | "denied" | "blocked" | "unavailable";
 
 /** Asks for the foreground location permission (the only one needed) right when the athlete taps Démarrer. */
-export async function ensureLocationPermission(): Promise<StartResult> {
+export async function ensureLocationPermission(explain?: () => Promise<boolean>): Promise<StartResult> {
   try {
     if (!(await Location.hasServicesEnabledAsync())) return "unavailable";
     const cur = await Location.getForegroundPermissionsAsync();
     if (cur.granted) return "ok";
+    if (explain && !(await explain())) return "denied";
     const res = await Location.requestForegroundPermissionsAsync();
     return res.granted ? "ok" : res.canAskAgain ? "denied" : "blocked";
   } catch {

@@ -101,7 +101,8 @@ function onAppState(next: AppStateStatus) {
   else stopCounting();
 }
 
-async function enable(): Promise<"granted" | "denied" | "blocked" | "unsupported"> {
+/** `explain` is TITAN's own dialog, shown only when Android is about to ask (permission not granted yet); declining it asks nothing. */
+async function enable(explain?: () => Promise<boolean>): Promise<"granted" | "denied" | "blocked" | "unsupported" | "cancelled"> {
   const owner = state.owner;
   const p = pedometer();
   if (!owner) return "denied";
@@ -109,6 +110,7 @@ async function enable(): Promise<"granted" | "denied" | "blocked" | "unsupported
     set({ supported: false });
     return "unsupported";
   }
+  if (explain && !(await p.permission()) && !(await explain())) return "cancelled";
   const r = await p.request();
   if (state.owner !== owner) return r;
   set({ permission: r, supported: true });

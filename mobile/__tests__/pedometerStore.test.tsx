@@ -111,4 +111,20 @@ describe("TITAN pedometer store", () => {
     await act(async () => { await result.current.clear(); });
     expect(result.current.ledger.firstAt).toBeNull();
   });
+
+  test("TITAN explains first: declining its dialog asks Android nothing; accepting goes on to the system prompt (V12-08)", async () => {
+    const s = fakeSensor();
+    const request = jest.fn(async () => "granted" as const);
+    _setPedometerForTests(createPedometer(s.native, { check: async () => false, request }));
+    const { result } = renderHook(() => usePedometer());
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    let r = "";
+    await act(async () => { r = await result.current.enable(async () => false); });
+    expect(r).toBe("cancelled");
+    expect(request).not.toHaveBeenCalled();
+    expect(result.current.enabled).toBe(false);
+    await act(async () => { r = await result.current.enable(async () => true); });
+    expect(r).toBe("granted");
+    expect(request).toHaveBeenCalledTimes(1);
+  });
 });

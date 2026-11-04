@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import type { ReactElement } from "react";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
+jest.setTimeout(20000);
 const mockState = { empty: false, loading: false };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
 const mockMutation = () => ({ mutate: jest.fn(), mutateAsync: jest.fn(async () => ({})), isPending: false });

@@ -68,3 +68,21 @@ describe("TITAN dialogs replace the system alert (V12-08)", () => {
     expect(label.props.numberOfLines).toBe(2);
   });
 });
+
+describe("ask(): a yes/no question in a TITAN dialog (permission explainers)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ask } = require("../src/components/Dialog");
+  test("true only when the confirm button is chosen; back and cancel are false; nothing system-made is ever opened", async () => {
+    mount();
+    let answer: boolean | null = null;
+    act(() => { ask("Compter tes pas", "TITAN lit le capteur.", { confirmLabel: "Continuer" }).then((v: boolean) => { answer = v; }); });
+    expect(screen.getByText("Compter tes pas")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Continuer" }));
+    await flush();
+    expect(answer).toBe(true);
+    act(() => { ask("Suivre ta sortie", "Position.").then((v: boolean) => { answer = v; }); });
+    act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
+    await flush();
+    expect(answer).toBe(false);
+  });
+});

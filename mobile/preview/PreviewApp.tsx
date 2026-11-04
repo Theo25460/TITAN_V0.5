@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../src/core";
 import { DialogHost } from "../src/components/Dialog";
+import { PickerHost } from "../src/components/Picker";
 import { ToastProvider } from "../src/components/Toast";
 import { RootNavigator } from "../src/navigation/RootNavigator";
 import { colors, fonts } from "../src/theme/tokens";
@@ -91,6 +92,7 @@ export default function PreviewApp() {
               <RootNavigator />
             </NavigationContainer>
             <DialogHost />
+            <PickerHost />
           </ToastProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

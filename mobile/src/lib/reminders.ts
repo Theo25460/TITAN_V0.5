@@ -11,10 +11,11 @@ Notifications.setNotificationHandler({
 });
 
 
-export async function ensurePermission(): Promise<boolean> {
+export async function ensurePermission(explain?: () => Promise<boolean>): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
   if (!current.canAskAgain) return false;
+  if (explain && !(await explain())) return false;
   const next = await Notifications.requestPermissionsAsync();
   return next.granted;
 }

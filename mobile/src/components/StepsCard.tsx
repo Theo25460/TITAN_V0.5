@@ -4,7 +4,9 @@ import { useSteps } from "../data/steps";
 import { approxKm } from "../lib/stepLedger";
 import { freshness, stepsText } from "../lib/steps";
 import { colors, space, TOUCH } from "../theme/tokens";
+import { PERMISSION_COPY } from "../lib/permissionCopy";
 import { Button } from "./Button";
+import { ask } from "./Dialog";
 import { Card } from "./Card";
 import { Icon } from "./Icon";
 import { Ring } from "./Progress";
@@ -103,7 +105,7 @@ export function StepsCardView({ s }: { s: StepsState }) {
               <T variant="small">Sans compte tiers : le capteur de ton téléphone suffit. Rien ne quitte ton téléphone.</T>
             </View>
           </View>
-          <Button label="Activer le compteur de pas" icon="check" onPress={() => s.own.enable()} testID="steps-start-open" />
+          <Button label="Activer le compteur de pas" icon="check" onPress={() => s.own.enable(() => ask(PERMISSION_COPY.steps.title, PERMISSION_COPY.steps.message, { confirmLabel: PERMISSION_COPY.steps.confirmLabel }))} testID="steps-start-open" />
           {s.own.permission === "denied" || s.own.permission === "blocked" ? (
             <T variant="caption" tone="warn" accessibilityRole="alert">
               {s.own.permission === "blocked" ? "L’autorisation « activité physique » est refusée : réactive-la dans les réglages d’Android pour TITAN." : "Sans l’autorisation « activité physique », Android ne laisse pas TITAN lire le capteur."}

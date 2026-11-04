@@ -24,12 +24,8 @@ export const androidPermissions: PedometerPermissions = {
   },
   async request() {
     if (Platform.OS !== "android" || Number(Platform.Version) < 29) return "granted";
-    const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION, {
-      title: "Compter tes pas",
-      message: "TITAN lit le compteur de pas de ton téléphone pour afficher tes pas du jour. Rien ne quitte ton téléphone.",
-      buttonPositive: "Autoriser",
-      buttonNegative: "Pas maintenant",
-    });
+    // No rationale object: its text would be shown in a system dialog. TITAN explains in its own dialog BEFORE this call (permissionCopy).
+    const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION);
     return r === PermissionsAndroid.RESULTS.GRANTED ? "granted" : r === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ? "blocked" : "denied";
   },
 };

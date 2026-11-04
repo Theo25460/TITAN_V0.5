@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert as NativeAlert, AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useReducedMotion } from "../lib/motion";
 import { colors, radius, space } from "../theme/tokens";
 import { Button } from "./Button";
@@ -17,23 +17,28 @@ type Entry = { id: number; title: string; message?: string; buttons: DialogButto
 let counter = 0;
 let queue: Entry[] = [];
 let listener: ((current: Entry | null) => void) | null = null;
-let hosted = 0;
 
 const emit = () => listener?.(queue[0] ?? null);
 
-/** The dialog API: same shape as the system Alert so call sites can be migrated mechanically. */
+/** The dialog API: same shape as the system Alert so call sites could be migrated mechanically. Nothing here ever opens a system dialog. */
 export const Alert = {
   alert(title: string, message?: string, buttons?: DialogButton[]) {
     const list = buttons?.length ? buttons : [{ text: "OK", style: "default" as const }];
-    // No host mounted (very early start, isolated tests): never lose a confirmation, fall back to the system dialog.
-    if (!hosted) {
-      NativeAlert.alert(title, message, list as Parameters<typeof NativeAlert.alert>[2]);
-      return;
-    }
+    // No system fallback, ever: if the host is not mounted yet (very early start), the question waits and appears the moment it is.
     queue.push({ id: ++counter, title, message, buttons: list });
     if (queue.length === 1) emit();
   },
 };
+
+/** A yes/no question in a TITAN dialog, as a promise: `true` only when the confirm button was chosen (back, tap outside and cancel are `false`). */
+export function ask(title: string, message: string, { confirmLabel = "Continuer", cancelLabel = "Pas maintenant" }: { confirmLabel?: string; cancelLabel?: string } = {}): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(title, message, [
+      { text: cancelLabel, style: "cancel", onPress: () => resolve(false) },
+      { text: confirmLabel, onPress: () => resolve(true) },
+    ]);
+  });
+}
 
 /** Test helper: forget every pending dialog. */
 export function resetDialogs() {
@@ -52,11 +57,9 @@ function settle(id: number) {
 export function DialogHost() {
   const [current, setCurrent] = useState<Entry | null>(queue[0] ?? null);
   useEffect(() => {
-    hosted += 1;
     listener = setCurrent;
     setCurrent(queue[0] ?? null);
     return () => {
-      hosted -= 1;
       if (listener === setCurrent) listener = null;
     };
   }, []);

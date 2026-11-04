@@ -1,4 +1,4 @@
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "../../components/Picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { usePreventRemove } from "@react-navigation/native";
