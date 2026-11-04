@@ -37,7 +37,6 @@ export function GarminScreen() {
     } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   return <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
-    <T variant="h1">Garmin</T>
     <T tone="muted">Tes activités peuvent rejoindre ton journal après ton autorisation. Les pas seuls ne donnent pas d’XP. Les doublons sont contrôlés côté serveur.</T>
     {q.isLoading ? <LoadingCards count={1} /> : q.error ? <ErrorState error={q.error} onRetry={() => q.refetch()} title="Garmin indisponible" /> : <>
       <Card><T variant="bodyStrong">{q.data?.linked ? "Compte Garmin connecté" : "Aucun compte Garmin connecté"}</T><T tone="muted">{q.data?.last_event_at ? `Dernière réception : ${new Date(q.data.last_event_at).toLocaleString("fr-FR")}` : "Aucune réception d’activité confirmée."}</T></Card>

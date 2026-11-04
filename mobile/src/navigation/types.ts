@@ -41,6 +41,7 @@ export type RootParams = {
   Guide: undefined;
   HealthConnect: undefined;
   Steps: undefined;
+  Sources: undefined;
   Garmin: undefined;
   Feedback: undefined;
   Legal: undefined;

@@ -130,8 +130,7 @@ export function ProfileScreen() {
         <Group title="Compte">
           <ListRow icon="user" title="Compte et sécurité" subtitle={email ?? undefined} onPress={() => navigation.navigate("Account")} />
           <ListRow icon="run" title="Mes sports" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map((s) => Sports.label(s)).join(", ") : "Choisir mes sports favoris"} onPress={() => navigation.navigate("Sports")} />
-          <ListRow icon="cloud" title="Santé Connect" subtitle="Pas et séances de ton téléphone" onPress={() => navigation.navigate("HealthConnect")} />
-          <ListRow icon="cloud" title="Garmin" subtitle="Connexion, état et retrait de l’autorisation" onPress={() => navigation.navigate("Garmin")} />
+          <ListRow icon="cloud" title="Sources et capteurs" subtitle="Compteur de pas, Santé Connect, Garmin, GPS" onPress={() => navigation.navigate("Sources")} testID="profile-sources" />
           <ListRow icon="lock" title="Confidentialité" onPress={() => navigation.navigate("Privacy")} />
           <ListRow icon="bell" title="Rappels" onPress={() => navigation.navigate("Notifications")} />
           <ListRow icon="settings" title="Réglages de l’application" onPress={() => navigation.navigate("Settings")} last />
