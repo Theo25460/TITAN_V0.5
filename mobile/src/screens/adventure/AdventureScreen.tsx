@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AdventureHelp } from "../../components/AdventureHelp";
 import { Card } from "../../components/Card";
@@ -34,6 +34,8 @@ export function AdventureScreen() {
   const prefs = usePrefs();
   const { active } = useLogs();
   const [pickAvatar, setPickAvatar] = useState(false);
+  // The crest only appears where the text keeps its room: on a narrow phone it squeezed the name and broke words in the middle.
+  const { width } = useWindowDimensions();
   const s = q.data;
   const quests = useMemo(() => AdventureRules.weeklyQuests(active, prefs.weeklyGoalSessions), [active, prefs.weeklyGoalSessions]);
 
@@ -63,7 +65,7 @@ export function AdventureScreen() {
                     {Format.number(s.xp)} / {Format.number(s.next_level_xp)} XP · {Format.number(s.credits)} crédits
                   </T>
                 </View>
-                <RankCrest rank={rankIdOf(s.level)} size={92} />
+                {width >= 400 ? <RankCrest rank={rankIdOf(s.level)} size={92} /> : null}
               </View>
               <ProgressBar value={s.xp / Math.max(1, s.next_level_xp)} accessibilityLabel="Progression vers le niveau suivant" />
               <T variant="caption" tone="faint">

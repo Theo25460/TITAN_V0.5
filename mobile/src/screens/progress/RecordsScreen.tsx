@@ -62,7 +62,7 @@ export function RecordsScreen() {
 
   return (
     <Screen>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.s4 }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.s4 }}>
         <Chip label="Tous" selected={!sport} onPress={() => setSport(null)} />
         {sports.map((s) => (
           <Chip key={s} label={Sports.label(s)} selected={sport === s} onPress={() => setSport(sport === s ? null : s)} />

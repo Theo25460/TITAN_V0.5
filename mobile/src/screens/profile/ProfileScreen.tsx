@@ -71,19 +71,21 @@ export function ProfileScreen() {
               />
             ) : null}
           </View>
-          {/* The rank, as heraldry: it grows richer with the rank the server confirms (Éclaireur → Légende). */}
-          <RankCrest rank={rankIdOf(level)} size={104} />
         </View>
-        <View style={{ gap: 6 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <T variant="caption" tone="muted">
-              Vers le niveau {level + 1}
-            </T>
-            <T variant="caption" tone="faint">
-              {Format.number(xp)} / {Format.number(need)} XP
-            </T>
+        {/* The rank, as heraldry (it grows richer with the rank the server confirms), beside the progress to the next level: never in the header, where it squeezed the name. */}
+        <View style={styles.levelRow}>
+          <RankCrest rank={rankIdOf(level)} size={88} />
+          <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+              <T variant="caption" tone="muted" numberOfLines={1} style={{ flexShrink: 1 }}>
+                Vers le niveau {level + 1}
+              </T>
+              <T variant="caption" tone="faint" numberOfLines={1}>
+                {Format.number(xp)} / {Format.number(need)} XP
+              </T>
+            </View>
+            <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
           </View>
-          <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
         </View>
         <StatRow flat>
           <Stat label="séances" value={Format.number(dna.sessions)} />
@@ -156,6 +158,7 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", gap: space.s4, alignItems: "center" },
+  levelRow: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   mastery: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   level: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });
