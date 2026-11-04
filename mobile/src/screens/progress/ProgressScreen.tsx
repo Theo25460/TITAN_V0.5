@@ -120,7 +120,7 @@ export function ProgressScreen() {
           {LINKS.map((l) => (
             <Tap key={l.route} onPress={() => navigation.navigate(l.route)} accessibilityLabel={l.label} style={styles.link}>
               <Icon name={l.icon} size={22} color={colors.cy} />
-              <T variant="caption" tone="default" numberOfLines={1}>
+              <T variant="caption" tone="default" numberOfLines={2} center>
                 {l.label}
               </T>
             </Tap>
@@ -249,7 +249,8 @@ export function ProgressScreen() {
 }
 
 const styles = StyleSheet.create({
-  links: { flexDirection: "row", gap: space.s2 },
-  link: { flex: 1, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
+  // Wraps to two rows on a narrow window or a large system font instead of cutting "Semaine type" to "Semaine ty…" (V12-24).
+  links: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  link: { flexGrow: 1, flexBasis: 72, paddingHorizontal: 4, alignItems: "center", gap: 6, paddingVertical: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, minHeight: 64 },
   lvl: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 });
