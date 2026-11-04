@@ -46,7 +46,8 @@ check(auth.includes('"auth.google"') && auth.includes("titan_feature_flags_v1"),
 check(/signInWithOAuth\(\{\s*provider:\s*"google"/.test(auth), "auth.js servi : appel OAuth Google", "auth.js servi SANS appel OAuth");
 check(auth.includes("signInWithPassword"), "auth.js servi : connexion e-mail", "auth.js servi SANS connexion e-mail");
 const sdkAt = login.indexOf("/js/vendor/supabase-"), cfgAt = login.indexOf("/js/config.js");
-check(sdkAt >= 0 && sdkAt < cfgAt, "/login charge le SDK Supabase avant config.js", "/login : SDK absent ou après config.js");
+check(sdkAt >= 0, "/login charge le SDK Supabase (après le formulaire, ordre mesuré : le formulaire s'affiche d'abord)", "/login : SDK Supabase absent");
+check(auth.includes("waitForTitanSupabase"), "auth.js attend le client avant chaque action", "auth.js n'attend plus le client Supabase");
 check((await get("/js/vendor/supabase-2.111.0.js")).status === 200, "SDK Supabase servi", "SDK Supabase introuvable");
 const key = /eyJ[\w-]+\.[\w-]+\.[\w-]+/.exec(cfg)?.[0];
 if (key) {

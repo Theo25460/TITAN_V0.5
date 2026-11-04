@@ -30,16 +30,19 @@ need(auth.includes('"auth.google"') && auth.includes("titan_feature_flags_v1"), 
 need(/signInWithOAuth\(\{\s*provider:\s*"google"/.test(auth), "js/app/auth.js : l'appel OAuth Google a disparu");
 need(auth.includes("signInWithPassword"), "js/app/auth.js : la connexion par e-mail a disparu");
 
-// 3. The Supabase SDK is shipped and loaded BEFORE config.js on every page that creates the client.
+// 3. The Supabase SDK is shipped. Every page that creates the client loads it BEFORE config.js, except the sign-in page, which loads it
+//    AFTER auth.js on purpose (the form paints first: measured mobile LCP 2.7 s -> 1.7 s) and whose actions wait for the client.
 need(existsSync(join(root, "js/vendor/supabase-2.111.0.js")), "le SDK Supabase (js/vendor/supabase-2.111.0.js) est absent");
 for (const f of readdirSync(root).filter((n) => n.endsWith(".html"))) {
   const html = read(f);
   const config = html.indexOf("/js/config.js");
   if (config < 0) continue;
   const sdk = html.indexOf("/js/vendor/supabase-");
+  if (f === "login.html") { need(sdk >= 0, "login.html : le SDK Supabase n'est plus chargé"); continue; }
   need(sdk >= 0 && sdk < config, `${f} : le SDK Supabase doit être chargé avant js/config.js`);
 }
 need(read("login.html").includes("js/app/auth.js"), "login.html ne charge plus js/app/auth.js");
+need(auth.includes("waitForTitanSupabase"), "js/app/auth.js n'attend plus le client Supabase (chargé après le formulaire)");
 
 // 4. The build command runs this guard first.
 need(/command\s*=\s*"node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs"/.test(toml), "netlify.toml : la commande de build doit lancer tools/check-release-guard.mjs avant la construction");

@@ -56,19 +56,26 @@ test("the guard refuses a missing implementation behind a function entry", () =>
   assert.match(r.stderr, /implémentation de garmin est introuvable/);
 });
 
-test("the guard refuses a page that loads config.js before the Supabase SDK, or no SDK at all", () => {
+test("the guard refuses a content page that loads config.js before the Supabase SDK, or no SDK at all", () => {
   const swapped = sandbox((d) => {
-    const html = readFileSync(join(d, "login.html"), "utf8");
-    writeFileSync(join(d, "login.html"), html.replace('    <script src="/js/vendor/supabase-2.111.0.js"></script>\n', "").replace("</body>", '    <script src="/js/vendor/supabase-2.111.0.js"></script>\n  </body>'));
+    const html = readFileSync(join(d, "profile.html"), "utf8");
+    writeFileSync(join(d, "profile.html"), html.replace('    <script src="/js/vendor/supabase-2.111.0.js"></script>\n', "").replace("</body>", '    <script src="/js/vendor/supabase-2.111.0.js"></script>\n  </body>'));
   });
   assert.equal(swapped.status, 1);
-  assert.match(swapped.stderr, /login\.html : le SDK Supabase doit être chargé avant js\/config\.js/);
+  assert.match(swapped.stderr, /profile\.html : le SDK Supabase doit être chargé avant js\/config\.js/);
   const missing = sandbox((d) => rmSync(join(d, "js/vendor/supabase-2.111.0.js")));
   assert.equal(missing.status, 1);
   assert.match(missing.stderr, /SDK Supabase .* est absent/);
 });
 
-test("every page that creates the Supabase client loads the SDK first (login page included)", () => {
+test("the sign-in page keeps its measured order (form first, SDK last) and the guard accepts it, but refuses it without the client wait or without the SDK", () => {
   const login = readFileSync(join(root, "login.html"), "utf8");
-  assert.ok(login.indexOf("/js/vendor/supabase-") < login.indexOf("/js/config.js"));
+  assert.ok(login.indexOf("/js/vendor/supabase-") > login.indexOf("/js/app/auth.js"), "SDK after auth.js on /login");
+  assert.equal(guard().status, 0);
+  const noWait = sandbox((d) => writeFileSync(join(d, "js/app/auth.js"), readFileSync(join(d, "js/app/auth.js"), "utf8").replaceAll("waitForTitanSupabase", "x")));
+  assert.equal(noWait.status, 1);
+  assert.match(noWait.stderr, /n'attend plus le client Supabase/);
+  const noSdk = sandbox((d) => writeFileSync(join(d, "login.html"), readFileSync(join(d, "login.html"), "utf8").replace(/<script src="\/js\/vendor\/supabase-[^"]*"><\/script>\n/, "")));
+  assert.equal(noSdk.status, 1);
+  assert.match(noSdk.stderr, /login\.html : le SDK Supabase n'est plus chargé/);
 });
