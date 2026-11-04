@@ -201,7 +201,7 @@ jobs:
           target=$(sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p" badging.txt)
           if [ "$target" -lt 35 ]; then echo "::error::targetSdkVersion=$target < 35"; exit 1; fi
           "$bt/aapt2" dump permissions "$apk" | tee permissions.txt
-          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|android.permission.health.(READ_STEPS|READ_EXERCISE)\b|com.android.vending.BILLING|android.permission.(ACCESS_FINE_LOCATION|FOREGROUND_SERVICE_LOCATION)\b|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION|com.google.android.gms.permission.AD_ID" || true)
+          extra=$(grep -E "^uses-permission" permissions.txt | grep -vE "android.permission.(INTERNET|ACCESS_NETWORK_STATE|POST_NOTIFICATIONS|VIBRATE|RECEIVE_BOOT_COMPLETED|WAKE_LOCK|FOREGROUND_SERVICE)|android.permission.health.(READ_STEPS|READ_EXERCISE)\b|com.android.vending.BILLING|android.permission.(ACCESS_FINE_LOCATION|FOREGROUND_SERVICE_LOCATION|ACTIVITY_RECOGNITION)\b|com.google.android.c2dm.permission.RECEIVE|DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION|com.google.android.gms.permission.AD_ID" || true)
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           if ! grep -q "com.android.vending.BILLING" permissions.txt; then echo "::error::permission Billing absente dans le paquet"; exit 1; fi
           # AdMob standard mode: the advertising id permission must be present (consent-gated by UMP), or ads are served degraded.
@@ -210,6 +210,8 @@ jobs:
           if grep -qE "ACCESS_BACKGROUND_LOCATION|ACCESS_COARSE_LOCATION" permissions.txt; then echo "::error::localisation en arrière-plan ou approximative présente"; exit 1; fi
           grep -q "android.permission.ACCESS_FINE_LOCATION" permissions.txt || { echo "::error::ACCESS_FINE_LOCATION absente (GPS)"; exit 1; }
           grep -q "android.permission.FOREGROUND_SERVICE_LOCATION" permissions.txt || { echo "::error::FOREGROUND_SERVICE_LOCATION absente (GPS)"; exit 1; }
+          # TITAN's own step counter (modules/titan-pedometer) declares it: absent means the module was not linked into the build.
+          grep -q "android.permission.ACTIVITY_RECOGNITION" permissions.txt || { echo "::error::ACTIVITY_RECOGNITION absente : le module titan-pedometer n'est pas dans le paquet"; exit 1; }
           # Android 14+: the location service must declare its foreground service type, or startForeground() throws.
           "$bt/aapt2" dump xmltree "$apk" --file AndroidManifest.xml > manifest-tree.txt
           grep -A6 "LocationTaskService" manifest-tree.txt | grep -q "foregroundServiceType" || { echo "::error::service de localisation sans foregroundServiceType"; exit 1; }
