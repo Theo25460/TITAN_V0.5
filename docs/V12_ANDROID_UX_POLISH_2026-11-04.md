@@ -32,6 +32,7 @@
 - **V12-23/29** : largeur lisible 720 dp et bouton/RPE adaptatifs hérités de la branche de départ ; rotation, pliables et matrice d'appareils réels restent à faire. Le verrou `orientation: "portrait"` n'a pas été modifié (Android 16 l'ignore de toute façon ≥ 600 dp).
 
 ## Vérifications exécutées (4 nov. 2026)
-- `npm run typecheck` : OK. `npx jest` (mobile) : 55 suites, 584 tests verts (base de départ : 44 suites, 526 tests).
-- `expo export:embed --platform android` (bundle de production) : OK, 1650 modules.
-- Banc d'aperçu web (`TITAN_PREVIEW=1`) : de nouveau exportable (SDK natifs stubbés, uniquement dans ce mode) ; captures dans `mobile/docs/v12-captures/`. Données fictives, Chromium : **pas une preuve Android**.
+- Local : `npm run typecheck` OK ; `npx jest` (mobile) : 56 suites, 589+ tests verts (départ : 44 suites, 526 tests) ; bundle Android de production OK ; balayage `scripts/preview-overflow.mjs` : 32 écrans × 320/360/412/600/840 dp, aucun débordement horizontal.
+- **CI « Android natif » (run 146, commit 52d23fe), lue sur GitHub** : types + tests + bundle ✔ ; **compilation Gradle de l'APK et de l'AAB release avec le module `titan-pedometer` ✔** ; contrôle du paquet ✔ (il exige `ACTIVITY_RECOGNITION` dans le manifeste final, preuve que le module est lié) ; parcours Maestro sur émulateur Android 14 ✔ (première séance, progression, hors ligne, GPS, changement de compte).
+- Banc d'aperçu web (`TITAN_PREVIEW=1`) : captures dans `mobile/docs/v12-captures/`. Données fictives, Chromium : **pas une preuve Android**. Aucun téléphone réel n'a été utilisé : aucun V12-XX n'est « validé ».
+- Les commits postérieurs à 52d23fe (tirer pour actualiser relit aussi Santé Connect, documents) n'étaient pas encore passés en CI à la rédaction.

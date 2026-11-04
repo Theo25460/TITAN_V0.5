@@ -24,6 +24,7 @@ import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../dat
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
 import { useAfterPaint } from "../../lib/deferred";
+import { useSteps } from "../../data/steps";
 import { dayOfYear, voiceLine } from "../../lib/voice";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
@@ -41,6 +42,7 @@ export function HomeScreen() {
   const prefs = usePrefs();
   const queue = useQueue();
   const visit = useLastVisit();
+  const steps = useSteps();
   const { active } = logsQ;
 
   const planToday = useMemo(() => {
@@ -84,6 +86,8 @@ export function HomeScreen() {
     profile.refetch();
     adventure.refetch();
     goals.refetch();
+    // The usual gesture also reads Santé Connect again (when it is connected): no "Synchroniser" button to hunt for. TITAN's own counter is live already.
+    if (steps.connected) steps.refresh(false).catch(() => {});
   };
 
   return (
@@ -148,7 +152,7 @@ export function HomeScreen() {
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
             <Reveal order={3}>
-              <TodayStrip cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
+              <TodayStrip steps={steps} cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
             </Reveal>
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>

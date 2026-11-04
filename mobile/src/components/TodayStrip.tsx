@@ -68,8 +68,8 @@ function useGoalCheer(reached: boolean, steps: number | null) {
 
 /** "Aujourd'hui" at a glance (Garmin / Apple-style rings): steps and week side by side. With no step number yet, the week tile stays
     alone (and, for a brand-new account with no session yet, not even that: an empty ring is not a figure) and the steps card below it invites to count (own counter first, Santé Connect second) or holds the room while it loads. */
-export function TodayStrip({ cadence, sessions, showWeek = true }: { cadence: Cadence; sessions: number; showWeek?: boolean }) {
-  const s = useSteps();
+/** The steps state is owned by the screen (one hook, one refresh), so the pull-to-refresh gesture and the tiles speak about the same numbers. */
+export function TodayStrip({ steps: s, cadence, sessions, showWeek = true }: { steps: ReturnType<typeof useSteps>; cadence: Cadence; sessions: number; showWeek?: boolean }) {
   const hasNumber = !s.failed && !s.loading && s.hasAny;
   useGoalCheer(hasNumber && s.view.ratio !== null && s.view.ratio >= 1, s.view.today);
   return (
