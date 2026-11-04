@@ -25,7 +25,7 @@ do $$ declare j jsonb; receipt jsonb; again jsonb; id uuid:=current_setting('tit
   j:=public.titan_analysis_views(id);
   assert j->>'count'='1' and j->'views'->0=receipt->'view','separate read sees committed local write';
   begin perform public.titan_mutate_analysis_view('save',id,0,'Autre','report','{"period":"month","offset":0}');
-    assert false,'different retry must conflict'; exception when serialization_failure then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
+    assert false,'different retry must conflict'; exception when sqlstate 'PT409' then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
   begin perform public.titan_mutate_analysis_view('save',gen_random_uuid(),0,'mon mois','report','{"period":"month","offset":0}');
     assert false,'duplicate name'; exception when unique_violation then assert sqlerrm='VIEW_NAME_TAKEN',sqlerrm; end;
   for bad in select value from jsonb_array_elements('[null,[],{}, {"period":"month","offset":0,"note":"PRIVATE"},{"period":"month","offset":"0"},{"period":"month","offset":0.5},{"period":"week","offset":0},{"period":"year","offset":2}]') loop
@@ -47,9 +47,9 @@ do $$ declare j jsonb; receipt jsonb; again jsonb; id uuid:=current_setting('tit
   again:=public.titan_mutate_analysis_view('save',id,1,'Mon année','report','{"period":"year","offset":1}');
   assert again->'view'->>'revision'='2' and again->'view'->'options'->>'period'='year','version increments once';
   begin perform public.titan_mutate_analysis_view('save',id,1,'Stale','report','{"period":"month","offset":0}');
-    assert false,'stale update'; exception when serialization_failure then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
+    assert false,'stale update'; exception when sqlstate 'PT409' then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
   begin perform public.titan_mutate_analysis_view('delete',id,1);
-    assert false,'stale delete'; exception when serialization_failure then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
+    assert false,'stale delete'; exception when sqlstate 'PT409' then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end;
   for n in 2..10 loop
     perform public.titan_mutate_analysis_view('save',gen_random_uuid(),0,'Vue '||n,'comparison',jsonb_build_object('weeks',12,'sport',case when n=2 then 'running' else null end));
   end loop;
