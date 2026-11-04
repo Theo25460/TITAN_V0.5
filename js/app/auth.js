@@ -14,7 +14,7 @@
   let googleOn = false;
 
   const client = () => window.titanClient || window.initTitanSupabaseClient?.();
-  // The Supabase SDK loads after this script so the form paints first; actions wait for it (10 s at most).
+  // The Supabase SDK is loaded before config.js on every page (tools/check-release-guard.mjs enforces it); actions still wait for the client (10 s at most).
   const ready = async () => client() || (await window.waitForTitanSupabase?.(10000)) || null;
 
   function nextUrl(fallback = "/aujourdhui") {
@@ -200,7 +200,9 @@
       if (!consentSaved) message("Ton choix de statistiques n’a pas été enregistré. Il vaut pour cette page ; après navigation ou rechargement, l’ancien réglage peut revenir. Vérifie-le dans Profil.");
     } catch (error) {
       failed = true;
-      message(human(error));
+      // An account created with Google has no password: say so instead of leaving the person guessing one.
+      const wrong = mode === "signin" && /invalid login|invalid credentials/i.test(String(error?.message || error));
+      message(wrong && googleOn ? `${human(error)} Si tu t’es inscrit avec Google, utilise « Continuer avec Google ».` : human(error));
     } finally {
       finish(task, failed);
     }
