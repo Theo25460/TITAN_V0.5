@@ -62,3 +62,21 @@ Constat : le générateur `tools/build-public-docs.mjs` est en retard sur les pa
 ## 6. Secrets mal classés (à traiter par le propriétaire)
 
 En listant les variables Netlify, trois valeurs sensibles sont enregistrées **comme non secrètes**, donc lisibles en clair par toute personne ayant accès au projet Netlify ou à ses journaux de build : la clé `SUPABASE_SERVICE_ROLE_KEY` (rôle `service_role`, contexte production), l'URL de base Neon `NETLIFY_DATABASE_URL` / `NETLIFY_DATABASE_URL_UNPOOLED` (mot de passe inclus) et `LEMONSQUEEZY_WEBHOOK_SECRET`. À faire : les marquer « secret », puis **les renouveler** (elles ont transité par cette session). La fonction Garmin lit `SUPABASE_SECRET_KEY` (bien marquée secrète) ; `SUPABASE_SERVICE_ROLE_KEY` n'est pas utilisée par les fonctions Garmin/Play du dépôt : vérifier si elle sert encore.
+
+## 7. Publication du 4 novembre 2026 (soir) — état réel
+
+**Incident de production (matin → après-midi).** Netlify, lié à `main` en Git, a publié un `main` qui avait 583 commits de retard sur V1.1 : 1 seule fonction (`webhook`) et plus de bouton Google. Correction en avant (PR #134, `62e476d`) : base V1.1 + `main` + #133, offres Coach / Coach Ultra, et **garde de publication** `tools/check-release-guard.mjs` exécutée avant chaque build Netlify (bouton Google, drapeau `auth.google`, OAuth, connexion e-mail, SDK, 6 fonctions : sinon la build échoue et l'ancien déploiement reste en ligne). Sonde de production bloquante toutes les six heures (#135).
+
+**Audit du site publié** (`tools/audit-live.mjs`, `.github/workflows/audit-live.yml`, lecture seule, exécuté depuis GitHub dans un navigateur réel à 360 / 768 / 1280 px) : après la publication V1.2, **110 contrôles réussis, 0 échec**. Couvre 36 pages, le sitemap (25 adresses toutes en 200), robots, `sw.js`, `manifest.json`, `ads.txt`, redirections, 404 réel, surface de connexion (bouton Google rendu, formulaire e-mail, client Supabase initialisé), redirection OAuth vers Google (Web et Android), les 6 fonctions.
+
+**Publication V1.2.** PR #132 fusionnée dans `main` (`e5e5790`). Déploiement Netlify `6aeb933f57f7d72c0e941009`, `ready`, 6 fonctions, 133 redirections, 71 règles d'en-têtes. Contenu Web : « Ma carrière sportive » (`/carriere`), confidentialité v10, Coach / Coach Ultra 19,99 € / 39,99 €, pluriel « jours actifs ».
+
+**Corrections de la revue.**
+- `/login` : l'ordre de chargement d'origine est rétabli (formulaire d'abord, SDK ensuite : LCP mobile mesuré 2,7 s → 1,7 s, PR #117) ; une première version de cette séance l'avait inversé sans bug à l'appui, c'était une régression de performance. Garde, audit et sonde sont alignés sur cet ordre.
+- Après un mot de passe refusé, le formulaire suggère « Continuer avec Google » (un compte Google n'a pas de mot de passe).
+- `play-reconcile` : désactivé volontairement = 200 `{disabled:true}` (plus de 503 horaire attendu) ; activé mais mal configuré = 503 (vraie alerte).
+- Test mobile des écrans : délai porté à 60 s (43 s observés sur un runner chargé : échec de délai sans rapport avec le code, rejeu vert sur le même commit).
+
+**AAB signé.** Workflow `android-native.yml` sur `main` : signature « upload », versionCode 1300, versionName 1.2.0, publicités éteintes, achats éteints, connexion Google activée. Aucun compte de service Play n'est dans les secrets GitHub : **le dépôt dans la piste de test fermé est manuel**.
+
+**Ce qui n'est pas prouvé.** Clic réel « Continuer avec Google » (le retour Web exige que `https://titan-app.fr/login` soit dans les URL de redirection Supabase : non lisible depuis ici), connexion e-mail, création de compte, séance enregistrée, Garmin (aucune liaison réelle), achats Google Play (aucun produit rattaché côté application tant que la facturation est éteinte).
