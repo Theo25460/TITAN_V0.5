@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AdventureHelp } from "../../components/AdventureHelp";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { ProgressBar } from "../../components/Progress";
@@ -97,6 +98,8 @@ export function AdventureScreen() {
                 );
               })}
             </Section>
+
+            <AdventureHelp />
 
             <Section title="Quêtes de la semaine">
               {quests.map((qq) => {
