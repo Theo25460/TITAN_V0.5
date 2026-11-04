@@ -188,7 +188,7 @@
     const list = all.filter((l) => new Date(l.date).getTime() >= from);
 
     let minutes = 0, measured = 0;
-    let footKm = 0, bikeKm = 0, otherKm = 0, swimM = 0, elevation = 0;
+    let footKm = 0, bikeKm = 0, otherKm = 0, swimM = 0, elevation = 0, footElevation = 0, bikeElevation = 0, runKm = 0, runMinutes = 0;
     let footSessions = 0, bikeSessions = 0, swimSessions = 0, elevationSessions = 0, footMinutes = 0, bikeMinutes = 0, swimMinutes = 0;
     const days = new Set(), sports = new Map(), families = new Map();
     for (const l of list) {
@@ -204,14 +204,21 @@
       if (km && plausibleKm(l, km)) {
         sp.km += km;
         const ln = lane(l.sport);
-        if (ln === "foot") { footKm += km; footSessions++; if (m) footMinutes += m; }
+        if (ln === "foot") {
+          footKm += km; footSessions++; if (m) footMinutes += m;
+          // A pace is a running notion: walks and hikes (slow, with stops) never feed it.
+          if (m && ["running", "trail"].includes(profileOf(l.sport))) { runKm += km; runMinutes += m; }
+        }
         else if (ln === "bike") { bikeKm += km; bikeSessions++; if (m) bikeMinutes += m; }
         else otherKm += km;
       }
       const sw = swimMetersOf(l);
       if (sw) { swimM += sw; swimSessions++; if (m) swimMinutes += m; sp.km += sw / 1000; }
       const up = elevationOf(l);
-      if (up) { elevation += up; elevationSessions++; }
+      if (up) {
+        elevation += up; elevationSessions++;
+        if (lane(l.sport) === "foot") footElevation += up; else if (lane(l.sport) === "bike") bikeElevation += up;
+      }
       sports.set(l.sport, sp);
     }
 
@@ -274,7 +281,8 @@
       distance: {
         footKm: round(footKm), footSessions, bikeKm: round(bikeKm), bikeSessions, swimMeters: Math.round(swimM), swimSessions, otherKm: round(otherKm),
         footMinutes: Math.round(footMinutes), bikeMinutes: Math.round(bikeMinutes), swimMinutes: Math.round(swimMinutes),
-        footPace: footKm > 0 && footMinutes > 0 ? footMinutes / footKm : null,
+        runKm: round(runKm), runMinutes: Math.round(runMinutes), footElevation: Math.round(footElevation), bikeElevation: Math.round(bikeElevation),
+        footPace: runKm > 0 && runMinutes > 0 ? runMinutes / runKm : null,
         bikeKmh: bikeKm > 0 && bikeMinutes > 0 ? bikeKm / (bikeMinutes / 60) : null,
       },
       elevation: { meters: Math.round(elevation), sessions: elevationSessions },

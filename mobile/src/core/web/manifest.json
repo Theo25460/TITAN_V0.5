@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "5fd905e8328fd62728a8805fd182b16e7415508e",
+  "sha": "5aa02ecaefda068446c1583a250995d2a1152ffe",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "171491109a9a4a63542a766b53c3fba4b746612fe1aeeb8da58f069c200eeb4c",
@@ -17,6 +17,6 @@
     "sport-navigation.js": "db1d60e4b6d27fc115169b31a36062baf9b10995294666d16e4c9c61d179ef07",
     "gpx.js": "5211d922a4444499d27ab63c326dce0e5b66fae49fa324342fd286efacd338e2",
     "adventure-rpg.js": "7086d64a88d975db44fe2b03bc06f52aafc633beb44eb6e1c1595e58870f7f05",
-    "career.js": "697c5dfc1a26611b2d3a9339516e648f9a42752ca8d64ff1eaba0fcaed9365f6"
+    "career.js": "f76cdc2ea66745503eef6efe97acc64858f48c93269daeec09705057ed6e6d36"
   }
 }

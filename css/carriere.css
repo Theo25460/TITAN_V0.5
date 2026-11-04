@@ -1,0 +1,37 @@
+/* TITAN 300 — Ma carrière sportive (Progrès). Deep black, cyan for progress, amber for the rare. Loaded by /carriere only. */
+#carriere { display: grid; gap: var(--s5); }
+#carriere > * { min-width: 0; }
+.cr-hero { display: grid; justify-items: center; text-align: center; gap: var(--s2); padding: var(--s6) var(--s5); background: radial-gradient(120% 90% at 50% 0%, var(--cy-soft), transparent 70%), var(--bg-1); border-color: var(--cy-line); }
+.cr-crest { display: block; max-width: 100%; animation: cr-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.cr-crest svg { display: block; max-width: 100%; height: auto; }
+.cr-ranges { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.cr-range { flex: 1 1 0; min-width: 84px; min-height: 44px; padding: 0 var(--s3); border-radius: var(--r2); border: 1px solid var(--line-2); background: var(--bg-2); color: var(--tx-2); font: inherit; font-weight: 600; cursor: pointer; }
+.cr-range[aria-pressed="true"] { background: var(--cy-soft); border-color: var(--cy-line); color: var(--cy); }
+.cr-range:focus-visible { outline: 2px solid var(--cy); outline-offset: 2px; }
+.cr-block, .cr-lens { display: grid; gap: var(--s3); min-width: 0; }
+.cr-lens h3 { display: flex; align-items: center; gap: var(--s2); margin: 0; }
+.cr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr)); gap: var(--s4) var(--s3); }
+.cr-big { display: grid; gap: 2px; min-width: 0; }
+.cr-big span { color: var(--tx-3); font-size: 0.8125rem; line-height: 1.3; overflow-wrap: anywhere; }
+.cr-num { font-size: clamp(1.5rem, 6vw, 2.125rem); line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; overflow-wrap: anywhere; animation: cr-rise 0.6s ease both; }
+.cr-num.cy { color: var(--cy); }
+.cr-num.am { color: var(--am); }
+.cr-steps { margin: 0; font-size: 1.25rem; }
+.cr-share { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--bg-4); gap: 2px; }
+.cr-share span { background: var(--cy); min-width: 4px; }
+.cr-share span[data-family="force"] { background: #7c93ff; }
+.cr-share span[data-family="technique"] { background: #b693ff; }
+.cr-share span[data-family="jeu"] { background: var(--am); }
+.cr-share span[data-family="mobilite"] { background: var(--ok); }
+.cr-list { list-style: none; margin: 0; padding: var(--s4); display: grid; gap: var(--s2); }
+.cr-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 32px; min-width: 0; }
+.cr-list li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.cr-moments { list-style: none; margin: 0; display: grid; gap: var(--s4); }
+.cr-moments li { display: flex; align-items: flex-start; gap: var(--s3); min-width: 0; }
+.cr-moments li > div { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.cr-dot { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--cy); box-shadow: 0 0 10px var(--cy-soft); }
+.cr-moments li[data-tone="amber"] .cr-dot { background: var(--am); box-shadow: 0 0 10px var(--am-soft); }
+.cr-empty { display: grid; justify-items: start; gap: var(--s3); }
+@keyframes cr-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cr-crest, .cr-num { animation: none; } }
+.cr-lens .cr-list { padding: 0; }

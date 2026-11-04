@@ -40,6 +40,7 @@
       { label: "Semaine", href: "/stats" },
       { label: "Journal", href: "/journal" },
       { label: "Records", href: "/records" },
+      { label: "Carrière", href: "/carriere" },
       { label: "Objectifs", href: "/objectifs" },
     ],
     seance: [

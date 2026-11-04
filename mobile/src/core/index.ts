@@ -161,7 +161,7 @@ export type Career = {
   range: CareerRange; from: string | null; first: string | null; empty: boolean; excluded: number;
   totals: { sessions: number; activeDays: number; sports: number; minutes: number; measuredSessions: number; unmeasuredSessions: number };
   calories: { available: false };
-  distance: { footKm: number; footSessions: number; bikeKm: number; bikeSessions: number; swimMeters: number; swimSessions: number; otherKm: number; footMinutes: number; bikeMinutes: number; swimMinutes: number; footPace: number | null; bikeKmh: number | null };
+  distance: { footKm: number; footSessions: number; bikeKm: number; bikeSessions: number; swimMeters: number; swimSessions: number; otherKm: number; footMinutes: number; bikeMinutes: number; swimMinutes: number; runKm: number; runMinutes: number; footElevation: number; bikeElevation: number; footPace: number | null; bikeKmh: number | null };
   elevation: { meters: number; sessions: number };
   steps: { total: number; days: number; firstDay: string; estimatedKm: number } | null;
   strength: { sessions: number; sets: number; reps: number; volumeKg: number; loadedSets: number; heaviestKg: number };

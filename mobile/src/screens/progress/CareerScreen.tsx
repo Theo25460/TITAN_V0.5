@@ -65,8 +65,8 @@ function Lenses({ c }: { c: Career }) {
           <View style={styles.grid}>
             <Big value={Format.distance(d.footKm)} label="parcourus en séance" tone="accent" />
             <Big value={String(d.footSessions)} label={d.footSessions > 1 ? "séances avec distance" : "séance avec distance"} />
-            {d.footPace ? <Big value={Format.pace(d.footKm, d.footMinutes)} label="allure moyenne" /> : null}
-            {c.elevation.meters > 0 ? <Big value={`${nf(c.elevation.meters)} m`} label="de dénivelé positif" /> : null}
+            {d.footPace ? <Big value={Format.pace(d.runKm, d.runMinutes)} label="allure moyenne en course" /> : null}
+            {d.footElevation > 0 ? <Big value={`${nf(d.footElevation)} m`} label="de dénivelé positif" /> : null}
           </View>
         </Lens>
       ) : null}
@@ -77,6 +77,7 @@ function Lenses({ c }: { c: Career }) {
             <Big value={String(d.bikeSessions)} label={d.bikeSessions > 1 ? "sorties avec distance" : "sortie avec distance"} />
             {d.bikeKmh ? <Big value={`${Format.number(d.bikeKmh, 1)} km/h`} label="vitesse moyenne" /> : null}
             {d.bikeMinutes ? <Big value={Format.hours(d.bikeMinutes)} label="en selle" /> : null}
+            {d.bikeElevation > 0 ? <Big value={`${nf(d.bikeElevation)} m`} label="de dénivelé positif" /> : null}
           </View>
         </Lens>
       ) : null}
@@ -85,7 +86,7 @@ function Lenses({ c }: { c: Career }) {
           <View style={styles.grid}>
             <Big value={d.swimMeters >= 1000 ? `${Format.number(d.swimMeters / 1000, 1)} km` : `${nf(d.swimMeters)} m`} label="nagés en séance" />
             <Big value={String(d.swimSessions)} label={d.swimSessions > 1 ? "séances" : "séance"} />
-            {d.swimMinutes ? <Big value={Format.hours(d.swimMinutes)} label="dans l’eau" /> : null}
+            {d.swimMinutes ? <Big value={Format.duration(d.swimMinutes)} label="dans l’eau" /> : null}
           </View>
         </Lens>
       ) : null}

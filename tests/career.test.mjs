@@ -143,3 +143,16 @@ test("the RPG block only carries what the server confirmed", () => {
   assert.deepEqual(c.rpg, { level: 12, id: "gardien", name: "Gardien", xp: 3400 });
   assert.deepEqual(build([], { now: NOW }).rpg, { level: null, id: null, name: null, xp: null });
 });
+
+test("a pace comes from running only, and each lane keeps its own elevation", () => {
+  const c = build([
+    log("running", 1, "km", 10, { duration: 50, elevation: 100 }),
+    log("hiking", 2, "km", 14, { duration: 300, elevation: 800 }),
+    log("cycling", 3, "km", 60, { duration: 120, elevation: 500 }),
+  ], { now: NOW, range: "all" });
+  assert.equal(c.distance.footPace, 5, "10 km in 50 min = 5 min/km, the slow hike does not pull it down");
+  assert.equal(c.distance.runKm, 10);
+  assert.equal(c.distance.footElevation, 900);
+  assert.equal(c.distance.bikeElevation, 500);
+  assert.equal(c.elevation.meters, 1400);
+});
