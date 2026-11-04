@@ -18,10 +18,19 @@ export function healthConnectStatus(connected: boolean | null, lastUpdate: strin
   return { label: "Connecté", tone: "ok", detail: when ? `Dernière réception de pas : ${when}.` : "Autorisé : aucun pas reçu pour l’instant." };
 }
 
-export function garminStatus(g: { enabled: boolean; linked: boolean; last_event_at?: string } | null | undefined, failed: boolean): SourceStatus {
+type GarminView = { enabled: boolean; linked: boolean; last_event_at?: string; authorized?: boolean; imported?: number; attached?: number; last_import_at?: string };
+const when = (iso?: string) => (iso ? new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null);
+
+/** The label says how far the chain went; the detail says what really arrived. "Connecté" is only said for a linked account. */
+export function garminStatus(g: GarminView | null | undefined, failed: boolean): SourceStatus {
   if (failed) return { label: "Indisponible", tone: "warn", detail: "Impossible de lire l’état pour le moment. Réessaie plus tard." };
   if (!g) return { label: "Vérification…", tone: "default", detail: "On lit l’état de ta liaison." };
-  if (!g.linked) return g.enabled ? { label: "Non connecté", tone: "default", detail: "Tes activités Garmin peuvent rejoindre ton journal après ton autorisation." } : { label: "Bientôt", tone: "default", detail: "Pas encore activé pour cette version." };
-  const when = g.last_event_at ? new Date(g.last_event_at).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
-  return { label: "Connecté", tone: "ok", detail: when ? `Dernière activité reçue : ${when}.` : "Autorisé : aucune activité reçue pour l’instant." };
+  if (!g.linked) {
+    if (g.authorized) return { label: "À terminer", tone: "warn", detail: "Tu as autorisé l’import, mais la liaison avec Garmin n’est pas terminée : reprends « Connecter Garmin »." };
+    return g.enabled ? { label: "Non connecté", tone: "default", detail: "Tes activités Garmin peuvent rejoindre ton journal après ton autorisation." } : { label: "Bientôt", tone: "default", detail: "Pas encore activé pour cette version." };
+  }
+  const received = when(g.last_event_at);
+  const integrated = Number(g.imported) || 0;
+  const tail = integrated > 0 ? ` ${integrated} activité${integrated > 1 ? "s" : ""} dans ton journal.` : "";
+  return { label: "Connecté", tone: "ok", detail: (received ? `Dernière activité reçue : ${received}.` : "Compte relié : aucune activité reçue pour l’instant.") + tail };
 }

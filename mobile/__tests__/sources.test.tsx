@@ -16,7 +16,10 @@ describe("Sources et capteurs: one vocabulary (V12-43)", () => {
     expect(healthConnectStatus(true, "2026-11-04T09:05:00Z").detail).toMatch(/Dernière réception de pas/);
     expect(healthConnectStatus(false, null).label).toBe("Non connecté");
     expect(healthConnectStatus(null, null).label).toBe("Vérification…");
-    expect(garminStatus({ enabled: true, linked: true }, false).detail).toBe("Autorisé : aucune activité reçue pour l’instant.");
+    expect(garminStatus({ enabled: true, linked: true }, false).detail).toBe("Compte relié : aucune activité reçue pour l’instant.");
+    expect(garminStatus({ enabled: true, linked: true, last_event_at: "2026-11-03T18:00:00Z", imported: 2 }, false).detail).toMatch(/2 activités dans ton journal/);
+    // Authorised is not connected: the consent alone never reads as "Connecté", and an unfinished link says so.
+    expect(garminStatus({ enabled: true, linked: false, authorized: true }, false)).toMatchObject({ label: "À terminer", tone: "warn" });
     expect(garminStatus({ enabled: true, linked: true, last_event_at: "2026-11-03T18:00:00Z" }, false).detail).toMatch(/Dernière activité reçue/);
   });
 
