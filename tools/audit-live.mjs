@@ -17,8 +17,8 @@ const get = async (path, init = {}) => {
 };
 
 /* 1. Pages: every app and public page answers, carries a title, a description and a canonical, and the public ones are indexable. */
-const APP = ["aujourdhui", "training", "journal", "stats", "records", "carriere", "objectifs", "prevoir", "adventure", "profile", "social", "coaching", "boutique", "onboarding", "login", "service"];
-const PUBLIC = ["", "titan-plus", "fonctionnalites", "pour-les-coachs", "niveaux-et-xp", "aventures-sportives", "comprendre-mes-donnees", "debuter-titan", "sports", "changelog", "legal_privacy", "legal_cgu", "legal_mentions", "legal_hub", "regles-communaute", "supprimer-mon-compte", "partenariats", "journal-entrainement", "suivi-sportif", "motivation-sport"];
+const APP = ["aujourdhui", "training", "journal", "stats", "records", "carriere", "objectifs", "prevoir", "adventure", "profile", "social", "coaching", "boutique", "onboarding", "login"];
+const PUBLIC = ["", "service", "titan-plus", "fonctionnalites", "pour-les-coachs", "niveaux-et-xp", "aventures-sportives", "comprendre-mes-donnees", "debuter-titan", "sports", "changelog", "legal_privacy", "legal_cgu", "legal_mentions", "legal_hub", "regles-communaute", "supprimer-mon-compte", "partenariats", "journal-entrainement", "suivi-sportif", "motivation-sport"];
 const pages = {};
 for (const p of [...APP, ...PUBLIC]) {
   const r = await get(`/${p}`);
