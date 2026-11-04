@@ -21,6 +21,7 @@ import { PendingScreen } from "../screens/session/PendingScreen";
 import { SessionDetailScreen } from "../screens/session/SessionDetailScreen";
 import { SessionEditScreen } from "../screens/session/SessionEditScreen";
 import { RouteDetailScreen, RoutesScreen } from "../screens/session/RoutesScreen";
+import { WebHubScreen } from "../screens/settings/WebHubScreen";
 import { SourcesScreen } from "../screens/settings/SourcesScreen";
 import { StepsScreen } from "../screens/steps/StepsScreen";
 import { GpsRecordScreen } from "../screens/session/GpsRecordScreen";
@@ -103,6 +104,7 @@ function SignedIn() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: "Rappels" }} />
       <Stack.Screen name="Sports" component={SportsScreen} options={{ title: "Mes sports" }} />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: "Assistance" }} />
+      <Stack.Screen name="WebHub" component={WebHubScreen} options={{ title: "TITAN sur le site" }} />
       <Stack.Screen name="Sources" component={SourcesScreen} options={{ title: "Sources et capteurs" }} />
       <Stack.Screen name="Steps" component={StepsScreen} options={{ title: "Mes pas" }} />
       <Stack.Screen name="HealthConnect" component={HealthConnectScreen} options={{ title: "Santé Connect" }} />

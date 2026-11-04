@@ -130,6 +130,7 @@ export function ProfileScreen() {
         <Group title="Compte">
           <ListRow icon="user" title="Compte et sécurité" subtitle={email ?? undefined} onPress={() => navigation.navigate("Account")} />
           <ListRow icon="run" title="Mes sports" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map((s) => Sports.label(s)).join(", ") : "Choisir mes sports favoris"} onPress={() => navigation.navigate("Sports")} />
+          <ListRow icon="globe" title="TITAN sur le site" subtitle="Analyses, coach, exports : le TITAN complet" onPress={() => navigation.navigate("WebHub")} testID="profile-web" />
           <ListRow icon="cloud" title="Sources et capteurs" subtitle="Compteur de pas, Santé Connect, Garmin, GPS" onPress={() => navigation.navigate("Sources")} testID="profile-sources" />
           <ListRow icon="lock" title="Confidentialité" onPress={() => navigation.navigate("Privacy")} />
           <ListRow icon="bell" title="Rappels" onPress={() => navigation.navigate("Notifications")} />
