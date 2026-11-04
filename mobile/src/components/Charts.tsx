@@ -3,7 +3,9 @@ import { useState } from "react";
 import { StyleSheet, View, type LayoutChangeEvent } from "react-native";
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { haptic } from "../lib/haptics";
-import { colors, fonts } from "../theme/tokens";
+import { colors, fonts, TOUCH } from "../theme/tokens";
+import { Icon } from "./Icon";
+import { Tap } from "./Pressable";
 import { T } from "./Text";
 
 export type BarDatum = { label: string; value: number; detail?: string; highlight?: boolean; display?: string };
@@ -79,6 +81,13 @@ export function BarChart({ data, height = 160, unit = "", color = colors.cy, for
   );
 }
 
+/** The point nearest to a horizontal touch position: the whole chart is the touch target, not a 4 dp dot. */
+export function nearestPoint(x: number, width: number, count: number, pad = 10): number {
+  if (count <= 1 || width <= 2 * pad) return 0;
+  const i = Math.round(((x - pad) / (width - 2 * pad)) * (count - 1));
+  return Math.max(0, Math.min(count - 1, i));
+}
+
 export function LineChart({ points, height = 140, color = colors.cy, unit = "", accessibilityLabel, invert = false }: { points: { label: string; value: number }[]; height?: number; color?: string; unit?: string; accessibilityLabel: string; invert?: boolean }) {
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -95,18 +104,47 @@ export function LineChart({ points, height = 140, color = colors.cy, unit = "", 
   };
   const d = points.map((p, i) => `${i ? "L" : "M"}${xy(i, p.value).join(" ")}`).join(" ");
   const sel = selected !== null ? points[selected] : null;
+  const pick = (x: number) => {
+    const i = nearestPoint(x, width, points.length, pad);
+    setSelected((cur) => {
+      if (cur !== i) haptic("selection");
+      return i;
+    });
+  };
+  const step = (delta: number) => {
+    haptic("selection");
+    setSelected((cur) => (cur === null ? (delta > 0 ? 0 : points.length - 1) : Math.max(0, Math.min(points.length - 1, cur + delta))));
+  };
   return (
-    <View accessible accessibilityLabel={`${accessibilityLabel}. ${points.map((p) => `${p.label} : ${p.value} ${unit}`).join(", ")}`}>
-      <T variant="caption" tone="muted" numberOfLines={1} style={{ minHeight: 18 }}>
-        {sel ? `${sel.label} · ${sel.value} ${unit}` : "Touche un point pour le détail"}
-      </T>
-      <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
+    <View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <T variant="caption" tone="muted" numberOfLines={1} style={{ flex: 1, minHeight: 18 }} accessibilityLiveRegion="polite">
+          {sel ? `${sel.label} · ${sel.value} ${unit}` : "Touche le graphique ou utilise les flèches"}
+        </T>
+        {/* Alternative to touching the curve: step through the points (TalkBack, small hands, 30 points on a narrow screen). */}
+        <Tap onPress={() => step(-1)} haptics={false} accessibilityLabel="Point précédent" disabled={selected === 0 || points.length < 2} style={styles.step}>
+          <Icon name="chevronLeft" size={20} color={colors.tx2} />
+        </Tap>
+        <Tap onPress={() => step(1)} haptics={false} accessibilityLabel="Point suivant" disabled={selected === points.length - 1 || points.length < 2} style={styles.step}>
+          <Icon name="chevron" size={20} color={colors.tx2} />
+        </Tap>
+      </View>
+      <View
+        onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+        style={{ height }}
+        accessible
+        accessibilityLabel={`${accessibilityLabel}. ${points.map((p) => `${p.label} : ${p.value} ${unit}`).join(", ")}`}
+        onStartShouldSetResponder={() => true}
+        onResponderGrant={(e) => pick(e.nativeEvent.locationX)}
+        onResponderMove={(e) => pick(e.nativeEvent.locationX)}
+        testID="line-chart-touch"
+      >
         {width > 0 && points.length ? (
-          <Svg width={width} height={height}>
+          <Svg width={width} height={height} pointerEvents="none">
             <Path d={d} stroke={color} strokeWidth={2.4} fill="none" strokeLinejoin="round" strokeLinecap="round" />
             {points.map((p, i) => {
               const [x, y] = xy(i, p.value);
-              return <Circle key={i} cx={x} cy={y} r={selected === i ? 7 : 4} fill={selected === i ? colors.cy2 : color} onPress={() => { haptic("selection"); setSelected(selected === i ? null : i); }} />;
+              return <Circle key={i} cx={x} cy={y} r={selected === i ? 7 : 4} fill={selected === i ? colors.cy2 : color} />;
             })}
           </Svg>
         ) : null}
@@ -139,6 +177,7 @@ export function ShareBar({ parts }: { parts: { id: string; label: string; share:
 }
 
 const styles = StyleSheet.create({
+  step: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
   readout: { minHeight: 18, marginBottom: 6 },
   share: { flexDirection: "row", height: 12, borderRadius: 6, overflow: "hidden", gap: 2 },
   legend: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
