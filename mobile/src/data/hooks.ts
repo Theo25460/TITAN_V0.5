@@ -10,6 +10,7 @@ import * as api from "./api";
 import { useOwner } from "./auth";
 import { saveLogsCache } from "./logsCache";
 import { enqueue, flushQueue, provisionalLogs, useQueue } from "./queue";
+import { protectPreferences } from "./profileCopies";
 import { rememberReceipt } from "./receipts";
 
 export const keys = {
@@ -49,24 +50,31 @@ export function usePrefs() {
   return useMemo(() => prefsOf(q.data), [q.data]);
 }
 
-/** Preference change: merged server-side, with one automatic retry after a version conflict (another device). */
+/** Persist the intent even offline; a conflict is recovered explicitly, never blindly replayed. */
 export function useSavePrefs() {
   const owner = useOwner();
   const qc = useQueryClient();
   return useMutation({
+    networkMode: "always",
+    retry: false,
     mutationFn: async ({ prefs, username, privacy }: { prefs: api.Preferences; username?: string; privacy?: Profile["privacy"] }) => {
-      let profile = qc.getQueryData<Profile | null>(keys.profile(owner)) ?? (await api.fetchProfile(owner));
-      if (!profile) throw new Error("PROFILE_UNAVAILABLE");
-      try {
-        return await api.savePreferences(profile, prefs, { username, privacy });
-      } catch (e) {
-        if (!String((e as Error)?.message).includes("PROFILE_VERSION_CONFLICT")) throw e;
-        profile = await api.fetchProfile(owner);
-        if (!profile) throw e;
-        return api.savePreferences(profile, prefs, { username, privacy });
+      await api.assertOwner(owner);
+      const profile = qc.getQueryData<Profile | null>(keys.profile(owner));
+      if (!profile) {
+        await protectPreferences(owner, { prefs, username, privacy }, null);
+        throw new Error("PROFILE_READ_REQUIRED");
       }
+      const receipt = await api.savePreferences(profile, prefs, { username, privacy });
+      await api.assertOwner(owner);
+      qc.setQueryData(keys.profile(owner), receipt);
+      return receipt;
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: keys.profile(owner) }),
+    onSettled: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: keys.profile(owner) }),
+        qc.invalidateQueries({ queryKey: ["profile-copies", owner] }),
+      ]);
+    },
   });
 }
 

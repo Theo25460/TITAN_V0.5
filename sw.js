@@ -1,6 +1,6 @@
 // TITAN 301 — offline shell. The precache list is generated at build time (tools/build-public.mjs) from the
 // assets the app pages really load, so it cannot drift from the HTML.
-const CACHE_NAME = 'titan-os-v301-profile-sync-20261103-r3';
+const CACHE_NAME = 'titan-os-v301-profile-sync-20261104-r1';
 const ASSETS_TO_CACHE = [/* PRECACHE */];
 
 self.addEventListener('install', (event) => {

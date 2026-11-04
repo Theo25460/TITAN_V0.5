@@ -1588,6 +1588,9 @@ async function titanReadCloudProfile() {
         expectedOwner = session.user.id;
         ensureStateIntegrity();
         if (!current()) return;
+        // Only the server snapshot is acknowledged, never edits made during awaited history work.
+        const confirmedProfileSignature=titanProfileSignature(window.state);
+        profileControl.accepted=confirmedProfileSignature;
         if (window.titanAccountTransition.active) {
             window.titanAccountTransition = { ...window.titanAccountTransition, active: false, owner: expectedOwner };
             window.dispatchEvent(new CustomEvent('titan:account-changed'));
@@ -1610,7 +1613,7 @@ async function titanReadCloudProfile() {
         window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
         window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
         window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.total});
-        profileControl.accepted=titanProfileSignature(window.state);
+        profileControl.accepted=confirmedProfileSignature;
         profileControl.blocked=titanProfileCopies(expectedOwner).length>0;
         profileControl.failures=0;profileControl.retryAt=0;
         titanSaveProfileControl(expectedOwner,profileControl);

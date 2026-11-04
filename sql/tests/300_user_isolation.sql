@@ -110,7 +110,7 @@ begin
   begin
     perform public.titan_save_profile_state(jsonb_build_object('meta',jsonb_build_object('profileVersion',v),'user','{}'::jsonb));
     assert false,'stale profile save must fail';
-  exception when serialization_failure then assert sqlerrm='PROFILE_VERSION_CONFLICT',sqlerrm; end;
+  exception when sqlstate 'PT409' then assert sqlerrm='PROFILE_VERSION_CONFLICT',sqlerrm; end;
   begin
     perform public.titan_save_profile_state('[]'); assert false,'nonobject state must fail';
   exception when invalid_parameter_value then assert sqlerrm='STATE_MUST_BE_OBJECT',sqlerrm; end;

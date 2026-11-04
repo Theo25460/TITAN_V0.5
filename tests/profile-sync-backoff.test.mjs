@@ -38,3 +38,23 @@ test('reverting a preference during an in-flight write preserves the compensatin
 
 test('online without a pending edit never writes a profile',async()=>{const h=harness();h.fire('online');await h.advance(0);assert.equal(h.calls.length,0);});
 test('a missing version requires a cloud read and never bypasses optimistic concurrency',async()=>{const h=harness();h.w.state.meta={};const error=await h.w.pushProfileStateToCloud();assert.equal(h.calls.length,0);assert.equal(error.code,'PROFILE_READ_REQUIRED');assert.equal(h.w.titanGetProfileRecovery().length,1);});
+
+test('an edit during the history phase of a profile read is not falsely acknowledged',async()=>{
+ const h=harness();await h.w.syncWithSupabase();let release;
+ h.w.TitanTraining.paginate=()=>new Promise(r=>release=r);
+ const reading=h.w.syncWithSupabase();await tick();
+ h.w.state.user.weeklyGoalSessions=6;h.w.saveState();
+ release({logs:[],total:0});await reading;
+ const control=JSON.parse(h.storage.getItem('titan_profile_control_v2_a'));
+ assert.equal(JSON.parse(control.accepted).user.weeklyGoalSessions,4);
+ const copy=h.w.titanGetProfileRecovery().find(r=>r.preferences.user.weeklyGoalSessions===6);
+ assert(copy);assert.equal(copy.baseline.user.weeklyGoalSessions,4);
+ h.w.TitanTraining.paginate=async()=>({logs:[],total:0});h.w.confirm=()=>true;
+ await h.w.titanRestoreProfileRecovery(copy.key);
+ assert.equal(h.calls.length,1);assert.equal(h.calls[0].params.p_state.user.weeklyGoalSessions,6);
+});
+test('PT409 blocks repeated saves and preserves the pending edit',async()=>{
+ const h=harness({send:()=>({error:{code:'PT409',message:'PROFILE_VERSION_CONFLICT'}})});
+ await h.w.pushProfileStateToCloud();for(let i=0;i<100;i++)await h.w.saveState({forceCloud:true});
+ await h.advance(600000);assert.equal(h.calls.length,1);assert(h.w.titanGetProfileRecovery().length>0);
+});

@@ -94,7 +94,7 @@ select '{{"refused":"VIEW_LIMIT"}}'::json;"""
     stale = f"""do $$ begin begin
 perform public.titan_mutate_analysis_view('save','{last_id}',1,'Stale rename','report','{{"period":"month","offset":0}}');
 assert false,'stale concurrent rename must fail';
-exception when serialization_failure then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end; end $$;
+exception when sqlstate 'PT409' then assert sqlerrm='VIEW_VERSION_CONFLICT',sqlerrm; end; end $$;
 select '{{"refused":"VIEW_VERSION_CONFLICT"}}'::json;"""
     first, second = overlap("revision", save(last_id, 1, "First rename"), stale)
     assert first["view"]["revision"] == 2 and second == {"refused": "VIEW_VERSION_CONFLICT"}, "one accepted revision"
