@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Reveal } from "../../components/Motion";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
 import { TodayStrip } from "../../components/TodayStrip";
@@ -119,30 +120,36 @@ export function HomeScreen() {
           <ErrorState error={logsQ.error} onRetry={() => logsQ.refetch()} />
         ) : (
           <>
-            <Card tone={action.tone === "am" ? "amber" : "accent"} style={{ gap: space.s3 }}>
-              <T variant="eyebrow" tone={action.tone === "am" ? "amber" : "accent"}>
-                {action.tone === "am" ? "Moment remarquable" : action.tone === "err" ? "Attention" : action.tone === "ok" ? "Aujourd’hui" : "À faire maintenant"}
-              </T>
-              <T variant="h2">{action.title}</T>
-              <T tone="muted">{action.text}</T>
-              {action.why ? (
-                <T variant="caption" tone="faint">
-                  Pourquoi : {action.why}
+            <Reveal order={1}>
+              <Card tone={action.tone === "am" ? "amber" : "accent"} style={{ gap: space.s3 }}>
+                <T variant="eyebrow" tone={action.tone === "am" ? "amber" : "accent"}>
+                  {action.tone === "am" ? "Moment remarquable" : action.tone === "err" ? "Attention" : action.tone === "ok" ? "Aujourd’hui" : "À faire maintenant"}
                 </T>
-              ) : null}
-              {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
-            </Card>
+                <T variant="h2">{action.title}</T>
+                <T tone="muted">{action.text}</T>
+                {action.why ? (
+                  <T variant="caption" tone="faint">
+                    Pourquoi : {action.why}
+                  </T>
+                ) : null}
+                {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
+              </Card>
+            </Reveal>
 
-            {heroRecords ? null : repeat ? (
-              <RepeatLastCard log={repeat} compact />
-            ) : (
-              <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
-            )}
+            <Reveal order={2}>
+              {heroRecords ? null : repeat ? (
+                <RepeatLastCard log={repeat} compact />
+              ) : (
+                <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
+              )}
+            </Reveal>
 
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
-            <TodayStrip cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
+            <Reveal order={3}>
+              <TodayStrip cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
+            </Reveal>
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
               <Card style={{ gap: space.s4 }}>
