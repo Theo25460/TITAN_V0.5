@@ -25,7 +25,7 @@ import { clearDraft, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../..
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, radius, space, TOUCH } from "../../theme/tokens";
+import { colors, familyColors, space, TOUCH } from "../../theme/tokens";
 import { routeLink, routeSave } from "../../data/api";
 import { flushRoutes, linkSavedSession } from "../../lib/routeSync";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
