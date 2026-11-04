@@ -272,3 +272,12 @@ test('campaign objectives distinguish departure and completion without phantom t
   assert.equal(p.objectives[0].value, 2);
   assert.equal(p.percent, 100);
 });
+
+test("a goal counted in active days says « jours actifs » in the plural, « jour actif » for one", () => {
+  const days = ["2026-09-20", "2026-09-22", "2026-09-24", "2026-09-25", "2026-09-26"].map((d) => log(`${d}T07:00:00`, { val: 8 }));
+  const mk = (target) => ({ id: "gd", title: "Mes jours", metric: "days", target, start_date: "2026-09-01", end_date: "2026-10-31" });
+  const two = P.insights({ logs: days, goals: [mk(7)], now: NOW }).find((i) => i.id === "goal-gd");
+  assert.match(two.title, /Encore 2 jours actifs pour/);
+  const one = P.insights({ logs: days, goals: [mk(6)], now: NOW }).find((i) => i.id === "goal-gd");
+  assert.match(one.title, /Encore 1 jour actif pour/);
+});
