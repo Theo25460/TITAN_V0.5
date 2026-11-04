@@ -235,7 +235,7 @@ describe("with account data", () => {
     expect(screen.getByText("Tes pas")).toBeTruthy();
     expect(screen.getByText("Facultatif")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-open"));
-    expect(nav.navigate).toHaveBeenLastCalledWith("HealthConnect");
+    expect(nav.navigate).toHaveBeenLastCalledWith("Steps");
     fireEvent.press(screen.getByTestId("guide-prev"));
     expect(screen.getByText("Le suivi GPS")).toBeTruthy();
     // leaving keeps the step for this account; reopening resumes there
