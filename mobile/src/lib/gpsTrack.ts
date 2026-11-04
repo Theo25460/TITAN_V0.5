@@ -150,6 +150,11 @@ export function toGpx(track: Track, name: string, opts: { time?: boolean; ele?: 
 /** Sports for which a live GPS recording makes sense (distance-based, outdoors). */
 export const GPS_SPORTS = new Set(["running", "trail", "walking", "hiking", "cycling", "cycling_road", "mtb", "gravel", "cyclocross"]);
 
+/** The sport the GPS shortcut proposes: the first GPS sport among the favourites, then the most recent sessions, then running. */
+export function gpsShortcutSport(favorites: string[], recent: string[]): string {
+  return favorites.find((s) => GPS_SPORTS.has(s)) ?? recent.find((s) => GPS_SPORTS.has(s)) ?? "running";
+}
+
 /* ---- Route library: compact, privacy-neutral encoding (the server stores it as is; nothing here leaves the phone on its own) ---- */
 export type EncodedTrack = { v: 1; t0: number; segs: (number | null)[][][] };
 export const MAX_ROUTE_POINTS = 3000;

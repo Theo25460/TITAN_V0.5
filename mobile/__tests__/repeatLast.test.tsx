@@ -33,3 +33,13 @@ describe("Refaire ma dernière séance (V12-13/32)", () => {
     expect(lastSessionToRepeat([unknown, logs[1]])).toBe(logs[1]);
   });
 });
+
+describe("GPS shortcut (V12-10)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { gpsShortcutSport } = require("../src/lib/gpsTrack");
+  test("proposes a GPS sport the player already uses, otherwise running", () => {
+    expect(gpsShortcutSport(["muscu_gym", "cycling"], ["running"])).toBe("cycling");
+    expect(gpsShortcutSport(["muscu_gym"], ["yoga", "hiking"])).toBe("hiking");
+    expect(gpsShortcutSport([], [])).toBe("running");
+  });
+});

@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
 import { Brand } from "../../components/Brand";
+import { SinceCard, useLastVisit } from "../../components/SinceCard";
 import { StepsCard } from "../../components/StepsCard";
 import { TourCard } from "../../components/TourCard";
 import { AdBanner } from "../../components/AdBanner";
@@ -39,6 +40,7 @@ export function HomeScreen() {
   const adventure = useAdventure();
   const prefs = usePrefs();
   const queue = useQueue();
+  const visit = useLastVisit();
   const { active } = logsQ;
 
   const planToday = useMemo(() => {
@@ -134,6 +136,8 @@ export function HomeScreen() {
             ) : (
               <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
             )}
+
+            <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
             <StepsCard />

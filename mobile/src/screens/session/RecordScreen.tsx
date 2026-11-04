@@ -13,6 +13,7 @@ import { T } from "../../components/Text";
 import { Format, Progress, Sports } from "../../core";
 import { useLogs, usePrefs } from "../../data/hooks";
 import { useDraftSport } from "../../data/drafts";
+import { gpsShortcutSport } from "../../lib/gpsTrack";
 import { colors, space } from "../../theme/tokens";
 
 /** Séance tab: one tap to the right form. Favourites, recent sports, then the full catalogue (260 sports, offline). */
@@ -27,6 +28,7 @@ export function RecordScreen() {
     for (const l of active) if (!seen.has(l.sport) && Sports.conf(l.sport)) seen.set(l.sport, l.date);
     return [...seen.entries()].slice(0, 6);
   }, [active]);
+  const gpsSport = useMemo(() => gpsShortcutSport(prefs.favoriteSports, recent.map(([s]) => s)), [prefs.favoriteSports, recent]);
   const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   const open = (sport: string) => navigation.navigate("SessionForm", { sport });
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
@@ -56,6 +58,17 @@ export function RecordScreen() {
         ) : repeat ? (
           <RepeatLastCard log={repeat} />
         ) : null}
+        {/* The GPS used to be reachable only from inside a running/cycling form (V12-10): it has its own entry now. */}
+        <Card onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} accessibilityLabel={`Suivre ma sortie en GPS, ${Sports.label(gpsSport)}`} testID="gps-shortcut">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
+            <Icon name="route" size={22} color={colors.cy} />
+            <View style={{ flex: 1 }}>
+              <T variant="bodyStrong">Suivre ma sortie en GPS</T>
+              <T variant="small">{Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé</T>
+            </View>
+            <Icon name="chevron" color={colors.tx3} />
+          </View>
+        </Card>
         <SportSearch onPick={open} />
         {favorites.length ? (
           <Section title="Mes sports">
