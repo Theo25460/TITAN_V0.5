@@ -3,6 +3,7 @@ import { avatarImages, heroImage } from "../core/images";
 import { colors, radius, space, TOUCH } from "../theme/tokens";
 import { Avatar } from "./Avatar";
 import { Brand } from "./Brand";
+import { RankCrest, rankIdOf } from "./Crest";
 import { Tap } from "./Pressable";
 import { Shade } from "./Shade";
 import { T } from "./Text";
@@ -28,6 +29,7 @@ export function QgBanner({ greeting, line, level, rankName, avatar, frame, image
       <View style={styles.top}>
         <Brand size={26} />
         <Tap onPress={onProfile} accessibilityLabel={`Profil, niveau ${level}, ${rankName}`} style={styles.me} testID="qg-profile">
+          <RankCrest rank={rankIdOf(level)} size={52} glow={false} />
           <View style={{ alignItems: "flex-end" }}>
             <T variant="caption" tone="default">
               Niv. {level}

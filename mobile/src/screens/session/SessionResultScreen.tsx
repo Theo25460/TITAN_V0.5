@@ -9,6 +9,7 @@ import { Icon } from "../../components/Icon";
 import { CountUp, Reveal } from "../../components/Motion";
 import { Tap } from "../../components/Pressable";
 import { ProgressBar } from "../../components/Progress";
+import { ProgressReveal } from "../../components/ProgressReveal";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
@@ -19,6 +20,7 @@ import { useAdventure, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { useReceipt } from "../../data/receipts";
 import { useOwner } from "../../data/auth";
+import { IS_E2E } from "../../lib/config";
 import { errorMessage } from "../../lib/errors";
 import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
@@ -26,6 +28,9 @@ import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
 
 /** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
+/** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
+const revealed = new Set<string>();
+
 export function SessionResultScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionResult">) {
   const { eventId } = route.params;
   const owner = useOwner();
@@ -39,6 +44,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const profile = useProfile().data;
   const adventure = useAdventure().data;
   const [shared, setShared] = useState(false);
+  const [revealing, setRevealing] = useState(() => !revealed.has(eventId));
   const [sharing, setSharing] = useState(false);
   const log = logs.find((l) => l.client_event_id === eventId || l.id === eventId) ?? null;
   const queued = queue.items.find((i) => i.payload.details.client_event_id === eventId);
@@ -323,6 +329,16 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
       </ScrollView>
+      {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
+      {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (
+        <ProgressReveal
+          input={{ xp, credits, level, levelXp, need, leveledUp, record: (() => { const rec = records.find((r) => !r.first); return rec ? `${rec.label} ${recordText(rec)}` : null; })() }}
+          onDone={() => {
+            revealed.add(eventId);
+            setRevealing(false);
+          }}
+        />
+      ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status === "error" ? <Button label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
         <View style={{ flexDirection: "row", gap: space.s3 }}>

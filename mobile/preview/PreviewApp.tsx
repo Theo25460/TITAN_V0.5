@@ -5,6 +5,7 @@ import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../src/core";
+import { Gallery } from "./Gallery";
 import { DialogHost } from "../src/components/Dialog";
 import { PickerHost } from "../src/components/Picker";
 import { ToastProvider } from "../src/components/Toast";
@@ -83,6 +84,7 @@ export default function PreviewApp() {
     [fonts.textHeavy]: require("../assets/fonts/Manrope-ExtraBold.ttf"),
   });
   if (!loaded) return null;
+  if (previewState.route === "Crests") return <Gallery />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 412, height: 915 }, insets: { top: 32, bottom: 0, left: 0, right: 0 } }}>

@@ -4,6 +4,7 @@ import { Share, StyleSheet, View } from "react-native";
 import { Alert } from "../../components/Dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/Avatar";
+import { RankCrest, rankIdOf } from "../../components/Crest";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Icon } from "../../components/Icon";
@@ -70,6 +71,8 @@ export function ProfileScreen() {
               />
             ) : null}
           </View>
+          {/* The rank, as heraldry: it grows richer with the rank the server confirms (Éclaireur → Légende). */}
+          <RankCrest rank={rankIdOf(level)} size={104} />
         </View>
         <View style={{ gap: 6 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
