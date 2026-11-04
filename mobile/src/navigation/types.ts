@@ -26,6 +26,7 @@ export type RootParams = {
   SessionEdit: { id: string };
   Journal: { sport?: string } | undefined;
   Records: undefined;
+  Career: undefined;
   Goals: undefined;
   Plan: undefined;
   World: { id: string };

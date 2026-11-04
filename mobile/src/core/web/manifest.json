@@ -1,21 +1,22 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "2e6efe1c891e336b4c195af9027d6edf10bb80b6",
+  "sha": "5fd905e8328fd62728a8805fd182b16e7415508e",
   "files": {
-    "format.js": "247df5d27fb1e0117029cdf9b5dd8455b102093ed26bf85156c3b8832932c0ac",
-    "training-store.js": "dabae2832a1b1ff502c81189a1c5cc7f9bcf6b6a5980ff6525770b38013515a5",
-    "effort.js": "93aca58be0b1b4f8648ca058f7eab929f6ef3cdea802e9e02f4e7a34accfd122",
+    "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
+    "training-store.js": "171491109a9a4a63542a766b53c3fba4b746612fe1aeeb8da58f069c200eeb4c",
+    "effort.js": "8e11c4dece0b44299faf1f70fd1ee1a5225d764673cfda816a07d4d57551b756",
     "sports-catalog.js": "6e96795b3face2c78353c804aec29050e07a5aec6cb9671ae176547f03bab290",
     "sports.js": "27902c0f9baa48d8ed67ca60a90316c6b4ee87445bda4dc366d537c6fe6c09e4",
     "sport-insights.js": "dd53e45193e78e146071113126c3d9bbb416f3049ef0dffead2e532307fe1918",
-    "progress.js": "e2734fbd957ff7af06d0de805f03ef1e69aa0eaa05a613685874f29b532bb462",
+    "progress.js": "4df9df2fa577a101a83f2c90e24a135439d35d4cd30760daf6ae5f3fc7a9939b",
     "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
     "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
-    "renaissance-engine.js": "d8063fdbb3a11cedeb41e50710fc954955302d3dda598f97c892c00299c0979b",
+    "renaissance-engine.js": "795508d262cec4d716aa355811684a9d3945cea18ad8552dd08ee3b9b7604e5f",
     "campaign-quests.js": "28fc3d4f3c956014ce729f5bd24449d05717e7edd1a13576f43dd60bcdd599d5",
     "campaign-encounters.js": "e3f6d81cb1cb665933702536048d0bf92dd254846cb5ff12fb4be669f4c2d1e2",
-    "sport-navigation.js": "162ddec28dcfc6438e683b184832a6d034c771d659dd457f2013438064449ab4",
-    "gpx.js": "9f3606092348b779f18dc08487f2bac920d0abe2059096da28055778dfec33e4",
-    "adventure-rpg.js": "7086d64a88d975db44fe2b03bc06f52aafc633beb44eb6e1c1595e58870f7f05"
+    "sport-navigation.js": "db1d60e4b6d27fc115169b31a36062baf9b10995294666d16e4c9c61d179ef07",
+    "gpx.js": "5211d922a4444499d27ab63c326dce0e5b66fae49fa324342fd286efacd338e2",
+    "adventure-rpg.js": "7086d64a88d975db44fe2b03bc06f52aafc633beb44eb6e1c1595e58870f7f05",
+    "career.js": "697c5dfc1a26611b2d3a9339516e648f9a42752ca8d64ff1eaba0fcaed9365f6"
   }
 }

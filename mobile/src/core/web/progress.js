@@ -565,6 +565,20 @@
       }
     }
 
+    // ACT06: progressive discovery. Each screen is introduced when it becomes concrete, only during the first weeks, and always last in line:
+    // these never replace a real recommendation and never nag for ever.
+    const first = sorted.length ? new Date(sorted[sorted.length - 1].date).getTime() : nowT;
+    const early = nowT - first <= 60 * 86400000;
+    if (early && list.length >= 3 && list.length < 40) {
+      const found = I()?.records ? I().records(list, "all", nowT).filter((r) => r.kind !== "duration").length : 0;
+      if (found > 0)
+        out.push({ id: "discover-records", priority: 33, tone: "am", title: found > 1 ? `Tu as déjà ${found} records` : "Tu as déjà un record", text: "Chacun garde la séance qui l’a établi.", why: "Un record apparaît dès qu’une séance bat ta marque précédente pour la même mesure.", cta: { label: "Voir mes records", href: "/records" } });
+    }
+    if (early && list.length >= 5 && list.length < 40 && !(goals || []).length)
+      out.push({ id: "discover-goals", priority: 32, tone: "cy", title: "Et si tu te fixais un objectif ?", text: "Une mesure, une période, une cible : TITAN suit ta progression.", why: "Les objectifs sont facultatifs ; ils montrent seulement si ton rythme actuel y mène.", cta: { label: "Créer un objectif", href: "/objectifs" } });
+    if (early && list.length >= 8 && list.length < 40)
+      out.push({ id: "discover-stats", priority: 31, tone: "cy", title: "Ta semaine répond à des questions", text: "Progresses-tu ? Où va ton temps ? Chaque réponse cite ses séances.", why: "Les statistiques deviennent utiles à partir d’une dizaine de séances.", cta: { label: "Voir Progrès", href: "/stats" } });
+
     return out.sort((a, b) => b.priority - a.priority);
   }
 

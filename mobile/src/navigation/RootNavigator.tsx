@@ -23,6 +23,7 @@ import { SessionEditScreen } from "../screens/session/SessionEditScreen";
 import { RouteDetailScreen, RoutesScreen } from "../screens/session/RoutesScreen";
 import { WebHubScreen } from "../screens/settings/WebHubScreen";
 import { SourcesScreen } from "../screens/settings/SourcesScreen";
+import { CareerScreen } from "../screens/progress/CareerScreen";
 import { StepsScreen } from "../screens/steps/StepsScreen";
 import { GpsRecordScreen } from "../screens/session/GpsRecordScreen";
 import { SessionFormScreen } from "../screens/session/SessionFormScreen";
@@ -92,6 +93,7 @@ function SignedIn() {
       <Stack.Screen name="Pending" component={PendingScreen} options={{ title: "Envois en attente" }} />
       <Stack.Screen name="Journal" component={JournalScreen} options={{ title: "Journal" }} />
       <Stack.Screen name="Records" component={RecordsScreen} options={{ title: "Records" }} />
+      <Stack.Screen name="Career" component={CareerScreen} options={{ title: "Ma carrière" }} />
       <Stack.Screen name="Goals" component={GoalsScreen} options={{ title: "Objectifs" }} />
       <Stack.Screen name="Plan" component={PlanScreen} options={{ title: "Ma semaine type" }} />
       <Stack.Screen name="World" component={WorldScreen} options={{ title: "Aventure" }} />

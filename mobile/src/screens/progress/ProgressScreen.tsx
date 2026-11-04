@@ -20,7 +20,8 @@ import { SportQuestions } from "./Questions";
 
 type View_ = "week" | "trends" | "mastery";
 
-const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" | "Steps" }[] = [
+const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" | "Steps" | "Career" }[] = [
+  { icon: "crown", label: "Ma carrière", route: "Career" },
   { icon: "journal", label: "Journal", route: "Journal" },
   { icon: "trophy", label: "Records", route: "Records" },
   { icon: "target", label: "Objectifs", route: "Goals" },
