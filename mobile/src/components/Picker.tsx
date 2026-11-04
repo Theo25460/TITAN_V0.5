@@ -135,6 +135,7 @@ const VISIBLE = 5;
 /** A snapping wheel: the centred row is the value. Tapping a row also selects it (no precise flick needed). */
 function Wheel({ count, value, onChange, label, format = (n: number) => String(n).padStart(2, "0"), testID }: { count: number; value: number; onChange: (n: number) => void; label: string; format?: (n: number) => string; testID: string }) {
   const ref = useRef<ScrollView>(null);
+  const placed = useRef(false);
   const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.max(0, Math.min(count - 1, Math.round(e.nativeEvent.contentOffset.y / ITEM)));
     if (i !== value) {
@@ -150,7 +151,12 @@ function Wheel({ count, value, onChange, label, format = (n: number) => String(n
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM}
         decelerationRate="fast"
-        contentOffset={{ x: 0, y: value * ITEM }}
+        // contentOffset is an iOS-only prop: on Android the wheel is scrolled to the current value once its content is laid out.
+        onContentSizeChange={() => {
+          if (placed.current) return;
+          placed.current = true;
+          ref.current?.scrollTo({ y: value * ITEM, animated: false });
+        }}
         onMomentumScrollEnd={settle}
         onScrollEndDrag={settle}
         contentContainerStyle={{ paddingVertical: ITEM * Math.floor(VISIBLE / 2) }}

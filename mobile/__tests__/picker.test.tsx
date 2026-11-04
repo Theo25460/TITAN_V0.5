@@ -84,3 +84,21 @@ describe("TITAN date and time pickers replace the system dialogs", () => {
     expect(onChange).toHaveBeenCalledWith({ type: "dismissed" });
   });
 });
+
+test("the wheels open on the current value (scrolled there explicitly: contentOffset does not exist on Android)", () => {
+  mount();
+  act(() => DateTimePickerAndroid.open({ value: new Date(2026, 10, 4, 12, 14), mode: "time", onChange: jest.fn() }));
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ScrollView } = require("react-native");
+  const wheels = screen.UNSAFE_getAllByType(ScrollView).filter((n: { props: { snapToInterval?: number } }) => n.props.snapToInterval === 48);
+  expect(wheels).toHaveLength(2);
+  const [hours, minutes] = wheels;
+  const hScroll = jest.fn();
+  const mScroll = jest.fn();
+  hours!.instance.scrollTo = hScroll;
+  minutes!.instance.scrollTo = mScroll;
+  act(() => hours!.props.onContentSizeChange(0, 3000));
+  act(() => minutes!.props.onContentSizeChange(0, 3000));
+  expect(hScroll).toHaveBeenCalledWith({ y: 12 * 48, animated: false });
+  expect(mScroll).toHaveBeenCalledWith({ y: 14 * 48, animated: false });
+});

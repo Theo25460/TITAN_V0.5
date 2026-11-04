@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AdventureHelp } from "../../components/AdventureHelp";
 import { Card } from "../../components/Card";
+import { RankCrest, rankIdOf } from "../../components/Crest";
 import { Icon } from "../../components/Icon";
 import { ProgressBar } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
@@ -62,6 +63,7 @@ export function AdventureScreen() {
                     {Format.number(s.xp)} / {Format.number(s.next_level_xp)} XP · {Format.number(s.credits)} crédits
                   </T>
                 </View>
+                <RankCrest rank={rankIdOf(s.level)} size={92} />
               </View>
               <ProgressBar value={s.xp / Math.max(1, s.next_level_xp)} accessibilityLabel="Progression vers le niveau suivant" />
               <T variant="caption" tone="faint">
