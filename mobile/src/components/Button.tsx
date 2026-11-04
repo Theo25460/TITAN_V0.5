@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { colors, fonts, radius, TOUCH } from "../theme/tokens";
 import { Icon, type IconName } from "./Icon";
@@ -8,7 +9,7 @@ type Kind = "primary" | "secondary" | "ghost" | "danger" | "amber";
 
 export function Button({ label, onPress, kind = "primary", icon, loading = false, disabled = false, small = false, style, accessibilityHint, testID }: {
   label: string;
-  onPress?: () => void;
+  onPress?: () => void | Promise<unknown>;
   kind?: Kind;
   icon?: IconName;
   loading?: boolean;
@@ -26,10 +27,26 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
     amber: { bg: colors.am, fg: "#1D1302", border: colors.am },
   }[kind];
   const busy = loading || disabled;
+  // While an asynchronous action started by this button is still running, a second press is a double tap, not a second intention
+  // (V12-41). Quick successive presses of a synchronous action (a "Suivant" button) are never swallowed.
+  const inFlight = useRef(false);
+  const press = onPress
+    ? () => {
+        if (inFlight.current) return;
+        const result = onPress() as unknown;
+        if (result && typeof (result as Promise<unknown>).then === "function") {
+          inFlight.current = true;
+          const done = () => {
+            inFlight.current = false;
+          };
+          (result as Promise<unknown>).then(done, done);
+        }
+      }
+    : undefined;
   return (
     <Tap
       testID={testID}
-      onPress={busy ? undefined : onPress}
+      onPress={busy ? undefined : press}
       disabled={busy}
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}

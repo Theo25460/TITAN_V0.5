@@ -1,5 +1,5 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
@@ -254,6 +254,7 @@ describe("with account data", () => {
     const open = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     show(<S.Feedback />);
     fireEvent.press(screen.getByTestId("feedback-send"));
+    await act(async () => {});
     expect(screen.getByText(/au moins 10 caractères/)).toBeTruthy();
     expect(open).not.toHaveBeenCalled();
     fireEvent.changeText(screen.getByTestId("feedback-text"), "Le chronomètre s’arrête quand je verrouille l’écran.");
