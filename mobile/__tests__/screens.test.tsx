@@ -232,7 +232,7 @@ describe("with account data", () => {
     expect(screen.getByText("Le suivi GPS")).toBeTruthy();
     expect(screen.getByText(/Il ne demande ta position qu’au moment où tu démarres/)).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-next"));
-    expect(screen.getByText("Santé Connect et tes pas")).toBeTruthy();
+    expect(screen.getByText("Tes pas")).toBeTruthy();
     expect(screen.getByText("Facultatif")).toBeTruthy();
     fireEvent.press(screen.getByTestId("guide-open"));
     expect(nav.navigate).toHaveBeenLastCalledWith("HealthConnect");

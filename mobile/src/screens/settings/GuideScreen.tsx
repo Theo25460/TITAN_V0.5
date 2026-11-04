@@ -59,6 +59,7 @@ export function GuideScreen({ navigation }: Props) {
     else if (t === "community") navigation.navigate("Community");
     else if (t === "goals") navigation.navigate("Goals");
     else if (t === "health") navigation.navigate("HealthConnect");
+    else if (t === "steps") navigation.navigate("Steps");
     else if (t === "plus") navigation.navigate("TitanPlus");
     else if (t === "progress") navigation.navigate("Tabs", { screen: "Progress" });
     else navigation.navigate("Tabs", { screen: t === "record" ? "Record" : "Adventure" });
