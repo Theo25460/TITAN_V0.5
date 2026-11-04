@@ -4,6 +4,8 @@ name: Sonde production (lecture seule)
 # repository secrets are only tested for presence (true/false), never echoed.
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "23 */6 * * *"   # every six hours: a regression published by any deploy is noticed without waiting for a user
   pull_request:
     paths:
       - ".github/workflows/probe-prod.yml"
@@ -30,6 +32,30 @@ jobs:
           echo '--- marqueur de version ---'
           curl -sS -m 20 https://titan-app.fr/profile -o /tmp/profile.html || true
           grep -oE '(app|ascension)[a-z-]*\.(js|css)\?v=[0-9a-z.]+' /tmp/profile.html | sort -u | head -8 || true
+      - name: Contrôles bloquants (régression du 4 novembre 2026)
+        run: |
+          fail=0
+          check() { if ! eval "$2"; then echo "ÉCHEC : $1"; fail=1; else echo "ok : $1"; fi; }
+          curl -sS -m 30 https://titan-app.fr/login -o /tmp/login.html || true
+          curl -sS -m 30 https://titan-app.fr/js/app/auth.js -o /tmp/auth.js || true
+          check "le bouton « Continuer avec Google » est dans auth.js servi" 'grep -q "Continuer avec Google" /tmp/auth.js'
+          check "la lecture du drapeau auth.google est dans auth.js servi" 'grep -q "auth.google" /tmp/auth.js'
+          check "la page de connexion charge le SDK Supabase avant config.js" 'python3 - <<PY
+import re,sys
+h=open("/tmp/login.html",encoding="utf8").read()
+a=h.find("/js/vendor/supabase-"); b=h.find("/js/config.js")
+sys.exit(0 if 0<=a<b else 1)
+PY'
+          for f in "garmin?action=start" "garmin?action=push" ; do
+            code=$(curl -sS -o /dev/null -m 20 -w '%{http_code}' -X POST "https://titan-app.fr/.netlify/functions/$f" || echo 000)
+            check "fonction $f répond (pas 404/5xx) : $code" '[ "$code" != "404" ] && [ "${code:0:1}" != "5" ] && [ "$code" != "000" ]'
+          done
+          for f in assistance play-billing play-notifications play-reconcile webhook; do
+            code=$(curl -sS -o /dev/null -m 20 -w '%{http_code}' -X POST "https://titan-app.fr/.netlify/functions/$f" || echo 000)
+            check "fonction $f présente (pas 404) : $code" '[ "$code" != "404" ] && [ "$code" != "000" ]'
+          done
+          check "app-ads.txt servi" '[ "$(curl -sS -o /dev/null -m 20 -w "%{http_code}" https://titan-app.fr/app-ads.txt)" = "200" ]'
+          exit $fail
       - name: Supabase Auth (réglages publics) et Google
         run: |
           KEY=$(curl -sS -m 20 https://titan-app.fr/js/config.js 2>/dev/null | grep -oE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' | head -1 || true)
