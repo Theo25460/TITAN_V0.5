@@ -56,7 +56,7 @@ export function RecordsScreen() {
   if (!records.length)
     return (
       <Screen>
-        <EmptyState icon="trophy" title="Pas encore de record" text="Tes meilleures distances, durées, charges et cotations apparaîtront ici, chacune reliée à la séance d’origine." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+        <EmptyState brand icon="trophy" title="Pas encore de record" text="Tes meilleures distances, durées, charges et cotations apparaîtront ici, chacune reliée à la séance d’origine." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
       </Screen>
     );
 

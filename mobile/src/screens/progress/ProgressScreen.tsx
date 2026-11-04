@@ -142,7 +142,7 @@ export function ProgressScreen() {
         ) : q.error && !q.data ? (
           <ErrorState error={q.error} onRetry={() => q.refetch()} />
         ) : !active.length ? (
-          <EmptyState icon="chart" title="Tes statistiques commencent ici" text="Enregistre une séance : semaine, tendances, records et maîtrises se construisent avec ton journal." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+          <EmptyState brand icon="chart" title="Tes statistiques commencent ici" text="Enregistre une séance : semaine, tendances, records et maîtrises se construisent avec ton journal." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
         ) : view === "week" ? (
           <>
             <RecapCard recap={current} title="Cette semaine" />

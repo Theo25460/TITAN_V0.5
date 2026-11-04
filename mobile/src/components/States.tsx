@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View, type DimensionValue } from "react-native";
+import { Animated, Image, StyleSheet, View, type DimensionValue } from "react-native";
 import { errorMessage } from "../lib/errors";
 import { useReducedMotion } from "../lib/motion";
 import { colors, radius, space } from "../theme/tokens";
@@ -7,12 +7,20 @@ import { Button } from "./Button";
 import { Icon, type IconName } from "./Icon";
 import { T } from "./Text";
 
-export function EmptyState({ icon = "compass", title, text, action, onAction }: { icon?: IconName; title: string; text?: string; action?: string; onAction?: () => void }) {
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
+const mark = require("../../assets/brand/mark.png");
+
+/** `brand`: a first-time screen ("your journal starts here") wears the TITAN mark instead of a generic icon, so even an empty page feels like home. */
+export function EmptyState({ icon = "compass", title, text, action, onAction, brand = false }: { icon?: IconName; title: string; text?: string; action?: string; onAction?: () => void; brand?: boolean }) {
   return (
     <View style={styles.box}>
-      <View style={styles.badge}>
-        <Icon name={icon} size={26} color={colors.cy} />
-      </View>
+      {brand ? (
+        <Image source={mark} style={styles.mark} accessibilityIgnoresInvertColors testID="empty-brand" />
+      ) : (
+        <View style={styles.badge}>
+          <Icon name={icon} size={26} color={colors.cy} />
+        </View>
+      )}
       <T variant="h3" center>
         {title}
       </T>
@@ -70,6 +78,7 @@ export function LoadingCards({ count = 3 }: { count?: number }) {
 }
 
 const styles = StyleSheet.create({
+  mark: { width: 56, height: 56, borderRadius: 16, marginBottom: 2 },
   box: { alignItems: "center", gap: space.s3, padding: space.s6, borderRadius: radius.r3, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
   badge: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.cySoft, alignItems: "center", justifyContent: "center" },
   card: { gap: 10, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },

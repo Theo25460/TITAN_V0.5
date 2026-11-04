@@ -152,7 +152,7 @@ export function GoalsScreen() {
           <ErrorState error={goals.error} onRetry={() => goals.refetch()} />
         ) : !active.length ? (
           <>
-            <EmptyState icon="target" title="Fixe-toi un cap" text="Un objectif daté, à ton rythme : séances, jours actifs, temps ou distance. Ta progression se calcule avec ton journal." />
+            <EmptyState brand icon="target" title="Fixe-toi un cap" text="Un objectif daté, à ton rythme : séances, jours actifs, temps ou distance. Ta progression se calcule avec ton journal." />
             <Section title="Idées pour commencer">
               {TEMPLATES.map((t) => (
                 <Card key={t.title} onPress={() => openNew(t)} accessibilityLabel={`Créer l’objectif ${t.title}`} style={{ gap: 4 }}>

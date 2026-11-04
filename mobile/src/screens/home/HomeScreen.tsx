@@ -2,8 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "../../components/Avatar";
-import { Brand } from "../../components/Brand";
+import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
 import { TodayStrip } from "../../components/TodayStrip";
 import { TourCard } from "../../components/TourCard";
@@ -24,6 +23,7 @@ import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../dat
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
 import { useAfterPaint } from "../../lib/deferred";
+import { dayOfYear, voiceLine } from "../../lib/voice";
 import { navigateHref } from "../../navigation/href";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
@@ -72,6 +72,10 @@ export function HomeScreen() {
   const name = profile.data?.username || "Athlète";
   const hour = new Date().getHours();
   const hello = hour < 5 ? "Bonne nuit" : hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const todayKey = new Date().toDateString();
+  const sessionsToday = active.filter((l) => new Date(l.date).toDateString() === todayKey).length;
+  const daysAway = visit.since ? Math.floor((Date.now() - visit.since) / 86_400_000) : null;
+  const voice = voiceLine({ hour, dayOfYear: dayOfYear(new Date()), sessions: active.length, sessionsToday, weekDays: cadence.currentDays, weekTarget: cadence.target, chapterReady: !!cp?.ready, worldName: world?.name ?? null, stepsRatio: null, daysAway });
   const loading = (logsQ.isLoading && !logsQ.data) || (profile.isLoading && !profile.data);
 
   const refresh = () => {
@@ -84,18 +88,17 @@ export function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <Screen tab refreshing={logsQ.isRefetching} onRefresh={refresh}>
-        <View style={styles.top}>
-          <Brand size={30} />
-          <Tap onPress={() => navigation.navigate("Tabs", { screen: "Profile" })} accessibilityLabel={`Profil de ${name}, niveau ${level}`} style={styles.me}>
-            <T variant="caption" tone="muted">
-              Niv. {level}
-            </T>
-            <Avatar id={snap?.avatar} frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={34} />
-          </Tap>
-        </View>
-        <T variant="h1">
-          {hello}, {name}
-        </T>
+        <QgBanner
+          greeting={`${hello}, ${name}`}
+          line={voice}
+          level={level}
+          rankName={rank.name}
+          avatar={snap?.avatar}
+          frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")}
+          image={world ? worldImages[world.image] : null}
+          accent={world?.color}
+          onProfile={() => navigation.navigate("Tabs", { screen: "Profile" })}
+        />
 
         {queue.items.length ? (
           <Card onPress={() => navigation.navigate("Pending")} tone="flat" accessibilityLabel="Voir les séances en attente d’envoi">
@@ -139,7 +142,7 @@ export function HomeScreen() {
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
-            <TodayStrip cadence={cadence} sessions={week.sessions} />
+            <TodayStrip cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
 
             <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
               <Card style={{ gap: space.s4 }}>

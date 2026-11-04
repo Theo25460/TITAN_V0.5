@@ -85,7 +85,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
           showArchived ? (
             <EmptyState icon="archive" title="Aucune séance archivée" />
           ) : (
-            <EmptyState icon="journal" title={sport ? "Aucune séance de ce sport" : "Ton journal est vide"} text="Chaque séance enregistrée apparaît ici, même hors ligne." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
+            <EmptyState brand={!sport} icon="journal" title={sport ? "Aucune séance de ce sport" : "Ton journal est vide"} text="Chaque séance enregistrée apparaît ici, même hors ligne." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
           )
         }
       />

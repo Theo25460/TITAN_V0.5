@@ -1,12 +1,17 @@
 import { useNavigation } from "@react-navigation/native";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
+import { useOwner } from "../data/auth";
 import { useSteps } from "../data/steps";
+import { localDay, stepsText } from "../lib/steps";
+import { ownerKey, readJSON, writeJSON } from "../lib/storage";
 import { colors, space } from "../theme/tokens";
 import { Card } from "./Card";
 import { Icon } from "./Icon";
 import { Ring } from "./Progress";
 import { StepsCardView, StepsTile } from "./StepsCard";
 import { T } from "./Text";
+import { useToast } from "./Toast";
 
 type Cadence = { currentDays: number; target: number; held: number; window: number };
 
@@ -37,17 +42,44 @@ export function WeekTile({ cadence, sessions }: { cadence: Cadence; sessions: nu
   );
 }
 
+/** The day the step goal was last cheered, kept per account: the goal is celebrated ONCE a day, at the moment it is seen reached, and never
+    again when the app is merely reopened. It is a pat on the back, not a reward: nothing is granted, nothing is promised. */
+export const shouldCheer = (lastCheered: string | null, today: string, reached: boolean) => reached && lastCheered !== today;
+
+function useGoalCheer(reached: boolean, steps: number | null) {
+  const owner = useOwner();
+  const toast = useToast();
+  useEffect(() => {
+    if (!reached || steps === null) return;
+    let live = true;
+    const today = localDay(new Date());
+    readJSON<string | null>(ownerKey("steps-cheered", owner), null).then((last) => {
+      if (!live || !shouldCheer(last, today, reached)) return;
+      writeJSON(ownerKey("steps-cheered", owner), today).catch(() => {});
+      toast({ kind: "ok", title: "Objectif de pas atteint", message: `${stepsText(steps)} pas aujourd’hui : bien marché.` });
+    });
+    return () => {
+      live = false;
+    };
+    // Only the moment the goal becomes reached matters, not every step after it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reached, owner]);
+}
+
 /** "Aujourd'hui" at a glance (Garmin / Apple-style rings): steps and week side by side. With no step number yet, the week tile stays
-    alone and the steps card below it invites to count (own counter first, Santé Connect second) or holds the room while it loads. */
-export function TodayStrip({ cadence, sessions }: { cadence: Cadence; sessions: number }) {
+    alone (and, for a brand-new account with no session yet, not even that: an empty ring is not a figure) and the steps card below it invites to count (own counter first, Santé Connect second) or holds the room while it loads. */
+export function TodayStrip({ cadence, sessions, showWeek = true }: { cadence: Cadence; sessions: number; showWeek?: boolean }) {
   const s = useSteps();
   const hasNumber = !s.failed && !s.loading && s.hasAny;
+  useGoalCheer(hasNumber && s.view.ratio !== null && s.view.ratio >= 1, s.view.today);
   return (
     <View style={{ gap: space.s3 }} testID="today-strip">
-      <View style={styles.row}>
-        {hasNumber ? <StepsTile s={s} /> : null}
-        <WeekTile cadence={cadence} sessions={sessions} />
-      </View>
+      {hasNumber || showWeek ? (
+        <View style={styles.row}>
+          {hasNumber ? <StepsTile s={s} /> : null}
+          {showWeek ? <WeekTile cadence={cadence} sessions={sessions} /> : null}
+        </View>
+      ) : null}
       {hasNumber ? null : <StepsCardView s={s} />}
     </View>
   );
