@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Alert } from "../../components/Dialog";
 import { Group, ListRow } from "../../components/ListRow";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
@@ -41,17 +40,10 @@ export function SettingsScreen() {
           subtitle={online ? "Recharge tes données de compte." : "Disponible avec une connexion."}
           onPress={
             online
-              ? () =>
-                  Alert.alert("Actualiser les données ?", "Les données affichées sont rechargées depuis ton compte. Les séances en attente restent sur ce téléphone.", [
-                    { text: "Annuler", style: "cancel" },
-                    {
-                      text: "Actualiser",
-                      onPress: async () => {
-                        await qc.invalidateQueries({ predicate: (q) => q.queryKey[1] === owner });
-                        toast({ kind: "ok", title: "Données actualisées" });
-                      },
-                    },
-                  ])
+              ? async () => {
+                  await qc.invalidateQueries({ predicate: (q) => q.queryKey[1] === owner });
+                  toast({ kind: "ok", title: "Données actualisées", message: "Les séances en attente restent sur ce téléphone." });
+                }
               : undefined
           }
           last

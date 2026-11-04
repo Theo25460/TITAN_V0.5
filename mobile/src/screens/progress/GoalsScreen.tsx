@@ -1,7 +1,6 @@
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
-import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
@@ -94,14 +93,23 @@ export function GoalsScreen() {
     }
   }
 
-  function toggleArchive(g: Goal) {
-    Alert.alert(g.archived_at ? "Restaurer cet objectif ?" : "Archiver cet objectif ?", g.archived_at ? "Il revient dans tes objectifs en cours." : "Il quitte la liste et reste dans les archives, avec sa progression.", [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: g.archived_at ? "Restaurer" : "Archiver",
-        onPress: () => save.mutateAsync({ fields: { archived_at: g.archived_at ? null : new Date().toISOString() }, old: g }).catch((e) => toast({ kind: "err", title: "Modification impossible", message: errorMessage(e) })),
-      },
-    ]);
+  /* Reversible: archive/restore at once, with an "Annuler" in the toast instead of a confirmation (V12-17). */
+  async function toggleArchive(g: Goal) {
+    const archiving = !g.archived_at;
+    try {
+      const row = await save.mutateAsync({ fields: { archived_at: archiving ? new Date().toISOString() : null }, old: g });
+      toast({
+        kind: "ok",
+        title: archiving ? "Objectif archivé" : "Objectif restauré",
+        message: archiving ? "Il reste dans les archives, avec sa progression." : undefined,
+        action: {
+          label: "Annuler",
+          onPress: () => save.mutateAsync({ fields: { archived_at: g.archived_at ?? null }, old: row }).catch((e) => toast({ kind: "err", title: "Modification impossible", message: errorMessage(e) })),
+        },
+      });
+    } catch (e) {
+      toast({ kind: "err", title: "Modification impossible", message: errorMessage(e) });
+    }
   }
 
   const card = (g: Goal) => {
