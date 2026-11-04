@@ -3,11 +3,11 @@ plugins {
   id 'expo-module-gradle-plugin'
 }
 
-group = 'fr.titanapp.pedometer'
+group = 'fr.titanapp.app.pedometer'
 version = '1.0.0'
 
 android {
-  namespace "fr.titanapp.pedometer"
+  namespace "fr.titanapp.app.pedometer"
   defaultConfig {
     versionCode 1
     versionName "1.0.0"

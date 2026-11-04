@@ -119,6 +119,7 @@
       <div class="asc-section-head"><h2 id="qg-ascent">Ascension</h2><a class="asc-link asc-small" href="/profile">Profil ${icon("chevron")}</a></div>
       <div class="qg-rank">
         ${portrait}<div class="qg-rank-main"><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
+        ${window.TitanCrest ? `<span class="qg-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(p.level), 76)}</span>` : ""}
         <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
       </div>
       ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>

@@ -1,4 +1,4 @@
-package fr.titanapp.pedometer
+package fr.titanapp.app.pedometer
 
 import android.content.Context
 import android.hardware.Sensor
