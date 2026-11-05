@@ -230,11 +230,11 @@
 
 /* ---------- Séance ---------- */
 .seance-main {
-  max-width: calc(720px + 2 * var(--s6));
+  max-width: calc(860px + 2 * var(--s6));
 }
 @media (min-width: 960px) {
   .seance-main {
-    max-width: calc(720px + var(--rail) + 2 * var(--s7));
+    max-width: calc(860px + var(--rail) + 2 * var(--s7));
   }
 }
 .seance-search {
@@ -764,11 +764,11 @@
 
 /* ---------- Journal ---------- */
 .jr-main {
-  max-width: calc(820px + 2 * var(--s6));
+  max-width: calc(860px + 2 * var(--s6));
 }
 @media (min-width: 960px) {
   .jr-main {
-    max-width: calc(820px + var(--rail) + 2 * var(--s7));
+    max-width: calc(860px + var(--rail) + 2 * var(--s7));
   }
 }
 .jr-pending {
@@ -2090,11 +2090,11 @@
 
 /* ---------- Aventure ---------- */
 .av-main {
-  max-width: calc(980px + 2 * var(--s6));
+  max-width: calc(var(--content) + 2 * var(--s6));
 }
 @media (min-width: 960px) {
   .av-main {
-    max-width: calc(980px + var(--rail) + 2 * var(--s7));
+    max-width: calc(var(--content) + var(--rail) + 2 * var(--s7));
   }
 }
 .av-worlds {
@@ -3914,7 +3914,8 @@
   .pf-jump a,
   .asc-hint .asc-btn { min-height: 44px; }
   .asc-brand { min-height: 44px; }
-  a.asc-link { display: inline-flex; align-items: center; min-height: 44px; }
+  /* Standalone links only: a link inside a sentence keeps the line height of the sentence. */
+  .asc-section-head a.asc-link { display: inline-flex; align-items: center; min-height: 44px; }
   .auth-legal a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--s2); }
   /* The tiny sailing marks keep their size; their hit area grows invisibly. */
   .av-node::after { content: ""; position: absolute; inset: -6px; }
@@ -3927,3 +3928,12 @@
 @media (min-width: 960px) { .auth-card #auth { min-height: 470px; } }
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; box-sizing: border-box; }
 .auth-tabs button { min-width: 0; padding-inline: var(--s2); white-space: normal; line-height: 1.2; }
+
+@media (max-width: 519px) {
+  /* Portrait, name, crest and level cannot share one line on a phone: the crest and the level move under the name. */
+  .qg-rank { flex-wrap: wrap; align-items: center; row-gap: var(--s3); }
+  .qg-rank-main { flex: 1 1 calc(100% - 96px); }
+  .qg-rank-name { font-size: clamp(30px, 9vw, 38px); }
+  .qg-crest { margin-left: 0; order: 3; }
+  .qg-level { order: 4; margin-left: auto; }
+}

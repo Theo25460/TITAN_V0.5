@@ -33,6 +33,24 @@
   const FAMILY_LABEL = { endurance: "Endurance", force: "Force", technique: "Technique", jeu: "Jeu & combat", mobilite: "Mobilité" };
   const FAMILY_ICON = { endurance: "run", force: "weight", technique: "mountain", jeu: "target", mobilite: "leaf" };
 
+  /** One drawing per kind of practice, so a padel chip and a boxing chip no longer share the same target. Unknown sports keep their family's icon. */
+  const ICON_RULES = [
+    ["racket", /tennis|padel|squash|badminton|pickleball|racquet|racketlon|table_tennis|sepak/],
+    ["glove", /box|mma|karate|judo|aikido|kick|thai|krav|kung|bjj|taekwondo|wrestling|sumo|capoeira|savate|sambo|grappling|hapkido|kendo|fencing|wushu|arnis|goalball/],
+    ["ball", /football|soccer|futsal|futnet|basket|volley|handball|rugby|cricket|baseball|softball|lacrosse|hockey|polo|netball|korfball|dodgeball|ultimate|kabaddi|kho_kho|hurling|camogie|gaelic|bandy|floorball|tchoukball|kho_kho|ringette|cycle_ball|golf|bowling|bocce|petanque|billiards|snooker|croquet/],
+    ["bike", /cycl|bmx|bike|velo|spinning|gravel|handbike|cyclocross/],
+    ["wave", /swim|aqua|surf|kayak|canoe|rowing|sailing|kite|wake|wind|(?<!springboard)(?<!sky)(?:^|_)diving|snorkel|rafting|paddle|dragon_boat|outrigger|bodyboard|skimboard|finswim|freediv|water_ski|lifesaving|swimrun|triathlon|aquathlon|duathlon/],
+    ["run", /^running|walk|hik|trek|trail|sprint|hurdles|athletic|marathon|orienteer|rucking|treadmill|fell_running|rogaining|obstacle|hyrox|elliptical/],
+    ["target", /archery|shooting|darts|biathlon_shoot|boccia|curling/],
+    ["sparkle", /dance|zumba|ballet|salsa|hiphop|breakdance|pole_dance|cheer|circus|gymnastic|acrobatic|trampoline|parkour|skateboard/],
+    ["mountain", /climb|alpin|boulder|via_ferrata|ski|snowboard|canyon|luge|bobsleigh|skeleton|biathlon|snowshoe|ice_/],
+  ];
+  function iconOf(id) {
+    const key = norm(id);
+    for (const [icon, re] of ICON_RULES) if (re.test(key)) return icon;
+    return FAMILY_ICON[familyOf(id)] || "target";
+  }
+
   /** Sports that open the picker: one tap for most people. */
   const POPULAR = ["running", "walking", "cycling", "muscu_gym", "swimming", "trail", "hiking", "bouldering", "climbing_route", "yoga", "football", "tennis", "padel", "hiit", "bodyweight", "rowing_machine"];
 
@@ -168,7 +186,7 @@
     return results.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "fr")).slice(0, limit);
   }
 
-  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
+  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, iconOf, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
   root.TitanSports = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

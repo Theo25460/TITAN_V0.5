@@ -57,7 +57,7 @@
       d.state === "done" ? `${icon("check")} ${esc(doneLabel)}` : d.state === "other" ? `${icon("check")} ${esc(doneLabel)} à la place` : d.state === "missed" ? "Non réalisée" : d.state === "rest" ? "Repos" : d.isToday ? (d.sport ? "Aujourd’hui" : "Libre") : d.sport ? "À venir" : "Libre";
     return `<button type="button" class="pv-day" data-day="${d.key}" data-state="${d.state}"${fam ? ` data-family="${esc(fam)}"` : ""} aria-label="${esc(`${NAMES[d.index]} : ${d.sport ? SP().label(d.sport) : "rien de prévu"}. ${status.replace(/<[^>]+>/g, "")}`)}">
       <span class="pv-day-head"><strong>${NAMES[d.index].slice(0, 3)}</strong><span class="asc-num">${d.date.getDate()}</span></span>
-      <span class="pv-day-plan">${d.sport ? `${icon(SP().FAMILY_ICON[fam])}<span>${esc(SP().label(d.sport))}${d.minutes ? `<small>${esc(F().duration(d.minutes))}</small>` : ""}</span>` : '<span class="asc-faint">—</span>'}</span>
+      <span class="pv-day-plan">${d.sport ? `${icon(SP().iconOf(d.sport))}<span>${esc(SP().label(d.sport))}${d.minutes ? `<small>${esc(F().duration(d.minutes))}</small>` : ""}</span>` : '<span class="asc-faint">—</span>'}</span>
       <span class="pv-day-status">${status}</span>
     </button>`;
   }
@@ -80,7 +80,7 @@
       <section class="asc-section"><div class="asc-section-head"><h2>Ta semaine type</h2><span class="asc-small asc-muted">Touchez un jour pour le modifier</span></div>
         <div class="asc-list">${week
           .map(
-            (d) => `<button type="button" class="asc-row" data-day="${d.key}"><span class="asc-row-icon"${d.sport ? ` data-family="${esc(SP().familyOf(d.sport))}"` : ""}>${icon(d.sport ? SP().FAMILY_ICON[SP().familyOf(d.sport)] : "moon")}</span><span class="asc-row-main"><span class="asc-row-title">${NAMES[d.index]}</span><span class="asc-row-sub">${d.sport ? `${esc(SP().label(d.sport))}${d.minutes ? ` · ${esc(F().duration(d.minutes))}` : ""}${d.note ? ` · ${esc(d.note)}` : ""}` : "Repos ou libre"}</span></span>${icon("edit")}</button>`,
+            (d) => `<button type="button" class="asc-row" data-day="${d.key}"><span class="asc-row-icon"${d.sport ? ` data-family="${esc(SP().familyOf(d.sport))}"` : ""}>${icon(d.sport ? SP().iconOf(d.sport) : "moon")}</span><span class="asc-row-main"><span class="asc-row-title">${NAMES[d.index]}</span><span class="asc-row-sub">${d.sport ? `${esc(SP().label(d.sport))}${d.minutes ? ` · ${esc(F().duration(d.minutes))}` : ""}${d.note ? ` · ${esc(d.note)}` : ""}` : "Repos ou libre"}</span></span>${icon("edit")}</button>`,
           )
           .join("")}</div>
         <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute.</p>
