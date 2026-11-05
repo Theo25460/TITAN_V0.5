@@ -38,7 +38,7 @@ test('hub is off by default; opt-in opens free manual form in two clicks with ke
 
 test('GPX hub uses the chosen compatible sport and keeps precise locations local',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-hub-sport]').selectOption('cycling');await upload(page);
+  await enable(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();await upload(page);
   await page.locator('[data-gpx-preview]').waitFor();assert.equal(new URL(page.url()).searchParams.get('sport'),'cycling');
   await page.locator('[data-act="save"]').click();await page.locator('dialog[open]').waitFor();
   const log=await page.evaluate(()=>window.state.history.at(-1));assert.equal(log.sport,'cycling');assert.equal(log.details.gpxStats.verified,false);
@@ -115,10 +115,10 @@ test('leaving the hub invalidates pending file reads',async()=>{
 
 test('flag refresh preserves chosen GPX discipline and keyboard focus',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-hub-sport]').selectOption('cycling');await page.locator('[data-hub-sport]').focus();
+  await enable(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();
   await enable(page,true);
   assert.equal(await page.locator('[data-hub-sport]').inputValue(),'cycling');
-  assert.equal(await page.locator('[data-hub-sport]').evaluate(e=>e===document.activeElement),true);
+  assert.equal(await page.locator('[data-hub-choice="cycling"]').evaluate(e=>e===document.activeElement),true);
   await upload(page);await page.locator('[data-gpx-preview]').waitFor();assert.equal(new URL(page.url()).searchParams.get('sport'),'cycling');
  }finally{await context.close();}
 });
@@ -136,5 +136,56 @@ test('an account transition removes another account draft from the hub',async()=
   await enable(page);await page.locator('[data-activity-hub]').waitFor();
   assert.equal(await page.locator('[data-act="resume"]').count(),0);
   assert.equal(await page.locator('main').innerText().then(t=>t.includes('Private draft A')),false);
+ }finally{await context.close();}
+});
+
+test('recording modes stay above the page and the GPX sport picker is searchable by keyboard',async()=>{
+ const {page,context}=await fixture();try{
+  await enable(page);
+  const modes=page.getByRole('group',{name:'Méthode d’enregistrement'});
+  await modes.waitFor();
+  assert.equal(await modes.getByRole('button',{name:/Manuel/}).count(),1);
+  assert.equal(await modes.getByRole('button',{name:/GPX \/ Garmin/}).count(),1);
+  assert((await modes.boundingBox()).y<(await page.locator('#hub-import-title').boundingBox()).y);
+  const query=page.getByRole('searchbox',{name:'Rechercher un sport pour le GPX'});
+  await query.fill('gravel');
+  const gravel=page.locator('[data-hub-choice="gravel"]');
+  await gravel.focus();await page.keyboard.press('Enter');
+  assert.equal(await gravel.getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-hub-sport]').inputValue(),'gravel');
+  await query.fill('sport-inexistant');
+  await page.getByText('Aucun sport ne correspond à ta recherche.').waitFor();
+  assert.equal(await page.locator('[data-hub-sport]').inputValue(),'gravel');
+  await modes.getByRole('button',{name:/Manuel/}).click();await page.locator('#sport-q').waitFor();
+  assert.equal(await modes.getByRole('button',{name:/Manuel/}).getAttribute('aria-pressed'),'true');
+  await modes.getByRole('button',{name:/GPX \/ Garmin/}).click();await query.waitFor();
+  assert.equal(await page.locator('[data-hub-sport]').inputValue(),'gravel');
+  for(const width of [320,768,1280]){
+   await page.setViewportSize({width,height:900});
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+  }
+ }finally{await context.close();}
+});
+
+test('shared icons fit their viewBox with room for their stroke',async()=>{
+ const {page,context}=await fixture();try{
+  const overflow=await page.evaluate(()=>{
+   const box=document.createElement('div');box.style.cssText='position:absolute;left:-10000px;visibility:hidden';document.body.append(box);
+   const bad=[];
+   for(const name of window.TITAN_ICON_NAMES){box.innerHTML=window.titanIcon(name);const b=box.firstElementChild.getBBox();if(b.x<0.85||b.y<0.85||b.x+b.width>23.15||b.y+b.height>23.15)bad.push(name);}
+   box.remove();return bad;
+  });
+  assert.deepEqual(overflow,[],'no shared pictogram is clipped by its 24px frame');
+ }finally{await context.close();}
+});
+
+test('adventure guardian art is centred in its single-column card',async()=>{
+ const {page,context}=await fixture('/adventure');try{
+  await page.locator('.av-guardian img').waitFor();
+  const delta=await page.locator('.av-guardian img').evaluate(el=>{
+   const art=el.getBoundingClientRect(),card=el.closest('.av-guardian').getBoundingClientRect();
+   return Math.abs(art.x+art.width/2-card.x-card.width/2);
+  });
+  assert(delta<1,'guardian portrait is centred on a phone');
  }finally{await context.close();}
 });

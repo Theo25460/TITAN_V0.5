@@ -162,3 +162,42 @@ test('qg context: failed reads settle without leaking old goals and a later even
   await page.evaluate(()=>{window.qgFail=false;window.dispatchEvent(new Event('titan:history-updated'));});await visibleGoal(page,'A');assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
+
+test('background QG refresh retains hero nodes, expanded details and focus',async()=>{
+ const {page,context}=await fixture({width:1280});try{
+  await page.evaluate(()=>{window.qgStableHero=document.querySelector('.qg-hero');window.qgStableWeek=document.querySelector('[aria-labelledby="qg-week"]');});
+  const detail=page.locator('.qg-why').last();await detail.locator('summary').click();
+  await detail.locator('summary').focus();
+  await page.evaluate(()=>window.dispatchEvent(new Event('titan:steps-updated')));await settle(page);await settle(page);
+  assert.equal(await page.evaluate(()=>window.qgStableHero===document.querySelector('.qg-hero')),true);
+  assert.equal(await page.evaluate(()=>window.qgStableWeek===document.querySelector('[aria-labelledby="qg-week"]')),true);
+  assert.equal(await detail.evaluate(e=>e.open),true);
+  assert.equal(await page.evaluate(()=>document.activeElement.tagName),'SUMMARY');
+  assert.equal(await page.locator('.qg-hero').evaluate(e=>getComputedStyle(e).animationName),'none');
+ }finally{await context.close();}
+});
+
+test('the mobile rank illustration and level form one centred group',async()=>{
+ const {page,context}=await fixture({width:360});try{
+  const group=await page.locator('.qg-rank-reward').boundingBox();
+  assert.ok(group,'rank crest and level share one responsive group');
+  const crest=await page.locator('.qg-crest').boundingBox(),level=await page.locator('.qg-level').boundingBox();
+  assert(Math.abs((crest.x+level.x+level.width)/2-(group.x+group.width/2))<2);
+ }finally{await context.close();}
+});
+
+test('a confirmed progression arriving late keeps the open ascent explanation and its keyboard focus',async()=>{
+ const {page,context}=await fixture({width:1280});try{
+  await page.evaluate(()=>{
+   const read=window.TitanData.progression;window.qgConfirmed=false;
+   window.TitanData.progression=()=>({...read(),guest:false,confirmed:window.qgConfirmed});
+   window.dispatchEvent(new Event('titan:steps-updated'));
+  });await settle(page);
+  const detail=page.locator('.qg-ascent details');await detail.locator('summary').click();await detail.locator('summary').focus();
+  await detail.evaluate(el=>window.qgExplanation=el);
+  await page.evaluate(()=>{window.qgConfirmed=true;window.dispatchEvent(new Event('titan:steps-updated'));});await settle(page);await settle(page);
+  assert.equal(await detail.evaluate(el=>el===window.qgExplanation),true);
+  assert.equal(await detail.evaluate(el=>el.open),true);
+  assert.equal(await page.evaluate(()=>document.activeElement===window.qgExplanation.querySelector('summary')),true);
+ }finally{await context.close();}
+});
