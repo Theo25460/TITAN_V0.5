@@ -55,6 +55,13 @@
   color: var(--am);
 }
 @media (min-width: 860px) {
+  /* The QG hero keeps the world behind the day: the valley fades in from the right, the text stays on the plain card. */
+  .qg-hero::before {
+    background:
+      linear-gradient(90deg, var(--bg-1) 0%, var(--bg-1) 34%, transparent 100%),
+      url("/assets/renaissance/valley-small.webp") right center / cover no-repeat;
+    opacity: 0.8;
+  }
   .qg-hero.has-figure {
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--s8);

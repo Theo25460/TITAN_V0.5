@@ -156,7 +156,7 @@
       if (event.target instanceof Element && event.target.closest("[data-ga4-open]")) showBanner();
     });
     // On pages with a footer the button lives there, in the flow, like any other link: nothing floats over the content.
-    const footer = document.querySelector("body > footer .pub-wrap, body > footer, .pub-footer");
+    const footer = document.querySelector(".pub-footer .pub-wrap") || document.querySelector("body > footer, .pub-footer");
     if (footer) { footer.appendChild(settingsButton); settingsButton.style.margin = "12px 0 0"; }
     else { settingsButton.classList.add("is-floating"); document.body.appendChild(settingsButton); }
   }
