@@ -39,7 +39,8 @@
             button.id = 'titan-update-button';
             button.type = 'button';
             button.textContent = 'Nouvelle version - recharger';
-            button.style.cssText = 'position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:1000;max-width:calc(100% - 32px);min-height:44px;border:1px solid rgba(61,214,198,.35);background:rgba(8,13,22,.97);color:#fff;border-radius:999px;padding:10px 16px;font-weight:700;font-size:.8rem;box-shadow:0 12px 34px rgba(0,0,0,.35);';
+            // TITAN design (same tokens as the pages); sits above the tab bar when there is one, and above the consent card (z-index below it is never needed: it stacks).
+            button.style.cssText = 'position:fixed;left:50%;bottom:calc(' + (document.querySelector('.asc-tabbar') ? 'var(--tabbar,68px) + ' : '') + '16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:1000;max-width:calc(100% - 32px);min-height:44px;border:1px solid var(--cy,#3dd9e8);background:var(--bg-2,#0e141a);color:var(--tx,#eef3f7);border-radius:999px;padding:0 18px;font:700 14px var(--font-text,system-ui,sans-serif);box-shadow:0 12px 34px rgba(0,0,0,.45);cursor:pointer;';
             document.body.appendChild(button);
         }
         button.hidden = false;

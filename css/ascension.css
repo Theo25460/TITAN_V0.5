@@ -560,6 +560,9 @@ body.asc {
   margin: calc(-1 * var(--s3)) calc(-1 * var(--s4)) var(--s6);
   padding: 0 var(--s4);
   border-bottom: 1px solid var(--line);
+  /* The links are filled by the shell after load: the row is reserved so the page below never jumps. */
+  min-height: var(--subnav-h, 46px);
+  box-sizing: border-box;
 }
 .asc-subnav::-webkit-scrollbar {
   display: none;

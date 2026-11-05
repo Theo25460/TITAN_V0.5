@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -106,7 +107,7 @@ for (const entry of readdirSync(root)) {
   const target = join(dist, entry);
   let html = readFileSync(target, 'utf8');
   if (!html.includes('</head>') || html.includes('/js/ga4-consent.js')) continue;
-  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.2" defer></script>\n</head>');
+  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.5" defer></script>\n</head>');
   writeFileSync(target, html);
 }
 
@@ -125,8 +126,20 @@ for (const url of precache) {
   const page = url.startsWith('/') && !url.includes('.') && url !== '/' ? join(dist, `${url.slice(1)}.html`) : file;
   if (!existsSync(url === '/' ? join(dist, 'index.html') : page)) throw new Error(`Precache entry missing from dist: ${url}`);
 }
+// The cache generation is stamped with a digest of every byte the offline shell holds: any shipped change opens a new generation by itself
+// (EQ-007), the previous one is deleted on activation, so two builds can never be mixed in one cache, whatever ?v= was (or was not) bumped.
+const digest = createHash('sha256');
+for (const url of [...precache].sort()) {
+  const clean = url.split('?')[0];
+  const html = !clean.includes('.') && clean !== '/';
+  const file = clean === '/' ? join(dist, 'index.html') : html ? join(dist, `${clean.slice(1)}.html`) : join(dist, clean.slice(1));
+  digest.update(url).update(readFileSync(file));
+}
+const generation = digest.digest('hex').slice(0, 10);
 const swPath = join(dist, 'sw.js');
-writeFileSync(swPath, readFileSync(swPath, 'utf8').replace('[/* PRECACHE */]', JSON.stringify([...precache].sort(), null, 2)));
+writeFileSync(swPath, readFileSync(swPath, 'utf8')
+  .replace('[/* PRECACHE */]', JSON.stringify([...precache].sort(), null, 2))
+  .replace(/const CACHE_NAME = '([^']+)';/, (_, name) => `const CACHE_NAME = '${name}-${generation}';`));
 
 // Android (Trusted Web Activity): Digital Asset Links, only when the real signing fingerprints are provided
 // (Netlify environment TWA_SHA256_FINGERPRINTS, comma separated: upload key and Play App Signing key).
