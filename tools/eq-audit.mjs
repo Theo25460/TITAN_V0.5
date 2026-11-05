@@ -18,7 +18,7 @@ const heightFor = (w) => (w <= 430 ? 844 : w <= 768 ? 900 : 900);
 const findings = [];
 const add = (page, w, code, msg) => findings.push({ page, w, code, msg });
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.EQ_CHROMIUM ? { executablePath: process.env.EQ_CHROMIUM } : {});
 for (const path of PAGES) {
   for (const w of WIDTHS) {
     const ctx = await browser.newContext({ viewport: { width: w, height: heightFor(w) }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" });
@@ -82,6 +82,8 @@ for (const path of PAGES) {
         const fb = f.getBoundingClientRect();
         if (fb.width < 40 || fb.height < 20) continue;
         // The first-visit consent card is a deliberate overlay: it is judged on its size (compact), not on covering the page it asks about.
+        // The tab bar and the rail are reserved by the page padding: they never hide anything at rest.
+        if (f.classList.contains("asc-tabbar") || f.classList.contains("asc-rail") || f.classList.contains("asc-topbar")) continue;
         if (f.classList.contains("titan-ga4-banner")) { if (fb.height > vh * 0.26) out.push(["bannière", `bannière ${Math.round(fb.height)} px = ${Math.round((100 * fb.height) / vh)} % de l'écran (> 26)`]); continue; }
         for (const e of document.querySelectorAll("a[href],button,input,select,textarea,h1,h2")) {
           if (f.contains(e) || e.contains(f) || !vis(e)) continue;

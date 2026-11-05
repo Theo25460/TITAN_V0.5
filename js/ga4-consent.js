@@ -180,11 +180,11 @@
       ".titan-ga4-settings.is-floating{position:fixed;z-index:10000;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg-2,#0e141a)}",
       ".titan-ga4-settings:focus-visible,.titan-ga4-banner button:focus-visible,.titan-ga4-banner a:focus-visible{outline:3px solid var(--cy,#3dd9e8);outline-offset:2px}",
       "html.titan-ga4-open body{padding-bottom:var(--ga4-h,0px)}",
-      "@media(max-width:380px){.titan-ga4-banner{grid-template-columns:1fr;grid-template-areas:'t' 'p' 'c' 'a'}.titan-ga4-controls button{flex:1}}",
+      "@media(max-width:380px){.titan-ga4-banner{grid-template-areas:'t a' 'p p' 'c c'}.titan-ga4-banner>a{min-height:24px;justify-self:end;white-space:nowrap}.titan-ga4-controls{justify-content:stretch}.titan-ga4-controls button{flex:1}}",
       // Desktop with the side rail: the card sits in the free area, never over the rail.
       "@media(min-width:960px){body[data-territory] .titan-ga4-banner{left:calc(var(--rail,248px) + 16px);margin:0}}",
       // App screens: the tab bar takes the bottom; the choice reopens from Profil.
-      "body[data-territory] .titan-ga4-settings{display:none}",
+      "body[data-territory] .titan-ga4-settings,body[data-shell=none] .titan-ga4-settings,body:has(.auth-card) .titan-ga4-settings{display:none}",
       "@media(max-width:959px){body[data-territory] .titan-ga4-banner{bottom:calc(var(--tabbar,68px) + env(safe-area-inset-bottom,0px) + 12px)}body[data-territory] .titan-ga4-banner{--ga4-lift:var(--tabbar,68px)}}",
       "@media(prefers-reduced-motion:no-preference){.titan-ga4-banner{animation:titan-ga4-in .22s ease-out both}@keyframes titan-ga4-in{from{opacity:0;transform:translateY(8px)}}}"
     ].join("");

@@ -1823,10 +1823,11 @@
 .auth-layout {
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 960px) {
   .auth-layout {
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   }
 }
 .auth-side {
@@ -1885,8 +1886,10 @@
   margin: 0 auto;
   padding: calc(var(--s7) + var(--safe-t)) var(--s4) calc(var(--s7) + var(--safe-b));
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: center;
   gap: var(--s5);
+  box-sizing: border-box;
 }
 .auth-card h1 {
   font-size: clamp(32px, 7vw, 44px);
@@ -3916,3 +3919,11 @@
   /* The tiny sailing marks keep their size; their hit area grows invisibly. */
   .av-node::after { content: ""; position: absolute; inset: -6px; }
 }
+
+/* The two sign-in tabs share the card width instead of each keeping its own comfortable width: nothing sticks out at 320 px. */
+.auth-legal { flex-wrap: wrap; }
+/* The form is filled by script after the first paint: its room is reserved, so the centred card never re-centres (CLS 0.1 before). */
+.auth-card #auth { min-height: 505px; }
+@media (min-width: 960px) { .auth-card #auth { min-height: 470px; } }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; box-sizing: border-box; }
+.auth-tabs button { min-width: 0; padding-inline: var(--s2); white-space: normal; line-height: 1.2; }
