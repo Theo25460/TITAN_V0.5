@@ -3998,3 +3998,5 @@
   .seance-import-sport { padding: 12px; }
   .seance-import-results { grid-template-columns: 1fr; max-height: 264px; }
 }
+.seance-search-empty { grid-column: 1 / -1; padding: 12px; }
+.seance-search-empty p { margin-bottom: 12px; }

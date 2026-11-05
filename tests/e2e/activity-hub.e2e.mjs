@@ -98,7 +98,7 @@ test('a malformed GPX never replaces a stored draft and replacement can be cance
   await upload(page,'<gpx>broken');await page.locator('[data-hub-status]').filter({hasText:/./}).waitFor();
   await page.locator('[data-act="manual"]').click();await page.locator('dialog[open] [data-cancel]').click();
   await page.locator('[data-act="resume"]').click();assert.equal(await page.locator('[data-k="durM"]').inputValue(),'41');
-  await page.locator('[data-act="hub"]').click();await upload(page);await page.locator('dialog[open] [data-cancel]').click();
+  await page.locator('[data-act="hub"]').click();await upload(page);await page.locator('dialog[open] [data-cancel]').click();assert.doesNotMatch(await page.locator('[data-hub-status]').innerText(),/Analyse du fichier/);
   await page.locator('[data-act="resume"]').click();assert.equal(await page.locator('[data-k="durM"]').inputValue(),'41');
  }finally{await context.close();}
 });
@@ -187,5 +187,23 @@ test('adventure guardian art is centred in its single-column card',async()=>{
    return Math.abs(art.x+art.width/2-card.x-card.width/2);
   });
   assert(delta<1,'guardian portrait is centred on a phone');
+ }finally{await context.close();}
+});
+
+test('GPX search can be reset without losing the selected sport',async()=>{
+ const {page,context}=await fixture();try{
+  await enable(page);await page.locator('[data-hub-query]').fill('gravel');await page.locator('[data-hub-choice="gravel"]').click();
+  await page.locator('[data-hub-query]').fill('introuvable-123');await page.getByRole('button',{name:'Effacer la recherche'}).click();
+  assert.equal(await page.locator('[data-hub-query]').inputValue(),'');
+  assert.equal(await page.locator('[data-hub-sport]').inputValue(),'gravel');
+  assert.equal(await page.locator('[data-hub-query]').evaluate(el=>el===document.activeElement),true);
+ }finally{await context.close();}
+});
+test('GPX file analysis shows progress while the file is being read',async()=>{
+ const {page,context}=await fixture();try{
+  await enable(page);
+  await page.evaluate(()=>{const el=document.querySelector('[data-hub-gpx]');Object.defineProperty(el,'files',{configurable:true,value:[{name:'slow.gpx',size:100,text:()=>new Promise(resolve=>window.releaseUXFile=resolve)}]});el.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.locator('[data-hub-status]').filter({hasText:'Analyse du fichier…'}).waitFor();
+  await page.evaluate(()=>window.releaseUXFile('invalid'));await page.locator('[data-hub-status]').filter({hasText:/GPX/}).waitFor();
  }finally{await context.close();}
 });

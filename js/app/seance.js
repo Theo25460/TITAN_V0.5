@@ -278,7 +278,8 @@
   }
 
   function importSports() {
-    const popular = ["running", "cycling", "gravel", "trail", "walking", "hiking", "mountain_bike", "nordic_walk"];
+    const recent = [...(window.state?.history || [])].sort((a,b) => new Date(b.date)-new Date(a.date)).map(log=>log.sport);
+    const popular = [...new Set([...recent.slice(0, 8), ...(window.state?.user?.favoriteSports || []), "running", "cycling", "gravel", "trail", "walking", "hiking", "mountain_bike", "nordic_walk"])];
     const rank = id => popular.includes(id) ? popular.indexOf(id) : popular.length;
     return S_().all().filter(s => S_().formOf(s.id) === "distance")
       .sort((a, b) => rank(a.id) - rank(b.id) || S_().label(a.id).localeCompare(S_().label(b.id), "fr"));
@@ -293,14 +294,14 @@
       <span class="seance-mode-icon">${icon(S_().iconOf(s.id))}</span>
       <span class="seance-choice-label"><strong>${esc(S_().label(s.id))}</strong><small>${esc(S_().FAMILY_LABEL[s.family])}</small></span>
       ${icon("check", "seance-choice-check")}</button>`).join("")
-      : '<p class="asc-small asc-muted" role="status">Aucun sport ne correspond à ta recherche.</p>';
+      : '<div class="seance-search-empty"><p class="asc-small asc-muted" role="status">Aucun sport ne correspond à ta recherche.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="clear-import-search">Effacer la recherche</button></div>';
   }
 
   function modeHtml() {
     if (!hubOn()) return "";
     return `<div class="seance-modes" role="group" aria-label="Méthode d’enregistrement">
       <button type="button" data-act="manual" aria-pressed="${!hubOpen && !S.gpx}"><span class="seance-mode-icon">${icon("edit")}</span><span><strong>Manuel</strong><small>Choisis ton sport et tes mesures</small></span></button>
-      <button type="button" data-act="hub" aria-pressed="${hubOpen || !!S.gpx}"><span class="seance-mode-icon">${icon("route")}</span><span><strong>GPX / Garmin</strong><small>Importe ou connecte ta sortie</small></span></button>
+      <button type="button" data-act="hub" aria-pressed="${hubOpen || !!S.gpx}"><span class="seance-mode-icon">${icon("route")}</span><span><strong>GPX / Garmin</strong><small>Fichier GPX ou compte Garmin</small></span></button>
     </div>`;
   }
 
@@ -782,6 +783,7 @@
     const requestOwner = owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => !saving && S === draft && sequence === gpxSequence && owner() === requestOwner
       && epoch === window.titanAccountTransition?.epoch && client === window.titanClient && !window.titanAccountTransition?.active;
+    if (hubSport) root.querySelector("[data-hub-status]").textContent = "Analyse du fichier…";
     let r;
     try {
       const text = await file.text();
@@ -793,6 +795,7 @@
     }
     if (!r.ok) return problem(r.error);
     if (hubSport) {
+      root.querySelector("[data-hub-status]").textContent = "Fichier analysé.";
       replaceFromHub(() => {
         if (!current()) return;
         choose(hubSport);
@@ -898,6 +901,14 @@
     if (saving) { e.preventDefault(); return; }
     const t = e.target.closest("button, [data-sport], [data-repeat], [data-routine]");
     if (!t || !root.contains(t) || t.disabled) return;
+    if (t.dataset.act === "clear-import-search") {
+      hubQuery = "";
+      const query = root.querySelector("[data-hub-query]");
+      query.value = "";
+      root.querySelector("#hub-sport-results").innerHTML = importResults();
+      query.focus({ preventScroll: true });
+      return;
+    }
     if (t.dataset.hubChoice) {
       if (!importSports().some(s => s.id === t.dataset.hubChoice)) return;
       ++gpxSequence;
