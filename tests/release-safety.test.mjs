@@ -19,7 +19,7 @@ test('secrets: server keys and private material are found, public keys are not',
     // Assembled at run time so that no real-looking key sits in the repository (GitHub push protection).
     'Stripe live key': ['sk', 'live', '51HabcdefghijklmnopqrstUV'].join('_'),
     'AWS key id': 'id=AKIAIOSFODNN7EXAMPLE',
-    'GitHub token': 'ghp_abcdefghijklmnopqrstuvwxyz0123456789',
+    'GitHub token': ['gh', 'p_abcdefghijklmnopqrstuvwxyz0123456789'].join(''),
     'webhook secret assignment': "PADDLE_WEBHOOK_SECRET = 'pdl_ntfset_01abcdefghijklmnopqrstuvwx_abcdefghijklmnop'",
     'secret key assignment': 'SUPABASE_SECRET_KEY: "abcdefghijklmnopqrstuvwxyz0123456789"',
     'keystore password': 'storepass: "hunter2hunter2"',
