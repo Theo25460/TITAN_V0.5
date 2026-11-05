@@ -39,6 +39,6 @@
     if (anchor) anchor.after(note); else main.prepend(note);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show);
-  else show();
+  /* The script sits right after the sub-navigation in the page, so the note is in the first paint: nothing below it ever moves. */
+  show();
 })();

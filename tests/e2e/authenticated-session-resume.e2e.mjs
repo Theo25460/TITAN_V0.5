@@ -25,7 +25,7 @@ for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offli
   context.setDefaultTimeout(15000);
   const now=Math.floor(Date.now()/1000),user={id:OWNER,email:'resume@example.test',aud:'authenticated',app_metadata:{},user_metadata:{}};
   const token=[Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url'),Buffer.from(JSON.stringify({sub:OWNER,aud:'authenticated',role:'authenticated',iat:now,exp:now+3600})).toString('base64url'),'synthetic-signature'].join('.');
-  await context.addInitScript(session=>{if(!localStorage.getItem('titan_supabase_auth_v1'))localStorage.setItem('titan_supabase_auth_v1',JSON.stringify(session));},{access_token:token,refresh_token:'synthetic-refresh',token_type:'bearer',expires_in:3600,expires_at:now+3600,user});
+  await context.addInitScript(session=>{if(!localStorage.getItem('titan_supabase_auth_v1'))localStorage.setItem('titan_supabase_auth_v1',JSON.stringify(session));localStorage.setItem('titan_first_run_guide_v2','seen-by-test');},{access_token:token,refresh_token:'synthetic-refresh',token_type:'bearer',expires_in:3600,expires_at:now+3600,user});
   let outage=true,grants=0;const requests=[],serverLogs=[],errors=[];
   const receipt={log_id:LOG,xp:300,credits:30,requested_xp:300,xp_after:307,credits_after:35,level_after:1,leveled_up:0,reward_held:false};
   const profile=()=>({id:OWNER,username:'Athlète synthétique',friend_code:'TN-RESUME',xp:grants?307:7,credits:grants?35:5,level:1,state_version:1,game_state:{user:{id:OWNER,onboardedAt:'2026-10-01',onboardingComplete:true},history:[]}});

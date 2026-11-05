@@ -560,6 +560,9 @@ body.asc {
   margin: calc(-1 * var(--s3)) calc(-1 * var(--s4)) var(--s6);
   padding: 0 var(--s4);
   border-bottom: 1px solid var(--line);
+  /* The links are filled by the shell after load: the row is reserved so the page below never jumps. */
+  min-height: var(--subnav-h, 46px);
+  box-sizing: border-box;
 }
 .asc-subnav::-webkit-scrollbar {
   display: none;
@@ -1126,7 +1129,8 @@ button.asc-row:hover {
   position: fixed;
   z-index: 90;
   left: 50%;
-  bottom: calc(var(--tabbar) + var(--safe-b) + var(--s3));
+  /* On a phone the messages come in under the top bar: the bottom belongs to the save button and the tab bar. */
+  top: calc(var(--topbar) + var(--safe-t) + var(--s2));
   transform: translateX(-50%);
   display: grid;
   gap: var(--s2);
@@ -1135,6 +1139,7 @@ button.asc-row:hover {
 }
 @media (min-width: 960px) {
   .asc-toasts {
+    top: auto;
     bottom: var(--s6);
     left: calc(50% + var(--rail) / 2);
   }

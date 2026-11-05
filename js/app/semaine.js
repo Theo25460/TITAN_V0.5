@@ -128,7 +128,7 @@
     if (!window.TitanMonthReport || !P().activeLogs(logs()).length) return "";
     const m = periodReport(period);
     const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
-    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().iconOf(s.sport))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
     return `<section class="asc-section ${Y ? "wk-year" : "wk-month"}" aria-labelledby="${id}"><div class="asc-section-head"><h2 id="${id}" tabindex="-1">Bilan de ${esc(m.label)}</h2>
         <span class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off + 1}" aria-label="${Y ? "Année précédente" : "Mois précédent"}">${icon("chevron")}</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" ${attr}="${off - 1}" aria-label="${Y ? "Année suivante" : "Mois suivant"}" ${off === 0 ? "disabled" : ""}>${icon("chevron")}</button></span></div>
       <p class="asc-lead">${esc(d.title)} ${esc(d.text)}</p>
@@ -145,7 +145,7 @@
     const m = periodReport("week");
     if (!m.sessions) return "";
     const d = window.TitanMonthReport.describe(m, { duration: (x) => F().duration(x) });
-    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(s.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
+    const rows = m.sports.slice(0, 5).map((s) => `<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(s.sport))}">${icon(SP().iconOf(s.sport))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(s.label)}</span><span class="asc-row-sub">${s.sessions} séance${s.sessions > 1 ? "s" : ""} · ${esc(F().duration(s.minutes))}${s.distanceKm ? ` · ${esc(F().distance(s.distanceKm))}` : ""}</span></span></div>`).join("");
     // The optional weekly quest only exists for the week in progress (the server computes it for now); older weeks say nothing about it.
     const pq = offset === 0 ? window.TitanPeriodicQuests?.get?.()?.week : null;
     const qd = pq && window.TitanPeriodicQuestText?.describe(pq, { sportLabel: (x) => SP().label(x) });
@@ -181,7 +181,7 @@
 
   function highlightsHtml(r) {
     const items = [];
-    if (r.topSport && r.week.sessions) items.push(`<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(r.topSport.sport))}">${icon(SP().FAMILY_ICON[SP().familyOf(r.topSport.sport)])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.topSport.label)}</span><span class="asc-row-sub">Ton sport de la semaine · ${r.topSport.sessions} séance${r.topSport.sessions > 1 ? "s" : ""}${r.topSport.minutes ? `, ${esc(F().duration(r.topSport.minutes))}` : ""}</span></span></div>`);
+    if (r.topSport && r.week.sessions) items.push(`<div class="asc-row"><span class="asc-row-icon" data-family="${esc(SP().familyOf(r.topSport.sport))}">${icon(SP().iconOf(r.topSport.sport))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.topSport.label)}</span><span class="asc-row-sub">Ton sport de la semaine · ${r.topSport.sessions} séance${r.topSport.sessions > 1 ? "s" : ""}${r.topSport.minutes ? `, ${esc(F().duration(r.topSport.minutes))}` : ""}</span></span></div>`);
     for (const rec of r.records.filter((x) => x.kind !== "duration").slice(0, 4))
       items.push(`<a class="asc-row" href="/journal?session=${encodeURIComponent(window.TitanSessions?.idOf(rec.log) || rec.log.id)}"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(SP().label(rec.sport))} · ${esc(rec.label)}</span><span class="asc-row-sub">${esc(fmtRecord(rec))}${rec.previous ? ` · avant ${esc(fmtRecord(rec, rec.previous.value))}` : " · premier repère"}</span></span>${icon("chevron")}</a>`);
     for (const g of r.goals.slice(0, 3))

@@ -40,7 +40,8 @@ async function shellPage(width = 360, path = "/stats") {
 }
 async function refresh(page, event = "titan:history-updated") {
   const old = await page.locator(".asc-topbar [data-shell-more]").elementHandle();
-  await page.evaluate(event => { window.fixtureEvent = event; window.dispatchEvent(new Event(event)); }, event);
+  // The shell keeps markup that did not change (EQ-006); drop its cached markup so a real replacement happens, as after a level or sync change.
+  await page.evaluate(event => { for (const el of document.querySelectorAll(".asc-rail, .asc-topbar, .asc-tabbar, [data-subnav]")) delete el.__shellHtml; window.fixtureEvent = event; window.dispatchEvent(new Event(event)); }, event);
   await page.waitForFunction(el => !el.isConnected, old);
   await old.dispose();
 }

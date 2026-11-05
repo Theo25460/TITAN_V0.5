@@ -92,7 +92,7 @@
     const rec = recs.get(X().idOf(l));
     return `<button type="button" class="jr-row" data-open="${esc(X().idOf(l))}" data-family="${esc(fam)}">
       <span class="jr-date"><span class="asc-num">${d.getDate()}</span><small>${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small></span>
-      <span class="jr-icon">${icon(SP().FAMILY_ICON[fam])}</span>
+      <span class="jr-icon">${icon(SP().iconOf(l.sport))}</span>
       <span class="jr-text"><span class="jr-title">${esc(SP().label(l.sport))}</span><span class="jr-sub">${esc(shortMetrics(l))}</span></span>
       <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}</span>
     </button>`;

@@ -344,7 +344,7 @@
         <input id="sport-q" class="asc-input" type="search" autocomplete="off" placeholder="Chercher un sport…" value="${esc(S.query)}" aria-controls="sport-results">
       </div>
       <div id="sport-results" class="seance-results" role="listbox" aria-label="Sports"></div>
-      ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${mine.map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${icon(S_().FAMILY_ICON[S_().familyOf(id)])}${esc(S_().label(id))}</button>`).join("")}</div></section>` : ""}
+      ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${mine.map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${icon(S_().iconOf(id))}${esc(S_().label(id))}</button>`).join("")}</div></section>` : ""}
       ${last3.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Refaire</h2><span class="asc-small asc-faint">Reprend les mesures, à la date d’aujourd’hui</span></div><div class="asc-list">${last3.map((l) => {
         const m = P().minutesOf(l);
         const main = l.unit === "km" ? F().distance(l.val) : l.unit === "m" ? `${F().number(l.val)} m` : l.details?.exercises?.length ? `${l.details.exercises.length} exercice${l.details.exercises.length > 1 ? "s" : ""}` : F().duration(m.minutes);
@@ -361,7 +361,7 @@
     if (!S.query) return "";
     if (!list.length) return `<p class="asc-empty asc-small">Aucun sport ne correspond. Essaie un mot plus court ou une famille : endurance, force, raquette, combat.</p>`;
     return `<div class="asc-list">${list
-      .map((r, i) => `<button type="button" class="asc-row" role="option" id="opt-${i}" data-sport="${esc(r.id)}"><span class="asc-row-icon">${icon(S_().FAMILY_ICON[r.family])}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${esc(S_().FAMILY_LABEL[r.family])} · ${esc(S_().FORMS[r.form].label.toLowerCase())}</span></span>${icon("chevron")}</button>`)
+      .map((r, i) => `<button type="button" class="asc-row" role="option" id="opt-${i}" data-sport="${esc(r.id)}"><span class="asc-row-icon">${icon(S_().iconOf(r.id))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${esc(S_().FAMILY_LABEL[r.family])} · ${esc(S_().FORMS[r.form].label.toLowerCase())}</span></span>${icon("chevron")}</button>`)
       .join("")}</div>`;
   }
 

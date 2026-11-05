@@ -137,6 +137,13 @@
     };
   }
 
+  // A refresh whose markup is identical touches nothing: no node is replaced, nothing repaints, no focus or hover is lost (EQ-006).
+  function put(el, html) {
+    if (el.__shellHtml === html) return;
+    el.__shellHtml = html;
+    el.innerHTML = html;
+  }
+
   function render() {
     const root = document.body;
     if (!root.classList.contains("asc")) return;
@@ -163,7 +170,7 @@
       rail.setAttribute("aria-label", "Navigation principale");
       root.prepend(rail);
     }
-    rail.innerHTML = `
+    put(rail, `
       <a class="asc-brand" href="/aujourdhui" aria-label="TITAN, QG">${window.titanMark ? window.titanMark() : ""}TITAN</a>
       <div class="asc-rail-nav">
         ${TERRITORIES.filter((t) => !t.record).slice(0, 2).map((t) => navLink(t, "asc-rail-link")).join("")}
@@ -171,7 +178,7 @@
         ${TERRITORIES.filter((t) => !t.record).slice(2).map((t) => navLink(t, "asc-rail-link")).join("")}
       </div>
       <div class="asc-rail-sub">${SECONDARY.map((t) => navLink(t, "asc-rail-link")).join("")}</div>
-      <a class="asc-rail-foot" href="/profile">${avatarImg(u)}<span><strong>${esc(u.name)}</strong><small><span class="asc-sync" data-state="${syncState.state}" title="${esc(syncState.label)}"></span>${u.guest ? "Sur cet appareil" : `Niveau ${u.level}`}</small></span></a>`;
+      <a class="asc-rail-foot" href="/profile">${avatarImg(u)}<span><strong>${esc(u.name)}</strong><small><span class="asc-sync" data-state="${syncState.state}" title="${esc(syncState.label)}"></span>${u.guest ? "Sur cet appareil" : `Niveau ${u.level}`}</small></span></a>`);
 
     let top = document.querySelector(".asc-topbar");
     if (!top) {
@@ -180,7 +187,7 @@
       root.prepend(top);
     }
     const isHome = territory() === "qg";
-    top.innerHTML = `
+    put(top, `
       ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
       ${isHome ? '<span style="flex:1"></span>' : ""}
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Assistance"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
@@ -188,7 +195,7 @@
         <span class="asc-sync" data-state="${syncState.state}"></span>
         <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>
         ${avatarImg(u)}
-      </a>`;
+      </a>`);
 
     let tabs = document.querySelector(".asc-tabbar");
     if (!tabs) {
@@ -197,19 +204,19 @@
       tabs.setAttribute("aria-label", "Navigation principale");
       root.append(tabs);
     }
-    tabs.innerHTML = TERRITORIES.map((t) => {
+    put(tabs, TERRITORIES.map((t) => {
       const current = territory() === t.id ? ' aria-current="page"' : "";
       if (t.record)
         return `<a class="asc-tab asc-tab-record" href="${t.href}"${current} aria-label="Enregistrer une séance"><span class="asc-tab-plus">${icon("plus")}</span><span>${t.label}</span></a>`;
       return `<a class="asc-tab" href="${t.href}"${current}>${icon(t.icon)}<span>${t.label}</span></a>`;
-    }).join("");
+    }).join(""));
 
     const sub = document.querySelector("[data-subnav]");
     const pages = SUBNAV[territory()];
     if (sub && pages) {
       const here = location.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
       sub.setAttribute("aria-label", "Pages de " + (TERRITORIES.find((t) => t.id === territory())?.label || "la section"));
-      sub.innerHTML = pages.map((p) => `<a href="${p.href}"${here === p.href ? ' aria-current="page"' : ""}>${esc(p.label)}</a>`).join("");
+      put(sub, pages.map((p) => `<a href="${p.href}"${here === p.href ? ' aria-current="page"' : ""}>${esc(p.label)}</a>`).join(""));
     }
 
     if (!document.querySelector(".asc-toasts")) {

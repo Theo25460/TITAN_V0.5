@@ -143,7 +143,7 @@
     return `<section class="asc-section asc-appear" aria-labelledby="qg-last">
       <div class="asc-section-head"><h2 id="qg-last">Dernière séance</h2><a class="asc-link asc-small" href="/journal">Journal ${icon("chevron")}</a></div>
       <a class="asc-row" href="/journal?log=${encodeURIComponent(last.client_event_id || last.id)}">
-        <span class="asc-row-icon">${icon(familyIcon(meta.family))}</span>
+        <span class="asc-row-icon">${icon(window.TitanSports?.iconOf ? window.TitanSports.iconOf(last.sport) : familyIcon(meta.family))}</span>
         <span class="asc-row-main"><span class="asc-row-title">${esc(meta.label)}</span><span class="asc-row-sub">${esc(sub)}</span></span>
         <span class="asc-row-end"><strong>${esc(main)}</strong>${sync}</span>
       </a>
@@ -220,7 +220,7 @@
     const ids = [...new Set([...recent.slice(0, 20), ...favorites])].filter((id) => cfg[id]).slice(0, 4);
     if (!ids.length) return "";
     return `<section class="asc-section asc-appear" aria-labelledby="qg-sports"><div class="asc-section-head"><h2 id="qg-sports">Tes sports</h2></div>
-      <div class="seance-chips">${ids.map((id) => `<a class="seance-chip" href="/training?sport=${encodeURIComponent(id)}">${icon(sports.FAMILY_ICON[sports.familyOf(id)])}${esc(sports.label(id))}</a>`).join("")}</div></section>`;
+      <div class="seance-chips">${ids.map((id) => `<a class="seance-chip" href="/training?sport=${encodeURIComponent(id)}">${icon(sports.iconOf(id))}${esc(sports.label(id))}</a>`).join("")}</div></section>`;
   }
 
   function guestHtml() {

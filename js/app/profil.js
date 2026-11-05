@@ -72,7 +72,7 @@
       ${masteryNavigation.controls()}
       <div class="pf-mastery">${result.items
         .map(
-          (m) => `<div class="pf-mastery-row" data-family="${esc(m.family)}"><span class="jr-icon">${icon(SP().FAMILY_ICON[SP().familyOf(m.sport)])}</span>
+          (m) => `<div class="pf-mastery-row" data-family="${esc(m.family)}"><span class="jr-icon">${icon(SP().iconOf(m.sport))}</span>
         ${m.hasData ? `
         <span class="pf-mastery-main"><span class="asc-between"><strong>${esc(m.label)}</strong><span class="asc-small">${esc(m.name)} · ${m.level}/10</span></span>
         <span class="asc-ascent thin"><span style="--p:${Math.round(m.progress * 100)}%"></span></span>

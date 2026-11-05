@@ -77,8 +77,8 @@
       <h1>Qu’est-ce que tu pratiques&#8239;?</h1>
       <p class="asc-lead">Choisis jusqu’à 5 sports. Ils seront en tête quand tu enregistres une séance. Tu peux en pratiquer d’autres à tout moment.</p>
       <div class="seance-search"><label class="sr-only" for="ob-q">Rechercher un sport</label><span class="seance-search-icon">${icon("search")}</span><input id="ob-q" class="asc-input" type="search" autocomplete="off" placeholder="Padel, natation, escalade…" value="${esc(query)}"></div>
-      ${results.length ? `<div class="seance-chips ob-results">${results.map((r) => `<button type="button" class="seance-chip" data-pick="${esc(r.id)}" aria-pressed="${picked.includes(r.id)}">${icon(SP().FAMILY_ICON[r.family])}${esc(r.label)}</button>`).join("")}</div>` : ""}
-      <div class="seance-chips">${chips.map((id) => `<button type="button" class="seance-chip" data-pick="${esc(id)}" aria-pressed="${picked.includes(id)}">${icon(SP().FAMILY_ICON[SP().familyOf(id)])}${esc(SP().label(id))}</button>`).join("")}</div>
+      ${results.length ? `<div class="seance-chips ob-results">${results.map((r) => `<button type="button" class="seance-chip" data-pick="${esc(r.id)}" aria-pressed="${picked.includes(r.id)}">${icon(SP().iconOf(r.id))}${esc(r.label)}</button>`).join("")}</div>` : ""}
+      <div class="seance-chips">${chips.map((id) => `<button type="button" class="seance-chip" data-pick="${esc(id)}" aria-pressed="${picked.includes(id)}">${icon(SP().iconOf(id))}${esc(SP().label(id))}</button>`).join("")}</div>
       <p class="asc-small asc-muted" aria-live="polite">${limitHit ? "5 sports maximum : retire-en un pour en choisir un autre. " : ""}${picked.length ? `${picked.length}/5 : ${esc(picked.map((s) => SP().label(s)).join(", "))}` : "Aucun sport choisi pour l’instant."}</p>`;
   }
 
