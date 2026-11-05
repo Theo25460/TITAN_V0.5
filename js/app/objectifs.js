@@ -361,9 +361,21 @@
             confirmLabel: g.archived_at ? "Restaurer" : "Archiver",
             action: () => save({ archived_at: g.archived_at ? null : new Date().toISOString() }, g, ctx),
           });
-          trackDialog([...document.querySelectorAll("dialog")].find(d => !before.has(d)));
+          const opened = [...document.querySelectorAll("dialog")].find(d => !before.has(d));
+          trackDialog(opened);
           confirmation.then(confirmed => {
-            if (confirmed && isCurrent(ctx)) restorePageFocus(root.querySelector(`[data-goals-view="${showArchived ? "archived" : "current"}"]`));
+            // The save invalidates the page context and re-renders it: the logical control is looked up again once the dialog has really left,
+            // and only while nothing else holds the focus.
+            if (!confirmed) return;
+            const target = showArchived ? "archived" : "current";
+            const idle = () => document.activeElement === document.body || !!document.activeElement?.closest?.("dialog");
+            const settle = (tries = 0) => {
+              const button = root?.isConnected ? root.querySelector(`[data-goals-view="${target}"]`) : null;
+              if (button && idle() && !document.querySelector("dialog[open]")) button.focus({ preventScroll: true });
+              else if (tries < 20 && (!button || idle())) setTimeout(() => settle(tries + 1), 50);
+            };
+            if (opened?.isConnected) opened.addEventListener("close", () => settle(), { once: true });
+            else settle();
           });
         }
       });
