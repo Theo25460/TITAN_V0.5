@@ -1030,7 +1030,8 @@ window.saveState = function(options = {}) {
 
     const saveOptions = (options === true) ? { forceCloud: true } : options;
     ensureStateIntegrity();
-    window.state.meta.updatedAt = new Date().toISOString();
+    // Caching an authoritative read is not a new local edit.
+    if (!saveOptions.localOnly) window.state.meta.updatedAt = new Date().toISOString();
     localStorage.setItem(window.STATE_KEY, JSON.stringify(cloneStateForLocalStorage(window.state)));
     if(!saveOptions.localOnly && isCloudUser()) {
         const owner=window.state.user.id,control=titanProfileControl(owner);
@@ -1539,18 +1540,14 @@ async function titanReadCloudProfile() {
         const effectiveCloud={user:{...profile.game_state?.user,name:profile.username||profile.game_state?.user?.name,avatar:profile.avatar||profile.game_state?.user?.avatar,privacy:profile.privacy||profile.game_state?.user?.privacy,last_week_id:profile.last_week_id,last_seen_news_version:profile.last_seen_news_version}};
         if(localStateBeforeSync?.user?.id===session.user.id && localStateBeforeSync.meta?.profileVersion!==undefined && titanProfileSignature(localStateBeforeSync)!==titanProfileSignature(effectiveCloud) && profileControl.accepted!==titanProfileSignature(localStateBeforeSync)) titanProtectProfile(localStateBeforeSync,'cloud_reload');
         const localBelongsToSession = localStateBeforeSync?.user?.id === session.user.id;
-        const localUpdatedAt = getStateUpdatedAtValue(localStateBeforeSync);
-        const cloudUpdatedAt = getStateUpdatedAtValue(profile.game_state) || (profile.updated_at ? Date.parse(profile.updated_at) : 0);
-        const localNeedsReview = !!(localBelongsToSession && localUpdatedAt && (!cloudUpdatedAt || localUpdatedAt > cloudUpdatedAt + 1000));
         const keepLocalGameState = false;
         profileControl.blocked=true;
         titanSaveProfileControl(session.user.id,profileControl);
         if (typeof window.titanMaybeSubmitCacheReconciliation === 'function') {
             window.titanMaybeSubmitCacheReconciliation(localStateBeforeSync);
         }
-        if (localNeedsReview && typeof window.showNotification === 'function') {
-            window.showNotification('info', 'CACHE EN REVUE', 'Le cloud reste prioritaire. Un audit verifie la progression locale.');
-        }
+        // Only reconciliation results can establish a difference. Older clients
+        // refreshed their local timestamp on every read, so dates alone prove nothing.
 
         if (!window.state) createDefaultState();
         if (!keepLocalGameState && profile.game_state && profile.game_state.user) {

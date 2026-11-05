@@ -172,8 +172,10 @@ body.asc {
   transform: none;
 }
 .t-icon {
+  display: inline-block;
   width: 1.25em;
   height: 1.25em;
+  vertical-align: -0.125em;
   flex: none;
 }
 
@@ -1229,16 +1231,8 @@ button.asc-row:hover {
 
 /* ---------- Motion ---------- */
 .asc-appear {
-  animation: asc-rise 420ms var(--ease) both;
-}
-.asc-appear:nth-child(2) {
-  animation-delay: 60ms;
-}
-.asc-appear:nth-child(3) {
-  animation-delay: 120ms;
-}
-.asc-appear:nth-child(4) {
-  animation-delay: 180ms;
+  /* Data refreshes reuse this class. Replaying an entrance makes navigation jump. */
+  animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .asc *,

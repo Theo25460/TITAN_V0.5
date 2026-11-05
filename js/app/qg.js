@@ -119,8 +119,10 @@
       <div class="asc-section-head"><h2 id="qg-ascent">Ascension</h2><a class="asc-link asc-small" href="/profile">Profil ${icon("chevron")}</a></div>
       <div class="qg-rank">
         ${portrait}<div class="qg-rank-main"><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
-        ${window.TitanCrest ? `<span class="qg-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(p.level), 76)}</span>` : ""}
-        <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
+        <div class="qg-rank-reward">
+          ${window.TitanCrest ? `<span class="qg-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(p.level), 76)}</span>` : ""}
+          <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
+        </div>
       </div>
       ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
       <p class="asc-small asc-muted">${f.number(left)} XP avant le niveau ${p.level + 1}. ${nextRank}</p>` : `<p class="asc-small asc-muted">${nextRank} La barre du niveau s’affiche dès que le serveur répond.</p>`}
@@ -227,6 +229,71 @@
     return `<div class="asc-note qg-guest">${icon("phone")}<div><strong>Mode découverte</strong> · tes séances restent sur cet appareil. <a class="asc-link" href="/login?mode=signup">Créer un compte</a> pour les sauvegarder et les reprendre partout.</div></div>`;
   }
 
+  // Keep live sections and their controls in place when background reads finish.
+  // Replacing the entire QG restarted animations, closed details and lost focus.
+  function patchNode(node, next) {
+    if (node.isEqualNode(next)) return;
+    if (node.nodeType !== next.nodeType || node.nodeName !== next.nodeName) {
+      node.replaceWith(next);
+      return;
+    }
+    if (node.nodeType === Node.TEXT_NODE) { node.textContent = next.textContent; return; }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    for (const attr of [...node.attributes]) {
+      if (node.tagName === "DETAILS" && attr.name === "open") continue;
+      if (!next.hasAttribute(attr.name)) node.removeAttribute(attr.name);
+    }
+    for (const attr of next.attributes) {
+      if (node.getAttribute(attr.name) !== attr.value) node.setAttribute(attr.name, attr.value);
+    }
+    patchChildren(node, next);
+  }
+
+  function nodeKey(node) {
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    return node.id || node.getAttribute("aria-labelledby") || node.getAttribute("data-action")
+      || node.getAttribute("href") || (node.tagName === "DETAILS" ? `details:${node.className}` : null);
+  }
+
+  function patchChildren(node, next) {
+    const remaining = [...node.childNodes];
+    let cursor = node.firstChild;
+    for (const child of [...next.childNodes]) {
+      const key = nodeKey(child);
+      const old = remaining.find(candidate => candidate.nodeType === child.nodeType && candidate.nodeName === child.nodeName
+        && nodeKey(candidate) === key && (key || candidate.nodeType !== Node.ELEMENT_NODE || candidate.getAttribute("class") === child.getAttribute("class")));
+      if (old) {
+        remaining.splice(remaining.indexOf(old), 1);
+        if (old !== cursor) node.insertBefore(old, cursor);
+        patchNode(old, child);
+        cursor = old.nextSibling;
+      } else node.insertBefore(child, cursor);
+    }
+    remaining.forEach(child => child.remove());
+  }
+
+  function paint(el, html) {
+    const focused = el.contains(document.activeElement) ? document.activeElement : null;
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const key = node => node.id || node.getAttribute("aria-labelledby") || node.className;
+    const existing = [...el.children];
+    let cursor = el.firstElementChild;
+    for (const next of [...template.content.children]) {
+      const old = existing.find(node => key(node) === key(next) && node.tagName === next.tagName);
+      if (old) {
+        existing.splice(existing.indexOf(old), 1);
+        if (old !== cursor) el.insertBefore(old, cursor);
+        patchNode(old, next);
+        cursor = old.nextElementSibling;
+      } else {
+        el.insertBefore(next, cursor);
+      }
+    }
+    existing.forEach(node => node.remove());
+    if (focused?.isConnected && document.activeElement !== focused) focused.focus({ preventScroll: true });
+  }
+
   function render() {
     const el = root();
     if (!el) return;
@@ -244,12 +311,12 @@
     const name = (window.state.user.name || "").trim();
     document.getElementById("qg-date").textContent = f.longDate(now);
     document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
-    el.innerHTML = `
+    paint(el, `
       ${D().isGuest() ? guestHtml() : ""}
-      ${monthPromptHtml(now)}
-      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${heroHtml(action)}
       ${weekHtml(cad, recapNow)}
+      ${monthPromptHtml(now)}
+      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
       ${shortcutsHtml(list)}
       ${window.TitanStepsCard?.html?.() || ""}
       ${window.TitanIntents?.html?.() || ""}
@@ -266,7 +333,7 @@
           </section>
         </div>
       </div>
-      ${insightsHtml(others)}`;
+      ${insightsHtml(others)}`);
     el.setAttribute("aria-busy", "false");
   }
 

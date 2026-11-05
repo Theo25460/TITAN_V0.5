@@ -110,7 +110,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/css/fonts/manrope-latin-1.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=300.9"><link rel="stylesheet" href="/css/public.css?v=300.7">
+<link rel="stylesheet" href="/css/ascension.css?v=300.10"><link rel="stylesheet" href="/css/public.css?v=300.7">
 <script src="/js/pwa.js?v=${V}" defer></script>${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>

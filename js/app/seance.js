@@ -25,6 +25,7 @@
   let gpxSequence = 0;
   let hubOpen = false;
   let hubSport = null;
+  let hubQuery = "";
   let manualRequested = false;
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
 
@@ -276,9 +277,37 @@
     return `<span class="asc-chip">${icon(S_().FAMILY_ICON[fam])}${esc(S_().FAMILY_LABEL[fam])}</span>`;
   }
 
+  function importSports() {
+    const recent = [...(window.state?.history || [])].sort((a,b) => new Date(b.date)-new Date(a.date)).map(log=>log.sport);
+    const popular = [...new Set([...recent.slice(0, 8), ...(window.state?.user?.favoriteSports || []), "running", "cycling", "gravel", "trail", "walking", "hiking", "mountain_bike", "nordic_walk"])];
+    const rank = id => popular.includes(id) ? popular.indexOf(id) : popular.length;
+    return S_().all().filter(s => S_().formOf(s.id) === "distance")
+      .sort((a, b) => rank(a.id) - rank(b.id) || S_().label(a.id).localeCompare(S_().label(b.id), "fr"));
+  }
+
+  function importResults() {
+    const normalize = value => value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr");
+    const query = normalize(hubQuery.trim());
+    const matches = query ? new Set(S_().search(hubQuery, { limit: 1000 }).map(s => s.id)) : null;
+    const sports = importSports().filter(s => !query || matches.has(s.id) || normalize(S_().label(s.id) + " " + S_().FAMILY_LABEL[s.family]).includes(query));
+    return sports.length ? sports.map(s => `<button type="button" class="seance-import-choice" data-hub-choice="${esc(s.id)}" aria-pressed="${s.id === hubSport}">
+      <span class="seance-mode-icon">${icon(S_().iconOf(s.id))}</span>
+      <span class="seance-choice-label"><strong>${esc(S_().label(s.id))}</strong><small>${esc(S_().FAMILY_LABEL[s.family])}</small></span>
+      ${icon("check", "seance-choice-check")}</button>`).join("")
+      : '<div class="seance-search-empty"><p class="asc-small asc-muted" role="status">Aucun sport ne correspond à ta recherche.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="clear-import-search">Effacer la recherche</button></div>';
+  }
+
+  function modeHtml() {
+    if (!hubOn()) return "";
+    return `<div class="seance-modes" role="group" aria-label="Méthode d’enregistrement">
+      <button type="button" data-act="manual" aria-pressed="${!hubOpen && !S.gpx}"><span class="seance-mode-icon">${icon("edit")}</span><span><strong>Manuel</strong><small>Choisis ton sport et tes mesures</small></span></button>
+      <button type="button" data-act="hub" aria-pressed="${hubOpen || !!S.gpx}"><span class="seance-mode-icon">${icon("route")}</span><span><strong>GPX / Garmin</strong><small>Fichier GPX ou compte Garmin</small></span></button>
+    </div>`;
+  }
+
   function hubHtml() {
-    const sports = S_().all().filter(s => S_().formOf(s.id) === "distance").sort((a,b) => S_().label(a.id).localeCompare(S_().label(b.id), "fr"));
-    const selected = sports.some(s => s.id === hubSport) ? hubSport : sports.some(s => s.id === S.sport) ? S.sport : "running";
+    const sports = importSports();
+    hubSport = sports.some(s => s.id === hubSport) ? hubSport : sports.some(s => s.id === S.sport) ? S.sport : "running";
     const garmin = !window.state?.user?.guest && window.titanFlags?.enabled?.("screens.garmin", false) === true;
     return `<div data-activity-hub>
       <header class="asc-page-head"><div><p class="asc-eyebrow cy">Ton entraînement</p><h1 tabindex="-1" data-hub-title>Ajouter une activité</h1><p class="asc-lead">Importe une sortie ou saisis ce que tu as fait. Aucune montre ni formule payante nécessaire.</p></div></header>
@@ -286,7 +315,13 @@
       ${S.step === "form" ? `<section class="asc-note"><span>Brouillon conservé : ${esc(S_().label(S.sport))}.</span><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="resume">Reprendre le brouillon</button></section>` : ""}
       <section class="seance-block" aria-labelledby="hub-import-title"><p class="asc-eyebrow cy">Depuis un fichier</p><h2 id="hub-import-title">Importer un GPX</h2>
         <p class="asc-small asc-muted">Distance, temps et altitude selon le fichier. Une route prévue reste un itinéraire, sans séance ni XP automatique.</p>
-        <label class="asc-field"><span>Sport de la sortie</span><select class="asc-input" data-hub-sport>${sports.map(s=>`<option value="${esc(s.id)}" ${s.id===selected ? "selected" : ""}>${esc(S_().label(s.id))}</option>`).join("")}</select></label>
+        <section class="seance-import-sport" aria-labelledby="hub-sport-label">
+          <h3 id="hub-sport-label">Sport de la sortie</h3>
+          <p class="seance-import-selected" data-hub-selection>${icon(S_().iconOf(hubSport))}<strong>${esc(S_().label(hubSport))}</strong><span>Sélectionné</span></p>
+          <input type="hidden" data-hub-sport value="${esc(hubSport)}">
+          <div class="seance-search"><label class="sr-only" for="hub-sport-q">Rechercher un sport pour le GPX</label><span class="seance-search-icon">${icon("search")}</span><input id="hub-sport-q" data-hub-query class="asc-input" type="search" autocomplete="off" placeholder="Course, gravel, randonnée…" value="${esc(hubQuery)}" aria-controls="hub-sport-results"></div>
+          <div id="hub-sport-results" class="seance-import-results" role="group" aria-label="Sports compatibles GPX">${importResults()}</div>
+        </section>
         <label class="asc-btn asc-btn-primary seance-hub-upload">${icon("upload")} Choisir un fichier GPX<input type="file" accept=".gpx,application/gpx+xml" data-hub-gpx></label>
         <p class="asc-small asc-faint">GPX uniquement, 15 Mo maximum. FIT et TCX ne sont pas pris en charge. Analyse sur cet appareil ; les coordonnées précises ne sont pas sauvegardées.</p>
         <p class="asc-small" data-hub-status role="status"></p>
@@ -295,9 +330,7 @@
         ${garmin ? `<p class="asc-small asc-muted">Consulte les autorisations et la disponibilité de Garmin dans ton profil avant de relier un compte.</p><a class="asc-btn asc-btn-secondary" href="/profile#sources" data-hub-garmin>Gérer Garmin et mes autorisations ${icon("arrow")}</a>` : `<p class="asc-small asc-muted">Garmin est indisponible pour le moment. Tu peux importer un GPX ou saisir ton activité.</p>`}
         <p class="asc-small asc-faint">Santé Connect nécessite l’application Android et une autorisation sur l’appareil. Aucun accès depuis ce navigateur.</p>
       </section>
-      <section class="seance-block" aria-labelledby="hub-manual-title"><h2 id="hub-manual-title">Sans fichier ni capteur</h2><p class="asc-small asc-muted">Choisis ton sport, indique tes mesures et la date. La saisie manuelle reste gratuite.</p>
-        <button type="button" class="asc-btn asc-btn-secondary" data-act="manual">${icon("edit")} Saisie manuelle</button>
-      </section></div>`;
+      </div>`;
   }
 
   function replaceFromHub(action) {
@@ -337,7 +370,6 @@
     return `
       <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait&#8239;?</h1></div></header>
       <nav class="asc-subnav" data-subnav></nav>
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-act="hub" ${hubOn() ? "" : "hidden"}>${icon("chevronLeft")} Ajouter une activité</button>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
@@ -538,7 +570,6 @@
         <div class="seance-head-main"><p class="asc-eyebrow cy">Nouvelle séance</p><h1 class="seance-title">${esc(S_().label(S.sport))}</h1></div>
         ${familyChip(S.sport)}
       </header>
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-act="hub" ${hubOn() ? "" : "hidden"}>${icon("chevronLeft")} Ajouter une activité</button>
       <div class="seance-chrono" data-running="${!!t.started}">
         <span class="asc-num seance-chrono-time" id="chrono" aria-live="off">00:00</span>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="chrono">${icon(t.started ? "pause" : "play")}${t.started ? "Pause" : elapsedMs(t) ? "Reprendre" : "Chrono"}</button>
@@ -564,9 +595,9 @@
     if (!root) return;
     const oldSport = root.querySelector("[data-hub-sport]")?.value;
     if (oldSport) hubSport = oldSport;
-    const focusSelector = hubOpen && ["[data-hub-sport]", "[data-hub-gpx]", "[data-hub-garmin]", '[data-act="manual"]', '[data-act="resume"]', "[data-hub-title]"]
+    const focusSelector = hubOpen && ["[data-hub-query]", ...importSports().map(s => `[data-hub-choice="${s.id}"]`), "[data-hub-gpx]", "[data-hub-garmin]", '[data-act="hub"]', '[data-act="manual"]', '[data-act="resume"]', "[data-hub-title]"]
       .find(selector => document.activeElement?.matches(selector));
-    root.innerHTML = hubOpen ? hubHtml() : S.step === "pick" ? pickHtml() : formHtml();
+    root.innerHTML = modeHtml() + (hubOpen ? hubHtml() : S.step === "pick" ? pickHtml() : formHtml());
     if (hubOpen) {
       window.titanShell?.refresh();
       if (focusSelector) (root.querySelector(focusSelector) || root.querySelector("[data-hub-title]"))?.focus({preventScroll:true});
@@ -752,6 +783,7 @@
     const requestOwner = owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => !saving && S === draft && sequence === gpxSequence && owner() === requestOwner
       && epoch === window.titanAccountTransition?.epoch && client === window.titanClient && !window.titanAccountTransition?.active;
+    if (hubSport) root.querySelector("[data-hub-status]").textContent = "Analyse du fichier…";
     let r;
     try {
       const text = await file.text();
@@ -763,6 +795,7 @@
     }
     if (!r.ok) return problem(r.error);
     if (hubSport) {
+      root.querySelector("[data-hub-status]").textContent = "Fichier analysé.";
       replaceFromHub(() => {
         if (!current()) return;
         choose(hubSport);
@@ -837,6 +870,11 @@
   function onInput(e) {
     if (saving) return;
     const el = e.target;
+    if (el.matches("[data-hub-query]")) {
+      hubQuery = el.value;
+      root.querySelector("#hub-sport-results").innerHTML = importResults();
+      return;
+    }
     if (el.id === "sport-q") {
       S.query = el.value;
       document.getElementById("sport-results").innerHTML = resultsHtml();
@@ -863,13 +901,33 @@
     if (saving) { e.preventDefault(); return; }
     const t = e.target.closest("button, [data-sport], [data-repeat], [data-routine]");
     if (!t || !root.contains(t) || t.disabled) return;
+    if (t.dataset.act === "clear-import-search") {
+      hubQuery = "";
+      const query = root.querySelector("[data-hub-query]");
+      query.value = "";
+      root.querySelector("#hub-sport-results").innerHTML = importResults();
+      query.focus({ preventScroll: true });
+      return;
+    }
+    if (t.dataset.hubChoice) {
+      if (!importSports().some(s => s.id === t.dataset.hubChoice)) return;
+      ++gpxSequence;
+      hubSport = t.dataset.hubChoice;
+      root.querySelector("[data-hub-sport]").value = hubSport;
+      root.querySelectorAll("[data-hub-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.hubChoice === hubSport)));
+      root.querySelector("[data-hub-selection]").innerHTML = `${icon(S_().iconOf(hubSport))}<strong>${esc(S_().label(hubSport))}</strong><span>Sélectionné</span>`;
+      root.querySelector("[data-hub-status]").textContent = "";
+      return;
+    }
     if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
+      if (hubOpen || !hubOn()) return;
       ++gpxSequence; persist(true); hubOpen = true; manualRequested = false;
       history.replaceState(null,"","/training"); render(); root.querySelector("[data-hub-title]")?.focus(); return;
     }
     if (t.dataset.act === "resume") { ++gpxSequence; hubOpen = false; render(); root.querySelector("h1")?.setAttribute("tabindex","-1"); root.querySelector("h1")?.focus(); return; }
     if (t.dataset.act === "manual") {
+      if (!hubOpen && !S.gpx) return;
       ++gpxSequence;
       return replaceFromHub(() => {
         manualRequested = true; hubOpen = false; S = fresh(); clearDraft();
@@ -1044,14 +1102,16 @@
     ++gpxSequence;
     clearTimeout(saveTimer);
     clearInterval(timerTick);
-    S = null; hubOpen = false; hubSport = null; manualRequested = false; booted = false;
+    S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;
     if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>';
   });
   window.addEventListener("titan:account-changed", () => start());
   window.addEventListener("titan:flags-updated", () => {
     if (!booted || !S) return;
-    root.querySelectorAll('[data-act="hub"]').forEach(b => { b.hidden = !hubOn(); });
-    if (hubOpen) { if (!hubOn()) hubOpen = false; render(); }
+    const modes = root.querySelector(".seance-modes");
+    if (!hubOn()) modes?.remove();
+    else if (!modes) root.insertAdjacentHTML("afterbegin", modeHtml());
+    if (hubOpen) { if (!hubOn()) { ++gpxSequence; hubOpen = false; } render(); }
     else if (S.step === "pick" && !S.query && !manualRequested && hubOn()) { hubOpen = true; render(); }
     // A late rollout response must never replace an edited form or search.
   });

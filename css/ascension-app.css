@@ -3896,6 +3896,7 @@
   .pf-crest { flex: 1 0 100%; margin: 0; display: flex; justify-content: center; }
 }
 .qg-crest { flex: none; margin-left: auto; }
+.qg-rank-reward { display: flex; flex: none; align-items: center; gap: var(--s4); margin-left: auto; }
 .moment-hero { display: grid; place-items: center; padding: var(--s4) 0 var(--s3); }
 .moment-ring { position: relative; width: 176px; height: 176px; }
 .moment-ring > svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -3952,6 +3953,50 @@
   .qg-rank { flex-wrap: wrap; align-items: center; row-gap: var(--s3); }
   .qg-rank-main { flex: 1 1 calc(100% - 96px); }
   .qg-rank-name { font-size: clamp(30px, 9vw, 38px); }
-  .qg-crest { margin-left: 0; order: 3; }
-  .qg-level { order: 4; margin-left: auto; }
+  .qg-rank-reward { flex: 1 0 100%; justify-content: center; margin-left: 0; }
+  .qg-crest { margin-left: 0; }
+  .qg-crest .crest { width: 96px; height: auto; }
+  .qg-level { justify-items: center; }
 }
+
+@media (max-width: 719px) {
+  .av-guardian img { justify-self: center; }
+}
+
+/* The QG updates while it is being read; those updates must never replay an entrance. */
+#qg .asc-appear { animation: none; }
+
+/* The two recording methods share the same visual weight and stay above the form. */
+.seance-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: var(--s6); }
+.seance-modes > button { display: flex; align-items: center; gap: 12px; min-height: 94px; padding: 18px; border: 1px solid var(--line-2); border-radius: 18px; background: var(--bg-1); color: var(--tx-2); text-align: left; cursor: pointer; }
+.seance-modes > button:hover { background: var(--bg-2); border-color: var(--cy-line); }
+.seance-modes > button[aria-pressed="true"] { color: var(--tx); border-color: var(--cy); background: linear-gradient(130deg, var(--cy-soft), var(--bg-1)); }
+.seance-mode-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; color: var(--cy); background: var(--cy-soft); }
+.seance-mode-icon .t-icon { display: block; width: 22px; height: 22px; }
+.seance-modes strong { display: block; font-family: var(--font-display); font-size: 17px; line-height: 1.3; }
+.seance-modes small { display: block; margin-top: 5px; color: var(--tx-2); font-size: 12px; line-height: 1.5; }
+.seance-import-sport { margin-block: var(--s4); padding: var(--s4); border: 1px solid var(--line); border-radius: 18px; background: var(--bg-1); }
+.seance-import-sport h3 { font-size: 15px; }
+.seance-import-selected { display: flex; align-items: center; gap: 10px; margin-block: 14px; color: var(--cy); }
+.seance-import-selected strong { min-width: 0; overflow-wrap: anywhere; }
+.seance-import-selected > span { margin-left: auto; color: var(--tx-2); font-size: 11px; }
+.seance-import-sport .seance-search { margin-bottom: 12px; }
+.seance-import-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 8px; max-height: 276px; overflow-y: auto; overscroll-behavior-y: contain; padding: 4px; scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
+.seance-import-choice { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 70px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); color: var(--tx); text-align: left; cursor: pointer; }
+.seance-import-choice:hover { border-color: var(--cy-line); }
+.seance-import-choice[aria-pressed="true"] { border-color: var(--cy); background: var(--cy-soft); }
+.seance-choice-label { flex: 1; min-width: 0; }
+.seance-choice-label strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+.seance-choice-label small { display: block; margin-top: 3px; color: var(--tx-2); font-size: 11px; }
+.seance-choice-check { width: 16px; height: 16px; color: var(--cy); visibility: hidden; }
+.seance-import-choice[aria-pressed="true"] .seance-choice-check { visibility: visible; }
+.seance-import-results > p { grid-column: 1 / -1; padding: 12px; }
+@media (max-width: 520px) {
+  .seance-modes { gap: 8px; margin-bottom: var(--s5); }
+  .seance-modes > button { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 12px; }
+  .seance-modes strong { font-size: 15px; }
+  .seance-import-sport { padding: 12px; }
+  .seance-import-results { grid-template-columns: 1fr; max-height: 264px; }
+}
+.seance-search-empty { grid-column: 1 / -1; padding: 12px; }
+.seance-search-empty p { margin-bottom: 12px; }

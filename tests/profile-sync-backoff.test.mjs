@@ -58,3 +58,16 @@ test('PT409 blocks repeated saves and preserves the pending edit',async()=>{
  await h.w.pushProfileStateToCloud();for(let i=0;i<100;i++)await h.w.saveState({forceCloud:true});
  await h.advance(600000);assert.equal(h.calls.length,1);assert(h.w.titanGetProfileRecovery().length>0);
 });
+
+test('caching a cloud read preserves its timestamp instead of inventing a local edit',()=>{
+ const h=harness();h.w.state.meta.updatedAt='2026-11-01T10:00:00.000Z';
+ h.w.saveState({localOnly:true});
+ assert.equal(JSON.parse(h.storage.getItem('state')).meta.updatedAt,'2026-11-01T10:00:00.000Z');
+});
+test('a newer cache timestamp alone never announces a progression conflict on repeated reads',async()=>{
+ const h=harness(),notices=[];h.w.showNotification=(...notice)=>notices.push(notice);
+ h.w.state.meta.updatedAt=new Date().toISOString();
+ await h.w.syncWithSupabase();await h.w.syncWithSupabase();
+ assert.equal(notices.filter(n=>n[1]==='CACHE EN REVUE').length,0);
+ assert.equal(h.calls.length,0);
+});
