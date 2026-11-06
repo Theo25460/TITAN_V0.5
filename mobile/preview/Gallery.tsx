@@ -5,6 +5,8 @@ import { T } from "../src/components/Text";
 import { EffortRules } from "../src/core";
 import { colors } from "../src/theme/tokens";
 
+const CREST_SIZES = [24, 32, 48, 64, 96, 128, 160] as const;
+
 export function Gallery() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={styles.wrap}>
@@ -29,12 +31,15 @@ export function Gallery() {
           <T variant="caption">éteinte</T>
         </View>
       </View>
-      <T variant="h2">Petite taille</T>
-      <View style={styles.grid}>
-        {RANK_IDS.map((id) => (
-          <RankCrest key={id} rank={id} size={48} glow={false} />
-        ))}
-      </View>
+      <T variant="h2">Matrice des sept rangs · sept tailles</T>
+      {RANK_IDS.map(id => <View key={id} style={{ gap: 8 }}>
+        <T variant="h3">{EffortRules.RANKS.find((rank: { id: string }) => rank.id === id)?.name}</T>
+        <View style={styles.grid}>
+          {CREST_SIZES.map(size => <View key={size} style={{ alignItems: "center", gap: 4 }}>
+            <RankCrest rank={id} size={size} glow={false} /><T variant="caption">{size} dp</T>
+          </View>)}
+        </View>
+      </View>)}
     </ScrollView>
   );
 }

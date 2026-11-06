@@ -15,10 +15,11 @@ after(async()=>{await browser?.close();server?.kill();});
 async function fixture({active=true,slow=false}={}){
  const context=await browser.newContext({viewport:{width:390,height:850},serviceWorkers:'block'});
  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort());
+ await context.addInitScript(() => { localStorage.setItem('titan_first_run_guide_v2','done'); });
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(base+'/adventure');await page.waitForFunction(()=>window.TitanAdventure?.status==='ready');
  await page.evaluate(({active,slow})=>{
-  const owner='00000000-0000-4000-8000-000000000123';window.state.user.id=owner;
+  const owner='00000000-0000-4000-8000-000000000123';window.state.user.id=owner;window.state.meta={...window.state.meta,firstRunGuideSeen:true,firstRunGuideVersion:'v2'};window.titanCloseFirstRunGuide?.();
   window.titanClient.auth.getSession=async()=>({data:{session:{user:{id:window.state.user.id},access_token:`token-${window.state.user.id}`}}});
   window.rpgCalls=[];window.rpgSlow=slow;
   const s={version:1,owner,world:'aube',active,chapter:9,target:15,days:9,effort:270,rewards:[],familyTitles:[],milestones:[]};
@@ -35,19 +36,23 @@ async function fixture({active=true,slow=false}={}){
    }
    return {data:JSON.parse(JSON.stringify(s)),error:null};
   }});
-  window.TitanRpgPanel.reset();const host=document.createElement('section');host.dataset.rpgHost='';host.id='rpg-test';document.body.replaceChildren(host);
+  window.TitanRpgPanel.reset();const host=document.createElement('section');host.dataset.rpgHost='';host.id='rpg-test';host.style.paddingBottom='96px';document.body.replaceChildren(host);
   window.TitanRpgPanel.mount(host,'aube');
  },{active,slow});
  return {context,page,errors};
 }
 test('18 real milestones, narrative choice, confirmed bestiary and narrow layout',async()=>{
  const {context,page,errors}=await fixture();try{
+  await page.locator('[data-rpg-secondary]').waitFor();
+  assert.equal(await page.locator('[data-rpg-secondary]').getAttribute('open'),null);
+  assert.equal(await page.locator('[data-rpg-action="claim"]').isVisible(),false);
+  await page.locator('[data-rpg-secondary]>summary').click();
   await page.locator('.av-rpg-path li').first().waitFor();assert.equal(await page.locator('.av-rpg-path li').count(),18);
   await page.locator('[data-rpg-action="claim"]').click();
   await page.locator('[data-rpg-choice="1"]').click();
   assert.match(await page.locator('#rpg-test').innerText(),/Tu prends le temps d’écouter/);
   await page.locator('[data-rpg-action="claim"]').click();
-  assert.match(await page.locator('summary').first().innerText(),/Bestiaire · 1\/6/);
+  assert.match(await page.locator('summary').filter({hasText:'Bestiaire'}).innerText(),/Bestiaire · 1\/6/);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   assert.equal(await page.evaluate(()=>window.rpgCalls.filter(([name,args])=>args.p_action==='claim').length),3);
   assert.equal(await page.evaluate(()=>window.rpgHeaders.every(([key,token])=>key==='Authorization'&&token==='Bearer token-00000000-0000-4000-8000-000000000123')),true);
@@ -56,6 +61,7 @@ test('18 real milestones, narrative choice, confirmed bestiary and narrow layout
 });
 test('opt-in is explicit and double-click never sends two start writes',async()=>{
  const {context,page,errors}=await fixture({active:false});try{
+  await page.locator('[data-rpg-secondary]>summary').click();
   const button=page.locator('[data-rpg-action="start"]');await button.waitFor();
   assert.equal(await page.evaluate(()=>window.rpgCalls.filter(([,a])=>a.p_action).length),0);
   await button.dblclick();await page.locator('.av-rpg-path li').first().waitFor();

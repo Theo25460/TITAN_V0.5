@@ -4,6 +4,8 @@ import { adventureRpgAction, fetchAdventureRpg, type AdventureWorld, type RpgSna
 import { space } from "../theme/tokens";
 import { Card } from "./Card";
 import { Button } from "./Button";
+import { Tap } from "./Pressable";
+import { Icon } from "./Icon";
 import { T } from "./Text";
 
 type Narrative = { ordinal: number; arc: number; arcName: string; chapter: number; kind: string; name: string; story: string; choices: string[]; endings: string[] };
@@ -17,6 +19,8 @@ const errorText = (error: unknown) => {
 
 /** Optional journal, server evidence only. Parent passes current authenticated owner/world and campaign revision. */
 export function AdventureEncounters({ owner, world, revision = 0 }: { owner: string; world: AdventureWorld; revision?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => setExpanded(false), [owner, world]);
   const [snapshot, setSnapshot] = useState<RpgSnapshot | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -44,9 +48,14 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
   const current = s?.milestones.find(n => !n.earned);
   const scene = nodes.find(n => n.ordinal === current?.ordinal);
   const bestiary = s?.rewards.map(r => nodes.find(n => n.ordinal === r.ordinal)).filter((n): n is Narrative => !!n && ["monster", "miniboss"].includes(n.kind)) ?? [];
+  const toggle = <Tap accessibilityRole="button" accessibilityState={{ expanded }} accessibilityLabel="Rencontres secondaires · 18 souvenirs facultatifs" onPress={() => setExpanded(value => !value)} style={{ minHeight: 48, flexDirection: "row", gap: space.s2, alignItems: "center" }}>
+    <View style={{ flex: 1, gap: 4 }}><T variant="h3">Rencontres secondaires</T><T variant="caption">18 souvenirs facultatifs, liés aux 9 chapitres{s?.active ? ` · ${s.rewards.length}/18 acquis` : ""}</T></View>
+    <Icon name={expanded ? "up" : "down"} size={20} />
+  </Tap>;
+  if (!expanded) return <Card testID="adventure-encounters">{toggle}</Card>;
   return <Card testID="adventure-encounters" style={{ gap: space.s3 }}>
-    <T variant="h2">Le chemin des rencontres</T>
-    <T variant="small">Facultatif, gratuit, sans échéance. Le repos ne retire rien. Tes séances confirmées préparent les rencontres ; aucun capteur requis.</T>
+    {toggle}
+    <T variant="small">Ces rencontres enrichissent les neuf chapitres du monde. Facultatif, gratuit, sans échéance. Le repos ne retire rien. Tes séances confirmées préparent les rencontres ; aucun capteur requis.</T>
     {error ? <T accessibilityRole="alert" tone="err">{error}</T> : null}
     {!s ? <><T variant="small">{error ? "Tu peux réessayer." : "Le journal des rencontres se prépare…"}</T>{error ? <Button label="Réessayer" onPress={() => { const epoch = generation.current; setError(""); fetchAdventureRpg(owner, world).then(data => { if (epoch === generation.current) setSnapshot(data); }).catch(e => { if (epoch === generation.current) setError(errorText(e)); }); }} loading={busy} /> : null}</> : !s.active ? <>
       <T>Trois arcs, six jalons chacun : lieux, choix, monstres, récits et trésors cosmétiques.</T>

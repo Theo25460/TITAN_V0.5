@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Card } from "../../components/Card";
 import { ShareBar } from "../../components/Charts";
 import { RANK_ACCENT, RankCrest, rankIdOf } from "../../components/Crest";
@@ -25,13 +25,18 @@ const nf = (n: number) => Format.number(n);
 const when = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
 /** A big number with its caption. Never rendered for a figure the data does not prove. */
-function Big({ value, label, tone, testID }: { value: string; label: string; tone?: "accent" | "amber"; testID?: string }) {
+export function CareerMetric({ value, label, tone, testID }: { value: string; label: string; tone?: "accent" | "amber"; testID?: string }) {
+  const { width, fontScale } = useWindowDimensions();
+  const match = value.match(/^([\d\s\u202f\u00a0]+(?:[,.]\d+)?)(.*)$/);
+  const numeric = match ? Number(match[1]!.replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")) : NaN;
+  const compact = Number.isFinite(numeric) && numeric >= 100000 ? `${new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(numeric)}${match![2]!.trim() ? ` ${match![2]!.trim()}` : ""}` : value;
   return (
-    <View style={styles.big} testID={testID} accessible accessibilityLabel={`${value} ${label}`}>
-      <T variant="h1" tone={tone} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
-        {value}
+    <View style={[styles.big, (width < 360 || fontScale > 1.3) && { flexBasis: "100%" }]} testID={testID} accessible accessibilityLabel={`${value} ${label}`}>
+      <T variant="h1" tone={tone}>
+        {compact}
       </T>
-      <T variant="caption" tone="faint" numberOfLines={2}>
+      {compact !== value ? <T variant="small">Exact : {value}</T> : null}
+      <T variant="caption" tone="faint">
         {label}
       </T>
     </View>
@@ -62,40 +67,40 @@ function Lenses({ c }: { c: Career }) {
       {foot && d.footKm > 0 ? (
         <Lens icon="run" title="À pied" color={familyColors.endurance}>
           <View style={styles.grid}>
-            <Big value={Format.distance(d.footKm)} label="parcourus en séance" tone="accent" />
-            <Big value={String(d.footSessions)} label={d.footSessions > 1 ? "séances avec distance" : "séance avec distance"} />
-            {d.footPace ? <Big value={Format.pace(d.runKm, d.runMinutes)} label="allure moyenne en course" /> : null}
-            {d.footElevation > 0 ? <Big value={`${nf(d.footElevation)} m`} label="de dénivelé positif" /> : null}
+            <CareerMetric value={Format.distance(d.footKm)} label="parcourus en séance" tone="accent" />
+            <CareerMetric value={String(d.footSessions)} label={d.footSessions > 1 ? "séances avec distance" : "séance avec distance"} />
+            {d.footPace ? <CareerMetric value={Format.pace(d.runKm, d.runMinutes)} label="allure moyenne en course" /> : null}
+            {d.footElevation > 0 ? <CareerMetric value={`${nf(d.footElevation)} m`} label="de dénivelé positif" /> : null}
           </View>
         </Lens>
       ) : null}
       {c.lenses.includes("bike") && d.bikeKm > 0 ? (
         <Lens icon="bike" title="À vélo" color={colors.am}>
           <View style={styles.grid}>
-            <Big value={Format.distance(d.bikeKm)} label="parcourus en séance" tone="amber" />
-            <Big value={String(d.bikeSessions)} label={d.bikeSessions > 1 ? "sorties avec distance" : "sortie avec distance"} />
-            {d.bikeKmh ? <Big value={`${Format.number(d.bikeKmh, 1)} km/h`} label="vitesse moyenne" /> : null}
-            {d.bikeMinutes ? <Big value={Format.hours(d.bikeMinutes)} label="en selle" /> : null}
-            {d.bikeElevation > 0 ? <Big value={`${nf(d.bikeElevation)} m`} label="de dénivelé positif" /> : null}
+            <CareerMetric value={Format.distance(d.bikeKm)} label="parcourus en séance" tone="amber" />
+            <CareerMetric value={String(d.bikeSessions)} label={d.bikeSessions > 1 ? "sorties avec distance" : "sortie avec distance"} />
+            {d.bikeKmh ? <CareerMetric value={`${Format.number(d.bikeKmh, 1)} km/h`} label="vitesse moyenne" /> : null}
+            {d.bikeMinutes ? <CareerMetric value={Format.hours(d.bikeMinutes)} label="en selle" /> : null}
+            {d.bikeElevation > 0 ? <CareerMetric value={`${nf(d.bikeElevation)} m`} label="de dénivelé positif" /> : null}
           </View>
         </Lens>
       ) : null}
       {c.lenses.includes("swim") && d.swimMeters > 0 ? (
         <Lens icon="wave" title="À la nage" color="#5AB8FF">
           <View style={styles.grid}>
-            <Big value={d.swimMeters >= 1000 ? `${Format.number(d.swimMeters / 1000, 1)} km` : `${nf(d.swimMeters)} m`} label="nagés en séance" />
-            <Big value={String(d.swimSessions)} label={d.swimSessions > 1 ? "séances" : "séance"} />
-            {d.swimMinutes ? <Big value={Format.duration(d.swimMinutes)} label="dans l’eau" /> : null}
+            <CareerMetric value={d.swimMeters >= 1000 ? `${Format.number(d.swimMeters / 1000, 1)} km` : `${nf(d.swimMeters)} m`} label="nagés en séance" />
+            <CareerMetric value={String(d.swimSessions)} label={d.swimSessions > 1 ? "séances" : "séance"} />
+            {d.swimMinutes ? <CareerMetric value={Format.duration(d.swimMinutes)} label="dans l’eau" /> : null}
           </View>
         </Lens>
       ) : null}
       {c.lenses.includes("strength") && c.strength.sessions > 0 ? (
         <Lens icon="weight" title="Renforcement" color={familyColors.force}>
           <View style={styles.grid}>
-            <Big value={String(c.strength.sessions)} label={c.strength.sessions > 1 ? "séances détaillées" : "séance détaillée"} />
-            <Big value={nf(c.strength.sets)} label="séries" />
-            <Big value={nf(c.strength.reps)} label="répétitions" />
-            {c.strength.loadedSets > 0 ? <Big value={`${nf(c.strength.volumeKg)} kg`} label="de volume (séries chargées)" tone="accent" /> : null}
+            <CareerMetric value={String(c.strength.sessions)} label={c.strength.sessions > 1 ? "séances détaillées" : "séance détaillée"} />
+            <CareerMetric value={nf(c.strength.sets)} label="séries" />
+            <CareerMetric value={nf(c.strength.reps)} label="répétitions" />
+            {c.strength.loadedSets > 0 ? <CareerMetric value={`${nf(c.strength.volumeKg)} kg`} label="de volume (séries chargées)" tone="accent" /> : null}
           </View>
         </Lens>
       ) : null}
@@ -168,10 +173,10 @@ export function CareerScreen() {
         <>
           <Card style={{ gap: space.s3 }}>
             <View style={styles.grid}>
-              <Big value={nf(c.totals.sessions)} label={c.totals.sessions > 1 ? "séances" : "séance"} tone="accent" testID="career-sessions" />
-              <Big value={Format.hours(c.totals.minutes)} label="de pratique" testID="career-time" />
-              <Big value={String(c.totals.sports)} label={c.totals.sports > 1 ? "sports pratiqués" : "sport pratiqué"} />
-              <Big value={String(c.totals.activeDays)} label={c.totals.activeDays > 1 ? "jours actifs" : "jour actif"} />
+              <CareerMetric value={nf(c.totals.sessions)} label={c.totals.sessions > 1 ? "séances" : "séance"} tone="accent" testID="career-sessions" />
+              <CareerMetric value={Format.hours(c.totals.minutes)} label="de pratique" testID="career-time" />
+              <CareerMetric value={String(c.totals.sports)} label={c.totals.sports > 1 ? "sports pratiqués" : "sport pratiqué"} />
+              <CareerMetric value={String(c.totals.activeDays)} label={c.totals.activeDays > 1 ? "jours actifs" : "jour actif"} />
             </View>
             {c.totals.unmeasuredSessions > 0 ? (
               <T variant="caption" tone="faint">
@@ -184,10 +189,10 @@ export function CareerScreen() {
             <Card style={{ gap: space.s3 }} testID="career-distances">
               <T variant="eyebrow">Distances en séance</T>
               <View style={styles.grid}>
-                {c.distance.footKm > 0 ? <Big value={Format.distance(c.distance.footKm)} label="à pied" /> : null}
-                {c.distance.bikeKm > 0 ? <Big value={Format.distance(c.distance.bikeKm)} label="à vélo" /> : null}
-                {c.distance.swimMeters > 0 ? <Big value={c.distance.swimMeters >= 1000 ? `${Format.number(c.distance.swimMeters / 1000, 1)} km` : `${nf(c.distance.swimMeters)} m`} label="à la nage" /> : null}
-                {c.elevation.meters > 0 ? <Big value={`${nf(c.elevation.meters)} m`} label="de dénivelé positif" tone="amber" /> : null}
+                {c.distance.footKm > 0 ? <CareerMetric value={Format.distance(c.distance.footKm)} label="à pied" /> : null}
+                {c.distance.bikeKm > 0 ? <CareerMetric value={Format.distance(c.distance.bikeKm)} label="à vélo" /> : null}
+                {c.distance.swimMeters > 0 ? <CareerMetric value={c.distance.swimMeters >= 1000 ? `${Format.number(c.distance.swimMeters / 1000, 1)} km` : `${nf(c.distance.swimMeters)} m`} label="à la nage" /> : null}
+                {c.elevation.meters > 0 ? <CareerMetric value={`${nf(c.elevation.meters)} m`} label="de dénivelé positif" tone="amber" /> : null}
               </View>
               <T variant="caption" tone="faint">
                 Seulement les distances mesurées pendant tes séances : un sport sans distance n’en reçoit jamais.
@@ -287,7 +292,7 @@ export function CareerScreen() {
 const styles = StyleSheet.create({
   hero: { alignItems: "center", gap: space.s2, paddingVertical: space.s5 },
   grid: { flexDirection: "row", flexWrap: "wrap", rowGap: space.s4, columnGap: space.s3 },
-  big: { width: "47%", flexGrow: 1, minWidth: 120, gap: 2 },
+  big: { flexBasis: "47%", flexGrow: 1, flexShrink: 1, minWidth: 120, maxWidth: "100%", gap: 2 },
   lensHead: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   lensIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg3 },
   rowLine: { flexDirection: "row", alignItems: "center", gap: space.s2, minHeight: 28 },

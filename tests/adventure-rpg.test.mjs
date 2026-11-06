@@ -38,3 +38,17 @@ test('28-day low/high/no-sensor simulations, rest and duplicate receipts',()=>{
   }
   assert.equal(E.simulate([{id:'pending',day:'2026-10-01',activeMinutes:90,confirmed:false}]).score,0);
 });
+
+const A=require('../js/core/adventure-access.js');
+test('Web and native use the same versioned server access without invented entitlements',()=>{
+ const native=require('../mobile/src/core/web/adventure-access.js');
+ for(const version of [1,2,3])for(const plus of [false,true])for(const tier of ['free','plus']){
+  const snapshot={version,plus,campaigns:[{id:'forge',tier}]};
+  const result=A.worldAccess(snapshot,'forge');
+  assert.deepEqual(result,native.worldAccess(snapshot,'forge'));
+  assert.equal(result.state,version>=3||tier==='free'||plus?'open':'unavailable');
+ }
+ for(const id of ['aube','marees','forge','aurores'])assert.equal(A.worldAccess({version:3,plus:false,campaigns:[]},id).state,'open');
+ assert.equal(A.worldAccess(null,'aube').state,'unavailable');
+ assert.equal(A.worldAccess({version:3},'unknown').state,'unavailable');
+});

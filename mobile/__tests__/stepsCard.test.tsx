@@ -149,3 +149,10 @@ describe("Steps screen", () => {
     expect(screen.getByTestId("steps-own-toggle").props.accessibilityState.disabled).toBe(true);
   });
 });
+
+test("the weekly chart distinguishes Tuesday and Wednesday for readers", () => {
+ const s = base([], null);
+ mockSteps.value = { ...s, view: { ...s.view, week: [{ day: "2026-11-03", steps: 3000 }, { day: "2026-11-04", steps: 4000 }] } };
+ screenOf();
+ expect(screen.getByLabelText(/mardi 3 novembre.*3 000.*mercredi 4 novembre.*4 000/)).toBeTruthy();
+});

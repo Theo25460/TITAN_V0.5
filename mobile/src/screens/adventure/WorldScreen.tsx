@@ -20,6 +20,7 @@ import { guardianImages, worldImages } from "../../core/images";
 import { useAdventure, useAdventureAction } from "../../data/hooks";
 import { useOwner } from "../../data/auth";
 import type { AdventureWorld } from "../../data/adventureRpg";
+import { worldAccess } from "../../lib/adventureAccess";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
@@ -33,6 +34,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
   const action = useAdventureAction();
   const toast = useToast();
   const online = useOnline();
+  const [showChapters, setShowChapters] = useState(false);
   const [routeChoice, setRouteChoice] = useState("rhythm");
   const [reveal, setReveal] = useState<RevealContent | null>(null);
   useEffect(() => navigation.setOptions({ title: world.name }), [navigation, world.name]);
@@ -44,7 +46,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
   if (!s) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
 
   const chapter = c?.chapter ?? 0;
-  const locked = (c?.tier ?? world.tier) === "plus" && !s.plus;
+  const access = worldAccess(s, world.id);
+  const locked = access.state !== "open";
   const done = chapter >= 10;
   const current = chapter > 0 && chapter < 10 ? world.chapters[chapter - 1] : null;
   const earned = new Set(s.rewards.filter((r) => r.world === world.id).map((r) => r.chapter));
@@ -108,10 +111,10 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
       {locked ? (
         <Card style={{ gap: 6 }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <Icon name="lock" color={colors.tx2} />
-            <T variant="bodyStrong">Région à venir</T>
+            <Icon name="cloud" color={colors.tx2} />
+            <T variant="bodyStrong">Accès à vérifier</T>
           </View>
-          <T variant="small">L’accès gratuit à cette région arrive avec la prochaine mise à jour du serveur TITAN. Aucun achat n’est nécessaire : tes acquis sont conservés.</T>
+          <T variant="small">{access.reason}</T>
         </Card>
       ) : !chapter ? (
         <Reveal>
@@ -161,7 +164,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
               <View style={[styles.encounter, { borderColor: current.boss ? "rgba(244,187,84,0.35)" : colors.line2 }]}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
                   {current.boss ? (
-                    <Image source={guardianImages[world.id]} style={styles.guardian} accessibilityIgnoresInvertColors />
+                    <Image source={guardianImages[world.id]} style={styles.guardian} resizeMode="contain" accessibilityLabel={world.guardian} accessibilityIgnoresInvertColors />
                   ) : (
                     <View style={[styles.obstacleIcon, { borderColor: `${world.color}66` }]}>
                       <Icon name={cp.ready ? "check" : "flag"} size={22} color={world.color} />
@@ -217,13 +220,13 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </Card>
       )}
 
-      {/* The chapter card (and its claim button) stays first: the main action is never pushed below the fold by the secondary story card. */}
-      {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
-
       <View style={{ gap: space.s2 }}>
-        <T variant="eyebrow">Le chemin</T>
+        <T variant="eyebrow">Parcours principal · 9 balises</T>
         <WorldPathMap chapter={chapter} earned={earned} color={world.color} worldName={world.name} finished={done} />
-        <View>
+        <Tap onPress={() => setShowChapters(value => !value)} accessibilityState={{ expanded: showChapters }} style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 }}>
+          <T variant="bodyStrong" style={{ flex: 1 }}>Détail des neuf chapitres</T><Icon name={showChapters ? "up" : "down"} />
+        </Tap>
+        {showChapters ? <View>
           {world.chapters.map((ch, i) => {
             const isDone = earned.has(ch.index) || ch.index < chapter;
             const isCurrent = ch.index === chapter && !done;
@@ -231,38 +234,39 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
             return (
               <View key={ch.id} style={styles.step} accessible accessibilityLabel={`Chapitre ${ch.index}, ${ch.name}${isDone ? `, validé, insigne ${ch.title}` : isCurrent ? ", en cours" : ", à venir"}`}>
                 <View style={styles.rail}>
-                  <View style={[styles.segment, { backgroundColor: i === 0 ? "transparent" : isDone || isCurrent ? world.color : colors.line2 }]} />
+                  <View style={[styles.segment, { backgroundColor: i === 0 ? "transparent" : isDone && (earned.has(ch.index - 1) || ch.index - 1 < chapter) ? world.color : colors.line2 }]} />
                   {ch.boss ? (
                     <View style={[styles.bossNode, { borderColor: isDone ? world.color : isCurrent ? colors.am : colors.line3 }]}>
-                      <Image source={guardianImages[world.id]} style={[styles.bossImg, !isDone && !isCurrent && { opacity: 0.35 }]} />
+                      <Image source={guardianImages[world.id]} resizeMode="contain" style={[styles.bossImg, !isDone && !isCurrent && { opacity: 0.35 }]} />
                     </View>
                   ) : (
                     <View style={[styles.node, isDone && { backgroundColor: world.color, borderColor: world.color }, isCurrent && { borderColor: world.color, borderWidth: 3, width: 34, height: 34, borderRadius: 17 }]}>
                       {isDone ? <Icon name="check" size={15} color={colors.bg} strokeWidth={2.8} /> : <T variant="caption" tone={isCurrent ? "default" : "faint"}>{ch.index}</T>}
                     </View>
                   )}
-                  <View style={[styles.segment, { backgroundColor: last ? "transparent" : isDone ? world.color : colors.line2 }]} />
+                  <View style={[styles.segment, { backgroundColor: last ? "transparent" : isDone && (earned.has(ch.index + 1) || ch.index + 1 < chapter) ? world.color : colors.line2 }]} />
                 </View>
                 <View style={[styles.stepBody, isCurrent && { backgroundColor: colors.bg2, borderColor: `${world.color}55` }]}>
-                  <T variant="bodyStrong" tone={isDone || isCurrent ? "default" : "faint"} numberOfLines={1}>
+                  <T variant="bodyStrong" tone={isDone || isCurrent ? "default" : "faint"}>
                     {ch.name}
                   </T>
-                  <T variant="caption" tone={isDone ? "default" : "faint"} color={isDone ? world.color : undefined} numberOfLines={1}>
+                  <T variant="caption" tone={isDone ? "default" : "faint"} color={isDone ? world.color : undefined}>
                     {isDone ? `Insigne · ${ch.title}` : ch.boss ? `${world.guardian} · ${ch.target} jours actifs + 150 min d’effort` : `${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}`}
                   </T>
                 </View>
               </View>
             );
           })}
-        </View>
+        </View> : null}
       </View>
+      {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
       <RewardReveal content={reveal} onClose={() => setReveal(null)} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { height: 236, borderRadius: radius.r3, overflow: "hidden", justifyContent: "flex-end", borderWidth: 1, borderColor: colors.line2 },
+  hero: { minHeight: 236, paddingTop: 44, borderRadius: radius.r3, overflow: "hidden", justifyContent: "flex-end", borderWidth: 1, borderColor: colors.line2 },
   heroMeta: { flexDirection: "row", gap: space.s2, flexWrap: "wrap" },
   pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: "rgba(5,7,10,0.65)", borderWidth: 1, borderColor: colors.line2 },
   route: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, minHeight: 56 },
@@ -270,13 +274,13 @@ const styles = StyleSheet.create({
   story: { fontStyle: "italic" },
   encounter: { gap: space.s3, padding: space.s3, borderRadius: radius.r2, borderWidth: 1, backgroundColor: colors.bg1 },
   obstacleIcon: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
-  guardian: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: colors.am },
+  guardian: { width: 72, height: 72, borderRadius: radius.r2, borderWidth: 2, borderColor: colors.am },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.s2 },
   step: { flexDirection: "row", alignItems: "stretch", gap: space.s3, minHeight: 64 },
   rail: { width: 44, alignItems: "center" },
   segment: { width: 3, flex: 1, borderRadius: 2 },
   node: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: colors.line3, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg },
-  bossNode: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, overflow: "hidden", backgroundColor: colors.bg },
+  bossNode: { width: 44, height: 44, borderRadius: radius.r2, borderWidth: 2, overflow: "hidden", backgroundColor: colors.bg },
   bossImg: { width: "100%", height: "100%" },
   stepBody: { flex: 1, justifyContent: "center", gap: 2, paddingHorizontal: space.s3, paddingVertical: space.s2, marginVertical: 4, borderRadius: radius.r2, borderWidth: 1, borderColor: "transparent" },
 });

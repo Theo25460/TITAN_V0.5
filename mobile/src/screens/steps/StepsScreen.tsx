@@ -20,7 +20,8 @@ import { approxKm } from "../../lib/stepLedger";
 import { GOAL_MAX, GOAL_MIN, GOAL_PRESETS, stepsText } from "../../lib/steps";
 import { colors, space } from "../../theme/tokens";
 
-const DAY = ["D", "L", "M", "M", "J", "V", "S"];
+const DAY = ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"];
+const dayName = (day: string) => new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 const km = (steps: number) => String(approxKm(steps)).replace(".", ",");
 
 /** The steps, in one place (V12-01): today's ring, the goal, the week, and where the numbers come from. TITAN's own counter is the
@@ -116,7 +117,7 @@ export function StepsScreen() {
       <Group title="Cette semaine">
         <View style={{ padding: space.s4, gap: space.s2 }}>
           <BarChart
-            data={v.week.map((w, i) => ({ label: DAY[new Date(`${w.day}T12:00:00`).getDay()]!, value: w.steps ?? 0, highlight: i === 6, display: w.steps === null ? "–" : stepsText(w.steps), detail: w.steps === null ? "pas de chiffre" : undefined }))}
+            data={v.week.map((w, i) => ({ label: DAY[new Date(`${w.day}T12:00:00`).getDay()]!, value: w.steps ?? 0, highlight: i === 6, display: w.steps === null ? "–" : stepsText(w.steps), detail: `${dayName(w.day)}${w.steps === null ? " · pas de chiffre" : ""}` }))}
             height={120}
             scale={false}
             accessibilityLabel={`Pas des sept derniers jours${v.weekAverage ? `, moyenne ${stepsText(v.weekAverage)}` : ""}`}

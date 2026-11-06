@@ -1,10 +1,15 @@
 /* The winding path of a world: nine chapters laid out as three arcs of three, on a vertical sinuous track. Pure layout from the REAL
    progress (which chapters are validated, which one is current): nothing is invented, no fight or monster is drawn that the server did not grant. */
 export type PathNode = { index: number; x: number; y: number; arc: 1 | 2 | 3; boss: boolean; state: "done" | "current" | "locked" };
+export type PathSegment = { from: number; to: number; d: string; curve: string; earned: boolean };
+export function worldPathHeight(width: number, height: number, fontScale = 1): number {
+  const base = width > height ? 320 : Math.max(320, Math.min(400, width * 1.25));
+  return Math.max(base, 320 + Math.max(0, Math.min(2, fontScale) - 1) * 120);
+}
 export const ARC_SIZE = 3;
 export const arcOf = (chapter: number): 1 | 2 | 3 => (Math.min(3, Math.ceil(chapter / ARC_SIZE)) as 1 | 2 | 3);
 
-export function layoutPath(width: number, height: number, chapter: number, done: Set<number>, total = 9, pad = 28): { nodes: PathNode[]; d: string } {
+export function layoutPath(width: number, height: number, chapter: number, done: Set<number>, total = 9, pad = 28): { nodes: PathNode[]; d: string; segments: PathSegment[] } {
   const step = (height - 2 * pad) / (total - 1);
   const left = pad + 8, right = width - pad - 8;
   const nodes: PathNode[] = Array.from({ length: total }, (_, i) => {
@@ -19,13 +24,15 @@ export function layoutPath(width: number, height: number, chapter: number, done:
       state: done.has(index) || index < chapter ? "done" : index === chapter ? "current" : "locked",
     };
   });
-  // smooth curve through the nodes (quadratic midpoints)
-  let d = `M ${nodes[0]!.x.toFixed(1)} ${nodes[0]!.y.toFixed(1)}`;
+  // Use the identical source curves for both neutral and acquired tracks.
+  const segments: PathSegment[] = [];
+  const move = (node: PathNode) => `M ${node.x.toFixed(1)} ${node.y.toFixed(1)}`;
   for (let i = 1; i < nodes.length; i++) {
     const a = nodes[i - 1]!, b = nodes[i]!;
     const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-    d += ` Q ${a.x.toFixed(1)} ${my.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)} T ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+    const curve = ` Q ${a.x.toFixed(1)} ${my.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)} T ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+    segments.push({ from: a.index, to: b.index, d: move(a) + curve, curve, earned: a.state === "done" && b.state === "done" });
   }
-  return { nodes, d };
+  return { nodes, d: move(nodes[0]!) + segments.map(segment => segment.curve).join(""), segments };
 }
 export const ARC_LABEL = ["Arc I", "Arc II", "Arc III"] as const;

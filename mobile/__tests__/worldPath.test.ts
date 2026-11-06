@@ -1,4 +1,4 @@
-import { arcOf, layoutPath } from "../src/lib/worldPath";
+import { arcOf, layoutPath, worldPathHeight } from "../src/lib/worldPath";
 
 test("nine chapters in three arcs of three; the guardian is the ninth", () => {
   expect([1, 2, 3, 4, 5, 6, 7, 8, 9].map(arcOf)).toEqual([1, 1, 1, 2, 2, 2, 3, 3, 3]);
@@ -27,4 +27,25 @@ test("a sinuous path inside the box: chapter 1 at the bottom, the guardian at th
   expect(nodes[0]!.y).toBeGreaterThan(nodes[8]!.y);
   expect(new Set(nodes.map((n) => Math.round(n.x))).size).toBeGreaterThan(3); // it winds
   expect(d.startsWith("M ")).toBe(true);
+});
+
+test.each([0, 1, 2, 3, 4, 8, 9, 10])("colored segments terminate at acquired nodes for chapter %i", chapter => {
+ const { nodes, segments, d } = layoutPath(320, 400, chapter, new Set());
+ expect(segments).toHaveLength(8);
+ expect(d).toBe(`M ${nodes[0]!.x.toFixed(1)} ${nodes[0]!.y.toFixed(1)}` + segments.map(s => s.curve).join(""));
+ for (const segment of segments) {
+  const from = nodes[segment.from - 1]!, to = nodes[segment.to - 1]!;
+  expect(segment.d).toBe(`M ${from.x.toFixed(1)} ${from.y.toFixed(1)}` + segment.curve);
+  expect(segment.d.endsWith(`${to.x.toFixed(1)} ${to.y.toFixed(1)}`)).toBe(true);
+  expect(segment.earned).toBe(from.state === "done" && to.state === "done");
+ }
+ expect(segments.filter(s => s.earned)).toHaveLength(Math.max(0, Math.min(9, chapter - 1) - 1));
+});
+test("sparse rewards never bridge an unacquired node", () => {
+ expect(layoutPath(320, 400, 0, new Set([1, 2, 4, 8, 9])).segments.filter(s => s.earned).map(s => [s.from, s.to])).toEqual([[1, 2], [8, 9]]);
+});
+test("height adapts to landscape and reserves space at 200 percent text", () => {
+ expect(worldPathHeight(360, 740, 1)).toBe(400);
+ expect(worldPathHeight(740, 360, 1)).toBe(320);
+ expect(worldPathHeight(320, 740, 2)).toBeGreaterThanOrEqual(440);
 });

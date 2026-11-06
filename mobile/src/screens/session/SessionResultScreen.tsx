@@ -12,7 +12,7 @@ import { ProgressBar } from "../../components/Progress";
 import { ProgressReveal } from "../../components/ProgressReveal";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
+import { AdventureRules, Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { worldImages } from "../../core/images";
 import { recordText, sessionMetrics, sessionRecords } from "../../core/moment";
 import { momentShare } from "../../data/api";
@@ -42,7 +42,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const { logs, active } = useLogs();
   const prefs = usePrefs();
   const profile = useProfile().data;
-  const adventure = useAdventure().data;
+  const adventureQuery = useAdventure();
+  const adventure = adventureQuery.data;
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [shared, setShared] = useState(false);
   const [revealing, setRevealing] = useState(() => !revealed.has(eventId));
   const [sharing, setSharing] = useState(false);
@@ -66,7 +68,10 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const records = useMemo(() => (log && status === "confirmed" ? sessionRecords(logs, log) : []), [logs, log, status]);
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const mastery = useMemo(() => (log ? Progress.mastery(active).find((m) => m.sport === log.sport) : undefined), [active, log]);
-  const campaign = adventure?.campaigns.find((c) => c.id === adventure.selected_world && c.chapter > 0 && c.chapter <= 9) ?? adventure?.campaigns.find((c) => c.chapter > 0 && c.chapter <= 9);
+  const impact = AdventureRules.sessionImpact({ logId: receipt?.log_id ?? log?.id, owner, status,
+    rewardHeld: receipt?.reward_held, historical: Boolean(log?.details?.historical), snapshot: adventure,
+    snapshotReady: adventureQuery.isFetchedAfterMount && !adventureQuery.isFetching && !adventureQuery.isError });
+  const campaign = adventure?.campaigns.find((c) => c.id === impact.campaignId) ?? adventure?.campaigns.find((c) => c.id === adventure.selected_world && c.chapter > 0 && c.chapter <= 9) ?? adventure?.campaigns.find((c) => c.chapter > 0 && c.chapter <= 9);
   const world = campaign ? Codex.worlds.find((w) => w.id === campaign.id) : undefined;
   const chapterDays = campaign ? Math.min(Number(campaign.evidence?.days ?? 0), campaign.target) : 0;
 
@@ -135,6 +140,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </View>
           {headline ? (
             <View>
+              <T variant="eyebrow">Tu as fait</T>
               <T style={styles.hero}>{headline[1]}</T>
               <T variant="caption" tone="faint">
                 {headline[0]}
@@ -158,6 +164,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
         <Reveal order={1}>
           <Card tone={status === "confirmed" ? "accent" : "flat"} style={{ gap: space.s3 }}>
+            <T variant="eyebrow">{status === "confirmed" ? "TITAN a confirmé" : "Confirmation en attente"}</T>
             {status === "confirmed" && receipt?.reward_held ? (
               <View style={{ flexDirection: "row", gap: space.s3, alignItems: "center" }}>
                 <Icon name="clock" size={22} color={colors.warn} />
@@ -227,7 +234,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                       ? "Elle compte pour tes statistiques et tes records. Sans XP : seules les séances des 30 derniers jours en rapportent."
                       : status === "error"
                         ? queued?.reason || "Corrige-la ou supprime-la depuis les envois en attente."
-                        : `Elle partira d’elle-même dès que la connexion revient${effort.xp > 0 && !historical ? ` (environ ${Format.number(effort.xp)} XP, confirmés par le serveur à l’envoi)` : ""}. Rien n’est perdu.`}
+                        : "Elle partira d’elle-même dès que la connexion revient. Rien n’est perdu."}
                   </T>
                 </View>
               </View>
@@ -263,7 +270,10 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
-        {thisWeek && !historical ? (
+        {(thisWeek && !historical) || mastery ? <Tap accessibilityLabel="Mes repères sportifs" accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
+          <T variant="bodyStrong">Mes repères sportifs</T><Icon name="chevron" size={18} color={colors.tx4} />
+        </Tap> : null}
+        {detailsExpanded && thisWeek && !historical ? (
           <Reveal order={3}>
             <View style={styles.block}>
               <View style={styles.between}>
@@ -288,7 +298,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
-        {mastery ? (
+        {detailsExpanded && mastery ? (
           <Reveal order={4}>
             <View style={styles.block}>
               <View style={styles.between}>
@@ -309,7 +319,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
         {campaign && world && !historical ? (
           <Reveal order={5}>
-            <Tap onPress={() => navigation.navigate("World", { id: world.id })} accessibilityLabel={`${world.name}, ${world.chapters[campaign.chapter - 1]?.name}`} style={styles.quest}>
+            <T variant="eyebrow">Dans ton aventure</T>
+            <Tap onPress={() => navigation.navigate("World", { id: world.id })} accessibilityLabel={`${world.name}, ${world.chapters[campaign.chapter - 1]?.name}. ${impact.text} Voir la prochaine étape.`} style={styles.quest}>
               <Image source={worldImages[world.image]} style={styles.questImg} />
               <View style={{ flex: 1, gap: 4 }}>
                 <T variant="caption" color={world.color}>
@@ -318,16 +329,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="bodyStrong" numberOfLines={1}>
                   {world.chapters[campaign.chapter - 1]?.name}
                 </T>
-                <ProgressBar value={chapterDays / Math.max(1, campaign.target)} color={world.color} height={5} delay={800} accessibilityLabel="Avancée du chapitre" />
-                <T variant="caption" tone="faint">
-                  {Progress.campaignProgress(campaign).ready ? "Chapitre prêt à être validé" : `${chapterDays}/${campaign.target} jour${campaign.target > 1 ? "s" : ""} actif${campaign.target > 1 ? "s" : ""}`}
-                  {status === "confirmed" ? "" : " · mis à jour après confirmation"}
-                </T>
+                {impact.campaignId ? <ProgressBar value={chapterDays / Math.max(1, campaign.target)} color={world.color} height={5} delay={800} accessibilityLabel="Avancée du chapitre confirmée" /> : null}
+                <T variant="caption" tone="faint" accessibilityLiveRegion="polite">{impact.text}</T>
+                <T variant="caption">Voir la prochaine étape</T>
               </View>
               <Icon name="chevron" size={18} color={colors.tx4} />
             </Tap>
           </Reveal>
-        ) : null}
+        ) : !historical ? <Reveal order={5}><Card style={{ gap: space.s3 }}><T variant="eyebrow">Dans ton aventure</T><T accessibilityLiveRegion="polite">{impact.text}</T><Button label="Découvrir les mondes" kind="secondary" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} /></Card></Reveal> : null}
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
       {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (

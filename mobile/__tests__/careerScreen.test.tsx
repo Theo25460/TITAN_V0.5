@@ -22,7 +22,7 @@ jest.mock("../src/data/career", () => ({
   },
 }));
 
-import { CareerScreen } from "../src/screens/progress/CareerScreen";
+import { CareerMetric, CareerScreen } from "../src/screens/progress/CareerScreen";
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 const show = () => render(<SafeAreaProvider initialMetrics={metrics}><CareerScreen /></SafeAreaProvider>);
 beforeEach(() => { mockNavigate.mockReset(); mockLogs = []; mockSteps = null; mockLevel = 12; id = 0; });
@@ -74,4 +74,11 @@ test("a sport without distance never gets one, and a session opens its detail", 
   expect(screen.getByText(/Pas de pas comptés/)).toBeTruthy();
   fireEvent.press(screen.getByLabelText(/Yoga/));
   expect(mockNavigate).toHaveBeenCalledWith("SessionDetail", { id: "s1" });
+});
+
+test("long totals remain readable with the exact figure visible and accessible", () => {
+ render(<CareerMetric value="9 876 543 210 kg" label="de volume" testID="huge-value" />);
+ expect(screen.getByTestId("huge-value")).toHaveProp("accessibilityLabel", "9 876 543 210 kg de volume");
+ expect(screen.getByText("Exact : 9 876 543 210 kg")).toBeTruthy();
+ expect(screen.getByText(/Md kg/).props.adjustsFontSizeToFit).toBeUndefined();
 });

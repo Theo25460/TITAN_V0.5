@@ -32,8 +32,7 @@ const variants = StyleSheet.create<Record<Variant, TextStyle>>({
 });
 
 const defaultTone: Partial<Record<Variant, Tone>> = { eyebrow: "faint", caption: "muted", small: "muted" };
-// Large titles keep their layout under big system font sizes; body text scales freely.
-const scaleCap: Partial<Record<Variant, number>> = { display: 1.3, h1: 1.35, h2: 1.4, numLarge: 1.3, eyebrow: 1.5 };
+// Layouts accommodate the complete system text scale through 200%.
 
 export type TProps = TextProps & { variant?: Variant; tone?: Tone; center?: boolean; color?: string };
 
@@ -42,7 +41,7 @@ export function T({ variant = "body", tone, center, color, style, ...rest }: TPr
   return (
     <RNText
       accessibilityRole={isHeading ? "header" : undefined}
-      maxFontSizeMultiplier={scaleCap[variant] ?? 1.8}
+      maxFontSizeMultiplier={2}
       {...rest}
       style={[variants[variant], { color: color ?? tones[tone ?? defaultTone[variant] ?? "default"] }, center && { textAlign: "center" }, style]}
     />

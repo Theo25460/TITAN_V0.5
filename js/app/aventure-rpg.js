@@ -19,7 +19,7 @@
   if(epoch!==generation||currentOwner()!==id||data?.owner!==id||data?.world!==world)throw Error('ACCOUNT_CHANGED');
   cache.set(world,data);return data;
  }
- function html(world,s){
+ function content(world,s){
   const nodes=root.TitanAdventureRpg.path(world),worldInfo=root.TitanAdventureRpg.worlds.find(w=>w.id===world);
   if(!s)return '<p role="status">Le journal des rencontres se prépare…</p>';
   if(!s.active)return `<h2 class="asc-h2">Les chemins de ${esc(worldInfo.name)}</h2><p>Trois arcs, six jalons chacun : lieux, récits, rencontres et trésors cosmétiques. Facultatif, gratuit, sans échéance ni pénalité.</p><p class="asc-small asc-muted">Les prochaines séances confirmées seront attribuées une seule fois à ce monde pour les rencontres. Tes XP et coins suivent leurs règles habituelles. Aucun capteur requis.</p><button class="asc-btn asc-btn-secondary" type="button" data-rpg-action="start">Ouvrir ce chemin</button>`;
@@ -34,17 +34,25 @@
    <p class="asc-small">${first.ready?'Le serveur confirme les préparatifs.':`${remaining} point(s) d’effort restant(s) · ${Math.min(s.days,first.daysTarget)}/${first.daysTarget} jours distincts · chapitre ${model.chapter} à atteindre.`}</p>
    ${model.kind==='choice'?model.choices.map((c,i)=>`<button class="asc-btn asc-btn-secondary" type="button" data-rpg-action="claim" data-rpg-ordinal="${model.ordinal}" data-rpg-choice="${i}" ${first.ready?'':'disabled'}>${esc(c)}</button>`).join(''):`<button class="asc-btn asc-btn-secondary" type="button" data-rpg-action="claim" data-rpg-ordinal="${model.ordinal}" ${first.ready?'':'disabled'}>${combat?'Dégager le passage':model.kind==='treasure'?'Recueillir le souvenir':'Poursuivre le récit'}</button>`}</article>`;
   }else scene='<p class="asc-note">Les dix-huit jalons de ce monde rejoignent ton carnet. Tes souvenirs restent acquis.</p>';
-  return `<h2 class="asc-h2">Le chemin des rencontres</h2><p class="asc-small asc-muted">Facultatif. L’effort habituel de tes séances confirmées prépare le passage, 90 points au plus par jour sur l’ensemble des mondes. Une séance est attribuée une seule fois. Le repos ne retire rien.</p>
+  return `<h2 class="asc-h2">Les rencontres de ce monde</h2><p class="asc-small asc-muted">Facultatif. L’effort habituel de tes séances confirmées prépare le passage, 90 points au plus par jour sur l’ensemble des mondes. Une séance est attribuée une seule fois. Le repos ne retire rien.</p>
   <div class="av-rpg-arcs" aria-label="Trois arcs de six jalons">${[1,2,3].map(arc=>`<section><h3>Arc ${arc} · ${esc(nodes[(arc-1)*6].arcName)}</h3><ol class="av-rpg-path">${nodes.filter(n=>n.arc===arc).map(n=>{
     const proof=s.milestones.find(p=>p.ordinal===n.ordinal),reward=rewards.find(r=>r.ordinal===n.ordinal);
-    return `<li class="${proof.earned?'is-earned':first?.ordinal===n.ordinal?'is-current':''}" ${first?.ordinal===n.ordinal?'aria-current="step"':''}><span class="av-rpg-dot" aria-hidden="true">${proof.earned?'✓':n.ordinal}</span><span><strong>${esc(n.name)}</strong><small>Chapitre ${n.chapter} · ${proof.earned?'acquis':first?.ordinal===n.ordinal?'en cours':'à découvrir'}</small>${reward?.choice!=null?`<small>${esc(n.endings[reward.choice])}</small>`:''}</span></li>`;
+    return `<li class="${proof?.earned?'is-earned':first?.ordinal===n.ordinal?'is-current':''}" ${first?.ordinal===n.ordinal?'aria-current="step"':''}><span class="av-rpg-dot" aria-hidden="true">${proof?.earned?'✓':n.ordinal}</span><span><strong>${esc(n.name)}</strong><small>Chapitre ${n.chapter} · ${proof?.earned?'acquis':first?.ordinal===n.ordinal?'en cours':'à découvrir'}</small>${reward?.choice!=null?`<small>${esc(n.endings[reward.choice])}</small>`:''}</span></li>`;
    }).join('')}</ol></section>`).join('')}</div>
   <p class="asc-small">${s.days} jours admissibles · ${s.effort} points confirmés · ${rewards.length}/18 souvenirs. Cible figée : ${s.target} points par jalon, d’après les 28 jours précédant le départ.</p>
   <button class="asc-btn asc-btn-ghost" type="button" data-rpg-action="sync">Actualiser les preuves de ce monde</button>${scene}
   <details class="av-rules"><summary>Bestiaire · ${bestiary.length}/6 rencontres</summary>${bestiary.length?bestiary.map(n=>`<article class="asc-note"><strong>${esc(n.name)} · arc ${n.arc}</strong><p>${esc(n.story)}</p><small>Rencontre confirmée · souvenir cosmétique</small></article>`).join(''):'<p>Les rencontres confirmées apparaîtront ici.</p>'}</details>
   <details class="av-rules"><summary>Exploits par familles · ${(s.familyTitles||[]).length} titre(s)</summary><p class="asc-small">Trois jours distincts dans une famille débloquent un titre cosmétique. Aucun sport précis ni abonnement requis.</p>${(s.familyTitles||[]).map(f=>`<p>${esc(root.TitanAdventureRpg.familyTitle(f.family))}</p>`).join('')}</details>`;
  }
- function paint(host,world){if(host.isConnected&&host.dataset.owner===currentOwner())host.innerHTML=html(world,cache.get(world))+'<p role="status" data-rpg-error></p>';}
+ function html(world,s,expanded=false){
+  return `<details data-rpg-secondary ${expanded?'open':''}><summary>Rencontres secondaires · 18 souvenirs facultatifs${s?.active?` · ${s.rewards.length}/18 acquis`:''}</summary><p class="asc-small asc-muted">Ces rencontres enrichissent les neuf chapitres du monde. Le parcours principal reste celui des neuf balises.</p>${content(world,s)}</details>`;
+ }
+ function paint(host,world){
+  if(host.isConnected&&host.dataset.owner===currentOwner()){
+   const expanded=host.querySelector('[data-rpg-secondary]')?.open===true;
+   host.innerHTML=html(world,cache.get(world),expanded)+'<p role="status" data-rpg-error></p>';
+  }
+ }
  async function mount(host,world){
   if(!host||!root.TitanAdventureRpg)return;
   const id=currentOwner();host.dataset.owner=id||'';
