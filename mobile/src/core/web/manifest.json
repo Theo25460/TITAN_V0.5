@@ -11,12 +11,14 @@
     "progress.js": "487bd8159def84aa294ae2a99217f4063fa7c3a303d485ff73a02fe3d8d6124d",
     "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
     "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
-    "renaissance-engine.js": "795508d262cec4d716aa355811684a9d3945cea18ad8552dd08ee3b9b7604e5f",
+    "renaissance-engine.js": "61c68ba8a65d8c993ccbfc10fecd05e778d09f54d5db466043dd90bab4d4f1a9",
     "campaign-quests.js": "28fc3d4f3c956014ce729f5bd24449d05717e7edd1a13576f43dd60bcdd599d5",
     "campaign-encounters.js": "e3f6d81cb1cb665933702536048d0bf92dd254846cb5ff12fb4be669f4c2d1e2",
     "sport-navigation.js": "db1d60e4b6d27fc115169b31a36062baf9b10995294666d16e4c9c61d179ef07",
     "gpx.js": "5211d922a4444499d27ab63c326dce0e5b66fae49fa324342fd286efacd338e2",
     "adventure-rpg.js": "7086d64a88d975db44fe2b03bc06f52aafc633beb44eb6e1c1595e58870f7f05",
-    "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a"
+    "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
+    "journey.js": "bbd2dda273ffcb193d8a2813ce7cd3f3f46e591f8d109e58d9cd98151155c235",
+    "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265"
   }
 }

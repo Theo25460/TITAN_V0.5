@@ -17,7 +17,7 @@
   const dateKey = (value) =>
     root.TitanTraining?.dateKey(value) ||
     new Date(value).toLocaleDateString("sv-SE");
-  function weeklyQuests(logs, goal = 3, now = new Date()) {
+  function weeklyQuests(logs, goal = 3, now = new Date(), prefs = {}) {
     const start = new Date(now);
     start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
     start.setHours(0, 0, 0, 0);
@@ -34,7 +34,7 @@
         root.TitanTraining?.duration(l) !== null &&
         root.TitanTraining?.duration(l) > 0,
     );
-    return [
+    const quests = [
       {
         id: "rhythm",
         name: "Un rythme à toi",
@@ -76,6 +76,41 @@
         href: "/training",
       },
     ];
+    // Favorites opt into a suggestion. Other disciplines still fill the common
+    // missions; previous complete weeks keep this personal target stable.
+    const favorites = Array.isArray(prefs?.favoriteSports)
+      ? [...new Set(prefs.favoriteSports.filter((s) => typeof s === "string" && s.trim()))] : [];
+    if (favorites.length) {
+      const since = new Date(start); since.setDate(since.getDate() - 28);
+      const recent = activeLogs(logs, now.getTime()).filter((l) => new Date(l.date) >= since && new Date(l.date) < start);
+      const counts = new Map(favorites.map((sport) => [sport, recent.filter((l) => l.sport === sport).length]));
+      const sport = [...favorites].sort((a, b) => counts.get(b) - counts.get(a))[0];
+      const target = Math.min(2, Math.max(1, Math.ceil(counts.get(sport) / 4)), Math.max(1, Math.floor(Number(goal)) || 1));
+      const label = root.TitanSports?.label?.(sport) || root.SPORTS_CONFIG?.[sport]?.label || sport;
+      quests.push({id: "sport-rhythm", sport, name: `Ton repère · ${label}`,
+        text: `Facultatif : ${target} séance${target > 1 ? "s" : ""} de ${label}, selon tes envies. Les jours de repos ne retirent rien.`,
+        value: Math.min(target, week.filter((l) => l.sport === sport).length), target,
+        unit: target > 1 ? "séances" : "séance", icon: "leaf", href: "/training"});
+    }
+    return quests;
+  }
+  // A receipt confirms rewards, but only fresh account-matched server evidence
+  // explicitly naming the session can attribute a chapter contribution.
+  function sessionImpact({logId, owner, status, rewardHeld = false, historical = false, snapshot, snapshotReady = false} = {}) {
+    if (historical) return {state: "historical", text: "Séance ajoutée à ton historique. Consulte ton aventure pour son état confirmé."};
+    const pending = {state: "pending", text: rewardHeld
+      ? "Séance enregistrée. Son effet sur l’aventure attend la fin de la vérification."
+      : "L’effet de cette séance sur l’aventure attend sa confirmation."};
+    if (status !== "confirmed" || rewardHeld || !snapshotReady || !snapshot || snapshot.local || !owner || snapshot.owner !== owner || !logId) return pending;
+    const active = (snapshot.campaigns || []).filter((c) => c.chapter > 0 && c.chapter <= 9);
+    if (!active.length) return {state: "confirmed", text: "Aucun monde actif. Choisis un monde pour retrouver sa prochaine étape sportive."};
+    const campaigns = active.filter((c) => c.evidence?.source_ids?.includes(logId));
+    const campaign = campaigns.find((c) => c.id === snapshot.selected_world) || campaigns[0];
+    if (!campaign) return {state: "confirmed", text: "Séance confirmée. L’état reçu n’attribue pas de nouvelle avancée de chapitre à cette séance. Consulte la prochaine étape de ton monde."};
+    const days = Math.max(0, Math.min(Number(campaign.evidence.days) || 0, Number(campaign.target) || 0));
+    const plural = campaign.target > 1 ? "s" : "";
+    return {state: "confirmed", campaignId: campaign.id,
+      text: `Cette séance compte dans le chapitre ${campaign.chapter} : ${days}/${campaign.target} jour${plural} actif${plural} confirmé${plural}.`};
   }
   /** Discovery estimate with the server rules: effort XP, 1800/day, nothing for history sessions. */
   function simulate(logs) {
@@ -104,6 +139,7 @@
     rank,
     activeLogs,
     weeklyQuests,
+    sessionImpact,
     simulate,
     snapshot: null,
     status: "loading",

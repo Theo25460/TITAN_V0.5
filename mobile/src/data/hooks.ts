@@ -18,6 +18,7 @@ export const keys = {
   logs: (o: string) => ["logs", o] as const,
   goals: (o: string) => ["goals", o] as const,
   adventure: (o: string) => ["adventure", o] as const,
+  journey: (o: string) => ["journey", o] as const,
   atelier: (o: string) => ["atelier", o] as const,
   social: (o: string) => ["social", o] as const,
   guild: (o: string) => ["guild", o] as const,
@@ -138,7 +139,7 @@ export function useCardSettings() {
 
 /** Invalidate what a confirmed session changes: journal, XP/credits, campaign evidence, social progress. */
 export function invalidateAfterSession(qc: ReturnType<typeof useQueryClient>, owner: string) {
-  for (const k of [keys.logs(owner), keys.profile(owner), keys.adventure(owner), keys.atelier(owner), keys.social(owner)]) qc.invalidateQueries({ queryKey: k });
+  for (const k of [keys.logs(owner), keys.profile(owner), keys.adventure(owner), keys.atelier(owner), keys.social(owner), keys.journey(owner)]) qc.invalidateQueries({ queryKey: k });
 }
 
 /** Records a session: durable write on the device first, then sending. Resolves once the session is safe locally. */

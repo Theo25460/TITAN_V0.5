@@ -146,13 +146,13 @@ export const Questions = g.TitanQuestions as {
 
 export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; name: string }[]; avatars: AvatarDef[]; routes: RouteDef[]; version: number };
 
-export const AdventureRules = g.TitanAdventure as { weeklyQuests(logs: TrainingLog[], goal?: number, now?: Date): { id: string; name: string; text: string; value: number; target: number; unit: string; icon: string; href: string }[] };
+export const AdventureRules = g.TitanAdventure as { sessionImpact(input: { logId?: string; owner: string; status: string; rewardHeld?: boolean; historical?: boolean; snapshot?: import("./types").AdventureSnapshot | null; snapshotReady?: boolean }): { state: "pending" | "confirmed" | "historical"; text: string; campaignId?: string }; weeklyQuests(logs: TrainingLog[], goal?: number, now?: Date, prefs?: { favoriteSports?: string[] }): { id: string; name: string; text: string; value: number; target: number; unit: string; icon: string; href: string }[] };
 
 export type EncounterPhase = { id: string; name: string; value: number; target: number; unit: string; complete: boolean; state: "done" | "active" | "waiting" };
 export type Encounter = { kind: "obstacle" | "guardian"; name: string; text: string; phases: EncounterPhase[]; percent: number; ready: boolean; state: "ready" | "active" };
 export const CampaignEncounters = g.TitanCampaignEncounters as { describe(c: unknown, progress: CampaignProgress): Encounter | null };
 
-export type GpxResult = { ok: true; points: number; ignoredPoints: number; distanceKm: number; movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; start: string | null } | { ok: false; error: string; points: number };
+export type GpxResult = { ok: true; points: number; ignoredPoints: number; distanceKm: number; movingMinutes: number | null; elapsedMinutes: number | null; ascent: number | null; descent: number | null; kind: "recorded" | "route" | "incomplete"; timing: "complete" | "invalid" | "partial" | "missing"; routeType: "track" | "planned_route"; start: string | null } | { ok: false; error: string; points: number };
 export const Gpx = g.TitanGpx as { analyse(text: string): GpxResult };
 
 export type CareerRange = "7d" | "30d" | "year" | "all";
