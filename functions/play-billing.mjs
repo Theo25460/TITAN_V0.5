@@ -55,6 +55,8 @@ export function interpretSubscription(resource, { allowedProducts, allowTestPurc
     const active = (ACCESS_STATES.has(state) && (state === 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD' || stillPaid)) || (state === 'SUBSCRIPTION_STATE_CANCELED' && stillPaid);
     return {
         active,
+        // Provider provenance never proves money received: a real purchase may include a free trial.
+        accessKind: resource.testPurchase ? 'test' : 'verified_purchase',
         status: state.replace('SUBSCRIPTION_STATE_', '').toLowerCase() || 'unknown',
         productId: line.productId,
         orderId: typeof resource.latestOrderId === 'string' ? resource.latestOrderId : null,
@@ -146,6 +148,6 @@ export default async function handler(request) {
             // Access is already recorded; a failed acknowledgement is reported so the app retries (restore) before Google's 3-day refund.
             acknowledged = ack.ok;
         }
-        return reply(200, { active: subscription.active, status: subscription.status, ends_at: subscription.endsAt, product_id: subscription.productId, acknowledged });
+        return reply(200, { active: subscription.active, status: subscription.status, ends_at: subscription.endsAt, product_id: subscription.productId, acknowledged, access_kind: subscription.accessKind });
     } catch (_) { return unavailable(); }
 }

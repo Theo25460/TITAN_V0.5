@@ -43,8 +43,13 @@ export function TitanPlusScreen() {
     const r = await buy(o, owner, accessToken);
     if (!alive.current) return;
     setBusy(null);
-    if (r.kind === "active") {
-      setNote(r.verdict.acknowledged ? "Merci ! Ton abonnement est actif." : "Abonnement actif. Google Play attend encore une confirmation : ouvre « Restaurer mes achats » dans un instant.");
+    if (r.kind === "active" && r.verdict.active) {
+      setNote(r.verdict.access_kind === "test"
+        ? "Accès de test actif. Cet achat de test ne prouve aucun paiement commercial."
+        : r.verdict.acknowledged ? "Ton accès TITAN+ est actif. Un achat vérifié peut comporter un essai gratuit ; consulte ton reçu Google Play." : "Accès actif. Google Play attend encore une confirmation : ouvre « Restaurer mes achats » dans un instant.");
+      refresh();
+    } else if (r.kind === "active") {
+      setNote("Aucun accès actif n’a été confirmé. Consulte tes abonnements Google Play ou utilise « Restaurer mes achats ».");
       refresh();
     } else if (r.kind === "pending") setNote("Paiement en attente chez Google Play. L’accès arrive dès qu’il est confirmé.");
     else if (r.kind === "error") setNote(messageFor(r.error));
@@ -82,7 +87,8 @@ export function TitanPlusScreen() {
       {profile?.is_elite ? (
         <Card tone="accent">
           <T variant="bodyStrong">Ton compte bénéficie déjà d’un accès TITAN+.</T>
-          {BILLING_BUILD ? <Button small kind="secondary" label="Gérer dans Google Play" onPress={() => manageInPlay().catch(() => setNote("Ouvre Google Play > Paiements et abonnements."))} /> : null}
+          <T variant="small" tone="muted">Un accès offert, de test ou inclus par un coach ne prouve pas un abonnement payé. Pour un achat existant, consulte le prestataire indiqué sur ton reçu.</T>
+          {BILLING_BUILD ? <Button small kind="secondary" label="Ouvrir mes abonnements Google Play" onPress={() => manageInPlay().catch(() => setNote("Ouvre Google Play > Paiements et abonnements."))} /> : null}
         </Card>
       ) : null}
       <Card style={{ gap: 6 }} testID="plan-free">
@@ -108,7 +114,7 @@ export function TitanPlusScreen() {
       })}
       {BILLING_BUILD && offers !== null ? <Button kind="ghost" label="Restaurer mes achats" loading={busy === "restore"} disabled={!!busy} onPress={restoreAll} testID="restore-purchases" /> : null}
       {note ? <T variant="small" tone="muted" accessibilityRole="alert">{note}</T> : null}
-      {live ? <T variant="caption" tone="faint">Abonnement mensuel renouvelé automatiquement, résiliable à tout moment dans Google Play. Les cosmétiques ne s’achètent jamais avec de l’argent.</T> : null}
+      {live ? <T variant="caption" tone="faint">Avant confirmation, Google Play indique le prix, la période facturée et les conditions de renouvellement. Un renouvellement automatique peut être arrêté dans tes abonnements Google Play. Les cosmétiques ne s’achètent jamais avec de l’argent.</T> : null}
     </Screen>
   );
 }

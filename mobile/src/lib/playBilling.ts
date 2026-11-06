@@ -60,7 +60,7 @@ export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
   return out;
 }
 
-export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean };
+export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean; access_kind?: "test" | "verified_purchase" };
 export class BillingError extends Error {
   constructor(public code: "DISABLED" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
     super(code);
