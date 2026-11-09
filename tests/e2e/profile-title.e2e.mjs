@@ -66,6 +66,8 @@ async function profilePage({ holdTitle = false } = {}) {
     window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
     dispatchEvent(new CustomEvent("titan:history-updated"));
   }, { owner: OWNER, holdTitle });
+  await page.locator('[data-profile-group="identity"] > summary').click();
+  await page.locator('[data-profile-group="account"] > summary').click();
   return f;
 }
 

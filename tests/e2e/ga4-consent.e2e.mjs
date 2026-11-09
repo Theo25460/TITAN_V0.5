@@ -104,6 +104,7 @@ test("app screens: the floating button never covers the tab bar; the choice reop
     await page.locator(".asc-tabbar").waitFor();
     assert.equal(await page.locator(".titan-ga4-settings").isVisible(), false);
     await page.goto(BASE + "/profile");
+    await page.locator('[data-profile-group="account"] > summary').click();
     await page.locator("[data-ga4-open]").waitFor();
     await page.locator("[data-ga4-open]").click();
     const banner = page.locator(".titan-ga4-banner");

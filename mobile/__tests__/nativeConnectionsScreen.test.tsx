@@ -46,7 +46,7 @@ test("a warm Garmin return refreshes the account and shows a sanitized recovery 
   const initial = jest.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
   const subscription = jest.spyOn(Linking, "addEventListener").mockImplementation((_type, listener) => {
     returned = listener;
-    return { remove: jest.fn() } as ReturnType<typeof Linking.addEventListener>;
+    return { remove: jest.fn() } as unknown as ReturnType<typeof Linking.addEventListener>;
   });
   try {
     show(<GarminScreen />);

@@ -74,6 +74,8 @@ async function profilePage({ sources = [], garminStatus } = {}) {
     window.TitanAdventure = { snapshot, status: "ready", refresh: async () => snapshot };
     dispatchEvent(new CustomEvent("titan:history-updated"));
   }, { owner: OWNER, sources, garminStatus });
+  await page.locator('[data-profile-group="identity"] > summary').click();
+  await page.locator('[data-profile-group="account"] > summary').click();
   return f;
 }
 
@@ -185,7 +187,7 @@ test("sources: an allowed source can be stopped, and what it brought can be arch
 });
 
 test("garmin return: each result is said once in words and the address is cleaned", async () => {
-  for (const [status, text] of [["ok", /Garmin relié/], ["refused", /Liaison annulée/], ["permission", /Accès aux activités manquant/], ["conflict", /déjà relié/], ["consent", /Autorise d’abord/], ["error", /Liaison impossible/], ["unknown-value", /Liaison impossible/]]) {
+  for (const [status, text] of [["ok", /confirmation requise/], ["refused", /Liaison annulée/], ["permission", /Accès aux activités manquant/], ["conflict", /déjà relié/], ["consent", /Autorise d’abord/], ["error", /Liaison impossible/], ["unknown-value", /Liaison impossible/]]) {
     const f = await newPage(), { page, context, errors } = f;
     try {
       await page.goto(BASE + `/profile?garmin=${status}`, { waitUntil: "load" });

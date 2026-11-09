@@ -10,6 +10,7 @@ if (process.env.TITAN_PREVIEW === "1") {
     "src/App": "preview/PreviewApp.tsx",
     "src/data/hooks": "preview/mocks/hooks.ts",
     "src/data/auth": "preview/mocks/auth.tsx",
+    "src/data/journey": "preview/mocks/journey.ts",
     "src/lib/supabase": "preview/mocks/supabase.ts",
   };
   // Native-only SDKs cannot be bundled for the browser: the preview gets an inert stub instead.
