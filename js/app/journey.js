@@ -48,6 +48,8 @@
   function explore(model) {
     const s = model.snapshot;
     const today = s.today ? `Aujourd’hui (UTC) : ${number(s.today.steps)} pas · ${esc(s.today.sources.map(id => sources[id] ?? "Source connectée").join(", "))} · reçus le ${date(s.today.updatedAt)}` : "Aucun chiffre reçu pour aujourd’hui. Tes découvertes restent acquises.";
+    const observed = s.observedToday;
+    const observedLabel = observed ? `${number(observed.steps)} pas aujourd’hui (UTC) · ${esc(observed.sources.map(id => sources[id] ?? "Source connectée").join(", "))}` : "";
     const next = model.next;
     const grand = model.nextGrand;
     const album = model.earned.slice().reverse().map(d => `<li><strong>${esc(d.name)}</strong><p>${esc(d.story)}</p><small>${number(d.steps)} pas · Confirmé le ${date(d.earnedAt)}</small></li>`);
@@ -55,11 +57,12 @@
       <p class="asc-small asc-muted">Tes pas explorent les lieux. Tes séances ouvrent les chapitres. Le niveau raconte ta carrière.</p>
       ${map(model)}
       ${model.hasStepData ? `<p class="journey-total"><strong>${number(s.totalSteps)}</strong> pas explorés</p><p class="asc-small asc-muted">${today}</p>` : "<p>Pas de données de pas confirmées pour le moment. Tes séances font toujours avancer les campagnes.</p>"}
+      ${observed || s.observedSteps > 0 ? `<div class="journey-next"><p class="asc-eyebrow">Aperçu des pas reçus</p><p>${number(s.observedSteps ?? 0)} pas enregistrés par tes sources connectées.</p>${observed ? `<p class="asc-small asc-muted">${observedLabel}</p>` : ""}<p class="asc-small asc-muted">Ces relevés attendent une vérification avant de débloquer des souvenirs.</p></div>` : ""}
       ${next ? `<div class="journey-next"><p class="asc-eyebrow cy">Prochaine découverte</p><h3>${esc(next.name)}</h3><p>${number(model.remaining)} pas vers cette découverte</p>${bar(model.segmentPercent, "Vers la prochaine découverte")}
       ${grand && grand.id !== next.id ? `<p class="asc-small asc-muted">Grand jalon : ${esc(grand.name)} · encore ${number(model.grandRemaining)} pas.</p>` : ""}</div>` : "<p>La première saga est explorée. Ton aventure continue.</p>"}
       <div class="journey-saga"><p class="asc-small asc-muted">Première saga · ${number(s.totalSteps)} / ${number(s.goal)} pas</p>${bar(model.sagaPercent, "Première saga d’exploration")}</div>
       ${model.readyCount ? button("sync", "Révéler mes découvertes") : ""}
-      <p class="asc-small asc-faint">Le maximum journalier des sources acceptées alimente les sentiers. Les souvenirs n’accordent ni XP ni crédits.</p>
+      <p class="asc-small asc-faint">Le maximum journalier des sources vérifiées alimente les sentiers. Les souvenirs sont cosmétiques.</p>
       <details class="journey-album"><summary>Journal de voyage · ${album.length}</summary>${album.length ? `<ol>${album.join("")}</ol>` : "<p>Ton premier souvenir apparaîtra après confirmation d’une découverte.</p>"}</details>
       ${career(model)}<div class="journey-actions">${button("read", "Actualiser les pas confirmés")}<a class="asc-btn asc-btn-ghost" href="/profile#sources">${icon("cloud")} Mes sources de pas</a></div>`;
   }
@@ -110,7 +113,9 @@
       if (session?.user?.id !== ask.owner || !same(ask, context()) || epoch !== generation) return;
       const call = ask.client.rpc(write ? "titan_journey_sync_v1" : "titan_journey_snapshot_v1", {}).setHeader("Authorization", `Bearer ${session.access_token}`);
       const result = await Promise.race([call, new Promise((_, reject) => { timer = setTimeout(() => reject(Error("JOURNEY_TIMEOUT")), 15000); })]);
+      const currentSession = (await ask.client.auth.getSession())?.data?.session;
       if (!same(ask, context()) || epoch !== generation) return;
+      if (currentSession?.user?.id !== ask.owner) { reset(); return; }
       if (result.error || !root.TitanJourney.model(result.data, ask.owner)) throw Error("JOURNEY_UNAVAILABLE");
       snapshot = result.data;
     } catch {

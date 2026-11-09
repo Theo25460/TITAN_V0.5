@@ -22,6 +22,7 @@ export function JourneyCard({ owner }: { owner: string }) {
   const [album, setAlbum] = useState(false), [visible, setVisible] = useState(8);
   const [scene, setScene] = useState<{ owner: string; content: RevealContent } | null>(null);
   const m = journeyModel(q.snapshot, owner), s = m?.snapshot;
+  const observed = s?.observedToday;
   const confirm = async () => {
     const before = new Set(m?.earned.map(d => d.id));
     const after = await q.sync(), v = journeyModel(after, owner);
@@ -46,11 +47,19 @@ export function JourneyCard({ owner }: { owner: string }) {
         })}
       </View>
       {m.hasStepData ? <><T variant="h2">{n(s.totalSteps)} pas explorés</T><T variant="caption" tone="muted">{s.today ? `Aujourd’hui (UTC) : ${n(s.today.steps)} pas · ${s.today.sources.map(sourceLabel).join(', ')} · reçus le ${date(s.today.updatedAt)}` : 'Aucun chiffre reçu pour aujourd’hui. Tes découvertes restent acquises.'}</T></> : <T variant="small">Pas de données de pas confirmées pour le moment. Tu peux continuer les campagnes avec tes séances habituelles.</T>}
+      {observed || (s.observedSteps ?? 0) > 0 ? (
+        <View style={{ gap: space.s2 }}>
+          <T variant="eyebrow">Aperçu des pas reçus</T>
+          <T variant="small">{n(s.observedSteps ?? 0)} pas enregistrés par tes sources connectées.</T>
+          {observed ? <T variant="caption" tone="muted">{n(observed.steps)} pas aujourd’hui (UTC) · {observed.sources.map(sourceLabel).join(', ')}</T> : null}
+          <T variant="caption" tone="muted">Ces relevés attendent une vérification avant de débloquer des souvenirs.</T>
+        </View>
+      ) : null}
       {m.next ? <View style={{ gap: space.s2 }}><T variant="eyebrow" tone="accent">Prochaine découverte</T><T variant="bodyStrong">{m.next.name}</T><T variant="small">{n(m.remaining)} pas vers cette découverte</T><ProgressBar value={m.segmentPercent / 100} accessibilityLabel="Vers la prochaine découverte" />{m.nextGrand && m.nextGrand.id !== m.next.id ? <T variant="caption">Grand jalon : {m.nextGrand.name} · encore {n(m.grandRemaining)} pas.</T> : null}</View> : <T variant="bodyStrong" tone="accent">La première saga est explorée. Ton aventure continue.</T>}
       <View style={{ gap: 6 }}><T variant="caption" tone="muted">Première saga · {n(s.totalSteps)} / {n(s.goal)} pas</T><ProgressBar value={m.sagaPercent / 100} height={4} accessibilityLabel="Première saga d’exploration" /></View>
       {m.readyCount ? <><T variant="small" tone="accent">{m.readyCount} découverte{m.readyCount > 1 ? 's' : ''} prête{m.readyCount > 1 ? 's' : ''} à confirmer.</T><Button label="Révéler mes découvertes" loading={q.busy} onPress={confirm} /></> : null}
       {q.error ? <T variant="small" tone="err" accessibilityRole="alert">{q.error}</T> : null}
-      <T variant="caption" tone="faint">Seul le maximum journalier des sources acceptées compte. Les pas locaux du téléphone ne débloquent pas de souvenir. Aucun XP ni crédit supplémentaire.</T>
+      <T variant="caption" tone="faint">Le maximum journalier des sources vérifiées alimente les sentiers. Les souvenirs sont cosmétiques.</T>
       <Button label={`Journal de voyage · ${m.earned.length}`} kind="ghost" icon="journal" onPress={() => setAlbum(v => !v)} />
       {album ? <View style={{ gap: space.s3 }}>{!m.earned.length ? <T variant="small">Ton premier souvenir apparaîtra après confirmation d’une découverte.</T> : m.earned.slice().reverse().slice(0, visible).map(d => <View key={d.id} style={styles.entry}><Icon name="check" color={colors.cy} size={18} /><View style={{ flex: 1, gap: 4 }}><T variant="bodyStrong">{d.name}</T><T variant="small">{d.story}</T><T variant="caption" tone="faint">{n(d.steps)} pas · Confirmé le {date(d.earnedAt!)}</T></View></View>)}{visible < m.earned.length ? <Button label="Voir les souvenirs précédents" kind="secondary" onPress={() => setVisible(v => v + 8)} /> : null}</View> : null}
     </>}

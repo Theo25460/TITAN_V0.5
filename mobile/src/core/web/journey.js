@@ -5,6 +5,8 @@
   const text = v => typeof v === 'string' && v.length > 0;
   const date = v => v === null || (text(v) && Number.isFinite(Date.parse(v)));
   const worlds = new Set(['aube', 'marees', 'forge', 'aurores']);
+  const daily = d => d === null || (!!d && integer(d.steps) && /^\d{4}-\d{2}-\d{2}$/.test(d.day) &&
+    Array.isArray(d.sources) && d.sources.every(text) && text(d.updatedAt) && date(d.updatedAt));
   function ordered(rows, field, validate) {
     if (!Array.isArray(rows) || rows.length > 2000) return false;
     const ids = new Set();
@@ -19,7 +21,8 @@
     if (!s || !text(owner) || s.owner !== owner || s.version !== 1 || !integer(s.configVersion) || !integer(s.totalSteps) || !integer(s.goal) || s.goal <= 0) return null;
     if (!ordered(s.discoveries, 'steps', d => worlds.has(d.world) && text(d.name) && text(d.story) && ['discovery', 'milestone', 'legendary'].includes(d.kind))) return null;
     if (!s.career || !integer(s.career.level) || !ordered(s.career.milestones, 'level', d => text(d.title) && text(d.description))) return null;
-    if (s.today !== null && (!s.today || !integer(s.today.steps) || !/^\d{4}-\d{2}-\d{2}$/.test(s.today.day) || !Array.isArray(s.today.sources) || !s.today.sources.every(text) || !text(s.today.updatedAt) || !date(s.today.updatedAt))) return null;
+    if (!daily(s.today) || (s.observedToday !== undefined && !daily(s.observedToday)) ||
+        (s.observedSteps !== undefined && !integer(s.observedSteps))) return null;
     const earned = s.discoveries.filter(d => d.earnedAt !== null);
     const next = s.discoveries.find(d => d.earnedAt === null) || null;
     const index = next ? s.discoveries.indexOf(next) : -1;

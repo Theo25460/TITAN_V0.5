@@ -1,9 +1,12 @@
 export type JourneyWorld = 'aube' | 'marees' | 'forge' | 'aurores';
 export type Discovery = { id: string; steps: number; world: JourneyWorld; name: string; story: string; kind: 'discovery' | 'milestone' | 'legendary'; earnedAt: string | null };
 export type CareerMilestone = { id: string; level: number; title: string; description: string; earnedAt: string | null };
+type DailySteps = { day: string; steps: number; sources: string[]; updatedAt: string };
 export type JourneySnapshot = {
   version: 1; owner: string; configVersion: number; totalSteps: number; goal: number;
-  today: { day: string; steps: number; sources: string[]; updatedAt: string } | null;
+  today: DailySteps | null;
+  observedSteps?: number;
+  observedToday?: DailySteps | null;
   discoveries: Discovery[];
   career: { level: number; milestones: CareerMilestone[] };
 };
