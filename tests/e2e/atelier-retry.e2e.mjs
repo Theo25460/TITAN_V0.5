@@ -30,14 +30,15 @@ async function newPage(width = 360, timezoneId = "Europe/Paris") {
 }
 
 const A="00000000-0000-4000-8000-000000000861",B="00000000-0000-4000-8000-000000000862";
-async function fixture({width=360,fail=false,hold=false,guest=false,missing=false}={}){
+async function fixture({width=360,fail=false,hold=false,guest=false,missing=false,active=false,localElite=false,profileEnds=null}={}){
   const result=await newPage(width),{page}=result;page.setDefaultTimeout(2500);const errors=[];page.on("pageerror",e=>errors.push(e.message));
   await page.route("**/js/app/atelier.js?*",r=>r.fulfill({contentType:"text/javascript",body:""}));
   await page.goto(BASE+"/boutique");await page.waitForFunction(()=>window.TitanAdventure?.status==="ready");
-  await page.evaluate(({A,B,fail,hold,guest,missing})=>{
+  await page.evaluate(({A,B,fail,hold,guest,missing,active,localElite,profileEnds})=>{
+    window.state.user.is_elite=localElite;
     window.state.user.id=guest?"guest_atelier_retry":A;
     window.at={A,B,fail,hold,missing,calls:[],pending:[],profileCalls:0};
-    const response=id=>({owner:id,credits:id===A?861:862,level:1,week_credits:0,week_credit_cap:960,plus:{active:false},appearance:{},items:[
+    const response=id=>({owner:id,credits:id===A?861:862,level:1,week_credits:0,week_credit_cap:960,plus:{active},appearance:{},items:[
       {id:"cos_frame_standard",cosmetic:"frame-standard",slot:"frame",name:"Standard",unlock:"default",price:0,owned:true,permanent:true},
       {id:"cos_frame_givre",cosmetic:"frame-frost",slot:"frame",name:"Cadre Givre",unlock:"credits",price:1400,owned:false,permanent:false}
     ]});
@@ -48,10 +49,10 @@ async function fixture({width=360,fail=false,hold=false,guest=false,missing=fals
       if(window.at.missing)return {error:{code:"PGRST202",message:"Could not find titan_atelier"}};
       if(window.at.fail)return {error:{message:"UNAVAILABLE"}};
       return {data:response(id)};
-    },from:name=>({select:()=>({eq:()=>({maybeSingle:async()=>{if(name!=="profiles")throw Error("Unexpected table");window.at.profileCalls++;return {data:{is_elite:true}};}})})})});
+    },from:name=>({select:()=>({eq:()=>({maybeSingle:async()=>{if(name!=="profiles")throw Error("Unexpected table");window.at.profileCalls++;return {data:{is_elite:true,elite_ends_at:profileEnds}};}})})})});
     window.titanClient=window.atClient();
     window.atSwitch=(id=B)=>{window.titanAccountTransition={active:true,epoch:window.titanAccountTransition.epoch+1};window.dispatchEvent(new Event("titan:account-changing"));window.state.user.id=id;window.titanAccountTransition.active=false;window.dispatchEvent(new Event("titan:account-changed"));};
-  },{A,B,fail,hold,guest,missing});
+  },{A,B,fail,hold,guest,missing,active,localElite,profileEnds});
   await page.addScriptTag({path:ROOT+"/js/app/atelier.js"});
   async function calls(n){await page.waitForFunction(n=>window.at.calls.length>=n,n);assert.equal(await page.evaluate(()=>window.at.calls.length),n);}
   async function ready(label="A"){await page.getByRole("heading",{name:"Collection",exact:true}).waitFor();assert.equal((await page.locator(".at-balance").innerText()).trim(),label==="A"?"861":"862");}
@@ -142,7 +143,7 @@ test("atelier retry: a new client and epoch can replace a pending same-owner rea
 test("atelier retry: a missing RPC retains the read-only profile fallback",async()=>{
   const f=await fixture({missing:true}),{page}=f;
   try{
-    await page.getByRole("heading",{name:"Merci de soutenir TITAN.",exact:true}).waitFor();assert.equal(await page.locator('[data-retry]').count(),0);assert.equal(await page.evaluate(()=>window.at.profileCalls),1);assert.equal(await root(page).getAttribute("aria-busy"),"false");assert.deepEqual(f.errors,[]);
+    await page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).waitFor();assert.equal(await page.locator('[data-retry]').count(),0);assert.equal(await page.evaluate(()=>window.at.profileCalls),1);assert.equal(await root(page).getAttribute("aria-busy"),"false");assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
 });
 
@@ -165,7 +166,7 @@ test("atelier retry: a retry reaching an older server focuses its fallback notic
   const f=await fixture({fail:true}),{page}=f;
   try{
     await page.evaluate(()=>{window.at.fail=false;window.at.missing=true;});await page.locator('[data-retry]').focus();await page.keyboard.press("Enter");
-    await page.getByRole("heading",{name:"Merci de soutenir TITAN.",exact:true}).waitFor();
+    await page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).waitFor();
     const text=page.getByText("L’Atelier est momentanément indisponible. Tes crédits sont intacts.",{exact:true});
     assert.equal(await text.locator('..').evaluate(el=>el===document.activeElement),true);assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
@@ -197,4 +198,36 @@ test("atelier retry: account cleanup passes cancellation to an abort-aware RPC b
     await retry(f);await page.evaluate(()=>{window.at.hold=false;window.atSwitch();});await f.calls(3);await f.ready("B");
     assert.equal(await page.evaluate(()=>window.at.aborted),true);assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
+});
+
+
+test("atelier access: a cached local flag cannot announce active access when the server read fails",async()=>{
+  const f=await fixture({fail:true,localElite:true});
+  try {
+    assert.equal(await f.page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).count(),0);
+    await root(f.page).getByText(/TITAN\+ : bientôt disponible/).waitFor();
+    assert.equal(await root(f.page).locator('[data-checkout]').count(),0);
+    assert.equal(await root(f.page).getByText(/5 € par mois/).count(),0);
+    assert.deepEqual(f.errors,[]);
+  } finally { await f.close(); }
+});
+
+test("atelier access: server-confirmed access is neutral about payment and links cancellation terms",async()=>{
+  const f=await fixture({active:true});
+  try {
+    await f.page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).waitFor();
+    await root(f.page).getByText(/Un accès actif peut être offert, de test ou inclus par un coach/).waitFor();
+    assert.equal(await root(f.page).getByRole("link",{name:"conditions d’utilisation"}).getAttribute("href"),"/legal_cgu");
+    assert.deepEqual(f.errors,[]);
+  } finally { await f.close(); }
+});
+
+test("atelier access: expired server profile fallback cannot announce active access",async()=>{
+  const f=await fixture({missing:true,profileEnds:"2020-01-01T00:00:00Z"});
+  try {
+    await root(f.page).getByText(/TITAN\+ : bientôt disponible/).waitFor();
+    assert.equal(await f.page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).count(),0);
+    assert.equal(await f.page.evaluate(()=>window.at.profileCalls),1);
+    assert.deepEqual(f.errors,[]);
+  } finally { await f.close(); }
 });

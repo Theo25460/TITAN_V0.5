@@ -163,3 +163,31 @@ test('a failed acknowledgement is reported to the app, access stays recorded', a
         assert.equal(body.product_id, 'titan_plus');
     });
 });
+
+test('purchase provenance comes from Google and does not assert a commercial amount was received', async () => {
+    const google = { status: 200, data: subscription({ testPurchase: {} }) };
+    await run(async calls => {
+        assert.equal((await handler(request())).status, 422);
+        assert.equal(rpcs(calls).length, 0);
+    }, { google });
+    await run(async calls => {
+        const response = await handler(request());
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.access_kind, 'test');
+        assert.equal(body.active, true);
+        assert.equal('paid' in body, false);
+        assert.equal(rpcs(calls)[0].body.p_source, 'google_play');
+    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true' }, google });
+    await run(async () => {
+        const body = await (await handler(request())).json();
+        assert.equal(body.access_kind, 'verified_purchase');
+        assert.equal('paid' in body, false);
+        assert.equal('amount_received' in body, false);
+    }, { google: { status: 200, data: subscription({ latestOrderId: undefined }) } });
+    await run(async calls => {
+        const response = await handler(request({ purchase_token: TOKEN, product_id: 'titan_plus', access_kind: 'verified_purchase' }));
+        assert.equal(response.status, 400);
+        assert.equal(rpcs(calls).length, 0);
+    });
+});

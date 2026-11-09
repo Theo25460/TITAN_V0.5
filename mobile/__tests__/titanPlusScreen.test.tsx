@@ -1,6 +1,6 @@
 /* The offers screen: four cards, prices only from Google Play, buttons only for what Play returns, nothing to buy for an account
    that already has access, an honest "coming soon" when billing is not switched on. Play is faked; no payment is possible here. */
-import { act, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 process.env.EXPO_PUBLIC_TITAN_BILLING = "1";
 const mockProfile = { data: { is_elite: false } as { is_elite: boolean } | undefined };
@@ -61,7 +61,7 @@ test("an account that already has access sees no buy button, only a way to manag
   show();
   await screen.findByText("4,99 € / mois");
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
-  expect(screen.getByText("Gérer dans Google Play")).toBeTruthy();
+  expect(screen.getByText("Ouvrir mes abonnements Google Play")).toBeTruthy();
 });
 
 test("when Google Play is unreachable the screen stays honest: coming soon, nothing to buy", async () => {
@@ -71,4 +71,31 @@ test("when Google Play is unreachable the screen stays honest: coming soon, noth
   expect(await screen.findByText(/Google Play n’est pas joignable/)).toBeTruthy();
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
   expect(screen.getAllByText("Bientôt disponible").length).toBeGreaterThan(0);
+});
+
+
+test("an access flag is not payment proof and a yearly offer is never relabelled monthly", async () => {
+  mockProfile.data = { is_elite: true };
+  fake([{ id: "titan01", price: "Store offer / year" }]);
+  show();
+  await screen.findByText("Store offer / year");
+  expect(screen.getByText(/Un accès offert, de test ou inclus par un coach ne prouve pas un abonnement payé/)).toBeTruthy();
+  expect(screen.queryByText(/Abonnement mensuel renouvelé automatiquement/)).toBeNull();
+  expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
+});
+
+test.each([
+  [{ active: false, acknowledged: false, status: "expired", ends_at: null }, /Aucun accès actif n’a été confirmé/],
+  [{ active: true, acknowledged: true, status: "active", ends_at: null, access_kind: "test" }, /Accès de test actif/],
+  [{ active: true, acknowledged: true, status: "active", ends_at: null, access_kind: "verified_purchase" }, /Un achat vérifié peut comporter un essai gratuit/],
+])("purchase feedback follows the server verdict and provenance: %j", async (verdict, expected) => {
+  fake([{ id: "titan01", price: "Store offer" }]);
+  const result = jest.spyOn(billing, "buy").mockResolvedValueOnce({ kind: "active", verdict });
+  try {
+    show();
+    await screen.findByText("Store offer");
+    fireEvent.press(screen.getByTestId("subscribe-titan_plus"));
+    expect(await screen.findByText(expected)).toBeTruthy();
+    expect(screen.queryByText(/Merci ! Ton abonnement est actif/)).toBeNull();
+  } finally { result.mockRestore(); }
 });

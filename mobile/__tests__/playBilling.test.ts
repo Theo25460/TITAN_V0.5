@@ -121,3 +121,14 @@ test("the three Play products are the ones created in Play Console, named for wh
   expect(JSON.stringify(PLANS)).not.toMatch(/\d\s?€|\d,\d{2}/);
   expect(JSON.stringify(PLANS)).not.toMatch(/Coach Pro/);
 });
+
+
+test("server provenance survives the client adapter without guessing payment from active status", async () => {
+  for (const access_kind of ["test", "verified_purchase"] as const) {
+    const verdict = { ...active, access_kind };
+    const fetcher = jest.fn(async () => new Response(JSON.stringify(verdict), { status: 200 })) as unknown as typeof fetch;
+    expect(await verifyOnServer("t", "titan01", "a", fetcher)).toEqual(verdict);
+  }
+  const fetcher = jest.fn(async () => new Response(JSON.stringify(active), { status: 200 })) as unknown as typeof fetch;
+  expect((await verifyOnServer("t", "titan01", "a", fetcher)).access_kind).toBeUndefined();
+});
