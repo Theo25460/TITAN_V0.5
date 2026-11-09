@@ -28,7 +28,7 @@ export type SessionDetails = {
   bio?: { rpe?: number };
   exercises?: Exercise[];
   unitOverride?: string;
-  gpxStats?: { movingMinutes?: number; elapsedMinutes?: number; ascent?: number; descent?: number; points?: number };
+  gpxStats?: { movingMinutes?: number | null; elapsedMinutes?: number | null; ascent?: number | null; descent?: number | null; points?: number };
   // Written by the server.
   serverReward?: unknown;
   historical?: boolean;

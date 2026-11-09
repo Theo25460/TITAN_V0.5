@@ -73,7 +73,8 @@ test("the exported GPX re-imports with the website reader and matches the live f
     expect(re.points).toBe(120);
     expect(re.distanceKm).toBeCloseTo(live.distanceKm, 1);
     expect(re.start).toBe(new Date(T0).toISOString());
-    expect(Math.abs(re.ascent - (live.ascent ?? 0))).toBeLessThanOrEqual(6);
+    expect(re.ascent).not.toBeNull();
+    expect(Math.abs((re.ascent ?? -100) - (live.ascent ?? 0))).toBeLessThanOrEqual(6);
   }
   expect(toGpx(t, "Sortie <test> & co")).toContain("Sortie &lt;test&gt; &amp; co");
 });

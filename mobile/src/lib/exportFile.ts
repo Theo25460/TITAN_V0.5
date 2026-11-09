@@ -4,9 +4,10 @@ import * as Sharing from "expo-sharing";
 
 export async function shareTextFile(name: string, contents: string, mimeType: string) {
   if (!FileSystem.cacheDirectory) throw new Error("Stockage indisponible.");
+  if (!name || name === "." || name === ".." || /[/\\%?#\x00-\x1f]/.test(name)) throw new Error("Nom de fichier invalide.");
+  if (!(await Sharing.isAvailableAsync())) throw new Error("Le partage de fichiers n’est pas disponible sur cet appareil.");
   const uri = `${FileSystem.cacheDirectory}${name}`;
   await FileSystem.writeAsStringAsync(uri, contents, { encoding: FileSystem.EncodingType.UTF8 });
-  if (!(await Sharing.isAvailableAsync())) throw new Error("Le partage de fichiers n’est pas disponible sur cet appareil.");
   await Sharing.shareAsync(uri, { mimeType, dialogTitle: name });
 }
 

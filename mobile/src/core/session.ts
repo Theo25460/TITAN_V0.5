@@ -1,13 +1,16 @@
 /* Session form → server payload. Port of js/app/seance.js build() and titanSanitizeSessionDetails() from the website,
    so a session recorded on Android has exactly the same shape as one recorded on titan-app.fr: same units, same
    val/val1/val2/duration fields, same exercise rows, same bounds. The server recomputes effort and rewards. */
-import { Sports, type SportForm } from "./index";
+import { Sports, type GpxResult, type SportForm } from "./index";
 import type { Exercise, SessionDetails, TrainingPayload } from "./types";
 import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
 
 export type SetDraft = { weight: string; reps: string; rir: string; seconds: string };
 export type ExerciseDraft = { name: string; variant: string; kind: "weighted" | "bodyweight" | "hold"; sets: SetDraft[] };
 export type ClimbingDraft = { discipline: "Bloc" | "Voie"; location: "Salle" | "Extérieur"; system: string; belay: string; attempts: string; successes: string; best: string };
+
+type AnalysedGpx = Extract<GpxResult, { ok: true }>;
+type DraftGpx = Pick<AnalysedGpx, "movingMinutes" | "elapsedMinutes" | "ascent" | "descent" | "points"> & Partial<Pick<AnalysedGpx, "timing" | "start">>;
 
 export type SessionDraft = {
   sport: string;
@@ -27,7 +30,8 @@ export type SessionDraft = {
   rpe: number | null;
   note: string;
   extras?: Record<string, unknown>;
-  gpx?: { movingMinutes: number | null; elapsedMinutes: number | null; ascent: number; descent: number; points: number } | null;
+  gpx?: DraftGpx | null;
+  gpxDurationEdited?: boolean;
 };
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
@@ -74,6 +78,51 @@ export function num(v: unknown): number | null {
 export function draftDuration(d: Pick<SessionDraft, "durH" | "durM" | "durS">): number | null {
   const total = (num(d.durH) || 0) * 60 + (num(d.durM) || 0) + (num(d.durS) || 0) / 60;
   return total > 0 ? Math.round(total * 100) / 100 : null;
+}
+
+function durationFields(minutes: number | null | undefined) {
+  const seconds = Math.round((minutes ?? 0) * 60);
+  if (seconds <= 0) return { durH: "", durM: "", durS: "" };
+  return { durH: String(Math.floor(seconds / 3600) || ""), durM: String(Math.floor((seconds % 3600) / 60)), durS: String(seconds % 60 || "") };
+}
+
+function hasDerivedDuration(draft: SessionDraft) {
+  if (!draft.gpx || draft.gpxDurationEdited) return false;
+  // Older drafts could have used elapsed time when moving time was unavailable.
+  const minutes = draft.gpx.timing ? draft.gpx.movingMinutes : draft.gpx.movingMinutes || draft.gpx.elapsedMinutes;
+  const previous = durationFields(minutes);
+  return draft.durH === previous.durH && draft.durM === previous.durM && draft.durS === previous.durS;
+}
+
+function gpxDate(start: string | null | undefined, now: Date) {
+  if (!start) return null;
+  const date = new Date(start);
+  if (!(date.getTime() <= now.getTime())) return null;
+  return { date: localDateKey(date), time: `${pad(date.getHours())}:${pad(date.getMinutes())}` };
+}
+
+/** Copy only measured values. Replacing a trace must not reuse its time or erase manual edits. */
+export function applyGpxImport(draft: SessionDraft, result: AnalysedGpx, now = new Date()): SessionDraft {
+  const { movingMinutes, elapsedMinutes, ascent, descent, points, timing, start } = result;
+  const next: SessionDraft = {
+    ...draft,
+    gpx: { movingMinutes, elapsedMinutes, ascent, descent, points, timing, start },
+    distance: String(result.distanceKm).replace(".", ","),
+  };
+  if ((movingMinutes ?? 0) > 0 || hasDerivedDuration(draft)) {
+    Object.assign(next, durationFields(movingMinutes), { gpxDurationEdited: false });
+  }
+  if (ascent !== null) next.elevation = String(ascent);
+  else if (draft.gpx?.ascent != null && draft.elevation === String(draft.gpx.ascent)) next.elevation = "";
+  const measuredDate = gpxDate(start, now);
+  const previousDate = gpxDate(draft.gpx?.start, now);
+  if (measuredDate) Object.assign(next, measuredDate, { when: "other" });
+  else if (previousDate && draft.when === "other" && draft.date === previousDate.date && draft.time === previousDate.time) next.when = "now";
+  return next;
+}
+
+export function removeGpxImport(draft: SessionDraft): SessionDraft {
+  return { ...draft, ...(hasDerivedDuration(draft) ? durationFields(null) : {}), gpx: null };
 }
 
 export function performedAt(d: SessionDraft, now = new Date()): Date | null {
@@ -157,8 +206,10 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     const elev = num(d.elevation);
     if (elev !== null) data.elevation = Math.min(12000, Math.max(0, elev));
     if (d.gpx) {
+      const { movingMinutes, elapsedMinutes, ascent, descent, points } = d.gpx;
+      if (!(movingMinutes !== null && movingMinutes > 0)) fail("Ce GPX ne fournit pas de durée sportive exploitable. Repars en saisie manuelle pour déclarer ton activité.", "duration");
       data.hasGpx = true;
-      data.gpxStats = { movingMinutes: d.gpx.movingMinutes || 0, elapsedMinutes: d.gpx.elapsedMinutes || 0, ascent: d.gpx.ascent || 0, descent: d.gpx.descent || 0, points: d.gpx.points || 0 };
+      data.gpxStats = { movingMinutes, elapsedMinutes, ascent, descent, points };
     }
   } else if (form === "swim") {
     const m = num(d.meters);
@@ -317,7 +368,10 @@ export function sanitizeDetails(details: SessionDetails, sport: string, now = Da
   out.tags = [];
   out.extras = sanitizeExtras(details.extras, sport, plus);
   if (details.gpxStats) {
-    const clamp = (v: unknown, max: number) => Math.max(0, Math.min(toNumber(v, 0), max));
+    const clamp = (v: unknown, max: number) => {
+      const value = num(v);
+      return value === null ? null : Math.max(0, Math.min(value, max));
+    };
     out.gpxStats = {
       movingMinutes: clamp(details.gpxStats.movingMinutes, 1440),
       elapsedMinutes: clamp(details.gpxStats.elapsedMinutes, 1440),

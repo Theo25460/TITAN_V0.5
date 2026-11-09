@@ -19,11 +19,12 @@ import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Format, Gpx, Sports } from "../../core";
-import { BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, RPE_TEXT, type SessionDraft } from "../../core/session";
+import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
 import { clearDraft, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
+import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, space, TOUCH } from "../../theme/tokens";
@@ -75,6 +76,17 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   const scroll = useRef<ScrollView>(null);
   const [errors, setErrors] = useState<{ field: string | null; message: string } | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [gpxOriginal, setGpxOriginal] = useState<{ owner: string; sport: string; name: string; text: string } | null>(null);
+  const [exportingGpx, setExportingGpx] = useState(false);
+  const gpxRead = useRef(0);
+  const gpxScope = useRef({ owner, sport });
+  gpxScope.current = { owner, sport };
+  useEffect(() => {
+    setGpxOriginal(null);
+    setExportingGpx(false);
+    return () => { ++gpxRead.current; };
+  }, [owner, sport]);
+  const original = gpxOriginal?.owner === owner && gpxOriginal.sport === sport ? gpxOriginal : null;
 
   const [draft, setDraftState] = useState<SessionDraft>(() => {
     const stored = drafts.stored?.draft;
@@ -135,7 +147,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
 
   function useStopwatch() {
     const total = Math.round(ms / 1000);
-    setDraft({ durH: total >= 3600 ? String(Math.floor(total / 3600)) : "", durM: String(Math.floor((total % 3600) / 60)), durS: String(total % 60) });
+    setDraft({ durH: total >= 3600 ? String(Math.floor(total / 3600)) : "", durM: String(Math.floor((total % 3600) / 60)), durS: String(total % 60), gpxDurationEdited: true });
     haptic("success");
   }
 
@@ -164,29 +176,48 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     });
   }
 
-  /** GPX import, same analysis as the website (distance, moving time, ascent with 3 m hysteresis, glitches ignored). */
   async function importGpx() {
+    const sequence = ++gpxRead.current;
+    const current = () => sequence === gpxRead.current && gpxScope.current.owner === owner && gpxScope.current.sport === sport && !saved.current;
     try {
       const pick = await DocumentPicker.getDocumentAsync({ type: ["application/gpx+xml", "application/xml", "text/xml", "application/octet-stream"], copyToCacheDirectory: true });
       if (pick.canceled || !pick.assets?.[0]) return;
       const file = pick.assets[0];
-      if ((file.size ?? 0) > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
-      const r = Gpx.analyse(await FileSystem.readAsStringAsync(file.uri));
-      if (!r.ok) return toast({ kind: "warn", title: "GPX illisible", message: r.error });
-      const mins = r.movingMinutes || r.elapsedMinutes;
-      const secs = mins ? Math.round(mins * 60) : 0;
-      const start = r.start ? new Date(r.start) : null;
-      setDraft((d) => ({
-        ...d,
-        gpx: { movingMinutes: r.movingMinutes, elapsedMinutes: r.elapsedMinutes, ascent: r.ascent, descent: r.descent, points: r.points },
-        distance: String(r.distanceKm).replace(".", ","),
-        ...(secs ? { durH: secs >= 3600 ? String(Math.floor(secs / 3600)) : "", durM: String(Math.floor((secs % 3600) / 60)), durS: secs % 60 ? String(secs % 60) : "" } : {}),
-        ...(r.ascent ? { elevation: String(r.ascent) } : {}),
-        ...(start && start.getTime() <= Date.now() ? { when: "other" as const, date: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`, time: `${pad(start.getHours())}:${pad(start.getMinutes())}` } : {}),
-      }));
-      toast({ kind: "ok", title: "Trace importée", message: `${Format.distance(r.distanceKm)} · ${r.points} points${r.ignoredPoints ? `, ${r.ignoredPoints} aberrants ignorés` : ""}.` });
+      let source: string;
+      try {
+        if (!current()) return;
+        if ((file.size ?? 0) > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+        source = await FileSystem.readAsStringAsync(file.uri);
+      } finally {
+        // DocumentPicker makes its own cache copy. Never delete the source supplied by a document provider.
+        if (FileSystem.cacheDirectory && file.uri.startsWith(`${FileSystem.cacheDirectory}DocumentPicker/`)) {
+          void FileSystem.deleteAsync(file.uri, { idempotent: true }).catch(() => {});
+        }
+      }
+      if (!current()) return;
+      const result = Gpx.analyse(source);
+      if (!result.ok) return toast({ kind: "warn", title: "GPX illisible", message: result.error });
+      const filename = file.name.replace(/[/\\%?#\x00-\x1f]/g, "-");
+      setGpxOriginal({ owner, sport, name: /\.gpx$/i.test(filename) ? filename : "titan-import.gpx", text: source });
+      setDraft(d => applyGpxImport(d, result));
+      toast({ kind: "ok", title: "Trace importée", message: `${Format.distance(result.distanceKm)} · ${result.points} points${result.ignoredPoints ? `, ${result.ignoredPoints} aberrants ignorés` : ""}.` });
     } catch {
-      toast({ kind: "warn", title: "GPX illisible", message: "Le fichier n’a pas pu être lu. Réessaie." });
+      if (current()) toast({ kind: "warn", title: "GPX illisible", message: "Le fichier n’a pas pu être lu. Réessaie." });
+    }
+  }
+
+  async function exportGpx() {
+    if (!original || exportingGpx) return;
+    const scope = gpxScope.current;
+    setExportingGpx(true);
+    try {
+      await shareTextFile(original.name, original.text, "application/gpx+xml");
+    } catch {
+      if (gpxScope.current.owner === scope.owner && gpxScope.current.sport === scope.sport) {
+        toast({ kind: "warn", title: "Export GPX impossible", message: "Vérifie qu’une application peut recevoir ce fichier, puis réessaie." });
+      }
+    } finally {
+      if (gpxScope.current.owner === scope.owner && gpxScope.current.sport === scope.sport) setExportingGpx(false);
     }
   }
 
@@ -199,6 +230,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       scroll.current?.scrollTo({ y: 0, animated: true });
       return;
     }
+    ++gpxRead.current;
     try {
       const payload = await record.mutateAsync(draft);
       saved.current = true;
@@ -222,9 +254,9 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         {optional ? " (facultatif)" : ""}
       </T>
       <View style={styles.row}>
-        <Field compact value={draft.durH} onChangeText={(durH) => setDraft({ durH })} keyboardType="number-pad" suffix="h" placeholder="0" accessibilityLabel="Heures" testID="duration-h" />
-        <Field compact value={draft.durM} onChangeText={(durM) => setDraft({ durM })} keyboardType="number-pad" suffix="min" placeholder="45" accessibilityLabel="Minutes" error={fieldError("duration") ? " " : null} testID="duration-m" />
-        <Field compact value={draft.durS} onChangeText={(durS) => setDraft({ durS })} keyboardType="number-pad" suffix="s" placeholder="0" accessibilityLabel="Secondes" />
+        <Field compact value={draft.durH} onChangeText={(durH) => setDraft({ durH, gpxDurationEdited: true })} keyboardType="number-pad" suffix="h" placeholder="0" accessibilityLabel="Heures" testID="duration-h" />
+        <Field compact value={draft.durM} onChangeText={(durM) => setDraft({ durM, gpxDurationEdited: true })} keyboardType="number-pad" suffix="min" placeholder="45" accessibilityLabel="Minutes" error={fieldError("duration") ? " " : null} testID="duration-m" />
+        <Field compact value={draft.durS} onChangeText={(durS) => setDraft({ durS, gpxDurationEdited: true })} keyboardType="number-pad" suffix="s" placeholder="0" accessibilityLabel="Secondes" />
       </View>
       {fieldError("duration") ? (
         <T variant="caption" tone="err">
@@ -297,6 +329,18 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         {form === "distance" ? (
           <>
             <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
+            {draft.gpx ? <>
+              {draft.gpx.timing === "missing" ? <T tone="muted">Pas de données de temps dans ce GPX.</T> :
+                draft.gpx.movingMinutes ? <T tone="muted">Temps en mouvement du fichier : {Format.duration(draft.gpx.movingMinutes)}.</T> :
+                <T tone="muted">Ce GPX ne fournit pas de durée sportive exploitable.</T>}
+              {original ? <Button small kind="secondary" icon="share" label="Exporter le GPX original" loading={exportingGpx} onPress={exportGpx} /> :
+                <T variant="caption" tone="muted">Sélectionne de nouveau le GPX original pour exporter la trace complète.</T>}
+              <Button small kind="ghost" label="Repartir en saisie manuelle" onPress={() => {
+                ++gpxRead.current;
+                setGpxOriginal(null);
+                setDraft(removeGpxImport);
+              }} />
+            </> : null}
             <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
             {durationBlock("Durée", true)}
             {km && dur ? (
