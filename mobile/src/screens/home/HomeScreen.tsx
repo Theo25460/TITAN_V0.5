@@ -1,8 +1,10 @@
 import { useNavigation } from "@react-navigation/native";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reveal } from "../../components/Motion";
+import { JourneyPreview } from "../../components/JourneyCard";
+import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
 import { TodayStrip } from "../../components/TodayStrip";
@@ -34,6 +36,8 @@ const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "satur
 /** QG: what matters now — one dominant action, the week, the ascent, then context. Sport and RPG side by side. */
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const owner = useOwner();
+  const [showAscension, setShowAscension] = useState(false);
   const navigation = useNavigation();
   const profile = useProfile();
   const logsQ = useLogs();
@@ -102,6 +106,9 @@ export function HomeScreen() {
           frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")}
           image={world ? worldImages[world.image] : null}
           accent={world?.color}
+          worldName={world?.name}
+          chapterText={world ? `Chapitre ${Math.min(9, campaign!.chapter)} · ${cp?.ready ? "balise prête à valider" : world.chapters[Math.min(9, campaign!.chapter) - 1]?.name ?? "chemin en cours"}` : undefined}
+          onRecord={() => navigation.navigate("Tabs", { screen: "Record" })}
           onProfile={() => navigation.navigate("Tabs", { screen: "Profile" })}
         />
 
@@ -136,7 +143,7 @@ export function HomeScreen() {
                     Pourquoi : {action.why}
                   </T>
                 ) : null}
-                {action.cta ? <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
+                {action.cta ? <Button kind="secondary" label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
               </Card>
             </Reveal>
 
@@ -155,7 +162,9 @@ export function HomeScreen() {
               <TodayStrip steps={steps} cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
             </Reveal>
 
-            <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
+            <JourneyPreview owner={owner} />
+            <Button label="Mes repères d’ascension" kind="ghost" onPress={() => setShowAscension(v => !v)} />
+            {showAscension ? <Section title="Mon ascension" action="Aventure" onAction={() => navigation.navigate("Tabs", { screen: "Adventure" })}>
               <Card style={{ gap: space.s4 }}>
                 <View style={styles.row}>
                   <Ring value={xp / Math.max(1, need)} size={76} stroke={5}>
@@ -193,7 +202,7 @@ export function HomeScreen() {
                   <Button label="Commencer une aventure" kind="secondary" icon="compass" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
                 )}
               </Card>
-            </Section>
+            </Section> : null}
 
             {/* The visit is an invitation, never the first thing on the QG: it comes after the player's own numbers and ascension. */}
             <TourCard />

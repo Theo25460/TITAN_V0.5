@@ -102,7 +102,8 @@
         ${s.goalPercent !== null ? `<span class="asc-ascent thin" role="progressbar" aria-label="Objectif de pas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${s.goalPercent}"><span style="--p:${s.goalPercent}%"></span></span><p class="asc-small asc-muted">Objectif ${n(s.goal)} pas · ${s.goalPercent} %</p>` : ""}
         <div class="wk-days" role="img" aria-label="Pas des sept derniers jours : ${esc(summary)}">${bars}</div>
         <p class="asc-small asc-muted">Moyenne des 7 derniers jours : <strong>${s.average7 === null ? "—" : n(s.average7)}</strong> pas par jour, sur ${s.week.filter((d) => d.steps !== null).length} jour${s.week.filter((d) => d.steps !== null).length > 1 ? "s" : ""} renseigné${s.week.filter((d) => d.steps !== null).length > 1 ? "s" : ""}${s.daysWithData30 > 7 ? ` · 30 jours : ${n(s.average30)}` : ""}.</p>
-        <p class="asc-small asc-faint" data-steps-note>${source ? `Source : ${esc(source)}. ` : ""}${stamp ? `Dernière mise à jour ${esc(stamp)}. ` : ""}Les pas ne comptent ni comme une séance, ni pour l’XP.${failure || !navigator.onLine ? " Dernière valeur connue, la synchronisation n’a pas répondu." : ""}</p>
+        <p class="asc-small asc-faint" data-steps-note>${source ? `Source : ${esc(source)}. ` : ""}${stamp ? `Dernière mise à jour ${esc(stamp)}. ` : ""}Les pas ne comptent ni comme une séance, ni pour l’XP. Les pas confirmés ouvrent les sentiers.${failure || !navigator.onLine ? " Dernière valeur connue, la synchronisation n’a pas répondu." : ""}</p>
+        <a class="asc-btn asc-btn-ghost asc-btn-sm" href="/adventure#sentiers">${icon("compass")} Explorer les Sentiers du Titan</a>
       </div></section>`;
   }
 
@@ -122,7 +123,7 @@
         <p class="qg-steps-value"><strong>${n(s.average30)}</strong> <span class="asc-muted">pas par jour en moyenne</span></p>
         <div class="qg-steps-spark" role="img" aria-label="Pas par jour sur trente jours, ${s.daysWithData30} jours renseignés${best ? `, le plus haut : ${esc(n(best.steps))}` : ""}">${bars}</div>
         <p class="asc-small asc-muted">${s.daysWithData30} jour${s.daysWithData30 > 1 ? "s" : ""} sur 30 avec un chiffre${best ? ` · meilleur jour : ${n(best.steps)} pas` : ""}. Un jour sans chiffre n’est pas un jour à zéro.</p>
-        <p class="asc-small asc-faint">Les pas ne comptent ni comme une séance, ni pour l’XP.</p>
+        <p class="asc-small asc-faint">Les pas ne comptent ni comme une séance, ni pour l’XP. Les pas confirmés ouvrent les sentiers.</p>
       </div></section>`;
   }
 

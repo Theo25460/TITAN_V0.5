@@ -1,0 +1,100 @@
+/* Passport layout, disclosure controls, and narrow screens at 200% text. */
+#profil {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+#profil .pf-hero { margin: 0; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+#profil .pf-id { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 1rem; }
+#profil .pf-id-main { min-width: 0; }
+#profil .pf-name { font-size: clamp(1.625rem, 6vw, 2.375rem); white-space: normal; overflow-wrap: anywhere; }
+#profil .pf-crest { display: flex; justify-content: flex-start; margin: 0; grid-column: 1 / -1; }
+#profil .pf-crest .crest { width: 64px; height: auto; }
+#profil [data-profile-personalize], #profil .pf-signout { justify-self: start; }
+#profil .pf-level .asc-between { flex-wrap: wrap; gap: .5rem 1rem; }
+#profil .pf-level-n { font-size: 1rem; }
+#profil .pf-level-n strong { font-size: 2rem; }
+#profil [data-profile-career]:empty { display: none; }
+#profil .pf-passport-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
+  gap: .75rem;
+}
+#profil .pf-passport-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: .4rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  border-radius: 16px;
+  min-width: 0;
+}
+#profil .pf-passport-stats dt { color: var(--tx-2); font-size: .8125rem; overflow-wrap: anywhere; }
+#profil .pf-passport-stats dd { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--tx); overflow-wrap: anywhere; }
+#profil .pf-sport-passport, #profil .pf-passport-group {
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  border-radius: 18px;
+  min-width: 0;
+}
+#profil .pf-sport-passport, #profil .pf-passport-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  min-height: 80px;
+}
+#profil .pf-sport-passport { text-decoration: none; }
+#profil .pf-sport-passport > svg { flex: 0 0 24px; color: var(--cy); }
+#profil .pf-sport-passport > span, #profil .pf-passport-group > summary > span { display: grid; gap: .4rem; flex: 1; min-width: 0; }
+#profil .pf-sport-passport strong { font-family: var(--font-display); font-size: 1.25rem; color: var(--tx); }
+#profil .pf-passport-group > summary { cursor: pointer; list-style: none; }
+#profil .pf-passport-group > summary::-webkit-details-marker { display: none; }
+#profil .pf-passport-group > summary strong { font-size: 1.125rem; color: var(--tx); }
+#profil .pf-passport-group > summary small, #profil .pf-sport-passport small { color: var(--tx-2); }
+#profil .pf-passport-group > summary > svg { flex: 0 0 20px; color: var(--cy); transform: rotate(90deg); }
+#profil .pf-passport-group[open] > summary > svg { transform: rotate(-90deg); }
+#profil .pf-group-body { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--line); }
+#profil .pf-group-body .asc-section { margin: 1.25rem 0 0; }
+#profil .pf-group-body .asc-section .asc-section { padding: 0; border: 0; }
+#profil .pf-sport-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+#profil .asc-btn, #profil .asc-row, #profil .pf-avatar-pick, #profil [role=radio], #profil select { min-height: 48px; }
+#profil .asc-row { text-align: start; }
+#profil .asc-row-main, #profil .pf-mastery-main, #profil .pf-toggle > span { min-width: 0; overflow-wrap: anywhere; }
+#profil .pf-inline, #profil .pf-target, #profil .asc-section-head { flex-wrap: wrap; }
+#profil .pf-inline .asc-input { flex: 1 1 180px; min-width: 0; }
+#profil .pf-target button { min-width: 48px; }
+#profil summary:focus-visible, #profil .pf-sport-passport:focus-visible { outline: 2px solid var(--cy); outline-offset: 4px; }
+#profil .asc-eyebrow, #profil .pf-toggle small, #profil .pf-avatar-pick small { font-size: .75rem; }
+#profil .asc-small, #profil small, #profil .asc-row-sub { font-size: .8125rem; }
+#profil .asc-btn, #profil input, #profil select, #profil .asc-field, #profil .pf-avatar-pick strong,
+#profil .pf-target button, #profil .pf-toggle strong, #profil legend { font-size: .875rem; }
+#profil h2 { font-size: 1.25rem; }
+#profil .asc-row-title { font-size: .9375rem; }
+#profil .asc-btn, #profil .asc-row-title, #profil .asc-row-sub, #profil .pf-avatar-pick strong, #profil .pf-avatar-pick small {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#profil .asc-row-title, #profil .asc-row-sub { overflow: visible; text-overflow: clip; }
+#profil .asc-section-head { gap: .75rem; }
+#profil .pf-avatar-pick { width: auto; min-width: 0; }
+#profil .pf-metric-choices { margin: 1rem 0 0; padding: 0; border: 0; display: grid; gap: 1rem; min-width: 0; }
+
+@media (min-width: 760px) {
+  #profil .pf-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #profil .pf-id { grid-column: 1 / -1; }
+  #profil .pf-crest .crest { width: 88px; }
+}
+@media (max-width: 540px) {
+  #profil .pf-group-body { padding-right: 1rem; padding-left: 1rem; }
+  #profil .pf-mastery-row, #profil .pf-mastery-main .asc-between, #profil .pf-public-share { flex-wrap: wrap; }
+  #profil .pf-mastery-main { flex: 1 1 180px; }
+  #profil .pf-mastery-main .asc-between { gap: .25rem; }
+  #profil .pf-avatars { grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); }
+}
+@media (max-width: 360px) {
+  #profil .pf-id { grid-template-columns: minmax(0, 1fr); }
+  #profil .pf-crest .crest { width: 48px; }
+}

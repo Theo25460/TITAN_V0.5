@@ -109,7 +109,7 @@ describe("with account data", () => {
   test("QG", () => {
     show(<S.Home />);
     expect(screen.getByText(/Athlète Test/)).toBeTruthy();
-    expect(screen.getByText(/Niveau 4/)).toBeTruthy();
+    expect(screen.getByText(/Niv\. 4/)).toBeTruthy();
     expect(screen.getByTestId("week-tile")).toBeTruthy();
     // Recording is always one tap from the QG, whatever the priority of the day is (V12-31).
     expect(screen.queryByText("Refaire ma dernière séance") ?? screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
@@ -174,18 +174,19 @@ describe("with account data", () => {
   test("Aventure et monde (chapitre en cours, gardien, région à venir)", () => {
     show(<S.Adventure />);
     expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(2); // world card + collection row
-    expect(screen.getAllByText(/Accès gratuit/).length).toBe(2);
+    expect(screen.getAllByText(/Accès à vérifier/).length).toBe(2);
     expect(screen.getByText("2 insignes sur 36")).toBeTruthy();
     show(<S.World {...props({ id: "aube" })} />);
     expect(screen.getByText(/Chapitre 3\/9/)).toBeTruthy();
     expect(screen.getByText("Les ronces du passeur")).toBeTruthy(); // the chapter's narrative obstacle
+    fireEvent.press(screen.getByText("Détail des neuf chapitres"));
     expect(screen.getByText("Insigne · Bâtisseur de ponts")).toBeTruthy(); // earned step on the path
     show(<S.World {...props({ id: "marees" })} />);
     expect(screen.getAllByText("La Gardienne des courants").length).toBe(2); // hero + guardian encounter
     expect(screen.getByText("Traverser le courant")).toBeTruthy(); // guardian phase
     expect(screen.getByText("Enregistrer une séance")).toBeTruthy(); // the way forward is a real session
     show(<S.World {...props({ id: "forge" })} />);
-    expect(screen.getByText("Région à venir")).toBeTruthy();
+    expect(screen.getByText("Accès à vérifier")).toBeTruthy();
   });
   test("Profil, Atelier, carte publique", () => {
     show(<S.Profile />);

@@ -110,3 +110,5 @@ ID public : G-WYXQPP00H2. Intégration au build de la branche V1.1, PAS publiée
 `suivi-escalade.html` contient des liens de référence vers `thebmc.co.uk`, `services.thebmc.co.uk` (PDF BMC) et `www.mammut.com`. Ces trois hôtes sont classés `link` dans l’inventaire machine. Ils sont ouverts uniquement si la personne active le lien et quitte TITAN ; aucun script, image, document intégré, préconnexion ou préchargement ne les contacte à l’affichage de la page. La navigation externe transmet les informations habituelles d’une requête web au site choisi (notamment adresse IP et en-têtes du navigateur, référent selon la politique du navigateur) ; TITAN n’ajoute aucun identifiant de compte ni donnée sportive à ces URL.
 
 Cette documentation n’autorise aucun chargement automatique supplémentaire : les contrôles existants d’inventaire, de requêtes au chargement et de CSP restent inchangés.
+
+Les liens vers l’assistance Google Play (`support.google.com`) s’ouvrent à l’initiative du lecteur depuis les pages légales. Aucun script de ce domaine n’est chargé.

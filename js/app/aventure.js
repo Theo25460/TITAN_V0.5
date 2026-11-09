@@ -77,7 +77,7 @@
   }
 
   function missionHtml(world, p, s) {
-    const locked = !isGuest() && (s.version || 1) < 3 && ["forge", "aurores"].includes(world.id) && !s.plus;
+    const locked = !isGuest() && window.TitanAdventureAccess?.worldAccess(s, world.id).state !== "open";
     if (locked)
       return `<section class="av-panel"><p class="asc-eyebrow">Campagne gratuite</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
         <p class="asc-small asc-muted">Cette région n’est pas accessible pour le moment. Tes acquis sont conservés.</p>
@@ -207,6 +207,7 @@
 
   function render() {
     if (!root) return;
+    const journeyHost = root.querySelector("[data-journey-host]");
     const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
     const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
     const s = A()?.snapshot;
@@ -229,12 +230,15 @@
       ${guardianHtml(world, p, s)}
       ${valleyHtml(world, p, s)}
       <section class="av-panel" data-rpg-host aria-label="Journal des rencontres"></section>
+      <section class="av-panel" id="sentiers" data-journey-host aria-label="Sentiers et jalons de carrière"></section>
       ${carnetHtml(world, p)}
       ${questSouvenirsHtml(world, s)}
       <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
         <p>Une étape commence quand tu démarres la campagne ou allumes la balise précédente. Une séance compte si elle a été enregistrée après ce départ, une seule fois par jour, quel que soit son volume. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>
         <p>${personalServer() ? "Les nouveaux chapitres adaptent leurs cibles à tes 28 derniers jours admissibles, puis les gardent figées jusqu’à validation. Le gardien demande au moins deux jours distincts et l’effort indiqué, 90 minutes au plus par jour. Les conditions des chapitres déjà commencés sont conservées." : effortRule() ? "Le gardien demande en plus 150 minutes d’effort, 90 au plus par jour. Ces conditions fixes restent celles du mode découverte et de cet ancien contrat." : SOON} Les insignes restent dans ta collection après une correction ou un archivage. Ils ne donnent ni XP ni crédits. Une pause n’enlève rien.</p></details>
       <p class="asc-small" role="status" id="av-error"></p>`;
+    if (journeyHost) root.querySelector("[data-journey-host]").replaceWith(journeyHost);
+    window.TitanJourneyPanel?.mount(root.querySelector("[data-journey-host]"));
     window.TitanRpgPanel?.mount(root.querySelector("[data-rpg-host]"), world.id);
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;

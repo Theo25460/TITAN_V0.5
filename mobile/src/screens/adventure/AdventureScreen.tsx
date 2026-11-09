@@ -2,6 +2,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { JourneyCard, CareerMilestones } from "../../components/JourneyCard";
+import { useOwner } from "../../data/auth";
+import { worldAccess } from "../../lib/adventureAccess";
 import { AdventureHelp } from "../../components/AdventureHelp";
 import { Card } from "../../components/Card";
 import { RankCrest, rankIdOf } from "../../components/Crest";
@@ -26,6 +29,7 @@ import { colors, radius, space } from "../../theme/tokens";
 /** Aventure: the character, the four worlds and the weekly quests. Everything that is earned comes from the server snapshot. */
 export function AdventureScreen() {
   const insets = useSafeAreaInsets();
+  const owner = useOwner();
   const navigation = useNavigation();
   const q = useAdventure();
   const action = useAdventureAction();
@@ -37,7 +41,7 @@ export function AdventureScreen() {
   // The crest only appears where the text keeps its room: on a narrow phone it squeezed the name and broke words in the middle.
   const { width } = useWindowDimensions();
   const s = q.data;
-  const quests = useMemo(() => AdventureRules.weeklyQuests(active, prefs.weeklyGoalSessions), [active, prefs.weeklyGoalSessions]);
+  const quests = useMemo(() => AdventureRules.weeklyQuests(active, prefs.weeklyGoalSessions, new Date(), { favoriteSports: prefs.favoriteSports }), [active, prefs.weeklyGoalSessions, prefs.favoriteSports]);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
@@ -65,7 +69,7 @@ export function AdventureScreen() {
                     {Format.number(s.xp)} / {Format.number(s.next_level_xp)} XP · {Format.number(s.credits)} crédits
                   </T>
                 </View>
-                {width >= 400 ? <RankCrest rank={rankIdOf(s.level)} size={92} /> : null}
+                <RankCrest rank={rankIdOf(s.level)} size={width < 380 ? 48 : 76} />
               </View>
               <ProgressBar value={s.xp / Math.max(1, s.next_level_xp)} accessibilityLabel="Progression vers le niveau suivant" />
               <T variant="caption" tone="faint">
@@ -74,14 +78,13 @@ export function AdventureScreen() {
             </Card>
 
             <Section title="Mondes">
-              {Codex.worlds.map((w) => {
+              {[...Codex.worlds].sort((a, b) => Number(b.id === s.selected_world) - Number(a.id === s.selected_world)).map((w) => {
                 const c = s.campaigns.find((x) => x.id === w.id);
-                const tier = c?.tier ?? w.tier;
-                const locked = tier === "plus" && !s.plus;
+                const locked = worldAccess(s, w.id).state !== "open";
                 const cp = c ? Progress.campaignProgress(c) : null;
                 const chapter = c?.chapter ?? 0;
                 return (
-                  <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à venir" : ""}`} style={styles.worldTap}>
+                  <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à vérifier" : ""}`} style={styles.worldTap}>
                     <Image source={worldImages[w.image]} style={styles.worldImg} resizeMode="cover" />
                     <Shade from={0.15} start={0.1} to={0.94} />
                     <View style={styles.worldBody}>
@@ -94,7 +97,7 @@ export function AdventureScreen() {
                       </View>
                       <T variant="h3">{w.name}</T>
                       <T variant="caption" tone="muted">
-                        {chapter >= 10 ? "Monde terminé · gardien vaincu" : chapter ? `Chapitre ${chapter}/9 · ${w.chapters[chapter - 1]?.name ?? ""}${cp?.ready ? " · prêt à valider" : ""}` : locked ? "Accès gratuit à l’arrivée de la prochaine mise à jour serveur" : "Pas encore commencé"}
+                        {chapter >= 10 ? "Monde terminé · gardien vaincu" : chapter ? `Chapitre ${chapter}/9 · ${w.chapters[chapter - 1]?.name ?? ""}${cp?.ready ? " · prêt à valider" : ""}` : locked ? "Accès à vérifier auprès du serveur" : "Pas encore commencé"}
                       </T>
                       {chapter > 0 && chapter < 10 ? <ProgressBar value={(chapter - 1 + (cp?.percent ?? 0) / 100) / 9} color={w.color} height={5} accessibilityLabel={`Progression dans ${w.name}`} /> : null}
                     </View>
@@ -103,6 +106,8 @@ export function AdventureScreen() {
               })}
             </Section>
 
+            <JourneyCard owner={owner} />
+            <CareerMilestones owner={owner} />
             <AdventureHelp />
 
             <Section title="Quêtes de la semaine">
@@ -203,7 +208,7 @@ export function AdventureScreen() {
 const styles = StyleSheet.create({
   avatarWrap: { borderRadius: 40 },
   avatar: { width: 76, height: 76, borderRadius: 38, borderWidth: 2, borderColor: colors.cy },
-  worldTap: { height: 156, borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line2 },
+  worldTap: { minHeight: 156, borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line2 },
   worldImg: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
   worldBody: { flex: 1, justifyContent: "flex-end", padding: space.s4, gap: 4 },
   dot: { width: 8, height: 8, borderRadius: 4 },

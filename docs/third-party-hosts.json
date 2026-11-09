@@ -110,6 +110,11 @@
       "host": "*.google-analytics.com",
       "kind": "runtime-on-demand",
       "note": "GA4 collection endpoints allowed only after user opt-in."
+    },
+    {
+      "host": "support.google.com",
+      "kind": "link",
+      "note": "Outbound Google Play support links from the legal pages."
     }
   ],
   "openAllowances": []

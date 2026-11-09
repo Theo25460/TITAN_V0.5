@@ -58,10 +58,11 @@
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
-        <div class="pf-id-main"><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div>${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
+        <div class="pf-id-main"><p class="asc-eyebrow">Mon passeport TITAN</p><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div>${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
+      <a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>
       <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
-        ${pr.guest || pr.confirmed ? `<span class="asc-ascent"><span style="--p:${pct}%"></span></span>` : ""}
-        <p class="asc-small asc-muted">${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div>
+        ${pr.guest || pr.confirmed ? `<span class="asc-ascent" role="progressbar" aria-label="Progression vers le niveau suivant" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="--p:${pct}%"></span></span>` : ""}
+        <p class="asc-small asc-muted">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div>
     </section>`;
   }
 
@@ -265,7 +266,7 @@
 
   function sourcesBlockHtml() {
     if (guest() || !sources || !sources.length) return "";
-    return `<section id="sources" class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
+    return `<section id="sources-connectees" class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
       <div class="asc-list">${sources.map((x) => {
         const name = SOURCE_NAMES[x.source] || x.source;
         const since = x.granted_at ? new Date(x.granted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
@@ -371,19 +372,71 @@
         .join("")}</div></section>`;
   }
 
-  function settingsHtml() {
+  const METRICS = { sessions: "Séances", time: "De pratique", weeks: "Semaines tenues", favorite: "Sport le plus pratiqué" };
+  const DEFAULT_METRICS = ["sessions", "time", "weeks"];
+  const metricOwner = () => window.state?.user?.id || "discovery";
+  const metricsKey = () => `titan_profile_metrics_v13_${metricOwner()}`;
+  const validMetrics = value => Array.isArray(value) && value.length === 3 && new Set(value).size === 3
+    && value.every(key => Object.hasOwn(METRICS, key));
+
+  function metricChoices() {
+    try {
+      const choices = JSON.parse(localStorage.getItem(metricsKey()));
+      if (validMetrics(choices)) return choices;
+    } catch { /* storage may be unavailable */ }
+    return DEFAULT_METRICS;
+  }
+
+  function passportStatsHtml() {
+    const dna = P().dna(logs());
+    const cadence = P().cadence(logs(), D().cadenceSettings());
+    const values = {
+      sessions: F().number(dna.sessions),
+      time: F().hours(dna.minutes),
+      weeks: F().number(cadence.lifetimeHeld),
+      favorite: dna.topSports[0]?.label || "À découvrir",
+    };
+    return `<dl class="pf-passport-stats" aria-label="Mon sport en trois chiffres">${metricChoices().map(key =>
+      `<div data-profile-metric="${key}"><dt>${METRICS[key]}</dt><dd>${esc(values[key])}</dd></div>`).join("")}</dl>`;
+  }
+
+  function identityHtml() {
     const u = window.state?.user || {};
-    const privacy = u.privacy || {};
-    const settings = D().cadenceSettings();
-    const analytics = window.TitanAnalytics?.consent() === "granted";
-    return `<section class="asc-section" id="reglages"><div class="asc-section-head"><h2>Réglages</h2></div>
-      <div class="pf-settings">
+    const choices = metricChoices();
+    return `<section class="asc-section" id="identite"><div class="asc-section-head"><h2>Mon passeport</h2></div>
         ${guest() ? "" : `<label class="asc-field"><span>Nom affiché</span><span class="pf-inline"><input class="asc-input" id="pf-name" maxlength="24" value="${esc(u.name || "")}" autocomplete="nickname"><button type="button" class="asc-btn asc-btn-secondary" data-save-name>Enregistrer</button></span></label>`}
+      <fieldset class="pf-metric-choices"><legend>Mes trois indicateurs</legend>
+        <p class="asc-small asc-muted">Ces choix restent sur cet appareil, pour ce compte.</p>
+        ${choices.map((key, slot) => `<label class="asc-field"><span>Indicateur ${slot + 1}</span>
+          <select class="asc-input" data-profile-metric-slot="${slot}" data-profile-metric-owner="${esc(metricOwner())}">
+            ${Object.entries(METRICS).filter(([id]) => id === key || !choices.includes(id)).map(([id, label]) =>
+              `<option value="${id}"${id === key ? " selected" : ""}>${label}</option>`).join("")}
+          </select></label>`).join("")}
+      </fieldset></section>`;
+  }
+
+  function cadenceHtml() {
+    const settings = D().cadenceSettings();
+    return `<section class="asc-section" id="cadence"><div class="asc-section-head"><h2>Régularité</h2></div>
         <div class="asc-field"><span>Cadence : jours actifs visés par semaine</span><div class="ob-target pf-target" role="radiogroup" aria-label="Cadence">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-cadence="${n}" aria-checked="${settings.target === n}" tabindex="${settings.target === n ? 0 : -1}">${n}</button>`).join("")}</div><small>Une semaine en pause se règle depuis le QG ; elle ne compte ni pour ni contre toi.</small></div>
+      </section>`;
+  }
+
+  function settingsHtml() {
+    const privacy = window.state?.user?.privacy || {};
+    const analytics = window.TitanAnalytics?.consent() === "granted";
+    return `<section class="asc-section" id="reglages"><div class="asc-section-head"><h2>Confidentialité</h2></div>
+      <div class="pf-settings">
         <fieldset class="pf-privacy"><legend class="seance-label">Confidentialité</legend>${guest() ? `<p class="asc-small asc-muted">En mode découverte, rien ne quitte cet appareil.</p>` : PRIVACY.map(([k, label, help]) => `<label class="pf-toggle"><input type="checkbox" role="switch" data-privacy="${k}" ${privacy[k] === true ? "checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(help)}</small></span></label>`).join("")}
           <label class="pf-toggle"><input type="checkbox" role="switch" data-analytics ${analytics ? "checked" : ""}><span><strong>Statistiques d’usage</strong><small>Aide à améliorer TITAN. Jamais de santé, de poids, de GPS ni de notes.</small></span></label>
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" style="white-space:normal" data-ga4-open>Mesure de fréquentation (Google Analytics)</button></fieldset>
       </div></section>`;
+  }
+
+  function profileGroup(id, title, subtitle, body, opened) {
+    return `<details class="pf-passport-group" data-profile-group="${id}"${opened.has(id) ? " open" : ""}>
+      <summary><span><strong>${title}</strong><small>${subtitle}</small></span>${icon("chevron")}</summary>
+      <div class="pf-group-body">${body}</div></details>`;
   }
 
   function publicHtml() {
@@ -578,24 +631,40 @@
 
   function accountHtml() {
     const s = A()?.snapshot;
-    const plus = Boolean(s?.plus || window.state?.user?.is_elite);
-    const pending = (window.TitanQueue?.list?.() || []).length;
+    const plus = s && !s.local && s.owner === window.state?.user?.id && typeof s.plus === "boolean" ? s.plus : null;
+    const subscription = plus === true ? "Accès TITAN+ actif · origine à consulter"
+      : plus === false ? "Consulter les offres et la gestion de l’abonnement"
+      : "Accès non vérifié · consulter les offres";
     return `<section class="asc-section" id="compte"><div class="asc-section-head"><h2>${guest() ? "Garder tes séances" : "Compte et données"}</h2></div>
       ${guest() ? `<div class="asc-note">${icon("cloudUp")}<span>Crée un compte pour sauvegarder ta progression et la retrouver partout. Tes séances de découverte pourront le rejoindre en un geste.</span></div><div class="asc-row-flex pf-actions"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-secondary" href="/login">J’ai déjà un compte</a></div>` : `<div class="asc-list">
-        <a class="asc-row" href="${plus ? "/boutique" : "/titan-plus"}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">${plus ? "TITAN+ actif" : "TITAN+"}</span><span class="asc-row-sub">${plus ? "Merci de soutenir TITAN. Aucun avantage de progression, seulement du confort et des cosmétiques." : "Bientôt disponible. Aucun achat ni abonnement en V1."}</span></span>${icon("chevron")}</a>
+        <a class="asc-row" href="${plus ? "/boutique" : "/titan-plus"}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">TITAN+</span><span class="asc-row-sub">${subscription}</span></span>${icon("chevron")}</a>
         <a class="asc-row" href="/recours"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Séances contrôlées et recours</span><span class="asc-row-sub">Voir une séance mise de côté et contester la décision.</span></span>${icon("chevron")}</a>
-        <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
-        <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
       </div>`}
       ${garminConnectHtml()}
       ${sourcesBlockHtml()}
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
         <button type="button" class="asc-row" data-export-csv><span class="asc-row-icon">${icon("journal")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter mon journal</span><span class="asc-row-sub">Tableur CSV, lisible partout</span></span></button>
-        <button type="button" class="asc-row" data-clear-cache><span class="asc-row-icon">${icon("restore")}</span><span class="asc-row-main"><span class="asc-row-title">Vider le cache de cet appareil</span><span class="asc-row-sub">Les séances en attente sont conservées</span></span></button>
-        ${guest() ? "" : `<button type="button" class="asc-row" data-signout><span class="asc-row-icon">${icon("logout")}</span><span class="asc-row-main"><span class="asc-row-title">Se déconnecter</span><span class="asc-row-sub">${pending ? `${pending} séance(s) attendent l’envoi : elles restent sur cet appareil` : "Tes données restent dans ton compte"}</span></span></button>
-        <button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button>`}
+        ${guest() ? "" : `<button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button>`}
       </div>${exportTask ? `<p class="asc-small asc-muted" role="status" data-export-progress>Préparation de l’export…</p>` : ""}</section>`;
+  }
+
+  function preferencesHtml() {
+    return `<section class="asc-section" id="preferences"><div class="asc-list">
+        <a class="asc-row" href="/prevoir"><span class="asc-row-icon">${icon("bell")}</span><span class="asc-row-main"><span class="asc-row-title">Planning et rappels</span><span class="asc-row-sub">Prévoir mes prochaines séances</span></span>${icon("chevron")}</a>
+        <button type="button" class="asc-row" data-motion-toggle aria-pressed="${(() => { try { return localStorage.getItem("titan_motion_v1") === "reduced"; } catch { return false; } })()}"><span class="asc-row-icon">${icon("sparkle")}</span><span class="asc-row-main"><span class="asc-row-title">Animations réduites</span><span class="asc-row-sub">Limite les mouvements dans TITAN (en plus du réglage de ton appareil)</span></span></button>
+        <a class="asc-row" href="/service"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Assistance</span><span class="asc-row-sub">Aide, problème technique, compte, données</span></span>${icon("chevron")}</a>
+        <a class="asc-row" href="/legal_hub"><span class="asc-row-icon">${icon("info")}</span><span class="asc-row-main"><span class="asc-row-title">Informations légales</span></span>${icon("chevron")}</a>
+        <button type="button" class="asc-row" data-clear-cache><span class="asc-row-icon">${icon("restore")}</span><span class="asc-row-main"><span class="asc-row-title">Vider le cache de cet appareil</span><span class="asc-row-sub">Les séances en attente sont conservées</span></span></button>
+      </div></section>`;
+  }
+
+  function revealSection(hash, scroll = false) {
+    if (!hash?.startsWith("#") || !root) return;
+    const target = document.getElementById(hash.slice(1));
+    if (!target || !root.contains(target)) return;
+    for (let group = target.closest("details"); group; group = group.parentElement.closest("details")) group.open = true;
+    if (scroll) target.scrollIntoView();
   }
 
   function render() {
@@ -604,9 +673,16 @@
     const focused = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"]') : null;
     const attribute = focused?.hasAttribute("data-cadence") ? "data-cadence" : focused?.hasAttribute("data-avatar") ? "data-avatar" : null;
     const value = attribute ? focused.getAttribute(attribute) : null;
-    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}
-      <nav class="pf-jump" aria-label="Sections du profil">${[["maitrise", "Maîtrise"], ["adn", "ADN"], ["collection", "Collection"], ["personnage", "Personnage"], ["reglages", "Réglages"], ...(guest() ? [] : [["public", "Public"]]), ["compte", "Compte"]].map(([id, l]) => `<a href="#${id}">${l}</a>`).join("")}</nav>
-      ${masteryHtml()}${dnaHtml()}${collectionHtml()}${avatarHtml()}${settingsHtml()}${publicHtml()}${accountHtml()}`; });
+    const opened = new Set([...root.querySelectorAll("[data-profile-group][open]")].map(group => group.dataset.profileGroup));
+    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}${passportStatsHtml()}
+      <a class="pf-sport-passport" href="/stats">${icon("chart")}<span><strong>Mon parcours sportif</strong><small>Maîtrises, régularité et évolution de ta pratique.</small></span>${icon("chevron")}</a>
+      <div data-profile-career></div>
+      ${profileGroup("identity", "Mon identité", "Personnage, titres et collection", `${identityHtml()}${avatarHtml()}${collectionHtml()}${publicHtml()}`, opened)}
+      ${profileGroup("sport", "Mon sport", "Favoris, objectifs et historique", `<nav class="pf-sport-links" aria-label="Mon sport"><a class="asc-btn asc-btn-secondary" href="/objectifs">Mes objectifs</a><a class="asc-btn asc-btn-secondary" href="/journal">Mon historique</a></nav>${cadenceHtml()}${masteryHtml()}${dnaHtml()}`, opened)}
+      ${profileGroup("account", "Connexions &amp; compte", "Sources, confidentialité et abonnement", `<section class="asc-section" id="sources"><div class="asc-section-head"><h2>Sources et capteurs</h2></div><p class="asc-small asc-muted">Tes autorisations et sources disponibles apparaissent ici. Les capteurs du téléphone se règlent dans l’application Android.</p></section>${accountHtml()}${settingsHtml()}`, opened)}
+      ${profileGroup("preferences", "Aide &amp; préférences", "Rappels, affichage et assistance", preferencesHtml(), opened)}
+      ${guest() ? "" : `<button type="button" class="asc-btn asc-btn-ghost pf-signout" data-signout>${icon("logout")} Se déconnecter</button>`}`; });
+    window.TitanJourneyPanel?.mount(root.querySelector("[data-profile-career]"), "career");
     if (attribute && document.activeElement === document.body) {
       const next = [...root.querySelectorAll(`[role="radio"][${attribute}]`)].find(radio => radio.getAttribute(attribute) === value && radio.getAttribute("aria-disabled") !== "true");
       if (next) {
@@ -617,7 +693,7 @@
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
       root.dataset.scrolled = "1";
-      document.getElementById(location.hash.slice(1))?.scrollIntoView();
+      revealSection(location.hash, true);
     }
   }
 
@@ -877,6 +953,8 @@
   }
 
   function onClick(e) {
+    const anchor = e.target.closest('a[href^="#"]');
+    if (anchor) revealSection(anchor.getAttribute("href"));
     if (masteryNavigation.handle(e)) return renderMastery();
     const b = e.target.closest("button");
     if (!b) return;
@@ -977,6 +1055,20 @@
   function onChange(e) {
     if (masteryNavigation.handle(e)) return renderMastery();
     const t = e.target;
+    if (t.matches("[data-profile-metric-slot]")) {
+      if (window.titanAccountTransition?.active || t.dataset.profileMetricOwner !== metricOwner()) return;
+      const slot = Number(t.dataset.profileMetricSlot);
+      const next = metricChoices().map((key, i) => i === slot ? t.value : key);
+      if (!validMetrics(next)) return;
+      try {
+        localStorage.setItem(metricsKey(), JSON.stringify(next));
+        render();
+        root.querySelector(`[data-profile-metric-slot="${slot}"]`)?.focus({ preventScroll: true });
+      } catch {
+        window.titanShell.toast({ type: "warn", message: "Choix non enregistré. Réessaie avant de quitter cette page." });
+      }
+      return;
+    }
     if (t.dataset.privacy) {
       window.state.user.privacy = { ...(window.state.user.privacy || {}), [t.dataset.privacy]: t.checked };
       window.saveState?.({ forceCloud: true });
@@ -1009,20 +1101,61 @@
   let booted = false;
   /* GAR-03: the return from Garmin lands here with ?garmin=<result>. Said once in words, then the address is cleaned. */
   const GARMIN_RESULTS = {
-    ok: ["ok", "Garmin relié", "Tes prochaines séances Garmin arriveront dans ton journal."],
+    ok: ["info", "Garmin : confirmation requise", "Connecte-toi à ton compte TITAN pour vérifier la liaison dans Sources et capteurs."],
     refused: ["warn", "Liaison annulée", "Tu as refusé l’accès sur l’écran Garmin : rien n’a été relié."],
     permission: ["warn", "Accès aux activités manquant", "Garmin n’a pas accordé l’accès aux activités : coche-le sur l’écran Garmin et réessaie."],
     conflict: ["warn", "Compte Garmin déjà relié", "Ce compte Garmin est déjà relié à un autre compte TITAN. Retire d’abord la liaison de l’autre compte."],
     consent: ["warn", "Autorisation manquante", "Autorise d’abord Garmin dans TITAN, puis recommence la liaison."],
     error: ["warn", "Liaison impossible", "La liaison avec Garmin n’a pas abouti. Réessaie dans un moment."],
   };
-  function garminReturn() {
-    let status = null;
-    try { status = new URLSearchParams(location.search).get("garmin"); } catch { return; }
+  const GARMIN_REASONS = {
+    state: "Cette autorisation a expiré ou ne peut plus être vérifiée. Recommence depuis Sources et capteurs et termine sous dix minutes. Assistance : GARMIN_STATE.",
+    code: "Le code d’autorisation Garmin manque. Recommence la connexion et termine tous les écrans Garmin. Assistance : GARMIN_CODE.",
+    token: "L’échange d’autorisation Garmin a échoué. Recommence une fois. Si cela persiste, contacte l’assistance avec GARMIN_TOKEN.",
+    identity: "Le compte Garmin n’a pas pu être identifié. Vérifie le compte connecté chez Garmin, puis réessaie. Assistance : GARMIN_IDENTITY.",
+    permissions: "L’accès aux activités Garmin manque. Recommence et autorise les activités sur l’écran Garmin. Assistance : GARMIN_PERMISSIONS.",
+    link: "La liaison n’a pas pu être enregistrée dans TITAN. Actualise Sources et capteurs avant de réessayer. Assistance : GARMIN_LINK.",
+    storage: "L’autorisation n’a pas pu être enregistrée de façon sécurisée. Actualise Sources et capteurs avant de réessayer. Assistance : GARMIN_STORAGE.",
+  };
+
+  async function garminReturn() {
+    const query = new URLSearchParams(location.search);
+    const status = query.get("garmin");
     if (!status) return;
+    const reason = query.get("garmin_reason");
     try { history.replaceState(null, "", location.pathname + location.hash); } catch { /* the notice still shows */ }
-    const [type, title, message] = GARMIN_RESULTS[status] || GARMIN_RESULTS.error;
-    window.titanShell?.toast?.({ type, title, message });
+    const notice = ([type, title, message]) => window.titanShell?.toast?.({ type, title, message });
+    if (status !== "ok") {
+      if (status === "error" && Object.hasOwn(GARMIN_REASONS, reason)) {
+        return notice(["warn", "Liaison Garmin à reprendre", GARMIN_REASONS[reason]]);
+      }
+      return notice(Object.hasOwn(GARMIN_RESULTS, status) ? GARMIN_RESULTS[status] : GARMIN_RESULTS.error);
+    }
+
+    const job = { context: bitsContext };
+    if (guest() || !bitsCurrent(job) || !job.context.client) return notice(GARMIN_RESULTS.ok);
+    let timer;
+    try {
+      const session = await readBitsSession(job);
+      if (!bitsCurrent(job)) return;
+      const response = await Promise.race([
+        job.context.client.rpc("titan_garmin_status_v1").setHeader("Authorization", `Bearer ${session.access_token}`),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("GARMIN_STATUS_TIMEOUT")), 8000); }),
+      ]);
+      if (!bitsCurrent(job)) return;
+      await readBitsSession(job);
+      if (!bitsCurrent(job)) return;
+      if (response.error || typeof response.data?.linked !== "boolean") throw new Error("GARMIN_STATUS_UNCONFIRMED");
+      garminLinked = response.data.linked;
+      render();
+      notice(garminLinked
+        ? ["ok", "Garmin relié", "Le serveur confirme la liaison. Tes prochaines séances Garmin arriveront dans ton journal."]
+        : ["warn", "Liaison Garmin non confirmée", "Le serveur ne confirme aucune liaison. Ouvre Sources et capteurs, puis relance la connexion Garmin."]);
+    } catch {
+      if (bitsCurrent(job)) notice(["warn", "Liaison Garmin à vérifier", "La liaison n’a pas pu être vérifiée. Actualise Sources et capteurs avec une connexion réseau avant de recommencer."]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function start() {
@@ -1056,6 +1189,7 @@
     });
   };
   ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  window.addEventListener("hashchange", () => revealSection(location.hash, true));
   window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); resetServerBits(); render(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
