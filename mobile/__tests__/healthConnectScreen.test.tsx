@@ -12,6 +12,7 @@ const mockApi = {
 };
 let mockOwner = "owner-a";
 jest.mock("../src/data/api", () => ({
+  assertOwner: async () => ({}),
   sourcesStatus: (...a: unknown[]) => mockApi.sourcesStatus(...a),
   sourceConsent: (...a: unknown[]) => mockApi.sourceConsent(...a),
   importActivity: (...a: unknown[]) => mockApi.importActivity(...a),
@@ -92,9 +93,9 @@ describe("Santé Connect", () => {
     _setHealthConnectForTests(createHealthConnect(l));
     show();
     fireEvent.press(await screen.findByTestId("hc-authorize"));
-    await waitFor(() => expect(mockApi.sourceConsent).toHaveBeenCalledWith("health_connect", true));
+    await waitFor(() => expect(mockApi.sourceConsent).toHaveBeenCalledWith("owner-a", "health_connect", true, expect.any(Function)));
     fireEvent.press(await screen.findByTestId("hc-steps"));
-    await waitFor(() => expect(mockApi.importDailySteps).toHaveBeenCalledWith("2026-10-27", 7000));
+    await waitFor(() => expect(mockApi.importDailySteps).toHaveBeenCalledWith("owner-a", "2026-10-27", 7000, expect.any(Function)));
     expect(screen.getByText(/Aucun pas|7[\s  ]?000 pas/)).toBeTruthy();
     fireEvent.press(screen.getByTestId("hc-sessions"));
     expect(await screen.findByTestId("hc-row-hc-1")).toBeTruthy();
@@ -105,7 +106,7 @@ describe("Santé Connect", () => {
     expect(mockApi.importActivity).not.toHaveBeenCalled();
     fireEvent.changeText(screen.getByTestId("hc-minutes-hc-1"), "35");
     fireEvent.press(screen.getByTestId("hc-import-hc-1"));
-    await waitFor(() => expect(mockApi.importActivity).toHaveBeenCalledWith({ externalId: "hc-1", sport: "running", startedAt: expect.any(String), minutes: 35 }));
+    await waitFor(() => expect(mockApi.importActivity).toHaveBeenCalledWith("owner-a", { externalId: "hc-1", sport: "running", startedAt: expect.any(String), minutes: 35 }, expect.any(Function)));
     expect(await screen.findByText(/Importée dans ton journal/)).toBeTruthy();
   });
   test("a session already in the journal is linked and counted once", async () => {
@@ -123,9 +124,9 @@ describe("Santé Connect", () => {
     _setHealthConnectForTests(createHealthConnect(lib({ revokeAllPermissions: revoke, getGrantedPermissions: async () => [{ accessType: "read", recordType: "Steps" }, { accessType: "read", recordType: "ExerciseSession" }] })));
     show();
     fireEvent.press(await screen.findByTestId("hc-archive"));
-    await waitFor(() => expect(mockApi.archiveImported).toHaveBeenCalledWith("health_connect"));
+    await waitFor(() => expect(mockApi.archiveImported).toHaveBeenCalledWith("owner-a", "health_connect", expect.any(Function)));
     fireEvent.press(screen.getByTestId("hc-stop"));
-    await waitFor(() => expect(mockApi.sourceConsent).toHaveBeenCalledWith("health_connect", false));
+    await waitFor(() => expect(mockApi.sourceConsent).toHaveBeenCalledWith("owner-a", "health_connect", false, expect.any(Function)));
     expect(revoke).toHaveBeenCalled();
     expect(await screen.findByTestId("hc-authorize")).toBeTruthy();
   });

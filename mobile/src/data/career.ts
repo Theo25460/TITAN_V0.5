@@ -24,7 +24,7 @@ export function useCareer(range: CareerRange): { career: Career; loading: boolea
     queryFn: () => {
       const to = new Date();
       const from = new Date(to.getTime() - STEP_DAYS * 86400000);
-      return api.dailyActivity(localDay(from), localDay(to));
+      return api.dailyActivity(owner, localDay(from), localDay(to));
     },
     staleTime: 10 * 60_000,
     retry: false,

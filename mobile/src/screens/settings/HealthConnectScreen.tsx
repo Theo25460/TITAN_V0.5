@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -12,6 +12,7 @@ import { Sports } from "../../core";
 import * as api from "../../data/api";
 import { useOwner } from "../../data/auth";
 import { invalidateAfterSession } from "../../data/hooks";
+import { invalidateAfterSteps } from "../../data/steps";
 import { errorMessage } from "../../lib/errors";
 import { healthConnect, type Access, type Availability, type DaySteps, type SessionCandidate } from "../../lib/healthConnect";
 import { useOnline } from "../../lib/network";
@@ -34,88 +35,116 @@ export function HealthConnectScreen() {
   const [steps, setSteps] = useState<DaySteps[] | null>(null);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  // A change of account (or leaving the screen) cancels what is in flight: an answer is applied only for the account that asked.
-  const live = useRef({ owner, mounted: true });
-  live.current.owner = owner;
-  useEffect(() => () => { live.current.mounted = false; }, []);
-  const current = (asked: string) => live.current.mounted && live.current.owner === asked;
+  const scope = useMemo(() => ({ active: true, flight: null as object | null }), [owner]);
+  const latest = useRef(scope);
+  latest.current = scope;
+  const current = useCallback(() => latest.current === scope && scope.active, [scope]);
+  useEffect(() => {
+    scope.active = true;
+    return () => { scope.active = false; scope.flight = null; };
+  }, [scope]);
 
   const refresh = useCallback(async () => {
-    const asked = owner;
     const [a, g] = await Promise.all([hc.availability(), hc.granted()]);
+    if (!current()) return;
     let granted: boolean | null = null;
     try {
-      const list = (await api.sourcesStatus()) as { source: string; granted: boolean }[];
-      granted = Array.isArray(list) ? list.some((s) => s.source === "health_connect" && s.granted) : false;
+      const list = await api.sourcesStatus(owner);
+      granted = Array.isArray(list) && list.some(s => s.source === "health_connect" && s.granted);
     } catch { granted = null; }
-    if (!current(asked)) return;
+    if (!current()) return;
     setAvailability(a); setAccess(g); setConsent(granted);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [owner, hc]);
-  useEffect(() => { setSteps(null); setRows(null); setNotice(null); setConsent(null); refresh(); }, [owner, refresh]);
+  }, [owner, hc, current]);
+  useEffect(() => {
+    setBusy(false); setSteps(null); setRows(null); setNotice(null); setConsent(null);
+    void refresh();
+  }, [owner, refresh]);
 
-  const run = async (job: (asked: string) => Promise<void>) => {
-    if (busy) return;
-    const asked = owner;
+  const run = async (job: (asked: string, active: () => boolean) => Promise<void>) => {
+    if (!current() || scope.flight) return;
+    const flight = {};
+    scope.flight = flight;
+    const active = () => current() && scope.flight === flight;
     setBusy(true); setNotice(null);
-    try { await job(asked); } catch (e) { if (current(asked)) setNotice(errorMessage(e)); } finally { if (live.current.mounted) setBusy(false); }
+    try {
+      await job(owner, active);
+    } catch (e) {
+      if (active()) setNotice(errorMessage(e));
+    } finally {
+      if (active()) { scope.flight = null; setBusy(false); }
+    }
   };
 
-  const authorize = () => run(async (asked) => {
+  const authorize = () => run(async (asked, active) => {
+    await api.assertOwner(asked);
+    if (!active()) return;
     const granted = await hc.request();
-    if (!current(asked)) return;
+    if (!active()) return;
     setAccess(granted);
     if (!granted.steps && !granted.exercise) { setNotice("Aucune autorisation donnée dans Santé Connect : rien n’est lu."); return; }
-    await api.sourceConsent("health_connect", true);
-    if (current(asked)) { setConsent(true); toast({ kind: "ok", title: "Santé Connect autorisé", message: "Tes pas sont relus à l’ouverture de TITAN et quand tu actualises. Tu peux retirer l’accès à tout moment." }); }
+    await api.sourceConsent(asked, "health_connect", true, active);
+    if (active()) { setConsent(true); toast({ kind: "ok", title: "Santé Connect autorisé", message: "Tes pas sont relus à l’ouverture de TITAN et quand tu actualises. Tu peux retirer l’accès à tout moment." }); }
   });
 
-  const syncSteps = () => run(async (asked) => {
+  const syncSteps = () => run(async (asked, active) => {
+    await api.assertOwner(asked);
+    if (!active()) return;
     const days = await hc.readSteps();
-    if (!current(asked)) return;
+    if (!active()) return;
     setSteps(days);
     let sent = 0;
-    for (const d of days) { await api.importDailySteps(d.day, d.steps); if (!current(asked)) return; sent++; }
-    invalidateAfterSession(qc, asked);
-    toast({ kind: "ok", title: sent ? `${sent} jour${sent > 1 ? "s" : ""} de pas enregistré${sent > 1 ? "s" : ""}` : "Aucun pas trouvé", message: "Les pas ne créent ni séance, ni XP, ni récompense." });
+    try {
+      for (const d of days) {
+        if (!active()) return;
+        await api.importDailySteps(asked, d.day, d.steps, active);
+        sent++;
+      }
+      if (active()) toast({ kind: "ok", title: sent ? `${sent} jour${sent > 1 ? "s" : ""} de pas enregistré${sent > 1 ? "s" : ""}` : "Aucun pas trouvé", message: "Les pas ne créent ni séance, ni XP, ni récompense." });
+    } finally {
+      if (sent > 0) invalidateAfterSteps(qc, asked);
+    }
   });
 
-  const findSessions = () => run(async (asked) => {
+  const findSessions = () => run(async (asked, active) => {
+    await api.assertOwner(asked);
+    if (!active()) return;
     const list = await hc.readSessions();
-    if (!current(asked)) return;
+    if (!active()) return;
     setRows(list.map((s) => ({ ...s, minutesText: String(s.minutes), state: "idle" })));
   });
 
   const importRow = async (externalId: string) => {
     const asked = owner;
     const row = rows?.find((r) => r.externalId === externalId);
-    if (!row || row.state === "busy") return;
+    if (!current() || !row || row.state === "busy") return;
     const minutes = Math.round(Number(row.minutesText.replace(",", ".")));
     if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) { setRows((rs) => rs && rs.map((r) => (r.externalId === externalId ? { ...r, state: "error" } : r))); return; }
     setRows((rs) => rs && rs.map((r) => (r.externalId === externalId ? { ...r, state: "busy" } : r)));
     try {
-      const res = await api.importActivity({ externalId, sport: row.sport, startedAt: row.startedAt, minutes });
-      if (!current(asked)) return;
+      const res = await api.importActivity(asked, { externalId, sport: row.sport, startedAt: row.startedAt, minutes }, current);
+      if (!current()) return;
       setRows((rs) => rs && rs.map((r) => (r.externalId === externalId ? { ...r, state: res.status } : r)));
       invalidateAfterSession(qc, asked);
     } catch (e) {
-      if (!current(asked)) return;
+      if (!current()) return;
       setRows((rs) => rs && rs.map((r) => (r.externalId === externalId ? { ...r, state: "error" } : r)));
       setNotice(errorMessage(e));
     }
   };
 
-  const stop = () => run(async (asked) => {
-    await api.sourceConsent("health_connect", false);
+  const stop = () => run(async (asked, active) => {
+    await api.sourceConsent(asked, "health_connect", false, active);
+    await api.assertOwner(asked);
+    if (!active()) return;
     try { await hc.revoke(); } catch { /* the system screen stays available below */ }
-    if (!current(asked)) return;
+    if (!active()) return;
     setConsent(false); setAccess({ steps: false, exercise: false }); setSteps(null); setRows(null);
     toast({ kind: "ok", title: "Synchronisation arrêtée", message: "Tes séances déjà importées restent dans le journal : tu peux les archiver ci-dessous." });
   });
 
-  const archive = () => run(async (asked) => {
-    const n = (await api.archiveImported("health_connect")) as unknown as number;
-    if (!current(asked)) return;
+  const archive = () => run(async (asked, active) => {
+    const n = await api.archiveImported(asked, "health_connect", active);
+    if (!active()) return;
     invalidateAfterSession(qc, asked);
     toast({ kind: "ok", title: `${Number(n) || 0} séance${Number(n) > 1 ? "s" : ""} archivée${Number(n) > 1 ? "s" : ""}` });
   });

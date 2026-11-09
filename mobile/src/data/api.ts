@@ -266,21 +266,30 @@ export const exportOwnData = () => rpc<Record<string, unknown>>("export_own_data
 export const deleteOwnAccount = () => rpc("delete_own_account", {}, 30000);
 
 /* ---------- Connected sources (Health Connect) ---------- */
-export const sourceConsent = (source: "health_connect", consent: boolean) => rpc<{ granted: boolean }>("titan_set_source_consent_v1", { p_source: source, p_granted: consent });
-export const dailyActivity = (from: string, to: string) => rpc<{ day: string; steps: number; sources?: string[]; updatedAt?: string }[]>("titan_daily_activity_v1", { p_from: from, p_to: to });
-export const sourcesStatus = () => rpc<unknown>("titan_sources_v1");
+export type SourceStatus = { source: string; granted: boolean };
+export const sourceConsent = (owner: string, source: "health_connect", consent: boolean, current?: () => boolean) =>
+  ownerRpc<{ granted: boolean }>(owner, "titan_set_source_consent_v1", { p_source: source, p_granted: consent }, current);
+export const dailyActivity = (owner: string, from: string, to: string) =>
+  ownerRpc<{ day: string; steps: number; sources?: string[]; updatedAt?: string }[]>(owner, "titan_daily_activity_v1", { p_from: from, p_to: to });
+export const sourcesStatus = (owner: string) => ownerRpc<SourceStatus[]>(owner, "titan_sources_v1", {});
 export type ImportResult = { status: "imported" | "linked" | "duplicate"; log_id?: string };
-export const importActivity = (p: { externalId: string; sport: string; startedAt: string; minutes: number }) =>
-  rpc<ImportResult>("titan_import_activity_v1", { p_source: "health_connect", p_external_id: p.externalId, p_sport: p.sport, p_started_at: p.startedAt, p_duration_minutes: p.minutes, p_distance_km: null });
-export const importDailySteps = (day: string, steps: number) => rpc<unknown>("titan_import_daily_activity_v1", { p_source: "health_connect", p_day: day, p_steps: steps });
-export const archiveImported = (source: "health_connect") => rpc<unknown>("titan_archive_imported_v1", { p_source: source });
+export const importActivity = (owner: string, p: { externalId: string; sport: string; startedAt: string; minutes: number }, current?: () => boolean) =>
+  ownerRpc<ImportResult>(owner, "titan_import_activity_v1", { p_source: "health_connect", p_external_id: p.externalId, p_sport: p.sport, p_started_at: p.startedAt, p_duration_minutes: p.minutes, p_distance_km: null }, current);
+export async function importDailySteps(owner: string, day: string, steps: number, current?: () => boolean) {
+  const result = await ownerRpc<{ day: string; steps: number }>(owner, "titan_import_daily_activity_v1", { p_source: "health_connect", p_day: day, p_steps: steps }, current);
+  if (result?.day !== day || result.steps !== steps) throw new Error("STEPS_IMPORT_UNCONFIRMED");
+  return result;
+}
+export const archiveImported = (owner: string, source: "health_connect", current?: () => boolean) =>
+  ownerRpc<number>(owner, "titan_archive_imported_v1", { p_source: source }, current);
 
 /* ---------- Route library (private GPS traces) ---------- */
 export type RouteMeta = { id: string; eventId?: string | null; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
 export type RouteFull = RouteMeta & { track: import("../lib/gpsTrack").EncodedTrack };
 /** Private data must use the token of the checked owner, including if Auth changes before fetch starts. */
-export async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<T> {
+export async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>, current?: () => boolean): Promise<T> {
   const session = await assertOwner(owner);
+  if (current && !current()) throw Object.assign(new Error("AUTH_REQUIRED"), { code: "AUTH_REQUIRED" });
   const { data, error } = await withTimeout(supabase.rpc(name, params).setHeader("Authorization", `Bearer ${session!.access_token}`));
   if (error) throw error;
   return data as T;
