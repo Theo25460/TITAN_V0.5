@@ -6,12 +6,12 @@ Les essais du 9 novembre 2026 utilisent une base jetable reconstruite depuis `to
 | --- | --- |
 | `node --test tests/production-plan.test.mjs` | 6 tests réussis. La borne V1.1 conserve ses 34 migrations. La V1.3 a son propre lot et son contrôle en lecture seule. |
 | `node tools/db/test-journey-pglite.mjs /chemin/vers/@electric-sql/pglite` | Replay intégral, réapplication et tests des sentiers réussis. Snapshot testé dans une transaction `READ ONLY`. Dix synchronisations identiques, isolation, MAX par jour, consentement, bornes, catalogue retiré, dates conservées, export, suppression de compte et XP/crédits vérifiés. |
-| `tools/db/postflight-v13.sql` dans ce même banc | Structure migrée acceptée. Neuf mutations bloquées, couvrant historique absent ou inconnu, accès direct, RLS, volatilité du snapshot, droits RPC, unicité des acquis et chaîne d’export. |
+| `tools/db/postflight-v13.sql` dans ce même banc | Structure migrée acceptée. Douze mutations bloquées, dont l’ouverture accidentelle de l’attestation au rôle authentifié et la perte des droits du rôle serveur. |
 | `node tools/db/test-sql-security-pglite.mjs /chemin/vers/@electric-sql/pglite` | Contrôle historique V1.1 réussi avec V1.3 présente. Dix mutations bloquées, dont une version inconnue V1.1 et des ruptures de la chaîne d’export RPG. |
 | `node tools/db/test-adventure-rpg-pglite.mjs /chemin/vers/@electric-sql/pglite` | Simulation de 28 jours et réapplication réussies. |
 | `node tools/db/test-session-holds-pglite.mjs /chemin/vers/@electric-sql/pglite` | Durées, récompenses, révisions et isolation vérifiées. |
 
-Le scénario d’horizon complet atteint 30 millions de pas sur 150 jours acceptés et révèle les 304 découvertes et sept titres. Les fixtures multi-sources étendent les contraintes uniquement dans une transaction annulée. Le canal quotidien réel reste Santé Connect.
+Les 150 appels d’import authentifiés totalisant 30 millions de pas restent dans l’aperçu et ne débloquent aucun souvenir. La recette du rôle serveur atteint le même horizon avec des attestations Garmin synthétiques et révèle les 304 découvertes. Les sept titres sont acquis via le niveau de carrière. Les appels privilégiés sans consentement, sans lien ou depuis un rôle client sont refusés. Le flux Garmin quotidien réel reste à raccorder.
 
 La régression `test-journey-pglite.mjs … --regression` a exécuté 85 autres scripts SQL. 79 ont réussi et six échouent dans le banc embarqué. Dix-huit scripts demandant des méta-commandes `psql` sont exclus de ce banc et listés dans sa sortie.
 

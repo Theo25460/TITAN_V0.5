@@ -71,6 +71,7 @@ const garminStages = new Map([
   ["link", "La liaison n’a pas pu être enregistrée dans TITAN. Actualise l’état avant de réessayer. Code GARMIN_LINK."],
   ["storage", "L’enregistrement sécurisé de l’autorisation a échoué. Actualise l’état avant de relancer la connexion. Code GARMIN_STORAGE."],
 ]);
+export const GARMIN_CHECKING = "Retour Garmin reçu. Vérification de l’état du compte en cours.";
 export function garminReturnMessage(value: string | null): string | null {
   if (!value) return null;
   let url: URL;
@@ -78,7 +79,7 @@ export function garminReturnMessage(value: string | null): string | null {
   if (url.protocol !== "titan:" || url.hostname !== "garmin" || url.pathname || url.username || url.password || url.port || url.hash) return null;
   const status = url.searchParams.get("garmin");
   if (!status) return null;
-  if (status === "ok") return "Retour Garmin reçu. Vérification de l’état du compte en cours.";
+  if (status === "ok") return GARMIN_CHECKING;
   if (status === "refused") return "L’autorisation Garmin a été refusée ou interrompue. Tu peux relancer la connexion quand tu le souhaites.";
   if (status === "permission") return "Garmin n’a pas accordé l’accès aux activités. Relance la connexion et autorise leur import.";
   if (status === "conflict") return "Ce compte Garmin est déjà associé à un autre compte TITAN. Contacte l’assistance pour vérifier la liaison.";

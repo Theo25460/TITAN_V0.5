@@ -51,9 +51,11 @@
       .worlds.map((w) => {
         const p = s.campaigns.find((c) => c.id === w.id);
         const finished = p?.chapter >= 10;
+        const access = isGuest() ? "Découverte" : window.TitanAdventureAccess?.worldAccess(s, w.id).state !== "open"
+          ? "Indisponible" : Number(s.version) < 3 && p?.tier === "plus" ? "TITAN+" : "Gratuit";
         return `<button type="button" role="tab" class="av-world" data-world="${w.id}" aria-selected="${w.id === world.id}" style="--world:${w.color}">
           <img src="/assets/renaissance/${w.image}-xs.webp" alt="" width="480" height="270" loading="lazy" decoding="async">
-          <span class="av-world-copy"><small>Gratuit · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
+          <span class="av-world-copy"><small>${access} · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
           <span class="av-world-bar"><span style="--p:${Math.round((finished ? 9 : done(p)) / 9 * 100)}%"></span></span>
         </button>`;
       })
@@ -79,7 +81,7 @@
   function missionHtml(world, p, s) {
     const locked = !isGuest() && window.TitanAdventureAccess?.worldAccess(s, world.id).state !== "open";
     if (locked)
-      return `<section class="av-panel"><p class="asc-eyebrow">Campagne gratuite</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
+      return `<section class="av-panel"><p class="asc-eyebrow">Accès indisponible</p><h2 class="asc-h2">${esc(world.name)}</h2><p>${esc(world.intro)}</p>
         <p class="asc-small asc-muted">Cette région n’est pas accessible pour le moment. Tes acquis sont conservés.</p>
         <button type="button" class="asc-btn asc-btn-ghost" data-world="aube">Revenir à l’Aube</button></section>`;
     if (p.chapter >= 10)
@@ -239,6 +241,12 @@
       <p class="asc-small" role="status" id="av-error"></p>`;
     if (journeyHost) root.querySelector("[data-journey-host]").replaceWith(journeyHost);
     window.TitanJourneyPanel?.mount(root.querySelector("[data-journey-host]"));
+    if (!journeyHost && location.hash === "#sentiers") {
+      const target = root.querySelector("#sentiers");
+      requestAnimationFrame(() => {
+        if (target?.isConnected && location.hash === "#sentiers") target.scrollIntoView();
+      });
+    }
     window.TitanRpgPanel?.mount(root.querySelector("[data-rpg-host]"), world.id);
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;

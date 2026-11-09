@@ -38,6 +38,9 @@ try {
     ['alter function public.titan_journey_snapshot_v1() volatile;', 'public.titan_journey_snapshot_v1():contract'],
     ['grant execute on function public.titan_journey_sync_v1() to anon;', 'public.titan_journey_sync_v1():API privileges'],
     ['grant execute on function private.titan_journey_days_v1() to authenticated;', 'private.titan_journey_days_v1():API privileges'],
+    ['grant insert on private.titan_journey_verified_days to authenticated;', 'titan_journey_verified_days:API privileges'],
+    ['grant execute on function public.titan_journey_attest_day_v1(text,text,date,integer) to authenticated;', 'public.titan_journey_attest_day_v1(text,text,date,integer):API privileges'],
+    ['revoke execute on function private.titan_journey_attest_day_v1(text,text,date,integer) from service_role;', 'private.titan_journey_attest_day_v1(text,text,date,integer):API privileges'],
     ['alter table private.titan_journey_acquisitions drop constraint titan_journey_acquisitions_pkey;', 'acquisitions:unique owner track id'],
     ["create or replace function private.titan_export_extras_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:journey and predecessor'],
   ]) {
@@ -66,6 +69,6 @@ try {
     assert.equal(failed.length, 0, 'Broad SQL failures are listed above; psql-only scripts are explicitly unsupported');
   }
   console.log('GREEN: SQL replay/reapplication; read-only snapshot, ten-sync idempotency, MAX/caps/dates/consent, isolation, immutable acquisitions, 30M horizon, career backfill, export, account deletion, unchanged XP/credits.');
-  console.log('GREEN: V1.3 postflight and nine negative probes for migration history, RLS, privileges, snapshot volatility, journal uniqueness and export.');
+  console.log('GREEN: V1.3 postflight and twelve negative probes for migration history, RLS, privileges, snapshot volatility, journal uniqueness and export.');
   console.log('LIMIT: embedded SQL does not prove concurrent connections or physical-device ingestion.');
 } finally { await db.close(); }

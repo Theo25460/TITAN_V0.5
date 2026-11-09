@@ -62,3 +62,26 @@ test("a warm Garmin return refreshes the account and shows a sanitized recovery 
     subscription.mockRestore();
   }
 });
+
+test.each([
+  [true, "La liaison Garmin est confirmée."],
+  [false, "Garmin a répondu. La liaison reste à terminer depuis TITAN."],
+])("an OK Garmin return reports the current server status (linked=%s)", async (linked, expected) => {
+  let returned: ((event: { url: string }) => void) | undefined;
+  const initial = jest.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
+  const subscription = jest.spyOn(Linking, "addEventListener").mockImplementation((_type, listener) => {
+    returned = listener;
+    return { remove: jest.fn() } as unknown as ReturnType<typeof Linking.addEventListener>;
+  });
+  try {
+    show(<GarminScreen />);
+    await screen.findByTestId("garmin-connect");
+    mockRead.mockResolvedValue({ enabled: true, linked });
+    await act(async () => returned?.({ url: "titan://garmin?garmin=ok" }));
+    expect(await screen.findByText(expected)).toBeTruthy();
+    expect(screen.queryByText(/Vérification de l’état du compte en cours/)).toBeNull();
+  } finally {
+    initial.mockRestore();
+    subscription.mockRestore();
+  }
+});

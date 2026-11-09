@@ -51,6 +51,18 @@ async function fixture({ slow = false, missing = false, width = 390 } = {}) {
   }, { slow, missing });
   return { context, page, errors };
 }
+test('the direct Sentiers link scrolls after the adventure has loaded', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 850 }, serviceWorkers: 'block' });
+  try {
+    await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    const page = await context.newPage();
+    await page.goto(base + '/adventure#sentiers');
+    await page.waitForFunction(() => {
+      const target = document.querySelector('#sentiers');
+      return target && scrollY > 0 && target.getBoundingClientRect().top < innerHeight / 2;
+    });
+  } finally { await context.close(); }
+});
 test('320px map, explicit single reveal, dated album and separate career', async () => {
   const { context, page, errors } = await fixture({ width: 320 });
   try {

@@ -14,7 +14,8 @@ L’appelant contrôle la transaction. L’installation crée le catalogue et la
 2. Obtenir un **snapshot de sauvegarde et vérifier sa restauration** sur une base isolée. Consigner son identifiant, son périmètre, son horodatage et le résultat de la restauration.
 3. Consigner avant intervention les versions, fonctions, droits, RLS et définitions d’export. Relier ce relevé au SHA et au snapshot. Garder les données de comptes hors des journaux publics.
 4. Rejouer le lot sur la copie restaurée. Exécuter `tools/db/postflight-v13.sql` et `sql/tests/300_journey.sql`. Exécuter le banc `tools/db/test-migrations.sh` sur PostgreSQL natif. Voir les résultats et limites du banc embarqué dans `docs/V13_SERVER_VALIDATION.md`.
-5. Vérifier la recette Web et Android avec source refusée, réseau indisponible, changement de compte, vrai zéro et absence de données. Présenter la cible, le SHA, la restauration, la recette et le retour arrière pour la décision de déploiement.
+5. Vérifier la recette Web et Android avec source refusée, réseau indisponible, changement de compte, vrai zéro et absence de données. Valider le flux de pas quotidien d’un fournisseur connecté avant de présenter les découvertes de marche comme disponibles. Le rôle serveur doit pouvoir attester un relevé provenant de ce flux. L’import Santé Connect alimente l’aperçu.
+6. Présenter la cible, le SHA, la restauration, la recette et le retour arrière pour la décision de déploiement.
 
 ## Recette après application autorisée
 

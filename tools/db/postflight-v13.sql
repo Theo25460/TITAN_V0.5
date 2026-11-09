@@ -4,16 +4,20 @@ with expected_tables(relation) as (values
   ('private.titan_journey_configs'),
   ('private.titan_journey_discovery_config'),
   ('private.titan_journey_career_config'),
-  ('private.titan_journey_acquisitions')
+  ('private.titan_journey_acquisitions'),
+  ('private.titan_journey_verified_days')
 ), table_state as (
   select t.relation, c.oid, c.relrowsecurity, c.relkind
   from expected_tables t left join pg_class c on c.oid = to_regclass(t.relation)
-), expected_functions(signature, volatility, definer, authenticated_execute) as (values
-  ('public.titan_journey_snapshot_v1()', 's', false, true),
-  ('public.titan_journey_sync_v1()', 'v', false, true),
-  ('private.titan_journey_snapshot_v1()', 's', true, true),
-  ('private.titan_journey_sync_v1()', 'v', true, true),
-  ('private.titan_journey_days_v1()', 's', true, false)
+), expected_functions(signature, volatility, definer, authenticated_execute, service_execute) as (values
+  ('public.titan_journey_snapshot_v1()', 's', false, true, false),
+  ('public.titan_journey_sync_v1()', 'v', false, true, false),
+  ('private.titan_journey_snapshot_v1()', 's', true, true, false),
+  ('private.titan_journey_sync_v1()', 'v', true, true, false),
+  ('private.titan_journey_days_v1()', 's', true, false, false),
+  ('private.titan_journey_observed_days_v1()', 's', true, false, false),
+  ('public.titan_journey_attest_day_v1(text,text,date,integer)', 'v', false, false, true),
+  ('private.titan_journey_attest_day_v1(text,text,date,integer)', 'v', true, false, true)
 ), function_state as (
   select e.*, p.oid, p.provolatile, p.prosecdef, p.proconfig, p.proacl, p.proowner
   from expected_functions e left join pg_proc p on p.oid = to_regprocedure(e.signature)
@@ -45,9 +49,10 @@ with expected_tables(relation) as (values
   select 'rpc:' || signature || ':API privileges', true, oid is not null and coalesce(
     not has_function_privilege('anon', oid, 'EXECUTE')
     and has_function_privilege('authenticated', oid, 'EXECUTE') = authenticated_execute
+    and (not service_execute or has_function_privilege('service_role', oid, 'EXECUTE'))
     and not exists(select 1 from aclexplode(coalesce(proacl, acldefault('f', proowner))) a
       where a.grantee = 0 and a.privilege_type = 'EXECUTE'), false),
-    'droits exacts du rôle authentifié et aucun appel anonyme ou PUBLIC' from function_state
+    'droits authentifiés et service conformes, aucun appel anonyme ou PUBLIC' from function_state
   union all
   select 'acquisitions:unique owner track id', true, exists(
     select 1 from pg_constraint c
@@ -71,6 +76,7 @@ with expected_tables(relation) as (values
   select 'export:journey and predecessor', true, coalesce(
     pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
     and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%''journey''%'
+    and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%''journeyVerifiedDailyActivity''%'
     and to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)') is not null, false),
     'journal ajouté à la chaîne d’export conservée'
 )

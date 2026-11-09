@@ -8,7 +8,7 @@ import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useOwner } from "../../data/auth";
-import { connectGarmin, disconnectGarmin, garminFailureMessage, garminReturnMessage, readGarmin } from "../../lib/nativeConnections";
+import { connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, garminReturnMessage, readGarmin } from "../../lib/nativeConnections";
 
 export function GarminScreen() {
   const owner = useOwner();
@@ -29,12 +29,21 @@ export function GarminScreen() {
     setConsent(false);
     setMessage(null);
     const current = () => alive.current && generation === epoch.current;
+    let returnSequence = 0;
     const returned = (url: string | null) => {
       const notice = garminReturnMessage(url);
       if (!notice || !current()) return;
       awaitingReturn.current = false;
       setMessage(notice);
-      void q.refetch();
+      const sequence = ++returnSequence;
+      void q.refetch().then(result => {
+        if (!current() || sequence !== returnSequence || notice !== GARMIN_CHECKING) return;
+        setMessage(result.isError
+          ? "La liaison Garmin reste à vérifier. Actualise l’état du compte."
+          : result.data?.linked
+            ? "La liaison Garmin est confirmée."
+            : "Garmin a répondu. La liaison reste à terminer depuis TITAN.");
+      });
     };
     void Linking.getInitialURL().then(returned).catch(() => {});
     const links = Linking.addEventListener("url", ({ url }) => returned(url));

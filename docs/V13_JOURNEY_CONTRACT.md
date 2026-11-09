@@ -16,6 +16,8 @@ type JourneySnapshotV1 = {
   configVersion: number;
   totalSteps: number;
   today: { day: string; steps: number; sources: string[]; updatedAt: string } | null;
+  observedSteps: number;
+  observedToday: { day: string; steps: number; sources: string[]; updatedAt: string } | null;
   goal: 30000000;
   discoveries: Array<{
     id: string;
@@ -45,9 +47,9 @@ Les découvertes sont triées par pas puis identifiant et les titres par niveau 
 
 ## Provenance
 
-La V1.3 lit exclusivement les lignes `private.titan_daily_activity` acceptées par le RPC d’import existant. La confirmation serveur désigne l’acceptation après contrôle du propriétaire, du consentement, des dates et des bornes. Ce périmètre ne constitue pas une attestation matérielle du capteur. Le canal quotidien implémenté est `health_connect`. Garmin concerne les activités dans la version actuelle. Le calcul multi-sources attend un canal quotidien réel et une configuration serveur qui l’autorise.
+Les lignes de `private.titan_daily_activity` alimentent l’aperçu `observedSteps` et `observedToday`. Santé Connect passe par l’import authentifié existant. Les découvertes utilisent seulement `totalSteps` et `today`, calculés depuis `private.titan_journey_verified_days`.
 
-La lecture retient le propriétaire exact et un consentement actif avec date finie non future. Elle limite les canaux à `health_connect` et `garmin`, selon le catalogue autorisé. Les compteurs natifs locaux sont exclus. Chaque ligne doit contenir un entier de zéro au plafond configuré, au plus 200 000. Le jour doit être fini, au moins le 01/01/2000 et au plus le jour UTC courant. Son horodatage de mise à jour doit être fini et non futur. L’intervalle d’import J−400 à J+1 se mesure par rapport à la mise à jour, ce qui conserve l’historique ancien valablement accepté.
+`titan_journey_attest_day_v1` est réservé à `service_role`. Il résout le propriétaire à partir du lien Garmin actif et exige son consentement. Le relevé porte sur un jour UTC de J−400 à J et contient de zéro à 200 000 pas. La table conserve une valeur par compte, source et jour. Le futur adaptateur serveur doit authentifier le message fournisseur avant tout appel. Le connecteur Garmin actuel ne récupère que les activités. Tant qu’un flux quotidien vérifié n’est pas raccordé, Santé Connect reste un aperçu et la carrière continue à se révéler via le niveau sportif.
 
 Le total additionne le maximum par jour. Deux sources à 12 000 et 18 000 pas le même jour contribuent 18 000. Une correction ou une révocation de consentement peut diminuer le total courant. Le journal conserve les acquis.
 
@@ -55,4 +57,4 @@ Le total additionne le maximum par jour. Deux sources à 12 000 et 18 000 pas le
 
 La version initiale contient 304 découvertes et 13 grands jalons de 10 000 à 30 millions de pas. Les repères intermédiaires maintiennent un intervalle maximal de 100 000 pas. Les jalons de carrière lisent `profiles.level` aux niveaux 5, 10, 20, 35, 50, 75 et 100. Une évolution publie un catalogue complet et bascule la version active dans la même transaction.
 
-La première synchronisation fige le contenu, la version et la date des acquisitions. Le snapshot conserve un souvenir acquis dont le texte ou le seuil change, même si le catalogue le retire. L’export du compte inclut `journey` et la suppression du compte efface son journal par cascade. Les acquisitions sont cosmétiques, sans effet sur les XP, crédits, niveau, campagnes, achats ou avantages payants.
+La première synchronisation fige le contenu, la version et la date des acquisitions. Le snapshot conserve un souvenir acquis dont le texte ou le seuil change, même si le catalogue le retire. L’export du compte inclut `journey` et `journeyVerifiedDailyActivity`. La suppression du compte efface ces données par cascade. Les acquisitions sont cosmétiques, sans effet sur les XP, crédits, niveau, campagnes, achats ou avantages payants.

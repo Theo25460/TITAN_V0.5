@@ -71,8 +71,9 @@ test('server quests: personal rewards withdraw on account transition and foreign
 test('server quests: forge is free and uses server quests, legacy server explains update',async()=>{
  const {page,context,errors}=await accountPage(360,'forge');try{
   await page.locator('[data-rpg-quests]').waitFor();assert.equal(await page.getByRole('link',{name:'Découvrir TITAN+'}).count(),0);
-  await page.evaluate(()=>{const a=window.TitanAdventure;a.snapshot.version=2;a.snapshot.campaigns.find(c=>c.id==='forge').chapter=0;dispatchEvent(new Event('titan:adventure-updated'));});
+  await page.evaluate(()=>{const a=window.TitanAdventure;a.snapshot.version=2;Object.assign(a.snapshot.campaigns.find(c=>c.id==='forge'),{chapter:0,tier:'plus'});dispatchEvent(new Event('titan:adventure-updated'));});
   await page.getByText('Cette région n’est pas accessible pour le moment. Tes acquis sont conservés.').waitFor();
+  assert.match(await page.locator('[role="tab"][data-world="forge"]').textContent(),/Indisponible/);
   assert.match(await page.locator('.av-panel').first().textContent(),/pas accessible pour le moment/);assert.equal(await page.locator('[data-start]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
