@@ -23,6 +23,8 @@
   let saveTimer = null;
   let saving = null;
   let gpxSequence = 0;
+  // The original file is available for export only while this local preview is open.
+  let localGpxOriginal = null;
   let hubOpen = false;
   let hubSport = null;
   let hubQuery = "";
@@ -511,7 +513,7 @@
         ${S_().hasElevation(S.sport) ? `<label class="asc-field seance-elev"><span>Dénivelé positif <small class="asc-faint">facultatif</small></span><div class="seance-unit"><input class="asc-input" inputmode="numeric" type="number" min="0" max="12000" step="1" data-k="elevation" value="${esc(S.elevation)}" placeholder="0"><span>m</span></div></label>` : ""}
         <div class="seance-gpx"><label class="asc-btn asc-btn-secondary asc-btn-sm">${icon("upload")} Importer un GPX<input type="file" accept=".gpx,application/gpx+xml" data-gpx hidden></label>
           ${S.gpx ? `<span class="asc-small asc-muted">Trace importée : ${esc(F().distance(S.gpx.distanceKm))}${S.gpx.movingMinutes ? `, ${esc(F().duration(S.gpx.movingMinutes))} en mouvement` : ""}${S.gpx.ascent ? `, +${S.gpx.ascent} m` : ""}. Le tracé GPS n’est pas conservé.</span>` : `<span class="asc-small asc-faint">Distance, temps et altitude sont lus uniquement lorsqu’ils existent dans le fichier.</span>`}</div>
-        ${S.gpx ? window.TitanGpxView?.render(S.gpx,{preview:true}) || "" : ""}
+        ${S.gpx ? window.TitanGpxView?.render(S.gpx, { preview: true, download: localGpxOriginal?.draft === S }) || "" : ""}
         <input type="hidden" data-mode="${mode}">
       </section>
       ${measuresExtrasHtml(["elevation", "avg_speed", "avg_pace", "distance"])}`;
@@ -663,6 +665,7 @@
   function choose(sport, prefill) {
     if (!window.SPORTS_CONFIG?.[sport]) return;
     ++gpxSequence;
+    localGpxOriginal = null;
     hubOpen = false;
     S = { ...fresh(sport), ...(prefill || {}) };
     if (S_().formOf(sport) === "strength" && !S.exercises.length) S.exercises = [{ name: "", variant: "", kind: "weighted", sets: [{ weight: "", reps: "", rir: "" }] }];
@@ -746,6 +749,7 @@
       window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: owner(), logId: log.client_event_id } }));
       const count = P().activeLogs(window.state?.history || []).length;
       if (count <= 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: S_().familyOf(sport) });
+      localGpxOriginal = null;
       S = fresh();
       hubOpen = hubOn();
       history.replaceState(null, "", "/training");
@@ -799,22 +803,27 @@
       replaceFromHub(() => {
         if (!current()) return;
         choose(hubSport);
-        applyGpx(r);
+        applyGpx(r, { file, owner: requestOwner, epoch, client });
       });
-    } else applyGpx(r);
+    } else applyGpx(r, { file, owner: requestOwner, epoch, client });
   }
 
-  function applyGpx(r) {
-    S.gpx = r;
-    S.distance = String(r.distanceKm);
-    const mins = r.movingMinutes;
-    S.durH = ""; S.durM = ""; S.durS = "";
-    if (mins !== null && mins > 0) {
-      const secs = Math.round(mins * 60);
-      S.durH = String(Math.floor(secs / 3600) || "");
-      S.durM = String(Math.floor((secs % 3600) / 60));
-      S.durS = secs % 60 ? String(secs % 60) : "";
+  function durationFields(minutes) {
+    if (!(minutes > 0)) return { durH: "", durM: "", durS: "" };
+    const secs = Math.round(minutes * 60);
+    return { durH: String(Math.floor(secs / 3600) || ""), durM: String(Math.floor((secs % 3600) / 60)), durS: String(secs % 60 || "") };
+  }
+
+  function applyGpx(r, original) {
+    const previousDuration = durationFields(S.gpx?.movingMinutes);
+    const hadDerivedTime = S.gpx && !S.gpxDurationEdited && Object.keys(previousDuration).every(key => S[key] === previousDuration[key]);
+    if (r.movingMinutes > 0 || hadDerivedTime) {
+      Object.assign(S, durationFields(r.movingMinutes));
+      S.gpxDurationEdited = false;
     }
+    S.gpx = r;
+    localGpxOriginal = { ...original, draft: S };
+    S.distance = String(r.distanceKm);
     S.elevation = r.ascent === null ? "" : String(r.ascent);
     if (r.start) {
       const d = new Date(r.start);
@@ -825,6 +834,26 @@
     render();
     persist();
     status(`GPX analysé : ${F().distance(r.distanceKm)} · ${r.points} points${r.ignoredPoints ? `, ${r.ignoredPoints} aberrants ignorés` : ""}.`);
+  }
+
+  function downloadOriginalGpx() {
+    const original = localGpxOriginal;
+    if (!original || original.draft !== S || original.owner !== owner() || original.client !== window.titanClient
+      || original.epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active) return;
+    let url;
+    try {
+      url = URL.createObjectURL(original.file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = original.file.name || "titan-import.gpx";
+      document.body.append(anchor);
+      try { anchor.click(); } finally { anchor.remove(); }
+      status("Le téléchargement du GPX original a été demandé à ton navigateur.");
+    } catch {
+      status("Téléchargement impossible. Réessaie ou récupère le GPX auprès de sa source.", "warn");
+    } finally {
+      if (url) setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
   }
 
   function routineSheet(mode) {
@@ -887,6 +916,7 @@
       status("");
     }
     setPath(S, k, el.type === "checkbox" ? el.checked : el.value);
+    if (["durH", "durM", "durS"].includes(k)) S.gpxDurationEdited = true;
     const dependsOn = k.startsWith("extras.") && (window.SPORTS_CONFIG?.[S.sport]?.extraFields || []).some((f) => f?.visibleWhen?.field === k.slice(7));
     if (k === "climbing.system" || k === "date" || dependsOn) {
       render();
@@ -919,6 +949,7 @@
       root.querySelector("[data-hub-status]").textContent = "";
       return;
     }
+    if (t.dataset.act === "download-gpx") return downloadOriginalGpx();
     if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
       if (hubOpen || !hubOn()) return;
@@ -930,6 +961,7 @@
       if (!hubOpen && !S.gpx) return;
       ++gpxSequence;
       return replaceFromHub(() => {
+        localGpxOriginal = null;
         manualRequested = true; hubOpen = false; S = fresh(); clearDraft();
         history.replaceState(null,"","/training?mode=manual"); render(); root.querySelector("#sport-q")?.focus();
       });
@@ -944,7 +976,9 @@
     if (t.dataset.sport) return choose(t.dataset.sport);
     if (t.dataset.act === "clear-gpx") {
       ++gpxSequence;
-      S.gpx = null; S.distance = ""; S.elevation = ""; S.durH = ""; S.durM = ""; S.durS = "";
+      localGpxOriginal = null;
+      S.gpx = null; S.distance = ""; S.elevation = "";
+      if (!S.gpxDurationEdited) Object.assign(S, durationFields(null));
       S.when = "now";
       render(); persist();
       root.querySelector('[data-k="distance"]')?.focus();
@@ -990,6 +1024,7 @@
     const act = t.dataset.act;
     if (!act) {
       if (t.hasAttribute("data-chrono-apply")) {
+        S.gpxDurationEdited = true;
         const secs = Math.max(60, Math.round(elapsedMs(timer()) / 1000));
         const mins = Math.floor(secs / 60);
         S.durH = String(Math.floor(mins / 60) || "");
@@ -1002,6 +1037,7 @@
       return;
     }
     if (act === "back") {
+      localGpxOriginal = null;
       S = { ...fresh(), query: "" };
       clearDraft();
       history.replaceState(null, "", "/training");
@@ -1100,6 +1136,7 @@
   let booted = false;
   window.addEventListener("titan:account-changing", () => {
     ++gpxSequence;
+    localGpxOriginal = null;
     clearTimeout(saveTimer);
     clearInterval(timerTick);
     S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;

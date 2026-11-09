@@ -88,14 +88,20 @@ function configuration() {
 
 export default async function handler(request) {
     const c = configuration();
-    if (!c.valid) return reply(503);
+    if (!c.valid) return reply(503, { error: 'GARMIN_CONFIGURATION' });
     const requestUrl = new URL(request.url), params = requestUrl.searchParams;
     // The registered return address is /auth/garmin/callback: it is a callback whatever the rewrite did to the query.
     const action = params.get('action') || (requestUrl.pathname === '/auth/garmin/callback' ? 'callback' : null);
     const databaseHeaders = { apikey: c.key, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (!c.key.startsWith('sb_secret_')) databaseHeaders.Authorization = `Bearer ${c.key}`;
     const rpc = (name, payload) => network(`${c.url}/rest/v1/rpc/${name}`, { method: 'POST', headers: databaseHeaders, body: JSON.stringify(payload) });
-    const profile = status => reply(302, '', { location: new URL(`/profile?garmin=${status}`, c.redirect).toString() });
+    const profile = (status, reason, state) => {
+        // Only the authenticated start can choose this fixed native return.
+        const target = state?.r === 'android' ? new URL('titan://garmin') : new URL('/profile', c.redirect);
+        target.searchParams.set('garmin', status);
+        if (reason) target.searchParams.set('garmin_reason', reason);
+        return reply(302, '', { location: target.toString() });
+    };
 
     if (action === 'push') {
         if (request.method !== 'POST') return reply(405);
@@ -148,46 +154,58 @@ export default async function handler(request) {
         target.searchParams.set('code_challenge', challenge);
         target.searchParams.set('code_challenge_method', 'S256');
         target.searchParams.set('redirect_uri', c.redirect);
-        target.searchParams.set('state', sealState({ u: user, v: verifier }, c.stateKey));
+        target.searchParams.set('state', sealState({ u: user, v: verifier, ...(params.get('client') === 'android' ? { r: 'android' } : {}) }, c.stateKey));
         return reply(200, { url: target.toString() });
     }
 
     if (action === 'callback') {
         if (request.method !== 'GET') return reply(405);
         const state = openState(params.get('state') || '', c.stateKey), code = params.get('code') || '';
+        const finish = (status, reason) => profile(status, reason, state);
+        let stage = 'token';
         // The player refused on the Garmin screen (or Garmin reported an error): nothing to exchange.
-        if (state && params.get('error')) return profile('refused');
-        if (!state || !/^[A-Za-z0-9._~\-/+=]{4,2048}$/.test(code)) return profile('error');
+        if (state && params.get('error')) return finish('refused');
+        if (!state) return profile('error', 'state');
+        if (!/^[A-Za-z0-9._~\-/+=]{4,2048}$/.test(code)) return finish('error', 'code');
         try {
             const token = await network(c.tokenUrl, {
                 method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
                 body: new URLSearchParams({ grant_type: 'authorization_code', client_id: c.clientId, client_secret: c.clientSecret, code, code_verifier: state.v, redirect_uri: c.redirect }).toString()
             });
-            if (!token.ok || typeof token.data?.access_token !== 'string') return profile('error');
+            if (!token.ok || typeof token.data?.access_token !== 'string') return finish('error', stage);
             const bearerHeaders = { Authorization: `Bearer ${token.data.access_token}`, Accept: 'application/json' };
+            stage = 'identity';
             const who = await network(c.userIdUrl, { method: 'GET', headers: bearerHeaders });
             const garminUser = String(who.data?.userId ?? '');
-            if (!who.ok || !GARMIN_USER.test(garminUser)) return profile('error');
+            if (!who.ok || !GARMIN_USER.test(garminUser)) return finish('error', stage);
             // Permissions actually granted (GAR-12). A list that does not include any activity access means the player unticked it on Garmin.
+            stage = 'permissions';
             if (c.permissionsUrl) {
                 const granted = await network(c.permissionsUrl, { method: 'GET', headers: bearerHeaders });
                 const names = Array.isArray(granted.data) ? granted.data : Array.isArray(granted.data?.permissions) ? granted.data.permissions : null;
-                if (granted.ok && names && !names.some(p => /ACTIVITY/i.test(String(p)))) return profile('permission');
+                if (granted.ok && names && !names.some(p => /ACTIVITY/i.test(String(p)))) return finish('permission');
             }
+            stage = 'link';
             const linked = await rpc('titan_garmin_link_v1', { p_user: state.u, p_garmin_user: garminUser });
             if (!linked.ok) {
-                if (linked.data?.code === '23505' || /GARMIN_ALREADY_LINKED/.test(String(linked.data?.message || ''))) return profile('conflict');
-                if (/CONSENT_REQUIRED/.test(String(linked.data?.message || ''))) return profile('consent');
-                return profile('error');
+                if (linked.data?.code === '23505' || /GARMIN_ALREADY_LINKED/.test(String(linked.data?.message || ''))) return finish('conflict');
+                if (/CONSENT_REQUIRED/.test(String(linked.data?.message || ''))) return finish('consent');
+                return finish('error', stage);
             }
+            stage = 'storage';
             const lifetime = Number(token.data.expires_in) > 0 ? new Date(Date.now() + Number(token.data.expires_in) * 1000).toISOString() : null;
             const stored = await rpc('titan_garmin_tokens_set_v1', {
                 p_user: state.u, p_access_enc: sealSecret(token.data.access_token, c.tokenKey, state.u),
                 p_refresh_enc: typeof token.data.refresh_token === 'string' ? sealSecret(token.data.refresh_token, c.tokenKey, state.u) : null, p_expires_at: lifetime
             });
-            if (!stored.ok) { await rpc('titan_garmin_unlink_for_v1', { p_user: state.u }); return profile('error'); }
-            return profile('ok');
-        } catch (_) { return profile('error'); }
+            if (!stored.ok) throw new Error('GARMIN_STORAGE');
+            return finish('ok');
+        } catch (_) {
+            if (stage === 'storage') {
+                try { await rpc('titan_garmin_unlink_for_v1', { p_user: state.u }); } catch (_) { /* Return a safe diagnostic during an outage. */ }
+            }
+            return finish('error', stage);
+        }
     }
 
     if (action === 'disconnect') {

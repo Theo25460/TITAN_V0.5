@@ -20,6 +20,7 @@ export const linking: LinkingOptions<RootParams> = {
       Community: "communaute",
       Atelier: "atelier",
       Settings: "reglages",
+      Garmin: "garmin",
     },
   },
   async getInitialURL() {

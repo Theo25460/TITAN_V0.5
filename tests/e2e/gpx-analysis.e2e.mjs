@@ -33,6 +33,11 @@ test('timed GPX shows local route, elevation profile and kilometre splits then s
   assert.equal(await page.locator('[data-gpx-route] polyline').count(),1);
   assert.ok(await page.locator('[data-gpx-profile] polyline').count()>0);
   assert.equal(await page.locator('[data-gpx-splits] tbody tr').count(),3);
+  const requested = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Télécharger le GPX original' }).click();
+  const downloaded = await requested;
+  assert.equal(downloaded.suggestedFilename(), 'sortie.gpx');
+  assert.equal(readFileSync(await downloaded.path(), 'utf8'), file());
   await page.waitForFunction(()=>Object.keys(localStorage).some(k=>k.startsWith('titan_seance_draft_v3:')));
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('titan_seance_draft_v3:')).some(k=>localStorage.getItem(k).includes('previewSegments'))),false,'precise preview is not stored in the draft');
   await page.locator('[data-act="save"]').click();await page.locator('dialog[open]').waitFor();
@@ -54,6 +59,10 @@ test('route without timestamps cannot be saved as an activity; explicit manual r
  try{
   await upload(page,file(false,false));await page.locator('[data-gpx-preview]').waitFor();
   assert.match(await page.locator('[data-gpx-preview]').innerText(),/Itinéraire sans horodatage/);
+  assert.match(await page.locator('[data-gpx-preview]').innerText(),/Pas de données de temps dans ce GPX/);
+  const requested = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Télécharger le GPX original' }).click();
+  assert.equal(readFileSync(await (await requested).path(), 'utf8'), file(false,false));
   await page.locator('[data-k="durM"]').fill('30');
   await page.locator('[data-act="save"]').click();
   assert.equal(await page.evaluate(()=>window.state.history.length),0);
@@ -74,6 +83,10 @@ test('reimporting a route clears the previous GPX time and altitude without inve
   assert.equal(await page.locator('[data-k="durM"]').inputValue(),'');
   assert.equal(await page.locator('[data-gpx-profile]').count(),0);
   assert.match(await page.locator('[data-gpx-preview]').innerText(),/Altitude non disponible/);
+  await page.locator('[data-k="durM"]').fill('45');
+  await upload(page,file(false,true));
+  await page.locator('[data-gpx-profile]').waitFor();
+  assert.equal(await page.locator('[data-k="durM"]').inputValue(),'45');
  }finally{await context.close();}
 });
 

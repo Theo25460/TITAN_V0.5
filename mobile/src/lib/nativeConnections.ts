@@ -23,8 +23,12 @@ async function provider(owner: string, action: "start" | "disconnect", network: 
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), 15000);
   try {
-    const response = await network(`${SITE_URL}/.netlify/functions/garmin?action=${action}`, { method: "POST", headers: { Authorization: `Bearer ${session!.access_token}` }, signal: abort.signal });
-    if (!response.ok) throw new Error("GARMIN_UNAVAILABLE");
+    const response = await network(`${SITE_URL}/.netlify/functions/garmin?action=${action}${action === "start" ? "&client=android" : ""}`, { method: "POST", headers: { Authorization: `Bearer ${session!.access_token}` }, signal: abort.signal });
+    if (response.status === 401) throw new Error("AUTH_REQUIRED");
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.error === "GARMIN_CONFIGURATION" ? "GARMIN_CONFIGURATION" : "GARMIN_UNAVAILABLE");
+    }
     return await response.json();
   } finally { clearTimeout(timer); }
 }
@@ -47,6 +51,39 @@ export async function disconnectGarmin(owner: string, network: Network = fetch, 
   await ownerRpc(owner, "titan_set_source_consent_v1", { p_source: "garmin", p_granted: false });
   valid(current);
   await ownerRpc(owner, "titan_garmin_unlink_v1", {});
+}
+
+/** Only public diagnostic codes are shown. Provider bodies and tokens never enter the UI. */
+export function garminFailureMessage(error: unknown): string {
+  const code = error instanceof Error ? error.message : "";
+  if (code === "AUTH_REQUIRED") return "Ta session a expiré ou changé. Reconnecte-toi à TITAN avant de relancer Garmin.";
+  if (code === "CONSENT_REQUIRED") return "Autorise d’abord l’import de tes activités Garmin dans TITAN.";
+  if (code === "GARMIN_CONFIGURATION") return "La configuration Garmin de TITAN est indisponible. Contacte l’assistance avec le code GARMIN_CONFIGURATION.";
+  if (code === "GARMIN_REDIRECT_INVALID") return "L’adresse reçue pour Garmin n’a pas pu être vérifiée. Contacte l’assistance avec le code GARMIN_REDIRECT_INVALID.";
+  return "La demande n’a pas été confirmée. Actualise l’état avant de réessayer. Si la liaison reste impossible, contacte l’assistance avec le code GARMIN_UNAVAILABLE.";
+}
+const garminStages = new Map([
+  ["state", "Ce retour Garmin a expiré ou n’a pas pu être vérifié. Relance la connexion et termine-la dans les dix minutes."],
+  ["code", "Le code d’autorisation Garmin est absent ou invalide. Relance la connexion depuis TITAN."],
+  ["token", "L’échange d’autorisation avec Garmin a échoué. Réessaie une fois, puis contacte l’assistance avec le code GARMIN_TOKEN."],
+  ["identity", "L’identité du compte Garmin n’a pas été confirmée. Relance la connexion. Si cela persiste, contacte l’assistance avec le code GARMIN_IDENTITY."],
+  ["permissions", "Les permissions Garmin n’ont pas pu être vérifiées. Relance la connexion et autorise les activités. Code GARMIN_PERMISSIONS."],
+  ["link", "La liaison n’a pas pu être enregistrée dans TITAN. Actualise l’état avant de réessayer. Code GARMIN_LINK."],
+  ["storage", "L’enregistrement sécurisé de l’autorisation a échoué. Actualise l’état avant de relancer la connexion. Code GARMIN_STORAGE."],
+]);
+export function garminReturnMessage(value: string | null): string | null {
+  if (!value) return null;
+  let url: URL;
+  try { url = new URL(value); } catch { return null; }
+  if (url.protocol !== "titan:" || url.hostname !== "garmin" || url.pathname || url.username || url.password || url.port || url.hash) return null;
+  const status = url.searchParams.get("garmin");
+  if (!status) return null;
+  if (status === "ok") return "Retour Garmin reçu. Vérification de l’état du compte en cours.";
+  if (status === "refused") return "L’autorisation Garmin a été refusée ou interrompue. Tu peux relancer la connexion quand tu le souhaites.";
+  if (status === "permission") return "Garmin n’a pas accordé l’accès aux activités. Relance la connexion et autorise leur import.";
+  if (status === "conflict") return "Ce compte Garmin est déjà associé à un autre compte TITAN. Contacte l’assistance pour vérifier la liaison.";
+  if (status === "consent") return "L’import n’est pas autorisé dans TITAN. Autorise-le ici puis relance la connexion Garmin.";
+  return garminStages.get(url.searchParams.get("garmin_reason") ?? "") ?? garminFailureMessage(null);
 }
 
 export type GuildMessage = { id: string; guild_id: string; sender_id: string; sender_name: string; content: string; created_at: string };

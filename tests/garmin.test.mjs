@@ -104,7 +104,11 @@ test('start: a signed-in player gets the Garmin consent address with PKCE S256 a
     }, { garmin: { user: Response.json({ error: 'no' }, { status: 401 }) } });
 });
 
-const location = response => response.headers.get('location');
+const location = response => {
+    const url = new URL(response.headers.get('location'));
+    url.searchParams.delete('garmin_reason');
+    return url.toString();
+};
 test('callback: the code is exchanged with the sealed verifier, the account comes from the state and never from the address, nothing Garmin-secret is kept', async () => {
     await run(async (calls, logs) => {
         const state = sealState({ u: USER, v: 'verifier-0123456789' }, STATE_KEY);
@@ -267,4 +271,40 @@ test('disconnect: TITAN is withdrawn at Garmin with the player\'s own token, the
     await run(async () => {
         assert.equal((await handler(at('action=disconnect', { method: 'POST', headers: bearer }))).status, 503);
     }, { rpc: name => name === 'titan_garmin_unlink_for_v1' ? Response.json({}, { status: 500 }) : Response.json(null) });
+});
+
+test('native return is fixed and bound to authenticated sealed state, never a callback redirect parameter', async () => {
+    await run(async () => {
+        const start = await handler(at('action=start&client=android&return_to=https://evil.test', {
+            method: 'POST', headers: { authorization: 'Bearer ' + 'x'.repeat(40) }
+        }));
+        const state = new URL((await start.json()).url).searchParams.get('state');
+        assert.equal(openState(state, STATE_KEY).r, 'android');
+        const callback = await handler(at(`action=callback&code=valid-code&state=${state}&return_to=https://evil.test`));
+        assert.equal(callback.headers.get('location'), 'titan://garmin?garmin=ok');
+        const bad = await handler(at('action=callback&code=valid-code&state=bad&client=android'));
+        assert.equal(new URL(bad.headers.get('location')).protocol, 'https:');
+    });
+});
+
+test('callback exposes safe stages and compensates a failed token write', async () => {
+    for (const stage of ['token', 'storage', 'storage-throw']) {
+        await run(async (calls, logs) => {
+            const state = sealState({ u: USER, v: 'verifier-0123456789', r: 'android' }, STATE_KEY);
+            const response = await handler(at(`action=callback&code=valid-code&state=${state}`));
+            const url = new URL(response.headers.get('location'));
+            assert.equal(url.protocol, 'titan:');
+            assert.equal(url.searchParams.get('garmin'), 'error');
+            assert.equal(url.searchParams.get('garmin_reason'), stage === 'token' ? 'token' : 'storage');
+            assert.ok(!url.toString().includes('upstream-secret') && !logs.join('').includes('upstream-secret'));
+            if (stage !== 'token') assert.ok(rpcCalls(calls).some(c => c.path.endsWith('/titan_garmin_unlink_for_v1')));
+        }, {
+            garmin: stage === 'token' ? { token: Response.json({ message: 'upstream-secret' }, { status: 401 }) } : {},
+            rpc: name => {
+                if (name !== 'titan_garmin_tokens_set_v1') return Response.json(true);
+                if (stage === 'storage-throw') throw Error('upstream-secret');
+                return Response.json({ message: 'upstream-secret' }, { status: 500 });
+            }
+        });
+    }
 });

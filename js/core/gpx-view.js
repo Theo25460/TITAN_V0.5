@@ -80,7 +80,7 @@
     const svg=lines(paths,'data-gpx-profile','Profil altimétrique du fichier GPX');
     return svg?`<figure class="gpx-figure">${svg}<figcaption>Profil altimétrique · altitude du fichier, non corrigée</figcaption></figure>`:'';
   }
-  function render(stats,{preview=false}={}){
+  function render(stats,{preview=false,download=false}={}){
     if(!stats)return '';
     if(stats.analysisVersion!=='gpx-v2')return preview?'<section class="gpx-preview" data-gpx-preview><p>Ancien import GPX : réimporte le fichier pour analyser sa trace, ou repars en saisie manuelle.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="clear-gpx">Repartir en saisie manuelle</button></section>':'';
     const kind=stats.kind==='recorded'?'Trace horodatée':stats.kind==='route'?(stats.routeType==='planned_route'?'Itinéraire prévu':'Itinéraire sans horodatage'):'Horodatage incomplet ou incohérent';
@@ -88,10 +88,13 @@
     const time=s=>{const sec=Math.round(s);return `${Math.floor(sec/60)} min ${String(sec%60).padStart(2,'0')} s`;};
     return `<section class="gpx-preview" ${preview?'data-gpx-preview':''}><p class="asc-eyebrow">GPX · importé, non vérifié</p><h3>${esc(kind)}</h3>
       <p class="asc-small asc-muted">Mesures du fichier d’origine ; les corrections de la séance ne modifient pas ce profil.</p><dl class="gpx-metrics"><div><dt>Distance du fichier</dt><dd>${esc(number(stats.distanceKm,' km'))}</dd></div><div><dt>Temps en mouvement</dt><dd>${esc(number(stats.movingMinutes,' min'))}</dd></div><div><dt>Temps écoulé</dt><dd>${esc(number(stats.elapsedMinutes,' min'))}</dd></div><div><dt>Pauses / coupures estimées</dt><dd>${esc(number(stats.pauseMinutes,' min'))}</dd></div><div><dt>D+ / D− du fichier</dt><dd>${finite(stats.ascent)&&finite(stats.descent)?`${esc(number(stats.ascent))} / ${esc(number(stats.descent,' m'))}`:'Altitude non disponible'}</dd></div></dl>
+      ${stats.timing==='missing'?'<p class="asc-small asc-muted">Pas de données de temps dans ce GPX.</p>':''}
       ${preview?route(stats):''}${profile(stats)}${terrainOn()?terrainSummary(stats):''}
       ${stats.altitudeSource==='partial'?'<p class="asc-small asc-muted">Altitude partielle : dénivelé non calculé sur une trace incomplète.</p>':''}
       ${splits.length?`<details class="gpx-splits" data-gpx-splits><summary>Temps par kilomètre <small>pauses incluses · fragments séparés</small></summary><div class="gpx-table"><table><thead><tr><th scope="col">Portion</th><th scope="col">Distance</th><th scope="col">Temps</th></tr></thead><tbody>${splits.map((s,i)=>`<tr><th scope="row">${i+1}</th><td>${esc(number(s.distanceKm,' km'))}</td><td>${time(s.durationSeconds)}</td></tr>`).join('')}</tbody></table></div></details>`:''}
       <p class="asc-small asc-faint">${stats.kind==='recorded'?'Les chiffres du fichier restent modifiables et ne certifient pas l’effort.':'Ce fichier ne fournit pas de durée sportive exploitable. Il ne peut pas enregistrer automatiquement une activité.'} ${preview?'Le tracé précis reste sur cet appareil ; seuls les chiffres et le profil sont sauvegardés.':''}</p>
+      ${preview&&download?'<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="download-gpx">Télécharger le GPX original</button>':''}
+      ${preview&&!download?'<p class="asc-small asc-muted">Sélectionne de nouveau le GPX original pour télécharger la trace complète.</p>':''}
       ${preview?'<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="clear-gpx">Repartir en saisie manuelle</button>':''}</section>`;
   }
   root.TitanGpxView={render,profile,setMode};

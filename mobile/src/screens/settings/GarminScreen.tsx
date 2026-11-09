@@ -8,7 +8,7 @@ import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useOwner } from "../../data/auth";
-import { connectGarmin, disconnectGarmin, readGarmin } from "../../lib/nativeConnections";
+import { connectGarmin, disconnectGarmin, garminFailureMessage, garminReturnMessage, readGarmin } from "../../lib/nativeConnections";
 
 export function GarminScreen() {
   const owner = useOwner();
@@ -17,24 +17,60 @@ export function GarminScreen() {
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
   const alive = useRef(true);
+  const epoch = useRef(0);
+  const awaitingReturn = useRef(false);
   const [message, setMessage] = useState<string | null>(null);
   useEffect(() => {
     alive.current = true;
-    const sub = AppState.addEventListener("change", (s) => { if (s === "active") q.refetch(); });
-    return () => { alive.current = false; sub.remove(); };
+    const generation = ++epoch.current;
+    lock.current = false;
+    awaitingReturn.current = false;
+    setBusy(false);
+    setConsent(false);
+    setMessage(null);
+    const current = () => alive.current && generation === epoch.current;
+    const returned = (url: string | null) => {
+      const notice = garminReturnMessage(url);
+      if (!notice || !current()) return;
+      awaitingReturn.current = false;
+      setMessage(notice);
+      void q.refetch();
+    };
+    void Linking.getInitialURL().then(returned).catch(() => {});
+    const links = Linking.addEventListener("url", ({ url }) => returned(url));
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+      void q.refetch().then(result => {
+        if (current() && awaitingReturn.current && result.data?.authorized && !result.data.linked) {
+          setMessage("L’import est autorisé, mais la liaison Garmin reste à terminer. Relance la connexion. Si Garmin ouvre le site, reviens dans l’application puis actualise l’état.");
+        }
+      });
+    });
+    return () => { alive.current = false; ++epoch.current; sub.remove(); links.remove(); };
   }, [owner]);
   async function run(remove: boolean) {
     if (lock.current) return;
-    lock.current = true; setBusy(true); setMessage(null);
+    const generation = epoch.current;
+    const current = () => alive.current && generation === epoch.current;
+    lock.current = true;
+    setBusy(true);
+    setMessage(null);
     try {
-      if (remove) await disconnectGarmin(owner, fetch, () => alive.current);
-      else await connectGarmin(owner, consent, Linking.openURL, fetch, () => alive.current);
-      if (!alive.current) return;
-      setMessage(remove ? "L’autorisation Garmin a été retirée dans TITAN. Les séances déjà importées restent dans ton journal." : "Termine l’autorisation chez Garmin, puis reviens ici et actualise. Aucun import n’est annoncé avant réception réelle.");
+      if (remove) await disconnectGarmin(owner, fetch, current);
+      else {
+        awaitingReturn.current = true;
+        await connectGarmin(owner, consent, Linking.openURL, fetch, current);
+      }
+      if (!current()) return;
+      if (remove || awaitingReturn.current) {
+        setMessage(remove ? "L’autorisation Garmin a été retirée dans TITAN. Les séances déjà importées restent dans ton journal." : "Termine l’autorisation chez Garmin, puis reviens ici et actualise.");
+      }
       await q.refetch();
-    } catch {
-      if (alive.current) setMessage("La demande n’a pas été confirmée. Garmin peut être indisponible ou non activé. Actualise avant de réessayer.");
-    } finally { lock.current = false; if (alive.current) setBusy(false); }
+    } catch (error) {
+      if (current()) { awaitingReturn.current = false; setMessage(garminFailureMessage(error)); }
+    } finally {
+      if (current()) { lock.current = false; setBusy(false); }
+    }
   }
   return <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
     <T tone="muted">Tes activités peuvent rejoindre ton journal après ton autorisation. Les pas seuls ne donnent pas d’XP. Les doublons sont contrôlés côté serveur.</T>

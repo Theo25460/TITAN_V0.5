@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Linking } from "react-native";
 import { GarminScreen } from "../src/screens/settings/GarminScreen";
 import { GuildChat } from "../src/components/GuildChat";
 
@@ -8,7 +9,7 @@ let mockOwner = "a";
 const mockRead = jest.fn(); const mockConnect = jest.fn(); const mockDisconnect = jest.fn(); const mockLoad = jest.fn(); const mockPost = jest.fn();
 jest.mock("../src/data/auth", () => ({ useOwner: () => mockOwner }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => true }));
-jest.mock("../src/lib/nativeConnections", () => ({ readGarmin: (...a: unknown[]) => mockRead(...a), connectGarmin: (...a: unknown[]) => mockConnect(...a), disconnectGarmin: (...a: unknown[]) => mockDisconnect(...a), loadGuildChat: (...a: unknown[]) => mockLoad(...a), postGuildMessage: (...a: unknown[]) => mockPost(...a) }));
+jest.mock("../src/lib/nativeConnections", () => ({ ...jest.requireActual("../src/lib/nativeConnections"), readGarmin: (...a: unknown[]) => mockRead(...a), connectGarmin: (...a: unknown[]) => mockConnect(...a), disconnectGarmin: (...a: unknown[]) => mockDisconnect(...a), loadGuildChat: (...a: unknown[]) => mockLoad(...a), postGuildMessage: (...a: unknown[]) => mockPost(...a) }));
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 function show(ui: React.ReactElement) { const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } }); return render(ui, { wrapper: ({ children }) => <QueryClientProvider client={client}><SafeAreaProvider initialMetrics={metrics}>{children}</SafeAreaProvider></QueryClientProvider> }); }
 beforeEach(() => { mockOwner = "a"; [mockRead, mockConnect, mockDisconnect, mockLoad, mockPost].forEach((f) => f.mockReset()); mockRead.mockResolvedValue({ enabled: true, linked: false }); mockLoad.mockResolvedValue({ messages: [], maxLength: 280, cost: 0 }); });
@@ -38,4 +39,26 @@ test("guild ignores a delayed previous account's private messages", async () => 
   const view = show(<GuildChat />); mockOwner = "b"; view.rerender(<GuildChat />);
   await act(async () => release({ messages: [{ id: "private", sender_name: "A", content: "secret du compte A" }], maxLength: 280, cost: 0 }));
   expect(screen.queryByText("secret du compte A")).toBeNull();
+});
+
+test("a warm Garmin return refreshes the account and shows a sanitized recovery stage", async () => {
+  let returned: ((event: { url: string }) => void) | undefined;
+  const initial = jest.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
+  const subscription = jest.spyOn(Linking, "addEventListener").mockImplementation((_type, listener) => {
+    returned = listener;
+    return { remove: jest.fn() } as ReturnType<typeof Linking.addEventListener>;
+  });
+  try {
+    show(<GarminScreen />);
+    await screen.findByTestId("garmin-connect");
+    const reads = mockRead.mock.calls.length;
+    await act(async () => returned?.({ url: "titan://garmin?garmin=error&garmin_reason=token&secret=upstream-secret" }));
+    expect(await screen.findByText(/GARMIN_TOKEN/)).toBeTruthy();
+    await waitFor(() => expect(mockRead.mock.calls.length).toBeGreaterThan(reads));
+    expect(screen.queryByText("Compte Garmin connecté")).toBeNull();
+    expect(screen.queryByText(/upstream-secret/)).toBeNull();
+  } finally {
+    initial.mockRestore();
+    subscription.mockRestore();
+  }
 });
