@@ -12,6 +12,7 @@ do $$declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); c uuid:=gen_r
  loop execute format('alter table %s drop constraint %I',r.conrelid::regclass,r.conname); end loop;
  update private.titan_journey_configs set allowed_sources=array['health_connect','garmin','native_local'] where active;
  insert into private.titan_source_consents(user_id,source) values(a,'health_connect'),(a,'garmin'),(a,'native_local');
+ insert into private.titan_garmin_links(user_id,garmin_user_id) values(a,'qa-journey-a'),(b,'qa-journey-b');
  insert into private.titan_daily_activity(user_id,source,day,steps,updated_at) values
  (a,'health_connect',current_date,12000,now()),(a,'garmin',current_date,18000,now()),
  (a,'health_connect',current_date-1,14000,now()),(a,'garmin',current_date-1,10000,now()),
@@ -27,8 +28,20 @@ do $$declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); c uuid:=gen_r
  assert (select count(distinct world)=4 from private.titan_journey_discovery_config where config_version=1);
  assert (select array_agg(level order by level)=array[5,10,20,35,50,75,100] from private.titan_journey_career_config where config_version=1);
 end $$;
+set local role service_role;
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,18000);
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date-1,14000);
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date-399,5000);
+do $$begin
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-b',current_date,18000); raise exception 'unconsented attestation'; exception when insufficient_privilege then null; end;
+ begin perform public.titan_journey_attest_day_v1('garmin','absent',current_date,18000); raise exception 'unlinked attestation'; exception when insufficient_privilege then null; end;
+ begin perform public.titan_journey_attest_day_v1('health_connect','qa-journey-a',current_date,18000); raise exception 'unverified provider'; exception when invalid_parameter_value then null; end;
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date+1,18000); raise exception 'future attestation'; exception when invalid_parameter_value then null; end;
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,200001); raise exception 'out-of-range attestation'; exception when invalid_parameter_value then null; end;
+end $$;
 set local role anon;
 do $$begin
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,18000); raise exception 'anon attestation'; exception when insufficient_privilege then null; end;
  begin perform public.titan_journey_snapshot_v1(); raise exception 'anon snapshot'; exception when insufficient_privilege then null; end;
  begin perform public.titan_journey_sync_v1(); raise exception 'anon sync'; exception when insufficient_privilege then null; end;
 end $$;
@@ -43,8 +56,9 @@ do $$declare s jsonb;begin
  s:=public.titan_journey_snapshot_v1();
  assert s->>'owner'=auth.uid()::text and (s->>'version')::int=1 and (s->>'configVersion')::int=1;
  assert (s->>'goal')::bigint=30000000 and (s->>'totalSteps')::bigint=37000,'MAX per day, valid consented server history, never local native';
- assert (s->'today'->>'steps')::int=18000 and jsonb_array_length(s->'today'->'sources')=2;
- assert (s->'today'->>'updatedAt')::timestamptz=now();
+ assert (s->'today'->>'steps')::int=18000 and s->'today'->'sources'='["garmin"]'::jsonb;
+ assert (s->>'observedSteps')::bigint=37000 and jsonb_array_length(s->'observedToday'->'sources')=2;
+ assert (s->'observedToday'->>'updatedAt')::timestamptz=now();
  assert not exists(select 1 from jsonb_array_elements(s->'discoveries')d where d->>'earnedAt' is not null),'GET must not unlock';
  assert (s->'career'->>'level')::int=35;
  begin perform public.titan_import_daily_activity_v1('health_connect',current_date,-1); raise exception 'negative import'; exception when invalid_parameter_value then null; end;
@@ -56,6 +70,8 @@ do $$declare s jsonb;begin
  begin update private.titan_journey_acquisitions set earned_at=now(); raise exception 'direct journal update'; exception when insufficient_privilege then null; end;
  begin delete from private.titan_journey_acquisitions; raise exception 'direct journal delete'; exception when insufficient_privilege then null; end;
  begin update private.titan_journey_discovery_config set steps=0; raise exception 'direct config update'; exception when insufficient_privilege then null; end;
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,18000); raise exception 'client attestation'; exception when insufficient_privilege then null; end;
+ begin insert into private.titan_journey_verified_days(user_id,source,day,steps) values(auth.uid(),'garmin',current_date,200000); raise exception 'direct proof insert'; exception when insufficient_privilege then null; end;
  begin perform private.titan_journey_days_v1(); raise exception 'raw helper exposed'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
@@ -80,7 +96,7 @@ do $$begin
  begin perform public.titan_journey_sync_v1(); raise exception 'suspended sync'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
-update private.titan_daily_activity set steps=0 where user_id=current_setting('titan.journey_a')::uuid and day in(current_date-500,current_date-1,current_date);
+update private.titan_journey_verified_days set steps=0 where user_id=current_setting('titan.journey_a')::uuid;
 update private.titan_journey_discovery_config set name='Changed catalogue name' where config_version=1 and steps=10000;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.journey_a'),'role','authenticated')::text,true);
@@ -95,8 +111,26 @@ set local role authenticated;
 do $$declare s jsonb;begin s:=public.titan_journey_snapshot_v1(); assert (s->>'totalSteps')::int=0 and s->'today'='null'::jsonb;
  assert (select count(*)=2 from jsonb_array_elements(s->'discoveries')d where d->>'earnedAt' is not null); end $$;
 reset role;
-insert into private.titan_source_consents(user_id,source) values(current_setting('titan.journey_b')::uuid,'health_connect');
-insert into private.titan_daily_activity(user_id,source,day,steps) select current_setting('titan.journey_b')::uuid,'health_connect',current_date-n,200000 from generate_series(1,149)n;
+insert into private.titan_source_consents(user_id,source) values(current_setting('titan.journey_b')::uuid,'garmin');
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.journey_b'),'role','authenticated')::text,true);
+do $$declare s jsonb;begin
+ perform public.titan_set_source_consent_v1('health_connect',true);
+ for n in 0..149 loop
+   perform public.titan_import_daily_activity_v1('health_connect',current_date-n,200000);
+ end loop;
+ s:=public.titan_journey_sync_v1();
+ assert (s->>'observedSteps')::bigint=30000000 and (s->>'totalSteps')::bigint=0,'authenticated imports remain observations';
+ assert not exists(select 1 from jsonb_array_elements(s->'discoveries')d where d->>'earnedAt' is not null),'declared steps cannot unlock a souvenir';
+end $$;
+set local role service_role;
+do $$begin
+ for n in 0..149 loop
+   perform public.titan_journey_attest_day_v1('garmin','qa-journey-b',current_date-n,200000);
+ end loop;
+ perform public.titan_journey_attest_day_v1('garmin','qa-journey-b',current_date,200000);
+end $$;
+reset role;
 set local session_replication_role=replica; update public.profiles set level=100 where id=current_setting('titan.journey_b')::uuid; set local session_replication_role=origin;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.journey_b'),'role','authenticated')::text,true);
@@ -118,8 +152,11 @@ do $$declare s jsonb;begin
  assert (select xp=123 and credits=45 and level=35 from public.profiles where id=current_setting('titan.journey_a')::uuid);
  assert (select xp=456 and credits=67 from public.profiles where id=current_setting('titan.journey_b')::uuid);
  assert (select bool_and(relrowsecurity) from pg_class where oid in('private.titan_journey_configs'::regclass,'private.titan_journey_discovery_config'::regclass,'private.titan_journey_career_config'::regclass,'private.titan_journey_acquisitions'::regclass));
- s:=private.titan_export_extras_v1(current_setting('titan.journey_a')::uuid); assert s ? 'adventureRpg' and s ? 'journey'; assert jsonb_array_length(s->'journey')=6;
+ s:=private.titan_export_extras_v1(current_setting('titan.journey_a')::uuid); assert s ? 'adventureRpg' and s ? 'journey'; assert jsonb_array_length(s->'journey')=6 and jsonb_array_length(s->'journeyVerifiedDailyActivity')=3;
 end $$;
 delete from auth.users where id=current_setting('titan.journey_b')::uuid;
-do $$begin assert not exists(select 1 from private.titan_journey_acquisitions where user_id=current_setting('titan.journey_b')::uuid); end $$;
+do $$begin
+ assert not exists(select 1 from private.titan_journey_acquisitions where user_id=current_setting('titan.journey_b')::uuid);
+ assert not exists(select 1 from private.titan_journey_verified_days where user_id=current_setting('titan.journey_b')::uuid);
+end $$;
 rollback;
