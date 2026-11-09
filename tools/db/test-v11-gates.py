@@ -21,9 +21,10 @@ if not query('select current_database()').startswith('titan_test_'):
     sys.exit('Refused: the V1.1 gate tests require a titan_test_ disposable database')
 
 ROOT = Path(__file__).resolve().parents[2]
-versions = sorted(p.name[:14] for p in (ROOT / 'supabase/migrations').glob('*.sql') if p.name[:14] > '20261021020000')
+all_versions = sorted(p.name[:14] for p in (ROOT / 'supabase/migrations').glob('*.sql') if p.name[:14] > '20261021020000')
+versions = [v for v in all_versions if v <= '20261104085851']
 assert len(versions) == 34, 'the V1.1 lot is thirty-four migrations'
-SEED = 'insert into supabase_migrations.schema_migrations(version) values ' + ','.join(f"('{v}')" for v in versions) + ' on conflict(version) do nothing;'
+SEED = 'insert into supabase_migrations.schema_migrations(version) values ' + ','.join(f"('{v}')" for v in all_versions) + ' on conflict(version) do nothing;'
 SQL = (ROOT / 'tools/db/postflight-v11.sql').read_text().strip()
 assert SQL.endswith(';')
 
@@ -55,7 +56,10 @@ def negative(mutation, expected):
 
 
 negative(f"delete from supabase_migrations.schema_migrations where version='{versions[-1]}';", 'ledger:34 migrations')
-negative("insert into supabase_migrations.schema_migrations(version) values ('29990101000000');", 'ledger:unexpected migration')
+negative("insert into supabase_migrations.schema_migrations(version) values ('20261028100001');", 'ledger:unexpected migration')
+negative("create or replace function private.titan_export_extras_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+if '20261105213712' in all_versions:
+    negative("create or replace function private.titan_export_extras_before_journey_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
 negative('grant select on private.titan_source_consents to authenticated;', 'private.titan_source_consents:API grants')
 negative('alter table private.titan_daily_activity disable row level security;', 'private.titan_daily_activity:RLS')
 negative('grant execute on function public.titan_import_activity_v1(text,text,text,timestamptz,numeric,numeric) to anon;', 'titan_import_activity_v1')

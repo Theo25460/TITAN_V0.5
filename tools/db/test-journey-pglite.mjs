@@ -27,6 +27,24 @@ try {
   assert(migration, 'Journey belongs to the ordinary migration replay');
   await run('supabase/migrations/' + migration);
   await run('sql/tests/300_journey.sql');
+  await db.exec("insert into supabase_migrations.schema_migrations(version) values ('20261105213712') on conflict do nothing;");
+  const postflight = async () => (await db.query(read('tools/db/postflight-v13.sql'))).rows.filter((row) => row.blocking && row.ok !== true);
+  assert.deepEqual(await postflight(), [], 'V1.3 postflight must accept the migrated structure');
+  for (const [mutation, expected] of [
+    ["delete from supabase_migrations.schema_migrations where version='20261105213712';", 'ledger:V1.3'],
+    ["insert into supabase_migrations.schema_migrations(version) values ('20261105000001');", 'ledger:unexpected V1.3'],
+    ['grant update on private.titan_journey_acquisitions to authenticated;', 'titan_journey_acquisitions:API privileges'],
+    ['alter table private.titan_journey_configs disable row level security;', 'titan_journey_configs:RLS'],
+    ['alter function public.titan_journey_snapshot_v1() volatile;', 'public.titan_journey_snapshot_v1():contract'],
+    ['grant execute on function public.titan_journey_sync_v1() to anon;', 'public.titan_journey_sync_v1():API privileges'],
+    ['grant execute on function private.titan_journey_days_v1() to authenticated;', 'private.titan_journey_days_v1():API privileges'],
+    ['alter table private.titan_journey_acquisitions drop constraint titan_journey_acquisitions_pkey;', 'acquisitions:unique owner track id'],
+    ["create or replace function private.titan_export_extras_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:journey and predecessor'],
+  ]) {
+    await db.exec('begin;' + mutation);
+    assert((await postflight()).some((row) => row.check.includes(expected)), 'postflight missed ' + expected);
+    await db.exec('rollback;');
+  }
   await db.exec(`insert into auth.users(id,raw_user_meta_data) values('91300000-0000-0000-0000-000000000001','{}');
     begin; set local session_replication_role=replica;
     insert into public.profiles(id,username,level,xp,credits,is_suspended) values('91300000-0000-0000-0000-000000000001','qa_readonly_journey',1,0,0,false)
@@ -48,5 +66,6 @@ try {
     assert.equal(failed.length, 0, 'Broad SQL failures are listed above; psql-only scripts are explicitly unsupported');
   }
   console.log('GREEN: SQL replay/reapplication; read-only snapshot, ten-sync idempotency, MAX/caps/dates/consent, isolation, immutable acquisitions, 30M horizon, career backfill, export, account deletion, unchanged XP/credits.');
+  console.log('GREEN: V1.3 postflight and nine negative probes for migration history, RLS, privileges, snapshot volatility, journal uniqueness and export.');
   console.log('LIMIT: embedded SQL does not prove concurrent connections or physical-device ingestion.');
 } finally { await db.close(); }

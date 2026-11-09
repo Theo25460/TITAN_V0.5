@@ -1,6 +1,7 @@
 -- Contrôle APRÈS les migrations V1.1 (20261028010000 → 20261104085851), à lancer sur la copie restaurée puis en production.
 -- LECTURE SEULE : un SELECT, uniquement historique et catalogues, aucune donnée de compte.
 -- Toutes les lignes blocking=true doivent avoir ok=true. Les 29 migrations de la V1 doivent déjà être appliquées.
+-- Le contrôle d'historique s'arrête à la dernière migration V1.1. Les lots suivants ont leur propre recette.
 with
 expected_migrations(version) as (values
   ('20261028010000'), ('20261028020000'), ('20261028030000'), ('20261028040000'), ('20261028050000'),
@@ -155,9 +156,11 @@ checks(check_name, blocking, ok, detail) as (
   union all
   select 'ledger:unexpected migration', true,
     not exists(select 1 from supabase_migrations.schema_migrations m
-      where m.version > '20261021020000' and not exists(select 1 from expected_migrations e where e.version = m.version)),
-    'versions après la V1 hors du lot V1.1 : ' || (select count(*) from supabase_migrations.schema_migrations m
-      where m.version > '20261021020000' and not exists(select 1 from expected_migrations e where e.version = m.version))
+      where m.version > '20261021020000' and m.version <= '20261104085851'
+        and not exists(select 1 from expected_migrations e where e.version = m.version)),
+    'versions inconnues dans la période V1.1 : ' || (select count(*) from supabase_migrations.schema_migrations m
+      where m.version > '20261021020000' and m.version <= '20261104085851'
+        and not exists(select 1 from expected_migrations e where e.version = m.version))
   union all
   select 'roles:API', true, anon_oid is not null and authenticated_oid is not null, 'anon et authenticated doivent exister' from api_roles
   union all
@@ -204,8 +207,12 @@ checks(check_name, blocking, ok, detail) as (
     'la définition d''export contient les clés ajoutées'
   union all
   select 'export:RPG conservé', true,
-    pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%adventureRpg%'
-      and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%titan_export_extras_before_rpg_v1%',
+    (select body like '%adventureRpg%' and body like '%titan_export_extras_before_rpg_v1%'
+     from (select case
+       -- V1.3 wraps the complete earlier export. An archived body alone is insufficient.
+       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
+       then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
+       else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end body) export_body),
     'le journal RPG complète les sections précédentes sans les remplacer'
   union all
   select 'trigger:jetons Garmin effacés avec le lien', true,

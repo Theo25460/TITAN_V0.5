@@ -56,6 +56,10 @@ try {
   const gate = () => db.query(read('tools/db/postflight-v11.sql'));
   assert.deepEqual((await gate()).rows.filter((r) => r.blocking && r.ok !== true), []);
   for (const [mutation, expected] of [
+    ["insert into supabase_migrations.schema_migrations(version) values ('20261028100001');", 'ledger:unexpected migration'],
+    ["delete from supabase_migrations.schema_migrations where version='20261104085851';", 'ledger:34 migrations'],
+    ["create or replace function private.titan_export_extras_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé'],
+    ["create or replace function private.titan_export_extras_before_journey_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé'],
     ['grant select on private.titan_routes to authenticated;', 'private.titan_routes:API grants'],
     ['alter table private.titan_routes disable row level security;', 'private.titan_routes:RLS'],
     ['grant execute on function public.titan_find_profile_by_friend_code(text) to anon;', 'titan_find_profile_by_friend_code'],
@@ -67,6 +71,6 @@ try {
     assert((await gate()).rows.some((r) => r.blocking && r.ok !== true && r.check.includes(expected)), expected);
     await db.exec('rollback;');
   }
-  console.log('GREEN: V1.1 catalog gates; all six added negative probes blocked and rolled back.');
+  console.log('GREEN: historical V1.1 gate accepts V1.3. Ten negative probes block invalid history, broken live or archived RPG export, and unsafe privileges.');
   console.log('LIMIT: native PostgreSQL, pgcrypto, psql include/meta-commands and concurrency still require the normal bench.');
 } finally { await db.close(); }
