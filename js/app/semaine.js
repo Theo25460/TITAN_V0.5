@@ -18,13 +18,14 @@
   let monthOffset = /[?&]mois=1\b/.test(location.search) ? 1 : 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
+  const chapterLogs = () => logs().filter((l) => l?.sport && !l.is_suspicious && (!l.syncStatus || l.syncStatus === "confirmed"));
 
   function recapFor(k) {
     const now = new Date();
-    if (k === 0) return P().recap(logs(), { now, goals: goalsCache, current: true });
+    if (k === 0) return P().recap(chapterLogs(), { now, goals: goalsCache, current: true });
     // recap() describes the week before `now`: point `now` inside the week after the one we want.
     const anchor = F().addDays(F().weekStart(now), -(k - 1) * 7 + 1);
-    return P().recap(logs(), { now: anchor, goals: goalsCache });
+    return P().recap(chapterLogs(), { now: anchor, goals: goalsCache });
   }
 
   function firstWeekOffset() {
@@ -34,25 +35,27 @@
     return Math.max(0, Math.round((F().weekStart(new Date()).getTime() - F().weekStart(new Date(first)).getTime()) / (7 * DAY)));
   }
 
-  function headline(r, target) {
-    const w = r.week;
-    const current = offset === 0;
-    if (w.sessions === 0) return current ? { title: "Ta semaine commence.", text: "Une séance suffit pour lancer le mouvement. Le reste de la semaine t’appartient." } : { title: "Semaine de repos.", text: "Le repos compte aussi. Ta cadence regarde les semaines tenues, elle ne te punit pas d’une semaine calme." };
-    const held = w.activeDays >= target;
-    const title = held ? `Semaine tenue : ${w.activeDays} jour${w.activeDays > 1 ? "s" : ""} actif${w.activeDays > 1 ? "s" : ""}.` : current ? `${w.activeDays} jour${w.activeDays > 1 ? "s" : ""} actif${w.activeDays > 1 ? "s" : ""} sur ${target} visés.` : `${w.activeDays} jour${w.activeDays > 1 ? "s" : ""} actif${w.activeDays > 1 ? "s" : ""}, ${target} visés.`;
-    let text = "";
-    if (r.bestOfRecentWeeks) text = "Ta semaine la plus active depuis au moins un mois.";
-    else if (r.deltaMinutes !== null && r.baseline.weeks > 0) {
-      const d = r.deltaMinutes;
-      text = Math.abs(d) < 10 ? `Dans ton rythme habituel${current ? " à ce stade de la semaine" : ""}.` : d > 0 ? `${F().duration(d)} de plus que tes dernières semaines${current ? " au même moment" : ""}.` : `${F().duration(-d)} de moins que tes dernières semaines${current ? " au même moment" : ""}.`;
-    } else text = "Première semaine mesurée : la comparaison viendra avec les suivantes.";
-    return { title, text };
+  function headline(r, settings) {
+    const f = F();
+    const paused = settings.pauses.includes(f.dateKey(r.from));
+    const owner = window.state?.user?.id;
+    const local = String(owner || "").startsWith("guest_");
+    const chapter = P().weekChapter?.(chapterLogs(), { start: r.from, adventure: window.TitanAdventure?.snapshot, owner, paused }) || {
+      sessions: r.week.sessions, activeDays: r.week.activeDays, next: { label: "Retrouver mon journal", href: "/journal" },
+    };
+    const { comparison, story } = chapter;
+    const title = paused ? "Cadence en pause" : "Ma semaine, mon chapitre";
+    const sessions = local ? f.plural(chapter.sessions, "séance enregistrée sur cet appareil", "séances enregistrées sur cet appareil") : f.plural(chapter.sessions, "séance confirmée", "séances confirmées");
+    const text = chapter.sessions ? `${sessions} · ${f.plural(chapter.activeDays, "jour actif", "jours actifs")}.` : `Aucune séance ${local ? "enregistrée" : "confirmée"} sur cette période. Une semaine calme ne t’enlève rien.`;
+    const measured = comparison ? `${comparison.label} · ${f.duration(comparison.minutes)} renseignées, contre ${f.duration(comparison.previousMinutes)} la semaine précédente${comparison.partial ? " au même moment" : ""}.` : "";
+    const world = story && window.TitanCodex?.worlds.find((w) => w.id === story.world);
+    return { title, text, measured, world, story, next: chapter.next, paused };
   }
 
   function perDay(r) {
     const from = r.from.getTime();
     const per = Array.from({ length: 7 }, () => ({ minutes: 0, sessions: 0 }));
-    for (const l of P().activeLogs(logs())) {
+    for (const l of P().activeLogs(chapterLogs())) {
       const t = new Date(l.date).getTime();
       if (t < from || t > r.to.getTime()) continue;
       const i = (new Date(l.date).getDay() + 6) % 7;
@@ -78,7 +81,7 @@
 
   function heroHtml(r) {
     const settings = D().cadenceSettings();
-    const h = headline(r, settings.target);
+    const h = headline(r, settings);
     const w = r.week;
     const max = firstWeekOffset();
     const range = offset === 0 ? "Cette semaine" : offset === 1 ? "La semaine dernière" : `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
@@ -88,8 +91,11 @@
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-next" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
       <h2 id="wk-title" class="wk-title" tabindex="-1">${esc(h.title)}</h2>
       <p class="asc-lead">${esc(h.text)}</p>
+      ${h.measured ? `<p class="asc-small asc-muted" data-week-comparison>${esc(h.measured)}</p>` : ""}
+      ${h.world ? `<p class="asc-small" data-week-story>Chapitre ${h.story.chapter} validé · ${esc(h.world.name)}.</p>` : ""}
+      <a class="asc-btn asc-btn-ghost asc-btn-sm" href="${esc(h.next.href)}">${esc(h.next.label)}</a>
       <dl class="wk-stats">
-        <div><dt>Jours actifs</dt><dd class="asc-num">${w.activeDays}<small>/${settings.target}</small></dd></div>
+        <div><dt>Jours actifs</dt><dd class="asc-num">${w.activeDays}${h.paused ? "" : `<small>/${settings.target}</small>`}</dd></div>
         <div><dt>Temps</dt><dd class="asc-num">${w.minutes ? esc(F().duration(w.minutes)) : "—"}</dd></div>
         ${w.distance ? `<div><dt>Distance</dt><dd class="asc-num">${esc(F().distance(w.distance))}</dd></div>` : `<div><dt>Séances</dt><dd class="asc-num">${w.sessions}</dd></div>`}
       </dl>
@@ -102,14 +108,14 @@
   function weekCard() {
     const r = recapFor(offset);
     const settings = D().cadenceSettings();
-    const h = headline(r, settings.target);
+    const h = headline(r, settings);
     const w = r.week;
     window.TitanCard.open({
       kind: "week",
       eyebrow: `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`,
       title: h.title,
       detail: h.text,
-      stats: [["Jours actifs", `${w.activeDays}/${settings.target}`], ["Temps", w.minutes ? F().duration(w.minutes) : "—"], w.distance ? ["Distance", F().distance(w.distance)] : ["Séances", String(w.sessions)]],
+      stats: [["Jours actifs", h.paused ? String(w.activeDays) : `${w.activeDays}/${settings.target}`], ["Temps", w.minutes ? F().duration(w.minutes) : "—"], w.distance ? ["Distance", F().distance(w.distance)] : ["Séances", String(w.sessions)]],
       days: perDay(r).map((d) => d.minutes),
       name: window.TitanCard.userName(),
       filename: "titan-semaine",

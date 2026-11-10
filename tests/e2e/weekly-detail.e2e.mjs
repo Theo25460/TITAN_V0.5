@@ -37,6 +37,7 @@ test("weekly detail: disciplines keep their own units, the comparison is honest,
     });
     const detail = page.locator("[data-week-detail]");
     await detail.waitFor();
+    assert.match(await page.locator("[data-week-comparison]").innerText(), /Course.*1 h.*50 min.*au même moment/);
     // The optional weekly quest (server) is told in the recap of the week in progress only.
     await page.evaluate(() => {
       const week = { scope: "week", kind: "constancy", target: { days: 3 }, progress: { days: 2 }, complete: false, claimed: false };
@@ -62,5 +63,23 @@ test("weekly detail: disciplines keep their own units, the comparison is honest,
     const axe = await page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(" ")).join("|")}`)));
     assert.deepEqual(axe, []);
     assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("the planner can pause and resume this week's cadence without changing the journal", async () => {
+  const context = await browser.newContext({ timezoneId: "UTC", serviceWorkers: "block" });
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
+  const page = await context.newPage();
+  try {
+    await page.clock.setFixedTime(new Date("2026-10-15T12:00:00Z"));
+    await page.goto(BASE + "/prevoir");
+    await page.locator(".pv-week").waitFor();
+    const history = await page.evaluate(() => JSON.stringify(window.state.history));
+    await page.getByRole("button", { name: "Mettre la cadence en pause" }).click({ timeout: 3000 });
+    assert.equal(await page.getByRole("heading", { name: "Cadence en pause" }).isVisible(), true);
+    assert.deepEqual(await page.evaluate(() => window.TitanData.cadenceSettings().pauses), ["2026-10-12"]);
+    await page.getByRole("button", { name: "Reprendre la cadence" }).click();
+    assert.deepEqual(await page.evaluate(() => window.TitanData.cadenceSettings().pauses), []);
+    assert.equal(await page.evaluate(() => JSON.stringify(window.state.history)), history);
   } finally { await context.close(); }
 });

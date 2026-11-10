@@ -1,7 +1,7 @@
 /* Loads the website's pure business modules (src/core/web, synchronised by scripts/sync-web-core.mjs) in their
    original order and exposes them with types. The server remains the authority for XP, credits and rewards: these
    modules only explain, preview and summarise, exactly as on titan-app.fr. */
-import type { Goal, TrainingLog } from "./types";
+import type { AdventureSnapshot, Goal, TrainingLog } from "./types";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 require("./web/format.js");
@@ -34,8 +34,9 @@ export type Cadence = { target: number; weeks: CadenceWeek[]; held: number; wind
 export type Mastery = { sport: string; label: string; family: Family; sessions: number; minutes: number; estimatedMinutes: number; hours: number; weeks: number; last: string | null; level: number; name: string; next: { level: number; name: string; hours: number; weeks: number } | null; progress: number };
 export type WeekSummary = { sessions: number; activeDays: number; minutes: number; estimatedMinutes: number; distance: number; effortMinutes: number; xp: number; bySport: Record<string, { sport: string; label: string; sessions: number; minutes: number }> };
 export type RecordEntry = { id: string; kind: "distance" | "time" | "duration" | "strength" | "climbing"; sport: string; label: string; value: number | string; unit: string; log: TrainingLog; context: string; previous?: RecordEntry | null; first?: boolean };
-export type Insight = { id: string; tone?: string; priority?: number; title: string; text: string; why?: string; cta?: { label: string; href: string } };
+export type Insight = { id: string; tone?: string; priority?: number; eyebrow?: string; title: string; text: string; why?: string; cta?: { label: string; href: string } };
 export type Recap = { from: Date; to: Date; week: WeekSummary; baseline: { sessions: number | null; minutes: number | null; distance: number | null; weeks: number; partial: boolean }; deltaMinutes: number | null; deltaSessions: number | null; topSport: { sport: string; label: string; sessions: number; minutes: number } | null; records: RecordEntry[]; goals: { goal: Goal; value: number; before: number; ratio: number; complete: boolean; completedThisWeek: boolean }[]; bestOfRecentWeeks: boolean; empty: boolean };
+export type WeekChapter = { sessions: number; activeDays: number; comparison: { sport: string; label: string; minutes: number; previousMinutes: number; partial: boolean } | null; story: AdventureSnapshot["rewards"][number] | null; next: { label: string; href: string } };
 export type Dna = { sessions: number; minutes: number; estimatedMinutes: number; distance: number; activeWeeks: number; first: string | null; families: { id: Family; label: string; minutes: number; share: number }[]; topSports: { sport: string; label: string; sessions: number; minutes: number }[]; timeOfDay: string | null; favoriteDay: string | null; masteries: Mastery[]; enough: boolean };
 export type GoalProgress = { value: number; measured: number; sources: TrainingLog[]; contributors: TrainingLog[]; ratio: number; complete: boolean; ended: boolean; upcoming: boolean };
 export type CampaignProgress = { status: "complete" | "not_started" | "ready" | "active"; ready: boolean; percent: number; objectives: { id: string; value: number; target: number; remaining: number; label: string; ratio: number }[] };
@@ -125,9 +126,13 @@ export const Progress = g.TitanProgress as {
   summarize(list: TrainingLog[]): WeekSummary;
   weekLogs(logs: TrainingLog[], start: Date, now?: Date): TrainingLog[];
   recap(logs: TrainingLog[], opts?: { now?: Date; goals?: Goal[]; current?: boolean }): Recap;
+  weekChapter(logs: TrainingLog[], opts?: { now?: Date; start?: Date; adventure?: AdventureSnapshot | null; owner?: string; paused?: boolean }): WeekChapter;
   dna(logs: TrainingLog[], now?: Date): Dna;
   insights(ctx: { logs?: TrainingLog[]; goals?: Goal[]; now?: Date; cadenceTarget?: number; pauses?: string[]; adventure?: unknown; pending?: unknown[]; plan?: unknown }): Insight[];
-  nextAction(ctx: { logs?: TrainingLog[]; goals?: Goal[]; now?: Date; cadenceTarget?: number; pauses?: string[]; adventure?: unknown; pending?: unknown[]; plan?: { sport?: string } | null }): Insight;
+  nextAction(ctx: {
+    logs?: TrainingLog[]; goals?: Goal[]; now?: Date; cadenceTarget?: number; pauses?: string[]; adventure?: unknown;
+    pending?: { status: string }[]; plan?: { sport?: string } | null; draftSport?: string; online?: boolean; historyAvailable?: boolean;
+  }): Insight & { cta: { label: string; href: string } };
   campaignProgress(c: unknown): CampaignProgress;
   newRecords(logs: TrainingLog[], from: number, to: number, now?: number | Date): RecordEntry[];
 };

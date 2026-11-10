@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { BarChart } from "../../components/Charts";
 import { Icon, type IconName } from "../../components/Icon";
@@ -13,8 +14,10 @@ import { Section, Stat, StatRow } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
-import { Format, Progress, Questions, Sports, Training, type Recap } from "../../core";
-import { useGoals, useLogs, usePrefs } from "../../data/hooks";
+import { Codex, Format, Progress, Questions, Sports, Training, type Recap, type WeekChapter } from "../../core";
+import { useOwner } from "../../data/auth";
+import { useAdventure, useGoals, useLogs, usePrefs } from "../../data/hooks";
+import { navigateHref } from "../../navigation/href";
 import { colors, familyColors, space } from "../../theme/tokens";
 import { SportQuestions } from "./Questions";
 
@@ -29,14 +32,11 @@ const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Go
   { icon: "calendar", label: "Semaine type", route: "Plan" },
 ];
 
-function delta(n: number | null, unit: (v: number) => string) {
-  if (n === null) return "première référence";
-  if (Math.abs(n) < 0.5) return "comme d’habitude";
-  return `${n > 0 ? "+" : "−"}${unit(Math.abs(n))} vs moyenne`;
-}
-
-function RecapCard({ recap, title }: { recap: Recap; title: string }) {
+function RecapCard({ recap, title, chapter, paused = false, local = false, onNext }: { recap: Recap; title: string; chapter: WeekChapter; paused?: boolean; local?: boolean; onNext: () => void }) {
   const w = recap.week;
+  const { comparison, story } = chapter;
+  const world = story && Codex.worlds.find((item) => item.id === story.world);
+  const sessions = local ? Format.plural(chapter.sessions, "séance enregistrée sur cet appareil", "séances enregistrées sur cet appareil") : Format.plural(chapter.sessions, "séance confirmée", "séances confirmées");
   return (
     <Card style={{ gap: space.s3 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -45,26 +45,22 @@ function RecapCard({ recap, title }: { recap: Recap; title: string }) {
           {recap.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} – {recap.to.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
         </T>
       </View>
-      {recap.empty ? (
-        <T variant="small">Aucune séance sur cette période. Une semaine calme ne t’enlève rien.</T>
-      ) : (
+      {paused ? <T variant="bodyStrong">Cadence en pause</T> : null}
+      <T variant="small">{chapter.sessions ? `${sessions} · ${Format.plural(chapter.activeDays, "jour actif", "jours actifs")}.` : `Aucune séance ${local ? "enregistrée" : "confirmée"} sur cette période. Une semaine calme ne t’enlève rien.`}</T>
+      {comparison ? <T variant="small">{comparison.label} · {Format.duration(comparison.minutes)} renseignées, contre {Format.duration(comparison.previousMinutes)} la semaine précédente{comparison.partial ? " au même moment" : ""}.</T> : null}
+      {story && world ? <T variant="small" tone="accent">Chapitre {story.chapter} validé · {world.name}.</T> : null}
+      {!recap.empty ? (
         <>
           <StatRow flat>
-            <Stat label="de pratique" value={Format.duration(w.minutes)} sub={delta(recap.deltaMinutes, (v) => Format.duration(v))} />
-            <Stat label="séances" value={String(w.sessions)} sub={delta(recap.deltaSessions, (v) => Format.number(v, 1))} />
-            <Stat label="jours actifs" value={String(w.activeDays)} />
-          </StatRow>
-          <StatRow flat>
+            <Stat label="de pratique" value={Format.duration(w.minutes)} sub={w.estimatedMinutes ? `dont ${Format.duration(w.estimatedMinutes)} estimées` : undefined} />
             {w.distance ? <Stat label="parcourus" value={Format.distance(w.distance)} /> : <Stat label="min d’effort" value={String(w.effortMinutes)} />}
             <Stat label="XP gagnés" value={Format.number(w.xp)} tone="accent" />
-            <View style={{ flex: 1 }} />
           </StatRow>
           {recap.topSport ? (
             <T variant="small">
               Sport dominant : <T variant="small" tone="default">{recap.topSport.label}</T> ({Format.duration(recap.topSport.minutes)}, {recap.topSport.sessions} séance{recap.topSport.sessions > 1 ? "s" : ""}).
             </T>
           ) : null}
-          {recap.bestOfRecentWeeks ? <T variant="small" tone="amber">Ta semaine la plus active depuis un mois.</T> : null}
           {recap.records.length ? (
             <View style={{ gap: 4 }}>
               {recap.records.slice(0, 3).map((r) => (
@@ -86,11 +82,9 @@ function RecapCard({ recap, title }: { recap: Recap; title: string }) {
               <ProgressBar value={g.ratio} color={g.complete ? colors.ok : colors.cy} height={6} accessibilityLabel={g.goal.title} />
             </View>
           ))}
-          <T variant="caption" tone="faint">
-            {recap.baseline.weeks ? `Comparé à la moyenne de tes ${recap.baseline.weeks} semaine${recap.baseline.weeks > 1 ? "s" : ""} précédente${recap.baseline.weeks > 1 ? "s" : ""}${recap.baseline.partial ? ", au même moment de la semaine" : ""}.` : "Les comparaisons apparaîtront avec plus d’historique."}
-          </T>
         </>
-      )}
+      ) : null}
+      <Button small kind="secondary" label={chapter.next.label} onPress={onNext} />
     </Card>
   );
 }
@@ -98,21 +92,26 @@ function RecapCard({ recap, title }: { recap: Recap; title: string }) {
 export function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const owner = useOwner();
   const q = useLogs();
   const goals = useGoals();
+  const adventure = useAdventure();
   const prefs = usePrefs();
   const [view, setView] = useState<View_>("week");
   const [range, setRange] = useState<"26" | "52">("26");
   const { active } = q;
   const now = new Date();
 
-  const current = useMemo(() => Progress.recap(active, { now, goals: goals.data ?? [], current: true }), [active, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  const last = useMemo(() => Progress.recap(active, { now, goals: goals.data ?? [] }), [active, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const journal = useMemo(() => q.confirmed.filter((log) => !log.is_suspicious), [q.confirmed]);
+  const current = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [], current: true }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const last = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [] }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const series = useMemo(() => Questions.weeklySeries(active, { weeks: Number(range) }), [active, range]);
   const month = useMemo(() => Training.summarize(active, 30), [active]);
   const dna = useMemo(() => Progress.dna(active), [active]);
   const mastery = useMemo(() => Progress.mastery(active), [active]);
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
+  const chapter = Progress.weekChapter(journal, { now, owner: owner ?? undefined, adventure: adventure.data, paused: cadence.currentPaused });
+  const previousChapter = Progress.weekChapter(journal, { now, start: last.from, owner: owner ?? undefined, adventure: adventure.data });
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
@@ -142,12 +141,14 @@ export function ProgressScreen() {
           <LoadingCards />
         ) : q.error && !q.data ? (
           <ErrorState error={q.error} onRetry={() => q.refetch()} />
-        ) : !active.length ? (
+        ) : !active.length && view !== "week" ? (
           <EmptyState brand icon="chart" title="Tes statistiques commencent ici" text="Enregistre une séance : semaine, tendances, records et maîtrises se construisent avec ton journal." action="Enregistrer une séance" onAction={() => navigation.navigate("Tabs", { screen: "Record" })} />
         ) : view === "week" ? (
           <>
-            <RecapCard recap={current} title="Cette semaine" />
-            <RecapCard recap={last} title="Semaine dernière" />
+            <Section title="Ma semaine, mon chapitre">
+              <RecapCard recap={current} title="Cette semaine" chapter={chapter} paused={cadence.currentPaused} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, chapter.next.href)} />
+              <RecapCard recap={last} title="Semaine dernière" chapter={previousChapter} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, previousChapter.next.href)} />
+            </Section>
             <Card tone="flat" style={{ gap: 6 }}>
               <T variant="bodyStrong">
                 Cadence : {cadence.held}/{cadence.window} semaines tenues

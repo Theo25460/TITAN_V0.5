@@ -143,6 +143,39 @@ test("weekly recap calendar boundaries pass in four time zones", () => {
   }
 });
 
+test("weekly chapter compares declared minutes for the same sport at the same local cutoff", () => {
+  const logs = [
+    log("2026-10-05T10:00:00", { details: { duration: 35 } }),
+    log("2026-10-06T10:00:00", { sport: "yoga", details: { duration: 90 } }),
+    log("2026-10-07T17:00:00", { syncStatus: "pending" }),
+    log("2026-10-07T18:05:00"),
+    log("2026-10-07T11:00:00", { archived_at: "2026-10-07T11:15:00" }),
+    log("2026-09-29T10:00:00", { details: { duration: 25 } }),
+    log("2026-09-30T19:00:00", { details: { duration: 100 } }),
+  ];
+  const chapter = P.weekChapter(logs, { now: NOW });
+  assert.equal(chapter.sessions, 2);
+  assert.equal(chapter.activeDays, 2);
+  assert.equal(chapter.comparison.sport, "running");
+  assert.equal(chapter.comparison.minutes, 35);
+  assert.equal(chapter.comparison.previousMinutes, 25);
+  assert.equal(chapter.comparison.partial, true);
+  assert.equal(P.weekChapter([...logs, log("2026-10-06T08:00:00", { details: {} })], { now: NOW }).comparison, null, "estimated time cannot stand in for a declared comparison");
+});
+
+test("weekly chapter only tells a story from the owner's server snapshot in the selected period", () => {
+  const adventure = { owner: "a", rewards: [
+    { world: "aube", chapter: 1, earned_at: "2026-10-06T10:00:00" },
+    { world: "forge", chapter: 2, earned_at: "2026-10-07T18:05:00" },
+  ] };
+  const opts = { now: NOW, adventure, owner: "a" };
+  assert.equal(P.weekChapter([], opts).story.chapter, 1);
+  assert.equal(P.weekChapter([], { ...opts, owner: "b" }).story, null);
+  assert.equal(P.weekChapter([], { ...opts, adventure: { ...adventure, local: true } }).story, null);
+  assert.equal(P.weekChapter([], { ...opts, start: new Date("2026-09-28T00:00:00") }).story, null);
+  assert.equal(P.weekChapter([], { ...opts, paused: true }).next.href, "/prevoir");
+});
+
 test("mastery needs both practice hours and practised weeks", () => {
   assert.equal(P.masteryLevel(13, 9).name, "Régularité");
   assert.equal(P.masteryLevel(40, 9).name, "Régularité", "hours alone are not enough");
@@ -192,10 +225,12 @@ test("QG favours today's plan over a recent record", () => {
   assert.equal(action.cta.href, "/training?sport=yoga");
 });
 
-test("QG requires a connection for a ready chapter and distinguishes missing history from an empty journal", () => {
+test("QG offers a locally playable chapter in discovery and falls back when account history is unavailable offline", () => {
   const adventure = { campaigns: [{ id: "valley", chapter: 1, target: 1, evidence: { days: 1 } }] };
   assert.equal(P.nextAction({ now: NOW, adventure }).cta.href, "/adventure?world=valley");
-  assert.equal(P.nextAction({ now: NOW, adventure, guest: true }).cta.href, "/training");
+  const guest = P.nextAction({ now: NOW, adventure, guest: true, online: false });
+  assert.equal(guest.cta.href, "/adventure?world=valley");
+  assert.equal(guest.eyebrow, "Découverte");
   const offline = P.nextAction({ now: NOW, adventure, online: false, historyAvailable: false });
   assert.equal(offline.id, "record");
   assert.equal(offline.cta.href, "/training");

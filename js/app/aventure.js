@@ -166,6 +166,24 @@
       <p class="asc-small asc-muted">${souvenirs} souvenir${souvenirs > 1 ? "s" : ""} de quête confirmé${souvenirs > 1 ? "s" : ""}. Tout ici est facultatif : prendre une pause n’efface rien.</p></details>`;
   }
 
+  function weeklyPathsHtml(snapshot) {
+    const user = window.state?.user;
+    const settings = window.TitanData?.cadenceSettings?.();
+    if (!user?.id || user.id !== snapshot.owner || window.titanAccountTransition?.active || !settings) return "";
+    const now = new Date();
+    const week = F().dateKey(F().weekStart(now));
+    const paths = A().weeklyQuestPaths?.(window.TitanData.logs(), settings.target, now, {
+      favoriteSports: user.favoriteSports,
+      cadencePaused: settings.pauses.includes(week),
+    });
+    if (!paths) return "";
+    return `<section class="asc-section av-panel" aria-labelledby="av-week-paths"><h2 class="asc-h2" id="av-week-paths">Tes pistes de la semaine</h2>
+      <p class="asc-small asc-muted">${esc(paths.why)}</p><div class="asc-list">${[paths.main, ...paths.alternatives].map((q, i) => `<a class="asc-row" data-week-path="${i === 0 ? "main" : "alternative"}" data-week-path-id="${esc(q.id)}" href="${esc(q.href)}">
+      <span class="asc-row-icon">${icon(q.icon || "leaf")}</span><span class="asc-row-main"><span class="asc-small asc-muted">${i === 0 ? "Piste proposée" : "Alternative facultative"}${q.target ? ` · ${Math.min(q.value, q.target)}/${q.target}` : ""}</span>
+      <span class="asc-row-title">${esc(q.name)}</span><span class="asc-row-sub">${esc(q.text)}</span></span>${icon("chevron")}</a>`).join("")}</div>
+      <p class="asc-small asc-muted">Ces pistes restent libres et n’ajoutent ni XP ni crédits.</p></section>`;
+  }
+
   function questSouvenirsHtml(world, snapshot) {
     const owner = window.state?.user?.id;
     if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active || isGuest() || snapshot.version < 3) return "";
@@ -214,6 +232,7 @@
     const tabScroll = worldTabs?.scrollLeft || 0;
     const active = document.activeElement;
     const focusedWorld = worldTabs?.contains(active) ? active.closest('[role="tab"][data-world]')?.dataset.world : null;
+    const focusedPath = root.contains(active) ? active.dataset.weekPathId : null;
     const panelFocused = active === root.querySelector("#av-region-panel");
     const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
     const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
@@ -239,6 +258,7 @@
         <section class="av-panel" data-rpg-host aria-label="Journal des rencontres"></section>
       </div>
       ${window.TitanPeriodicQuests?.html() || ""}
+      ${weeklyPathsHtml(s)}
       ${questLogHtml(s)}
       <section class="av-panel" id="sentiers" data-journey-host aria-label="Sentiers et jalons de carrière"></section>
       ${carnetHtml(world, p)}
@@ -263,6 +283,7 @@
     root.querySelector(".av-worlds").scrollLeft = tabScroll;
     if (focusedWorld) root.querySelector(`#av-tab-${focusedWorld}`)?.focus({ preventScroll: true });
     else if (panelFocused) root.querySelector("#av-region-panel")?.focus({ preventScroll: true });
+    else if (focusedPath) root.querySelector(`[data-week-path-id="${CSS.escape(focusedPath)}"]`)?.focus({ preventScroll: true });
   }
 
   async function mutate(action, params) {

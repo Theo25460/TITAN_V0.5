@@ -27,6 +27,18 @@
     return window.TitanQueue?.list?.() || [];
   }
 
+  const sessionDraftKey = (id = owner()) => `titan_seance_draft_v3:${id}`;
+  function sessionDraft() {
+    const id = owner();
+    if (!id || window.titanAccountTransition?.active) return null;
+    try {
+      const draft = JSON.parse(localStorage.getItem(sessionDraftKey(id)) || "null");
+      return draft?.sport && window.TitanSports?.conf(draft.sport) && Date.now() - draft.updatedAt < 2 * 86400000 ? draft : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function goals({ force = false } = {}) {
     const id = owner();
     if (!id || window.titanAccountTransition?.active) {
@@ -217,5 +229,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

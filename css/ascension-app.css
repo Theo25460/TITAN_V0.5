@@ -83,6 +83,9 @@
   margin-top: var(--s2);
   align-items: center;
 }
+.qg-destinations {
+  margin: var(--s2) 0;
+}
 .qg-hero.is-error {
   border-color: rgba(242, 102, 95, 0.4);
 }

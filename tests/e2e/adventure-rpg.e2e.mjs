@@ -13,6 +13,26 @@ before(async()=>{
 });
 after(async()=>{await browser?.close();server?.kill();});
 
+test('weekly paths suggest a declared favorite and offer two routes open to any sport', async () => {
+ const context = await browser.newContext({viewport:{width:320,height:760},serviceWorkers:'block'});
+ try {
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort());
+  await context.addInitScript(() => localStorage.setItem('titan_first_run_guide_v2','done'));
+  const page = await context.newPage();
+  await page.goto(base+'/adventure');
+  await page.getByRole('tablist', {name:'Régions'}).waitFor();
+  await page.evaluate(() => {
+   window.state.user.favoriteSports = ['swimming'];
+   dispatchEvent(new Event('titan:adventure-updated'));
+  });
+  const paths = page.getByRole('region', {name:'Tes pistes de la semaine'});
+  await paths.waitFor({timeout:3000});
+  assert.equal(await paths.locator('[data-week-path="alternative"]').count(), 2);
+  assert.equal(await paths.getByRole('link', {name:/Natation/}).getAttribute('href'), '/training?sport=swimming');
+  assert.match(await paths.innerText(), /fait partie de tes favoris/);
+ } finally { await context.close(); }
+});
+
 test('region tabs use one keyboard stop and keep focus and the Sentiers anchor', async () => {
  const context = await browser.newContext({viewport:{width:320,height:760},serviceWorkers:'block'});
  try {

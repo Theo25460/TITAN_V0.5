@@ -182,9 +182,9 @@
     const items = window.TitanQueue?.list?.() || [];
     if (!items.length) return "";
     const errors = items.filter((i) => i.status === "error");
-    return `<div class="asc-note ${errors.length ? "err" : ""} jr-pending">${icon(errors.length ? "alert" : "cloudUp")}<div class="asc-stack-sm">
-      <p><strong>${items.length} séance${items.length > 1 ? "s" : ""} sur cet appareil</strong> ${errors.length ? `dont ${errors.length} refusée${errors.length > 1 ? "s" : ""} par le serveur (${esc(errors[0].reason || "données invalides")}).` : navigator.onLine ? "en cours d’envoi." : "partiront au retour du réseau."}</p>
-      <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button></div></div></div>`;
+    return `<section id="attente" tabindex="-1" aria-label="Séances en attente d’envoi" class="asc-note ${errors.length ? "err" : ""} jr-pending">${icon(errors.length ? "alert" : "cloudUp")}<div class="asc-stack-sm">
+      <p><strong>${items.length} séance${items.length > 1 ? "s" : ""} sur cet appareil</strong> ${errors.length ? `dont ${errors.length} refusée${errors.length > 1 ? "s" : ""} par le serveur (${esc(errors[0].reason || "données invalides")}).` : navigator.onLine ? "en attente d’envoi." : "en attente du retour du réseau."}</p>
+      <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry ${navigator.onLine ? "" : "disabled"}>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button></div></div></section>`;
   }
 
   function summaryHtml(list) {
@@ -207,6 +207,7 @@
     else render();
   }
 
+  let pendingFragmentFocused = false;
   function render() {
     if (!root) return;
     const list = filtered();
@@ -240,6 +241,13 @@
       if (el) {
         el.focus();
         if (el.setSelectionRange && el.type === "search") el.setSelectionRange(el.value.length, el.value.length);
+      }
+    }
+    if (!pendingFragmentFocused && location.hash === "#attente") {
+      const pending = document.getElementById("attente");
+      if (pending) {
+        pendingFragmentFocused = true;
+        pending.focus();
       }
     }
   }
@@ -681,7 +689,7 @@
       start();
     });
   };
-  ["titan:history-updated", "titan:pending-changed", "titan:flags-updated"].forEach((ev) => window.addEventListener(ev, queue));
+  ["titan:history-updated", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) => window.addEventListener(ev, queue));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

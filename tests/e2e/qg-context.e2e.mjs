@@ -56,6 +56,50 @@ async function fixture({width=360,held=false,adventureHeld=false}={}){
 async function visibleGoal(page,label){await page.getByText('Objectif privé '+label,{exact:true}).first().waitFor();}
 async function settle(page){await page.evaluate(()=>new Promise(requestAnimationFrame));}
 
+test('QG recovers an owner-scoped draft as its only primary action', async () => {
+ const {page,context,errors}=await fixture();try{
+  await page.evaluate(()=>{
+   localStorage.setItem(`titan_seance_draft_v3:${window.qgA}`,JSON.stringify({sport:'yoga',durM:'25',updatedAt:Date.now()}));
+   window.dispatchEvent(new Event('titan:history-updated'));
+  });
+  const hero=page.locator('.qg-hero .asc-btn-primary');
+  await page.getByRole('link',{name:'Reprendre le brouillon'}).waitFor();
+  assert.equal(await hero.count(),1);
+  assert.equal(await hero.getAttribute('href'),'/training?sport=yoga');
+  const nav=page.getByRole('navigation',{name:'Raccourcis du QG'});
+  for(const [name,href] of [['Sport','/training'],['Aventure','/adventure'],['Progrès','/stats']]) {
+   assert.equal(await nav.getByRole('link',{name}).getAttribute('href'),href);
+  }
+  await page.evaluate(()=>window.qgSwitch());
+  await visibleGoal(page,'B');
+  assert.equal(await hero.getAttribute('href'),'/training');
+  assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+
+test('QG links to the refused sessions panel and focuses it on arrival', async () => {
+ const {page,context,errors}=await fixture();try{
+  await page.evaluate(()=>{
+   window.TitanData.pending=()=>[{status:'error',reason:'Mesures invalides'}];
+   window.dispatchEvent(new Event('titan:pending-changed'));
+  });
+  const cta=page.getByRole('link',{name:'Voir les séances',exact:true});
+  await cta.waitFor();
+  assert.equal(await cta.getAttribute('href'),'/journal#attente');
+  await cta.click();
+  await page.waitForFunction(()=>!!window.TitanQueue);
+  await page.evaluate(()=>{
+   window.TitanQueue.list=()=>[{status:'error',reason:'Mesures invalides'}];
+   window.dispatchEvent(new Event('titan:pending-changed'));
+  });
+  const pending=page.getByRole('region',{name:'Séances en attente d’envoi'});
+  await pending.waitFor();
+  assert.match(await pending.textContent(),/Mesures invalides/);
+  assert.equal(await pending.evaluate(el=>el===document.activeElement),true);
+  assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+
 test('qg context: account change clears private goals before the new read completes',async()=>{
  for(const width of [360,1280]){
   const {page,context,errors}=await fixture({width});try{

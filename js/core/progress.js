@@ -303,6 +303,44 @@
     };
   }
 
+  /** A chapter tells only what is recorded. A comparison is based on the same sport and measured minutes. */
+  function weekChapter(logs, { now = new Date(), start = now, adventure, owner, paused = false } = {}) {
+    const f = F();
+    const from = f.weekStart(start);
+    const end = f.addDays(from, 7);
+    const partial = weekKey(from) === weekKey(now);
+    const inChapter = (date) => date >= from && date < end && date <= now;
+    const journal = activeLogs(logs, now).filter((l) => l.sport && !l.is_suspicious && (!l.syncStatus || l.syncStatus === "confirmed"));
+    const rows = journal.filter((l) => inChapter(new Date(l.date)));
+    const previousStart = f.addDays(from, -7);
+    const previousCutoff = partial ? f.addDays(now, -7) : from;
+    const previous = journal.filter((l) => {
+      const date = new Date(l.date);
+      return date >= previousStart && date < from && date <= previousCutoff;
+    });
+    function measuredBySport(list) {
+      const bySport = new Map();
+      for (const l of list) {
+        const total = bySport.get(l.sport) ?? 0;
+        const minutes = T()?.duration(l);
+        bySport.set(l.sport, Number.isFinite(minutes) ? total + minutes : NaN);
+      }
+      return bySport;
+    }
+    const earlier = measuredBySport(previous);
+    const comparable = [...measuredBySport(rows)].filter(([sport, minutes]) => minutes > 0 && earlier.get(sport) > 0);
+    const [sport, minutes] = comparable.sort((a, b) => b[1] - a[1])[0] || [];
+    const comparison = sport ? { sport, label: sportMeta(sport).label, minutes, previousMinutes: earlier.get(sport), partial } : null;
+    const story = owner && !String(owner).startsWith("guest_") && adventure?.owner === owner && !adventure.local && Array.isArray(adventure.rewards)
+      ? adventure.rewards.filter((r) => r?.world && Number.isInteger(r.chapter) && r.chapter >= 1 && r.chapter <= 9 && inChapter(new Date(r.earned_at)))
+        .sort((a, b) => new Date(b.earned_at) - new Date(a.earned_at))[0] || null
+      : null;
+    const next = paused && partial ? { label: "Voir ma cadence", href: "/prevoir" }
+      : rows.length || !partial ? { label: "Retrouver mon journal", href: "/journal" }
+        : { label: "Enregistrer une séance", href: "/training" };
+    return { sessions: rows.length, activeDays: new Set(rows.map((l) => f.dateKey(l.date))).size, comparison, story, next };
+  }
+
   /* ---------- TITAN DNA ---------- */
   function dna(logs, now = new Date()) {
     const list = activeLogs(logs, now);
@@ -598,7 +636,7 @@
       };
     const pending = guest ? [] : (ctx.pending || []);
     const top = insights({ ...ctx, pending }).find(({ id }) => id === "sync-error"
-      || (online && !guest && id.startsWith("chapter-"))
+      || ((online || guest) && id.startsWith("chapter-"))
       || id.startsWith("goal-") || ["plan-today", "cadence", "return"].includes(id));
     if (top?.id === "sync-error") return top;
     const waiting = pending.filter(({ status }) => status === "pending").length;
@@ -611,7 +649,10 @@
         text: online ? "L’envoi reste à confirmer. Tes séances sont conservées sur cet appareil." : "Tes séances restent sur cet appareil et seront envoyées au retour de la connexion.",
         cta: { label: "Voir les séances en attente", href: "/journal#attente" },
       };
-    if (top) return top;
+    if (top)
+      return guest && top.id.startsWith("chapter-")
+        ? { ...top, eyebrow: "Découverte", text: "Tu peux ouvrir la suite. Ta progression reste sur cet appareil." }
+        : top;
     const now = ctx.now || new Date();
     const list = activeLogs(ctx.logs || [], now);
     if (!list.length && historyAvailable)
@@ -673,6 +714,7 @@
     weekLogs,
     newRecords,
     recap,
+    weekChapter,
     dna,
     insights,
     nextAction,

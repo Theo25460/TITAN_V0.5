@@ -65,17 +65,23 @@
   function render() {
     if (!root) return;
     const focusedDay = current(account) ? daySelector(document.activeElement) : null;
+    const focusedPause = current(account) && root.contains(document.activeElement) && document.activeElement.matches("[data-cadence-pause]");
     const ctx = adopt(); if (!ctx || !window.state?.user) return;
     const week = weekState();
     const planned = week.filter((d) => d.sport).length;
-    const target = D().cadenceSettings().target;
+    const { target, pauses } = D().cadenceSettings();
+    const paused = pauses.includes(F().dateKey(F().weekStart()));
     const today = week.find((d) => d.isToday);
     const doneDays = week.filter((d) => d.done.length).length;
     root.innerHTML = `
+      <section class="asc-section" aria-labelledby="pv-cadence-title"><div class="asc-section-head"><h2 id="pv-cadence-title">${paused ? "Cadence en pause" : "Ma cadence"}</h2>
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cadence-pause>${paused ? "Reprendre la cadence" : "Mettre la cadence en pause"}</button></div>
+        <p class="asc-small asc-muted">La pause met de côté ton repère de jours actifs pour cette semaine. Ton journal et tes acquis restent accessibles.</p>
+      </section>
       ${today?.sport && !today.done.length ? `<section class="asc-hero pv-today"><p class="asc-eyebrow cy">Prévu aujourd’hui</p><h2 class="pv-today-title">${esc(SP().label(today.sport))}</h2><p class="asc-lead">${today.minutes ? `${esc(F().duration(today.minutes))}` : "Durée libre"}${today.note ? ` · ${esc(today.note)}` : ""}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/training?sport=${encodeURIComponent(today.sport)}">${icon("plus")} Enregistrer cette séance</a></div></section>` : ""}
       <section class="asc-section"><div class="asc-section-head"><h2>Cette semaine</h2><span class="asc-small asc-muted">${doneDays} jour${doneDays > 1 ? "s" : ""} actif${doneDays > 1 ? "s" : ""} · ${planned} prévu${planned > 1 ? "s" : ""}</span></div>
         <div class="pv-week">${week.map(dayCard).join("")}</div>
-        ${planned && planned < target ? `<p class="asc-note">${icon("info")}<span>Ta cadence vise ${target} jours actifs par semaine et ta semaine type en prévoit ${planned}. Les jours libres comptent aussi dès que tu bouges.</span></p>` : ""}
+        ${!paused && planned && planned < target ? `<p class="asc-note">${icon("info")}<span>Ta cadence vise ${target} jours actifs par semaine et ta semaine type en prévoit ${planned}. Les jours libres comptent aussi dès que tu bouges.</span></p>` : ""}
       </section>
       <section class="asc-section"><div class="asc-section-head"><h2>Ta semaine type</h2><span class="asc-small asc-muted">Touchez un jour pour le modifier</span></div>
         <div class="asc-list">${week
@@ -87,6 +93,7 @@
       </section>`;
     root.setAttribute("aria-busy", "false");
     if (current(ctx)) restoreDay(focusedDay);
+    if (focusedPause) root.querySelector("[data-cadence-pause]")?.focus({ preventScroll: true });
   }
 
   function openDay(key, opener) {
@@ -202,6 +209,10 @@
       booted = true;
       SP().ensure();
       root.addEventListener("click", (e) => {
+        if (e.target.closest("[data-cadence-pause]")) {
+          if (current(account)) account.data.togglePause(F().dateKey(F().weekStart()));
+          return;
+        }
         const b = e.target.closest("[data-day]");
         if (b) openDay(b.dataset.day, b);
       });

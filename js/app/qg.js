@@ -59,7 +59,7 @@
       ${a.value ? `<p class="qg-hero-figure asc-num" aria-label="${esc(a.value)}">${esc(a.value)}</p>` : ""}
       <p class="asc-lead">${esc(a.text)}</p>
       <div class="asc-actions qg-hero-actions">
-        <a class="asc-btn asc-btn-primary" href="${esc(a.cta?.href || "/training")}">${esc(a.cta?.label || "Enregistrer une séance")} ${icon("arrow")}</a>
+        <a id="qg-hero-cta" class="asc-btn asc-btn-primary" href="${esc(a.cta.href)}">${esc(a.cta.label)} ${icon("arrow")}</a>
         ${a.why ? `<details class="qg-why"><summary>Pourquoi ce repère ?</summary><p>${esc(a.why)}</p></details>` : ""}
       </div>
     </section>`;
@@ -78,15 +78,17 @@
     const notches = cad.weeks
       .map((wk, i) => {
         const last = i === cad.weeks.length - 1;
-        const label = last
+        const period = last ? "Semaine en cours" : `Semaine du ${new Date(wk.start + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+        const label = wk.state === "pause" ? `${period} : cadence en pause`
+          : last
           ? `Semaine en cours : ${wk.activeDays} jour${wk.activeDays > 1 ? "s" : ""} actif${wk.activeDays > 1 ? "s" : ""} sur ${cad.target}`
-          : `Semaine du ${new Date(wk.start + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} : ${
-              wk.state === "held" ? "tenue" : wk.state === "pause" ? "en pause" : `${wk.activeDays} jour${wk.activeDays > 1 ? "s" : ""} actif${wk.activeDays > 1 ? "s" : ""}`
+          : `${period} : ${
+              wk.state === "held" ? "tenue" : `${wk.activeDays} jour${wk.activeDays > 1 ? "s" : ""} actif${wk.activeDays > 1 ? "s" : ""}`
             }`;
         return `<span class="asc-notch" data-state="${wk.state}" style="--fill:${wk.fill}%" role="img" aria-label="${esc(label)}" title="${esc(label)}"></span>`;
       })
       .join("");
-    const status = cad.remaining === 0
+    const status = cad.currentPaused ? "<strong>Cadence en pause</strong>" : cad.remaining === 0
       ? `<strong class="qg-held">${icon("check")} Semaine tenue</strong>`
       : `<strong>${cad.currentDays}/${cad.target}</strong> jours actifs`;
     const delta = recapNow.deltaMinutes;
@@ -184,7 +186,7 @@
       <span class="asc-row-sub">${esc(val)} · jusqu’au ${new Date(g.end_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span></span>${icon("chevron")}</a>`;
   }
 
-  function adventureHtml() {
+  function adventureHtml(canClaim) {
     const s = window.TitanAdventure?.snapshot;
     const C = window.TitanCodex;
     if (!s || !C) return "";
@@ -197,7 +199,7 @@
     const chapter = world?.chapters?.[c.chapter - 1];
     const progress = P().campaignProgress(c);
     const summary = progress.objectives.map(o => `${F().number(o.value)}/${F().number(o.target)} ${o.id === "days" ? c.route === "journal" ? "jours annotés" : "jours" : "min"}`).join(" · ");
-    const remaining = progress.ready ? "Étape prête à valider" : progress.objectives.filter(o => o.remaining > 0).map(o => `${F().number(o.remaining)} ${o.id === "days" ? `jour${o.remaining > 1 ? "s" : ""} restant${o.remaining > 1 ? "s" : ""}` : "min d’effort restantes"}`).join(" · ");
+    const remaining = progress.ready ? canClaim ? "Étape prête à valider" : "Connexion nécessaire pour valider" : progress.objectives.filter(o => o.remaining > 0).map(o => `${F().number(o.remaining)} ${o.id === "days" ? `jour${o.remaining > 1 ? "s" : ""} restant${o.remaining > 1 ? "s" : ""}` : "min d’effort restantes"}`).join(" · ");
     return `<a class="asc-row" href="/adventure?world=${esc(c.id)}"><span class="asc-row-icon">${icon("compass")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(chapter?.name || `Chapitre ${c.chapter}`)}</span>
       <span class="asc-ascent thin" aria-hidden="true"><span style="--p:${progress.percent}%"></span></span>
       <span class="asc-small asc-muted" data-rpg-summary>${esc(world?.name || "")} · chapitre ${c.chapter}/9 · ${esc(summary)} · ${esc(remaining)}</span></span>${icon("chevron")}</a>`;
@@ -227,6 +229,14 @@
 
   function guestHtml() {
     return `<div class="asc-note qg-guest">${icon("phone")}<div><strong>Mode découverte</strong> · tes séances restent sur cet appareil. <a class="asc-link" href="/login?mode=signup">Créer un compte</a> pour les sauvegarder et les reprendre partout.</div></div>`;
+  }
+
+  function destinationsHtml() {
+    return `<nav class="asc-actions qg-destinations" aria-label="Raccourcis du QG">
+      <a class="asc-btn asc-btn-ghost" href="/training">${icon("plus")} Sport</a>
+      <a class="asc-btn asc-btn-ghost" href="/adventure">${icon("compass")} Aventure</a>
+      <a class="asc-btn asc-btn-ghost" href="/stats">${icon("chart")} Progrès</a>
+    </nav>`;
   }
 
   // Keep live sections and their controls in place when background reads finish.
@@ -303,17 +313,26 @@
     const list = P().activeLogs(D().logs());
     const settings = D().cadenceSettings();
     const now = new Date();
-    const ctx = { logs: D().logs(), goals: goalsCache, now, cadenceTarget: settings.target, pauses: settings.pauses, adventure: window.TitanAdventure?.snapshot, pending: D().pending(), plan: D().planToday?.(now) };
+    const online = navigator.onLine;
+    const guest = D().isGuest();
+    const ctx = {
+      logs: D().logs(), goals: goalsCache, now, cadenceTarget: settings.target, pauses: settings.pauses,
+      adventure: online || guest ? window.TitanAdventure?.snapshot : null,
+      pending: D().pending(), plan: D().planToday?.(now), draftSport: D().sessionDraft()?.sport,
+      online, guest, historyAvailable: online || guest || list.length > 0,
+    };
     const action = P().nextAction(ctx);
     const others = P().insights(ctx).filter((i) => i.id !== action.id).slice(0, 3);
     const cad = P().cadence(D().logs(), { target: settings.target, pauses: settings.pauses, now });
     const recapNow = P().recap(D().logs(), { now, current: true });
     const name = (window.state.user.name || "").trim();
     document.getElementById("qg-date").textContent = f.longDate(now);
-    document.getElementById("qg-title").textContent = D().isGuest() || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
+    document.getElementById("qg-title").textContent = guest || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     paint(el, `
-      ${D().isGuest() ? guestHtml() : ""}
       ${heroHtml(action)}
+      ${destinationsHtml()}
+      ${!online ? `<div class="asc-note qg-offline">${icon("offline")}<span><strong>Hors ligne.</strong> Tes séances saisies ici restent sur cet appareil.</span></div>` : ""}
+      ${guest ? guestHtml() : ""}
       ${weekHtml(cad, recapNow)}
       ${monthPromptHtml(now)}
       ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
@@ -329,7 +348,7 @@
         <div>${ascentHtml(D().progression())}</div>
         <div>${lastHtml(list)}
           <section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
-            <div class="asc-list">${goalHtml(goalsCache, D().logs())}${adventureHtml()}</div>
+            <div class="asc-list">${goalHtml(goalsCache, D().logs())}${adventureHtml(online || guest)}</div>
           </section>
         </div>
       </div>
@@ -414,6 +433,8 @@
     }
   });
   window.addEventListener("titan:pending-changed", queue);
+  ["online", "offline", "pageshow"].forEach(ev => window.addEventListener(ev, queue));
+  window.addEventListener("storage", (e) => { if (e.key === D()?.sessionDraftKey()) queue(); });
   window.addEventListener("titan:steps-updated", queue);
   window.addEventListener("titan:intents-updated", queue);
   window.addEventListener("titan:common-quest-updated", queue);
