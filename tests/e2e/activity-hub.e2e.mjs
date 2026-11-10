@@ -143,20 +143,19 @@ test('a form edit survives an immediate reload', async () => {
  const { page, context } = await fixture('/training?sport=running');
  try {
   await page.locator('[data-k="note"]').waitFor();
-  await page.evaluate(() => {
+  await Promise.all([page.waitForEvent('load'), page.evaluate(() => {
    const note = document.querySelector('[data-k="note"]');
    note.value = 'Dernière modification';
    note.dispatchEvent(new Event('input', { bubbles: true }));
    location.reload();
   }).catch(error => {
    if (!/Execution context was destroyed/.test(error.message)) throw error;
-  });
-  await page.waitForEvent('load');
+  })]);
   assert.equal(await page.locator('[data-k="note"]').inputValue(), 'Dernière modification');
  } finally { await context.close(); }
 });
 
-test('a session stored for the previous account cannot alter the current form or journal', async () => {
+for (const keepNewer of [false, true]) test(`a session stored for the previous account ${keepNewer ? 'preserves its newer draft' : 'clears only its submitted draft'}`, async () => {
  const { page, context } = await fixture('/training?sport=running');
  try {
   await page.locator('[data-k="durM"]').fill('24');
@@ -175,29 +174,30 @@ test('a session stored for the previous account cannot alter the current form or
   });
   await page.locator('[data-act="save"]').click();
   await page.waitForFunction(() => window.releasePreviousSave);
-  await page.evaluate(() => {
+  await page.evaluate(keepNewer => {
    const nextOwner = 'guest_session_second_account';
    window.titanAccountTransition = { epoch: window.titanAccountTransition.epoch + 1, active: true };
    window.dispatchEvent(new Event('titan:account-changing'));
    window.state.user = { ...window.state.user, id: nextOwner };
    window.state.history = [];
    localStorage.setItem(`titan_seance_draft_v3:${nextOwner}`, JSON.stringify({ sport: 'cycling', note: 'Brouillon du compte B', updatedAt: Date.now() }));
+   if (keepNewer) localStorage.setItem(`titan_seance_draft_v3:${window.firstOwner}`, JSON.stringify({ sport: 'yoga', note: 'Nouvelle saisie du compte A', updatedAt: Date.now() }));
    window.titanAccountTransition.active = false;
    window.dispatchEvent(new Event('titan:account-changed'));
    window.releasePreviousSave();
-  });
+  }, keepNewer);
   await page.waitForFunction(() => window.previousSaveReturned);
   assert.equal(await page.locator('[data-k="note"]').inputValue(), 'Brouillon du compte B');
   assert.equal(await page.locator('dialog.moment-sheet[open]').count(), 0);
   const saved = await page.evaluate(async () => ({
    currentHistory: window.state.history.length,
    oldHistory: await window.TitanQueue.readHistory(window.firstOwner),
-   oldDraft: localStorage.getItem(`titan_seance_draft_v3:${window.firstOwner}`),
+   oldDraft: JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.firstOwner}`)),
    newDraft: JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`)),
   }));
   assert.equal(saved.currentHistory, 0);
   assert.equal(saved.oldHistory.length, 1);
-  assert.equal(saved.oldDraft, null);
+  assert.equal(saved.oldDraft?.note ?? null, keepNewer ? 'Nouvelle saisie du compte A' : null);
   assert.equal(saved.newDraft.note, 'Brouillon du compte B');
  } finally { await context.close(); }
 });

@@ -76,9 +76,10 @@ test("the planner can pause and resume this week's cadence without changing the 
     await page.locator(".pv-week").waitFor();
     const history = await page.evaluate(() => JSON.stringify(window.state.history));
     await page.getByRole("button", { name: "Mettre la cadence en pause" }).click({ timeout: 3000 });
-    assert.equal(await page.getByRole("heading", { name: "Cadence en pause" }).isVisible(), true);
+    await page.getByRole("heading", { name: "Cadence en pause" }).waitFor({ state: "visible" });
     assert.deepEqual(await page.evaluate(() => window.TitanData.cadenceSettings().pauses), ["2026-10-12"]);
     await page.getByRole("button", { name: "Reprendre la cadence" }).click();
+    await page.getByRole("button", { name: "Mettre la cadence en pause" }).waitFor({ state: "visible" });
     assert.deepEqual(await page.evaluate(() => window.TitanData.cadenceSettings().pauses), []);
     assert.equal(await page.evaluate(() => JSON.stringify(window.state.history)), history);
   } finally { await context.close(); }
