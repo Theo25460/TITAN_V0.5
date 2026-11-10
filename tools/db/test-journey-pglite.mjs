@@ -27,12 +27,14 @@ try {
   assert(migration, 'Journey belongs to the ordinary migration replay');
   await run('supabase/migrations/' + migration);
   await run('sql/tests/300_journey.sql');
-  await db.exec("insert into supabase_migrations.schema_migrations(version) values ('20261105213712') on conflict do nothing;");
+  await db.exec("insert into supabase_migrations.schema_migrations(version) values ('20261104085851'), ('20261105213712'), ('20261110130137') on conflict do nothing;");
   const postflight = async () => (await db.query(read('tools/db/postflight-v13.sql'))).rows.filter((row) => row.blocking && row.ok !== true);
   assert.deepEqual(await postflight(), [], 'V1.3 postflight must accept the migrated structure');
-  for (const [mutation, expected] of [
-    ["delete from supabase_migrations.schema_migrations where version='20261105213712';", 'ledger:V1.3'],
-    ["insert into supabase_migrations.schema_migrations(version) values ('20261105000001');", 'ledger:unexpected V1.3'],
+  const postflightMutations = [
+    ["delete from supabase_migrations.schema_migrations where version='20261104085851';", 'ledger:V1.1 prerequisite'],
+    ["delete from supabase_migrations.schema_migrations where version='20261105213712';", 'ledger:V1.3:20261105213712'],
+    ["delete from supabase_migrations.schema_migrations where version='20261110130137';", 'ledger:V1.3:20261110130137'],
+    ["insert into supabase_migrations.schema_migrations(version) values ('20261109000001');", 'ledger:unexpected V1.3'],
     ['grant update on private.titan_journey_acquisitions to authenticated;', 'titan_journey_acquisitions:API privileges'],
     ['alter table private.titan_journey_configs disable row level security;', 'titan_journey_configs:RLS'],
     ['alter function public.titan_journey_snapshot_v1() volatile;', 'public.titan_journey_snapshot_v1():contract'],
@@ -41,9 +43,17 @@ try {
     ['grant insert on private.titan_journey_verified_days to authenticated;', 'titan_journey_verified_days:API privileges'],
     ['grant execute on function public.titan_journey_attest_day_v1(text,text,date,integer) to authenticated;', 'public.titan_journey_attest_day_v1(text,text,date,integer):API privileges'],
     ['revoke execute on function private.titan_journey_attest_day_v1(text,text,date,integer) from service_role;', 'private.titan_journey_attest_day_v1(text,text,date,integer):API privileges'],
+    ['revoke usage on schema private from service_role;', 'schema:private:RPC usage'],
+    ['revoke usage on schema private from authenticated;', 'schema:private:RPC usage'],
     ['alter table private.titan_journey_acquisitions drop constraint titan_journey_acquisitions_pkey;', 'acquisitions:unique owner track id'],
+    ['update private.titan_journey_configs set active=false where active;', 'config:active catalogue'],
+    ['grant execute on function private.titan_export_extras_v1(uuid) to authenticated;', 'private.titan_export_extras_v1(uuid):API privileges'],
+    ['grant execute on function private.titan_export_extras_before_journey_v1(uuid) to public;', 'private.titan_export_extras_before_journey_v1(uuid):API privileges'],
+    ['grant execute on function private.titan_entitlement_refresh_profile(uuid) to authenticated;', 'private.titan_entitlement_refresh_profile(uuid):API privileges'],
+    ['grant execute on function private.titan_entitlement_refresh_profile(uuid) to anon;', 'private.titan_entitlement_refresh_profile(uuid):API privileges'],
     ["create or replace function private.titan_export_extras_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:journey and predecessor'],
-  ]) {
+  ];
+  for (const [mutation, expected] of postflightMutations) {
     await db.exec('begin;' + mutation);
     assert((await postflight()).some((row) => row.check.includes(expected)), 'postflight missed ' + expected);
     await db.exec('rollback;');
@@ -69,6 +79,6 @@ try {
     assert.equal(failed.length, 0, 'Broad SQL failures are listed above; psql-only scripts are explicitly unsupported');
   }
   console.log('GREEN: SQL replay/reapplication; read-only snapshot, ten-sync idempotency, MAX/caps/dates/consent, isolation, immutable acquisitions, 30M horizon, career backfill, export, account deletion, unchanged XP/credits.');
-  console.log('GREEN: V1.3 postflight and twelve negative probes for migration history, RLS, privileges, snapshot volatility, journal uniqueness and export.');
+  console.log(`GREEN: V1.3 postflight and ${postflightMutations.length} negative probes for migration history, RLS, privileges, snapshot volatility, journal uniqueness, active catalogue and export.`);
   console.log('LIMIT: embedded SQL does not prove concurrent connections or physical-device ingestion.');
 } finally { await db.close(); }

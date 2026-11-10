@@ -96,7 +96,53 @@ do $$begin
  begin perform public.titan_journey_sync_v1(); raise exception 'suspended sync'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
-update private.titan_journey_verified_days set steps=0 where user_id=current_setting('titan.journey_a')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.journey_a'),'role','authenticated')::text,true);
+do $$declare s jsonb;begin
+ perform public.titan_garmin_unlink_v1();
+ s:=public.titan_journey_snapshot_v1();
+ assert (s->>'totalSteps')::int=0 and s->'today'='null'::jsonb,'disconnect hides verified days';
+ perform public.titan_set_source_consent_v1('garmin',true);
+ s:=public.titan_journey_sync_v1();
+ assert (s->>'totalSteps')::int=0 and s->'today'='null'::jsonb,'consent alone cannot restore verified days';
+ assert s->'discoveries'=(current_setting('titan.journey_first')::jsonb)->'discoveries','disconnect leaves earned dates and content intact';
+end $$;
+set local role service_role;
+select public.titan_garmin_link_v1(current_setting('titan.journey_a')::uuid,'qa-journey-a-other');
+set local role authenticated;
+do $$declare s jsonb;begin
+ s:=public.titan_journey_sync_v1();
+ assert (s->>'totalSteps')::int=0 and s->'today'='null'::jsonb,'a different Garmin account cannot restore the original verified days';
+ assert s->'discoveries'=(current_setting('titan.journey_first')::jsonb)->'discoveries','linking a different account preserves acquisitions';
+end $$;
+set local role service_role;
+do $$begin
+ begin perform public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,200000); raise exception 'attested against the inactive Garmin identity'; exception when insufficient_privilege then null; end;
+ perform public.titan_journey_attest_day_v1('garmin','qa-journey-a-other',current_date,25000);
+ perform public.titan_journey_attest_day_v1('garmin','qa-journey-a-other',current_date,25000);
+end $$;
+set local role authenticated;
+do $$declare s jsonb;begin
+ s:=public.titan_journey_sync_v1();
+ assert (s->>'totalSteps')::int=25000 and (s->'today'->>'steps')::int=25000,'only the current account contributes on an overlapping day';
+ assert s->'discoveries'=(current_setting('titan.journey_first')::jsonb)->'discoveries','switching accounts grants no duplicate discoveries';
+ perform public.titan_garmin_unlink_v1();
+ perform public.titan_set_source_consent_v1('garmin',true);
+end $$;
+set local role service_role;
+select public.titan_garmin_link_v1(current_setting('titan.journey_a')::uuid,'qa-journey-a');
+set local role authenticated;
+do $$declare s jsonb;begin
+ s:=public.titan_journey_sync_v1();
+ assert (s->>'totalSteps')::int=37000 and (s->'today'->>'steps')::int=18000,'reconnecting the original account restores only its own days';
+ assert s->'discoveries'=(current_setting('titan.journey_first')::jsonb)->'discoveries','reconnecting the original account preserves earned dates and content';
+end $$;
+reset role;
+set local role service_role;
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date,0);
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date-1,0);
+select public.titan_journey_attest_day_v1('garmin','qa-journey-a',current_date-399,0);
+reset role;
 update private.titan_journey_discovery_config set name='Changed catalogue name' where config_version=1 and steps=10000;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.journey_a'),'role','authenticated')::text,true);
@@ -152,7 +198,9 @@ do $$declare s jsonb;begin
  assert (select xp=123 and credits=45 and level=35 from public.profiles where id=current_setting('titan.journey_a')::uuid);
  assert (select xp=456 and credits=67 from public.profiles where id=current_setting('titan.journey_b')::uuid);
  assert (select bool_and(relrowsecurity) from pg_class where oid in('private.titan_journey_configs'::regclass,'private.titan_journey_discovery_config'::regclass,'private.titan_journey_career_config'::regclass,'private.titan_journey_acquisitions'::regclass));
- s:=private.titan_export_extras_v1(current_setting('titan.journey_a')::uuid); assert s ? 'adventureRpg' and s ? 'journey'; assert jsonb_array_length(s->'journey')=6 and jsonb_array_length(s->'journeyVerifiedDailyActivity')=3;
+ s:=private.titan_export_extras_v1(current_setting('titan.journey_a')::uuid); assert s ? 'adventureRpg' and s ? 'journey'; assert jsonb_array_length(s->'journey')=6 and jsonb_array_length(s->'journeyVerifiedDailyActivity')=4;
+ assert not exists(select 1 from jsonb_array_elements(s->'journeyVerifiedDailyActivity')d where (d-'source'-'day'-'steps'-'attested_at')<>'{}'::jsonb),'export excludes the internal provider binding';
+ assert (select count(*)=1 from jsonb_array_elements(s->'journeyVerifiedDailyActivity')d where (d->>'steps')::int=25000),'a correction does not replace another Garmin account''s overlapping day';
 end $$;
 delete from auth.users where id=current_setting('titan.journey_b')::uuid;
 do $$begin

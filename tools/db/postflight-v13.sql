@@ -1,6 +1,9 @@
--- Lecture seule. Ce SELECT inspecte l'historique et les catalogues, sans données de compte.
+-- Lecture seule. Ce SELECT inspecte l'historique, les catalogues et la configuration, sans données de compte.
 -- À exécuter après l'application autorisée. Chaque ligne bloquante doit avoir ok=true.
-with expected_tables(relation) as (values
+with expected_versions(version) as (values
+  ('20261105213712'),
+  ('20261110130137')
+), expected_tables(relation) as (values
   ('private.titan_journey_configs'),
   ('private.titan_journey_discovery_config'),
   ('private.titan_journey_career_config'),
@@ -16,20 +19,33 @@ with expected_tables(relation) as (values
   ('private.titan_journey_sync_v1()', 'v', true, true, false),
   ('private.titan_journey_days_v1()', 's', true, false, false),
   ('private.titan_journey_observed_days_v1()', 's', true, false, false),
+  ('private.titan_export_extras_v1(uuid)', 's', true, false, false),
+  ('private.titan_export_extras_before_journey_v1(uuid)', 's', true, false, false),
+  ('private.titan_entitlement_refresh_profile(uuid)', 'v', true, false, false),
   ('public.titan_journey_attest_day_v1(text,text,date,integer)', 'v', false, false, true),
   ('private.titan_journey_attest_day_v1(text,text,date,integer)', 'v', true, false, true)
 ), function_state as (
   select e.*, p.oid, p.provolatile, p.prosecdef, p.proconfig, p.proacl, p.proowner
   from expected_functions e left join pg_proc p on p.oid = to_regprocedure(e.signature)
 ), checks(check_name, blocking, ok, detail) as (
-  select 'ledger:V1.3', true,
-    exists(select 1 from supabase_migrations.schema_migrations where version = '20261105213712'),
-    'version exacte du lot présente'
+  select 'ledger:V1.1 prerequisite', true,
+    exists(select 1 from supabase_migrations.schema_migrations where version = '20261104085851'),
+    'le correctif historique des conflits métier figure dans le registre'
+  union all
+  select 'ledger:V1.3:' || v.version, true,
+    exists(select 1 from supabase_migrations.schema_migrations m where m.version = v.version),
+    'version exacte du lot présente' from expected_versions v
   union all
   select 'ledger:unexpected V1.3', true, not exists(
-    select 1 from supabase_migrations.schema_migrations
-    where version > '20261104085851' and version <= '20261105213712' and version <> '20261105213712'),
+    select 1 from supabase_migrations.schema_migrations m
+    where m.version > '20261104085851' and m.version <= (select max(version) from expected_versions)
+      and not exists (select 1 from expected_versions v where v.version = m.version)),
     'aucune version inconnue dans ce lot'
+  union all
+  select 'schema:private:RPC usage', true, coalesce(
+    has_schema_privilege('authenticated', to_regnamespace('private'), 'USAGE')
+    and has_schema_privilege('service_role', to_regnamespace('private'), 'USAGE'), false),
+    'les deux rôles peuvent atteindre les fonctions privées dont dépendent leurs RPC'
   union all
   select 'table:' || relation || ':RLS', true, coalesce(relkind in ('r', 'p') and relrowsecurity, false),
     'table présente et RLS activée' from table_state
@@ -72,6 +88,10 @@ with expected_tables(relation) as (values
       and (select array_agg(a.attname::text order by k.ord) from unnest(i.indkey) with ordinality k(num, ord)
         join pg_attribute a on a.attrelid = i.indrelid and a.attnum = k.num) = array['active']),
     'index unique partiel du catalogue actif'
+  union all
+  select 'config:active catalogue', true,
+    (select count(*) = 1 from private.titan_journey_configs where active),
+    'une version active du catalogue est disponible'
   union all
   select 'export:journey and predecessor', true, coalesce(
     pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'

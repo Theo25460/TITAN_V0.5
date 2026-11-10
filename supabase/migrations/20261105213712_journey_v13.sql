@@ -73,10 +73,11 @@ select 1,'career-'||v.level,v.level,v.title,v.description from(values
 create table if not exists private.titan_journey_verified_days (
  user_id uuid not null references auth.users(id) on delete cascade,
  source text not null check(source='garmin'),
+ provider_identity_hash bytea not null check(octet_length(provider_identity_hash)=32),
  day date not null check(isfinite(day) and day>=date '2000-01-01'),
  steps integer not null check(steps between 0 and 200000),
  attested_at timestamptz not null default statement_timestamp(),
- primary key(user_id,source,day)
+ primary key(user_id,source,provider_identity_hash,day)
 );
 alter table private.titan_journey_verified_days enable row level security;
 revoke all on private.titan_journey_verified_days from public,anon,authenticated;
@@ -111,9 +112,10 @@ begin
  for share of g, c;
  if not found then raise exception 'VERIFIED_LINK_OR_CONSENT_REQUIRED' using errcode='42501'; end if;
 
- insert into private.titan_journey_verified_days as d (user_id, source, day, steps)
- values (v_uid, p_source, p_day, p_steps)
- on conflict (user_id, source, day) do update
+ -- Scope the binding to the TITAN owner without storing another copy of the Garmin ID.
+ insert into private.titan_journey_verified_days as d (user_id, source, provider_identity_hash, day, steps)
+ values (v_uid, p_source, sha256(convert_to(v_uid::text||':'||p_provider_user_id,'UTF8')), p_day, p_steps)
+ on conflict (user_id, source, provider_identity_hash, day) do update
    set steps = excluded.steps, attested_at = excluded.attested_at
    where d.steps is distinct from excluded.steps;
 end $$;
@@ -156,7 +158,10 @@ language sql stable security definer set search_path='' as $$
    and d.day<=(statement_timestamp() at time zone 'UTC')::date
    and isfinite(d.attested_at) and d.attested_at<=statement_timestamp()
    and d.day between (d.attested_at at time zone 'UTC')::date-400 and (d.attested_at at time zone 'UTC')::date
-   and exists(select 1 from private.titan_garmin_links g where g.user_id=d.user_id and g.revoked_at is null)
+   and exists(select 1 from private.titan_garmin_links g
+    where g.user_id=d.user_id and g.revoked_at is null
+      and isfinite(g.linked_at) and g.linked_at<=statement_timestamp()
+      and d.provider_identity_hash=sha256(convert_to(g.user_id::text||':'||g.garmin_user_id,'UTF8')))
  group by d.day;
 $$;
 revoke all on function private.titan_journey_days_v1() from public,anon,authenticated;
@@ -215,7 +220,9 @@ end $$;
 create or replace function private.titan_export_extras_v1(p_uid uuid)
 returns jsonb language sql stable security definer set search_path='' as $$
  select private.titan_export_extras_before_journey_v1(p_uid)||jsonb_build_object('journey',coalesce((select jsonb_agg(to_jsonb(a)-'user_id' order by a.track,a.id) from private.titan_journey_acquisitions a where a.user_id=p_uid),'[]'::jsonb),
-  'journeyVerifiedDailyActivity',coalesce((select jsonb_agg(to_jsonb(d)-'user_id' order by d.day,d.source) from private.titan_journey_verified_days d where d.user_id=p_uid),'[]'::jsonb));
+  'journeyVerifiedDailyActivity',coalesce((select jsonb_agg(
+   jsonb_build_object('source',d.source,'day',d.day,'steps',d.steps,'attested_at',d.attested_at)
+   order by d.day,d.source,d.attested_at,d.provider_identity_hash) from private.titan_journey_verified_days d where d.user_id=p_uid),'[]'::jsonb));
 $$;
 revoke all on function private.titan_export_extras_before_journey_v1(uuid),private.titan_export_extras_v1(uuid) from public,anon,authenticated;
 notify pgrst,'reload schema';
