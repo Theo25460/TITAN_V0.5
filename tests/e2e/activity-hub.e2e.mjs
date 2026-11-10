@@ -183,7 +183,6 @@ test('a session stored for the previous account cannot alter the current form or
    window.state.history = [];
    localStorage.setItem(`titan_seance_draft_v3:${nextOwner}`, JSON.stringify({ sport: 'cycling', note: 'Brouillon du compte B', updatedAt: Date.now() }));
    window.titanAccountTransition.active = false;
-   history.replaceState(null, '', '/training');
    window.dispatchEvent(new Event('titan:account-changed'));
    window.releasePreviousSave();
   });
@@ -193,10 +192,12 @@ test('a session stored for the previous account cannot alter the current form or
   const saved = await page.evaluate(async () => ({
    currentHistory: window.state.history.length,
    oldHistory: await window.TitanQueue.readHistory(window.firstOwner),
+   oldDraft: localStorage.getItem(`titan_seance_draft_v3:${window.firstOwner}`),
    newDraft: JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`)),
   }));
   assert.equal(saved.currentHistory, 0);
   assert.equal(saved.oldHistory.length, 1);
+  assert.equal(saved.oldDraft, null);
   assert.equal(saved.newDraft.note, 'Brouillon du compte B');
  } finally { await context.close(); }
 });

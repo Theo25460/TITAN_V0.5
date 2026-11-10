@@ -8,7 +8,6 @@
   const F = () => window.TitanFormat;
   const E = () => window.TitanEffort;
   const P = () => window.TitanProgress;
-  const DAY = 86400000;
 
   const COMMON_EXERCISES = ["Développé couché", "Squat", "Soulevé de terre", "Développé militaire", "Rowing barre", "Tractions", "Dips", "Fentes", "Presse à cuisses", "Hip thrust", "Tirage vertical", "Tirage horizontal", "Curl biceps", "Extension triceps", "Élévations latérales", "Leg curl", "Leg extension", "Mollets", "Pompes", "Gainage"];
   const COMMON_MOVES = ["Pompes", "Tractions", "Dips", "Squats", "Fentes", "Gainage (planche)", "Planche latérale", "Burpees", "Relevés de jambes", "Muscle-up", "Pistol squat", "L-sit", "Front lever", "Handstand"];
@@ -31,7 +30,7 @@
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
 
   const owner = () => window.state?.user?.id || "unassigned";
-  const draftKey = () => `titan_seance_draft_v3:${owner()}`;
+  const draftKey = () => window.TitanData.sessionDraftKey(owner());
   const timerKey = () => `titan_seance_timer_v3:${owner()}`;
 
   function fresh(sport = null) {
@@ -63,25 +62,22 @@
   }
 
   /* ---------- Persistence of the draft and the timer ---------- */
-  function persist() {
+  function persist(submissionId) {
     if (S?.step !== "form" || window.titanAccountTransition?.active) return;
     try {
-      localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined, previewMetrics: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
+      localStorage.setItem(draftKey(), JSON.stringify({ ...S, submissionId, gpx: S.gpx ? {...S.gpx, previewSegments: undefined, previewMetrics: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
     } catch {
       if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
-    }
-  }
-  function readDraft() {
-    try {
-      const d = JSON.parse(localStorage.getItem(draftKey()) || "null");
-      return d && d.sport && Date.now() - (d.updatedAt || 0) < 2 * DAY ? d : null;
-    } catch {
-      return null;
     }
   }
   function clearDraft() {
     try {
       localStorage.removeItem(draftKey());
+    } catch {}
+  }
+  function clearSubmittedDraft(key, submissionId) {
+    try {
+      if (JSON.parse(localStorage.getItem(key))?.submissionId === submissionId) localStorage.removeItem(key);
     } catch {}
   }
   function timer() {
@@ -717,6 +713,8 @@
     const form = root.querySelector(".seance-form");
     const task = { controls: new Map(), labels: new Map(), busy: new Map() };
     const draft = S, submitOwner = owner(), client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
+    const submittedKey = draftKey(), submissionId = crypto.randomUUID();
+    persist(submissionId);
     const current = () => saving === task && S === draft && owner() === submitOwner && client === window.titanClient
       && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
     saving = task; // Reserve before logActivity can start a durable write.
@@ -739,9 +737,9 @@
       const sport = draft.sport;
       const t = timer();
       const log = await window.logActivity(sport, b.data, { quiet: true });
+      if (log) clearSubmittedDraft(submittedKey, submissionId);
       if (!current()) return;
       if (!log) throw new Error("Séance non enregistrée.");
-      clearDraft();
       if (elapsedMs(t)) setTimer({ elapsed: 0, started: null });
       window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: submitOwner, logId: log.client_event_id } }));
       if (!current()) return;
@@ -855,17 +853,30 @@
     }
   }
 
+  let routineDialog = null;
   function routineSheet(mode) {
+    if (routineDialog?.open || !S || window.titanAccountTransition?.active) return;
+    const draft = S, draftOwner = owner(), client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
+    const current = (dialog) => routineDialog === dialog && dialog.open && !saving && S === draft
+      && owner() === draftOwner && client === window.titanClient && epoch === window.titanAccountTransition?.epoch
+      && !window.titanAccountTransition?.active;
     const routines = window.state?.user?.gymRoutines || [];
     const limit = window.titanIsElite?.() ? 20 : 5;
     const body = document.createElement("div");
     body.className = "asc-stack";
+    const open = (title) => {
+      const dialog = window.titanShell.sheet({ title, eyebrow: "Ta bibliothèque", body, onClose: () => {
+        if (routineDialog === dialog) routineDialog = null;
+      } });
+      routineDialog = dialog;
+      return dialog;
+    };
     if (mode === "load") {
       body.innerHTML = `<div class="asc-list">${routines.map((r, i) => `<button type="button" class="asc-row" data-r="${i}"><span class="asc-row-icon">${icon("layers")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${r.exercises.map((e) => esc(e.name)).slice(0, 4).join(" · ")}</span></span>${icon("chevron")}</button>`).join("")}</div>`;
-      const d = window.titanShell.sheet({ title: "Charger une routine", eyebrow: "Ta bibliothèque", body });
+      const d = open("Charger une routine");
       body.querySelectorAll("[data-r]").forEach((b) =>
         b.addEventListener("click", () => {
-          if (saving) return;
+          if (!current(d)) return;
           const r = routines[Number(b.dataset.r)];
           S.exercises = r.exercises.map((e) => ({ name: e.name, variant: e.variant || "", kind: e.kind || "weighted", sets: (e.setRows?.length ? e.setRows : Array.from({ length: e.sets || 3 }, () => ({ weight: e.weight, reps: e.reps }))).map((s) => ({ weight: s.weight ?? "", reps: s.reps ?? "", rir: "", seconds: s.seconds ?? "" })) }));
           d.close();
@@ -875,9 +886,9 @@
       );
     } else {
       body.innerHTML = `<label class="asc-field"><span>Nom de la routine</span><input class="asc-input" maxlength="60" placeholder="Haut du corps · A" id="routine-name"></label><p class="asc-small asc-faint">${routines.length}/${limit} routines. Un nom existant la remplace.${limit === 5 ? " TITAN+ : jusqu’à 20 routines." : ""}</p><button type="button" class="asc-btn asc-btn-primary" id="routine-save">Mémoriser</button><p class="asc-small" role="alert" id="routine-err"></p>`;
-      const d = window.titanShell.sheet({ title: "Mémoriser la routine", eyebrow: "Ta bibliothèque", body });
+      const d = open("Mémoriser la routine");
       body.querySelector("#routine-save").addEventListener("click", () => {
-        if (saving) return;
+        if (!current(d)) return;
         const name = body.querySelector("#routine-name").value.trim();
         const err = body.querySelector("#routine-err");
         if (!name) return (err.textContent = "Donne un nom à ta routine.");
@@ -893,6 +904,11 @@
       });
     }
   }
+  window.addEventListener("titan:account-changing", () => {
+    const dialog = routineDialog;
+    routineDialog = null;
+    if (dialog?.open) dialog.close();
+  });
 
   /* ---------- Events ---------- */
   function onInput(e) {
@@ -1108,7 +1124,7 @@
       duplicate = JSON.parse(sessionStorage.getItem("titan_duplicate_session") || "null");
       sessionStorage.removeItem("titan_duplicate_session");
     } catch {}
-    const draft = readDraft();
+    const draft = window.TitanData.sessionDraft();
     if (duplicate?.ownerId === owner() && duplicate.log?.sport && window.SPORTS_CONFIG?.[duplicate.log.sport]) {
       S = fresh();
       choose(duplicate.log.sport, prefillFromLog(duplicate.log));
@@ -1138,6 +1154,11 @@
     localGpxOriginal = null;
     saving = null;
     clearInterval(timerTick);
+    if (booted && S?.step === "form") {
+      const url = new URL(location.href);
+      url.searchParams.delete("sport");
+      history.replaceState(history.state, "", url);
+    }
     S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;
     if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>';
   });

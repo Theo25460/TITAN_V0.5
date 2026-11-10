@@ -50,6 +50,7 @@ for(const width of [360,1280])for(const held of [false,true]){
    // The form/logActivity/flushPendingTrainingLogs implementations remain untouched.
    await page.evaluate(owner=>{
     window.state.user.id=owner;window.state.user.xp=7;window.state.user.credits=5;window.state.user.level=1;
+    window.TitanData.rulesV300=()=>true;
     window.titanClient={auth:{getSession:async()=>({data:{session:{access_token:'synthetic-test-token',user:{id:owner}}}})},
      rpc:async()=>({error:{code:'PGRST202',message:'Synthetic authority: optional RPC unavailable'}})};
    },OWNER);
@@ -59,6 +60,7 @@ for(const width of [360,1280])for(const held of [false,true]){
    const recap=page.locator('dialog.moment-sheet[open]');await recap.waitFor();
    await page.waitForFunction(()=>window.TitanQueue.list().length===1);
    assert.match(await recap.locator('.moment-reward').innerText(),/Confirmation du serveur en cours/);
+   assert.doesNotMatch(await recap.locator('.moment-xp').innerText(),/XP/);
    assert.match(await recap.locator('.moment-metrics').innerText(),/5\s*km/);
    assert.match(await recap.locator('.moment-metrics').innerText(),/30/);
    assert.deepEqual(await page.evaluate(()=>({xp:window.state.user.xp,credits:window.state.user.credits})),{xp:7,credits:5},'no provisional reward');
@@ -66,6 +68,13 @@ for(const width of [360,1280])for(const held of [false,true]){
    await page.waitForFunction(()=>window.state.history[0]?.syncStatus==='confirmed'&&window.TitanQueue.list().length===0);
    await page.waitForFunction(()=>!document.querySelector('.moment-reward')?.textContent.includes('Confirmation du serveur en cours'));
    assert.match(await recap.locator('.moment-xp').innerText(),held?/Récompense en vérification/:/\+300 XP/);
+   assert.equal(await recap.evaluate(dialog => {
+    const metrics = dialog.querySelector('.moment-metrics');
+    const reward = dialog.querySelector('.moment-reward');
+    const next = dialog.querySelector('.moment-actions');
+    return Boolean(metrics.compareDocumentPosition(reward) & Node.DOCUMENT_POSITION_FOLLOWING)
+      && Boolean(reward.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING);
+   }), true);
    assert.equal(requests.length,1,'one real queue request');
    assert.equal(requests[0].p_sport,'running');assert.equal(requests[0].p_val,5);
    assert.equal(requests[0].p_details.duration,30);

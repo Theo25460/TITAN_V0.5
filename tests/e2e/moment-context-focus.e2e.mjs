@@ -225,11 +225,11 @@ test("recap focus: a removed share action falls back to Done after the log becom
   }finally{await context.close();}
 });
 
-test("recap context: guest recaps remain available with estimated reward and no friend-sharing action",async()=>{
+test("recap context: guest recaps confirm local storage without displaying XP or friend sharing",async()=>{
   const {page,context,errors}=await fixture(360,false,false);
   try{
     await page.evaluate(()=>{window.state.user.id="guest_recap_fixture";window.recap=window.TitanMoment.open(window.momentLog);});
     await recap(page).waitFor();assert.equal(await recap(page).locator(".moment").getAttribute("data-state"),"local");
-    assert.equal(await share(page).count(),0);assert.match(await recap(page).locator(".moment-xp").innerText(),/≈/);assert.deepEqual(errors,[]);
+    assert.equal(await share(page).count(),0);assert.equal(await recap(page).locator(".moment-xp").innerText(),"Gardée sur cet appareil");assert.deepEqual(errors,[]);
   }finally{await context.close();}
 });

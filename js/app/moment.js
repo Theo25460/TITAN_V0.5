@@ -1,6 +1,4 @@
-/* TITAN 300 — the moment after a session: what you did, what it changed, what it is worth.
-   XP shown before the server answers is an estimate and says so; the official value replaces it
-   as soon as the receipt arrives (titan:history-updated). */
+/* TITAN 300 — the moment after a session: what you did, what the server confirmed, and what to do next. */
 (function () {
   "use strict";
   const esc = (s) => window.titanEsc(s);
@@ -72,6 +70,12 @@
     // After a cloud reload, serverReward can be the stored flag `true` instead of the receipt.
     const sr = log.details?.serverReward;
     const r = sr && typeof sr === "object" ? sr : log.syncStatus === "confirmed" ? { xp: log.xp, requested_xp: log.details?.requestedXp ?? log.xp } : null;
+    if (!isGuest() && log.syncStatus === "error") {
+      const queued = window.TitanQueue?.list?.().find(item => item.payload?.details?.client_event_id === idOf(log));
+      return { state: "pending", big: "Envoi refusé", sub: queued?.deferred
+        ? "La séance est conservée sur cet appareil et sera renvoyée automatiquement."
+        : "La séance est conservée sur cet appareil. Retrouve les options de reprise dans le journal." };
+    }
     if (historical)
       return {
         state: "history",
@@ -81,8 +85,7 @@
             ? "Ajoutée à ton historique, à tes statistiques et à tes records. Sans XP : seules les séances des 30 derniers jours en rapportent."
             : "Gardée sur cet appareil, sans XP. Le serveur ne l’a pas encore acceptée : elle partira d’elle-même dès qu’il le pourra.",
       };
-    const est = P().effortOf(log);
-    if (isGuest()) return { state: "local", big: `≈ ${F().number(est.xp)} XP`, sub: "Séance conservée sur cet appareil. XP estimés ; tu pourras ajouter tes séances à ton compte après inscription." };
+    if (isGuest()) return { state: "local", big: "Gardée sur cet appareil", sub: "Tu pourras ajouter cette séance à ton compte après inscription." };
     if (log.syncStatus === "confirmed" && r && r.reward_held) {
       const hours = Math.max(1, Math.ceil((new Date(r.release_at) - Date.now()) / 3600000)) || 24;
       return { state: "pending", big: "Récompense en vérification", sub: `${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits sont retenus par précaution, au plus ${F().number(hours)} h : ils arrivent d’eux-mêmes si rien n’est trouvé.` };
@@ -93,15 +96,16 @@
       if (capped) lines.push(Number(r.xp) > 0 ? `Plafond de fair-play atteint : ${F().number(r.xp)} XP comptés sur ${F().number(r.requested_xp)}.` : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP.");
       else lines.push("Confirmée par le serveur.");
       if (Number(r.leveled_up) > 0) lines.push(`Niveau ${F().number(r.level_after)} atteint.`);
-      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
+      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), credits: Number(r.credits) || 0, levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
     }
     const offline = !navigator.onLine;
-    return { state: "pending", big: window.TitanData?.rulesV300?.() ? `≈ ${F().number(est.xp)} XP` : "Enregistrée", sub: offline ? "Hors ligne : la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
+    return { state: "pending", big: "Confirmation en attente", sub: offline ? "Hors ligne, la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
   }
 
   function cadenceHtml(log) {
     const settings = window.TitanData?.cadenceSettings?.() || { target: 3, pauses: [] };
     const c = P().cadence(window.state?.history || [], { target: settings.target, pauses: settings.pauses, now: new Date() });
+    if (c.currentPaused) return `<p class="asc-small asc-muted">Cadence en pause. Ta séance reste dans ton journal.</p>`;
     const t = new Date(log.date);
     if (F().weekStart(t).getTime() !== F().weekStart(new Date()).getTime()) return "";
     const days = c.currentDays;
@@ -179,19 +183,22 @@
     const recs = records(log);
     const m = metrics(log);
     return `<div class="moment" data-state="${rw.state}">
-      ${hero(log, play)}
+      <h3 class="asc-eyebrow">Ton effort</h3>
       <dl class="moment-metrics">${m.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
         <p class="moment-xp asc-num">${esc(rw.big)}</p>
         <p class="asc-small">${esc(rw.sub)}</p>
+        ${rw.credits > 0 ? `<p class="asc-small">+${F().number(rw.credits)} crédits</p>` : ""}
         ${rw.levelUp ? `<p class="moment-level">${icon("ascent")} Niveau ${F().number(rw.levelUp)} · ${esc(E().rank(rw.levelUp).name)}</p>` : ""}
       </section>
+      ${hero(log, play)}
       ${recs.length ? `<section class="moment-block moment-records"><p class="asc-eyebrow am">${recs.every((r) => r.first) ? (recs.length > 1 ? "Premiers repères" : "Premier repère") : recs.length > 1 ? "Records" : "Record"}</p>${recs
         .map((r) => `<div class="moment-record"><span class="moment-record-label">${esc(r.label)}</span><strong class="asc-num">${esc(fmtRecord(r))}</strong><span class="asc-small asc-faint">${r.previous ? `avant : ${esc(fmtRecord(r, r.previous.value))}` : "ta référence pour la suite"}</span></div>`)
         .join("")}</section>` : ""}
       ${cadenceHtml(log)}
       ${masteryHtml(log)}
       ${adventureHtml(log)}
+      <h3 class="asc-eyebrow">Et ensuite ?</h3>
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
         ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup" data-moment-signup>${icon("user")} Créer un compte et garder ma séance</a>` : ""}

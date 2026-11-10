@@ -38,10 +38,11 @@ test('a discovery session recap offers a concrete signup action next to Terminé
     await page.locator('#sport-q').fill('course');
     await page.locator('#sport-results [data-sport="running"]').click();
     await page.locator('[data-k="distance"]').fill('5');
-    await page.locator('[data-k="duration"]').fill('30').catch(() => {});
+    await page.locator('[data-k="durM"]').fill('30');
     await page.locator('[data-act="save"]').click();
     const dialog = page.locator('dialog.asc-sheet[open]');
     await dialog.waitFor();
+    assert.doesNotMatch(await dialog.locator('.moment-xp').innerText(), /XP/);
     const signup = dialog.locator('[data-moment-signup]');
     assert.equal(await signup.getAttribute('href'), '/login?mode=signup');
     assert.match(await signup.innerText(), /Créer un compte et garder ma séance/);
