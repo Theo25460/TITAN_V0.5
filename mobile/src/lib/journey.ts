@@ -12,4 +12,6 @@ export type JourneySnapshot = {
 };
 export type JourneyModel = { snapshot: JourneySnapshot; earned: Discovery[]; next: Discovery | null; nextGrand: Discovery | null; careerEarned: CareerMilestone[]; nextCareer: CareerMilestone | null; remaining: number; grandRemaining: number; segmentPercent: number; sagaPercent: number; readyCount: number; careerReadyCount: number; hasStepData: boolean };
 export const journeyModel = (require('../core/web/journey.js') as { model: (s: unknown, owner: string) => JourneyModel | null }).model;
+type WorldStory = { version: 1; scenes: { chapter: number; name: string; description: string; icon: 'route' | 'leaf' | 'shield'; earnedAt: string | null }[] };
+export const worldStory = (require('../core/web/journey.js') as { worldStory: (s: unknown, world: string, owner: string) => WorldStory | null }).worldStory;
 export const sourceLabel = (s: string) => ({ health_connect: 'Santé Connect', garmin: 'Garmin' }[s] ?? 'Source connectée');

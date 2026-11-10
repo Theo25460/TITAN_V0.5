@@ -10,6 +10,12 @@
 .journey-region svg { color: var(--world); width: 24px; height: 24px; }
 .journey-region h3 { font-size: 1rem; overflow-wrap: anywhere; }
 .journey-region p { font-size: .8rem; color: #aebcc5; }
+.world-story ol { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.world-story li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; border-left: 3px solid #24353b; padding: 8px 12px; }
+.world-story li.is-restored { border-color: var(--world); background: #101c23; }
+.world-story li svg { width: 20px; height: 20px; }
+.world-story li.is-restored svg { color: var(--world); }
+.world-story p { margin: 0; }
 .journey-total { font-size: .9rem; color: #b2c1ca; }
 .journey-total strong { font: 800 clamp(1.4rem, 6vw, 2.25rem)/1.2 Archivo, Manrope, sans-serif; color: #edf4f8; }
 .journey-next, .journey-career { padding: 18px; border: 1px solid #24353b; background: #0b1219; border-radius: 16px; display: grid; gap: 10px; min-width: 0; }

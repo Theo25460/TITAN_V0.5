@@ -22,3 +22,16 @@ test('correction preserves earned acquisition and clamps partial progress',()=>{
 test('reached threshold remains unearned until explicit server confirmation',()=>{const m=J.model(snapshot({totalSteps:30000}),'a');assert.equal(m.readyCount,2);assert.equal(m.earned.length,1);assert.equal(m.remaining,0);});
 test('owner, version, invalid counters, earned dates and duplicate IDs fail closed',()=>{const d=snapshot();d.discoveries.push(d.discoveries[0]);const x=snapshot();x.discoveries[0].earnedAt='invalid';for(const s of [null,snapshot({owner:'b'}),snapshot({version:2}),snapshot({totalSteps:-1}),snapshot({totalSteps:NaN}),snapshot({goal:0}),d,x])assert.equal(J.model(s,'a'),null);});
 test('absent data differs from real zero; complete saga has no next step',()=>{assert.equal(J.model(snapshot({totalSteps:0,today:null}),'a').hasStepData,false);const s=snapshot({totalSteps:30000000});s.discoveries.forEach(d=>d.earnedAt=at);s.career.milestones.forEach(d=>d.earnedAt=at);const m=J.model(s,'a');assert.equal(m.next,null);assert.equal(m.nextCareer,null);assert.equal(m.sagaPercent,100);});
+
+test('world changes follow dated receipts and survive changes to campaign progress', () => {
+  const s = { owner: 'a', campaigns: [{ chapter: 10 }], rewards: [
+    { world: 'aube', chapter: 1, earned_at: at },
+    { world: 'marees', chapter: 5, earned_at: at },
+    { world: 'aube', chapter: 9, earned_at: 'invalid' },
+  ] };
+  const story = J.worldStory(s, 'aube', 'a');
+  assert.equal(story.version, 1);
+  assert.deepEqual(story.scenes.map(scene => scene.earnedAt), [at, null, null]);
+  assert.deepEqual(J.worldStory({ ...s, campaigns: [] }, 'aube', 'a'), story);
+  assert.equal(J.worldStory(s, 'aube', 'b'), null);
+});

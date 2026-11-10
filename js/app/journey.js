@@ -67,6 +67,20 @@
       ${career(model)}<div class="journey-actions">${button("read", "Actualiser les pas confirmés")}<a class="asc-btn asc-btn-ghost" href="/profile#sources">${icon("cloud")} Mes sources de pas</a></div>`;
   }
 
+  function worldStoryHtml(snapshot, world, owner) {
+    const story = root.TitanJourney?.worldStory(snapshot, world.id, owner);
+    if (!story) return "";
+    const scenes = story.scenes.map(scene => `<li class="${scene.earnedAt ? "is-restored" : ""}">
+      ${icon(scene.earnedAt ? scene.icon : "lock")}
+      <div><strong>${scene.earnedAt ? esc(scene.name) : `Balise ${scene.chapter}`}</strong>
+      <p class="asc-small asc-muted">${scene.earnedAt ? esc(scene.description) : "Changement à découvrir après validation."}</p></div>
+    </li>`);
+    return `<section class="av-panel world-story" data-world-story="${story.version}" style="--world:${world.color}" aria-label="Les changements du monde">
+      <h2 class="asc-h2">Le monde change</h2>
+      <p class="asc-small asc-muted">${owner.startsWith("guest_") ? "Aperçu de ton aventure sur cet appareil." : "Les balises allumées laissent une trace dans ce monde."}</p>
+      <ol>${scenes.join("")}</ol></section>`;
+  }
+
   function paint(host) {
     if (!host.isConnected) { hosts.delete(host); return; }
     if (!same(account, context())) return;
@@ -152,6 +166,6 @@
     else paint(host);
   }
 
-  root.TitanJourneyPanel = { mount, reset };
+  root.TitanJourneyPanel = { mount, reset, worldStoryHtml };
   root.addEventListener("titan:account-changing", reset);
 })(window);

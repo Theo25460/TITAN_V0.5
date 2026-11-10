@@ -7,6 +7,48 @@
   const worlds = new Set(['aube', 'marees', 'forge', 'aurores']);
   const daily = d => d === null || (!!d && integer(d.steps) && /^\d{4}-\d{2}-\d{2}$/.test(d.day) &&
     Array.isArray(d.sources) && d.sources.every(text) && text(d.updatedAt) && date(d.updatedAt));
+  const storyChapters = [1, 5, 9];
+  const storyIcons = ['route', 'leaf', 'shield'];
+  const storyV1 = {
+    aube: [
+      ['Les lanternes du sentier', 'Les premières lanternes jalonnent le chemin sous les arbres.'],
+      ['Le pont des racines', 'Le vieux pont relie les deux rives. On peut de nouveau traverser la vallée.'],
+      ['Le refuge du Veilleur', 'Le Veilleur rallume le foyer. Le refuge reste ouvert aux voyageurs.'],
+    ],
+    marees: [
+      ['Les feux de la crique', 'Les barques retrouvent le passage balisé jusque dans la crique.'],
+      ['Le jardin des courants', 'La marée nourrit de nouveau le jardin à travers les passages libérés.'],
+      ['Le phare des passages', 'Le faisceau du phare relie les îles pendant les nuits de brume.'],
+    ],
+    forge: [
+      ['La galerie de cuivre', 'Des veilleuses éclairent à nouveau l’entrée de la galerie.'],
+      ['La terrasse des braises', 'L’atelier retrouve sa chaleur et les artisans rouvrent leurs portes.'],
+      ['Le foyer de la Forge', 'La dernière braise rallume le foyer commun. Les outils y trouvent leur place.'],
+    ],
+    aurores: [
+      ['La trace dans la neige', 'Des repères réapparaissent et rendent le col visible depuis la vallée.'],
+      ['Le balcon des constellations', 'Le balcon s’ouvre sur le ciel. Les voyageurs y retrouvent les premières cartes.'],
+      ['L’observatoire des horizons', 'L’observatoire oriente ses miroirs vers les quatre mondes.'],
+    ],
+  };
+
+  function worldStory(snapshot, world, owner) {
+    if (!text(owner) || snapshot?.owner !== owner || !worlds.has(world) || !Array.isArray(snapshot.rewards)) return null;
+    const dates = new Map();
+    for (const receipt of snapshot.rewards) {
+      if (receipt?.world === world && storyChapters.includes(receipt.chapter) && text(receipt.earned_at) && date(receipt.earned_at)) {
+        const previous = dates.get(receipt.chapter);
+        if (!previous || Date.parse(receipt.earned_at) < Date.parse(previous)) dates.set(receipt.chapter, receipt.earned_at);
+      }
+    }
+    return {
+      version: 1,
+      scenes: storyV1[world].map(([name, description], index) => {
+        const chapter = storyChapters[index];
+        return { chapter, name, description, icon: storyIcons[index], earnedAt: dates.get(chapter) ?? null };
+      }),
+    };
+  }
   function ordered(rows, field, validate) {
     if (!Array.isArray(rows) || rows.length > 2000) return false;
     const ids = new Set();
@@ -41,7 +83,7 @@
       hasStepData: s.today !== null || s.totalSteps > 0,
     };
   }
-  const api = { model };
+  const api = { model, worldStory };
   root.TitanJourney = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
