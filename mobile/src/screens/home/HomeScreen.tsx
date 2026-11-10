@@ -132,8 +132,6 @@ export function HomeScreen() {
           <Button small kind="ghost" label="Aventure" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
           <Button small kind="ghost" label="Progrès" onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} />
         </View>
-        {!online ? <T variant="small" tone="warn">Hors ligne. Tes séances saisies ici restent sur cet appareil.</T> : null}
-
         {loading ? (
           <LoadingCards count={2} />
         ) : online && logsQ.error && !logsQ.data ? (

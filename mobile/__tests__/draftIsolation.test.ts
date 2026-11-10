@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { clearDraft, loadDrafts, saveDraft } from "../src/data/drafts";
+import { draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
 import { freshDraft } from "../src/core/session";
 import { ownerKey } from "../src/lib/storage";
 jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: "b" }) }));
@@ -27,11 +27,25 @@ test("awaiting a draft write makes the latest edit durable without a timer", asy
 
 test("clearing a submitted session leaves a different draft in storage", async () => {
   await loadDrafts("a");
+  const submitted = { ...freshDraft("running"), durM: "30" };
+  await saveDraft("a", submitted);
+  const clearSubmitted = draftCleanup("a", submitted);
   const other = { ...freshDraft("cycling"), note: "À reprendre" };
   await saveDraft("a", other);
-  await jest.advanceTimersByTimeAsync(300);
-  await clearDraft("a", { ...freshDraft("running"), durM: "30" });
+  await clearSubmitted();
   expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "a")))!)).toMatchObject({ draft: { sport: "cycling", note: "À reprendre" } });
+});
+
+test("clearing the submitted draft after an account switch only removes that owner's saved copy", async () => {
+  const submitted = { ...freshDraft("running"), durM: "30" };
+  await loadDrafts("a");
+  await saveDraft("a", submitted);
+  const clearSubmitted = draftCleanup("a", submitted);
+  await loadDrafts("b");
+  await saveDraft("b", { ...freshDraft("cycling"), durM: "45" });
+  await clearSubmitted();
+  expect(await AsyncStorage.getItem(ownerKey("draft", "a"))).toBeNull();
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "b")))!)).toMatchObject({ draft: { sport: "cycling", durM: "45" } });
 });
 
 test("a late old-account draft load cannot replace the new account's pending draft", async () => {

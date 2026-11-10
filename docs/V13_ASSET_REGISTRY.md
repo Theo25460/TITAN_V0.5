@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 197 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 149 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 197 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 

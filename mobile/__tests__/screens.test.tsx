@@ -1,6 +1,10 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { buildSession, freshDraft, toPayload } from "../src/core/session";
+import { draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
+import { discard, enqueue, loadQueue } from "../src/data/queue";
+import * as network from "../src/lib/network";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
 jest.setTimeout(60000); // the CI runner is slow when every suite runs in parallel: a screen test took 43 s there against ~20 s locally
@@ -125,11 +129,10 @@ describe("with account data", () => {
     }
   });
   test("QG reprend le brouillon du compte depuis son action principale", async () => {
-    const { clearDraft, loadDrafts, saveDraft } = require("../src/data/drafts");
-    const { freshDraft } = require("../src/core/session");
     const draft = { ...freshDraft("yoga"), durM: "25" };
     await loadDrafts("owner-a");
     await saveDraft("owner-a", draft);
+    const cleanup = draftCleanup("owner-a", draft);
     const view = show(<S.Home />);
     try {
       expect(screen.queryByTestId("qg-record-primary")).toBeNull();
@@ -138,7 +141,7 @@ describe("with account data", () => {
       expect(mockNav.navigate).toHaveBeenLastCalledWith("SessionForm", { sport: "yoga" });
     } finally {
       view.unmount();
-      await clearDraft("owner-a", draft);
+      await cleanup();
     }
   });
   test("QG garde les accès Sport, Aventure et Progrès pendant le chargement", () => {
@@ -150,25 +153,25 @@ describe("with account data", () => {
     }
   });
   test("QG ouvre les séances en attente et propose une action locale hors ligne", async () => {
-    const queue = require("../src/data/queue");
-    const { buildSession, freshDraft, toPayload } = require("../src/core/session");
-    const online = jest.spyOn(require("../src/lib/network"), "useOnline").mockReturnValue(false);
-    await queue.loadQueue("owner-a");
-    const item = await queue.enqueue("owner-a", toPayload(buildSession({ ...freshDraft("yoga"), durM: "25" }), "yoga", "qg-pending", "UTC"));
+    const online = jest.spyOn(network, "useOnline").mockReturnValue(false);
+    await loadQueue("owner-a");
+    const item = await enqueue("owner-a", toPayload(buildSession({ ...freshDraft("yoga"), durM: "25" }), "yoga", "qg-pending", "UTC"));
     const view = show(<S.Home />);
     try {
       fireEvent.press(screen.getByRole("button", { name: "Voir les séances en attente" }));
       expect(mockNav.navigate).toHaveBeenLastCalledWith("Pending");
-      expect(screen.getByText(/Hors ligne\. Tes séances saisies ici/)).toBeTruthy();
+      expect(screen.getByTestId("offline-banner")).toBeTruthy();
     } finally {
       view.unmount();
       online.mockRestore();
-      await queue.discard("owner-a", item.key);
+      await discard("owner-a", item.key);
     }
   });
   test("Progrès : semaine, tendances, maîtrise", async () => {
     show(<S.Progress />);
     expect(screen.getByText("Cette semaine")).toBeTruthy();
+    expect(screen.getByText("Ma semaine, mon chapitre")).toBeTruthy();
+    expect(screen.getAllByText("2 séances confirmées · 2 jours actifs.")).toHaveLength(2);
     fireEvent.press(screen.getByText("Tendances"));
     expect(screen.getByText("Tes questions")).toBeTruthy();
     expect(screen.getByText("Où va mon temps ?")).toBeTruthy();

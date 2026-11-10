@@ -1,12 +1,13 @@
 /* Session draft and stopwatch, kept on the device per account (like the website's titan_seance_draft_v3 / timer). */
+import { randomUUID } from "expo-crypto";
 import { useEffect, useSyncExternalStore } from "react";
 import type { SessionDraft } from "../core/session";
-import { ownerKey, readJSON, remove, writeJSON } from "../lib/storage";
+import { ownerKey, readJSON, readJSONStrict, remove, writeJSON } from "../lib/storage";
 import { useAuth } from "./auth";
 
 const DAY = 86400000;
 export type Stopwatch = { elapsed: number; started: number | null };
-type Stored = { draft: SessionDraft; updatedAt: number } | null;
+type Stored = { draft: SessionDraft; updatedAt: number; id?: string } | null;
 
 let current: { owner: string | null; stored: Stored; timer: Stopwatch } = { owner: null, stored: null, timer: { elapsed: 0, started: null } };
 const listeners = new Set<() => void>();
@@ -34,7 +35,7 @@ export function loadDrafts(owner: string) {
 }
 
 export function saveDraft(owner: string, draft: SessionDraft) {
-  const stored = { draft, updatedAt: Date.now() };
+  const stored = { draft, updatedAt: Date.now(), id: randomUUID() };
   if (current.owner === owner) {
     current = { ...current, stored };
     emit();
@@ -42,13 +43,23 @@ export function saveDraft(owner: string, draft: SessionDraft) {
   return serialize(owner, () => writeJSON(ownerKey("draft", owner), stored));
 }
 
-export function clearDraft(owner: string, submitted: SessionDraft) {
-  return serialize(owner, async () => {
-    if (current.owner !== owner || (current.stored && current.stored.draft !== submitted)) return;
-    current = { ...current, stored: null, timer: { elapsed: 0, started: null } };
-    emit();
-    await remove(ownerKey("draft", owner));
-    await remove(ownerKey("draft-timer", owner));
+/** Capture the stored draft before enqueue. After it succeeds, only remove that owner's matching copy. */
+export function draftCleanup(owner: string, submitted: SessionDraft) {
+  const expected = current.owner === owner && current.stored?.draft === submitted ? current.stored : null;
+  const timer = current.owner === owner ? current.timer : null;
+  const matches = (stored: Stored) => expected?.id ? expected.id === stored?.id : JSON.stringify(expected) === JSON.stringify(stored);
+  return () => serialize(owner, async () => {
+    const key = ownerKey("draft", owner);
+    const stored = await readJSONStrict<Stored>(key, null);
+    if (!matches(stored)) return;
+    if (expected) await remove(key);
+    if (current.owner !== owner || !matches(current.stored)) return;
+    current = { ...current, stored: null };
+    if (current.timer === timer) {
+      current = { ...current, timer: { elapsed: 0, started: null } };
+      emit();
+      await remove(ownerKey("draft-timer", owner));
+    } else emit();
   });
 }
 

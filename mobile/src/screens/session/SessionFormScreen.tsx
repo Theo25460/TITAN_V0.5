@@ -22,7 +22,7 @@ import { EffortRules, Format, Gpx, Sports } from "../../core";
 import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
-import { clearDraft, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
+import { draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
@@ -79,12 +79,14 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   const [gpxOriginal, setGpxOriginal] = useState<{ owner: string; sport: string; name: string; text: string } | null>(null);
   const [exportingGpx, setExportingGpx] = useState(false);
   const gpxRead = useRef(0);
+  const mounted = useRef(true);
   const gpxScope = useRef({ owner, sport });
   gpxScope.current = { owner, sport };
   useEffect(() => {
+    mounted.current = true;
     setGpxOriginal(null);
     setExportingGpx(false);
-    return () => { ++gpxRead.current; };
+    return () => { mounted.current = false; ++gpxRead.current; };
   }, [owner, sport]);
   const original = gpxOriginal?.owner === owner && gpxOriginal.sport === sport ? gpxOriginal : null;
 
@@ -114,7 +116,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     draftRef.current = next;
     setDraftState(next);
     void saveDraft(owner, next).catch(() => {
-      if (draftRef.current === next && !saved.current) toast({ kind: "warn", title: "Brouillon non sauvegardé sur le téléphone" });
+      if (mounted.current && draftRef.current === next && !saved.current) toast({ kind: "warn", title: "Brouillon non sauvegardé sur le téléphone" });
     });
   };
 
@@ -188,6 +190,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   }
 
   async function importGpx() {
+    if (saving.current || saved.current) return;
     const sequence = ++gpxRead.current;
     const current = () => sequence === gpxRead.current && gpxScope.current.owner === owner && gpxScope.current.sport === sport && !saved.current;
     try {
@@ -242,6 +245,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       scroll.current?.scrollTo({ y: 0, animated: true });
       return;
     }
+    const clearSubmitted = draftCleanup(owner, submitted);
     saving.current = true;
     ++gpxRead.current;
     try {
@@ -249,10 +253,12 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       saved.current = true;
       // A session saved from a GPS recording is linked to its route (same sport, within two days; nothing is guessed).
       if (payload.details.client_event_id) linkSavedSession(owner, sport, payload.details.client_event_id).then(() => flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event))).catch(() => {});
-      await clearDraft(owner, submitted).catch(() => {});
+      await clearSubmitted().catch(() => {});
+      if (!mounted.current || gpxScope.current.owner !== owner || gpxScope.current.sport !== sport) return;
       haptic("success");
-      navigation.replace("SessionResult", { eventId: payload.details.client_event_id! });
+      navigation.replace("SessionResult", { eventId: payload.details.client_event_id!, stored: { owner, payload } });
     } catch (e) {
+      if (!mounted.current || gpxScope.current.owner !== owner || gpxScope.current.sport !== sport) return;
       const err = e as Error & { field?: string };
       setErrors({ field: err.field ?? null, message: err.message || "Séance non enregistrée." });
       toast({ kind: "err", title: "Séance non enregistrée", message: "La saisie est encore ouverte. Tu peux réessayer." });

@@ -2502,7 +2502,7 @@
           "source": "css/ascension-app.css",
           "lines": [
             62,
-            1863
+            1866
           ],
           "evidence": "literal"
         },
@@ -11201,7 +11201,7 @@
           "source": "css/ascension-app.css",
           "lines": [
             62,
-            1863
+            1866
           ],
           "evidence": "literal"
         },
@@ -11683,8 +11683,8 @@
       ],
       "source": "js/app/onboarding.js",
       "description": "Existing icons and portraits",
-      "bytes": 17588,
-      "version": "sha256:051a1a7931a2e20a319858140ae0f59dd78ee9b12f7262f3e011883395584588",
+      "bytes": 18352,
+      "version": "sha256:d4a4ac26db8694b53e942625d975e1983fa7550262f17f5849eb64dcc57699f1",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11793,8 +11793,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 31452,
-      "version": "sha256:a517125dedb576a876ac82c30f36427c36b4368dfa7825d3d47d3df6b3bc5388",
+      "bytes": 35511,
+      "version": "sha256:c63a0ed78e728532e4d02a849dab48800d6512c2b45d6ee9170732bc2062369f",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11812,8 +11812,8 @@
       ],
       "source": "js/app/journey.js",
       "description": "Trail and discovery views",
-      "bytes": 11696,
-      "version": "sha256:c488460fc9da41f41c4c8dd9a4999b516a37a935cc96ba73bfd08f5f1b30fdd6",
+      "bytes": 12692,
+      "version": "sha256:6ec829dc9927d1d2af18d07301145c97cd223043d2b6c9c6e1bb002611e7ec08",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11831,8 +11831,8 @@
       ],
       "source": "mobile/src/components/JourneyCard.tsx",
       "description": "Trail and discovery views",
-      "bytes": 10254,
-      "version": "sha256:47cd947ac865d20be9ae124b3313ffefe61caaa2472620cc64fe71f995dbd247",
+      "bytes": 10233,
+      "version": "sha256:25a1f783d4d529ad38c62160d2bf64699ce3bfd9d3ea44fdcae985c581ad61e1",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11919,8 +11919,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 11844,
-      "version": "sha256:482127c28334a332845df7c614cf2c7e5b86960a35105b30011056e24ac76586",
+      "bytes": 11710,
+      "version": "sha256:9b0488d181429cc7abbbd496df2d0e2d9d1fbea657aa8482e495a9186853c5de",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -14669,6 +14669,11 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/adventure/SentiersScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/adventure/WorldScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -14700,6 +14705,11 @@
     },
     {
       "source": "mobile/src/screens/community/CommunityScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/community/DuoCard.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },

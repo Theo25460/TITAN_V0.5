@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
+import type { TrainingPayload } from "../core/types";
 
 export type TabParams = {
   QG: undefined;
@@ -21,7 +22,7 @@ export type RootParams = {
   GpsRecord: { sport: string };
   Routes: undefined;
   Route: { id: string };
-  SessionResult: { eventId: string };
+  SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
   SessionDetail: { id: string };
   SessionEdit: { id: string };
   Journal: { sport?: string } | undefined;

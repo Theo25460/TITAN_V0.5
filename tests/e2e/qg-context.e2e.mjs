@@ -77,6 +77,23 @@ test('QG recovers an owner-scoped draft as its only primary action', async () =>
  }finally{await context.close();}
 });
 
+test('QG resumes the actual guest form with its saved measurements', async () => {
+ const {page,context,errors}=await newPage();try{
+  await page.goto(BASE+'/training?sport=yoga');
+  await page.locator('[data-k="durM"]').fill('25');
+  await page.waitForFunction(()=>{
+   const id=window.state?.user?.id;
+   return id?.startsWith('guest_') && JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${id}`))?.durM==='25';
+  });
+  await page.goto(BASE+'/aujourdhui');
+  await page.getByText('Mode découverte',{exact:true}).first().waitFor();
+  await page.getByRole('link',{name:'Reprendre le brouillon'}).click();
+  await page.getByText(/Brouillon repris/).waitFor();
+  assert.equal(await page.locator('[data-k="durM"]').inputValue(),'25');
+  assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+
 test('QG links to the refused sessions panel and focuses it on arrival', async () => {
  const {page,context,errors}=await fixture();try{
   await page.evaluate(()=>{
