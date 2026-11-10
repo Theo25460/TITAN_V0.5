@@ -161,6 +161,9 @@ test("weekly chapter compares declared minutes for the same sport at the same lo
   assert.equal(chapter.comparison.previousMinutes, 25);
   assert.equal(chapter.comparison.partial, true);
   assert.equal(P.weekChapter([...logs, log("2026-10-06T08:00:00", { details: {} })], { now: NOW }).comparison, null, "estimated time cannot stand in for a declared comparison");
+  const local = [...logs, log("2026-10-07T10:00:00", { syncStatus: "local" })];
+  assert.equal(P.weekChapter(local, { now: NOW, owner: "guest_123456" }).sessions, 3);
+  assert.equal(P.weekChapter(local, { now: NOW, owner: "a" }).sessions, 2);
 });
 
 test("weekly chapter only tells a story from the owner's server snapshot in the selected period", () => {

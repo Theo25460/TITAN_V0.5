@@ -368,7 +368,7 @@
 
   function onTabExit(e) {
     const tablist = e.target.closest(".av-worlds");
-    if (!tablist || tablist.contains(e.relatedTarget)) return;
+    if (!tablist || tablist.contains(e.relatedTarget ?? document.activeElement)) return;
     tablist.querySelectorAll('[role="tab"]').forEach((tab) => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
   }
 

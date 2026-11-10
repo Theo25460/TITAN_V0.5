@@ -112,7 +112,7 @@ test('QG links to the refused sessions panel and focuses it on arrival', async (
   const pending=page.getByRole('region',{name:'Séances en attente d’envoi'});
   await pending.waitFor();
   assert.match(await pending.textContent(),/Mesures invalides/);
-  assert.equal(await pending.evaluate(el=>el===document.activeElement),true);
+  await page.waitForFunction(()=>document.activeElement?.id==='attente');
   assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });

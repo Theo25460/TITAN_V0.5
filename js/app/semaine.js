@@ -18,7 +18,7 @@
   let monthOffset = /[?&]mois=1\b/.test(location.search) ? 1 : 0; // 0 = this month in progress, 1 = last month…
 
   const logs = () => window.state?.history || [];
-  const chapterLogs = () => logs().filter((l) => l?.sport && !l.is_suspicious && (!l.syncStatus || l.syncStatus === "confirmed"));
+  const chapterLogs = () => P().weekChapterLogs(logs(), window.state?.user?.id);
 
   function recapFor(k) {
     const now = new Date();
@@ -40,7 +40,7 @@
     const paused = settings.pauses.includes(f.dateKey(r.from));
     const owner = window.state?.user?.id;
     const local = String(owner || "").startsWith("guest_");
-    const chapter = P().weekChapter?.(chapterLogs(), { start: r.from, adventure: window.TitanAdventure?.snapshot, owner, paused }) || {
+    const chapter = P().weekChapter?.(logs(), { start: r.from, adventure: window.TitanAdventure?.snapshot, owner, paused }) || {
       sessions: r.week.sessions, activeDays: r.week.activeDays, next: { label: "Retrouver mon journal", href: "/journal" },
     };
     const { comparison, story } = chapter;

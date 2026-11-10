@@ -114,8 +114,6 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
       {q.isError || q.isPaused ? <T variant="caption" tone="warn" accessibilityLiveRegion="polite">
         {q.isPaused ? "Dernière progression connue. L’actualisation reprendra avec la connexion." : "Dernière progression connue. Actualise pour réessayer."}
       </T> : null}
-      <WorldStory snapshot={s} world={world.id} owner={owner} color={world.color} />
-
       {locked ? (
         <Card style={{ gap: 6 }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
@@ -227,6 +225,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
           <T variant="small">{world.guardian} te reconnaît. Les neuf insignes de ce monde sont dans ta collection.</T>
         </Card>
       )}
+
+      <WorldStory snapshot={s} world={world.id} owner={owner} color={world.color} />
 
       <View style={{ gap: space.s2 }}>
         <T variant="eyebrow">Parcours principal · 9 balises</T>

@@ -51,6 +51,8 @@ test('region tabs use one keyboard stop and keep focus and the Sentiers anchor',
   await page.keyboard.press('ArrowLeft');
   assert.equal(await focused(), await last.getAttribute('data-world'));
   assert.equal(await selected(), 'aube');
+  await last.dispatchEvent('focusout', { bubbles: true, relatedTarget: null });
+  assert.deepEqual(await tabs.evaluateAll(nodes => nodes.map(tab => tab.tabIndex)), [-1,-1,-1,0]);
   await page.evaluate(() => dispatchEvent(new Event('titan:periodic-quests-updated')));
   assert.equal(await focused(), await last.getAttribute('data-world'));
   assert.deepEqual(await tabs.evaluateAll(nodes => nodes.map(tab => tab.tabIndex)), [-1,-1,-1,0]);
