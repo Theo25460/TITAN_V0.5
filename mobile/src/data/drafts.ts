@@ -12,39 +12,44 @@ let current: { owner: string | null; stored: Stored; timer: Stopwatch } = { owne
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 let loadEpoch = 0;
+const writes = new Map<string, Promise<unknown>>();
 
-export async function loadDrafts(owner: string) {
-  const epoch = ++loadEpoch;
-  const stored = await readJSON<Stored>(ownerKey("draft", owner), null);
-  const timer = await readJSON<Stopwatch>(ownerKey("draft-timer", owner), { elapsed: 0, started: null });
-  if (epoch !== loadEpoch) return;
-  current = { owner, stored: stored && Date.now() - stored.updatedAt < 2 * DAY ? stored : null, timer };
-  emit();
+function serialize<T>(owner: string, task: () => Promise<T>): Promise<T> {
+  const next = (writes.get(owner) ?? Promise.resolve()).then(task, task);
+  writes.set(owner, next);
+  const release = () => { if (writes.get(owner) === next) writes.delete(owner); };
+  void next.then(release, release);
+  return next;
 }
 
-const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+export function loadDrafts(owner: string) {
+  const epoch = ++loadEpoch;
+  return serialize(owner, async () => {
+    const stored = await readJSON<Stored>(ownerKey("draft", owner), null);
+    const timer = await readJSON<Stopwatch>(ownerKey("draft-timer", owner), { elapsed: 0, started: null });
+    if (epoch !== loadEpoch) return;
+    current = { owner, stored: stored && Date.now() - stored.updatedAt < 2 * DAY ? stored : null, timer };
+    emit();
+  });
+}
+
 export function saveDraft(owner: string, draft: SessionDraft) {
   const stored = { draft, updatedAt: Date.now() };
   if (current.owner === owner) {
     current = { ...current, stored };
     emit();
   }
-  clearTimeout(saveTimers.get(owner));
-  saveTimers.set(owner, setTimeout(() => {
-    saveTimers.delete(owner);
-    writeJSON(ownerKey("draft", owner), stored).catch(() => {});
-  }, 250));
+  return serialize(owner, () => writeJSON(ownerKey("draft", owner), stored));
 }
 
-export async function clearDraft(owner: string) {
-  clearTimeout(saveTimers.get(owner));
-  saveTimers.delete(owner);
-  if (current.owner === owner) {
+export function clearDraft(owner: string, submitted: SessionDraft) {
+  return serialize(owner, async () => {
+    if (current.owner !== owner || (current.stored && current.stored.draft !== submitted)) return;
     current = { ...current, stored: null, timer: { elapsed: 0, started: null } };
     emit();
-  }
-  await remove(ownerKey("draft", owner));
-  await remove(ownerKey("draft-timer", owner));
+    await remove(ownerKey("draft", owner));
+    await remove(ownerKey("draft-timer", owner));
+  });
 }
 
 export function setStopwatch(owner: string, timer: Stopwatch) {
@@ -52,7 +57,7 @@ export function setStopwatch(owner: string, timer: Stopwatch) {
     current = { ...current, timer };
     emit();
   }
-  writeJSON(ownerKey("draft-timer", owner), timer).catch(() => {});
+  void serialize(owner, () => writeJSON(ownerKey("draft-timer", owner), timer)).catch(() => {});
 }
 
 export const elapsedMs = (t: Stopwatch) => t.elapsed + (t.started ? Math.max(0, Date.now() - t.started) : 0);

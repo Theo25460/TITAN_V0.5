@@ -95,15 +95,26 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     const source = duplicateOf ? logs.find((l) => l.id === duplicateOf || l.client_event_id === duplicateOf) : null;
     return source ? prefillFrom(source, base) : base;
   });
+  const draftRef = useRef(draft);
   const dirty = useRef(false);
   const saved = useRef(false);
+  const saving = useRef(false);
+  useEffect(() => {
+    const stored = drafts.stored?.draft;
+    if (!dirty.current && !duplicateOf && stored?.sport === sport && stored !== draftRef.current) {
+      draftRef.current = stored;
+      setDraftState(stored);
+    }
+  }, [drafts.stored, duplicateOf, sport]);
   const setDraft = (patch: Partial<SessionDraft> | ((d: SessionDraft) => SessionDraft)) => {
+    if (saving.current || saved.current) return;
     dirty.current = true;
     setErrors(null);
-    setDraftState((d) => {
-      const next = typeof patch === "function" ? patch(d) : { ...d, ...patch };
-      saveDraft(owner, next);
-      return next;
+    const next = typeof patch === "function" ? patch(draftRef.current) : { ...draftRef.current, ...patch };
+    draftRef.current = next;
+    setDraftState(next);
+    void saveDraft(owner, next).catch(() => {
+      if (draftRef.current === next && !saved.current) toast({ kind: "warn", title: "Brouillon non sauvegardé sur le téléphone" });
     });
   };
 
@@ -222,27 +233,31 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   }
 
   async function save() {
-    if (record.isPending) return;
-    const b = buildSession(draft);
+    if (saving.current || saved.current) return;
+    const submitted = draftRef.current;
+    const b = buildSession(submitted);
     if (b.errors.length) {
       setErrors(b.errors[0]);
       haptic("error");
       scroll.current?.scrollTo({ y: 0, animated: true });
       return;
     }
+    saving.current = true;
     ++gpxRead.current;
     try {
-      const payload = await record.mutateAsync(draft);
+      const payload = await record.mutateAsync(submitted);
       saved.current = true;
       // A session saved from a GPS recording is linked to its route (same sport, within two days; nothing is guessed).
       if (payload.details.client_event_id) linkSavedSession(owner, sport, payload.details.client_event_id).then(() => flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event))).catch(() => {});
-      await clearDraft(owner);
+      await clearDraft(owner, submitted).catch(() => {});
       haptic("success");
       navigation.replace("SessionResult", { eventId: payload.details.client_event_id! });
     } catch (e) {
       const err = e as Error & { field?: string };
       setErrors({ field: err.field ?? null, message: err.message || "Séance non enregistrée." });
-      toast({ kind: "err", title: "Séance non enregistrée", message: "Rien n’a été perdu : le brouillon est conservé sur ce téléphone." });
+      toast({ kind: "err", title: "Séance non enregistrée", message: "La saisie est encore ouverte. Tu peux réessayer." });
+    } finally {
+      saving.current = false;
     }
   }
 

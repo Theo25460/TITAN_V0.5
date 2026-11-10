@@ -19,7 +19,6 @@ import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } fr
 import type { Recording } from "../../lib/gpsRecorder";
 import { currentSpeed } from "../../lib/gpsTrack";
 import { haptic } from "../../lib/haptics";
-import { ownerKey, writeJSON } from "../../lib/storage";
 import { colors, space } from "../../theme/tokens";
 import type { RootParams } from "../../navigation/types";
 
@@ -111,8 +110,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
         await queueRoute(owner, pending);
         await awaitSession(owner, pending.clientRouteId, rec.sport);
       }
-      saveDraft(owner, draft);
-      await writeJSON(ownerKey("draft", owner), { draft, updatedAt: Date.now() }); // on disk before the recording is released
+      await saveDraft(owner, draft); // on disk before the recording is released
       await recorder.discard(owner);
       await setActiveOwner(null);
       flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event)).catch(() => {});
