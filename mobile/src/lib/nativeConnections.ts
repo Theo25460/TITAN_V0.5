@@ -18,19 +18,27 @@ export async function readGarmin(owner: string): Promise<GarminState> {
   const row = Array.isArray(sources) ? sources.find((x) => x?.source === "garmin") : undefined;
   return { ...status, enabled: flags?.flags?.["screens.garmin"] === true, authorized: row?.granted === true, imported: Number(row?.imported) || 0, attached: Number(row?.linked) || 0, last_import_at: row?.last_import_at ?? undefined };
 }
-async function provider(owner: string, action: "start" | "disconnect", network: Network, current: Current) {
+async function provider(owner: string, action: "start" | "disconnect" | "complete", network: Network, current: Current, handoff?: string, signal?: AbortSignal) {
   const session = await assertOwner(owner); valid(current);
+  if (signal?.aborted) throw new Error("AUTH_REQUIRED");
   const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(), 15000);
+  const cancel = () => abort.abort();
+  signal?.addEventListener("abort", cancel, { once: true });
+  const timer = setTimeout(cancel, 15000);
   try {
-    const response = await network(`${SITE_URL}/.netlify/functions/garmin?action=${action}${action === "start" ? "&client=android" : ""}`, { method: "POST", headers: { Authorization: `Bearer ${session!.access_token}` }, signal: abort.signal });
+    const response = await network(`${SITE_URL}/.netlify/functions/garmin?action=${action}${action === "start" ? "&client=android&flow=handoff" : ""}`, {
+      method: "POST", headers: { Authorization: `Bearer ${session!.access_token}`, ...(handoff ? { "Content-Type": "application/json" } : {}) },
+      ...(handoff ? { body: JSON.stringify({ handoff }) } : {}), signal: abort.signal,
+    });
     if (response.status === 401) throw new Error("AUTH_REQUIRED");
+    const body = await response.json().catch(() => null);
+    valid(current);
+    if (action === "complete" && body?.garmin === "error" && (response.status === 400 || response.status === 403)) return body;
     if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      throw new Error(body?.error === "GARMIN_CONFIGURATION" ? "GARMIN_CONFIGURATION" : "GARMIN_UNAVAILABLE");
+      throw new Error(body?.error === "GARMIN_CONFIGURATION" ? "GARMIN_CONFIGURATION" : body?.error === "consent_required" ? "CONSENT_REQUIRED" : "GARMIN_UNAVAILABLE");
     }
-    return await response.json();
-  } finally { clearTimeout(timer); }
+    return body;
+  } finally { clearTimeout(timer); signal?.removeEventListener("abort", cancel); }
 }
 /** Opening Garmin is an explicit athlete action; server credentials and PKCE remain on the server. */
 export async function connectGarmin(owner: string, consent: boolean, open: (url: string) => Promise<unknown>, network: Network = fetch, current: Current = () => true) {
@@ -72,19 +80,40 @@ const garminStages = new Map([
   ["storage", "L’enregistrement sécurisé de l’autorisation a échoué. Actualise l’état avant de relancer la connexion. Code GARMIN_STORAGE."],
 ]);
 export const GARMIN_CHECKING = "Retour Garmin reçu. Vérification de l’état du compte en cours.";
-export function garminReturnMessage(value: string | null): string | null {
-  if (!value) return null;
-  let url: URL;
-  try { url = new URL(value); } catch { return null; }
-  if (url.protocol !== "titan:" || url.hostname !== "garmin" || url.pathname || url.username || url.password || url.port || url.hash) return null;
-  const status = url.searchParams.get("garmin");
-  if (!status) return null;
+const GARMIN_HANDOFF = /^[A-Za-z0-9_-]{32,4096}$/;
+
+function garminNotice(status: string, reason?: string | null): string {
   if (status === "ok") return GARMIN_CHECKING;
   if (status === "refused") return "L’autorisation Garmin a été refusée ou interrompue. Tu peux relancer la connexion quand tu le souhaites.";
   if (status === "permission") return "Garmin n’a pas accordé l’accès aux activités. Relance la connexion et autorise leur import.";
   if (status === "conflict") return "Ce compte Garmin est déjà associé à un autre compte TITAN. Contacte l’assistance pour vérifier la liaison.";
   if (status === "consent") return "L’import n’est pas autorisé dans TITAN. Autorise-le ici puis relance la connexion Garmin.";
-  return garminStages.get(url.searchParams.get("garmin_reason") ?? "") ?? garminFailureMessage(null);
+  return garminStages.get(reason ?? "") ?? garminFailureMessage(null);
+}
+
+export function parseGarminReturn(value: string | null): { notice: string; handoff: string | null } | null {
+  if (!value) return null;
+  let url: URL;
+  try { url = new URL(value); } catch { return null; }
+  if (url.protocol !== "titan:" || url.hostname !== "garmin" || url.pathname || url.username || url.password || url.port) return null;
+  const status = url.searchParams.get("garmin");
+  if (!status) return null;
+  if (status === "complete") {
+    const handoff = url.hash.startsWith("#handoff=") ? url.hash.slice("#handoff=".length) : "";
+    return GARMIN_HANDOFF.test(handoff) ? { notice: GARMIN_CHECKING, handoff } : null;
+  }
+  if (url.hash) return null;
+  return { notice: garminNotice(status, url.searchParams.get("garmin_reason")), handoff: null };
+}
+
+export function garminReturnMessage(value: string | null): string | null {
+  return parseGarminReturn(value)?.notice ?? null;
+}
+
+export async function completeGarmin(owner: string, handoff: string, network: Network = fetch, current: Current = () => true, signal?: AbortSignal) {
+  if (!GARMIN_HANDOFF.test(handoff)) throw new Error("GARMIN_UNAVAILABLE");
+  const result = await provider(owner, "complete", network, current, handoff, signal);
+  return garminNotice(typeof result?.garmin === "string" ? result.garmin : "", typeof result?.garmin_reason === "string" ? result.garmin_reason : null);
 }
 
 export type GuildMessage = { id: string; guild_id: string; sender_id: string; sender_name: string; content: string; created_at: string };

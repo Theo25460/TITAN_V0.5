@@ -51,6 +51,7 @@ function trackDbSoftIssue(scope, error) {
 
 function recordProfileSyncDiagnostic(status, info = {}) {
     const entry = Object.assign({
+        ownerId: window.state?.user?.id,
         status,
         at: new Date().toISOString()
     }, info);
@@ -61,8 +62,12 @@ function recordProfileSyncDiagnostic(status, info = {}) {
 }
 
 window.titanGetProfileSyncDiagnostic = function() {
-    try { return JSON.parse(localStorage.getItem(TITAN_PROFILE_SYNC_DIAG_KEY) || 'null'); }
-    catch (_) { return window.titanLastProfileSyncDiagnostic || null; }
+    const ownerId = window.state?.user?.id;
+    if (!ownerId || window.titanAccountTransition?.active) return null;
+    let cached;
+    try { cached = JSON.parse(localStorage.getItem(TITAN_PROFILE_SYNC_DIAG_KEY) || 'null'); }
+    catch (_) { /* Fall back to the diagnostic from this page. */ }
+    return [cached, window.titanLastProfileSyncDiagnostic].find(entry => (entry?.ownerId || entry?.userId) === ownerId) || null;
 };
 
 function titanIsOptionalBackendMissing(error) {
@@ -952,8 +957,8 @@ window.ensureStateIntegrity = function() {
 };
 
 // 3. CREATION D'UNE NOUVELLE SAUVEGARDE
-window.createDefaultState = function() {
-    window.state = {
+function buildDefaultTitanState() {
+    const state = {
         user: {
             id: window.titanGuestId(),
             name: "Recrue",
@@ -1019,7 +1024,12 @@ window.createDefaultState = function() {
         quests: { daily: [], lastGen: null },
         meta: { updatedAt: new Date().toISOString() }
     };
-    window.state.inventory = window.state.user.inventory;
+    state.inventory = state.user.inventory;
+    return state;
+}
+
+window.createDefaultState = function() {
+    window.state = buildDefaultTitanState();
     saveState();
 };
 
@@ -1413,6 +1423,7 @@ let titanProfileSyncGeneration = 0;
 window.titanAccountTransition = { active: false, owner: null, epoch: 0 };
 function beginTitanAccountTransition(owner) {
     window.titanAccountTransition = { active: true, owner, epoch: window.titanAccountTransition.epoch + 1 };
+    window.titanCloudHistoryLoadedAt = null;
     window.dispatchEvent(new CustomEvent('titan:account-changing'));
 }
 // Called synchronously by auth, before deferred profile/history work can run.
@@ -1462,31 +1473,29 @@ async function titanReadCloudProfile() {
 
         if(profile && profile.id!==session.user.id) throw new Error('PROFILE_OWNER_MISMATCH');
         if (!profile) {
-            if (!window.state) createDefaultState();
-            window.state.user.id = session.user.id;
-            expectedOwner = session.user.id;
-            ensureStateIntegrity();
             const signupName = session.user.user_metadata?.username || session.user.user_metadata?.full_name || "Agent";
 
-            if (!client.rpc || typeof client.rpc !== 'function') {
+            if (typeof client.rpc !== 'function' || !session.access_token) {
                 const rpcRequiredError = new Error('PROFILE_CREATE_RPC_REQUIRED');
                 rpcRequiredError.code = 'PROFILE_CREATE_RPC_REQUIRED';
                 trackDbIssue('profiles.create.rpc', rpcRequiredError);
                 return;
             }
 
-            const stateSnapshot = cloneProfileStateForCloud(window.state);
+            const initialState = expectedOwner === session.user.id ? window.state : buildDefaultTitanState();
+            const stateSnapshot = cloneProfileStateForCloud(initialState);
+            stateSnapshot.user.id = session.user.id;
             const { data: createdProfile, error: createProfileError } = await withTitanTimeout(
                 client.rpc('titan_save_profile_state', {
                     p_state: stateSnapshot,
                     p_username: window.titanCleanProfileName(signupName) || 'Agent',
-                    p_avatar: window.state.user.avatar || null,
-                    p_inventory: window.state.user.inventory || {},
-                    p_privacy: window.state.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
-                    p_streak_count: window.state.user.streak_count || 0,
-                    p_last_week_id: window.state.user.last_week_id || '',
-                    p_last_seen_news_version: window.state.user.last_seen_news_version || null
-                }),
+                    p_avatar: initialState.user.avatar || null,
+                    p_inventory: initialState.user.inventory || {},
+                    p_privacy: initialState.user.privacy || { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false },
+                    p_streak_count: initialState.user.streak_count || 0,
+                    p_last_week_id: initialState.user.last_week_id || '',
+                    p_last_seen_news_version: initialState.user.last_seen_news_version || null
+                }).setHeader('Authorization', `Bearer ${session.access_token}`),
                 5000,
                 'Creation profil RPC'
             );
@@ -1496,7 +1505,8 @@ async function titanReadCloudProfile() {
                 trackDbIssue('profiles.create.rpc', createProfileError);
                 return;
             }
-            recordProfileSyncDiagnostic('created', { mode: 'rpc', userId: session.user.id });
+            if (createdProfile && createdProfile.id !== session.user.id) throw new Error('PROFILE_OWNER_MISMATCH');
+            recordProfileSyncDiagnostic('created', { mode: 'rpc', ownerId: session.user.id, userId: session.user.id });
             profile = createdProfile || { id: session.user.id, username: signupName, game_state: stateSnapshot };
         }
 
@@ -1549,7 +1559,6 @@ async function titanReadCloudProfile() {
         // Only reconciliation results can establish a difference. Older clients
         // refreshed their local timestamp on every read, so dates alone prove nothing.
 
-        if (!window.state) createDefaultState();
         if (!keepLocalGameState && profile.game_state && profile.game_state.user) {
             window.state = profile.game_state;
             // The former server (before the v300 update) drops these preferences: keep this device's value until
@@ -1557,6 +1566,8 @@ async function titanReadCloudProfile() {
             if (localBelongsToSession) ['cadencePauses', 'onboardedAt'].forEach((k) => {
                 if (window.state.user[k] === undefined && localStateBeforeSync?.user?.[k] !== undefined) window.state.user[k] = localStateBeforeSync.user[k];
             });
+        } else if (!localBelongsToSession) {
+            window.state = buildDefaultTitanState();
         }
         ensureStateIntegrity();
 

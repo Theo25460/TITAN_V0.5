@@ -10,6 +10,13 @@ const read = (p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), "ut
 const problems = [];
 const need = (cond, msg) => { if (!cond) problems.push(msg); };
 
+// Git integration may start a production build as soon as main moves. Approve an exact SHA only after release checks.
+if (process.env.NETLIFY === "true" && process.env.CONTEXT === "production") {
+  const commit = process.env.COMMIT_REF || "";
+  need(/^[a-f0-9]{40}$/.test(commit) && process.env.TITAN_APPROVED_RELEASE_SHA === commit,
+    "SHA de production non autorisé : TITAN_APPROVED_RELEASE_SHA doit correspondre au commit validé pour cette mise en ligne");
+}
+
 // 1. Server functions that must ship: each Netlify entry exists and re-exports an existing implementation.
 const FUNCTIONS = ["assistance", "garmin", "play-billing", "play-notifications", "play-reconcile", "webhook"];
 for (const name of FUNCTIONS) {

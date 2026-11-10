@@ -21,6 +21,7 @@
   let timerTick = null;
   let saving = null;
   let gpxSequence = 0;
+  let cancelGpxWorker = null;
   // The original file is available for export only while this local preview is open.
   let localGpxOriginal = null;
   let hubOpen = false;
@@ -29,6 +30,30 @@
   let manualRequested = false;
   let initialSport = new URLSearchParams(location.search).get("sport");
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
+
+  function invalidateGpx() {
+    cancelGpxWorker?.();
+    return ++gpxSequence;
+  }
+
+  function analyseGpx(text) {
+    if (!window.Worker) return window.TitanGpx.analyse(text);
+    let worker;
+    try { worker = new Worker("/js/core/gpx-worker.js"); }
+    catch { return window.TitanGpx.analyse(text); }
+    return new Promise((resolve, reject) => {
+      const finish = (settle, value) => {
+        worker.terminate();
+        if (cancelGpxWorker === cancel) cancelGpxWorker = null;
+        settle(value);
+      };
+      const cancel = () => finish(resolve, null);
+      cancelGpxWorker = cancel;
+      worker.onmessage = ({ data }) => finish(resolve, data);
+      worker.onerror = () => finish(reject, new Error("L’analyse du GPX a échoué. Réessaie."));
+      worker.postMessage(text);
+    });
+  }
 
   const owner = () => window.state?.user?.id || "unassigned";
   const draftKey = () => window.TitanData.sessionDraftKey(owner());
@@ -654,7 +679,7 @@
   /* ---------- Actions ---------- */
   function choose(sport, prefill) {
     if (!window.SPORTS_CONFIG?.[sport]) return;
-    ++gpxSequence;
+    invalidateGpx();
     localGpxOriginal = null;
     hubOpen = false;
     S = { ...fresh(sport), ...(prefill || {}) };
@@ -719,7 +744,7 @@
     const current = () => saving === task && S === draft && owner() === submitOwner && client === window.titanClient
       && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
     saving = task; // Reserve before logActivity can start a durable write.
-    ++gpxSequence; // A file read from before this submission cannot replace its draft.
+    invalidateGpx(); // A file read from before this submission cannot replace its draft.
     root.querySelectorAll("button, input, select, textarea").forEach(control => {
       task.controls.set(control, control.disabled);
       control.disabled = true;
@@ -781,7 +806,7 @@
     if (file.name && !/\.gpx$/i.test(file.name)) return problem("Choisis un fichier GPX (.gpx). Les formats FIT et TCX ne sont pas pris en charge.");
     if (file.size > 15 * 1024 * 1024) return problem("Le GPX doit faire moins de 15 Mo.");
     if (hubSport && S_().formOf(hubSport) !== "distance") return problem("Choisis un sport de distance pour ce GPX.");
-    const draft = S, sequence = ++gpxSequence;
+    const draft = S, sequence = invalidateGpx();
     const requestOwner = owner(), epoch = window.titanAccountTransition?.epoch, client = window.titanClient;
     const current = () => !saving && S === draft && sequence === gpxSequence && owner() === requestOwner
       && epoch === window.titanAccountTransition?.epoch && client === window.titanClient && !window.titanAccountTransition?.active;
@@ -790,11 +815,12 @@
     try {
       const text = await file.text();
       if (!current()) return;
-      r = window.TitanGpx.analyse(text);
+      r = await analyseGpx(text);
     } catch (error) {
       if (current()) problem(error?.message || "Le fichier n’a pas pu être lu. Réessaie.");
       return;
     }
+    if (!current() || !r) return;
     if (!r.ok) return problem(r.error);
     if (hubSport) {
       root.querySelector("[data-hub-status]").textContent = "Fichier analysé.";
@@ -957,7 +983,7 @@
     }
     if (t.dataset.hubChoice) {
       if (!importSports().some(s => s.id === t.dataset.hubChoice)) return;
-      ++gpxSequence;
+      invalidateGpx();
       hubSport = t.dataset.hubChoice;
       root.querySelector("[data-hub-sport]").value = hubSport;
       root.querySelectorAll("[data-hub-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.hubChoice === hubSport)));
@@ -969,13 +995,13 @@
     if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
       if (hubOpen || !hubOn()) return;
-      ++gpxSequence; persist(); hubOpen = true; manualRequested = false;
+      invalidateGpx(); persist(); hubOpen = true; manualRequested = false;
       history.replaceState(null,"","/training"); render(); root.querySelector("[data-hub-title]")?.focus(); return;
     }
-    if (t.dataset.act === "resume") { ++gpxSequence; hubOpen = false; render(); root.querySelector("h1")?.setAttribute("tabindex","-1"); root.querySelector("h1")?.focus(); return; }
+    if (t.dataset.act === "resume") { invalidateGpx(); hubOpen = false; render(); root.querySelector("h1")?.setAttribute("tabindex","-1"); root.querySelector("h1")?.focus(); return; }
     if (t.dataset.act === "manual") {
       if (!hubOpen && !S.gpx) return;
-      ++gpxSequence;
+      invalidateGpx();
       return replaceFromHub(() => {
         localGpxOriginal = null;
         manualRequested = true; hubOpen = false; S = fresh(); clearDraft();
@@ -991,7 +1017,7 @@
     }
     if (t.dataset.sport) return choose(t.dataset.sport);
     if (t.dataset.act === "clear-gpx") {
-      ++gpxSequence;
+      invalidateGpx();
       localGpxOriginal = null;
       S.gpx = null; S.distance = ""; S.elevation = "";
       if (!S.gpxDurationEdited) Object.assign(S, durationFields(null));
@@ -1151,7 +1177,7 @@
 
   let booted = false;
   window.addEventListener("titan:account-changing", () => {
-    ++gpxSequence;
+    invalidateGpx();
     localGpxOriginal = null;
     saving = null;
     clearInterval(timerTick);
@@ -1175,7 +1201,7 @@
     const modes = root.querySelector(".seance-modes");
     if (!hubOn()) modes?.remove();
     else if (!modes) root.insertAdjacentHTML("afterbegin", modeHtml());
-    if (hubOpen) { if (!hubOn()) { ++gpxSequence; hubOpen = false; } render(); }
+    if (hubOpen) { if (!hubOn()) { invalidateGpx(); hubOpen = false; } render(); }
     else if (S.step === "pick" && !S.query && !manualRequested && hubOn()) { hubOpen = true; render(); }
     // A late rollout response must never replace an edited form or search.
   });

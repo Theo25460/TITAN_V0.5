@@ -4,9 +4,10 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 process.env.EXPO_PUBLIC_TITAN_BILLING = "1";
 const mockProfile = { data: { is_elite: false } as { is_elite: boolean } | undefined };
+let mockSessionOwner = "owner-a";
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/data/hooks", () => ({ keys: { profile: (o: string) => ["profile", o] }, useProfile: () => mockProfile }));
-jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) } } }));
+jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "t", user: { id: mockSessionOwner } } } }) } } }));
 jest.mock("@tanstack/react-query", () => ({ ...jest.requireActual("@tanstack/react-query"), useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -17,7 +18,7 @@ const billing = require("../src/lib/playBilling");
 
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 const show = () => render(<SafeAreaProvider initialMetrics={metrics}><TitanPlusScreen /></SafeAreaProvider>);
-const fake = (products: { id: string; price: string }[]) =>
+const fake = (products: { id: string; price: string }[], overrides = {}) =>
   billing._setIapForTests({
     initConnection: async () => true,
     endConnection: async () => undefined,
@@ -28,8 +29,9 @@ const fake = (products: { id: string; price: string }[]) =>
     purchaseUpdatedListener: () => ({ remove: () => undefined }),
     purchaseErrorListener: () => ({ remove: () => undefined }),
     deepLinkToSubscriptions: async () => undefined,
+    ...overrides,
   });
-beforeEach(() => (mockProfile.data = { is_elite: false }));
+beforeEach(() => { mockProfile.data = { is_elite: false }; mockSessionOwner = "owner-a"; });
 afterAll(() => billing._setIapForTests(null));
 
 test("four cards; each price is exactly what Google Play returned; a missing product says so; no price is invented", async () => {
@@ -71,6 +73,41 @@ test("when Google Play is unreachable the screen stays honest: coming soon, noth
   expect(await screen.findByText(/Google Play n’est pas joignable/)).toBeTruthy();
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
   expect(screen.getAllByText("Bientôt disponible").length).toBeGreaterThan(0);
+});
+
+test("restore is available even while the store is still loading prices", async () => {
+  fake([], { fetchProducts: () => new Promise(() => {}) });
+  const result = jest.spyOn(billing, "restore").mockResolvedValueOnce({ checked: 1, active: 1, failed: 0 });
+  try {
+    show();
+    fireEvent.press(screen.getByTestId("restore-purchases"));
+    expect(await screen.findByText("Achats restaurés.")).toBeTruthy();
+  } finally { result.mockRestore(); }
+});
+
+test("an account change cannot open checkout using the previous screen owner", async () => {
+  fake([{ id: "titan01", price: "Store offer" }]);
+  const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { status: 503 }));
+  try {
+    show();
+    await screen.findByText("Store offer");
+    mockSessionOwner = "owner-b";
+    fireEvent.press(screen.getByTestId("subscribe-titan_plus"));
+    expect(await screen.findByText(/Reconnecte-toi/)).toBeTruthy();
+    expect(fetcher).not.toHaveBeenCalled();
+  } finally { fetcher.mockRestore(); }
+});
+
+test("two plans pressed before the screen can update still start only one checkout", async () => {
+  fake([{ id: "titan01", price: "Plus offer" }, { id: "titan02", price: "Coach offer" }]);
+  const purchase = jest.spyOn(billing, "buy").mockResolvedValue({ kind: "cancelled" });
+  try {
+    show();
+    await screen.findByText("Plus offer");
+    const plus = screen.getByTestId("subscribe-titan_plus"), coach = screen.getByTestId("subscribe-coach");
+    await act(async () => { fireEvent.press(plus); fireEvent.press(coach); });
+    expect(purchase).toHaveBeenCalledTimes(1);
+  } finally { purchase.mockRestore(); }
 });
 
 

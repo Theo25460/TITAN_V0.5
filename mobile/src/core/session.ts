@@ -32,6 +32,7 @@ export type SessionDraft = {
   extras?: Record<string, unknown>;
   gpx?: DraftGpx | null;
   gpxDurationEdited?: boolean;
+  gpsRouteId?: string;
 };
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
@@ -106,6 +107,7 @@ export function applyGpxImport(draft: SessionDraft, result: AnalysedGpx, now = n
   const { movingMinutes, elapsedMinutes, ascent, descent, points, timing, start } = result;
   const next: SessionDraft = {
     ...draft,
+    gpsRouteId: undefined,
     gpx: { movingMinutes, elapsedMinutes, ascent, descent, points, timing, start },
     distance: String(result.distanceKm).replace(".", ","),
   };
@@ -122,7 +124,7 @@ export function applyGpxImport(draft: SessionDraft, result: AnalysedGpx, now = n
 }
 
 export function removeGpxImport(draft: SessionDraft): SessionDraft {
-  return { ...draft, ...(hasDerivedDuration(draft) ? durationFields(null) : {}), gpx: null };
+  return { ...draft, ...(hasDerivedDuration(draft) ? durationFields(null) : {}), gpx: null, gpsRouteId: undefined };
 }
 
 export function performedAt(d: SessionDraft, now = new Date()): Date | null {

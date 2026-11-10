@@ -18,7 +18,7 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
-async function visit(path, { choice = null, width = 390 } = {}) {
+async function visit(path, { choice = null, width = 390, referer } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block" });
   // The suite-wide preload pre-answers the banner; this file wants the real first visit (or a chosen answer).
   await context.addInitScript(choice => {
@@ -30,7 +30,7 @@ async function visit(path, { choice = null, width = 390 } = {}) {
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => { google.push(route.request().url()); return route.abort("internetdisconnected"); });
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
-  await page.goto(BASE + path);
+  await page.goto(BASE + path, { referer });
   await page.waitForTimeout(600);
   return { page, context, google, errors };
 }
@@ -54,8 +54,9 @@ test("first visit: the banner asks, and nothing is requested from Google until t
   } finally { await context.close(); }
 });
 
-test("accepting loads the tag with consent mode and without the query string; the choice can be taken back from the Statistiques button", async () => {
-  const { page, context, google } = await visit("/?utm=secret#frag");
+test("accepting sets sanitized stream defaults for every event and the choice can be taken back from the Statistiques button", async () => {
+  const referer = BASE + "/?source=synthetic-referrer";
+  const { page, context, google } = await visit("/?utm=secret#frag", { referer });
   try {
     await page.locator(".titan-ga4-banner").getByRole("button", { name: "Accepter" }).click();
     await page.waitForFunction(() => localStorage.getItem("titan_ga4_consent_v1") === "granted");
@@ -65,8 +66,12 @@ test("accepting loads the tag with consent mode and without the query string; th
     const events = await page.evaluate(() => JSON.stringify(window.dataLayer.map(a => Array.from(a))));
     assert.match(events, /"consent","default",\{[^}]*"analytics_storage":"denied"/);
     assert.match(events, /"consent","update",\{"analytics_storage":"granted"\}/);
-    assert.ok(!events.includes("utm=secret") && !events.includes("frag"), "no query string or fragment is transmitted");
-    assert.match(events, /"page_location":"http:\/\/127\.0\.0\.1:\d+\/"/);
+    assert.equal(await page.evaluate(() => document.referrer), referer, "the browser has a real fixture referrer");
+    assert.doesNotMatch(events, /utm=secret|#frag|synthetic-referrer/);
+    const stream = JSON.parse(events).find(([command]) => command === "config")?.[2];
+    assert.equal(stream?.page_location, BASE + "/", "conversion and automatic events use the sanitized URL");
+    assert.equal(stream?.page_referrer, "", "the stream never falls back to document.referrer");
+    assert.equal(stream?.page_title, "TITAN");
     await page.getByRole("button", { name: "Gérer les statistiques Google Analytics" }).click();
     await page.locator(".titan-ga4-banner").getByRole("button", { name: "Refuser" }).click();
     await page.waitForFunction(() => localStorage.getItem("titan_ga4_consent_v1") === "denied");

@@ -8,8 +8,6 @@ export type Saver = (r: Omit<PendingRoute, "attempts">) => Promise<unknown>;
 export type Linker = (clientRouteId: string, eventId: string) => Promise<unknown>;
 export type PendingLink = { clientRouteId: string; eventId: string; attempts: number };
 const LINKS = (o: string) => ownerKey("routes-links", o);
-const AWAIT = (o: string) => ownerKey("routes-await-session", o);
-const TWO_DAYS = 2 * 86400000;
 // Only local mutations hold this lock; network uploads must not prevent a new recording from being saved.
 let mutations = new Map<string, Promise<unknown>>();
 function mutate<T>(owner: string, fn: () => Promise<T>): Promise<T> {
@@ -18,22 +16,13 @@ function mutate<T>(owner: string, fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
-/** Right after a GPS recording is kept, the route waits for the session saved from the same recording. */
-export async function awaitSession(owner: string, clientRouteId: string, sport: string, now = Date.now()) {
-  await mutate(owner, () => writeJSON(AWAIT(owner), { clientRouteId, sport, at: now }));
-}
-/** When that session is saved (same sport, within two days), the link route <-> session is queued, once. No match, no link: nothing is guessed. */
-export async function linkSavedSession(owner: string, sport: string, eventId: string, now = Date.now()): Promise<boolean> {
+/** A confirmed session can link only to the route id carried by its own GPS draft. */
+export async function queueRouteLink(owner: string, clientRouteId: string, eventId: string) {
   return mutate(owner, async () => {
-    const w = await readJSON<{ clientRouteId: string; sport: string; at: number } | null>(AWAIT(owner), null);
-    if (!w || w.sport !== sport || now - w.at > TWO_DAYS || !eventId) return false;
     const list = await readJSON<PendingLink[]>(LINKS(owner), []);
-    if (!list.some((l) => l.clientRouteId === w.clientRouteId)) {
-      if (list.length >= MAX_PENDING) throw new Error("ROUTE_OUTBOX_FULL");
-      await writeJSON(LINKS(owner), [...list, { clientRouteId: w.clientRouteId, eventId, attempts: 0 }]);
-    }
-    await writeJSON(AWAIT(owner), null);
-    return true;
+    if (list.some((l) => l.clientRouteId === clientRouteId)) return;
+    if (list.length >= MAX_PENDING) throw new Error("ROUTE_OUTBOX_FULL");
+    await writeJSON(LINKS(owner), [...list, { clientRouteId, eventId, attempts: 0 }]);
   });
 }
 export const pendingLinks = (owner: string) => readJSON<PendingLink[]>(LINKS(owner), []);
@@ -67,12 +56,17 @@ export async function queueRoute(owner: string, r: PendingRoute) {
 }
 export const pendingRoutes = (owner: string) => readJSON<PendingRoute[]>(KEY(owner), []);
 
-let flushing = new Set<string>();
+let flushing = new Map<string, Promise<void>>();
 /** Sends oldest first. Failures keep the only local copy; each item is independent, so a refused route never blocks the others.
     Apply each answer to the current outbox, preserving routes queued while the request was in flight. */
 export async function flushRoutes(owner: string, save: Saver, link?: Linker): Promise<{ sent: number; left: number }> {
-  if (flushing.has(owner)) return { sent: 0, left: (await pendingRoutes(owner)).length };
-  flushing.add(owner);
+  const inProgress = flushing.get(owner);
+  if (inProgress) {
+    await inProgress;
+    return flushRoutes(owner, save, link);
+  }
+  let release!: () => void;
+  flushing.set(owner, new Promise((resolve) => { release = resolve; }));
   let sent = 0;
   try {
     const list = await pendingRoutes(owner);
@@ -104,7 +98,7 @@ export async function flushRoutes(owner: string, save: Saver, link?: Linker): Pr
         }
         let failed = false;
         try {
-          await link(l.clientRouteId, l.eventId);
+          failed = await link(l.clientRouteId, l.eventId) === false;
         } catch (e) {
           void e;
           failed = true;
@@ -120,9 +114,10 @@ export async function flushRoutes(owner: string, save: Saver, link?: Linker): Pr
     return { sent, left: (await pendingRoutes(owner)).length };
   } finally {
     flushing.delete(owner);
+    release();
   }
 }
 export const _resetForTests = () => {
-  flushing = new Set();
+  flushing = new Map();
   mutations = new Map();
 };

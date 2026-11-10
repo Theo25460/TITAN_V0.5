@@ -45,6 +45,15 @@ describe("Refaire ma dernière séance (V12-13/32)", () => {
     fireEvent.press(screen.getByTestId("sport-running"));
     expect(mockNavigate).toHaveBeenLastCalledWith("SessionForm", { sport: "running" });
   });
+
+  test("the first view of the session tab opens a favourite sport without expanding the catalogue", () => {
+    mockNavigate.mockClear();
+    render(<SafeAreaProvider initialMetrics={metrics}><RecordScreen /></SafeAreaProvider>);
+    expect(screen.queryByTestId("sport-search")).toBeNull();
+    fireEvent.press(screen.getByTestId("sport-running"));
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith("SessionForm", { sport: "running" });
+  });
 });
 
 describe("GPS shortcut (V12-10)", () => {

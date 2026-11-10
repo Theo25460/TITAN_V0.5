@@ -6,7 +6,8 @@ const mockRpc = jest.fn(() => ({
   then: (resolve: (r: unknown) => unknown) => Promise.resolve(resolve({ data: mockResult, error: null })),
 }));
 jest.mock("../src/lib/supabase", () => ({ supabase: { rpc: (...args: unknown[]) => (mockRpc as (...a: unknown[]) => unknown)(...args), auth: { getSession: async () => ({ data: { session: mockOwner ? { user: { id: mockOwner }, access_token: `token-${mockOwner}` } : null } }) } } }));
-import { routeSave, routeLink, routeGet, routeForEvent, routeDelete, routesList, submitSession } from "../src/data/api";
+import type { AdventureSnapshot } from "../src/core/types";
+import { adventureAction, deleteOwnAccount, exportOwnData, fetchAdventure, fetchAtelier, fetchCardSettings, fetchSocial, purchaseItem, routeSave, routeLink, routeGet, routeForEvent, routeDelete, routesList, saveCard, setAppearance, submitSession } from "../src/data/api";
 
 const payload = { clientRouteId: "route-one", sport: "running", startedAt: "2026-11-02T08:00:00Z", distanceM: 100, durationS: 60, ascentM: null, track: { private: "coordinates" } };
 beforeEach(() => { mockOwner = "a"; mockResult = true; mockRpc.mockClear(); for (const k of Object.keys(mockHeaders)) delete mockHeaders[k]; });
@@ -44,4 +45,21 @@ test("session synchronization also pins the payload to the original account", as
   mockResult = { log_id: "server-session-a" };
   await (submitSession as unknown as (owner: string, value: typeof p) => Promise<unknown>)("a", p);
   expect(mockHeaders.Authorization).toBe("Bearer token-a");
+});
+
+test.each([
+  ["profile deletion", () => deleteOwnAccount("a")],
+  ["private export", () => exportOwnData("a")],
+  ["adventure snapshot", () => fetchAdventure("a")],
+  ["adventure claim", () => adventureAction({ owner: "a", revision: 1 } as AdventureSnapshot, "claim", { world: "aube", chapter: 1 }, "Europe/Paris")],
+  ["cosmetic library", () => fetchAtelier("a")],
+  ["cosmetic purchase", () => purchaseItem("a", "frame-one")],
+  ["cosmetic equip", () => setAppearance("a", "frame", "frame-one")],
+  ["community overview", () => fetchSocial("a")],
+  ["public card settings", () => fetchCardSettings("a")],
+  ["public card save", () => saveCard("a", true, {})],
+] as const)("a stale %s request cannot run for the replacement account", async (_name, request) => {
+  mockOwner = "b";
+  await expect(request()).rejects.toThrow("AUTH_REQUIRED");
+  expect(mockRpc).not.toHaveBeenCalled();
 });

@@ -6,6 +6,10 @@
   const idOf = (l) => String(l?.client_event_id || l?.details?.client_event_id || l?.id || "");
   const all = () => [...(window.state?.history || []), ...(window.state?.archivedHistory || [])];
   const isGuest = () => String(window.state?.user?.id || "").startsWith("guest_");
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
+  const currentAccount = ({ owner, client, epoch }) => owner === window.state?.user?.id && client === window.titanClient
+    && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+  const changedAccount = "Le compte a changé. Rouvre la séance depuis son journal.";
 
   function find(id) {
     const key = String(id || "");
@@ -99,14 +103,14 @@
   }
 
   async function update(log, patch) {
-    const owner = window.state?.user?.id;
+    const account = accountContext();
+    const { owner, client } = account;
     if (!owner) throw new Error("Session indisponible.");
-    if (window.titanAccountTransition?.active || (log.user_id && log.user_id !== owner))
-      throw new Error("Le compte a changé. Rouvre la séance depuis son journal.");
+    if (!currentAccount(account) || (log.user_id && log.user_id !== owner)) throw new Error(changedAccount);
     if (isGuest()) {
       const row = applyLocally(log, patch);
       await window.TitanQueue.saveGuestSession(owner, row);
-      if (window.state?.user?.id !== owner) return null;
+      if (!currentAccount(account)) return null;
       place(row);
       window.saveState?.();
       window.dispatchEvent(new CustomEvent("titan:history-updated"));
@@ -114,13 +118,21 @@
     }
     if (log.syncStatus && log.syncStatus !== "confirmed")
       throw new Error("Cette séance attend encore la synchronisation. Elle est conservée sur cet appareil ; tu pourras la corriger une fois envoyée.");
-    if (!navigator.onLine) throw new Error("Hors ligne : la correction d’une séance déjà synchronisée demande une connexion.");
-    const { data, error } = await window.titanClient.rpc("titan_update_training_session", { p_id: log.id, p_revision: log.revision || 1, p_patch: patch });
+    if (!navigator.onLine || !client) throw new Error("Hors ligne : la correction d’une séance déjà synchronisée demande une connexion.");
+    const { data: auth, error: authError } = await client.auth.getSession();
+    if (!currentAccount(account)) return null;
+    const session = auth?.session;
+    if (authError || !session?.access_token || session.user?.id !== owner) throw new Error(changedAccount);
+    const { data, error } = await client.rpc("titan_update_training_session", { p_id: log.id, p_revision: log.revision || 1, p_patch: patch })
+      .setHeader("Authorization", `Bearer ${session.access_token}`);
+    if (!currentAccount(account)) return null;
     if (error) throw humanize(error);
-    if (window.state?.user?.id !== owner || data?.user_id !== owner) return null;
+    if (data?.user_id !== owner || data.id !== log.id) throw new Error("Le serveur n’a pas confirmé la modification. Recharge le journal, puis réessaie.");
     const row = { ...data, cat: data.category || data.cat, syncStatus: "confirmed" };
     place(row);
-    window.TitanQueue.saveHistory(owner, [...window.state.history, ...window.state.archivedHistory]).catch(() => window.titanSetSyncStatus?.("error", "Cache hors ligne indisponible"));
+    window.TitanQueue.saveHistory(owner, [...window.state.history, ...window.state.archivedHistory]).catch(() => {
+      if (currentAccount(account)) window.titanSetSyncStatus?.("error", "Cache hors ligne indisponible");
+    });
     window.saveState?.();
     window.dispatchEvent(new CustomEvent("titan:history-updated"));
     return row;

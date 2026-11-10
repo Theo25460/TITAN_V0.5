@@ -3,7 +3,7 @@
    sheet with the signed-in account id attached to the purchase, (3) hands the purchase token to our server, which checks
    it with Google and grants access, and (4) completes the purchase in Play only after the server has answered.
    Off unless the build sets EXPO_PUBLIC_TITAN_BILLING=1 AND the server has billing switched on. */
-import { SITE_URL } from "./config";
+import { IS_E2E, SITE_URL } from "./config";
 
 export const BILLING_BUILD = process.env.EXPO_PUBLIC_TITAN_BILLING === "1";
 
@@ -49,7 +49,7 @@ export type Offer = { id: PlanId; name: string; tagline: string; perks: readonly
 
 /** The offers Google Play actually returns for this account, with Google's own formatted price. A product Play does not know is simply absent. */
 export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
-  if (!(await l.initConnection())) throw new Error("STORE_UNAVAILABLE");
+  if (!(await l.initConnection())) throw new BillingError("STORE_UNAVAILABLE");
   const products = (await l.fetchProducts({ skus: PLANS.map((p) => p.id), type: "subs" })) ?? [];
   const out: Offer[] = [];
   for (const plan of PLANS) {
@@ -62,16 +62,45 @@ export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
 
 export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean; access_kind?: "test" | "verified_purchase" };
 export class BillingError extends Error {
-  constructor(public code: "DISABLED" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
+  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
     super(code);
   }
 }
 
-/** Asks our server to check a purchase token with Google. The account is the one signed in on this phone. */
-export async function verifyOnServer(token: string, productId: string, accessToken: string, fetcher: typeof fetch = fetch): Promise<Verdict> {
+function billingEndpoint(): string | null {
+  if (!IS_E2E) return `${SITE_URL}/functions/play-billing`;
+  // An isolated build must explicitly name its HTTPS preview and cannot fall through to the production site.
+  try {
+    const url = new URL(process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL || "");
+    if (url.protocol === "https:" && url.origin !== SITE_URL && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash) {
+      return `${url.origin}/functions/play-billing`;
+    }
+  } catch { /* An invalid test endpoint disables billing for this build. */ }
+  return null;
+}
+
+async function checkCheckoutOnServer(productId: string, accessToken: string): Promise<void> {
+  const endpoint = billingEndpoint();
+  if (!endpoint) throw new BillingError("CHECKOUT_UNAVAILABLE");
   let res: Response;
   try {
-    res = await fetcher(`${SITE_URL}/functions/play-billing`, {
+    res = await fetch(`${endpoint}?product_id=${encodeURIComponent(productId)}`, {
+      method: "GET", headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  } catch {
+    throw new BillingError("CHECKOUT_UNAVAILABLE");
+  }
+  if (res.status === 401) throw new BillingError("AUTH");
+  if (res.status !== 204) throw new BillingError("CHECKOUT_UNAVAILABLE");
+}
+
+/** Asks our server to check a purchase token with Google. The account is the one signed in on this phone. */
+export async function verifyOnServer(token: string, productId: string, accessToken: string, fetcher: typeof fetch = fetch): Promise<Verdict> {
+  const endpoint = billingEndpoint();
+  if (!endpoint) throw new BillingError("VERIFICATION_UNAVAILABLE");
+  let res: Response;
+  try {
+    res = await fetcher(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify({ purchase_token: token, product_id: productId }),
@@ -79,19 +108,42 @@ export async function verifyOnServer(token: string, productId: string, accessTok
   } catch {
     throw new BillingError("NETWORK");
   }
-  if (res.ok) return (await res.json()) as Verdict;
-  const error = ((await res.json().catch(() => ({}))) as { error?: string }).error;
-  if (res.status === 503) throw new BillingError("DISABLED");
+  if (res.ok) {
+    const verdict = (await res.json().catch(() => null)) as Verdict | null;
+    if (!verdict || typeof verdict.active !== "boolean" || typeof verdict.acknowledged !== "boolean"
+      || typeof verdict.status !== "string" || (verdict.ends_at !== null && typeof verdict.ends_at !== "string")) {
+      throw new BillingError("VERIFICATION_UNAVAILABLE");
+    }
+    return verdict;
+  }
+  if (res.status >= 500) throw new BillingError("VERIFICATION_UNAVAILABLE");
   if (res.status === 401) throw new BillingError("AUTH");
+  const error = ((await res.json().catch(() => null)) as { error?: string } | null)?.error;
   if (res.status === 409) throw new BillingError(error === "purchase_not_bound" || error === "purchase_bound_to_other_account" ? "NOT_BOUND" : "ALREADY_USED");
-  if (res.status === 422) throw new BillingError("NOT_FOUND");
+  if (res.status === 422 && error === "purchase_not_found") throw new BillingError("NOT_FOUND");
   throw new BillingError("REFUSED");
 }
 
 export type Outcome = { kind: "active"; verdict: Verdict } | { kind: "pending" } | { kind: "cancelled" } | { kind: "error"; error: BillingError | Error };
 
-/** Opens the payment sheet. Resolves once Play reports the purchase and the server has answered; the purchase is completed in Play only when the server says it recorded access. */
-export function buy(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer): Promise<Outcome> {
+function purchaseFailure(error?: { code?: string; message?: string }): Outcome {
+  if (error?.code === "user-cancelled") return { kind: "cancelled" };
+  if (["billing-unavailable", "feature-not-supported", "iap-not-available"].includes(error?.code || "")) {
+    return { kind: "error", error: new BillingError("STORE_UNAVAILABLE") };
+  }
+  return { kind: "error", error: new Error(error?.message || "PURCHASE_ERROR") };
+}
+
+/** Checks readiness before opening Play. Completes the purchase after the server confirms recorded access. */
+export async function buy(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer, check = checkCheckoutOnServer): Promise<Outcome> {
+  try {
+    const access = await getAccessToken();
+    if (!access) return { kind: "error", error: new BillingError("AUTH") };
+    await check(offer.id, access);
+    if (!(await getAccessToken())) return { kind: "error", error: new BillingError("AUTH") };
+  } catch (err) {
+    return { kind: "error", error: err as Error };
+  }
   return new Promise<Outcome>((resolve) => {
     let done = false;
     const finish = (o: Outcome) => {
@@ -115,17 +167,16 @@ export function buy(offer: Offer, owner: string, getAccessToken: () => Promise<s
         finish({ kind: "error", error: err as Error });
       }
     });
-    const e = l.purchaseErrorListener((err) => finish(err.code === "user-cancelled" ? { kind: "cancelled" } : { kind: "error", error: new Error(err.message || "PURCHASE_ERROR") }));
+    const e = l.purchaseErrorListener((err) => finish(purchaseFailure(err)));
     // The signed-in account id travels with the purchase: the server refuses a token made for anybody else.
-    l.requestPurchase({ request: { google: { skus: [offer.id], obfuscatedAccountId: owner, subscriptionOffers: [{ sku: offer.id, offerToken: offer.offerToken }] } }, type: "subs" }).catch((err) =>
-      finish(err?.code === "user-cancelled" ? { kind: "cancelled" } : { kind: "error", error: err as Error }),
-    );
+    l.requestPurchase({ request: { google: { skus: [offer.id], obfuscatedAccountId: owner, subscriptionOffers: [{ sku: offer.id, offerToken: offer.offerToken }] } }, type: "subs" })
+      .catch((err) => finish(purchaseFailure(err)));
   });
 }
 
 /** Sends every active purchase Play knows for this Google account to the server (new phone, reinstall, a purchase whose answer was lost). */
 export async function restore(getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer): Promise<{ checked: number; active: number; failed: number }> {
-  if (!(await l.initConnection())) throw new Error("STORE_UNAVAILABLE");
+  if (!(await l.initConnection())) throw new BillingError("STORE_UNAVAILABLE");
   const purchases = (await l.getAvailablePurchases()) ?? [];
   let active = 0;
   let failed = 0;
@@ -141,7 +192,7 @@ export async function restore(getAccessToken: () => Promise<string | null>, l: I
       }
     } catch (err) {
       // A token already used by another TITAN account, or made without this account's id, is not ours to attach.
-      if (!(err instanceof BillingError) || err.code === "NETWORK" || err.code === "DISABLED") throw err;
+      if (!(err instanceof BillingError) || err.code === "NETWORK" || err.code === "VERIFICATION_UNAVAILABLE" || err.code === "AUTH") throw err;
       failed++;
     }
   }
@@ -155,13 +206,15 @@ export const messageFor = (e: unknown): string => {
   const code = e instanceof BillingError ? e.code : "";
   return (
     {
-      DISABLED: "Les abonnements ne sont pas encore ouverts. Rien n’a été débité.",
+      CHECKOUT_UNAVAILABLE: "Le service d’abonnement TITAN est indisponible. Réessaie plus tard.",
+      VERIFICATION_UNAVAILABLE: "TITAN ne peut pas vérifier ton achat pour le moment. Consulte Google Play, puis utilise « Restaurer mes achats ».",
+      STORE_UNAVAILABLE: "La facturation Google Play est indisponible sur cet appareil ou ce compte. Vérifie le compte Play et la version installée.",
       AUTH: "Reconnecte-toi, puis réessaie.",
       ALREADY_USED: "Cet abonnement est déjà utilisé par un autre compte TITAN.",
       NOT_BOUND: "Cet achat n’a pas été fait depuis ce compte TITAN. Il n’est pas rattaché.",
       NOT_FOUND: "Google Play ne reconnaît pas cet achat.",
-      NETWORK: "Pas de réseau : ton achat est gardé par Google Play, utilise « Restaurer mes achats » plus tard.",
-      REFUSED: "L’achat n’a pas pu être confirmé. Il est gardé par Google Play : réessaie « Restaurer mes achats ».",
+      NETWORK: "Connexion indisponible. Consulte Google Play, puis utilise « Restaurer mes achats ».",
+      REFUSED: "L’achat n’a pas pu être confirmé. Consulte Google Play, puis utilise « Restaurer mes achats ».",
     } as Record<string, string>
-  )[code] ?? "L’achat n’a pas abouti. Tu n’as rien perdu : réessaie.";
+  )[code] ?? "L’opération a échoué. Consulte tes abonnements dans Google Play, puis réessaie.";
 };

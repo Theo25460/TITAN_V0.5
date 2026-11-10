@@ -1,4 +1,4 @@
-import { _setIapForTests, BillingError, buy, loadOffers, messageFor, PLANS, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
+import { BillingError, buy, loadOffers, messageFor, PLANS, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
 
 type Listener<T> = (v: T) => void;
 function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id: p.id, displayPrice: `${p.id} price`, subscriptionOffers: [{ offerTokenAndroid: `offer-${p.id}`, displayPrice: `${p.id} price` }] }))) {
@@ -6,12 +6,14 @@ function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id
   const errored: Listener<{ code?: string; message?: string }>[] = [];
   const finished: IapPurchase[] = [];
   const requests: unknown[] = [];
+  let markRequested!: () => void;
+  const requested = new Promise<void>((resolve) => { markRequested = resolve; });
   let available: IapPurchase[] = [];
   const lib: IapLib = {
     initConnection: async () => true,
     endConnection: async () => undefined,
     fetchProducts: async () => products,
-    requestPurchase: async (a) => void requests.push(a),
+    requestPurchase: async (a) => { requests.push(a); markRequested(); },
     getAvailablePurchases: async () => available,
     finishTransaction: async ({ purchase }) => void finished.push(purchase),
     purchaseUpdatedListener: (l) => (updated.push(l), { remove: () => void updated.splice(updated.indexOf(l), 1) }),
@@ -19,10 +21,11 @@ function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id
     deepLinkToSubscriptions: async () => undefined,
     ...over,
   };
-  return { lib, updated, errored, finished, requests, setAvailable: (p: IapPurchase[]) => (available = p) };
+  return { lib, updated, errored, finished, requests, requested, setAvailable: (p: IapPurchase[]) => (available = p) };
 }
 const token = async () => "user-access-token";
 const active = { active: true, status: "active", ends_at: null, acknowledged: true };
+const ready = async () => {};
 
 test("offers come from Google Play with its own price; a product Play does not return is absent", async () => {
   const s = fakeStore({}, [{ id: "titan01", displayPrice: "x €", subscriptionOffers: [{ offerTokenAndroid: "tok", displayPrice: "4,99 € / mois" }] }, { id: "titan02", displayPrice: "y", subscriptionOffers: [] }]);
@@ -40,7 +43,8 @@ test("a purchase carries the signed-in account id, is verified by the server, an
   const s = fakeStore();
   const verify = jest.fn(async () => active);
   const offer = (await loadOffers(s.lib))[1];
-  const promise = buy(offer, "owner-1", token, s.lib, verify);
+  const promise = buy(offer, "owner-1", token, s.lib, verify, ready);
+  await s.requested;
   expect(s.requests[0]).toMatchObject({ type: "subs", request: { google: { skus: ["titan02"], obfuscatedAccountId: "owner-1", subscriptionOffers: [{ sku: "titan02", offerToken: "offer-titan02" }] } } });
   expect(s.finished).toHaveLength(0);
   s.updated[0]({ productId: "titan02", purchaseToken: "play-token-0123456789", purchaseState: "purchased" });
@@ -53,38 +57,105 @@ test("a purchase carries the signed-in account id, is verified by the server, an
 
 test("user cancellation, a pending payment and a server refusal never complete the purchase", async () => {
   let s = fakeStore();
-  let p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn());
+  let p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  await s.requested;
   s.errored[0]({ code: "user-cancelled" });
   expect(await p).toEqual({ kind: "cancelled" });
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn());
+  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789", purchaseState: "pending" });
   expect(await p).toEqual({ kind: "pending" });
   expect(s.finished).toHaveLength(0);
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => { throw new BillingError("NOT_BOUND"); });
+  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => { throw new BillingError("NOT_BOUND"); }, ready);
+  await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789" });
   const out = await p;
   expect(out.kind).toBe("error");
   expect(s.finished).toHaveLength(0);
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => ({ ...active, active: false, status: "expired" }));
+  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => ({ ...active, active: false, status: "expired" }), ready);
+  await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789" });
   await p;
   expect(s.finished).toHaveLength(0); // an inactive verdict is not completed
 });
 
-test("restore sends each known purchase, skips foreign products, and stops on a network or disabled error", async () => {
+test("checkout stops before launching Google Play if the authenticated readiness check fails", async () => {
+  const s = fakeStore();
+  const verify = jest.fn(async () => active);
+  const check = jest.fn(async () => { throw new BillingError("CHECKOUT_UNAVAILABLE"); });
+  const result = buy((await loadOffers(s.lib))[1], "owner-1", token, s.lib, verify, check);
+  s.errored[0]?.({ code: "user-cancelled" });
+  expect(await result).toMatchObject({ kind: "error", error: { code: "CHECKOUT_UNAVAILABLE" } });
+  expect(check).toHaveBeenCalledWith("titan02", "user-access-token");
+  expect(s.requests).toHaveLength(0);
+  expect(s.finished).toHaveLength(0);
+});
+
+test("the default checkout check sends the session and product to the billing endpoint", async () => {
+  const s = fakeStore();
+  const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { status: 503 }));
+  try {
+    const result = buy((await loadOffers(s.lib))[1], "o", token, s.lib);
+    s.errored[0]?.({ code: "user-cancelled" });
+    expect(await result).toMatchObject({ kind: "error", error: { code: "CHECKOUT_UNAVAILABLE" } });
+    expect(fetcher).toHaveBeenCalledWith("https://titan-app.fr/functions/play-billing?product_id=titan02", {
+      method: "GET", headers: { Authorization: "Bearer user-access-token" },
+    });
+    expect(s.requests).toHaveLength(0);
+  } finally { fetcher.mockRestore(); }
+});
+
+test("checkout rechecks the account after readiness, before opening Play", async () => {
+  const s = fakeStore();
+  const launch = s.lib.requestPurchase;
+  s.lib.requestPurchase = async (input) => { await launch(input); s.errored[0]({ code: "user-cancelled" }); };
+  const getToken = jest.fn().mockResolvedValueOnce("first-owner-token").mockResolvedValue(null);
+  const result = await buy((await loadOffers(s.lib))[0], "first-owner", getToken, s.lib, jest.fn(), ready);
+  expect(result).toMatchObject({ kind: "error", error: { code: "AUTH" } });
+  expect(s.requests).toHaveLength(0);
+});
+
+test("a Play sandbox that cannot bill is distinct from a TITAN readiness failure", async () => {
+  const s = fakeStore();
+  const result = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  await s.requested;
+  s.errored[0]({ code: "billing-unavailable" });
+  const outcome = await result;
+  expect(outcome).toMatchObject({ kind: "error", error: { code: "STORE_UNAVAILABLE" } });
+  if (outcome.kind !== "error") throw new Error("Expected Play Billing to refuse checkout");
+  expect(messageFor(outcome.error)).toContain("Google Play");
+  expect(s.finished).toHaveLength(0);
+});
+
+test("a 503 after Play reports a purchase leaves it restorable and makes no claim about a debit", async () => {
+  const s = fakeStore();
+  const fetcher = jest.fn(async () => new Response('{"error":"unavailable"}', { status: 503 })) as unknown as typeof fetch;
+  const verify = (purchase: string, product: string, access: string) => verifyOnServer(purchase, product, access, fetcher);
+  const result = buy((await loadOffers(s.lib))[0], "o", token, s.lib, verify, ready);
+  await s.requested;
+  s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789", purchaseState: "purchased" });
+  const outcome = await result;
+  expect(outcome).toMatchObject({ kind: "error", error: { code: "VERIFICATION_UNAVAILABLE" } });
+  if (outcome.kind !== "error") throw new Error("Expected a verification failure");
+  expect(messageFor(outcome.error)).toContain("Restaurer mes achats");
+  expect(messageFor(outcome.error)).not.toMatch(/rien.*débité|rien.*perdu/i);
+  expect(s.finished).toHaveLength(0);
+});
+
+test("restore sends each known purchase, skips foreign products, and stops if verification is unavailable", async () => {
   const s = fakeStore();
   s.setAvailable([{ productId: "titan01", purchaseToken: "t1-0123456789abcdef" }, { productId: "other", purchaseToken: "t2-0123456789abcdef" }, { productId: "titan02", purchaseToken: "t3-0123456789abcdef" }]);
   const verify = jest.fn(async (t: string) => (t.startsWith("t3") ? Promise.reject(new BillingError("ALREADY_USED")) : active));
   expect(await restore(token, s.lib, verify)).toEqual({ checked: 3, active: 1, failed: 1 });
   expect(verify).toHaveBeenCalledTimes(2);
   expect(s.finished).toHaveLength(1);
-  await expect(restore(token, s.lib, async () => { throw new BillingError("DISABLED"); })).rejects.toMatchObject({ code: "DISABLED" });
+  await expect(restore(token, s.lib, async () => { throw new BillingError("VERIFICATION_UNAVAILABLE"); })).rejects.toMatchObject({ code: "VERIFICATION_UNAVAILABLE" });
   await expect(restore(async () => null, s.lib, verify)).rejects.toMatchObject({ code: "AUTH" });
 });
 
@@ -92,13 +163,15 @@ test("the server call maps every answer to a clear cause and sends only the toke
   const f = (status: number, body: unknown) => jest.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
   expect(await verifyOnServer("t", "titan02", "a", f(200, active))).toEqual(active);
   const code = async (status: number, body: unknown) => verifyOnServer("t", "titan02", "a", f(status, body)).catch((e) => e.code);
-  expect(await code(503, { error: "unavailable" })).toBe("DISABLED");
+  expect(await code(503, { error: "unavailable" })).toBe("VERIFICATION_UNAVAILABLE");
   expect(await code(401, {})).toBe("AUTH");
   expect(await code(409, { error: "purchase_already_used" })).toBe("ALREADY_USED");
   expect(await code(409, { error: "purchase_bound_to_other_account" })).toBe("NOT_BOUND");
   expect(await code(409, { error: "purchase_not_bound" })).toBe("NOT_BOUND");
   expect(await code(422, { error: "purchase_not_found" })).toBe("NOT_FOUND");
-  expect(await code(500, {})).toBe("REFUSED");
+  expect(await code(422, { error: "purchase_product_mismatch" })).toBe("REFUSED");
+  expect(await code(500, {})).toBe("VERIFICATION_UNAVAILABLE");
+  expect(await code(200, { ...active, active: "true" })).toBe("VERIFICATION_UNAVAILABLE");
   expect(await verifyOnServer("t", "titan02", "a", jest.fn(async () => { throw new Error("offline"); }) as unknown as typeof fetch).catch((e) => e.code)).toBe("NETWORK");
   const spy = f(200, active);
   await verifyOnServer("tok", "titan02", "access", spy);
@@ -107,8 +180,39 @@ test("the server call maps every answer to a clear cause and sends only the toke
   expect(JSON.parse((init as RequestInit).body as string)).toEqual({ purchase_token: "tok", product_id: "titan02" });
 });
 
+test("only isolated E2E builds can send verification to an explicit HTTPS preview endpoint", async () => {
+  const oldBackend = process.env.EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL;
+  const oldBilling = process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL;
+  const fetcher = jest.fn<Promise<Response>, Parameters<typeof globalThis.fetch>>(async () => new Response(JSON.stringify(active), { status: 200 }));
+  const isolatedAdapter = () => {
+    let billing!: typeof import("../src/lib/playBilling");
+    jest.isolateModules(() => { billing = require("../src/lib/playBilling"); });
+    return billing.verifyOnServer;
+  };
+  try {
+    process.env.EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL = "https://isolated-db.example.test";
+    process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL = "https://titan-qa.example.test/";
+    await isolatedAdapter()("purchase", "titan01", "session", fetcher);
+    expect(fetcher.mock.calls[0]?.[0]).toBe("https://titan-qa.example.test/functions/play-billing");
+
+    delete process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL;
+    await expect(isolatedAdapter()("purchase", "titan01", "session", fetcher)).rejects.toMatchObject({ code: "VERIFICATION_UNAVAILABLE" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    delete process.env.EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL;
+    process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL = "https://titan-qa.example.test/";
+    await isolatedAdapter()("purchase", "titan01", "session", fetcher);
+    expect(fetcher.mock.calls[1]?.[0]).toBe("https://titan-app.fr/functions/play-billing");
+  } finally {
+    if (oldBackend === undefined) delete process.env.EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL;
+    else process.env.EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL = oldBackend;
+    if (oldBilling === undefined) delete process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL;
+    else process.env.EXPO_PUBLIC_TITAN_E2E_BILLING_URL = oldBilling;
+  }
+});
+
 test("messages are in plain French and never show a raw code", () => {
-  for (const c of ["DISABLED", "AUTH", "ALREADY_USED", "NOT_BOUND", "NOT_FOUND", "NETWORK", "REFUSED"] as const) expect(messageFor(new BillingError(c))).toMatch(/[a-zé]/);
+  for (const c of ["CHECKOUT_UNAVAILABLE", "VERIFICATION_UNAVAILABLE", "AUTH", "ALREADY_USED", "NOT_BOUND", "NOT_FOUND", "NETWORK", "REFUSED"] as const) expect(messageFor(new BillingError(c))).toMatch(/[a-zé]/);
   expect(messageFor(new Error("boom"))).toContain("réessaie");
 });
 

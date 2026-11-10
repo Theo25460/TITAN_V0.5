@@ -213,7 +213,8 @@
     clearValidation();
     const email = String(document.querySelector("[name=email]")?.value || "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return invalidField("email", "Indique ton e-mail ci-dessus, puis touche « Mot de passe oublié ? ».");
-    const c = await ready();
+    await ready();
+    const c = window.initTitanRecoveryClient?.();
     if (!c) return message("Le service de connexion est indisponible.");
     lastEmail = email;
     const task = begin("Envoi en cours…", button);

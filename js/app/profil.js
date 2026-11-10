@@ -822,9 +822,9 @@
       err.textContent = "";
       setPending(true);
       try {
-        const session = await readBitsSession(job);
-        if (!deletionCurrent(job)) return;
         if (!serverDeleted) {
+          const session = await readBitsSession(job);
+          if (!deletionCurrent(job)) return;
           // A Garmin link is withdrawn at Garmin first, on a best-effort basis: it never blocks the deletion (GAR-12).
           if ((sources || []).some((x) => x.source === "garmin" && x.granted)) {
             try {
@@ -834,21 +834,24 @@
           }
           const { data, error } = await job.context.client.rpc("delete_own_account")
             .setHeader("Authorization", `Bearer ${session.access_token}`);
-          if (!deletionCurrent(job)) return;
           if (error) throw error;
-          if (data?.userId !== job.context.owner) throw new Error("DELETE_OWNER_UNCONFIRMED");
+          if (data?.userId !== job.context.owner || ![0, 1].includes(data.deleted?.auth_users)) throw new Error("DELETE_OWNER_UNCONFIRMED");
           serverDeleted = true;
-          setPending(true);
+          if (deletionCurrent(job)) setPending(true);
         }
-        await readBitsSession(job);
-        if (!deletionCurrent(job)) return;
-        // Only this captured owner may be purged, even if IndexedDB completes after a switch.
+        // A verified receipt authorizes erasure even after the deleted owner's credentials disappear.
         await window.TitanQueue?.deleteOwner(job.context.owner);
+        try {
+          const saved = JSON.parse(localStorage.getItem(window.STATE_KEY) || "null");
+          if (saved?.user?.id === job.context.owner) localStorage.removeItem(window.STATE_KEY);
+        } catch { /* The shared cache may be unreadable. */ }
         if (!deletionCurrent(job)) return;
-        await readBitsSession(job);
+        const { data: auth, error: authError } = await job.context.client.auth.getSession();
         if (!deletionCurrent(job)) return;
-        // The RPC removes auth.users. A dynamic SDK signOut here could instead remove B's session.
-        // Clear the persisted Auth cache synchronously under the still-validated context, then leave.
+        const session = auth?.session;
+        const removedSession = session === null && (!authError || ["refresh_token_not_found", "session_not_found", "user_not_found"].includes(authError.code));
+        if (!removedSession && (authError || !session?.access_token || session.user?.id !== job.context.owner)) throw new Error("PROFILE_READ_SESSION_CHANGED");
+        // Shared cache and navigation still require the same context and no foreign session.
         if (typeof window.titanSafeClearCache !== "function") throw new Error("DELETE_CACHE_UNAVAILABLE");
         window.titanSafeClearCache();
         location.href = "/";
@@ -1117,27 +1120,44 @@
     link: "La liaison n’a pas pu être enregistrée dans TITAN. Actualise Sources et capteurs avant de réessayer. Assistance : GARMIN_LINK.",
     storage: "L’autorisation n’a pas pu être enregistrée de façon sécurisée. Actualise Sources et capteurs avant de réessayer. Assistance : GARMIN_STORAGE.",
   };
+  let garminReturnController = null;
 
   async function garminReturn() {
     const query = new URLSearchParams(location.search);
     const status = query.get("garmin");
     if (!status) return;
+    const job = { context: bitsContext };
+    if (status === "complete" && (guest() || !bitsCurrent(job) || !job.context.client)) return;
     const reason = query.get("garmin_reason");
     try { history.replaceState(null, "", location.pathname + location.hash); } catch { /* the notice still shows */ }
     const notice = ([type, title, message]) => window.titanShell?.toast?.({ type, title, message });
-    if (status !== "ok") {
-      if (status === "error" && Object.hasOwn(GARMIN_REASONS, reason)) {
-        return notice(["warn", "Liaison Garmin à reprendre", GARMIN_REASONS[reason]]);
+    const tellOutcome = (value, stage) => {
+      if (value === "error" && Object.hasOwn(GARMIN_REASONS, stage)) {
+        return notice(["warn", "Liaison Garmin à reprendre", GARMIN_REASONS[stage]]);
       }
-      return notice(Object.hasOwn(GARMIN_RESULTS, status) ? GARMIN_RESULTS[status] : GARMIN_RESULTS.error);
-    }
+      return notice(Object.hasOwn(GARMIN_RESULTS, value) ? GARMIN_RESULTS[value] : GARMIN_RESULTS.error);
+    };
+    if (status !== "ok" && status !== "complete") return tellOutcome(status, reason);
 
-    const job = { context: bitsContext };
     if (guest() || !bitsCurrent(job) || !job.context.client) return notice(GARMIN_RESULTS.ok);
     let timer;
     try {
       const session = await readBitsSession(job);
       if (!bitsCurrent(job)) return;
+      if (status === "complete") {
+        const controller = new AbortController();
+        garminReturnController = controller;
+        const deadline = setTimeout(() => controller.abort(), 20_000);
+        try {
+          const completion = await fetch("/.netlify/functions/garmin?action=complete", { method: "POST", credentials: "same-origin", headers: { Authorization: `Bearer ${session.access_token}` }, signal: controller.signal });
+          const result = await completion.json().catch(() => null);
+          if (!bitsCurrent(job)) return;
+          if (!completion.ok || result?.garmin !== "ok") return tellOutcome(result?.garmin, result?.garmin_reason);
+        } finally {
+          clearTimeout(deadline);
+          if (garminReturnController === controller) garminReturnController = null;
+        }
+      }
       const response = await Promise.race([
         job.context.client.rpc("titan_garmin_status_v1").setHeader("Authorization", `Bearer ${session.access_token}`),
         new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("GARMIN_STATUS_TIMEOUT")), 8000); }),
@@ -1174,8 +1194,8 @@
       root.addEventListener("change", onChange);
       root.addEventListener("input", (e) => { if (masteryNavigation.handle(e)) renderMastery(); });
       A()?.refresh?.();
-      garminReturn();
     }
+    garminReturn();
     render();
     loadServerBits();
   }
@@ -1188,9 +1208,9 @@
       start();
     });
   };
-  ["titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
+  ["titan:account-changed", "titan:history-updated", "titan:adventure-updated", "titan:pending-changed"].forEach((ev) => window.addEventListener(ev, queue));
   window.addEventListener("hashchange", () => revealSection(location.hash, true));
-  window.addEventListener("titan:account-changing", () => { avatarTask = null; exportTask = null; resetExportUi(); resetServerBits(); render(); });
+  window.addEventListener("titan:account-changing", () => { garminReturnController?.abort(); avatarTask = null; exportTask = null; resetExportUi(); resetServerBits(); render(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

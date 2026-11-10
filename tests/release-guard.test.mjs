@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
-const guard = () => spawnSync(process.execPath, ["tools/check-release-guard.mjs"], { cwd: root, encoding: "utf8" });
+const guard = (env = {}) => spawnSync(process.execPath, ["tools/check-release-guard.mjs"], { cwd: root, encoding: "utf8", env: { ...process.env, ...env } });
 
 function sandbox(mutate) {
   const dir = mkdtempSync(join(tmpdir(), "titan-guard-"));
@@ -28,6 +28,19 @@ test("the repository passes its own release guard", () => {
 test("the Netlify build runs the guard before anything else, so an incomplete branch can never replace the live site", () => {
   const toml = readFileSync(join(root, "netlify.toml"), "utf8");
   assert.match(toml, /command = "node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs"/);
+});
+
+test("a production build cannot follow a merge unless the exact commit was approved", () => {
+  const commit = "a".repeat(40);
+  const env = { NETLIFY: "true", CONTEXT: "production", COMMIT_REF: commit };
+  for (const approval of ["", "b".repeat(40), "a".repeat(7)]) {
+    const result = guard({ ...env, TITAN_APPROVED_RELEASE_SHA: approval });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /SHA de production non autorisé/);
+  }
+  assert.equal(guard({ ...env, TITAN_APPROVED_RELEASE_SHA: commit }).status, 0);
+  assert.equal(guard({ ...env, COMMIT_REF: "", TITAN_APPROVED_RELEASE_SHA: "" }).status, 1);
+  assert.equal(guard({ ...env, CONTEXT: "deploy-preview", TITAN_APPROVED_RELEASE_SHA: "" }).status, 0);
 });
 
 test("the guard refuses a build where the Google button disappears", () => {

@@ -9,8 +9,22 @@ const TITAN_PENDING_TRAINING_KEY = 'titan_pending_training_logs_v1';
 const TITAN_TRAINING_SYNC_DIAG_KEY = 'titan_training_sync_diag_v1';
 const TITAN_PROGRESS_SNAPSHOT_KEY = 'titan_progression_snapshot_v1';
 
+function captureCloudAccount() {
+    return {
+        ownerId: window.state?.user?.id,
+        client: window.titanClient,
+        epoch: window.titanAccountTransition?.epoch
+    };
+}
+
+function cloudAccountIsCurrent({ ownerId, client, epoch }) {
+    return !!ownerId && ownerId === window.state?.user?.id && client === window.titanClient
+        && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+}
+
 function recordTrainingSyncDiagnostic(status, info = {}) {
     const entry = Object.assign({
+        ownerId: window.state?.user?.id,
         status,
         at: new Date().toISOString()
     }, info);
@@ -21,8 +35,12 @@ function recordTrainingSyncDiagnostic(status, info = {}) {
 }
 
 window.titanGetTrainingSyncDiagnostic = function() {
-    try { return JSON.parse(localStorage.getItem(TITAN_TRAINING_SYNC_DIAG_KEY) || 'null'); }
-    catch (_) { return window.titanLastTrainingSyncDiagnostic || null; }
+    const ownerId = window.state?.user?.id;
+    if (!ownerId || window.titanAccountTransition?.active) return null;
+    let cached;
+    try { cached = JSON.parse(localStorage.getItem(TITAN_TRAINING_SYNC_DIAG_KEY) || 'null'); }
+    catch (_) { /* Fall back to this page's last diagnostic. */ }
+    return [cached, window.titanLastTrainingSyncDiagnostic].find(entry => entry?.ownerId === ownerId) || null;
 };
 
 function normalizeProgressionSnapshot(snapshot = {}) {
@@ -54,7 +72,9 @@ function normalizeProgressionSnapshot(snapshot = {}) {
 
 function recordProgressionSnapshot(snapshot, source = 'cloud') {
     const normalized = normalizeProgressionSnapshot(snapshot);
-    if (!normalized) return null;
+    if (!normalized?.server_user_id || normalized.server_user_id !== window.state?.user?.id) return null;
+    const previous = window.titanGetProgressionSnapshot();
+    if (Date.parse(previous?.checked_at) > Date.parse(normalized.checked_at)) return previous;
     normalized.source = source;
     normalized.received_at = new Date().toISOString();
     try { localStorage.setItem(TITAN_PROGRESS_SNAPSHOT_KEY, JSON.stringify(normalized)); }
@@ -75,21 +95,31 @@ function recordProgressionSnapshot(snapshot, source = 'cloud') {
 }
 
 window.titanGetProgressionSnapshot = function() {
-    try { return JSON.parse(localStorage.getItem(TITAN_PROGRESS_SNAPSHOT_KEY) || 'null') || window.titanLastProgressionSnapshot || null; }
-    catch (_) { return window.titanLastProgressionSnapshot || null; }
+    const ownerId = window.state?.user?.id;
+    if (!ownerId || window.titanAccountTransition?.active) return null;
+    let cached;
+    try { cached = JSON.parse(localStorage.getItem(TITAN_PROGRESS_SNAPSHOT_KEY) || 'null'); }
+    catch (_) { /* Fall back to the in-memory or profile snapshot. */ }
+    return [cached, window.titanLastProgressionSnapshot, window.state?.user?.cloudProgression]
+        .find(snapshot => snapshot?.server_user_id === ownerId) || null;
 };
 
 window.titanRefreshProgressionSnapshot = async function(options = {}) {
-    if (!window.titanClient || typeof window.titanClient.rpc !== 'function') return window.titanGetProgressionSnapshot();
+    const account = captureCloudAccount();
+    if (!cloudAccountIsCurrent(account) || typeof account.client?.rpc !== 'function') return window.titanGetProgressionSnapshot();
     try {
-        const sessionResult = await window.titanClient.auth.getSession();
+        const sessionResult = await account.client.auth.getSession();
+        if (!cloudAccountIsCurrent(account)) return null;
         const sessionUserId = sessionResult?.data?.session?.user?.id;
         if (!sessionUserId) {
             recordTrainingSyncDiagnostic('snapshot_no_session', { pendingCount: readPendingTrainingLogs().length });
             return window.titanGetProgressionSnapshot();
         }
+        if (sessionUserId !== account.ownerId) return null;
 
-        const { data, error } = await window.titanClient.rpc('titan_get_progression_snapshot');
+        const request = account.client.rpc('titan_get_progression_snapshot');
+        const { data, error } = await (window.withTitanTimeout ? window.withTitanTimeout(request, 4000, 'Progression du compte') : request);
+        if (!cloudAccountIsCurrent(account)) return null;
         if (error) {
             recordTrainingSyncDiagnostic('snapshot_error', {
                 code: error.code || '',
@@ -104,6 +134,7 @@ window.titanRefreshProgressionSnapshot = async function(options = {}) {
 
         const row = Array.isArray(data) ? data[0] : data;
         const snapshot = recordProgressionSnapshot(row, 'rpc');
+        if (!snapshot) return window.titanGetProgressionSnapshot();
         recordTrainingSyncDiagnostic('snapshot_synced', {
             level: snapshot?.level,
             xp: snapshot?.xp,
@@ -113,6 +144,7 @@ window.titanRefreshProgressionSnapshot = async function(options = {}) {
         if (typeof window.updateGlobalUI === 'function') window.updateGlobalUI();
         return snapshot;
     } catch (error) {
+        if (!cloudAccountIsCurrent(account)) return null;
         recordTrainingSyncDiagnostic('snapshot_exception', {
             message: error?.message || String(error),
             pendingCount: readPendingTrainingLogs().length
@@ -125,7 +157,7 @@ window.titanBuildCloudReadiness = function() {
     const pending = readPendingTrainingLogs();
     const trainingDiag = window.titanGetTrainingSyncDiagnostic?.() || null;
     const profileDiag = window.titanGetProfileSyncDiagnostic?.() || null;
-    const snapshot = window.titanGetProgressionSnapshot?.() || window.state?.user?.cloudProgression || null;
+    const snapshot = window.titanGetProgressionSnapshot();
     const ageMs = snapshot?.received_at ? Date.now() - Date.parse(snapshot.received_at) : null;
     return {
         pendingCount: pending.length,
@@ -155,42 +187,103 @@ async function submitTrainingSessionToCloud(payload, session) {
     const row=Array.isArray(result.data)?result.data[0]:result.data;
     return result.error?{error:result.error}:row?.log_id?{data:{id:row.log_id,serverReward:row}}:{error:new Error('SERVER_AUTHORITY_REQUIRED')};
 }
-let trainingFlush;
-window.flushPendingTrainingLogs = function(options={}) {
-    if(trainingFlush)return trainingFlush;
-    const run=async()=>{
-        await window.TitanQueue.migrate();
-        const session=await window.titanClient?.auth.getSession();const uid=session?.data?.session?.user?.id;
-        if(!uid||uid!==window.state?.user?.id)return {sent:0,remaining:readPendingTrainingLogs().length};
-        const items=await window.TitanQueue.refresh();let sent=0;
-        for(const item of items){
-            if(window.state?.user?.id!==uid)break;
-            if(item.ownerId!==uid||(item.status==='error'&&!item.deferred&&!options.retry))continue;
+const trainingFlushes = new Map();
+window.flushPendingTrainingLogs = function(options = {}) {
+    const account = captureCloudAccount();
+    const { ownerId, client, epoch } = account;
+    const current = () => cloudAccountIsCurrent(account);
+    const empty = () => ({ sent: 0, remaining: readPendingTrainingLogs().length });
+    if (!current() || !client || ownerId.startsWith('guest_')) return Promise.resolve(empty());
+
+    const previous = trainingFlushes.get(ownerId);
+    if (previous?.client === client && previous.epoch === epoch) {
+        if (options.newEntry || options.retry) previous.rescan = true;
+        if (options.retry) previous.retry = true;
+        return previous.promise;
+    }
+    const job = { client, epoch, rescan: false, retry: options.retry === true, promise: null };
+
+    const sendPass = async (items, session, retry) => {
+        let sent = 0;
+        for (const item of items) {
+            if (!current()) break;
+            if (item.ownerId !== ownerId || (item.status === 'error' && !item.deferred && !retry)) continue;
+            const eventId = item.payload.details.client_event_id;
+            const matchesEvent = log => log.client_event_id === eventId || log.details?.client_event_id === eventId;
+            let result;
             try {
-                const {data,error}=await submitTrainingSessionToCloud(item.payload,session.data.session);
-                if(error)throw error;
-                const reward=data.serverReward;
-                const local=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
-                if(local){local.id=data.id;local.syncStatus='confirmed';local.xp=reward.xp;local.revision=1;local.details.serverReward=reward;}
-                await window.TitanQueue.remove(item.key);sent++;if(local)window.dispatchEvent(new CustomEvent('titan:session-confirmed',{detail:{ownerId:uid,logId:item.payload.details.client_event_id}}));
-                if(window.state?.user?.id===uid){window.state.user.xp=reward.xp_after;window.state.user.credits=reward.credits_after;window.state.user.level=reward.level_after;await window.TitanQueue.saveHistory(uid,[...window.state.history,...(window.state.archivedHistory||[])]);}
-            } catch(error){
-                const permanent=['22023','22P02','23514','23505','42501'].includes(error.code);
-                const tooOld=String(error.message||'').includes('TRAINING_DATE_OUT_OF_RANGE')&&new Date(item.payload.date).getTime()<Date.now()-30*86400000;
-                // deferred: refused only until the server update, so it is offered again automatically on each send.
-                await window.TitanQueue.put({...item,status:permanent?'error':'pending',deferred:tooOld,reason:tooOld?'Séance de plus de 30 jours : pas encore acceptée par le serveur':(error.message||'Connexion indisponible')});
-                const failedLocal=window.state?.user?.id===uid&&window.state.history.find(l=>l.client_event_id===item.payload.details.client_event_id||l.details?.client_event_id===item.payload.details.client_event_id);
-                if(failedLocal)failedLocal.syncStatus=permanent?'error':'pending';
-                if(!permanent)break;
+                const { data, error } = await submitTrainingSessionToCloud(item.payload, session);
+                if (error) throw error;
+                result = data;
+            } catch (error) {
+                if (!current()) break;
+                const permanent = ['22023', '22P02', '23514', '23505', '42501'].includes(error.code);
+                const tooOld = String(error.message || '').includes('TRAINING_DATE_OUT_OF_RANGE')
+                    && new Date(item.payload.date).getTime() < Date.now() - 30 * 86400000;
+                const status = permanent ? 'error' : 'pending';
+                await window.TitanQueue.put({ ...item, status, deferred: tooOld,
+                    reason: tooOld ? 'Séance de plus de 30 jours : pas encore acceptée par le serveur' : (error.message || 'Connexion indisponible') });
+                if (!current()) break;
+                const failedLocal = window.state.history.find(matchesEvent);
+                if (failedLocal) failedLocal.syncStatus = status;
+                if (!permanent) return { sent, blocked: true };
+                continue;
             }
+            // Let the next sign-in reconcile with the same idempotency key if the receipt crossed a transition.
+            if (!current()) break;
+            const reward = result.serverReward;
+            const { history, archivedHistory = [] } = window.state;
+            const local = history.find(matchesEvent);
+            if (local) {
+                Object.assign(local, { id: result.id, syncStatus: 'confirmed', xp: reward.xp, revision: 1 });
+                local.details = { ...local.details, serverReward: reward };
+            }
+            if (local) window.dispatchEvent(new CustomEvent('titan:session-confirmed', { detail: { ownerId, logId: eventId } }));
+            await window.TitanQueue.remove(item.key, ownerId);
+            sent++;
+            if (!current()) break;
+            // The server has confirmed the session even if the recoverable local cache is unavailable.
+            await window.TitanQueue.saveHistory(ownerId, [...history, ...archivedHistory]).catch(() => {});
         }
-        window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
-        const remaining=readPendingTrainingLogs().length;
-        window.titanSetSyncStatus?.(remaining?'pending':'cloud',remaining?`${remaining} séance(s) sur cet appareil`:'Séances synchronisées');
-        return {sent,remaining};
+        return { sent, blocked: false };
     };
-    trainingFlush=(navigator.locks?navigator.locks.request('titan-training-send',run):run()).finally(()=>{trainingFlush=null;});
-    return trainingFlush;
+
+    const run = async () => {
+        if (!current()) return empty();
+        await window.TitanQueue.migrate();
+        const { data: { session } = {} } = await client.auth.getSession();
+        if (!current() || session?.user?.id !== ownerId) return empty();
+        let sent = 0;
+        let remaining = 0;
+        do {
+            const retry = job.retry;
+            job.rescan = false;
+            job.retry = false;
+            const items = await window.TitanQueue.refresh(ownerId);
+            const pass = await sendPass(items, session, retry);
+            sent += pass.sent;
+            remaining = items.filter(item => item.ownerId === ownerId).length - pass.sent;
+            if (pass.blocked) break;
+        } while (job.rescan && current());
+        if (!current()) return { sent, remaining };
+        window.saveState?.();
+        window.dispatchEvent(new CustomEvent('titan:history-updated'));
+        remaining = readPendingTrainingLogs().length;
+        window.titanSetSyncStatus?.(remaining ? 'pending' : 'cloud', remaining ? `${remaining} séance(s) sur cet appareil` : 'Séances synchronisées');
+        return { sent, remaining };
+    };
+    const lockedRun = () => navigator.locks ? navigator.locks.request(`titan-training-send:${ownerId}`, run) : run();
+    job.promise = (previous ? previous.promise.catch(() => {}).then(lockedRun) : lockedRun()).finally(() => {
+        if (trainingFlushes.get(ownerId) === job) trainingFlushes.delete(ownerId);
+    });
+    trainingFlushes.set(ownerId, job);
+    // A replayed receipt can contain old balances. Fetch current balances after releasing the send lock.
+    if (!options.progressionLater) {
+        job.promise.then(({ sent }) => {
+            if (sent && current()) return window.titanRefreshProgressionSnapshot({ silent: true });
+        }).catch(() => {});
+    }
+    return job.promise;
 };
 window.addEventListener('online',()=>window.flushPendingTrainingLogs().catch(()=>{}));
 
@@ -265,8 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // B. Chargement des données
     if(typeof window.loadState === 'function') window.loadState();
-    const cacheOwner=window.state?.user?.id;
-    window.TitanQueue?.readHistory(cacheOwner).then(async logs=>{await window.TitanQueue.migrate();if(window.state?.user?.id!==cacheOwner||window.titanCloudHistoryLoadedAt)return;const merged=new Map(logs.map(l=>[l.client_event_id||l.id,l]));for(const item of window.TitanQueue.list()){const id=item.payload.details.client_event_id;if(!merged.has(id))merged.set(id,{...item.payload,id,client_event_id:id,cat:item.payload.category,xp:0,syncStatus:item.status});}if(merged.size){const all=[...merged.values()];window.state.history=all.filter(l=>!l.archived_at);window.state.archivedHistory=all.filter(l=>l.archived_at);window.dispatchEvent(new CustomEvent('titan:history-updated'));}}).catch(()=>{});
+    const cacheAccount = captureCloudAccount();
+    window.TitanQueue?.readHistory(cacheAccount.ownerId).then(async logs=>{await window.TitanQueue.migrate();if(!cloudAccountIsCurrent(cacheAccount)||window.titanCloudHistoryLoadedAt)return;const merged=new Map(logs.map(l=>[l.client_event_id||l.id,l]));for(const item of window.TitanQueue.list()){const id=item.payload.details.client_event_id;if(!merged.has(id))merged.set(id,{...item.payload,id,client_event_id:id,cat:item.payload.category,xp:0,syncStatus:item.status});}if(merged.size){const all=[...merged.values()];window.state.history=all.filter(l=>!l.archived_at);window.state.archivedHistory=all.filter(l=>l.archived_at);window.dispatchEvent(new CustomEvent('titan:history-updated'));}}).catch(()=>{});
     
     // C. Construction de l'interface
     if(typeof window.injectSidebar === 'function') window.injectSidebar();
@@ -296,7 +389,7 @@ async function setupTitanAuthListener() {
         setTimeout(async()=>{
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
             if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();
-            if(typeof window.flushPendingTrainingLogs === 'function') await window.flushPendingTrainingLogs();
+            if(typeof window.flushPendingTrainingLogs === 'function') await window.flushPendingTrainingLogs({ progressionLater: true });
             if(typeof window.titanRefreshProgressionSnapshot === 'function') await window.titanRefreshProgressionSnapshot({ silent: true });
         }
         },0);
@@ -320,7 +413,7 @@ async function initSystem() {
 
         // 3. Sync & Reset
         if(typeof window.syncWithSupabase === 'function') await window.syncWithSupabase();
-        if(typeof window.flushPendingTrainingLogs === 'function') await window.flushPendingTrainingLogs();
+        if(typeof window.flushPendingTrainingLogs === 'function') await window.flushPendingTrainingLogs({ progressionLater: true });
         if(typeof window.titanRefreshProgressionSnapshot === 'function') await window.titanRefreshProgressionSnapshot({ silent: true });
         if(typeof window.checkDailyReset === 'function') await window.checkDailyReset();
         
@@ -380,7 +473,9 @@ window.logActivity = async function(sportKey, dataInput, options = {}) {
     window.state.history=window.state.history||[];
     if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);
     window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
-    window.flushPendingTrainingLogs().catch(()=>window.titanSetSyncStatus?.('pending','Séance conservée sur cet appareil'));
+    window.flushPendingTrainingLogs({ newEntry: true }).catch(() => {
+        if (cloudAccountIsCurrent({ ownerId: owner, client, epoch })) window.titanSetSyncStatus?.('pending', 'Séance conservée sur cet appareil');
+    });
     if(!options.quiet)window.showNotification?.('success','Séance conservée',guest?'Enregistrée sur cet appareil. Retrouve-la dans ton journal.':'Enregistrée sur cet appareil. La confirmation cloud apparaît dans le journal.');
     return log;
 };

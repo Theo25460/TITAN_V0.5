@@ -6,6 +6,7 @@ import { Tap } from "../components/Pressable";
 import { Icon, type IconName } from "../components/Icon";
 import { useQueue } from "../data/queue";
 import { haptic } from "../lib/haptics";
+import { useReducedMotion } from "../lib/motion";
 import { AdventureScreen } from "../screens/adventure/AdventureScreen";
 import { HomeScreen } from "../screens/home/HomeScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
@@ -58,6 +59,7 @@ export function AccessibleTabBar({ state, descriptors, navigation, insets, width
 
 export function Tabs() {
   const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
   const { width, fontScale } = useWindowDimensions();
   const layout = tabLayout(width - insets.left - insets.right, fontScale, insets.bottom);
   const queue = useQueue();
@@ -72,7 +74,7 @@ export function Tabs() {
         tabBarHideOnKeyboard: true,
         // From 600 dp the library puts the label beside the icon, and the raised "+" then covers "Séance" (unfolded phone, tablet, split window).
         tabBarLabelPosition: "below-icon",
-        animation: "shift",
+        animation: reduced ? "none" : "shift",
         tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: layout.height, paddingTop: 6, paddingBottom: insets.bottom + 8 },
         tabBarLabel: ({ children, color }) => <TabLabel color={color}>{children}</TabLabel>,
         tabBarIcon: ({ color, focused }) =>

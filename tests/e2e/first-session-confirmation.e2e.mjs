@@ -48,12 +48,14 @@ for(const width of [360,1280])for(const held of [false,true]){
    await page.waitForFunction(()=>window.TitanQueue&&window.TitanAdventure?.status==='ready');
    // Establish a synthetic authenticated context after the normal discovery bootstrap.
    // The form/logActivity/flushPendingTrainingLogs implementations remain untouched.
-   await page.evaluate(owner=>{
+   await page.evaluate(({owner,expected})=>{
     window.state.user.id=owner;window.state.user.xp=7;window.state.user.credits=5;window.state.user.level=1;
     window.TitanData.rulesV300=()=>true;
     window.titanClient={auth:{getSession:async()=>({data:{session:{access_token:'synthetic-test-token',user:{id:owner}}}})},
-     rpc:async()=>({error:{code:'PGRST202',message:'Synthetic authority: optional RPC unavailable'}})};
-   },OWNER);
+     rpc:async name=>name==='titan_get_progression_snapshot'
+      ? {data:[{server_user_id:owner,xp:expected.xp_after,credits:expected.credits_after,level:expected.level_after}]}
+      : {error:{code:'PGRST202',message:'Synthetic authority: optional RPC unavailable'}}};
+   },{owner:OWNER,expected:receipt});
    await page.locator('[data-k="distance"]').fill('5');
    await page.locator('[data-k="durM"]').fill('30');
    await page.locator('[data-act="save"]').click();
@@ -67,6 +69,7 @@ for(const width of [360,1280])for(const held of [false,true]){
    release();
    await page.waitForFunction(()=>window.state.history[0]?.syncStatus==='confirmed'&&window.TitanQueue.list().length===0);
    await page.waitForFunction(()=>!document.querySelector('.moment-reward')?.textContent.includes('Confirmation du serveur en cours'));
+   await page.waitForFunction(expected=>window.titanGetProgressionSnapshot()?.xp===expected.xp_after,receipt);
    assert.match(await recap.locator('.moment-xp').innerText(),held?/Récompense en vérification/:/\+300 XP/);
    assert.equal(await recap.evaluate(dialog => {
     const metrics = dialog.querySelector('.moment-metrics');

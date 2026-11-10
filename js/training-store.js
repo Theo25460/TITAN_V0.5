@@ -205,19 +205,37 @@
       tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
     });
   }
-  async function refresh() {
+  async function refresh(notifyOwner) {
     cache = (await transaction("readonly", (s) => s.getAll())) || [];
-    root.dispatchEvent(new CustomEvent("titan:pending-changed"));
+    if (notifyOwner === undefined || (owner() === notifyOwner && !root.titanAccountTransition?.active)) {
+      root.dispatchEvent(new CustomEvent("titan:pending-changed"));
+    }
     return cache.filter((x) => x.ownerId === owner());
   }
+  async function writeForOwner(ownerId, store, write) {
+    const db = await open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store === "history" ? ["history"] : ["history", store], "readwrite");
+      const receipt = tx.objectStore("history").get(ownerId);
+      receipt.onsuccess = () => {
+        if (!receipt.result?.erased) write(tx.objectStore(store));
+      };
+      tx.oncomplete = () => {
+        if (receipt.result?.erased) reject(Object.assign(new Error("Compte supprimé sur cet appareil."), { code: "TRAINING_OWNER_ERASED" }));
+        else resolve();
+      };
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
+    });
+  }
   async function put(item) {
-    await transaction("readwrite", (s) => s.put(item));
-    await refresh();
+    await writeForOwner(item.ownerId, "operations", (s) => s.put(item));
+    await refresh(item.ownerId);
     return item;
   }
-  async function remove(key) {
+  async function remove(key, ownerId) {
     await transaction("readwrite", (s) => s.delete(key));
-    await refresh();
+    await refresh(ownerId);
   }
   async function saveGuestSession(ownerId, log) {
     if (!String(ownerId).startsWith("guest_") || ownerId !== owner())
@@ -254,17 +272,22 @@
       const ownerId = item.ownerId || "unassigned";
       const key = `${ownerId}:${item.key || id}`;
       const found = await transaction("readonly", (s) => s.get(key));
-      if (!found)
-        await put({
-          ...item,
-          key,
-          ownerId,
-          status: "pending",
-          payload: {
-            ...item.payload,
-            details: { ...item.payload.details, client_event_id: id },
-          },
-        });
+      if (!found) {
+        try {
+          await put({
+            ...item,
+            key,
+            ownerId,
+            status: "pending",
+            payload: {
+              ...item.payload,
+              details: { ...item.payload.details, client_event_id: id },
+            },
+          });
+        } catch (error) {
+          if (error?.code !== "TRAINING_OWNER_ERASED") throw error;
+        }
+      }
     }
     localStorage.removeItem("titan_pending_training_logs_v1");
     return refresh();
@@ -276,13 +299,26 @@
     migrate,
     deleteOwner: async (ownerId) => {
       root.titanForgetOwnerDrafts(ownerId);
-      const all = await transaction("readonly", (s) => s.getAll());
-      for (const item of all.filter((i) => i.ownerId === ownerId))
-        await remove(item.key);
-      await transaction("readwrite", (s) => s.delete(ownerId), "history");
+      const db = await open();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(["history", "operations"], "readwrite");
+        // Keep only the owner marker so older asynchronous writes cannot restore erased records.
+        tx.objectStore("history").put({ ownerId, erased: true });
+        const request = tx.objectStore("operations").openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) return;
+          if (cursor.value.ownerId === ownerId) cursor.delete();
+          cursor.continue();
+        };
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
+      });
+      await refresh(ownerId);
     },
     saveHistory: (ownerId, logs) =>
-      transaction("readwrite", (s) => s.put({ ownerId, logs }), "history"),
+      writeForOwner(ownerId, "history", (s) => s.put({ ownerId, logs })),
     readHistory: async (ownerId) =>
       (await transaction("readonly", (s) => s.get(ownerId), "history"))?.logs ||
       [],

@@ -6,6 +6,7 @@ import { Progress } from "../core";
 import { buildSession, toPayload, type SessionDraft } from "../core/session";
 import type { Goal, Profile, TrainingLog } from "../core/types";
 import { isOnline } from "../lib/network";
+import { flushRoutes } from "../lib/routeSync";
 import * as api from "./api";
 import { useOwner } from "./auth";
 import { saveLogsCache } from "./logsCache";
@@ -119,22 +120,22 @@ export function useSaveGoal() {
 
 export function useAdventure() {
   const owner = useOwner();
-  return useQuery({ queryKey: keys.adventure(owner), queryFn: api.fetchAdventure, select: (s) => (s && s.owner === owner ? s : null) });
+  return useQuery({ queryKey: keys.adventure(owner), queryFn: () => api.fetchAdventure(owner), select: (s) => (s && s.owner === owner ? s : null) });
 }
 
 export function useAtelier() {
   const owner = useOwner();
-  return useQuery({ queryKey: keys.atelier(owner), queryFn: api.fetchAtelier });
+  return useQuery({ queryKey: keys.atelier(owner), queryFn: () => api.fetchAtelier(owner) });
 }
 
 export function useSocial() {
   const owner = useOwner();
-  return useQuery({ queryKey: keys.social(owner), queryFn: api.fetchSocial, staleTime: 30_000 });
+  return useQuery({ queryKey: keys.social(owner), queryFn: () => api.fetchSocial(owner), staleTime: 30_000 });
 }
 
 export function useCardSettings() {
   const owner = useOwner();
-  return useQuery({ queryKey: keys.card(owner), queryFn: api.fetchCardSettings });
+  return useQuery({ queryKey: keys.card(owner), queryFn: () => api.fetchCardSettings(owner) });
 }
 
 /** Invalidate what a confirmed session changes: journal, XP/credits, campaign evidence, social progress. */
@@ -154,11 +155,11 @@ export function useRecordSession() {
       if (build.errors.length) throw Object.assign(new Error(build.errors[0].message), { field: build.errors[0].field });
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
       const payload = toPayload(build, draft.sport, Crypto.randomUUID(), timezone, profile?.is_elite === true);
-      await enqueue(owner, payload);
+      await enqueue(owner, payload, draft.gpsRouteId);
       return payload;
     },
     onSuccess: () => {
-      if (isOnline()) syncNow(qc, owner);
+      if (isOnline()) void syncNow(qc, owner).catch(() => {});
     },
   });
 }
@@ -166,6 +167,10 @@ export function useRecordSession() {
 export function syncNow(qc: ReturnType<typeof useQueryClient>, owner: string) {
   return flushQueue(owner, (eventId, receipt) => rememberReceipt(owner, eventId, receipt)).then((r) => {
     if (r.sent > 0) invalidateAfterSession(qc, owner);
+    if (isOnline()) void flushRoutes(owner, (route) => api.routeSave(owner, route), (id, event) => api.routeLink(owner, id, event)).then(() => {
+      qc.invalidateQueries({ queryKey: ["routes", owner] });
+      qc.invalidateQueries({ queryKey: ["routes-outbox", owner] });
+    }).catch(() => {});
     return r;
   });
 }
@@ -195,7 +200,7 @@ export function useAdventureAction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ action, params }: { action: "start" | "claim" | "avatar" | "select"; params: { world?: string; route?: string; avatar?: string; chapter?: number } }) => {
-      const snapshot = qc.getQueryData<import("../core/types").AdventureSnapshot>(keys.adventure(owner)) ?? (await api.fetchAdventure());
+      const snapshot = qc.getQueryData<import("../core/types").AdventureSnapshot>(keys.adventure(owner)) ?? (await api.fetchAdventure(owner));
       if (!snapshot || snapshot.owner !== owner) throw new Error("ADVENTURE_UNAVAILABLE");
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
       return api.adventureAction(snapshot, action, params, timezone);

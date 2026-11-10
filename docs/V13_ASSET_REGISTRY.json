@@ -2509,7 +2509,6 @@
         {
           "source": "index.html",
           "lines": [
-            26,
             69
           ],
           "evidence": "literal"
@@ -2584,7 +2583,7 @@
         {
           "source": "sports.html",
           "lines": [
-            27
+            37
           ],
           "evidence": "literal"
         },
@@ -2760,13 +2759,6 @@
       "visualOwner": "not established",
       "usage": [
         {
-          "source": "index.html",
-          "lines": [
-            26
-          ],
-          "evidence": "literal"
-        },
-        {
           "source": "js/app/atelier.js",
           "lines": [],
           "evidence": "dynamic-family"
@@ -2813,7 +2805,6 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "index.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
@@ -7418,6 +7409,100 @@
       "capture": null
     },
     {
+      "path": "image/editorial/valley-hero-1600.webp",
+      "family": "worlds",
+      "bytes": 150000,
+      "sha256": "9526fadf8146e86cff4b6065ba810481c1cc723e407639985336d3ba8d3af4a1",
+      "version": "sha256:9526fadf8146e86cff4b6065ba810481c1cc723e407639985336d3ba8d3af4a1",
+      "format": "webp",
+      "width": 1600,
+      "height": 900,
+      "ratio": 1.7778,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "index.html",
+          "lines": [
+            26
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 150000,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "cover, protect horizon and focal subject",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "index.html"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "image/editorial/valley-hero-800.webp",
+      "family": "worlds",
+      "bytes": 56972,
+      "sha256": "3998c028401a017b7d1405934f9c4b422fba85fb166e3b85e84287d769c0a5b3",
+      "version": "sha256:3998c028401a017b7d1405934f9c4b422fba85fb166e3b85e84287d769c0a5b3",
+      "format": "webp",
+      "width": 800,
+      "height": 450,
+      "ratio": 1.7778,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "index.html",
+          "lines": [
+            26
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 56972,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "cover, protect horizon and focal subject",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "index.html"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "path": "image/logo-192.png",
       "family": "brand",
       "bytes": 2816,
@@ -11208,7 +11293,6 @@
         {
           "source": "index.html",
           "lines": [
-            26,
             69
           ],
           "evidence": "literal"
@@ -11258,7 +11342,7 @@
         {
           "source": "sports.html",
           "lines": [
-            27
+            37
           ],
           "evidence": "literal"
         },
@@ -11588,7 +11672,7 @@
       "source": "index.html",
       "description": "Inline SVG brand and public header",
       "bytes": 37948,
-      "version": "sha256:985fc6d801cfb9b94cfc3e71722366217210b369a47d03d558c7911fa5e450ab",
+      "version": "sha256:6fc3caf23e57ad36a6668e77c1945906bc561e419073c942d565eca0a603447f",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11755,8 +11839,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 82028,
-      "version": "sha256:19802e7f4ff82ff2910f6d5e824539fe7456c5933bfe2ad8ece2d58783f94836",
+      "bytes": 83663,
+      "version": "sha256:102f9bea4fb2d0edee5a05cec107e3b61cffb0da0a1c2f9187bac0ecb8b71019",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11902,8 +11986,8 @@
       ],
       "source": "js/app/atelier.js",
       "description": "Cosmetic frames, map and card styles",
-      "bytes": 40821,
-      "version": "sha256:3a603d142620f10f87b2c7f62c10fa955ccfa742b0be65b9ec38b80a02ba0198",
+      "bytes": 42369,
+      "version": "sha256:5fe9d1b3cd5a21e4e38edf15634693a0c0e2cfe7b1eefb3991c99b00a4518e04",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11919,8 +12003,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 11710,
-      "version": "sha256:9b0488d181429cc7abbbd496df2d0e2d9d1fbea657aa8482e495a9186853c5de",
+      "bytes": 12634,
+      "version": "sha256:2337ea2d1fd88bce22d47018ad165f9c8db1705d5fc1b07d9cb264ed4ef984ee",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",

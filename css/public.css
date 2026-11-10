@@ -703,6 +703,30 @@ a.pub-card:hover {
   display: grid;
   gap: var(--s4);
 }
+.pub-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--tx-2);
+  font-size: 14px;
+}
+.pub-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.pub-breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  color: var(--cy-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .pub-toc {
   display: flex;
   flex-wrap: wrap;

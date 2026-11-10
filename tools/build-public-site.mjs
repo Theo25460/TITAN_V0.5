@@ -2,7 +2,7 @@
 // Every claim here must match what the app and the server actually do (see docs/ASCENSION_300.md).
 // Usage: node tools/build-public-site.mjs   (rewrites the HTML files listed in PAGES and the sitemap)
 import { writeFileSync } from "node:fs";
-import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, faq, finalCta, cards } from "./lib/public-template.mjs";
+import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, breadcrumbTrail, faq, finalCta, cards } from "./lib/public-template.mjs";
 
 /* ---------- Offers (single source for landing and /titan-plus) ---------- */
 const FREE = [
@@ -62,7 +62,7 @@ const home = page({
     { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", availability: "https://schema.org/ComingSoon" }] },
     homeFaq.schema,
   ],
-  body: `<section class="pub-hero"><img class="pub-hero-bg" src="/assets/renaissance/valley.webp" srcset="/assets/renaissance/valley-small.webp 800w, /assets/renaissance/valley.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
+  body: `<section class="pub-hero"><img class="pub-hero-bg" src="/image/editorial/valley-hero-1600.webp" srcset="/image/editorial/valley-hero-800.webp 800w, /image/editorial/valley-hero-1600.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
   <div class="pub-wrap"><div class="pub-hero-copy"><p class="pub-eyebrow">${icon("bolt")} Journal multisport · progression · aventure</p>
     <h1>Ton sport réel.<br><em>Une progression qui dure.</em></h1>
     <p class="pub-lead">Course, musculation, escalade, natation, padel : enregistre ce que tu fais vraiment. TITAN en tire des repères clairs, une maîtrise qui grandit sport par sport et une aventure qui avance avec tes séances. Ici, seul l’effort fait avancer.</p>
@@ -76,7 +76,7 @@ const home = page({
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Un vrai carnet</p><h2>Chaque sport garde<br>ses propres mesures.</h2><p class="pub-lead">Une valeur absente reste absente : TITAN n’invente rien pour remplir un graphique.</p></div>
     ${cards([
       ["weight", "Musculation", "Exercices, séries, charges, répétitions, RIR. Routines réutilisables, progression par exercice et par variante.", "/carnet-musculation"],
-      ["run", "Course, marche, vélo", "Distance, durée à la seconde, allure, vitesse, import GPX. Records sur 5, 10, 21,1 et 42,2 km avec la séance source.", "/journal-course-a-pied"],
+      ["run", "Course à pied", "Distance, durée à la seconde, allure et import GPX. Records sur 5, 10, 21,1 et 42,2 km avec la séance source.", "/journal-course-a-pied"],
       ["mountain", "Escalade", "Bloc ou voie, cotations françaises, Fontainebleau et V-scale tenues séparées. Essais et réussites.", "/suivi-escalade"],
       ["wave", "Et 250 autres", "Natation, padel, yoga, sports de combat, ski… Chaque sport a sa famille, ses champs et ses repères.", "/sports"],
     ], 4)}</div></section>
@@ -122,15 +122,17 @@ writeFileSync("index.html", home);
 /* =====================================================================
    Guides (one template)
    ===================================================================== */
-function guide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, extraSchema = [] }) {
+function guide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems }) {
   const f = faq(faqItems, "Questions fréquentes");
+  const breadcrumb = breadcrumbTrail(route, eyebrow);
   const html = page({
     route,
     title,
     description,
     image,
-    schema: [...extraSchema, f.schema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` }, { "@type": "ListItem", position: 2, name: h1.replace(/<[^>]+>/g, " "), item: `${SITE}${route}` }] }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p>
+    schema: [f.schema],
+    breadcrumb,
+    body: `<header class="pub-page-head"><div class="pub-wrap">${breadcrumb.html}<p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p>
       <nav class="pub-toc" aria-label="Sur cette page">${sections.map(([id, t]) => `<a href="#${id}">${t}</a>`).join("")}</nav></div></header>
       <div class="pub-wrap"><article class="pub-article">${sections.map(([id, t, body]) => `<section id="${id}"><h2>${t}</h2><div class="pub-prose">${body}</div></section>`).join("")}</article></div>
       ${f.html}${finalCta(image === "valley" ? "archipelago" : "valley")}`,
@@ -161,7 +163,7 @@ guide({
       <p>Les personnages se débloquent avec les niveaux (2 au départ, puis aux niveaux 3, 6, 10 et 15). Les cadres de rang de l’Atelier aussi. Rien de tout cela ne s’achète.</p>`],
     ["maitrise", "La maîtrise, sport par sport", `<p>La maîtrise mesure ton expérience dans <strong>un</strong> sport. Chaque palier demande à la fois des heures de pratique et des semaines différentes : impossible de l’obtenir en un week-end. Toutes les séances comptent, y compris l’historique, parce que la maîtrise décrit ton expérience ; elle ne rapporte rien.</p>
       <div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Palier</th><th>Heures</th><th>Semaines</th></tr></thead><tbody>${MASTERY.map(([n, h, w], i) => `<tr><td>${i + 1}. ${n}</td><td class="num">${h}</td><td class="num">${w}</td></tr>`).join("")}</tbody></table></div>`],
-    ["cadence", "La cadence, sans série toxique", `<p>Tu choisis combien de <strong>jours actifs</strong> viser chaque semaine, de 1 à 7. Une semaine tenue s’ajoute à ton parcours ; une semaine manquée ne détruit rien. Tu peux déclarer une semaine en pause (vacances, blessure, examens) : elle ne compte ni pour ni contre toi.</p><p>Il n’y a pas de flamme qui s’éteint, pas de compteur remis à zéro, pas de notification culpabilisante.</p>`],
+    ["cadence", "La cadence, sans série toxique", `<p>Tu choisis combien de <strong>jours actifs</strong> viser chaque semaine, de 1 à 7. Une semaine tenue s’ajoute à ton parcours ; une semaine manquée ne détruit rien. Tu peux déclarer une semaine en pause (vacances, blessure, examens) : elle ne compte ni pour ni contre toi.</p><p>Il n’y a pas de flamme qui s’éteint, pas de compteur remis à zéro, pas de notification culpabilisante. <a href="/motivation-sport">Trouver une cadence qui te motive</a>.</p>`],
     ["decouverte", "Le mode découverte", `<p>Sans compte, TITAN fonctionne sur ton appareil avec les mêmes règles, à titre d’estimation : la progression officielle n’existe que sur un compte. Les séances de découverte peuvent rejoindre un compte créé ensuite. Rien n’est envoyé tant que tu n’as pas de compte.</p>`],
   ],
   faqItems: [
@@ -252,7 +254,7 @@ guide({
   image: "archipelago",
   lead: "Le coach voit ce que le sportif accepte de partager, propose des séances, et ne touche jamais au journal. Le sportif peut tout arrêter à tout moment.",
   sections: [
-    ["invitation", "1. Une invitation à usage unique", `<p>Le coach crée un code privé, valable une fois et pour une durée limitée, et le transmet à son sportif. TITAN ne vérifie pas les qualifications d’un coach : le sportif vérifie à qui il partage.</p>`],
+    ["invitation", "1. Une invitation à usage unique", `<p>Le coach crée un code privé, valable une fois et pour une durée limitée, et le transmet à son sportif. TITAN ne vérifie pas les qualifications d’un coach : le sportif vérifie à qui il partage.</p><p>Tu accompagnes un club ou une association ? <a href="/partenariats">Découvrir les partenariats TITAN</a>.</p>`],
     ["perimetre", "2. Le sportif choisit le périmètre", `<ul><li>À partir de quelle date ses séances sont visibles.</li><li>Un sport ou tous les sports.</li><li>Les détails techniques (séries, charges, RIR, escalade) ou seulement l’essentiel.</li><li>Ses notes, ou pas.</li></ul><p>Le partage commence uniquement après son accord explicite. Il peut le modifier ou le révoquer à tout moment ; les séances partagées ne sont gardées qu’en mémoire chez le coach.</p>`],
     ["propositions", "3. Des propositions, pas des ordres", `<p>Le coach propose une séance (sport, date, consignes). Le sportif l’accepte ou la décline, puis la relie à la séance réellement faite. Une proposition ne crée jamais d’XP ni de séance à sa place.</p>`],
     ["capacite", "4. Formules et capacité", `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Formule</th><th>Prix</th><th>Sportifs suivis</th><th>TITAN+ pour les sportifs suivis</th></tr></thead><tbody><tr><td>Classique</td><td>Gratuit</td><td class="num">3</td><td>Non</td></tr><tr><td>TITAN+ (individuel)</td><td>Affiché par Google Play</td><td class="num">20</td><td>Non</td></tr><tr><td>Coach</td><td>Tarif affiché par Google Play</td><td class="num">5</td><td>Inclus tant que le sportif est rattaché</td></tr><tr><td>Coach Ultra</td><td>Tarif affiché par Google Play</td><td class="num">15</td><td>Inclus tant que le sportif est rattaché</td></tr></tbody></table></div><p>Coach et Coach Ultra ont exactement la même suite de fonctions : le tarif Ultra achète de la capacité, pas des fonctions en plus. Les offres payantes ne sont pas encore en vente ; elles ouvriront uniquement dans l’application Android, via Google Play. Le sportif ne paie jamais pour être suivi.</p>`],
@@ -342,10 +344,10 @@ writeFileSync(
       ], 4)}</div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comprendre</p><h2>Progrès</h2></div>${cards([
         ["chart", "Semaine et bilans", "Récap hebdomadaire, bilans du mois et de l’année à partager, comparaison honnête avec tes périodes habituelles, questions qui répondent.", "/comprendre-mes-donnees"],
-        ["journal", "Journal", "Recherche, familles, calendrier, détail, comparaison avec la séance précédente, correction, archive, export."],
+        ["journal", "Journal", "Recherche, familles, calendrier, détail, comparaison avec la séance précédente, correction, archive, export.", "/journal-entrainement"],
         ["star", "Records", "Par sport, avec la séance source, le contexte et l’historique des améliorations."],
         ["flag", "Objectifs", "Séances, jours, minutes ou kilomètres sur une période, avec projection de rythme."],
-      ], 4)}</div></section>
+      ], 4)}<a class="pub-link" href="/progression-sportive" style="margin-top:20px">Comment lire ta progression sportive ${icon("arrow")}</a></div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Progresser</p><h2>Rang, maîtrise, aventure</h2></div>${cards([
         ["crown", "Rang et niveau", "Sept rangs, une progression longue et identique pour tous.", "/niveaux-et-xp"],
         ["target", "Maîtrise", "Dix paliers par sport, en heures et en semaines.", "/niveaux-et-xp#maitrise"],

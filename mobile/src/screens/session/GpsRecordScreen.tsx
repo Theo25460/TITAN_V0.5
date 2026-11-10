@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Linking, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -10,7 +10,7 @@ import { Format, Sports } from "../../core";
 import { useOwner } from "../../data/auth";
 import { routeLink, routeSave } from "../../data/api";
 import { saveDraft } from "../../data/drafts";
-import { awaitSession, buildPending, flushRoutes, queueRoute } from "../../lib/routeSync";
+import { buildPending, flushRoutes, queueRoute } from "../../lib/routeSync";
 import { shareTextFile } from "../../lib/exportFile";
 import { draftFromRecording } from "../../lib/gpsDraft";
 import { ask } from "../../components/Dialog";
@@ -32,32 +32,35 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   const sport = route.params.sport;
   const [rec, setRec] = useState<Recording | null>(null);
   const [ready, setReady] = useState(false);
+  const [readError, setReadError] = useState(false);
+  const [readAttempt, retryRead] = useState(0);
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [denied, setDenied] = useState<"denied" | "blocked" | "unavailable" | null>(null);
+  const mounted = useRef(false);
+  const inFlight = useRef(false);
 
   useEffect(() => {
     let alive = true;
+    mounted.current = true;
     const off = recorder.subscribe((r) => alive && r?.owner === owner && setRec(r));
-    recorder.reconcile(owner).then(() => recorder.load(owner)).then((r) => {
-      if (alive) {
-        setRec(r);
-        setReady(true);
-      }
+    const refresh = () => recorder.reconcile(owner).then((r) => {
+      if (!alive) return;
+      setRec(r);
+      setReadError(false);
+      setReady(true);
+    }).catch(() => { if (alive) setReadError(true); });
+    void refresh();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") void refresh();
     });
     return () => {
       alive = false;
+      mounted.current = false;
       off();
+      sub.remove();
     };
-  }, [owner]);
-
-  // A lost service or a sign-out must not leave a stale recording running under another account.
-  useEffect(() => {
-    const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active") recorder.reconcile(owner).then((r) => r && setRec(r));
-    });
-    return () => sub.remove();
-  }, [owner]);
+  }, [owner, readAttempt]);
 
   const live = rec?.status === "recording";
   useEffect(() => {
@@ -74,28 +77,48 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   const noSignal = live && (lastFixAge === null ? now - rec!.startedAt > 20000 : lastFixAge > 20000);
 
   async function run(fn: () => Promise<unknown>, failure: string) {
-    if (busy) return;
+    if (inFlight.current || !mounted.current) return;
+    inFlight.current = true;
     setBusy(true);
     try {
       await fn();
     } catch (e) {
-      toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : (e as Error).message === "ROUTE_OUTBOX_FULL" ? "20 parcours attendent déjà leur envoi. Ta trace reste sur ce téléphone : exporte-la ou synchronise tes parcours avant de réessayer." : "Réessaie dans un instant. Ta trace reste sur ce téléphone." });
+      if (mounted.current) toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : (e as Error).message === "ROUTE_OUTBOX_FULL" ? "20 parcours attendent déjà leur envoi. Ta trace reste sur ce téléphone : exporte-la ou synchronise tes parcours avant de réessayer." : "Réessaie dans un instant. Ta trace reste sur ce téléphone." });
     } finally {
-      setBusy(false);
+      inFlight.current = false;
+      if (mounted.current) setBusy(false);
     }
   }
 
-  const start = () =>
-    run(async () => {
-      const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
-      if (perm !== "ok") return setDenied(perm);
-      setDenied(null);
-      const other = await getActiveOwner();
-      if (other && other !== owner) await recorder.pause(other); // never two accounts at once
-      await setActiveOwner(owner);
+  async function activate(operation: () => Promise<Recording | null>) {
+    const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
+    if (!mounted.current) return;
+    if (perm !== "ok") return setDenied(perm);
+    setDenied(null);
+    const other = await getActiveOwner();
+    if (other && other !== owner) {
+      await recorder.reconcile(other);
+      await recorder.pause(other);
+    }
+    if (!mounted.current) return;
+    await setActiveOwner(owner);
+    const next = mounted.current ? await operation() : null;
+    if (!mounted.current) {
+      if (next) await recorder.pause(owner);
+      await setActiveOwner(null, owner);
+      return;
+    }
+    if (next) {
       haptic("success");
-      setRec(await recorder.start(owner, sport));
-    }, "Démarrage impossible");
+      setRec(next);
+    }
+  }
+
+  const start = () => run(() => activate(() => recorder.start(owner, sport)), "Démarrage impossible");
+  const toggle = () => run(async () => {
+    if (live) setRec(await recorder.pause(owner));
+    else await activate(() => recorder.resume(owner));
+  }, "Action impossible");
 
   const finish = () => run(async () => setRec(await recorder.finish(owner)), "Fin impossible");
 
@@ -108,13 +131,13 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: sum.start ?? rec.startedAt, distanceKm: sum.distanceKm, activeSeconds: sum.activeSeconds, ascent: sum.ascent, id: `gps-${rec.startedAt.toString(36)}` });
       if (pending) {
         await queueRoute(owner, pending);
-        await awaitSession(owner, pending.clientRouteId, rec.sport);
+        draft.gpsRouteId = pending.clientRouteId;
       }
       await saveDraft(owner, draft); // on disk before the recording is released
       await recorder.discard(owner);
-      await setActiveOwner(null);
+      await setActiveOwner(null, owner);
       flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event)).catch(() => {});
-      navigation.replace("SessionForm", { sport: rec.sport });
+      if (mounted.current) navigation.replace("SessionForm", { sport: rec.sport });
     }, "Enregistrement impossible");
 
   const exportGpx = () =>
@@ -127,12 +150,29 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   const discard = () =>
     run(async () => {
       await recorder.discard(owner);
-      await setActiveOwner(null);
+      await setActiveOwner(null, owner);
       setRec(null);
       navigation.goBack();
     }, "Abandon impossible");
 
+  if (readError) return <Screen><T tone="err" accessibilityRole="alert">Impossible de lire l’enregistrement sur ce téléphone.</T><Button label="Réessayer" onPress={() => retryRead((n) => n + 1)} /></Screen>;
   if (!ready) return <Screen><T tone="muted">Chargement…</T></Screen>;
+
+  const permissionNotice = denied ? (
+    <Card tone="amber">
+      <T variant="bodyStrong" accessibilityRole="alert">
+        {denied === "unavailable" ? "Localisation désactivée" : denied === "blocked" ? "Autorisation refusée" : "Autorisation nécessaire"}
+      </T>
+      <T tone="muted">
+        {denied === "unavailable"
+          ? "Active la localisation du téléphone, puis réessaie."
+          : denied === "blocked"
+            ? "Ouvre les réglages de TITAN et autorise la position pendant l’utilisation."
+            : "Sans position, TITAN ne peut pas enregistrer ta trace. Tu peux toujours saisir la séance à la main."}
+      </T>
+      {denied === "blocked" ? <Button small kind="secondary" label="Ouvrir les réglages" onPress={() => Linking.openSettings()} /> : null}
+    </Card>
+  ) : null;
 
   if (!rec)
     return (
@@ -144,21 +184,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <T tone="muted">Pour mesurer ta distance, ton allure ou ta vitesse et dessiner ta trace. Elle n’est utilisée que pendant une séance que tu démarres, avec une notification visible. Elle reste sur ce téléphone pendant l’enregistrement, puis rejoint ta bibliothèque privée quand tu enregistres la séance.</T>
           <T tone="muted">L’enregistrement continue écran verrouillé tant qu’il est en cours. Tu peux le mettre en pause ou le terminer à tout moment.</T>
         </Card>
-        {denied ? (
-          <Card tone="amber">
-            <T variant="bodyStrong">
-              {denied === "unavailable" ? "Localisation désactivée" : denied === "blocked" ? "Autorisation refusée" : "Autorisation nécessaire"}
-            </T>
-            <T tone="muted">
-              {denied === "unavailable"
-                ? "Active la localisation du téléphone, puis réessaie."
-                : denied === "blocked"
-                  ? "Android ne redemandera plus. Ouvre les réglages de TITAN et autorise la position pendant l’utilisation."
-                  : "Sans position, TITAN ne peut pas enregistrer ta trace. Tu peux toujours saisir la séance à la main."}
-            </T>
-            {denied === "blocked" ? <Button small kind="secondary" label="Ouvrir les réglages" onPress={() => Linking.openSettings()} /> : null}
-          </Card>
-        ) : null}
+        {permissionNotice}
         <Button kind="ghost" label="Saisir la séance à la main" onPress={() => navigation.replace("SessionForm", { sport })} />
       </Screen>
     );
@@ -173,13 +199,14 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <Button label="Enregistrer la séance" icon="check" loading={busy} onPress={keep} testID="gps-keep" />
         ) : (
           <View style={{ flexDirection: "row", gap: space.s2 }}>
-            <Button label={live ? "Pause" : "Reprendre"} kind="secondary" icon={live ? "pause" : "play"} loading={busy} onPress={() => run(async () => setRec((live ? await recorder.pause(owner) : await recorder.resume(owner)) ?? rec), "Action impossible")} style={{ flex: 1 }} testID="gps-toggle" />
+            <Button label={live ? "Pause" : "Reprendre"} kind="secondary" icon={live ? "pause" : "play"} loading={busy} onPress={toggle} style={{ flex: 1 }} testID="gps-toggle" />
             <Button label="Terminer" icon="check" loading={busy} onPress={finish} style={{ flex: 1 }} testID="gps-finish" />
           </View>
         )
       }
     >
       <T variant="eyebrow" tone="accent">{ended ? "Séance terminée" : live ? "Enregistrement en cours" : "En pause"} · {Sports.label(rec.sport)}</T>
+      {ended ? null : permissionNotice}
       {rec.interrupted && !ended ? (
         <Card tone="amber">
           <T variant="bodyStrong">Enregistrement interrompu</T>

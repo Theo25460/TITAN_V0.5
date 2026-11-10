@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { SITE_URL } from "../lib/config";
 import { toAppError } from "../lib/errors";
 import { createReturnWatch, exchange, GOOGLE_NO_RETURN, googleEnabled, parseCallback, startGoogle, watchAppState } from "../lib/googleAuth";
+import { isOnline } from "../lib/network";
 import { forgetAccountCache } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { createProfile, fetchProfile } from "./api";
@@ -14,6 +15,7 @@ import { loadQueue } from "./queue";
 import { queryClient } from "./queryClient";
 
 type Status = "loading" | "signedOut" | "signedIn";
+type AccountTransition = { owner: string | null; session: Session | null; preparing: boolean };
 
 type AuthValue = {
   status: Status;
@@ -61,64 +63,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [notice, setNotice] = useState<string | null>(null);
-  const ownerRef = useRef<string | null>(null);
-  const applyEpoch = useRef(0);
+  const account = useRef<AccountTransition | null>(null);
   const explicitSignOut = useRef(false);
 
   const apply = useCallback(async (next: Session | null) => {
-    const epoch = ++applyEpoch.current;
     const owner = next?.user.id ?? null;
-    const current = () => epoch === applyEpoch.current && ownerRef.current === owner;
-    const previous = ownerRef.current;
-    if (owner !== previous) {
-      ownerRef.current = owner;
-      try {
-        await enterAccount(owner, previous);
-      } catch {
-        if (!current()) return;
-        // Keep Auth valid, but the unread queue remains unready and refuses new writes instead of overwriting it.
-        setNotice("Ton stockage local est indisponible. Tes séances en attente ne seront pas écrasées. Redémarre TITAN pour réessayer avant d’enregistrer une nouvelle séance.");
-        setSession(next);
-        setStatus(next ? "signedIn" : "signedOut");
-        return;
-      }
+    const previous = account.current;
+    if (previous?.owner === owner) {
+      previous.session = next;
+      if (!previous.preparing) setSession(next);
+      return;
+    }
+
+    const transition = { owner, session: next, preparing: true };
+    account.current = transition;
+    const current = () => account.current === transition;
+    setSession(null);
+    setStatus(owner ? "loading" : "signedOut");
+    try {
+      await enterAccount(owner, previous?.owner ?? null);
       if (!current()) return;
-      if (owner) {
-        // First connection of a brand-new account: create its profile row through the server function.
-        try {
-          const profile = await fetchProfile(owner);
-          if (!current()) return;
-          if (!profile) {
-            const meta = next?.user.user_metadata ?? {};
-            await createProfile(String(meta.username || meta.full_name || "Agent").slice(0, 24));
-          } else if (profile.is_suspended) {
-            setNotice(profile.suspension_reason || "Ce compte est suspendu. Contacte l’assistance TITAN.");
-            explicitSignOut.current = true;
-            await supabase.auth.signOut();
-            return;
-          } else queryClient.setQueryData(["profile", owner], profile);
-        } catch {
-          // Offline start: the cached profile is used; the next sync confirms it.
-        }
+    } catch {
+      if (!current()) return;
+      // The unread queue refuses new writes, protecting the existing sessions.
+      setNotice("Ton stockage local est indisponible. Tes séances en attente ne seront pas écrasées. Redémarre TITAN pour réessayer avant d’enregistrer une nouvelle séance.");
+    }
+    if (owner && isOnline()) {
+      // First connection of a brand-new account: create its profile row through the server function.
+      try {
+        const profile = await fetchProfile(owner);
+        if (!current()) return;
+        if (!profile) {
+          const meta = transition.session?.user.user_metadata ?? {};
+          await createProfile(owner, String(meta.username || meta.full_name || "Agent").slice(0, 24));
+        } else if (profile.is_suspended) {
+          setNotice(profile.suspension_reason || "Ce compte est suspendu. Contacte l’assistance TITAN.");
+          explicitSignOut.current = true;
+          await supabase.auth.signOut();
+          return;
+        } else queryClient.setQueryData(["profile", owner], profile);
+      } catch {
+        // Offline start: the cached profile is used; the next sync confirms it.
       }
     }
     if (!current()) return;
-    setSession(next);
-    setStatus(next ? "signedIn" : "signedOut");
+    transition.preparing = false;
+    setSession(transition.session);
+    setStatus(owner ? "signedIn" : "signedOut");
   }, []);
 
   useEffect(() => {
     let alive = true;
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        if (alive) return apply(data.session);
-      })
-      .catch(() => {
-        if (alive) return apply(null);
-      });
+    let receivedLiveEvent = false;
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
-      if (event === "SIGNED_OUT" && ownerRef.current && !explicitSignOut.current) setNotice("Ta session a expiré. Reconnecte-toi pour retrouver tes données.");
+      // The subscription provides the initial session. A late initial read must never undo a live auth event.
+      if (event === "INITIAL_SESSION" && receivedLiveEvent) return;
+      if (event !== "INITIAL_SESSION") receivedLiveEvent = true;
+      if (event === "SIGNED_OUT" && account.current?.owner && !explicitSignOut.current) setNotice("Ta session a expiré. Reconnecte-toi pour retrouver tes données.");
       if (event === "SIGNED_OUT") explicitSignOut.current = false;
       // Never call Supabase inside this callback (documented deadlock): defer the work.
       setTimeout(() => {
@@ -127,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => {
       alive = false;
-      applyEpoch.current++;
+      account.current = null;
       data.subscription.unsubscribe();
     };
   }, [apply]);
@@ -200,12 +201,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw new Error(toAppError(error).message);
       },
       async signOut({ forget = false } = {}) {
-        const owner = ownerRef.current;
-        explicitSignOut.current = true;
-        await supabase.auth.signOut({ scope: "local" });
-        queryClient.clear();
+        const owner = session?.user.id;
+        if (!owner) return;
+        if (account.current?.owner === owner) {
+          const { data } = await supabase.auth.getSession();
+          if (account.current?.owner === owner && data.session?.user.id === owner) {
+            explicitSignOut.current = true;
+            await supabase.auth.signOut({ scope: "local" });
+          }
+        }
+        queryClient.removeQueries({ predicate: (q) => q.queryKey[1] === owner });
         // Unsent sessions stay on the device for this account unless the account itself is deleted.
-        if (owner) await forgetAccountCache(owner, { keepQueue: !forget });
+        await forgetAccountCache(owner, { keepQueue: !forget });
       },
     }),
     [status, session, notice],

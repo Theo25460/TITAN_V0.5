@@ -71,3 +71,35 @@ test('a newer cache timestamp alone never announces a progression conflict on re
  assert.equal(notices.filter(n=>n[1]==='CACHE EN REVUE').length,0);
  assert.equal(h.calls.length,0);
 });
+
+test('changing to a cloud profile with an empty state never publishes the previous owner’s preferences or history',async()=>{
+ const h=harness(), seen=[];
+ h.w.state.user.schedule={monday:{sport:'private-a'}};
+ h.w.state.user.weeklyGoalSessions=6;
+ h.w.state.history=[{id:'a-private-session'}];
+ h.w.titanClient.auth.getSession=async()=>({data:{session:{user:{id:'b'},access_token:'token-b'}},error:null});
+ h.w.titanClient.from=()=>({select(){return this;},eq(){return this;},maybeSingle:async()=>({data:{id:'b',username:'B',game_state:{},friend_code:'TN-BBBBBB'},error:null})});
+ h.w.dispatchEvent=event=>{if(event.type==='titan:account-changed')seen.push(JSON.parse(JSON.stringify(h.w.state)));};
+ await h.w.syncWithSupabase();
+ assert.equal(seen.length,1);
+ assert.equal(seen[0].user.id,'b');
+ assert.equal(seen[0].user.schedule,undefined);
+ assert.equal(seen[0].user.weeklyGoalSessions,3);
+ assert.equal(seen[0].history.length,0);
+ assert.equal(h.w.state.user.schedule,undefined);
+ assert.equal(h.calls.length,0);
+});
+
+test('a new cloud profile bootstrap uses fresh preferences and the captured owner’s bearer',async()=>{
+ const h=harness({send:()=>({data:{id:'b',username:'B',game_state:{},friend_code:'TN-BBBBBB'},error:null})});
+ h.w.state.user.weeklyGoalSessions=6;
+ h.w.state.user.privacy={publicProfile:true};
+ h.w.titanClient.auth.getSession=async()=>({data:{session:{user:{id:'b'},access_token:'token-b'}},error:null});
+ h.w.titanClient.from=()=>({select(){return this;},eq(){return this;},maybeSingle:async()=>({data:null,error:null})});
+ await h.w.syncWithSupabase();
+ assert.equal(h.calls.length,1);
+ assert.equal(h.calls[0].token,'Bearer token-b');
+ assert.equal(h.calls[0].params.p_state.user.id,'b');
+ assert.equal(h.calls[0].params.p_state.user.weeklyGoalSessions,3);
+ assert.equal(h.calls[0].params.p_privacy.publicProfile,false);
+});

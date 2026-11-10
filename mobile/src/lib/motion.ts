@@ -19,6 +19,7 @@ export function useReducedMotion() {
   const [value, setValue] = useState(current);
   useEffect(() => {
     listeners.add(setValue);
+    setValue(current);
     return () => {
       listeners.delete(setValue);
     };

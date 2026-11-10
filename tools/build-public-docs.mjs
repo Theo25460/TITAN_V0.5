@@ -4,7 +4,7 @@
 // commercial launch (identity fields of the publisher cannot be invented and are kept as published).
 import { readFileSync, writeFileSync } from "node:fs";
 import vm from "node:vm";
-import { icon, SITE, E, typical, page, faq, finalCta, cards, esc } from "./lib/public-template.mjs";
+import { icon, SITE, E, typical, page, breadcrumbTrail, faq, finalCta, cards, esc } from "./lib/public-template.mjs";
 
 const UPDATED = "5 octobre 2026";
 const SUPPORT = "titanteam.app@gmail.com";
@@ -319,6 +319,11 @@ const FAMILY_TEXT = {
   jeu: "Durée, matchs, sets ou rounds selon le sport, et ressenti.",
   mobilite: "Durée et ressenti, pour le yoga, les étirements et la récupération active.",
 };
+const FAMILY_GUIDES = {
+  endurance: ["/journal-course-a-pied", "Voir le journal de course à pied"],
+  force: ["/carnet-musculation", "Voir le carnet de musculation"],
+  technique: ["/suivi-escalade", "Comprendre les cotations d’escalade"],
+};
 writeFileSync(
   "sports.html",
   page({
@@ -326,10 +331,15 @@ writeFileSync(
     title: `Les ${rows.length} sports suivis par TITAN, famille par famille`,
     description: `Course, musculation, escalade, natation, raquette, combat, équipe, glisse : les ${rows.length} sports que TITAN journalise, avec leurs mesures.`,
     image: "archipelago",
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Catalogue</p><h1>${rows.length} sports.<br>Chacun ses mesures.</h1><p class="pub-lead">TITAN adapte la saisie à ta discipline et calcule l’effort de la même façon pour tous : la durée et ton ressenti.</p></div></header>
+    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Catalogue</p><h1>${rows.length} sports.<br>Chacun ses mesures.</h1><p class="pub-lead">TITAN adapte la saisie à ta discipline et calcule l’effort de la même façon pour tous : la durée et ton ressenti.</p><a class="pub-link" href="/suivi-sportif">Découvrir le suivi multisport ${icon("arrow")}</a></div></header>
       ${[...byFamily.entries()]
         .sort((a, b) => b[1].length - a[1].length)
-        .map(([fam, list]) => `<section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">${icon(SP.FAMILY_ICON[fam] || "bolt")} ${esc(SP.FAMILY_LABEL[fam] || fam)} · ${list.length} sports</p><p class="pub-lead">${FAMILY_TEXT[fam] || ""}</p></div><p class="pub-prose" style="max-width:none">${list.sort((a, b) => a.localeCompare(b, "fr")).map(esc).join(" · ")}</p></div></section>`)
+        .map(([fam, list]) => {
+          const guide = FAMILY_GUIDES[fam];
+          return `<section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">${icon(SP.FAMILY_ICON[fam] || "bolt")} ${list.length} sports</p><h2>${esc(SP.FAMILY_LABEL[fam] || fam)}</h2><p class="pub-lead">${FAMILY_TEXT[fam] || ""}</p></div>
+            <p class="pub-prose" style="max-width:none">${list.sort((a, b) => a.localeCompare(b, "fr")).map(esc).join(" · ")}</p>
+            ${guide ? `<a class="pub-link" href="${guide[0]}" style="margin-top:16px">${guide[1]} ${icon("arrow")}</a>` : ""}</div></section>`;
+        })
         .join("")}${finalCta("valley")}`,
   }),
 );
@@ -350,8 +360,12 @@ doc({
 });
 
 /* ---------------------------------------------------------------- Sport-specific guides */
-function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems }) {
+const SPORTS_PARENT = ["/sports", "Les sports"];
+const FEATURES_PARENT = ["/fonctionnalites", "Fonctionnalités"];
+
+function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, parent }) {
   const f = faq(faqItems, "Questions fréquentes");
+  const breadcrumb = breadcrumbTrail(route, eyebrow, parent);
   writeFileSync(
     file,
     page({
@@ -360,7 +374,8 @@ function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, s
       description,
       image,
       schema: [f.schema],
-      body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="/fonctionnalites">Toutes les fonctionnalités</a></div></div></header>
+      breadcrumb,
+      body: `<header class="pub-page-head"><div class="pub-wrap">${breadcrumb.html}<p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="/fonctionnalites">Toutes les fonctionnalités</a></div></div></header>
         <div class="pub-wrap"><article class="pub-article">${sections.map(([t, body]) => `<section><h2>${t}</h2><div class="pub-prose">${body}</div></section>`).join("")}</article></div>${f.html}${finalCta(image === "valley" ? "archipelago" : "valley")}`,
     }),
   );
@@ -368,6 +383,7 @@ function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, s
 
 seoGuide({
   route: "/journal-course-a-pied",
+  parent: SPORTS_PARENT,
   file: "journal-course-a-pied.html",
   title: "Journal de course à pied : allure, records et progression | TITAN",
   h1: "Un journal de course<br>qui comprend tes sorties",
@@ -388,6 +404,7 @@ seoGuide({
 });
 seoGuide({
   route: "/carnet-musculation",
+  parent: SPORTS_PARENT,
   file: "carnet-musculation.html",
   title: "Carnet de musculation : séries, charges, RIR et progression | TITAN",
   h1: "Un carnet de musculation<br>série par série",
@@ -408,6 +425,7 @@ seoGuide({
 });
 seoGuide({
   route: "/suivi-escalade",
+  parent: SPORTS_PARENT,
   file: "suivi-escalade.html",
   title: "Cotations de bloc : Fontainebleau, V-scale et suivi | TITAN",
   h1: "Comprendre les cotations,<br>suivre ton escalade",
@@ -438,6 +456,7 @@ seoGuide({
 });
 seoGuide({
   route: "/suivi-sportif",
+  parent: SPORTS_PARENT,
   file: "suivi-sportif.html",
   title: "Suivi sportif multisport : un journal pour tous tes sports",
   h1: "Tous tes sports,<br>un seul journal",
@@ -454,6 +473,7 @@ seoGuide({
 });
 seoGuide({
   route: "/journal-entrainement",
+  parent: FEATURES_PARENT,
   file: "journal-entrainement.html",
   title: "Journal d’entraînement en ligne, gratuit et hors ligne | TITAN",
   h1: "Un journal d’entraînement<br>que tu rouvres avec plaisir",
@@ -470,6 +490,7 @@ seoGuide({
 });
 seoGuide({
   route: "/progression-sportive",
+  parent: FEATURES_PARENT,
   file: "progression-sportive.html",
   title: "Mesurer sa progression sportive sans se raconter d’histoires | TITAN",
   h1: "Progresser,<br>et le savoir vraiment",
@@ -486,6 +507,7 @@ seoGuide({
 });
 seoGuide({
   route: "/motivation-sport",
+  parent: ["/niveaux-et-xp", "Niveaux et XP"],
   file: "motivation-sport.html",
   title: "Garder la motivation pour le sport, sans culpabiliser | TITAN",
   h1: "La motivation<br>qui ne culpabilise pas",

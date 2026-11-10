@@ -25,6 +25,43 @@ const time=s=>new Date(Date.UTC(2026,9,29,7,0,s)).toISOString();
 function file(timed=true,altitude=true){let b='<gpx><trk><trkseg>';for(let i=0;i<=20;i++)b+=`<trkpt lat="${45+i*.001}" lon="6">${altitude?`<ele>${1000+i*5}</ele>`:''}${timed?`<time>${time(i*30)}</time>`:''}</trkpt>`;return b+'</trkseg></trk></gpx>';}
 const upload=(page,text)=>page.locator('[data-gpx]').setInputFiles({name:'sortie.gpx',mimeType:'application/gpx+xml',buffer:Buffer.from(text)});
 
+test('GPX preview runs the parser outside the page thread',async()=>{
+ const {page,context}=await fixture();
+ try{
+  await page.evaluate(()=>{
+   const analyse=window.TitanGpx.analyse;
+   window.gpxPageAnalyses=0;
+   window.TitanGpx.analyse=(...args)=>{window.gpxPageAnalyses++;return analyse(...args);};
+  });
+  await upload(page,file());
+  await page.locator('[data-gpx-preview]').waitFor();
+  assert.equal(await page.evaluate(()=>window.gpxPageAnalyses),0);
+ }finally{await context.close();}
+});
+
+test('the first offline GPX import in the installed PWA can load the worker and parser',async()=>{
+ const context=await browser.newContext({viewport:{width:360,height:900}});
+ try{
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort());
+  const page=await context.newPage();
+  page.setDefaultTimeout(8000);
+  await page.goto(BASE+'/training?sport=running',{waitUntil:'load'});
+  await page.evaluate(()=>localStorage.setItem('titan_sw_dev','1'));
+  await page.reload({waitUntil:'load'});
+  await page.waitForFunction(()=>navigator.serviceWorker.controller);
+  const cachedParser=await page.evaluate(async()=>{
+   const worker=await caches.match('/js/core/gpx-worker.js');
+   const parserUrl=/importScripts\(['"]([^'"]+)['"]\)/.exec(await worker.text())?.[1];
+   return !!parserUrl && !!await caches.match(parserUrl);
+  });
+  assert.equal(cachedParser,true,'the installed worker can resolve the exact parser request from its offline cache');
+  await context.setOffline(true);
+  await upload(page,file());
+  await page.locator('[data-gpx-preview]').waitFor();
+  assert.equal(await page.locator('[data-gpx-route] polyline').count(),1);
+ }finally{await context.close();}
+});
+
 test('timed GPX shows local route, elevation profile and kilometre splits then saves only non-location summary',async()=>{
  const {page,context}=await fixture();
  try{
@@ -160,7 +197,7 @@ test('missing timestamps disable speed colouring while a planned route can show 
   assert.equal(await page.locator('[data-gpx-color="speed"]').isDisabled(),true);
   assert.equal(await page.locator('[data-gpx-color="grade"]').getAttribute('aria-pressed'),'true');
   assert.match(await page.locator('[data-gpx-pauses]').innerText(),/non disponibles/);
-  await upload(page,file(false,false));await page.locator('[data-gpx-color="grade"]').waitFor();
+  await upload(page,file(false,false));await page.locator('[data-gpx-color="grade"]:disabled').waitFor();
   assert.equal(await page.locator('[data-gpx-color="grade"]').isDisabled(),true);
   assert.equal(await page.locator('[data-gpx-route] .gpx-color-line').count(),0);
  }finally{await context.close();}

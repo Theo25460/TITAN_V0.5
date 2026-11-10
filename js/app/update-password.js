@@ -1,4 +1,4 @@
-/* TITAN 300 — new password after a recovery e-mail. The recovery link opens a Supabase session in this page. */
+/* TITAN 300 — new password after a recovery e-mail. The reset session is isolated from the normal account session. */
 (function () {
   "use strict";
   const $ = (id) => document.getElementById(id);
@@ -46,11 +46,21 @@
     clearLocalError();
     say("");
   });
-  const client = () => window.titanClient || window.initTitanSupabaseClient?.();
+  const client = () => window.initTitanRecoveryClient?.();
+  const account = document.createElement("p");
+  account.className = "asc-small asc-muted";
+  account.hidden = true;
+  $("pw-form").before(account);
+  const showAccount = (session) => {
+    const email = session?.user?.email;
+    account.hidden = typeof email !== "string" || !email;
+    account.textContent = account.hidden ? "" : `Compte concerné par ce lien : ${email}`;
+  };
 
   let ready = false;
   client()?.auth.onAuthStateChange((event, session) => {
-    if (session) ready = true;
+    ready = Boolean(session?.user?.id);
+    showAccount(session);
   });
   setTimeout(async () => {
     try {
@@ -58,7 +68,7 @@
       if (!c) throw new Error("Auth unavailable");
       const result = await c.auth.getSession();
       if (result?.error) throw result.error;
-      ready = ready || Boolean(result?.data?.session);
+      ready = ready || Boolean(result?.data?.session?.user?.id);
       if (!ready && !interacted) say("Ce lien a expiré ou a déjà servi. Demande un nouveau lien depuis « Mot de passe oublié ».");
     } catch {
       // This background diagnostic must not replace validation or an update result.
@@ -94,11 +104,15 @@
     say("");
     let success = false;
     try {
+      const receipt = await c.auth.getSession().catch(() => null);
+      if (!receipt || receipt.error) return say("Ce lien n’a pas pu être vérifié. Vérifie ton réseau puis réessaie.");
+      if (!receipt.data?.session?.user?.id) return say("Ce lien a expiré. Demande un nouveau lien depuis « Mot de passe oublié ».");
       const { error } = await c.auth.updateUser({ password: pw });
       if (error) throw error;
       success = true;
-      say("Mot de passe enregistré. Direction ton QG…", "ok");
-      setTimeout(() => location.replace("/aujourdhui"), 1200);
+      window.clearTitanRecoverySession?.();
+      say("Mot de passe enregistré. Connecte-toi avec ton nouveau mot de passe.", "ok");
+      setTimeout(() => location.replace("/login"), 1200);
     } catch (err) {
       const m = String(err?.message || "");
       say(/same|different/i.test(m) ? "Choisis un mot de passe différent de l’ancien." : /session|expired|jwt/i.test(m) ? "Ce lien a expiré. Demande un nouveau lien depuis « Mot de passe oublié »." : navigator.onLine ? "Le mot de passe n’a pas pu être enregistré. Réessaie." : "Pas de réseau. Réessaie une fois connecté.");

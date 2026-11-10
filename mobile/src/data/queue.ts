@@ -6,6 +6,7 @@
      the session with a visible reason instead of retrying forever. */
 import { useSyncExternalStore } from "react";
 import { toAppError } from "../lib/errors";
+import { queueRouteLink } from "../lib/routeSync";
 import { ownerKey, readJSONStrict as readJSON, writeJSON } from "../lib/storage";
 import type { TrainingLog, TrainingPayload } from "../core/types";
 import { assertOwner, submitSession, type SubmitReceipt } from "./api";
@@ -14,6 +15,7 @@ export type QueueItem = {
   key: string;
   ownerId: string;
   payload: TrainingPayload;
+  gpsRouteId?: string;
   status: "pending" | "error";
   reason?: string;
   queuedAt: string;
@@ -22,17 +24,17 @@ export type QueueItem = {
 
 type Listener = () => void;
 
-const state = { owner: null as string | null, items: [] as QueueItem[], sending: false };
-let snapshot = { owner: state.owner, items: state.items, sending: state.sending };
+const state = { owner: null as string | null, items: [] as QueueItem[] };
+let snapshot = { ...state, sending: false };
 const listeners = new Set<Listener>();
 let writeChain: Promise<unknown> = Promise.resolve();
-let flushing: Promise<FlushResult> | null = null;
-let flushAgain = false;
+const flushing = new Map<string, Promise<FlushResult>>();
+const flushAgain = new Set<string>();
 let loadEpoch = 0;
 let readyOwner: string | null = null;
 
 function emit() {
-  snapshot = { owner: state.owner, items: state.items, sending: state.sending };
+  snapshot = { ...state, sending: state.owner !== null && flushing.has(state.owner) };
   listeners.forEach((l) => l());
 }
 
@@ -65,12 +67,12 @@ export async function loadQueue(owner: string | null) {
 }
 
 /** The session is stored durably before the promise resolves; only then may the UI celebrate. */
-export function enqueue(owner: string, payload: TrainingPayload): Promise<QueueItem> {
+export function enqueue(owner: string, payload: TrainingPayload, gpsRouteId?: string): Promise<QueueItem> {
   return serial(async () => {
     if (state.owner !== owner) throw new Error("Le compte a changé. Rien n’a été enregistré.");
     if (readyOwner !== owner) throw new Error("Ton journal local n’a pas pu être chargé. Réessaie avant d’enregistrer une nouvelle séance.");
     const id = payload.details.client_event_id!;
-    const item: QueueItem = { key: `${owner}:${id}`, ownerId: owner, payload: JSON.parse(JSON.stringify(payload)), status: "pending", queuedAt: new Date().toISOString(), attempts: 0 };
+    const item: QueueItem = { key: `${owner}:${id}`, ownerId: owner, payload: JSON.parse(JSON.stringify(payload)), gpsRouteId, status: "pending", queuedAt: new Date().toISOString(), attempts: 0 };
     const items = [...state.items.filter((i) => i.key !== item.key), item];
     await persist(owner, items);
     if (state.owner === owner) {
@@ -98,62 +100,67 @@ export const retryItem = (owner: string, key: string) => replace(owner, (items) 
 
 export type FlushResult = { sent: number; remaining: number; receipts: Record<string, SubmitReceipt>; offline: boolean };
 
-/** Sends pending sessions one by one, in order. Single flight: concurrent calls share the same run. */
+/** Sends sessions in order. Concurrent calls for the same account share the complete run. */
 export function flushQueue(owner: string, onSent?: (eventId: string, receipt: SubmitReceipt) => void): Promise<FlushResult> {
-  if (flushing) {
-    // A session queued during a running send is picked up by one more pass right after it.
-    flushAgain = true;
-    return flushing;
+  const active = () => state.owner === owner && readyOwner === owner;
+  const remaining = () => active() ? state.items.length : 0;
+  const hasPending = () => active() && state.items.some((item) => item.status === "pending");
+  if (!hasPending()) return Promise.resolve({ sent: 0, remaining: remaining(), receipts: {}, offline: false });
+  const existing = flushing.get(owner);
+  if (existing) {
+    flushAgain.add(owner);
+    return existing;
   }
   const run = async (): Promise<FlushResult> => {
     const receipts: Record<string, SubmitReceipt> = {};
     let sent = 0;
     let offline = false;
-    if (state.owner !== owner || readyOwner !== owner) return { sent, remaining: 0, receipts, offline };
     try {
-      await assertOwner(owner);
-    } catch {
-      return { sent, remaining: state.items.length, receipts, offline };
-    }
-    state.sending = true;
-    emit();
-    try {
-      for (const item of [...state.items]) {
-        if (state.owner !== owner || item.ownerId !== owner || item.status !== "pending") continue;
+      do {
+        flushAgain.delete(owner);
         try {
           await assertOwner(owner);
-          const receipt = await submitSession(owner, item.payload);
-          const eventId = item.payload.details.client_event_id!;
-          receipts[eventId] = receipt;
-          await discard(owner, item.key);
-          sent++;
-          onSent?.(eventId, receipt);
-        } catch (e) {
-          const err = toAppError(e);
-          if (err.code === "AUTH_REQUIRED") break;
-          await replace(owner, (items) =>
-            items.map((i) => (i.key === item.key ? { ...i, attempts: i.attempts + 1, status: err.permanent ? "error" : "pending", reason: err.message } : i)),
-          );
-          if (!err.permanent) {
-            offline = err.network;
-            break;
+        } catch {
+          break;
+        }
+        offline = false;
+        for (const item of state.items) {
+          if (!active()) break;
+          if (item.ownerId !== owner || item.status !== "pending") continue;
+          try {
+            await assertOwner(owner);
+            if (!active()) break;
+            const receipt = await submitSession(owner, item.payload);
+            const eventId = item.payload.details.client_event_id!;
+            if (item.gpsRouteId) await queueRouteLink(owner, item.gpsRouteId, eventId);
+            receipts[eventId] = receipt;
+            await discard(owner, item.key);
+            sent++;
+            onSent?.(eventId, receipt);
+          } catch (e) {
+            const err = toAppError(e);
+            if (err.code === "AUTH_REQUIRED") break;
+            await replace(owner, (items) =>
+              items.map((i) => (i.key === item.key ? { ...i, attempts: i.attempts + 1, status: err.permanent ? "error" : "pending", reason: err.message } : i)),
+            );
+            if (!err.permanent) {
+              offline = err.network;
+              break;
+            }
           }
         }
-      }
+      } while (flushAgain.has(owner) && hasPending());
+      return { sent, remaining: remaining(), receipts, offline };
     } finally {
-      state.sending = false;
-      emit();
+      flushing.delete(owner);
+      flushAgain.delete(owner);
+      if (state.owner === owner) emit();
     }
-    return { sent, remaining: state.items.length, receipts, offline };
   };
-  flushing = run().finally(() => {
-    flushing = null;
-    if (flushAgain) {
-      flushAgain = false;
-      if (state.owner === owner && state.items.some((i) => i.status === "pending")) flushQueue(owner, onSent).catch(() => {});
-    }
-  });
-  return flushing;
+  const flight = run();
+  flushing.set(owner, flight);
+  emit();
+  return flight;
 }
 
 export function useQueue() {

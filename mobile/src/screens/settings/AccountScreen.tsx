@@ -11,7 +11,7 @@ import { Section } from "../../components/Section";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Format, Progress, Sports } from "../../core";
-import { exportOwnData } from "../../data/api";
+import { assertOwner, exportOwnData } from "../../data/api";
 import { useAuth } from "../../data/auth";
 import { useLogs, useProfile, useSavePrefs } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
@@ -21,7 +21,7 @@ import { space } from "../../theme/tokens";
 
 export function AccountScreen() {
   const navigation = useNavigation();
-  const { email, updatePassword } = useAuth();
+  const { owner, email, updatePassword } = useAuth();
   const profile = useProfile();
   const save = useSavePrefs();
   const toast = useToast();
@@ -71,10 +71,12 @@ export function AccountScreen() {
   }
 
   async function exportAll() {
+    if (!owner) return;
     if (!online) return toast({ kind: "warn", title: "Connexion requise", message: "L’export complet est préparé par le serveur." });
     setBusy("json");
     try {
-      const data = await exportOwnData();
+      const data = await exportOwnData(owner);
+      await assertOwner(owner);
       await shareTextFile(`titan-donnees-${Format.dateKey(new Date())}.json`, JSON.stringify(data, null, 2), "application/json");
     } catch (e) {
       toast({ kind: "err", title: "Export impossible", message: errorMessage(e) });

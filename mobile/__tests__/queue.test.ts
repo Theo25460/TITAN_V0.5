@@ -1,6 +1,7 @@
 /* Offline queue: durable before sending, idempotent retries, account isolation, no silent loss. */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { TrainingPayload } from "../src/core/types";
+import { pendingLinks } from "../src/lib/routeSync";
 
 const mockSubmit = jest.fn();
 let mockSessionOwner: string | null = "owner-a";
@@ -75,6 +76,49 @@ test("another account's session is never sent", async () => {
   expect(mockSubmit).not.toHaveBeenCalled();
   await queue.loadQueue("owner-b");
   expect(queue.queueSnapshot().items).toHaveLength(0);
+});
+
+test("switching accounts lets the new account send without sharing the previous receipt", async () => {
+  let releaseOld!: (value: ReturnType<typeof receipt>) => void;
+  mockSubmit.mockImplementationOnce(() => new Promise((resolve) => { releaseOld = resolve; }));
+  mockSubmit.mockResolvedValueOnce(receipt("server-b"));
+  await queue.enqueue("owner-a", payload("event-a"));
+  const old = queue.flushQueue("owner-a");
+  await Promise.resolve();
+  await Promise.resolve();
+  mockSessionOwner = "owner-b";
+  await queue.loadQueue("owner-b");
+  await queue.enqueue("owner-b", payload("event-b"));
+  const next = queue.flushQueue("owner-b");
+  releaseOld(receipt("server-a"));
+  expect((await old).receipts).toEqual({ "event-a": receipt("server-a") });
+  expect((await next).receipts).toEqual({ "event-b": receipt("server-b") });
+  expect(queue.queueSnapshot()).toMatchObject({ owner: "owner-b", items: [], sending: false });
+});
+
+test("a save queued during a send is included in the shared flush result", async () => {
+  let releaseFirst!: (value: ReturnType<typeof receipt>) => void;
+  mockSubmit.mockImplementationOnce(() => new Promise((resolve) => { releaseFirst = resolve; }));
+  mockSubmit.mockResolvedValueOnce(receipt("server-2"));
+  await queue.enqueue("owner-a", payload("event-1"));
+  const first = queue.flushQueue("owner-a");
+  await Promise.resolve();
+  await Promise.resolve();
+  await queue.enqueue("owner-a", payload("event-2"));
+  const second = queue.flushQueue("owner-a");
+  releaseFirst(receipt("server-1"));
+  expect(second).toBe(first);
+  expect(await second).toMatchObject({ sent: 2, remaining: 0, receipts: { "event-1": receipt("server-1"), "event-2": receipt("server-2") } });
+});
+
+test("only the session carrying a GPS route id queues an association, even after a restart", async () => {
+  await queue.enqueue("owner-a", payload("manual-event"));
+  await queue.enqueue("owner-a", payload("gps-event"), "gps-explicit-route");
+  await queue.loadQueue(null);
+  await queue.loadQueue("owner-a");
+  mockSubmit.mockResolvedValueOnce(receipt("manual")).mockResolvedValueOnce(receipt("gps"));
+  expect((await queue.flushQueue("owner-a")).sent).toBe(2);
+  expect(await pendingLinks("owner-a")).toEqual([{ clientRouteId: "gps-explicit-route", eventId: "gps-event", attempts: 0 }]);
 });
 
 test("provisional journal entries hide sessions already confirmed", () => {

@@ -348,9 +348,9 @@
   }
 
   let detailRequest = 0;
-  const accountContext = () => ({ owner: window.state?.user?.id, epoch: window.titanAccountTransition?.epoch || 0 });
+  const accountContext = () => ({ owner: window.state?.user?.id, client: window.titanClient, epoch: window.titanAccountTransition?.epoch });
   const currentAccount = (context) => !window.titanAccountTransition?.active
-    && context.owner === window.state?.user?.id && context.epoch === (window.titanAccountTransition?.epoch || 0);
+    && context.owner === window.state?.user?.id && context.client === window.titanClient && context.epoch === window.titanAccountTransition?.epoch;
   function guardDialog(d, context) {
     const guard = () => { if (!currentAccount(context)) d.close(); };
     const events = ["titan:account-changing", "titan:account-changed", "titan:history-updated"];
@@ -577,8 +577,8 @@
       const submit = body.querySelector("[type=submit]");
       submit.disabled = true;
       try {
-        await X().update(l, patch);
-        if (!currentAccount(context)) return;
+        const updated = await X().update(l, patch);
+        if (!updated || !currentAccount(context)) return;
         d.close();
         window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: "Statistiques et records sont à jour." });
       } catch (error) {
@@ -635,11 +635,17 @@
     if (t.hasAttribute("data-export")) return window.titanExportSessionsCSV?.(filtered());
     if (t.hasAttribute("data-export-pending")) return window.titanExportPending?.();
     if (t.hasAttribute("data-retry")) {
+      const context = accountContext();
+      if (!currentAccount(context)) return;
       t.disabled = true;
       window.flushPendingTrainingLogs?.({ retry: true })
-        .then((r) => window.titanShell.toast({ type: r?.remaining ? "warn" : "ok", title: r?.remaining ? "Envoi incomplet" : "Séances envoyées", message: r?.remaining ? `${r.remaining} séance(s) restent sur cet appareil.` : "Tout est synchronisé." }))
-        .catch(() => window.titanShell.toast({ type: "warn", title: "Envoi impossible", message: "Tes séances restent conservées sur cet appareil." }))
-        .finally(render);
+        .then((r) => {
+          if (currentAccount(context)) window.titanShell.toast({ type: r?.remaining ? "warn" : "ok", title: r?.remaining ? "Envoi incomplet" : "Séances envoyées", message: r?.remaining ? `${r.remaining} séance(s) restent sur cet appareil.` : "Tout est synchronisé." });
+        })
+        .catch(() => {
+          if (currentAccount(context)) window.titanShell.toast({ type: "warn", title: "Envoi impossible", message: "Tes séances restent conservées sur cet appareil." });
+        })
+        .finally(() => { if (currentAccount(context)) render(); });
     }
   }
 

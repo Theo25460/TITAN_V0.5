@@ -39,7 +39,7 @@ export function PublicCardScreen() {
   async function update(enabled: boolean, show: Record<string, boolean>, newLink = false) {
     setBusy(true);
     try {
-      const next = await saveCard(enabled, show, newLink);
+      const next = await saveCard(owner, enabled, show, newLink);
       qc.setQueryData<CardSettings>(keys.card(owner), next);
     } catch (e) {
       toast({ kind: "err", title: "Carte non mise à jour", message: errorMessage(e) });

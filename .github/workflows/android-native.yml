@@ -57,7 +57,7 @@ on:
         default: true
         type: boolean
       e2e_post_migrations:
-        description: "Rejouer aussi le parcours sur une réplique où les migrations de la candidate Web (PR #115) sont déjà appliquées"
+        description: "Rejouer aussi le parcours sur une réplique avec les migrations du commit testé"
         required: false
         default: false
         type: boolean
@@ -259,17 +259,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # "production" = what is live today; "after-migrations" = the same plus the pending migrations of the Web candidate.
+        # The same synthetic fixture is exercised against the deployed and candidate schemas.
         schema: ${{ fromJSON(inputs.e2e_post_migrations && '["production","after-migrations"]' || '["production"]') }}
     steps:
       - uses: actions/checkout@v4
-      - name: Migrations de la candidate Web (PR #115)
-        if: matrix.schema == 'after-migrations'
-        uses: actions/checkout@v4
-        with:
-          ref: codex/final-web-rc-20261021
-          path: web-rc
-          sparse-checkout: supabase/migrations
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -292,7 +285,7 @@ jobs:
       - run: npm ci
       - name: Réplique locale du backend (structure de production + migrations, comptes de test)
         env:
-          E2E_PENDING_MIGRATIONS_DIR: ${{ matrix.schema == 'after-migrations' && format('{0}/web-rc/supabase/migrations', github.workspace) || '' }}
+          E2E_INCLUDE_PENDING: ${{ matrix.schema == 'after-migrations' && '1' || '0' }}
         run: e2e/setup-backend.sh
       - name: Application de test (x86_64, pointe vers la réplique locale)
         env:

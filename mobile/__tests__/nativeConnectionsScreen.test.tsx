@@ -6,13 +6,13 @@ import { GarminScreen } from "../src/screens/settings/GarminScreen";
 import { GuildChat } from "../src/components/GuildChat";
 
 let mockOwner = "a";
-const mockRead = jest.fn(); const mockConnect = jest.fn(); const mockDisconnect = jest.fn(); const mockLoad = jest.fn(); const mockPost = jest.fn();
+const mockRead = jest.fn(); const mockConnect = jest.fn(); const mockDisconnect = jest.fn(); const mockComplete = jest.fn(); const mockLoad = jest.fn(); const mockPost = jest.fn();
 jest.mock("../src/data/auth", () => ({ useOwner: () => mockOwner }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => true }));
-jest.mock("../src/lib/nativeConnections", () => ({ ...jest.requireActual("../src/lib/nativeConnections"), readGarmin: (...a: unknown[]) => mockRead(...a), connectGarmin: (...a: unknown[]) => mockConnect(...a), disconnectGarmin: (...a: unknown[]) => mockDisconnect(...a), loadGuildChat: (...a: unknown[]) => mockLoad(...a), postGuildMessage: (...a: unknown[]) => mockPost(...a) }));
+jest.mock("../src/lib/nativeConnections", () => ({ ...jest.requireActual("../src/lib/nativeConnections"), readGarmin: (...a: unknown[]) => mockRead(...a), connectGarmin: (...a: unknown[]) => mockConnect(...a), disconnectGarmin: (...a: unknown[]) => mockDisconnect(...a), completeGarmin: (...a: unknown[]) => mockComplete(...a), loadGuildChat: (...a: unknown[]) => mockLoad(...a), postGuildMessage: (...a: unknown[]) => mockPost(...a) }));
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 function show(ui: React.ReactElement) { const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } }); return render(ui, { wrapper: ({ children }) => <QueryClientProvider client={client}><SafeAreaProvider initialMetrics={metrics}>{children}</SafeAreaProvider></QueryClientProvider> }); }
-beforeEach(() => { mockOwner = "a"; [mockRead, mockConnect, mockDisconnect, mockLoad, mockPost].forEach((f) => f.mockReset()); mockRead.mockResolvedValue({ enabled: true, linked: false }); mockLoad.mockResolvedValue({ messages: [], maxLength: 280, cost: 0 }); });
+beforeEach(() => { mockOwner = "a"; [mockRead, mockConnect, mockDisconnect, mockComplete, mockLoad, mockPost].forEach((f) => f.mockReset()); mockRead.mockResolvedValue({ enabled: true, linked: false }); mockLoad.mockResolvedValue({ messages: [], maxLength: 280, cost: 0 }); });
 
 test("Garmin cannot connect before explicit consent and preserves an honest failure", async () => {
   mockConnect.mockRejectedValue(new Error("offline")); show(<GarminScreen />);
@@ -80,6 +80,38 @@ test.each([
     await act(async () => returned?.({ url: "titan://garmin?garmin=ok" }));
     expect(await screen.findByText(expected)).toBeTruthy();
     expect(screen.queryByText(/Vérification de l’état du compte en cours/)).toBeNull();
+  } finally {
+    initial.mockRestore();
+    subscription.mockRestore();
+  }
+});
+
+test("a Garmin handoff completes once under the current account and an account change cancels it", async () => {
+  let returned: ((event: { url: string }) => void) | undefined;
+  let signal: AbortSignal | undefined;
+  let release!: (value: string) => void;
+  const handoff = "x".repeat(128), url = `titan://garmin?garmin=complete#handoff=${handoff}`;
+  const initial = jest.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
+  const subscription = jest.spyOn(Linking, "addEventListener").mockImplementation((_type, listener) => {
+    returned = listener;
+    return { remove: jest.fn() } as unknown as ReturnType<typeof Linking.addEventListener>;
+  });
+  mockComplete.mockImplementation((_owner, _handoff, _network, _current, attemptSignal) => {
+    signal = attemptSignal;
+    return new Promise(resolve => { release = resolve; });
+  });
+  try {
+    const view = show(<GarminScreen />);
+    await screen.findByTestId("garmin-connect");
+    await act(async () => { returned?.({ url }); returned?.({ url }); });
+    expect(mockComplete).toHaveBeenCalledTimes(1);
+    expect(mockComplete.mock.calls[0].slice(0, 2)).toEqual(["a", handoff]);
+    expect(screen.queryByText(/xxxxxxxx/)).toBeNull();
+    mockOwner = "b";
+    view.rerender(<GarminScreen />);
+    await act(async () => release("Réponse du compte A"));
+    expect(signal?.aborted).toBe(true);
+    expect(screen.queryByText("Réponse du compte A")).toBeNull();
   } finally {
     initial.mockRestore();
     subscription.mockRestore();

@@ -122,14 +122,15 @@ export function createRecorder(deps: Deps) {
         if (!r || r.status === "ended") return r;
         const next: Recording = { ...r, status: "ended", activeMs: activeMs(r, deps.now()), runStart: null };
         await save(next, owner);
-        await deps.stopUpdates().catch(() => {});
+        if (r.status === "recording") await deps.stopUpdates().catch(() => {});
         return next;
       }),
 
     /** Throws the recording away (nothing is kept). */
     discard: (owner: string) =>
       lock(async () => {
-        await deps.stopUpdates().catch(() => {});
+        const r = await deps.read(recKey(owner));
+        if (r?.status === "recording") await deps.stopUpdates().catch(() => {});
         await save(null, owner);
       }),
 

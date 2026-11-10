@@ -6,7 +6,7 @@ import { Card } from "../../components/Card";
 import { Field } from "../../components/Field";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
-import { deleteOwnAccount } from "../../data/api";
+import { assertOwner, deleteOwnAccount } from "../../data/api";
 import { useAuth } from "../../data/auth";
 import { Format } from "../../core";
 import { useQueue } from "../../data/queue";
@@ -14,7 +14,6 @@ import { SUPPORT_EMAIL } from "../../lib/config";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { cancelReminders } from "../../lib/reminders";
-import { remove, ownerKey } from "../../lib/storage";
 import { space } from "../../theme/tokens";
 
 /** Account deletion from inside the app (Google Play requirement), through the same server function as the website. */
@@ -31,9 +30,8 @@ export function DeleteAccountScreen() {
     setBusy(true);
     setError(null);
     try {
-      await deleteOwnAccount();
-      await cancelReminders();
-      await remove(ownerKey("queue", owner));
+      await deleteOwnAccount(owner);
+      await assertOwner(owner).then(cancelReminders).catch(() => {});
       await signOut({ forget: true });
       Alert.alert("Compte supprimé", "Ton compte TITAN et ses données ont été supprimés. Merci d’avoir fait du sport avec TITAN.");
     } catch (e) {

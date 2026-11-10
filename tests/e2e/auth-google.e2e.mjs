@@ -37,6 +37,113 @@ async function login({ flags = { "auth.google": true }, flagsError = false, next
   return { page, context, errors };
 }
 
+const AUTH_HEADERS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS" };
+const EMAIL_USER = { id: "00000000-0000-4000-8000-000000000001", email: "recipient@example.test", app_metadata: {}, user_metadata: {}, aud: "authenticated" };
+const sdkPage = async context => {
+  const page = await context.newPage();
+  await page.route(`${BASE}/oauth-test*`, route => route.fulfill({ contentType: "text/html", body: '<script src="/js/vendor/supabase-2.111.0.js"></script><script src="/js/config.js"></script>' }));
+  await page.goto(BASE + "/oauth-test");
+  return page;
+};
+
+test("a URL with another account's implicit OAuth tokens cannot sign in the browser", async () => {
+  const context = await browser.newContext({ serviceWorkers: "block" });
+  try {
+    await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort());
+    let userReads = 0;
+    await context.route("**/auth/v1/user", route => {
+      if (route.request().method() === "GET") userReads++;
+      return route.fulfill({ status: 200, headers: AUTH_HEADERS,
+        json: { id: "attacker-account", email: "attacker@example.test", app_metadata: {}, user_metadata: {}, aud: "authenticated" } });
+    });
+    const page = await sdkPage(context);
+    await page.goto(BASE + "/oauth-test#access_token=synthetic-attacker-token&refresh_token=synthetic-attacker-refresh&expires_in=3600&token_type=bearer");
+    const session = await page.evaluate(async () => (await window.titanClient.auth.getSession()).data.session);
+    assert.equal(session, null);
+    assert.equal(userReads, 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem("titan_supabase_auth_v1")), null);
+  } finally { await context.close(); }
+});
+
+for (const flow of ["google", "signup"]) {
+  test(`${flow} uses PKCE and can redeem a provider code in the initiating browser`, async () => {
+    const context = await browser.newContext({ serviceWorkers: "block" });
+    try {
+      await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort());
+      let signup = null, exchanged = null;
+      await context.route("**/auth/v1/signup?*", route => {
+        if (route.request().method() === "POST") signup = { body: route.request().postDataJSON(), url: new URL(route.request().url()) };
+        return route.fulfill({ status: 200, headers: AUTH_HEADERS, json: EMAIL_USER });
+      });
+      await context.route("**/auth/v1/token?grant_type=pkce", route => {
+        if (route.request().method() === "POST") exchanged = route.request().postDataJSON();
+        return route.fulfill({ status: 200, headers: AUTH_HEADERS, json: { user: EMAIL_USER, access_token: "synthetic-pkce-access", refresh_token: "synthetic-pkce-refresh", expires_in: 3600, token_type: "bearer" } });
+      });
+      const page = await sdkPage(context);
+      const started = await page.evaluate(async kind => {
+        const auth = window.titanClient.auth, redirect = location.origin + "/oauth-test";
+        const result = kind === "google"
+          ? await auth.signInWithOAuth({ provider: "google", options: { redirectTo: redirect, skipBrowserRedirect: true } })
+          : await auth.signUp({ email: "recipient@example.test", password: "synthetic-password", options: { emailRedirectTo: redirect } });
+        return { url: result.data?.url, error: result.error?.message };
+      }, flow);
+      assert.equal(started.error, undefined);
+      const authorize = flow === "google" ? new URL(started.url) : signup.url;
+      const challenge = flow === "google" ? authorize.searchParams.get("code_challenge") : signup.body.code_challenge;
+      const method = flow === "google" ? authorize.searchParams.get("code_challenge_method") : signup.body.code_challenge_method;
+      assert.equal(method, "s256");
+      const callback = new URL(authorize.searchParams.get("redirect_to"));
+      callback.searchParams.set("code", "synthetic-provider-code");
+      await page.goto(callback.href);
+      assert.equal(await page.evaluate(async () => (await window.titanClient.auth.getSession()).data.session?.user?.email), EMAIL_USER.email);
+      assert.equal(exchanged.auth_code, "synthetic-provider-code");
+      const expectedChallenge = await page.evaluate(async verifier => {
+        const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+        return btoa(String.fromCharCode(...new Uint8Array(hash))).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+      }, exchanged.code_verifier);
+      assert.equal(challenge, expectedChallenge);
+      assert.equal(new URL(page.url()).searchParams.get("code"), null);
+    } finally { await context.close(); }
+  });
+}
+
+test("a password recovery link works in a separate mail browser with an isolated session", async () => {
+  const requester = await browser.newContext({ serviceWorkers: "block" });
+  const mailBrowser = await browser.newContext({ serviceWorkers: "block" });
+  try {
+    for (const context of [requester, mailBrowser]) await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort());
+    let recover = null, update = null;
+    await requester.route("**/auth/v1/recover?*", route => {
+      if (route.request().method() === "POST") recover = { data: route.request().postDataJSON(), url: new URL(route.request().url()) };
+      return route.fulfill({ status: 200, headers: AUTH_HEADERS, json: {} });
+    });
+    await mailBrowser.route("**/auth/v1/user", route => {
+      if (route.request().method() === "PUT") update = { data: route.request().postDataJSON(), token: route.request().headers().authorization };
+      return route.fulfill({ status: 200, headers: AUTH_HEADERS, json: EMAIL_USER });
+    });
+    const requestPage = await requester.newPage();
+    await requestPage.goto(BASE + "/login");
+    await requestPage.locator('[name="email"]').fill(EMAIL_USER.email);
+    await requestPage.locator('[data-forgot]').click();
+    await requestPage.getByText("Lien envoyé", { exact: true }).waitFor();
+    assert.equal(recover.data.email, EMAIL_USER.email);
+    assert.equal(recover.data.code_challenge, null);
+    assert.equal(recover.url.searchParams.get("redirect_to"), "https://titan-app.fr/update-password");
+
+    const reset = await mailBrowser.newPage();
+    await reset.goto(BASE + "/update-password#access_token=synthetic-recovery-access&refresh_token=synthetic-recovery-refresh&expires_in=3600&token_type=bearer&type=recovery");
+    await reset.getByText(`Compte concerné par ce lien : ${EMAIL_USER.email}`).waitFor();
+    assert.equal(await reset.evaluate(async () => (await window.titanClient.auth.getSession()).data.session), null);
+    await reset.locator("#pw").fill("new-synthetic-password");
+    await reset.locator("#pw2").fill("new-synthetic-password");
+    await reset.locator("#pw-save").click();
+    await reset.waitForURL("**/login");
+    assert.deepEqual(update, { data: { password: "new-synthetic-password", code_challenge: null, code_challenge_method: null }, token: "Bearer synthetic-recovery-access" });
+    assert.equal(await reset.evaluate(() => sessionStorage.getItem("titan_password_recovery_v1")), null);
+    assert.equal(await reset.evaluate(async () => (await window.titanClient.auth.getSession()).data.session), null);
+  } finally { await requester.close(); await mailBrowser.close(); }
+});
+
 test("google sign-in: not shown when the flag is off, absent or unreadable", async () => {
   for (const options of [{ flags: {} }, { flags: { "auth.google": false } }, { flagsError: true }]) {
     const { page, context, errors } = await login(options);

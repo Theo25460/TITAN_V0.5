@@ -46,8 +46,8 @@ export async function fetchProfile(owner: string): Promise<Profile | null> {
 }
 
 /** Creates the profile row for a brand-new account, exactly like the website's first sync. */
-export async function createProfile(name: string): Promise<void> {
-  await rpc("titan_save_profile_state", {
+export async function createProfile(owner: string, name: string): Promise<void> {
+  await ownerRpc(owner, "titan_save_profile_state", {
     p_state: { user: { name }, meta: {} },
     p_username: name || "Agent",
     p_avatar: null,
@@ -199,10 +199,10 @@ export async function saveGoal(owner: string, fields: Partial<GoalFields>, old?:
 }
 
 /* ---------- Adventure ---------- */
-export const fetchAdventure = () => rpc<AdventureSnapshot>("titan_adventure_snapshot", {}, 15000);
+export const fetchAdventure = (owner: string) => ownerRpc<AdventureSnapshot>(owner, "titan_adventure_snapshot", {}, undefined, 15000);
 
 export function adventureAction(snapshot: AdventureSnapshot, action: "start" | "claim" | "avatar" | "select", params: { world?: string; route?: string; avatar?: string; chapter?: number }, timezone: string) {
-  return rpc<AdventureSnapshot>("titan_adventure_action", {
+  return ownerRpc<AdventureSnapshot>(snapshot.owner, "titan_adventure_action", {
     p_action: action,
     p_world: params.world ?? null,
     p_route: params.route ?? "rhythm",
@@ -216,12 +216,12 @@ export function adventureAction(snapshot: AdventureSnapshot, action: "start" | "
 /* ---------- Atelier (cosmetics only, bought with credits earned by training) ---------- */
 export type AtelierItem = { id: string; cosmetic: string; slot: "frame" | "map" | "card"; unlock: string; name: string; description: string | null; price: number; min_level: number; owned: boolean };
 export type Atelier = { credits: number; level: number; week_credits: number; week_credit_cap: number; plus: { active: boolean }; appearance: Record<string, string>; items: AtelierItem[] };
-export const fetchAtelier = () => rpc<Atelier>("titan_atelier");
-export async function purchaseItem(itemId: string) {
-  const data = await rpc<{ item_id: string; cost: number; credits_after: number }[]>("titan_purchase_shop_item", { p_item_id: itemId });
+export const fetchAtelier = (owner: string) => ownerRpc<Atelier>(owner, "titan_atelier", {});
+export async function purchaseItem(owner: string, itemId: string) {
+  const data = await ownerRpc<{ item_id: string; cost: number; credits_after: number }[]>(owner, "titan_purchase_shop_item", { p_item_id: itemId });
   return Array.isArray(data) ? data[0] : data;
 }
-export const setAppearance = (slot: string, item: string | null) => rpc<Record<string, string>>("titan_set_appearance", { p_slot: slot, p_item: item });
+export const setAppearance = (owner: string, slot: string, item: string | null) => ownerRpc<Record<string, string>>(owner, "titan_set_appearance", { p_slot: slot, p_item: item });
 
 /* ---------- Community ---------- */
 export type Friend = { id: string; name: string; avatar: string; level: number | null; week_days: number | null; last_active: string | null };
@@ -238,7 +238,7 @@ export type SocialOverview = {
   expedition: unknown;
   guild: GuildWeek;
 };
-export const fetchSocial = () => rpc<SocialOverview>("titan_social_overview");
+export const fetchSocial = (owner: string) => ownerRpc<SocialOverview>(owner, "titan_social_overview", {});
 export const friendRequest = (code: string) => rpc<{ status: string }>("titan_social_request", { p_code: code });
 export const friendRespond = (user: string, accept: boolean) => rpc<{ status: string }>("titan_social_respond", { p_user: user, p_accept: accept });
 export const friendRemove = (user: string) => rpc("titan_social_remove", { p_user: user });
@@ -283,12 +283,12 @@ export const guildSend = (content: string) => rpc("titan_send_guild_message", { 
 
 /* ---------- Public card ---------- */
 export type CardSettings = { enabled: boolean; slug: string | null; show: Record<string, boolean> } & Record<string, unknown>;
-export const fetchCardSettings = () => rpc<CardSettings>("titan_public_card_settings");
-export const saveCard = (enabled: boolean, show: Record<string, boolean>, newLink = false) => rpc<CardSettings>("titan_public_card_save", { p_enabled: enabled, p_show: show, p_new_link: newLink });
+export const fetchCardSettings = (owner: string) => ownerRpc<CardSettings>(owner, "titan_public_card_settings", {});
+export const saveCard = (owner: string, enabled: boolean, show: Record<string, boolean>, newLink = false) => ownerRpc<CardSettings>(owner, "titan_public_card_save", { p_enabled: enabled, p_show: show, p_new_link: newLink });
 
 /* ---------- Account ---------- */
-export const exportOwnData = () => rpc<Record<string, unknown>>("export_own_data", {}, 30000);
-export const deleteOwnAccount = () => rpc("delete_own_account", {}, 30000);
+export const exportOwnData = (owner: string) => ownerRpc<Record<string, unknown>>(owner, "export_own_data", {}, undefined, 30000);
+export const deleteOwnAccount = (owner: string) => ownerRpc(owner, "delete_own_account", {}, undefined, 30000);
 
 /* ---------- Connected sources (Health Connect) ---------- */
 export type SourceStatus = { source: string; granted: boolean };
@@ -312,10 +312,10 @@ export const archiveImported = (owner: string, source: "health_connect", current
 export type RouteMeta = { id: string; eventId?: string | null; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; points: number };
 export type RouteFull = RouteMeta & { track: import("../lib/gpsTrack").EncodedTrack };
 /** Private data must use the token of the checked owner, including if Auth changes before fetch starts. */
-export async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>, current?: () => boolean): Promise<T> {
+export async function ownerRpc<T>(owner: string, name: string, params: Record<string, unknown>, current?: () => boolean, timeout?: number): Promise<T> {
   const session = await assertOwner(owner);
   if (current && !current()) throw Object.assign(new Error("AUTH_REQUIRED"), { code: "AUTH_REQUIRED" });
-  const { data, error } = await withTimeout(supabase.rpc(name, params).setHeader("Authorization", `Bearer ${session!.access_token}`));
+  const { data, error } = await withTimeout(supabase.rpc(name, params).setHeader("Authorization", `Bearer ${session.access_token}`), timeout);
   if (error) throw error;
   return data as T;
 }

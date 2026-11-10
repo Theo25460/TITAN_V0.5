@@ -12,6 +12,12 @@ const read = (path) => readFileSync(`${root}${file(path)}`, "utf8");
 const attr = (html, re) => (html.match(re) || [])[1];
 const meta = (html, key) => attr(html, new RegExp(`<meta[^>]+(?:name|property)=["']${key}["'][^>]+content=["']([^"']*)["']`, "i"))
   ?? attr(html, new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${key}["']`, "i"));
+const structuredData = (html) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+  .flatMap(([, json]) => {
+    const data = JSON.parse(json);
+    return data["@graph"] || [data];
+  });
+const plainText = (value) => value.replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 
 test("each public page has a distinct title, description and a canonical equal to its sitemap URL", () => {
   const titles = new Map();
@@ -71,6 +77,72 @@ test("the homepage declares the organisation, the website and the application", 
   assert.ok(types.has("Organization"), "Organization structured data on the homepage");
   assert.ok(types.has("WebSite") || types.has("WebPage"), "a WebSite or WebPage entity on the homepage");
   assert.ok(types.has("WebApplication") || types.has("SoftwareApplication"), "an application entity on the homepage");
+});
+
+test("public pages have unique headings and are reachable from other indexable pages", () => {
+  const headings = new Set();
+  const links = new Set();
+  for (const { origin, path } of entries) {
+    const html = read(path).replace(/<!--[\s\S]*?-->/g, "");
+    const h1 = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)].map(([, text]) => plainText(text));
+    assert.ok(h1.length === 1 && h1[0], `${path}: one main heading`);
+    assert.ok(!headings.has(h1[0]), `${path}: duplicate H1 ${h1[0]}`);
+    headings.add(h1[0]);
+    for (const [, href] of html.matchAll(/<a\b[^>]*\bhref="([^"]+)"/g)) {
+      const target = new URL(href, `${origin}${path}`);
+      if (target.origin === origin && target.pathname !== path) links.add(target.pathname);
+    }
+  }
+  assert.deepEqual(entries.map(({ path }) => path).filter((path) => path !== "/" && !links.has(path)), [], "orphan pages");
+});
+
+test("guide breadcrumbs match the visible navigation and only use canonical public URLs", () => {
+  const origin = "https://titan-app.fr";
+  const publicUrls = new Set(entries.map(({ origin, path }) => origin + path));
+  const guides = [
+    "/niveaux-et-xp", "/aventures-sportives", "/comprendre-mes-donnees", "/debuter-titan", "/pour-les-coachs",
+    "/journal-course-a-pied", "/carnet-musculation", "/suivi-escalade", "/suivi-sportif", "/journal-entrainement",
+    "/progression-sportive", "/motivation-sport",
+  ];
+  for (const path of guides) {
+    const html = read(path);
+    const trail = structuredData(html).find((node) => node["@type"] === "BreadcrumbList");
+    assert.ok(trail, `${path}: BreadcrumbList`);
+    const nav = attr(html, /<nav\b[^>]*aria-label="Fil d’Ariane"[^>]*>([\s\S]*?)<\/nav>/);
+    assert.ok(nav, `${path}: visible breadcrumb navigation`);
+    const links = [...nav.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map(([, href, name]) => [origin + href, plainText(name)]);
+    const current = attr(nav, /aria-current="page">([^<]+)</);
+    assert.ok(current, `${path}: current page is named`);
+    assert.deepEqual(trail.itemListElement.map(({ item, name }) => [item, name]), [...links, [origin + path, plainText(current)]], path);
+    assert.deepEqual(trail.itemListElement.map(({ position }) => position), trail.itemListElement.map((_, i) => i + 1), path);
+    assert.ok(trail.itemListElement.every(({ item }) => publicUrls.has(item)), `${path}: breadcrumb targets in sitemap`);
+  }
+});
+
+test("the sports catalog names each family with a section heading and links its discipline guides", () => {
+  const html = read("/sports");
+  const headings = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(([, text]) => plainText(text));
+  for (const name of ["Endurance", "Force", "Technique", "Jeu & combat", "Mobilité"]) {
+    assert.ok(headings.includes(name), `missing heading for ${name}`);
+  }
+  for (const path of ["/journal-course-a-pied", "/carnet-musculation", "/suivi-escalade"]) {
+    assert.ok(html.split("</main>")[0].includes(`href="${path}"`), `${path}: link within the catalog`);
+  }
+});
+
+test("the homepage serves lighter responsive WebP for its LCP image", () => {
+  const html = read("/");
+  const hero = attr(html, /(<img class="pub-hero-bg"[^>]*>)/);
+  assert.match(hero, /width="1600" height="900" alt="" fetchpriority="high"/);
+  const candidates = attr(hero, /srcset="([^"]+)"/).split(", ").map((item) => item.split(" "));
+  const originals = ["/assets/renaissance/valley-small.webp", "/assets/renaissance/valley.webp"];
+  assert.deepEqual(candidates.map(([, width]) => width), ["800w", "1600w"]);
+  for (const [i, [path]] of candidates.entries()) {
+    const bytes = readFileSync(`${root}${path.slice(1)}`);
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP", path);
+    assert.ok(bytes.length < readFileSync(`${root}${originals[i].slice(1)}`).length * 0.75, `${path}: at least 25% lighter`);
+  }
+  assert.equal(attr(hero, /\bsrc="([^"]+)"/), candidates[1][0], "fallback uses the optimized large variant");
 });
 
 test("favicon, touch icon and the PWA manifest icons exist at usable resolutions", () => {

@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 197 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 199 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -18,7 +18,7 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | subscription | 4 | 154842 | 154842 |
 | typography | 12 | 506691 | 506691 |
 | world-map-decoration | 1 | 28400 | 28400 |
-| worlds | 16 | 2273786 | 2273786 |
+| worlds | 18 | 2480758 | 2480758 |
 
 Le builder public écarte les originaux avatar, mob et boss lorsqu’un WebP existe. Les valeurs de distribution indiquent le coût brut des fichiers candidats. Le poids du bundle natif et le trafic du premier écran requièrent leurs propres mesures.
 
@@ -191,6 +191,8 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `image/boss/boss_9.webp` | legacy-encounters | 225906 | 1280×714 | fix |
 | `image/editorial/hero-small.webp` | public-auth-hero | 32704 | 840×473 | retain |
 | `image/editorial/hero.webp` | public-auth-hero | 81724 | 1680×946 | fix |
+| `image/editorial/valley-hero-1600.webp` | worlds | 150000 | 1600×900 | retain |
+| `image/editorial/valley-hero-800.webp` | worlds | 56972 | 800×450 | retain |
 | `image/logo-192.png` | brand | 2816 | 192×192 | retain |
 | `image/logo-512.png` | brand | 6921 | 512×512 | retain |
 | `image/logo-maskable-192.png` | brand | 4395 | 192×192 | retain |

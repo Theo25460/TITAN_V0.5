@@ -59,8 +59,9 @@ for (const reader of ['billing', 'notifications', 'reconcile']) {
         const payload = JSON.parse(init.body);
         writes.push(payload);
         // Match titan_apply_entitlement_v1: older events are ignored, equal/newer events may update.
-        if (payload.p_event_at >= ledger.at) ledger = { active: payload.p_is_active, at: payload.p_event_at };
-        return Response.json(true);
+        const applied = payload.p_event_at >= ledger.at;
+        if (applied) ledger = { active: payload.p_is_active, at: payload.p_event_at };
+        return Response.json(applied);
       }
       throw new Error(`unexpected synthetic request ${path}`);
     };
@@ -71,7 +72,7 @@ for (const reader of ['billing', 'notifications', 'reconcile']) {
       assert.equal((await billing(request())).status, 200);
       assert.equal(ledger.active, false);
       releaseOld();
-      assert.equal((await old).status, 200);
+      assert.equal((await old).status, reader === 'billing' ? 503 : 200);
       assert.equal(writes.length, 2);
       assert.equal(ledger.active, false, 'the newer expired subscription must remain authoritative');
     } finally {

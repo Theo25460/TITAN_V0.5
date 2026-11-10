@@ -86,13 +86,29 @@ const numberTables = (html) => {
   return html.replace(/aria-label="Tableau"/g, () => `aria-label="Tableau ${++n}"`);
 };
 
-function page({ route, title, description, image = "valley", body, schema = [], indexable = true }) {
+export function breadcrumbTrail(route, label, parent) {
+  const trail = [["/", "Accueil"], ...(parent ? [parent] : []), [route, label]];
+  return {
+    html: `<nav class="pub-breadcrumb" aria-label="Fil d’Ariane"><ol role="list">${trail.map(([href, name], i) => {
+      const separator = i ? '<span aria-hidden="true">›</span>' : "";
+      const item = i === trail.length - 1 ? `<span aria-current="page">${esc(name)}</span>` : `<a href="${href}">${esc(name)}</a>`;
+      return `<li>${separator}${item}</li>`;
+    }).join("")}</ol></nav>`,
+    schema: {
+      "@type": "BreadcrumbList",
+      itemListElement: trail.map(([href, name], i) => ({ "@type": "ListItem", position: i + 1, name, item: SITE + href })),
+    },
+  };
+}
+
+function page({ route, title, description, image = "valley", body, schema = [], indexable = true, breadcrumb }) {
   const url = `${SITE}${route}`;
   const graph = [
     { "@type": "Organization", "@id": `${SITE}/#organization`, name: "TITAN", url: `${SITE}/`, logo: `${SITE}/image/logo-192.png` },
     { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@type": "WebSite", name: "TITAN", url: `${SITE}/` } },
     ...(PLAY && route === "/" ? [{ "@type": "MobileApplication", name: "TITAN", operatingSystem: "ANDROID", applicationCategory: "HealthApplication", downloadUrl: PLAY, installUrl: PLAY, inLanguage: "fr-FR" }] : []),
     ...schema,
+    ...(breadcrumb ? [breadcrumb.schema] : []),
   ];
   return `<!doctype html>
 <html lang="fr" class="asc-root">
@@ -110,7 +126,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/css/fonts/manrope-latin-1.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=300.10"><link rel="stylesheet" href="/css/public.css?v=300.7">
+<link rel="stylesheet" href="/css/ascension.css?v=300.10"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.8" : "300.7"}">
 <script src="/js/pwa.js?v=${V}" defer></script>${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>

@@ -1,11 +1,9 @@
 // ADR-004 phase 3: verify a Google Play subscription purchase on the server, then record it as an access source.
-// The client only ever sends a purchase token; access is granted solely from Google's own answer. Disabled unless
-// PLAY_BILLING_ENABLED=true. Endpoints and fields were re-read on 02/11/2026 against the Android Publisher API v3
-// reference (purchases.subscriptionsv2.get; purchases.subscriptions.acknowledge, still the supported acknowledge call):
-// subscriptionState, lineItems[].productId / expiryTime / autoRenewingPlan, latestOrderId, linkedPurchaseToken,
-// acknowledgementState, testPurchase, externalAccountIdentifiers.obfuscatedExternalAccountId. The tests use a
-// simulated Google: a real purchase with a license-tester account is still the final proof.
+// The client sends the product ID and purchase token. Access comes from Google's Android Publisher API v3.
+// PLAY_BILLING_ENABLED controls verification and the authenticated checkout readiness check.
+// The tests simulate Google. A purchase with a license-tester account is the final proof.
 import crypto from 'node:crypto';
+import { readBoundedBytes } from './request-body.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TOKEN = /^[A-Za-z0-9._~-]{16,2048}$/;
@@ -16,7 +14,11 @@ const ACCESS_STATES = new Set(['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_
 
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
 const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
-const unavailable = () => reply(503, { error: 'unavailable' });
+function unavailable(stage, details = {}) {
+    // Only fixed labels, variable names and upstream HTTP statuses. Never log URLs, bodies or exceptions.
+    console.warn('[play-billing] unavailable', { stage, ...details });
+    return reply(503, { error: 'unavailable' });
+}
 
 export async function network(url, init) {
     const response = await fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
@@ -48,106 +50,164 @@ export function interpretSubscription(resource, { allowedProducts, allowTestPurc
     if (!line || typeof line.productId !== 'string') return { error: 'SUBSCRIPTION_INVALID' };
     if (!allowedProducts.includes(line.productId)) return { error: 'PRODUCT_NOT_ALLOWED' };
     if (resource.testPurchase && !allowTestPurchases) return { error: 'TEST_PURCHASE_REFUSED' };
-    const expiry = Date.parse(line.expiryTime || '');
+    const expiry = typeof line.expiryTime === 'string' ? Date.parse(line.expiryTime) : NaN;
+    const endsAt = Number.isFinite(expiry) ? new Date(expiry).toISOString() : null;
     const state = String(resource.subscriptionState || '');
-    const stillPaid = Number.isFinite(expiry) && expiry > now;
-    // A cancelled subscription keeps access until its paid period ends; an expired, held, paused or pending one does not.
-    const active = (ACCESS_STATES.has(state) && (state === 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD' || stillPaid)) || (state === 'SUBSCRIPTION_STATE_CANCELED' && stillPaid);
+    // Google extends expiryTime during grace. A user cancellation keeps access through expiry, whereas a replaced purchase is invalidated.
+    const cancelledWithAccess = state === 'SUBSCRIPTION_STATE_CANCELED' && !resource.canceledStateContext?.replacementCancellation;
+    const active = expiry > now && (ACCESS_STATES.has(state) || cancelledWithAccess);
+    const orderId = typeof line.latestSuccessfulOrderId === 'string' ? line.latestSuccessfulOrderId : resource.latestOrderId;
     return {
         active,
         // Provider provenance never proves money received: a real purchase may include a free trial.
         accessKind: resource.testPurchase ? 'test' : 'verified_purchase',
         status: state.replace('SUBSCRIPTION_STATE_', '').toLowerCase() || 'unknown',
         productId: line.productId,
-        orderId: typeof resource.latestOrderId === 'string' ? resource.latestOrderId : null,
-        endsAt: Number.isFinite(expiry) ? new Date(expiry).toISOString() : null,
-        renewsAt: active && line.autoRenewingPlan?.autoRenewEnabled && Number.isFinite(expiry) ? new Date(expiry).toISOString() : null,
+        orderId: typeof orderId === 'string' ? orderId : null,
+        endsAt,
+        renewsAt: active && line.autoRenewingPlan?.autoRenewEnabled === true ? endsAt : null,
         linkedPurchaseToken: typeof resource.linkedPurchaseToken === 'string' && TOKEN.test(resource.linkedPurchaseToken) ? resource.linkedPurchaseToken : null,
         needsAcknowledgement: resource.acknowledgementState === 'ACKNOWLEDGEMENT_STATE_PENDING',
+        acknowledged: resource.acknowledgementState === 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED',
         boundAccount: typeof resource.externalAccountIdentifiers?.obfuscatedExternalAccountId === 'string' ? resource.externalAccountIdentifiers.obfuscatedExternalAccountId : null,
         startedAt: Date.parse(resource.startTime || '') || now
     };
 }
 
-async function boundedBody(request) {
-    const text = await request.text();
-    return Buffer.byteLength(text, 'utf8') > MAX_BODY ? null : text;
-}
-
 export default async function handler(request) {
-    if (request.method !== 'POST') return reply(405, { error: 'method_not_allowed' });
-    if (!/^application\/json(?:\s*;.*)?$/i.test(request.headers.get('content-type') || '')) return reply(415, { error: 'json_required' });
+    const readiness = request.method === 'GET';
+    if (!readiness && request.method !== 'POST') return reply(405, { error: 'method_not_allowed' });
+    if (!readiness && !/^application\/json(?:\s*;.*)?$/i.test(request.headers.get('content-type') || '')) return reply(415, { error: 'json_required' });
+    const requestUrl = new URL(request.url);
     const origin = request.headers.get('origin');
-    if (origin && origin !== new URL(request.url).origin) return reply(403, { error: 'origin_refused' });
+    if (origin && origin !== requestUrl.origin) return reply(403, { error: 'origin_refused' });
 
-    const url = env('SUPABASE_URL').replace(/\/+$/, '');
-    const key = env('SUPABASE_SECRET_KEY'), publishable = env('SUPABASE_PUBLISHABLE_KEY');
+    const url = env('SUPABASE_URL').trim().replace(/\/+$/, '');
+    const key = env('SUPABASE_SECRET_KEY').trim(), publishable = env('SUPABASE_PUBLISHABLE_KEY').trim();
     const packageName = env('PLAY_PACKAGE_NAME') || 'fr.titanapp.app';
     const allowedProducts = env('PLAY_PRODUCT_IDS').split(',').map(v => v.trim()).filter(Boolean);
-    let account = null;
-    try { account = JSON.parse(env('PLAY_SERVICE_ACCOUNT_JSON') || 'null'); } catch (_) { /* Fail closed below. */ }
+    let account = null, privateKey = null;
+    try {
+        account = JSON.parse(env('PLAY_SERVICE_ACCOUNT_JSON') || 'null');
+        if (typeof account?.private_key === 'string') privateKey = crypto.createPrivateKey(account.private_key);
+    } catch (_) { /* Fail closed below. */ }
     let validUrl = false;
     try { const parsed = new URL(url); validUrl = parsed.protocol === 'https:' && !parsed.username && !parsed.password && parsed.pathname === '/' && !parsed.search && !parsed.hash; } catch (_) { /* Fail closed. */ }
-    if (env('PLAY_BILLING_ENABLED') !== 'true' || !validUrl || !key || !publishable || allowedProducts.length === 0
-        || typeof account?.client_email !== 'string' || typeof account?.private_key !== 'string') return unavailable();
+    const invalid = [];
+    if (env('PLAY_BILLING_ENABLED') !== 'true') invalid.push('PLAY_BILLING_ENABLED');
+    if (!validUrl) invalid.push('SUPABASE_URL');
+    if (!key) invalid.push('SUPABASE_SECRET_KEY');
+    if (!publishable) invalid.push('SUPABASE_PUBLISHABLE_KEY');
+    if (!allowedProducts.length || allowedProducts.some(product => !PRODUCT.test(product))) invalid.push('PLAY_PRODUCT_IDS');
+    if (typeof account?.client_email !== 'string' || !/^[^@\s]+@[^@\s]+$/.test(account.client_email) || privateKey?.asymmetricKeyType !== 'rsa') invalid.push('PLAY_SERVICE_ACCOUNT_JSON');
+    if (invalid.length) return unavailable('configuration', { variables: invalid });
+    // A checkout pause keeps restoration, notifications and reconciliation available for existing purchases.
+    if (readiness && env('PLAY_CHECKOUT_ENABLED') === 'false') return unavailable('checkout_paused');
 
     const bearer = request.headers.get('authorization') || '';
     if (!/^Bearer [A-Za-z0-9._~-]{20,8192}$/.test(bearer)) return reply(401, { error: 'authentication_required' });
-    let body;
-    try {
-        const raw = await boundedBody(request);
-        if (raw === null) return reply(413, { error: 'body_too_large' });
-        body = JSON.parse(raw);
-    } catch (_) { return reply(400, { error: 'invalid_request' }); }
-    if (!body || typeof body !== 'object' || !TOKEN.test(body.purchase_token || '') || !PRODUCT.test(body.product_id || '')
-        || Object.keys(body).some(k => !['purchase_token', 'product_id'].includes(k))) return reply(400, { error: 'invalid_request' });
+    let productId = requestUrl.searchParams.get('product_id'), purchaseToken;
+    if (!readiness) {
+        let body;
+        try {
+            const raw = await readBoundedBytes(request, MAX_BODY);
+            if (raw === null) return reply(413, { error: 'body_too_large' });
+            body = JSON.parse(raw.toString('utf8'));
+        } catch (_) { return reply(400, { error: 'invalid_request' }); }
+        if (typeof body?.purchase_token !== 'string' || !TOKEN.test(body.purchase_token)
+            || Object.keys(body).some(k => !['purchase_token', 'product_id'].includes(k))) return reply(400, { error: 'invalid_request' });
+        purchaseToken = body.purchase_token;
+        productId = body.product_id;
+    }
+    if (typeof productId !== 'string' || !PRODUCT.test(productId)) return reply(400, { error: 'invalid_request' });
+    if (!allowedProducts.includes(productId)) return reply(422, { error: 'product_not_allowed' });
 
     const databaseHeaders = { apikey: key, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (!key.startsWith('sb_secret_')) databaseHeaders.Authorization = `Bearer ${key}`;
     const rpc = (name, payload) => network(`${url}/rest/v1/rpc/${name}`, { method: 'POST', headers: databaseHeaders, body: JSON.stringify(payload) });
+    let stage = 'supabase_auth';
     try {
         const auth = await network(`${url}/auth/v1/user`, { method: 'GET', headers: { apikey: publishable, Authorization: bearer, Accept: 'application/json' } });
-        if (!auth.ok) return auth.status === 401 || auth.status === 403 ? reply(401, { error: 'authentication_required' }) : unavailable();
+        if (!auth.ok) return auth.status === 401 || auth.status === 403 ? reply(401, { error: 'authentication_required' }) : unavailable(stage, { status: auth.status });
         const owner = auth.data;
         if (!owner || typeof owner.id !== 'string' || !UUID.test(owner.id) || owner.is_anonymous !== false) return reply(401, { error: 'authentication_required' });
+        // Readiness covers runtime configuration, the product and the session. Only verification touches Google or the ledger.
+        if (readiness) return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
 
-        const accessToken = await googleAccessToken(account);
+        stage = 'google_oauth';
+        const accessToken = await googleAccessToken({ client_email: account.client_email, private_key: privateKey });
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
         // Order by when the Google read starts: a delayed older response must not overwrite a newer read.
         const eventAt = new Date().toISOString();
-        const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(body.purchase_token)}`, { method: 'GET', headers: googleHeaders });
+        stage = 'google_lookup';
+        const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: googleHeaders });
         if (lookup.status === 404 || lookup.status === 410 || lookup.status === 400) return reply(422, { error: 'purchase_not_found' });
-        if (!lookup.ok) return unavailable();
+        if (!lookup.ok) return unavailable(stage, { status: lookup.status });
         const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
         if (subscription.error) return reply(422, { error: subscription.error.toLowerCase() });
+        if (subscription.productId !== productId) return reply(422, { error: 'purchase_product_mismatch' });
+        if (subscription.linkedPurchaseToken === purchaseToken) return reply(422, { error: 'subscription_invalid' });
         // The app sets the signed-in account id as the obfuscated account id when it opens the payment sheet. A purchase
         // made for another account (or without one) is refused: a leaked token cannot be attached to a different player.
         if (subscription.boundAccount !== owner.id) return reply(409, { error: subscription.boundAccount ? 'purchase_bound_to_other_account' : 'purchase_not_bound' });
 
-        const applied = await rpc('titan_apply_entitlement_v1', {
-            p_user_id: owner.id, p_source: 'google_play', p_external_id: body.purchase_token, p_is_active: subscription.active,
-            p_status: subscription.status, p_event_name: 'verify', p_event_at: eventAt, p_order_id: subscription.orderId,
-            p_product_id: subscription.productId, p_variant_id: null, p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt,
-            p_trial_ends_at: null, p_refunded_at: null
-        });
-        if (!applied.ok) return applied.data?.message === 'ENTITLEMENT_OWNED_BY_OTHER' ? reply(409, { error: 'purchase_already_used' }) : unavailable();
-
-        // A purchase replacing an earlier one (upgrade, resubscribe) retires the old token for the same account.
-        if (subscription.linkedPurchaseToken) {
-            await rpc('titan_apply_entitlement_v1', {
-                p_user_id: owner.id, p_source: 'google_play', p_external_id: subscription.linkedPurchaseToken, p_is_active: false,
+        // A pending or abandoned replacement leaves the previous entitlement alone.
+        const linkedToken = subscription.active ? subscription.linkedPurchaseToken : null;
+        const retireLinked = async () => {
+            stage = 'linked_entitlement_write';
+            const retired = await rpc('titan_apply_entitlement_v1', {
+                p_user_id: owner.id, p_source: 'google_play', p_external_id: linkedToken, p_is_active: false,
                 p_status: 'replaced', p_event_name: 'replaced', p_event_at: eventAt, p_order_id: null,
                 p_product_id: subscription.productId, p_variant_id: null, p_renews_at: null, p_ends_at: new Date().toISOString(),
                 p_trial_ends_at: null, p_refunded_at: null
             });
+            if (!retired.ok && retired.data?.message === 'ENTITLEMENT_OWNED_BY_OTHER') return reply(409, { error: 'purchase_already_used' });
+            if (!retired.ok || retired.data !== true) return unavailable(stage, { status: retired.status });
+            return null;
+        };
+        let previousOwner = null;
+        if (linkedToken) {
+            stage = 'linked_entitlement_owner';
+            const previous = await rpc('titan_entitlement_owner_v1', { p_source: 'google_play', p_external_id: linkedToken });
+            if (!previous.ok || (previous.data !== null && (typeof previous.data !== 'string' || !UUID.test(previous.data)))) {
+                return unavailable(stage, { status: previous.status });
+            }
+            previousOwner = previous.data;
+            if (previousOwner !== null && previousOwner !== owner.id) return reply(409, { error: 'purchase_already_used' });
+            if (previousOwner === null) {
+                // Record the inactive prior token before granting so the ledger can reject a competing first owner.
+                const refusal = await retireLinked();
+                if (refusal) return refusal;
+            }
+        }
+
+        stage = 'entitlement_write';
+        const applied = await rpc('titan_apply_entitlement_v1', {
+            p_user_id: owner.id, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: subscription.active,
+            p_status: subscription.status, p_event_name: 'verify', p_event_at: eventAt, p_order_id: subscription.orderId,
+            p_product_id: subscription.productId, p_variant_id: null, p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt,
+            p_trial_ends_at: null, p_refunded_at: null
+        });
+        if (!applied.ok) return applied.data?.message === 'ENTITLEMENT_OWNED_BY_OTHER' ? reply(409, { error: 'purchase_already_used' }) : unavailable(stage, { status: applied.status });
+        if (applied.data !== true) return unavailable(applied.data === false ? 'stale_entitlement_read' : stage);
+
+        if (previousOwner === owner.id) {
+            // Keep existing access in place until the same account's replacement has been recorded.
+            const refusal = await retireLinked();
+            if (refusal) return refusal;
         }
         // Google refunds an unacknowledged purchase after three days: acknowledge only once access is recorded.
-        let acknowledged = !subscription.needsAcknowledgement;
+        let acknowledged = subscription.acknowledged;
         if (subscription.active && subscription.needsAcknowledgement) {
-            const ack = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(subscription.productId)}/tokens/${encodeURIComponent(body.purchase_token)}:acknowledge`, { method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}' });
-            // Access is already recorded; a failed acknowledgement is reported so the app retries (restore) before Google's 3-day refund.
-            acknowledged = ack.ok;
+            try {
+                const ack = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(subscription.productId)}/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`, { method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}' });
+                acknowledged = ack.ok;
+                if (!ack.ok) console.warn('[play-billing] acknowledgement_pending', { status: ack.status });
+            } catch (_) {
+                // Access is already recorded. Report a pending acknowledgement so the player can restore and retry.
+                console.warn('[play-billing] acknowledgement_pending');
+            }
         }
         return reply(200, { active: subscription.active, status: subscription.status, ends_at: subscription.endsAt, product_id: subscription.productId, acknowledged, access_kind: subscription.accessKind });
-    } catch (_) { return unavailable(); }
+    } catch (_) { return unavailable(stage); }
 }

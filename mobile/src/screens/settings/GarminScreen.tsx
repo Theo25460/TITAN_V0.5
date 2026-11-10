@@ -8,7 +8,7 @@ import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useOwner } from "../../data/auth";
-import { connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, garminReturnMessage, readGarmin } from "../../lib/nativeConnections";
+import { completeGarmin, connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, parseGarminReturn, readGarmin } from "../../lib/nativeConnections";
 
 export function GarminScreen() {
   const owner = useOwner();
@@ -19,6 +19,7 @@ export function GarminScreen() {
   const alive = useRef(true);
   const epoch = useRef(0);
   const awaitingReturn = useRef(false);
+  const completion = useRef<AbortController | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   useEffect(() => {
     alive.current = true;
@@ -30,23 +31,35 @@ export function GarminScreen() {
     setMessage(null);
     const current = () => alive.current && generation === epoch.current;
     let returnSequence = 0;
-    const returned = (url: string | null) => {
-      const notice = garminReturnMessage(url);
-      if (!notice || !current()) return;
+    let lastHandoff: string | null = null;
+    const returned = async (url: string | null) => {
+      const receipt = parseGarminReturn(url);
+      if (!receipt || !current() || (receipt.handoff && receipt.handoff === lastHandoff)) return;
       awaitingReturn.current = false;
+      let notice = receipt.notice;
       setMessage(notice);
       const sequence = ++returnSequence;
-      void q.refetch().then(result => {
-        if (!current() || sequence !== returnSequence || notice !== GARMIN_CHECKING) return;
-        setMessage(result.isError
-          ? "La liaison Garmin reste à vérifier. Actualise l’état du compte."
-          : result.data?.linked
-            ? "La liaison Garmin est confirmée."
-            : "Garmin a répondu. La liaison reste à terminer depuis TITAN.");
-      });
+      if (receipt.handoff) {
+        lastHandoff = receipt.handoff;
+        completion.current?.abort();
+        const attempt = new AbortController();
+        completion.current = attempt;
+        try { notice = await completeGarmin(owner, receipt.handoff, fetch, current, attempt.signal); }
+        catch (error) { notice = garminFailureMessage(error); }
+        finally { if (completion.current === attempt) completion.current = null; }
+        if (!current() || sequence !== returnSequence || attempt.signal.aborted) return;
+        setMessage(notice);
+      }
+      const result = await q.refetch();
+      if (!current() || sequence !== returnSequence || notice !== GARMIN_CHECKING) return;
+      setMessage(result.isError
+        ? "La liaison Garmin reste à vérifier. Actualise l’état du compte."
+        : result.data?.linked
+          ? "La liaison Garmin est confirmée."
+          : "Garmin a répondu. La liaison reste à terminer depuis TITAN.");
     };
     void Linking.getInitialURL().then(returned).catch(() => {});
-    const links = Linking.addEventListener("url", ({ url }) => returned(url));
+    const links = Linking.addEventListener("url", ({ url }) => { void returned(url); });
     const sub = AppState.addEventListener("change", (state) => {
       if (state !== "active") return;
       void q.refetch().then(result => {
@@ -55,7 +68,7 @@ export function GarminScreen() {
         }
       });
     });
-    return () => { alive.current = false; ++epoch.current; sub.remove(); links.remove(); };
+    return () => { alive.current = false; ++epoch.current; completion.current?.abort(); sub.remove(); links.remove(); };
   }, [owner]);
   async function run(remove: boolean) {
     if (lock.current) return;
@@ -65,6 +78,7 @@ export function GarminScreen() {
     setBusy(true);
     setMessage(null);
     try {
+      completion.current?.abort();
       if (remove) await disconnectGarmin(owner, fetch, current);
       else {
         awaitingReturn.current = true;

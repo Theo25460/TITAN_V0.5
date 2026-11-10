@@ -3,9 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AppState } from "react-native";
-import { onReconnect } from "../lib/network";
-import { flushRoutes } from "../lib/routeSync";
-import * as api from "./api";
+import { isOnline, onReconnect } from "../lib/network";
 import { useAuth } from "./auth";
 import { keys, syncNow } from "./hooks";
 
@@ -15,12 +13,7 @@ export function SyncManager() {
   useEffect(() => {
     if (!owner) return;
     const run = () => {
-      syncNow(qc, owner).catch(() => {});
-      // GPS routes wait in their own outbox; the server dedupes by client route id.
-      flushRoutes(owner, (r) => api.routeSave(owner, r), (id, event) => api.routeLink(owner, id, event)).then(() => {
-        qc.invalidateQueries({ queryKey: ["routes", owner] });
-        qc.invalidateQueries({ queryKey: ["routes-outbox", owner] });
-      }).catch(() => {});
+      if (isOnline()) void syncNow(qc, owner).catch(() => {});
     };
     run();
     const off = onReconnect(() => {

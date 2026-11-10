@@ -65,6 +65,7 @@ async function authPage({ hold = [], signup = false, width = 360, next = "" } = 
       signOut: { error: null },
     };
     const client = window.initTitanSupabaseClient();
+    window.initTitanRecoveryClient = () => client;
     client.auth.getSession = async () => ({ data: { session: null } });
     for (const name of Object.keys(window.authResponses)) client.auth[name] = params => {
       const call = { name, params };
@@ -471,7 +472,7 @@ async function passwordPage({ hold = false, session = true, sessionError = false
     window.passwordCalls = [];
     window.passwordHold = hold;
     window.passwordResponse = { error: { message: "Network failed to fetch" } };
-    const client = window.initTitanSupabaseClient();
+    const client = window.initTitanRecoveryClient();
     client.auth.onAuthStateChange = callback => {
       window.passwordEvent = callback;
       queueMicrotask(() => callback("INITIAL_SESSION", session ? { user: { id: "fixture-account" } } : null));
@@ -629,14 +630,15 @@ test("password recovery: a failed update restores retry focus and retains the co
   assert.deepEqual(errors, []);
 });
 
-test("password recovery: delayed initial link diagnostics cannot overwrite an update failure", async t => {
+test("password recovery: an expired link cannot update a password", async t => {
   const { page, context, errors } = await passwordPage({ session: false, clock: true });
   t.after(() => context.close());
   await fillPassword(page);
   await page.locator("#pw-save").click();
-  await page.getByRole("alert").filter({ hasText: "Réessaie" }).waitFor();
+  await page.getByRole("alert").filter({ hasText: "Ce lien a expiré" }).waitFor();
   await page.clock.fastForward(1300);
-  assert.match(await page.locator("#pw-msg").textContent(), /n’a pas pu être enregistré/);
+  assert.match(await page.locator("#pw-msg").textContent(), /Ce lien a expiré/);
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 0);
   assert.deepEqual(errors, []);
 });
 
@@ -647,12 +649,12 @@ test("password recovery: session lookup rejection gives an actionable diagnostic
   assert.match(await page.locator("#pw-msg").textContent(), /réseau|vérifié/i);
   assert.deepEqual(errors, []);
   await fillPassword(page);
-  await page.evaluate(() => { window.passwordResponse = { error: { message: "Auth session missing" } }; });
   await page.locator("#pw-save").click();
-  await page.getByRole("alert").filter({ hasText: "Ce lien a expiré" }).waitFor();
+  await page.getByRole("alert").filter({ hasText: "Ce lien n’a pas pu être vérifié" }).waitFor();
+  assert.equal(await page.evaluate(() => window.passwordCalls.length), 0);
 });
 
-test("password recovery: successful save stays locked until the existing QG redirect", async t => {
+test("password recovery: successful save stays locked until sign-in", async t => {
   const { page, context, errors } = await passwordPage({ clock: true, width: 1280 });
   t.after(() => context.close());
   await fillPassword(page);
@@ -662,7 +664,7 @@ test("password recovery: successful save stays locked until the existing QG redi
   await page.evaluate(() => document.querySelector("#pw-form").requestSubmit());
   assert.equal(await page.evaluate(() => window.passwordCalls.length), 1);
   assert.equal(await page.locator("#pw").isDisabled(), true);
-  await Promise.all([page.waitForURL("**/aujourdhui"), page.clock.fastForward(1300)]);
+  await Promise.all([page.waitForURL("**/login"), page.clock.fastForward(1300)]);
   assert.deepEqual(errors, []);
 });
 
@@ -2307,6 +2309,49 @@ test("journal: correction closes on account change and a retained form cannot sa
   await context.close();
 });
 
+test("journal: an old correction reply cannot replace a newer revision after returning to the same account", async t => {
+  const { page, context, errors } = await journalSourcePage();
+  t.after(() => context.close());
+  await page.evaluate(() => {
+    const owner = window.state.user.id;
+    window.correctionWrites = [];
+    window.titanClient.auth = { getSession: async () => ({ data: { session: { user: { id: owner }, access_token: "correction-owner-token" } } }) };
+    window.titanClient.rpc = (name, params) => {
+      if (name !== "titan_update_training_session") return Promise.resolve({ data: null });
+      window.correctionRequest = { params };
+      const reply = new Promise(resolve => { window.finishCorrection = resolve; });
+      reply.setHeader = (header, value) => { window.correctionRequest[header] = value; return reply; };
+      return reply;
+    };
+    window.TitanQueue.saveHistory = async (ownerId, logs) => { window.correctionWrites.push({ ownerId, revisions: logs.map(log => log.revision) }); };
+  });
+  await page.locator("dialog[open] [data-edit]").click();
+  await page.locator("dialog[open] [name=note]").fill("Première correction");
+  await page.locator("dialog[open] [type=submit]").click();
+  await page.waitForFunction(() => window.finishCorrection);
+  await page.evaluate(() => {
+    const owner = window.state.user.id;
+    const adopt = (nextOwner, history) => {
+      window.titanInvalidateAccountSession(nextOwner);
+      window.state.user.id = nextOwner;
+      window.state.history = history;
+      window.titanAccountTransition.active = false;
+      window.dispatchEvent(new Event("titan:account-changed"));
+    };
+    const row = { id: window.correctionRequest.params.p_id, user_id: owner, revision: 3, sport: "running", unit: "km", val: 5, date: "2026-01-01T12:00:00Z", details: { note: "Correction plus récente" } };
+    adopt("00000000-0000-4000-8000-000000000456", []);
+    adopt(owner, [row]);
+    window.dispatchEvent(new Event("titan:history-updated"));
+    window.finishCorrection({ data: { ...row, revision: 2, details: { note: "Première correction" } } });
+    return new Promise(requestAnimationFrame);
+  });
+  assert.equal(await page.locator("dialog[open]").count(), 0);
+  assert.deepEqual(await page.evaluate(() => window.state.history.map(log => [log.revision, log.details.note])), [[3, "Correction plus récente"]]);
+  assert.deepEqual(await page.evaluate(() => window.correctionWrites), []);
+  assert.equal(await page.evaluate(() => window.correctionRequest.Authorization), "Bearer correction-owner-token");
+  assert.deepEqual(errors, []);
+});
+
 test("journal: detail and derived archive confirmation close before a new account is adopted", async () => {
   for (const archive of [false, true]) {
     const { page, context } = await journalSourcePage();
@@ -3655,12 +3700,15 @@ async function atelierPage(width, plus = false, legacy = false, existing = null)
     }
     window.atelierFixture = { credits: 2000, level: 1, week_credits: 0, week_credit_cap: 960, plus: { active: plus }, appearance: {}, items };
     window.atelierCalls = [];
-    window.titanClient = { rpc: async (name, params) => {
-      window.atelierCalls.push({ name, params });
+    window.atelierSessionOwner = window.state.user.id;
+    const bearer = () => `Bearer atelier-${window.atelierSessionOwner}`;
+    const call = async (name, params, authorization) => {
+      window.atelierCalls.push({ name, params, authorization });
       const d = window.atelierFixture;
       if (name === "titan_atelier") return { data: structuredClone(d) };
       const item = d.items.find((i) => i.id === (params.p_item_id || params.p_item));
       if (name === "titan_purchase_shop_item") {
+        if (window.atelierHoldPurchase) await new Promise(resolve => { window.finishAtelierPurchase = resolve; });
         d.credits -= item.price;
         item.owned = item.permanent = true;
         return { data: [{ credits_after: d.credits }] };
@@ -3670,7 +3718,14 @@ async function atelierPage(width, plus = false, legacy = false, existing = null)
         return { data: structuredClone(d.appearance) };
       }
       throw new Error("Unexpected fixture RPC: " + name);
-    } };
+    };
+    window.titanClient = {
+      auth: { getSession: async () => ({ data: { session: { user: { id: window.atelierSessionOwner }, access_token: `atelier-${window.atelierSessionOwner}` } }, error: null }) },
+      rpc: (name, params) => ({
+        then: (resolve, reject) => call(name, params, bearer()).then(resolve, reject),
+        setHeader: (header, value) => call(name, params, header === "Authorization" ? value : bearer()),
+      }),
+    };
   }, { plus, legacy });
   await fixture.page.addScriptTag({ path: ROOT + "/js/app/atelier.js" });
   await fixture.page.waitForSelector("[data-buy], [data-wear], [data-goto-plus]");
@@ -4342,6 +4397,68 @@ test("checkout receipt: browsers without locks keep functional confirmation read
   }
 });
 
+test("atelier mutation context: a credit purchase refuses a different live session", async t => {
+  const { page, context, errors } = await atelierPage(360);
+  t.after(() => context.close());
+  await page.locator('[data-buy="cos_frame_aegis"]').click();
+  await page.evaluate(() => { window.atelierSessionOwner = "00000000-0000-4000-8000-000000000124"; });
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.waitForFunction(() => document.querySelector("dialog[open]")?.getAttribute("aria-busy") !== "true");
+  assert.deepEqual(await page.evaluate(() => window.atelierCalls.filter(call => ["titan_purchase_shop_item", "titan_set_appearance"].includes(call.name))), []);
+  assert.equal(await page.evaluate(() => window.state.user.credits), 2000);
+  assert.deepEqual(errors, []);
+});
+
+test("atelier mutation context: an SDK rollover after session verification cannot change the purchase bearer", async t => {
+  const { page, context, errors } = await atelierPage(360);
+  t.after(() => context.close());
+  await page.locator('[data-buy="cos_frame_aegis"]').click();
+  await page.evaluate(() => {
+    const getSession = window.titanClient.auth.getSession;
+    window.titanClient.auth.getSession = async () => {
+      const session = await getSession();
+      window.atelierSessionOwner = "00000000-0000-4000-8000-000000000124";
+      return session;
+    };
+  });
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.locator("dialog[open]").waitFor({ state: "hidden" });
+  assert.deepEqual(await page.evaluate(() => window.atelierCalls.filter(call => ["titan_purchase_shop_item", "titan_set_appearance"].includes(call.name))), [
+    { name: "titan_purchase_shop_item", params: { p_item_id: "cos_frame_aegis" }, authorization: "Bearer atelier-00000000-0000-4000-8000-000000000123" },
+  ]);
+  assert.equal(await page.evaluate(() => window.state.user.credits), 600);
+  assert.deepEqual(errors, []);
+});
+
+test("atelier mutation context: a purchase reply from the previous sign-in cannot equip or change the balance", async t => {
+  const { page, context, errors } = await atelierPage(360);
+  t.after(() => context.close());
+  await page.evaluate(() => { window.atelierHoldPurchase = true; });
+  await page.locator('[data-buy="cos_frame_aegis"]').click();
+  await page.locator("dialog[open] [data-ok]").click();
+  await page.waitForFunction(() => window.finishAtelierPurchase);
+  await page.evaluate(() => {
+    const adopt = owner => {
+      window.titanInvalidateAccountSession(owner);
+      window.state.user.id = window.atelierSessionOwner = owner;
+      window.titanAccountTransition.active = false;
+      window.dispatchEvent(new CustomEvent("titan:account-changed"));
+    };
+    const owner = window.state.user.id;
+    adopt("00000000-0000-4000-8000-000000000124");
+    window.atelierFixture = { ...structuredClone(window.atelierFixture), credits: 1800 };
+    adopt(owner);
+  });
+  await page.waitForFunction(() => window.state.user.credits === 1800);
+  await page.locator("dialog[open]").waitFor({ state: "hidden" });
+  await page.evaluate(() => { window.finishAtelierPurchase(); return new Promise(requestAnimationFrame); });
+  assert.deepEqual(await page.evaluate(() => window.atelierCalls.filter(call => ["titan_purchase_shop_item", "titan_set_appearance"].includes(call.name))), [
+    { name: "titan_purchase_shop_item", params: { p_item_id: "cos_frame_aegis" }, authorization: "Bearer atelier-00000000-0000-4000-8000-000000000123" },
+  ]);
+  assert.equal(await page.evaluate(() => window.state.user.credits), 1800);
+  assert.deepEqual(errors, []);
+});
+
 test("atelier: Free can buy a formerly exclusive frame permanently at 360 and 1280 px", async () => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await atelierPage(width);
@@ -4939,7 +5056,7 @@ async function deleteAccountPage(t, { holdSession = false, holdQueue = false, ro
     const response = await new Promise(resolve => { call.resolve = resolve; });
     const letter = bearer === "Bearer delete-b-token" ? "b" : "a";
     const userId = letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
-    await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: "XX000", message: "synthetic failure" } : { userId: response.foreign ? "foreign" : userId, deleted: { auth_users: 1 } }) });
+    await route.fulfill({ status: response.status || 200, contentType: "application/json", body: JSON.stringify(response.status ? { code: "XX000", message: "synthetic failure" } : { userId: response.foreign ? "foreign" : userId, deleted: { auth_users: response.authUsers ?? 1 } }) });
   });
   await page.evaluate(({ holdSession, holdQueue, rollover }) => {
     window.deleteRpcSettled = 0; window.deleteAuthCalls = 0; window.deleteFixtureArmed = false; window.deleteSessionOwner = "a"; window.deleteQueueFailures = 0;
@@ -4952,6 +5069,7 @@ async function deleteAccountPage(t, { holdSession = false, holdQueue = false, ro
     window.titanClient.auth.getSession = async () => {
       const call = window.deleteFixtureArmed ? ++window.deleteAuthCalls : 0;
       const letter = rollover && call > 1 ? "b" : window.deleteSessionOwner;
+      if (letter === null) return { data: { session: null }, error: { code: "refresh_token_not_found" } };
       const session = { user: { id: window.readOwnerId(letter) }, access_token: `delete-${letter}-token` };
       if (holdSession && call === 1) await new Promise(resolve => { window.releaseDeleteSession = resolve; });
       return { data: { session }, error: null };
@@ -5034,12 +5152,13 @@ test("account deletion context: confirmation opened by A cannot submit for B", a
 });
 
 for (const change of ["owner", "roundtrip", "epoch", "client"]) {
-  test(`account deletion context: late reply after ${change} cannot clean or navigate the new context`, async t => {
+  test(`account deletion context: late reply after ${change} purges only the deleted owner`, async t => {
     const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
     if (change === "roundtrip") { await f.switchAccount(); await f.switchAccount("owner", "a"); }
     else await f.switchAccount(change, change === "owner" ? "b" : "a");
     await f.reply(); await f.settle();
-    assert.deepEqual(f.effects, []); assert.equal(new URL(f.page.url()).pathname, "/profile");
+    assert.deepEqual(f.effects, [{ kind: "queue", owner: "00000000-0000-4000-8000-000000000111" }]);
+    assert.equal(new URL(f.page.url()).pathname, "/profile");
     assert.equal(await f.page.locator('dialog[open] [data-close]').isEnabled(), true);
   });
 }
@@ -5055,10 +5174,35 @@ test("account deletion context: foreign initial session sends no RPC", async t =
   assert.equal(f.deletions.length, 0); assert.deepEqual(f.effects, []);
 });
 
-test("account deletion context: silent SDK rollover cannot trigger local cleanup", async t => {
+test("account deletion context: silent SDK rollover preserves the other account's session and cache", async t => {
   const f = await deleteAccountPage(t, { rollover: true }); await f.open(); await f.submit(); await f.waitDeletions(1);
   assert.equal(f.deletions[0].bearer, "Bearer delete-a-token"); await f.reply(); await f.settle();
-  assert.deepEqual(f.effects, []); assert.equal(new URL(f.page.url()).pathname, "/profile");
+  assert.deepEqual(f.effects, [{ kind: "queue", owner: "00000000-0000-4000-8000-000000000111" }]);
+  assert.equal(new URL(f.page.url()).pathname, "/profile");
+});
+
+test("account deletion context: losing the deleted owner's refresh token cannot leave their device data behind", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
+  await f.page.evaluate(() => { window.deleteSessionOwner = null; });
+  await f.reply(0, { authUsers: 0 }); await f.page.waitForURL(BASE + "/");
+  assert.deepEqual(f.effects, [{ kind: "queue", owner: "00000000-0000-4000-8000-000000000111" }, { kind: "cache" }]);
+});
+
+test("account deletion context: Auth sign-out still removes the deleted account's saved state", async t => {
+  const f = await deleteAccountPage(t); await f.open(); await f.submit(); await f.waitDeletions(1);
+  await f.page.evaluate(() => {
+    localStorage.setItem(window.STATE_KEY, JSON.stringify({ user: { id: window.state.user.id }, history: [{ note: "private session" }] }));
+    const getSession = window.titanClient.auth.getSession;
+    window.deleteSessionOwner = null;
+    window.titanClient.auth.getSession = () => {
+      window.titanInvalidateAccountSession(null);
+      return getSession();
+    };
+  });
+  await f.reply(); await f.settle();
+  assert.deepEqual(f.effects, [{ kind: "queue", owner: "00000000-0000-4000-8000-000000000111" }]);
+  assert.equal(await f.page.evaluate(() => localStorage.getItem(window.STATE_KEY)), null);
+  assert.equal(new URL(f.page.url()).pathname, "/profile");
 });
 
 test("account deletion context: a foreign response cannot authorize local cleanup", async t => {
@@ -6122,8 +6266,12 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   await page.evaluate(() => localStorage.setItem("titan_sw_dev", "1"));
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => navigator.serviceWorker.controller);
-  const staleScripts = await Promise.all([["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/app/coaching.js", "coaching"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/app/seance.js", "seance"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
-    .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text()]));
+  const deployedRefs = Object.fromEntries([
+    ["config", ["login", "profile", "update-password"]], ["auth", ["login"]],
+    ["password", ["update-password"]], ["profil", ["profile"]], ["main", ["records"]],
+  ].map(([marker, pages]) => [marker, pages.flatMap(name => [...readFileSync(`${ROOT}/${name}.html`, "utf8").matchAll(/<script[^>]+src="(\/js\/[^"]+)"/g)].map(match => match[1]))]));
+  const staleScripts = await Promise.all([["/js/config.js", "config"], ["/js/state.js", "state"], ["/js/app/shell.js", "shell"], ["/js/app/atelier.js", "atelier"], ["/js/app/coaching.js", "coaching"], ["/js/main.js", "main"], ["/js/app/profil.js", "profil"], ["/js/app/auth.js", "auth"], ["/js/app/update-password.js", "password"], ["/js/app/onboarding.js", "onboarding"], ["/js/app/seance.js", "seance"], ["/js/content.js", "content"], ["/js/dynamic-page.js", "dynamic"], ["/js/renaissance-engine.js", "adventure"], ["/js/app/communaute.js", "community"]]
+    .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text(), (deployedRefs[marker] || []).filter(url => url.split("?")[0] === path)]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
     await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
@@ -6133,9 +6281,11 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     }
     // Keep valid script bodies and mark the stale generation. Cache-first must not serve them
     // to the new page even when a background fetch will replace them for a later visit.
-    for (const [path, marker, body] of staleScripts) {
+    for (const [path, marker, body, deployedUrls] of staleScripts) {
       const versions = marker === "shell" ? ["300.0", "300.2", "300.3"] : marker === "auth" ? ["300.0", "300.1", "300.2", "300.3", "300.4"] : marker === "community" ? ["300.0", "300.1", "300.2"] : marker === "profil" ? ["300.0", "300.1", "300.2", "300.3", "300.4", "300.5", "300.6", "300.7"] : marker === "onboarding" ? ["300.0", "300.1", "300.2"] : marker === "main" ? ["300.0", "300.1"] : marker === "atelier" ? ["300.0", "300.4", "300.5", "300.6"] : marker === "dynamic" || marker === "password" ? ["300.0", "300.1"] : ["300.0"];
-      for (const version of versions) await cache.put(path + "?v=" + version, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
+      for (const url of new Set([...versions.map(version => path + "?v=" + version), ...deployedUrls])) {
+        await cache.put(url, new Response(body + `\nwindow.titanPreviousResource ??= {}; window.titanPreviousResource.${marker} = true;`, { headers: { "content-type": "text/javascript" } }));
+      }
     }
   }, staleScripts);
   await page.goto(BASE + "/records", { waitUntil: "load" });
@@ -6153,6 +6303,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   for (const [path, marker] of [["/coaching", "coaching"], ["/profile", "profil"], ["/login", "auth"], ["/update-password", "password"], ["/onboarding?again=1", "onboarding"], ["/training?sport=running", "seance"]]) {
     await page.goto(BASE + path, { waitUntil: "load" });
     assert.equal(await page.evaluate(marker => Boolean(window.titanPreviousResource?.[marker]), marker), false, "first visit loads the updated consent failure notice");
+    assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.config)), false, "authentication does not use the previous SDK configuration");
   }
   await page.goto(BASE + "/social", { waitUntil: "load" });
   await page.getByRole("heading", { name: "Avancer avec les autres, sans bruit." }).waitFor();

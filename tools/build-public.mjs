@@ -100,21 +100,43 @@ for (const entry of readdirSync(root)) {
   copyFileOrDirectory(entry);
 }
 
-// Inject one local, deferred analytics-consent manager into every published HTML page.
-// It makes no request to Google before explicit approval; external inline gtag is prohibited by our CSP.
+// Old workers and the HTTP cache can survive a deployment. Content-versioned first-party scripts
+// let the new HTML bypass both even while the old worker still controls the page.
+const scriptDigests = new Map();
+function versionScriptUrl(url) {
+  const path = url.split('?')[0];
+  if (!scriptDigests.has(path)) {
+    const source = assertInsideRoot(join(dist, path));
+    scriptDigests.set(path, createHash('sha256').update(readFileSync(source)).digest('hex').slice(0, 12));
+  }
+  return `${url}${url.includes('?') ? '&' : '?'}rev=${scriptDigests.get(path)}`;
+}
+const versionScripts = (html) => html.replace(/(<script\b[^>]*\ssrc=")(\/js\/(?!vendor\/)[^"#]+)"/g,
+  (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`);
+
 for (const entry of readdirSync(root)) {
   if (!entry.endsWith('.html') || excludedHtml.has(basename(entry))) continue;
   const target = join(dist, entry);
   let html = readFileSync(target, 'utf8');
-  if (!html.includes('</head>') || html.includes('/js/ga4-consent.js')) continue;
-  html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.8" defer></script>\n</head>');
-  writeFileSync(target, html);
+  // The deferred manager only contacts Google after explicit consent.
+  if (html.includes('</head>') && !html.includes('/js/ga4-consent.js')) {
+    html = html.replace('</head>', '  <script src="/js/ga4-consent.js?v=300.9" defer></script>\n</head>');
+  }
+  writeFileSync(target, versionScripts(html));
 }
 
 // Offline shell: every local asset the app pages load, plus the pages themselves.
 // Public help and its assets are available offline even before the first help visit.
 const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'carriere', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
 const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/css/fonts/manrope-latin-0.woff2', '/css/fonts/manrope-latin-1.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
+const gpxWorkerUrl = '/js/core/gpx-worker.js';
+const gpxWorkerPath = join(dist, gpxWorkerUrl);
+precache.add(gpxWorkerUrl);
+writeFileSync(gpxWorkerPath, readFileSync(gpxWorkerPath, 'utf8').replace(/importScripts\((['"])(\/js\/[^'"#]+)\1\)/g, (_, quote, url) => {
+  const versioned = versionScriptUrl(url);
+  precache.add(versioned);
+  return `importScripts(${quote}${versioned}${quote})`;
+}));
 for (const page of APP_PAGES) {
   precache.add(`/${page}`);
   const html = readFileSync(join(dist, `${page}.html`), 'utf8');

@@ -40,17 +40,16 @@
     });
     window.gtag("consent", "update", { analytics_storage: "granted" });
     window.gtag("js", new Date());
+    // These defaults also cover conversions and automatic engagement events.
     window.gtag("config", ID, {
       send_page_view: false,
       allow_google_signals: false,
-      allow_ad_personalization_signals: false
-    });
-    // Never transmit the query string (OAuth tokens, email links, etc.) or fragment.
-    window.gtag("event", "page_view", {
+      allow_ad_personalization_signals: false,
       page_location: location.origin + location.pathname,
       page_title: "TITAN",
       page_referrer: ""
     });
+    window.gtag("event", "page_view");
     const loader = document.createElement("script");
     loader.async = true;
     loader.src = "https://www.googletagmanager.com/gtag/js?id=" + ID;

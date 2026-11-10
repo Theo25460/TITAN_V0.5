@@ -38,6 +38,7 @@ export function RecordScreen() {
   };
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
   const popular = Sports.POPULAR.filter((s) => !favorites.includes(s) && !recent.some(([r]) => r === s));
+  const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 2);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
@@ -52,6 +53,7 @@ export function RecordScreen() {
         {draft ? (
           <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
         ) : null}
+        {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
         <Button label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} kind={draft || choosing ? "secondary" : "primary"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
         {choosing ? (
           <>
@@ -86,7 +88,6 @@ export function RecordScreen() {
             </Section>
           </>
         ) : null}
-        {repeat ? <RepeatLastCard log={repeat} /> : null}
         {/* The GPS used to be reachable only from inside a running/cycling form (V12-10): it has its own entry now. */}
         <Card onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} accessibilityLabel={`Suivre ma sortie en GPS, ${Sports.label(gpsSport)}`} testID="gps-shortcut">
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
@@ -98,6 +99,7 @@ export function RecordScreen() {
             <Icon name="chevron" color={colors.tx3} />
           </View>
         </Card>
+        {repeat ? <RepeatLastCard log={repeat} /> : null}
         <T variant="caption" tone="faint">
           Hors ligne aussi : la séance est gardée sur ce téléphone puis envoyée automatiquement.
         </T>

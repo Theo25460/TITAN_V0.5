@@ -111,6 +111,16 @@ test("discard removes everything", async () => {
   expect(await s.rec.load("u1")).toBeNull();
 });
 
+test("finishing or discarding a paused old recording leaves the new owner's GPS service running", async () => {
+  const s = setup();
+  await s.rec.start("old", "running");
+  await s.rec.pause("old");
+  await s.rec.start("new", "cycling");
+  await s.rec.finish("old");
+  await s.rec.discard("old");
+  expect((await s.rec.reconcile("new"))?.status).toBe("recording");
+});
+
 import { draftFromRecording } from "../src/lib/gpsDraft";
 test("the finished recording becomes the usual form draft, with no coordinates in it", async () => {
   const s = setup();

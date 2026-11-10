@@ -50,7 +50,7 @@ async function profilePage({ sources = [], garminStatus } = {}) {
         if (name === "titan_public_card_settings") return { data: { enabled: false, slug: "abcdefghij", show: { titles: true } }, error: null };
         if (name === "titan_expedition_titles") return { data: [{ id: "automne-2026", title: "Passe-brume", expedition: "La traversée des brumes", ended_at: "2026-11-16" }], error: null };
         if (name === "titan_displayed_title") return { data: { key: null, label: null }, error: null };
-        if (name === "delete_own_account") { window.recordOrder?.("delete_own_account"); return { data: { userId: owner }, error: null }; }
+        if (name === "delete_own_account") { window.recordOrder?.("delete_own_account"); return { data: { userId: owner, deleted: { auth_users: 1 } }, error: null }; }
         if (name === "titan_sources_v1") return { data: window.sourceRows, error: null };
         if (name === "titan_garmin_status_v1") return window.garminStatus === undefined ? { data: null, error: { code: "PGRST202", message: "Could not find the function" } } : { data: { linked: window.garminStatus }, error: null };
         if (name === "titan_set_source_consent_v1") { window.sourceCalls.push([name, args]); window.sourceRows = window.sourceRows.map(x => ({ ...x, granted: false })); return { data: {}, error: null }; }

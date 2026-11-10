@@ -10,16 +10,27 @@ adb wait-for-device
 adb shell settings put global hide_error_dialogs 1 || true
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true
 adb install -r "$APK"
+{
+  adb shell getprop ro.product.model
+  adb shell getprop ro.build.version.sdk
+  adb shell wm size
+  adb shell wm density
+  printf 'Test APK bytes: %s\n' "$(wc -c < "$APK")"
+} > "$OUT/device.txt" 2>&1
 adb logcat -c
 adb logcat -v time > "$OUT/logcat.txt" 2>&1 &
 LOGCAT=$!
-adb shell am start -W -n fr.titanapp.app/.MainActivity >/dev/null 2>&1 || true
+adb shell am force-stop fr.titanapp.app
+adb shell am start -W -n fr.titanapp.app/.MainActivity > "$OUT/startup-cold.txt" 2>&1 || true
 sleep 3
+adb shell input keyevent KEYCODE_HOME || true
+adb shell am start -W -n fr.titanapp.app/.MainActivity > "$OUT/startup-resume.txt" 2>&1 || true
 adb shell am force-stop fr.titanapp.app
 cd "$OUT"
 status=0
 "$HOME/.maestro/bin/maestro" test "$ROOT/mobile/e2e/flows" --format junit --output "$OUT/maestro-report.xml" --test-output-dir "$OUT/maestro" || status=$?
 adb shell dumpsys meminfo fr.titanapp.app > "$OUT/meminfo.txt" 2>&1 || true
+adb shell dumpsys gfxinfo fr.titanapp.app framestats > "$OUT/framestats.txt" 2>&1 || true
 # On failure, print what the device was showing and the app's errors, so the cause is readable in the job log itself.
 if [ "$status" -ne 0 ]; then
   echo "::group::Diagnostic : écran de l'appareil et erreurs de l'application"

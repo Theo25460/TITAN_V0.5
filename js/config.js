@@ -87,7 +87,9 @@ window.TITAN_SUPABASE_CLIENT_OPTIONS = {
     auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        flowType: 'pkce',
+        // This predicate filters implicit callbacks. The SDK still recognises PKCE codes with a local verifier.
+        detectSessionInUrl: () => false,
         storageKey: 'titan_supabase_auth_v1'
     },
     global: {
@@ -100,6 +102,33 @@ window.TITAN_SUPABASE_CLIENT_OPTIONS = {
             eventsPerSecond: 5
         }
     }
+};
+
+// Recovery links can open in a different mail browser. Their credentials belong to the reset tab only.
+const TITAN_RECOVERY_STORAGE_KEY = 'titan_password_recovery_v1';
+let titanRecoveryClient = null;
+window.clearTitanRecoverySession = function() {
+    try { window.sessionStorage.removeItem(TITAN_RECOVERY_STORAGE_KEY); } catch (_) {}
+};
+window.initTitanRecoveryClient = function() {
+    if (titanRecoveryClient) return titanRecoveryClient;
+    if (typeof window.supabase?.createClient !== 'function') return null;
+    const url = new URL(window.location.href);
+    const resetPage = /^\/update-password(?:\.html)?\/?$/.test(url.pathname);
+    const fragment = new URLSearchParams(url.hash.slice(1));
+    if (resetPage && (fragment.has('access_token') || fragment.has('error') || url.searchParams.has('error') || url.searchParams.has('code'))) {
+        window.clearTitanRecoverySession();
+    }
+    let storage;
+    if (resetPage) { try { storage = window.sessionStorage; } catch (_) {} }
+    titanRecoveryClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            flowType: 'implicit', autoRefreshToken: false, persistSession: Boolean(storage), storage,
+            storageKey: TITAN_RECOVERY_STORAGE_KEY,
+            detectSessionInUrl: (_url, params) => resetPage && fragment.get('type') === 'recovery' && params.access_token === fragment.get('access_token')
+        }
+    });
+    return titanRecoveryClient;
 };
 window.TITAN_SUPABASE_STATUS = window.TITAN_SUPABASE_STATUS || {
     state: 'idle',

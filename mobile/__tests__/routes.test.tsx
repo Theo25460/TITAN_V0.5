@@ -1,6 +1,6 @@
 /* Route library: outbox that never duplicates and never blocks, list and detail screens (tile-less map, GPX export, deletion), private by design. */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { awaitSession, buildPending, flushRoutes, linkSavedSession, newRouteId, pendingLinks, pendingRoutes, queueRoute, _resetForTests } from "../src/lib/routeSync";
+import { buildPending, flushRoutes, newRouteId, pendingLinks, pendingRoutes, queueRoute, queueRouteLink, _resetForTests } from "../src/lib/routeSync";
 import { addFix, emptyTrack, type Fix, type Track } from "../src/lib/gpsTrack";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -52,13 +52,10 @@ test("outboxes are per account; two flushes at once send once; a refused route s
   expect((await flushRoutes("a", refused)).left).toBe(1);
 });
 
-test("the session saved from a recording is linked to its route: same sport, within two days, once, after the route itself; nothing is guessed", async () => {
+test("a route association is idempotent and sent after the route itself", async () => {
   await queueRoute("l1", mk("route-link-0001"));
-  await awaitSession("l1", "route-link-0001", "running", T0);
-  expect(await linkSavedSession("l1", "cycling", "evt-session-0001", T0 + 1000)).toBe(false); // another sport: no link
-  expect(await linkSavedSession("l1", "running", "evt-session-0001", T0 + 3 * 86400000)).toBe(false); // too late
-  expect(await linkSavedSession("l1", "running", "evt-session-0001", T0 + 60_000)).toBe(true);
-  expect(await linkSavedSession("l1", "running", "evt-session-0002", T0 + 61_000)).toBe(false); // the waiting slot was consumed
+  await queueRouteLink("l1", "route-link-0001", "evt-session-0001");
+  await queueRouteLink("l1", "route-link-0001", "evt-session-0001");
   expect(await pendingLinks("l1")).toEqual([{ clientRouteId: "route-link-0001", eventId: "evt-session-0001", attempts: 0 }]);
   const order: string[] = [];
   const save = async (r: { clientRouteId: string }) => void order.push(`save:${r.clientRouteId}`);
@@ -70,8 +67,7 @@ test("the session saved from a recording is linked to its route: same sport, wit
 
 test("a link waits while its route is still waiting and remains recoverable after any refusal", async () => {
   await queueRoute("l2", mk("route-link-0002"));
-  await awaitSession("l2", "route-link-0002", "running", T0);
-  await linkSavedSession("l2", "running", "evt-session-0003", T0 + 1000);
+  await queueRouteLink("l2", "route-link-0002", "evt-session-0003");
   const link = jest.fn(async () => undefined);
   await flushRoutes("l2", async () => { throw new Error("network"); }, link);
   expect(link).not.toHaveBeenCalled();

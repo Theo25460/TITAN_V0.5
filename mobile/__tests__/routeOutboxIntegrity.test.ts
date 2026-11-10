@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { awaitSession, flushRoutes, linkSavedSession, pendingLinks, pendingRoutes, queueRoute, _resetForTests, type PendingRoute } from "../src/lib/routeSync";
+import { flushRoutes, pendingLinks, pendingRoutes, queueRoute, queueRouteLink, _resetForTests, type PendingRoute } from "../src/lib/routeSync";
 import { forgetAccountCache, ownerKey, writeJSON } from "../src/lib/storage";
 
 const route = (id: string): PendingRoute => ({ clientRouteId: id, sport: "running", startedAt: "2026-11-02T08:00:00Z", distanceM: 100, durationS: 60, ascentM: null, track: { v: 1, segs: [[[48, 7, null, 0], [48.001, 7, null, 60]]] } as PendingRoute["track"], attempts: 0 });
@@ -38,8 +38,7 @@ test("full outbox rejects the new save explicitly and preserves all twenty older
 
 test("normal sign-out retains routes, their links and draft; deleting the account removes them", async () => {
   await queueRoute("a", route("route-one"));
-  await awaitSession("a", "route-one", "running");
-  await linkSavedSession("a", "running", "session-one");
+  await queueRouteLink("a", "route-one", "session-one");
   await writeJSON(ownerKey("draft", "a"), { unsent: true });
   await writeJSON(ownerKey("profile", "a"), { cached: true });
   await forgetAccountCache("a");
@@ -53,10 +52,10 @@ test("normal sign-out retains routes, their links and draft; deleting the accoun
   expect(await pendingLinks("a")).toEqual([]);
 });
 
-test("a persist failure is surfaced so the GPS recording can remain recoverable", async () => {
+test("a link persist failure is surfaced so the owning queue can retry", async () => {
   const original = (AsyncStorage.setItem as jest.Mock).getMockImplementation();
   (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error("disk-full"));
-  await expect(awaitSession("a", "route-one", "running")).rejects.toThrow("disk-full");
+  await expect(queueRouteLink("a", "route-one", "session-one")).rejects.toThrow("disk-full");
   (AsyncStorage.setItem as jest.Mock).mockImplementation(original);
 });
 
@@ -67,4 +66,10 @@ test("a transient disk read error cannot replace an existing outbox with an empt
   await expect(queueRoute("a", route("route-two"))).rejects.toThrow("disk-unavailable");
   (AsyncStorage.getItem as jest.Mock).mockImplementation(original);
   expect((await pendingRoutes("a")).map((r) => r.clientRouteId)).toEqual(["route-one"]);
+});
+
+test("an unconfirmed link stays queued when the server says the route is absent", async () => {
+  await queueRouteLink("a", "route-one", "session-one");
+  await flushRoutes("a", async () => undefined, async () => false);
+  expect(await pendingLinks("a")).toEqual([{ clientRouteId: "route-one", eventId: "session-one", attempts: 1 }]);
 });

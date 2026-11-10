@@ -45,7 +45,7 @@ export function AtelierScreen() {
   async function equip(item: api.AtelierItem) {
     setBusy(item.id);
     try {
-      await api.setAppearance(item.slot, item.id);
+      await api.setAppearance(owner, item.slot, item.id);
       await refresh();
       toast({ kind: "ok", title: `${item.name} équipé` });
     } catch (e) {
@@ -63,8 +63,8 @@ export function AtelierScreen() {
         onPress: async () => {
           setBusy(item.id);
           try {
-            await api.purchaseItem(item.id);
-            await api.setAppearance(item.slot, item.id).catch(() => {});
+            await api.purchaseItem(owner, item.id);
+            await api.setAppearance(owner, item.slot, item.id).catch(() => {});
             await refresh();
             toast({ kind: "ok", title: `${item.name} ajouté à ta collection` });
           } catch (e) {

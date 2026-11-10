@@ -422,16 +422,34 @@
   }
 
   /* ---------- Actions ---------- */
-  async function wear(id, removed = false) {
-    const owner = dataOwner;
-    if (window.state?.user?.id !== owner) throw new Error("ACCOUNT_CHANGED");
+  const mutationCurrent = context => dataOwner === context.owner && accountCurrent(context);
+
+  async function mutate(context, name, params) {
+    if (!mutationCurrent(context)) return null;
+    try {
+      const { data: auth, error } = await context.client.auth.getSession();
+      if (!mutationCurrent(context)) return null;
+      const session = auth?.session;
+      if (error || !session?.access_token || session.user?.id !== context.owner) throw new Error("ACCOUNT_CHANGED");
+      const result = await context.client.rpc(name, params).setHeader("Authorization", `Bearer ${session.access_token}`);
+      if (!mutationCurrent(context)) return null;
+      if (result.error) throw result.error;
+      return result;
+    } catch (error) {
+      if (mutationCurrent(context)) throw error;
+      return null;
+    }
+  }
+
+  async function wear(id, removed, context) {
+    if (!mutationCurrent(context)) return;
     const item = data.items.find((i) => i.id === id);
+    if (!item) return;
     const previous = removed ? data.items.find((i) => i.slot === item.slot && i.cosmetic === data.appearance?.[item.slot]) : item;
     const trigger = document.activeElement;
-    const { data: look, error: e } = await window.titanClient.rpc("titan_set_appearance", { p_slot: item.slot, p_item: id });
-    if (window.state?.user?.id !== owner) return;
-    if (e) throw e;
-    data.appearance = look || {};
+    const result = await mutate(context, "titan_set_appearance", { p_slot: item.slot, p_item: id });
+    if (!result || !mutationCurrent(context)) return;
+    data.appearance = result.data || {};
     syncUser();
     const restoreFocus = document.activeElement === trigger && root.contains(trigger);
     render();
@@ -454,26 +472,35 @@
   }
 
   function buy(id) {
-    const owner = dataOwner;
+    const context = accountContext();
+    if (!mutationCurrent(context)) return;
     const item = data.items.find((i) => i.id === id);
+    if (!item) return;
     const left = (Number(data.credits) || 0) - item.price;
-    window.titanShell.confirm({
+    const confirmation = window.titanShell.confirm({
       title: `Débloquer ${item.name} ?`,
       message: `${F().number(item.price)} crédits. Il t’en restera ${F().number(left)}.`,
       detail: "Une pièce visuelle, gardée dans ta collection. Aucun effet sur l’XP, les gardiens ou les classements.",
       confirmLabel: "Débloquer et porter",
       action: async () => {
-        if (window.state?.user?.id !== owner) throw new Error(messageOf(new Error("ACCOUNT_CHANGED")));
-        const { data: r, error: e } = await window.titanClient.rpc("titan_purchase_shop_item", { p_item_id: id });
-        if (window.state?.user?.id !== owner) return;
-        if (e) throw new Error(messageOf(e));
-        const row = Array.isArray(r) ? r[0] : r;
+        if (!mutationCurrent(context)) throw new Error(messageOf(new Error("ACCOUNT_CHANGED")));
+        const result = await mutate(context, "titan_purchase_shop_item", { p_item_id: id }).catch(error => { throw new Error(messageOf(error)); });
+        if (!result || !mutationCurrent(context)) return;
+        const row = Array.isArray(result.data) ? result.data[0] : result.data;
         data.credits = Number(row?.credits_after ?? left);
-        item.owned = true;
-        item.permanent = true;
-        await wear(id).catch(() => render());
+        const purchased = data.items.find((i) => i.id === id);
+        if (purchased) Object.assign(purchased, { owned: true, permanent: true });
+        syncUser();
+        if (purchased) await wear(id, false, context).catch(() => { if (mutationCurrent(context)) render(); });
+        else render();
       },
     });
+    const dialog = document.activeElement?.closest("dialog.asc-sheet[open]");
+    if (!dialog) return;
+    const closeStale = () => { if (!mutationCurrent(context)) dialog.close(); };
+    const events = ["titan:account-changing", "titan:account-changed"];
+    events.forEach(event => window.addEventListener(event, closeStale));
+    return confirmation.finally(() => events.forEach(event => window.removeEventListener(event, closeStale)));
   }
 
   /* ADR-004: inside the Android app, when the flag is on and the browser exposes the Digital Goods and Payment Request APIs. */
@@ -560,11 +587,13 @@
       if (b.classList.contains("at-look-slot")) document.getElementById("collection")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
-    if (b.dataset.wear)
-      return wear(b.dataset.wear).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
-    if (b.dataset.remove) {
-      const base = data?.items?.find((i) => i.slot === b.dataset.remove && i.unlock === "default" && i.owned);
-      if (base) return wear(base.id, true).catch((err) => window.titanShell.toast({ type: "warn", message: messageOf(err) }));
+    if (b.dataset.wear || b.dataset.remove) {
+      const context = accountContext();
+      const removed = b.hasAttribute("data-remove");
+      const id = removed ? data?.items?.find((i) => i.slot === b.dataset.remove && i.unlock === "default" && i.owned)?.id : b.dataset.wear;
+      if (id) return wear(id, removed, context).catch((error) => {
+        if (mutationCurrent(context)) window.titanShell.toast({ type: "warn", message: messageOf(error) });
+      });
       return;
     }
     if (b.dataset.preview) return openPreview(b.dataset.preview);

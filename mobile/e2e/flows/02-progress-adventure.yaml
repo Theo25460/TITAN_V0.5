@@ -49,8 +49,7 @@ appId: fr.titanapp.app
 - back
 - tapOn:
     id: "tab-record"
-- tapOn:
-    id: "record-choose-sport"
+- takeScreenshot: 13b-seance-acces-direct
 - tapOn:
     id: "sport-running"
 - tapOn:

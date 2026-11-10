@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {IDBFactory} from 'fake-indexeddb';
 const source=readFileSync(new URL('../js/training-store.js',import.meta.url),'utf8');
+const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
 function environment(factory=new IDBFactory(),storage=new Map()){
  const window={state:{user:{id:'guest_test'}},indexedDB:factory,dispatchEvent(){}};
  const context={window,indexedDB:factory,CustomEvent,crypto,structuredClone,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{clear(){}}};
@@ -21,9 +22,9 @@ test('duration distinguishes missing values and honors measured minutes/hours',(
 
 
 test('queued cloud submission stays bound to its authenticated owner and requires server acknowledgement',async()=>{
- const main=readFileSync(new URL('../js/main.js',import.meta.url),'utf8'), calls=[];
+ const calls=[];
  const context={window:{state:{user:{id:'alice'}},TITAN_SUPABASE_URL:'https://example.invalid',TITAN_SUPABASE_ANON_KEY:'public-key'},AbortSignal,fetch:async(url,options)=>{calls.push({url,options});context.window.state.user.id='bob';return {ok:true,json:async()=>[{log_id:'accepted'}]}}};
- vm.runInNewContext(main.slice(main.indexOf('async function submitTrainingSessionToCloud('),main.indexOf('let trainingFlush;')),context);
+ vm.runInNewContext(main.slice(main.indexOf('async function submitTrainingSessionToCloud('),main.indexOf('window.flushPendingTrainingLogs =')),context);
  const session={user:{id:'alice'},access_token:'alice-token'};
  assert.equal((await context.submitTrainingSessionToCloud({sport:'running',val:5},session)).data.id,'accepted');
  assert.equal(calls[0].options.headers.Authorization,'Bearer alice-token');
@@ -31,6 +32,167 @@ test('queued cloud submission stays bound to its authenticated owner and require
  assert.equal(calls.length,1);
  context.window.state.user.id='alice';context.fetch=async()=>({ok:true,json:async()=>[]});
  assert.equal((await context.submitTrainingSessionToCloud({},session)).error.message,'SERVER_AUTHORITY_REQUIRED');
+});
+
+function syncEnvironment() {
+ const events=[], storage=new Map();
+ const window={state:{user:{id:'alice',xp:0},history:[]},titanAccountTransition:{epoch:1,active:false},
+  titanClient:{auth:{getSession:async()=>({data:{session:{user:{id:window.state.user.id},access_token:window.state.user.id}}})}},
+  TITAN_SUPABASE_URL:'https://example.invalid',TITAN_SUPABASE_ANON_KEY:'public-key',
+  addEventListener(){},dispatchEvent:event=>events.push(event.type)};
+ const context={window,CustomEvent,AbortSignal,navigator:{},document:{querySelectorAll:()=>[],addEventListener(){}},
+  localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)}};
+ vm.runInNewContext(main,context);
+ const switchTo=id=>{window.state={user:{id,xp:0},history:[]};window.titanAccountTransition.epoch++;};
+ return {window,context,events,switchTo};
+}
+
+test('Web progression cache and diagnostics are only read by the account that owns them',async()=>{
+ const {window,switchTo}=syncEnvironment();
+ window.titanClient.rpc=async()=>({data:[{server_user_id:'alice',xp:80,level:3,credits:27}]});
+ assert.equal((await window.titanRefreshProgressionSnapshot()).xp,80);
+ assert.equal(window.titanGetTrainingSyncDiagnostic().status,'snapshot_synced');
+ switchTo('bob');
+ assert.equal(window.titanGetProgressionSnapshot(),null);
+ assert.equal(window.titanGetTrainingSyncDiagnostic(),null);
+ assert.equal(window.titanBuildCloudReadiness().snapshot,null);
+});
+
+test('late Web progression responses cannot change the next account or an older sign-in',async()=>{
+ for(const nextOwner of ['bob','alice']) {
+  const {window,switchTo}=syncEnvironment();
+  let resolveResponse, markRequested;
+  const requested=new Promise(resolve=>{markRequested=resolve;});
+  window.titanClient.rpc=()=>new Promise(resolve=>{resolveResponse=resolve;markRequested();});
+  const refresh=window.titanRefreshProgressionSnapshot();
+  await requested;
+  switchTo('bob');
+  if(nextOwner==='alice')switchTo('alice');
+  resolveResponse({data:[{server_user_id:'alice',xp:80,level:3,credits:27}]});
+  assert.equal(await refresh,null);
+  assert.equal(window.state.user.xp,0);
+  assert.equal(window.titanGetProgressionSnapshot(),null);
+ }
+});
+
+test('Web training flushes stay separate across accounts and publish only current-account UI events',async()=>{
+ const {window,context,events,switchTo}=syncEnvironment();
+ const items=new Map(['alice','bob'].map(ownerId=>[ownerId,{key:ownerId,ownerId,payload:{details:{client_event_id:ownerId}}}]));
+ window.TitanQueue={migrate:async()=>{},refresh:async()=>[...items.values()],
+  list:()=>[...items.values()].filter(item=>item.ownerId===window.state.user.id),
+  remove:async key=>{items.delete(key);},saveHistory:async()=>{}};
+ const pending=new Map();
+ context.fetch=async(_url,{headers})=>new Promise(resolve=>{pending.set(headers.Authorization,resolve);});
+ const alice=window.flushPendingTrainingLogs();
+ await new Promise(setImmediate);
+ assert.ok(pending.has('Bearer alice'));
+ switchTo('bob');
+ window.titanClient.rpc=async()=>({data:[{server_user_id:'bob',xp:2,level:1,credits:0}]});
+ const bob=window.flushPendingTrainingLogs();
+ await new Promise(setImmediate);
+ assert.ok(pending.has('Bearer bob'),'Bob can send without waiting for Alice');
+ const reply=(owner,xp)=>pending.get('Bearer '+owner)({ok:true,json:async()=>[{log_id:owner,xp_after:xp}]});
+ reply('alice',50);
+ assert.equal((await alice).sent,0,'a stale receipt leaves the durable operation for owner-scoped reconciliation');
+ assert.ok(items.has('alice'));
+ assert.equal(window.state.user.xp,0);
+ assert.deepEqual(events,[]);
+ reply('bob',2);
+ assert.equal((await bob).sent,1);
+ await new Promise(setImmediate);
+ assert.equal(window.state.user.xp,2);
+ assert.deepEqual(events,['titan:history-updated']);
+});
+
+test('a replayed session receipt keeps its own reward and cannot restore older profile balances',async()=>{
+ const {window,context}=syncEnvironment();
+ window.state.user.xp=60;
+ window.state.history=[{id:'event',client_event_id:'event',details:{}}];
+ const item={key:'event',ownerId:'alice',payload:{details:{client_event_id:'event'}}};
+ window.TitanQueue={migrate:async()=>{},refresh:async()=>[item],list:()=>[],remove:async()=>{},saveHistory:async()=>{}};
+ window.titanClient.rpc=async()=>({data:[{server_user_id:'alice',xp:65,credits:31,level:2}]});
+ context.fetch=async()=>({ok:true,json:async()=>[{log_id:'confirmed',xp:10,xp_after:15,credits_after:4,level_after:1}]});
+ assert.equal((await window.flushPendingTrainingLogs()).sent,1);
+ await new Promise(setImmediate);
+ assert.equal(window.state.history[0].xp,10);
+ assert.equal(window.state.user.xp,65);
+ assert.equal(window.state.user.credits,31);
+ assert.equal(window.state.user.level,2);
+});
+
+test('a stalled profile refresh does not keep the next confirmed Web session in the queue',async()=>{
+ const {window,context}=syncEnvironment();
+ const event=id=>({key:id,ownerId:'alice',payload:{details:{client_event_id:id}}});
+ const items=new Map([['one',event('one')]]);
+ window.TitanQueue={migrate:async()=>{},refresh:async()=>[...items.values()],list:()=>[...items.values()],
+  remove:async key=>{items.delete(key);},saveHistory:async()=>{}};
+ let enteredSnapshot;
+ const finishSnapshots=[];
+ const entered=new Promise(resolve=>{enteredSnapshot=resolve;});
+ window.titanClient.rpc=()=>new Promise(resolve=>{finishSnapshots.push(resolve);enteredSnapshot();});
+ const requests=[];
+ context.fetch=async(_url,{body})=>{
+  const id=JSON.parse(body).p_details.client_event_id;
+  requests.push(id);
+  return {ok:true,json:async()=>[{log_id:id}]};
+ };
+ const first=window.flushPendingTrainingLogs();
+ await entered;
+ items.set('two',event('two'));
+ const second=window.flushPendingTrainingLogs({newEntry:true});
+ await new Promise(setImmediate);
+ assert.deepEqual(requests,['one','two']);
+ for(const finish of finishSnapshots)finish({data:[{server_user_id:'alice',xp:20}]});
+ assert.equal((await first).sent,1);
+ assert.equal((await second).sent,1);
+});
+
+test('a newly queued Web session is picked up when a successful flush already read the queue',async()=>{
+ const {window,context}=syncEnvironment();
+ const event=id=>({key:id,ownerId:'alice',payload:{details:{client_event_id:id}}});
+ const items=new Map([['one',event('one')]]);
+ window.TitanQueue={migrate:async()=>{},refresh:async()=>[...items.values()],list:()=>[...items.values()],
+  remove:async key=>{items.delete(key);},saveHistory:async()=>{}};
+ let resolveFirst;
+ const requests=[];
+ context.fetch=async(_url,{body})=>{
+  const id=JSON.parse(body).p_details.client_event_id;
+  requests.push(id);
+  if(id==='one')await new Promise(resolve=>{resolveFirst=resolve;});
+  return {ok:true,json:async()=>[{log_id:id,xp_after:10}]};
+ };
+ const first=window.flushPendingTrainingLogs();
+ await new Promise(setImmediate);
+ assert.deepEqual(requests,['one']);
+ items.set('two',event('two'));
+ const second=window.flushPendingTrainingLogs({newEntry:true});
+ resolveFirst();
+ assert.equal((await first).sent,2);
+ assert.equal((await second).remaining,0);
+ assert.deepEqual(requests,['one','two']);
+});
+
+test('an explicit retry arriving during a Web flush includes previously refused items',async()=>{
+ const {window,context}=syncEnvironment();
+ const event=(id,status)=>({key:id,ownerId:'alice',status,payload:{details:{client_event_id:id}}});
+ const items=new Map([['first',event('first','pending')],['retry',event('retry','error')]]);
+ window.TitanQueue={migrate:async()=>{},refresh:async()=>[...items.values()],list:()=>[...items.values()],
+  remove:async key=>{items.delete(key);},saveHistory:async()=>{}};
+ let resolveFirst;
+ const requests=[];
+ context.fetch=async(_url,{body})=>{
+  const id=JSON.parse(body).p_details.client_event_id;
+  requests.push(id);
+  if(id==='first')await new Promise(resolve=>{resolveFirst=resolve;});
+  return {ok:true,json:async()=>[{log_id:id,xp_after:10}]};
+ };
+ const first=window.flushPendingTrainingLogs();
+ await new Promise(setImmediate);
+ const retried=window.flushPendingTrainingLogs({retry:true});
+ resolveFirst();
+ await first;
+ assert.equal((await retried).remaining,0);
+ assert.deepEqual(requests,['first','retry']);
 });
 test('summaries exclude archived/future sessions and report actual measurement coverage',()=>{
  const {TitanTraining:t}=environment(),now=new Date('2026-09-11T18:00:00Z');
@@ -88,6 +250,22 @@ test('deleting an owner erases its queue, history, draft and timer only',async()
  assert.equal((await reopened.TitanQueue.readHistory('alice')).length,0);assert.equal((await reopened.TitanQueue.readHistory('bob')).length,1);
  e.window.state.user.id='alice';assert.equal(e.TitanQueue.list().length,0);e.window.state.user.id='bob';assert.equal(e.TitanQueue.list().length,1);
  assert.deepEqual([...e.storage.keys()].sort(),['titan_onboarding_draft_v1:bob','titan_seance_draft_v3:bob','titan_seance_timer_v3:bob','titan_training_draft_bob']);
+});
+
+test('another Web tab or a late migration cannot recreate a deleted owner’s sessions',async()=>{
+ const db=new IDBFactory(), active=environment(db), deleting=environment(db);
+ const item=(ownerId,id)=>({key:`${ownerId}:${id}`,ownerId,payload:{details:{client_event_id:id}}});
+ active.window.state.user.id='alice';
+ deleting.window.state.user.id='bob';
+ await active.TitanQueue.put(item('alice','before'));
+ await deleting.TitanQueue.deleteOwner('alice');
+ await assert.rejects(active.TitanQueue.put(item('alice','late')), {code:'TRAINING_OWNER_ERASED'});
+ await assert.rejects(active.TitanQueue.saveHistory('alice',[{id:'private'}]), {code:'TRAINING_OWNER_ERASED'});
+ active.storage.set('titan_pending_training_logs_v1',JSON.stringify([item('alice','old-a'),item('bob','old-b')]));
+ await active.TitanQueue.migrate();
+ assert.equal(active.TitanQueue.list().length,0);
+ assert.equal((await active.TitanQueue.readHistory('alice')).length,0);
+ assert.equal((await deleting.TitanQueue.refresh()).length,1);
 });
 test('owner drafts are erased even when durable storage fails or is missing',async()=>{
  const drafts=e=>{for(const owner of ['alice','bob'])for(const prefix of ['titan_seance_draft_v3:','titan_onboarding_draft_v1:'])e.storage.set(prefix+owner,'{"note":"private"}');return e;};

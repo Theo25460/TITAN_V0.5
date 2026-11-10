@@ -56,8 +56,17 @@ const toFix = (l: Location.LocationObject): Fix => ({
 });
 
 /** The recording is written under the account that started it, whoever is signed in when the batch arrives. */
-export const setActiveOwner = (owner: string | null) => (owner ? AsyncStorage.setItem(KEY_ACTIVE, owner) : AsyncStorage.removeItem(KEY_ACTIVE));
 export const getActiveOwner = () => AsyncStorage.getItem(KEY_ACTIVE);
+let ownerWrites: Promise<void> = Promise.resolve();
+export function setActiveOwner(owner: string | null, expected?: string) {
+  const next = ownerWrites.then(async () => {
+    if (expected !== undefined && await getActiveOwner() !== expected) return;
+    if (owner) await AsyncStorage.setItem(KEY_ACTIVE, owner);
+    else await AsyncStorage.removeItem(KEY_ACTIVE);
+  });
+  ownerWrites = next.catch(() => {});
+  return next;
+}
 
 if (!TaskManager.isTaskDefined(GPS_TASK)) {
   TaskManager.defineTask<{ locations?: Location.LocationObject[] }>(GPS_TASK, async ({ data, error }) => {
@@ -75,6 +84,7 @@ export async function ensureLocationPermission(explain?: () => Promise<boolean>)
     if (!(await Location.hasServicesEnabledAsync())) return "unavailable";
     const cur = await Location.getForegroundPermissionsAsync();
     if (cur.granted) return "ok";
+    if (!cur.canAskAgain) return "blocked";
     if (explain && !(await explain())) return "denied";
     const res = await Location.requestForegroundPermissionsAsync();
     return res.granted ? "ok" : res.canAskAgain ? "denied" : "blocked";
@@ -90,6 +100,7 @@ export const hasLocationPermission = () => Location.getForegroundPermissionsAsyn
 export async function guardAccount(owner: string | null) {
   const active = await getActiveOwner();
   if (!active || active === owner) return;
+  await recorder.reconcile(active).catch(() => {});
   await recorder.pause(active).catch(() => {});
-  await setActiveOwner(null);
+  await setActiveOwner(null, active);
 }

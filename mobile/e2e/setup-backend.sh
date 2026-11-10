@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Local replica of the TITAN production backend for the emulator tests (CI only, never touches the real project):
-# Supabase stack (Postgres 17, GoTrue, PostgREST, Kong) + production structure snapshot (tools/db/baseline) +
-# the same migrations as production up to 20261005230000 (plus, on request, the pending ones). Writes the API keys to $GITHUB_ENV.
+# Supabase stack (Postgres 17, GoTrue, PostgREST, Kong) with the production structure replayed locally.
+# E2E_INCLUDE_PENDING=1 also applies this checkout's pending migrations. Writes the local API keys to $GITHUB_ENV.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="${RUNNER_TEMP:-/tmp}/titan-supabase"
 CLI="npx --yes supabase@2.121.0"
-PROD_HEAD="20261005230000"
+PROD_HEAD="20261102150000"
+PROD_HOTFIX="20261104085851"
 
 rm -rf "$WORK" && mkdir -p "$WORK" && cd "$WORK"
 $CLI init --force >/dev/null
@@ -23,12 +24,15 @@ for f in "$ROOT"/supabase/migrations/*.sql; do
   [[ "$v" < "20261005150000" || "$v" > "$PROD_HEAD" ]] && continue
   echo "  · $(basename "$f")"; psql_ -f "$f"
 done
-# Optional: also apply the migrations that are NOT in production yet (the Web candidate's), to prove the app still works after them.
-if [ -n "${E2E_PENDING_MIGRATIONS_DIR:-}" ]; then
-  echo "Pending migrations of the Web candidate (after the production head)"
-  for f in "$E2E_PENDING_MIGRATIONS_DIR"/*.sql; do
+# Production already has these function definitions, even though their migration entry is missing.
+hotfix="$ROOT/supabase/migrations/${PROD_HOTFIX}_business_conflicts_no_transaction_retry.sql"
+echo "  · $(basename "$hotfix") (deployed definitions)"
+psql_ -f "$hotfix"
+if [[ "${E2E_INCLUDE_PENDING:-0}" == 1 ]]; then
+  echo "Pending migrations from this checkout"
+  for f in "$ROOT"/supabase/migrations/*.sql; do
     v="$(basename "$f" | cut -d_ -f1)"
-    [[ "$v" > "$PROD_HEAD" ]] || continue
+    [[ "$v" > "$PROD_HOTFIX" ]] || continue
     echo "  · $(basename "$f")"; psql_ -f "$f"
   done
 fi

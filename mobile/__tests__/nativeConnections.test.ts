@@ -25,7 +25,7 @@ test("Garmin grants the current account, pins its token, then opens the approved
   const open = jest.fn(async () => undefined); const fetcher = network();
   await connectGarmin("a", true, open, fetcher);
   expect(mockCalls.find((c) => c.name === "titan_set_source_consent_v1")).toMatchObject({ params: { p_source: "garmin", p_granted: true }, token: "Bearer token-a" });
-  expect(String(fetcher.mock.calls[0][0])).toContain("action=start&client=android");
+  expect(String(fetcher.mock.calls[0][0])).toContain("action=start&client=android&flow=handoff");
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: "Bearer token-a" } });
   expect(open).toHaveBeenCalledWith("https://connect.garmin.com/oauth/confirm");
 });

@@ -44,6 +44,7 @@ import { SettingsScreen } from "../screens/settings/SettingsScreen";
 import { SportsScreen } from "../screens/settings/SportsScreen";
 import { TitanPlusScreen } from "../screens/settings/TitanPlusScreen";
 import { Tabs } from "./Tabs";
+import { useReducedMotion } from "../lib/motion";
 import type { RootParams } from "./types";
 
 const Stack = createNativeStackNavigator<RootParams>();
@@ -60,35 +61,37 @@ export const stackOptions: NativeStackNavigationOptions = {
 
 export function RootNavigator() {
   const { status, owner } = useAuth();
+  const reduced = useReducedMotion();
+  const options: NativeStackNavigationOptions = reduced ? { ...stackOptions, animation: "none" } : stackOptions;
   useEffect(() => {
     if (status !== "loading") SplashScreen.hideAsync().catch(() => {});
   }, [status]);
   if (status === "loading") return null;
   if (status === "signedOut" || !owner)
     return (
-      <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Navigator screenOptions={options}>
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: "Connexion" }} />
         <Stack.Screen name="Signup" component={SignupScreen} options={{ title: "Créer un compte" }} />
         <Stack.Screen name="Forgot" component={ForgotScreen} options={{ title: "Mot de passe oublié" }} />
       </Stack.Navigator>
     );
-  return <SignedIn key={owner} />;
+  return <SignedIn key={owner} options={options} reduced={reduced} />;
 }
 
-function SignedIn() {
+function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions; reduced: boolean }) {
   const profile = useProfile();
   // A profile without onboarding goes through the short first-run flow; offline without cache, the app opens directly.
   const needsOnboarding = profile.data ? !prefsOf(profile.data).onboardedAt : false;
   return (
-    <Stack.Navigator screenOptions={stackOptions}>
+    <Stack.Navigator screenOptions={options}>
       {needsOnboarding ? <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} /> : null}
       <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
       <Stack.Screen name="Routes" component={RoutesScreen} options={{ title: "Mes parcours" }} />
       <Stack.Screen name="Route" component={RouteDetailScreen} options={{ title: "Parcours" }} />
       <Stack.Screen name="GpsRecord" component={GpsRecordScreen} options={{ title: "Enregistrement GPS" }} />
       <Stack.Screen name="SessionForm" component={SessionFormScreen} options={{ title: "Séance" }} />
-      <Stack.Screen name="SessionResult" component={SessionResultScreen} options={{ headerShown: false, animation: "fade_from_bottom", gestureEnabled: false }} />
+      <Stack.Screen name="SessionResult" component={SessionResultScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade_from_bottom", gestureEnabled: false }} />
       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: "Séance" }} />
       <Stack.Screen name="SessionEdit" component={SessionEditScreen} options={{ title: "Corriger la séance", presentation: "modal" }} />
       <Stack.Screen name="Pending" component={PendingScreen} options={{ title: "Envois en attente" }} />
