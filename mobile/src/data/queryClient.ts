@@ -24,4 +24,4 @@ export const queryClient = new QueryClient({
    The training log has its own chunked cache (logsCache.ts). Every query key starts with the owner id. */
 export const persister = createAsyncStoragePersister({ storage: AsyncStorage, key: "titan.query-cache.v1", throttleTime: 2000 });
 export const PERSIST_BUSTER = "titan-android-1";
-export const shouldPersist = (key: readonly unknown[]) => key[0] !== "logs" && key[0] !== "export";
+export const shouldPersist = (key: readonly unknown[]) => key[0] !== "logs" && key[0] !== "export" && key[0] !== "duo";

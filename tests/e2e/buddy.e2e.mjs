@@ -20,7 +20,7 @@ before(async () => {
 after(async () => { await browser?.close(); server?.kill(); });
 
 const FRIENDS = [{ id: "f1", name: "Alex" }, { id: "f2", name: "Sam <b>" }];
-async function qg({ state = { status: "none", friends: FRIENDS }, flag = true, missing = false, signedIn = true } = {}) {
+async function qg({ state = { status: "none", friends: FRIENDS }, flag = true, missing = false, signedIn = true, sessionOwner = OWNER } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
@@ -28,7 +28,7 @@ async function qg({ state = { status: "none", friends: FRIENDS }, flag = true, m
   await page.clock.setFixedTime(new Date("2026-10-29T12:00:00Z"));
   await page.goto(BASE + "/aujourdhui");
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.state?.user && window.TitanBuddy);
-  await page.evaluate(({ state, flag, missing, signedIn, owner }) => {
+  await page.evaluate(({ state, flag, missing, signedIn, owner, sessionOwner }) => {
     window.calls = []; window.buddy = state;
     if (signedIn) {
       window.titanClient.rpc = (name, args = {}) => {
@@ -41,13 +41,16 @@ async function qg({ state = { status: "none", friends: FRIENDS }, flag = true, m
           if (name === "titan_buddy_nudge_v1") { window.buddy = { ...window.buddy, nudgedToday: true }; out = { data: {}, error: null }; }
           if (name === "titan_buddy_end_v1") { window.buddy = { status: "none", friends: [] }; out = { data: true, error: null }; }
         }
-        const result = Promise.resolve(out); result.setHeader = () => result; return result;
+        const result = Promise.resolve(out);
+        result.setHeader = (key, value) => { if (name.startsWith("titan_buddy_")) window.calls.at(-1).push([key, value]); return result; };
+        return result;
       };
+      window.titanClient.auth.getSession = async () => ({ data: { session: { user: { id: sessionOwner }, access_token: "fixture-token" } } });
       window.state.user.id = owner;
     }
     window.titanFlags = { enabled: (key, fallback) => key === "screens.buddy" ? flag : fallback, refresh: async () => {} };
     window.dispatchEvent(new CustomEvent("titan:account-changed"));
-  }, { state, flag, missing, signedIn, owner: OWNER });
+  }, { state, flag, missing, signedIn, owner: OWNER, sessionOwner });
   return { page, context, errors };
 }
 
@@ -113,4 +116,39 @@ test("buddy: nothing when the flag is off, for a guest, or on a server without t
     assert.match(await alone.page.locator("[data-bd]").innerText(), /Quand tu auras ajouté un ami/);
     assert.equal(await alone.page.locator("[data-bd-choose]").count(), 0);
   } finally { await alone.context.close(); }
+});
+
+test("TITAN Duo shows confirmed cumulative progress and hides the partner while offline", async () => {
+  const { page, context } = await qg({ state: { status: "active", id: "b1", role: "inviter", partner: { id: "f1", name: "Alex" }, daysLeft: 4, target: 12, myDays: 7, partnerDays: 5, together: 12, nudgedToday: false, nudgesReceived: 0 } });
+  try {
+    const card = page.locator("[data-bd]");
+    await card.getByRole("heading", { name: "TITAN Duo" }).waitFor();
+    assert.match(await card.innerText(), /Objectif commun atteint/);
+    assert.match(await card.innerText(), /Tous les sports comptent/);
+    assert.match(await card.innerText(), /Un jour actif par personne et par jour/);
+    assert.match(await card.innerText(), /Seul le total de jours actifs est partagé/);
+    assert.deepEqual(await page.evaluate(() => window.calls.find(c => c[0] === "titan_buddy_v1")[2]), ["Authorization", "Bearer fixture-token"]);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+      window.dispatchEvent(new Event("offline"));
+    });
+    await card.getByText(/Reconnecte-toi pour retrouver ton expédition/).waitFor();
+    assert.doesNotMatch(await card.innerText(), /Alex|12 jours actifs/);
+    await page.evaluate(() => {
+      window.buddy = { status: "none", friends: [] };
+      Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+      window.dispatchEvent(new Event("online"));
+    });
+    await page.locator("[data-bd][data-status=none]").waitFor();
+    assert.doesNotMatch(await card.innerText(), /Alex/);
+  } finally { await context.close(); }
+});
+
+test("TITAN Duo checks the authenticated account before reading private data", async () => {
+  const { page, context } = await qg({ sessionOwner: "00000000-0000-4000-8000-000000000632" });
+  try {
+    await page.waitForTimeout(600);
+    assert.equal(await page.evaluate(() => window.calls.filter(c => c[0] === "titan_buddy_v1").length), 0);
+    assert.equal(await page.locator("[data-bd] [data-bd-choose]").count(), 0);
+  } finally { await context.close(); }
 });

@@ -5,6 +5,7 @@ import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPa
 
 import { listProfileCopies, preferenceBase, preferenceSignature, protectPreferences, removeProfileCopy } from "./profileCopies";
 import { isOnline } from "../lib/network";
+import { toAppError } from "../lib/errors";
 
 const TIMEOUT_MS = 20000;
 
@@ -250,6 +251,30 @@ export const challengeCreate = (p: { title: string; metric: Challenge["metric"];
   rpc<{ id: string; invited: number }>("titan_challenge_create", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days, p_invitees: p.invitees });
 export const challengeRespond = (id: string, action: "join" | "decline" | "leave") => rpc("titan_challenge_respond", { p_id: id, p_action: action });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
+type DuoFriend = { id: string; name: string };
+type DuoPair = { id: string; role: "inviter" | "invitee"; partner: DuoFriend };
+export type DuoState = { status: "none"; friends: DuoFriend[] }
+  | (DuoPair & { status: "pending" })
+  | (DuoPair & { status: "active"; daysLeft: number; target: number; myDays: number; partnerDays: number; together: number; nudgedToday: boolean; nudgesReceived: number });
+
+export async function fetchDuo(owner: string): Promise<DuoState | null> {
+  try {
+    const flags = await ownerRpc<{ flags?: Record<string, boolean> }>(owner, "titan_feature_flags_v1", {});
+    if (flags?.flags?.["screens.buddy"] !== true) return null;
+    const state = await ownerRpc<DuoState>(owner, "titan_buddy_v1", {});
+    if (state?.status === "none" || state?.status === "pending" || state?.status === "active") return state;
+    throw new Error("DUO_UNAVAILABLE");
+  } catch (error) {
+    if (toAppError(error).code === "UNAVAILABLE") return null;
+    throw error;
+  }
+}
+
+export const duoInvite = (owner: string, friend: string) => ownerRpc(owner, "titan_buddy_invite_v1", { p_friend: friend });
+export const duoRespond = (owner: string, id: string, accept: boolean) => ownerRpc(owner, "titan_buddy_respond_v1", { p_id: id, p_accept: accept });
+export const duoNudge = (owner: string, id: string) => ownerRpc(owner, "titan_buddy_nudge_v1", { p_id: id });
+export const duoEnd = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_buddy_end_v1", { p_id: id });
+
 export const fetchGuild = () => rpc<Record<string, unknown> | null>("titan_get_my_guild");
 export const guildCreate = (name: string, motto: string) => rpc("titan_create_guild", { p_name: name, p_motto: motto });
 export const guildJoin = (code: string) => rpc("titan_join_guild", { p_code: code });

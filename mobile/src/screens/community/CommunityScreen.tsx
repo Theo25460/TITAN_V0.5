@@ -25,6 +25,7 @@ import { keys, useSocial } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
+import { DuoCard, duoKey } from "./DuoCard";
 
 type Tab = "friends" | "moments" | "challenges" | "guild";
 const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: "minutes d’effort", active_days: "jours actifs", distance_km: "km", sessions: "séances" };
@@ -51,6 +52,7 @@ export function CommunityScreen() {
       await fn();
       if (ok) toast({ kind: "ok", title: ok });
       await qc.invalidateQueries({ queryKey: keys.social(owner) });
+      if (tab === "friends") await qc.invalidateQueries({ queryKey: duoKey(owner) });
     } catch (e) {
       toast({ kind: "err", title: "Action impossible", message: errorMessage(e) });
     } finally {
@@ -64,7 +66,7 @@ export function CommunityScreen() {
 
   return (
     <>
-      <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
+      <Screen refreshing={q.isRefetching} onRefresh={() => Promise.all([q.refetch(), qc.refetchQueries({ queryKey: duoKey(owner), type: "active" })])}>
         <Segmented
           value={tab}
           onChange={setTab}
@@ -79,6 +81,7 @@ export function CommunityScreen() {
 
         {tab === "friends" ? (
           <>
+            <DuoCard key={owner} owner={owner} online={online} />
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
               <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
