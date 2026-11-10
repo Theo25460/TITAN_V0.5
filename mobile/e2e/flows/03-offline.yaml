@@ -18,6 +18,8 @@ appId: fr.titanapp.app
     visible:
       id: "offline-banner"
     timeout: 20000
+- tapOn:
+    id: "record-choose-sport"
 - scrollUntilVisible:
     element:
       id: "sport-yoga"

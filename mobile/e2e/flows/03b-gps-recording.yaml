@@ -17,16 +17,10 @@ appId: fr.titanapp.app
     id: "tab-record"
 - extendedWaitUntil:
     visible:
-      id: "sport-running"
+      id: "gps-shortcut"
     timeout: 20000
 - tapOn:
-    id: "sport-running"
-- extendedWaitUntil:
-    visible:
-      id: "gps-open"
-    timeout: 20000
-- tapOn:
-    id: "gps-open"
+    id: "gps-shortcut"
 - extendedWaitUntil:
     visible: ".*Pourquoi TITAN te demande ta position.*"
     timeout: 20000

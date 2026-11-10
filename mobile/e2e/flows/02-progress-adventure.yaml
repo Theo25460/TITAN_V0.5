@@ -44,6 +44,8 @@ appId: fr.titanapp.app
 - tapOn:
     id: "tab-record"
 - tapOn:
+    id: "record-choose-sport"
+- tapOn:
     id: "sport-running"
 - tapOn:
     id: "distance"
