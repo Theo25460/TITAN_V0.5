@@ -27,6 +27,7 @@
   let hubSport = null;
   let hubQuery = "";
   let manualRequested = false;
+  let initialSport = new URLSearchParams(location.search).get("sport");
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
 
   const owner = () => window.state?.user?.id || "unassigned";
@@ -1156,9 +1157,15 @@
     clearInterval(timerTick);
     if (booted && S?.step === "form") {
       const url = new URL(location.href);
-      url.searchParams.delete("sport");
-      history.replaceState(history.state, "", url);
+      // Keep an explicit incoming sport while the first session replaces discovery mode.
+      const restoreInitialLink = initialSport && url.searchParams.get("sport") === initialSport
+        && owner().startsWith("guest_") && window.titanAccountTransition?.owner;
+      if (!restoreInitialLink) {
+        url.searchParams.delete("sport");
+        history.replaceState(history.state, "", url);
+      }
     }
+    initialSport = null;
     S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;
     if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>';
   });
