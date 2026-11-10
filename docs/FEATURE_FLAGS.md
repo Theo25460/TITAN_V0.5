@@ -29,6 +29,7 @@ Aucun drapeau n'est créé par une migration, donc rien n'apparaît tant que le 
 | Drapeau | Écran | Migration | Entrée |
 |---|---|---|---|
 | `screens.garmin` | bouton « Connecter Garmin » du Profil (après l'essai réel et la décision de publication) | 40, 41 | V11-40 |
+| `screens.garmin_dailies` | option séparée pour autoriser le total quotidien des pas Garmin, sur Web et Android | 20261110152700 | V1.3.1, après qualification Garmin Health |
 | `screens.consultations` | votes et feuille de route sous la Communauté | 42 | V11-57 |
 | `screens.intents` | rendez-vous quotidien du QG | 44 | V11-61 |
 | `screens.commonquest` | quête commune de la semaine | 45 | V11-62 |

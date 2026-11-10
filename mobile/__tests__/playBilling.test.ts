@@ -43,7 +43,7 @@ test("a purchase carries the signed-in account id, is verified by the server, an
   const s = fakeStore();
   const verify = jest.fn(async () => active);
   const offer = (await loadOffers(s.lib))[1];
-  const promise = buy(offer, "owner-1", token, s.lib, verify, ready);
+  const promise = buy(offer, "owner-1", token, { store: s.lib, verify, check: ready });
   await s.requested;
   expect(s.requests[0]).toMatchObject({ type: "subs", request: { google: { skus: ["titan02"], obfuscatedAccountId: "owner-1", subscriptionOffers: [{ sku: "titan02", offerToken: "offer-titan02" }] } } });
   expect(s.finished).toHaveLength(0);
@@ -57,20 +57,20 @@ test("a purchase carries the signed-in account id, is verified by the server, an
 
 test("user cancellation, a pending payment and a server refusal never complete the purchase", async () => {
   let s = fakeStore();
-  let p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  let p = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify: jest.fn(), check: ready });
   await s.requested;
   s.errored[0]({ code: "user-cancelled" });
   expect(await p).toEqual({ kind: "cancelled" });
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  p = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify: jest.fn(), check: ready });
   await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789", purchaseState: "pending" });
   expect(await p).toEqual({ kind: "pending" });
   expect(s.finished).toHaveLength(0);
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => { throw new BillingError("NOT_BOUND"); }, ready);
+  p = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify: async () => { throw new BillingError("NOT_BOUND"); }, check: ready });
   await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789" });
   const out = await p;
@@ -78,7 +78,7 @@ test("user cancellation, a pending payment and a server refusal never complete t
   expect(s.finished).toHaveLength(0);
 
   s = fakeStore();
-  p = buy((await loadOffers(s.lib))[0], "o", token, s.lib, async () => ({ ...active, active: false, status: "expired" }), ready);
+  p = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify: async () => ({ ...active, active: false, status: "expired" }), check: ready });
   await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789" });
   await p;
@@ -89,7 +89,7 @@ test("checkout stops before launching Google Play if the authenticated readiness
   const s = fakeStore();
   const verify = jest.fn(async () => active);
   const check = jest.fn(async () => { throw new BillingError("CHECKOUT_UNAVAILABLE"); });
-  const result = buy((await loadOffers(s.lib))[1], "owner-1", token, s.lib, verify, check);
+  const result = buy((await loadOffers(s.lib))[1], "owner-1", token, { store: s.lib, verify, check });
   s.errored[0]?.({ code: "user-cancelled" });
   expect(await result).toMatchObject({ kind: "error", error: { code: "CHECKOUT_UNAVAILABLE" } });
   expect(check).toHaveBeenCalledWith("titan02", "user-access-token");
@@ -101,7 +101,7 @@ test("the default checkout check sends the session and product to the billing en
   const s = fakeStore();
   const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { status: 503 }));
   try {
-    const result = buy((await loadOffers(s.lib))[1], "o", token, s.lib);
+    const result = buy((await loadOffers(s.lib))[1], "o", token, { store: s.lib });
     s.errored[0]?.({ code: "user-cancelled" });
     expect(await result).toMatchObject({ kind: "error", error: { code: "CHECKOUT_UNAVAILABLE" } });
     expect(fetcher).toHaveBeenCalledWith("https://titan-app.fr/functions/play-billing?product_id=titan02", {
@@ -116,14 +116,66 @@ test("checkout rechecks the account after readiness, before opening Play", async
   const launch = s.lib.requestPurchase;
   s.lib.requestPurchase = async (input) => { await launch(input); s.errored[0]({ code: "user-cancelled" }); };
   const getToken = jest.fn().mockResolvedValueOnce("first-owner-token").mockResolvedValue(null);
-  const result = await buy((await loadOffers(s.lib))[0], "first-owner", getToken, s.lib, jest.fn(), ready);
+  const result = await buy((await loadOffers(s.lib))[0], "first-owner", getToken, { store: s.lib, verify: jest.fn(), check: ready });
   expect(result).toMatchObject({ kind: "error", error: { code: "AUTH" } });
+  expect(s.requests).toHaveLength(0);
+});
+
+const oldCoachUltra: IapPurchase = {
+  productId: "titan03", purchaseToken: "old-play-token-1234", purchaseState: "purchased", obfuscatedAccountIdAndroid: "owner-1",
+};
+
+test("downgrading Coach Ultra replaces its Google Play token and preserves unused value as time", async () => {
+  const s = fakeStore();
+  s.setAvailable([oldCoachUltra]);
+  const verify = jest.fn(async () => active);
+  const result = buy((await loadOffers(s.lib))[1], "owner-1", token, { store: s.lib, verify, check: ready, currentProductId: "titan03" });
+  await s.requested;
+  expect(s.requests[0]).toMatchObject({ request: { google: {
+    skus: ["titan02"], purchaseToken: "old-play-token-1234", subscriptionProductReplacementParams: { oldProductId: "titan03", replacementMode: "with-time-proration" },
+  } } });
+  expect(verify).toHaveBeenCalledTimes(1);
+  expect(verify).toHaveBeenCalledWith("old-play-token-1234", "titan03", "user-access-token");
+  s.errored[0]({ code: "user-cancelled" });
+  expect(await result).toEqual({ kind: "cancelled" });
+});
+
+test.each([
+  [[oldCoachUltra], null],
+  [[], "titan03"],
+  [[{ ...oldCoachUltra, purchaseState: "pending" }], "titan03"],
+  [[{ ...oldCoachUltra, pendingPurchaseUpdateAndroid: { products: ["titan02"] } }], "titan03"],
+  [[{ ...oldCoachUltra, isSuspendedAndroid: true }], "titan03"],
+  [[{ ...oldCoachUltra, obfuscatedAccountIdAndroid: "owner-2" }], "titan03"],
+  [[oldCoachUltra, { ...oldCoachUltra, productId: "titan01" }], "titan03"],
+])("an uncertain Play inventory never opens a fresh or replacement checkout: %j", async (purchases, currentProductId) => {
+  const s = fakeStore();
+  s.setAvailable(purchases);
+  const verify = jest.fn(async () => active);
+  const result = await buy((await loadOffers(s.lib))[1], "owner-1", token, { store: s.lib, verify, check: ready, currentProductId });
+  expect(result).toMatchObject({ kind: "error", error: { code: "PLAN_UNCERTAIN" } });
+  expect(verify).not.toHaveBeenCalled();
+  expect(s.requests).toHaveLength(0);
+});
+
+test("a Play replacement requires an acknowledged current purchase and a still-active TITAN session", async () => {
+  const s = fakeStore();
+  s.setAvailable([oldCoachUltra]);
+  const offer = (await loadOffers(s.lib))[1];
+  const options = { store: s.lib, check: ready, currentProductId: "titan03" };
+  const unacknowledged = await buy(offer, "owner-1", token, { ...options, verify: async () => ({ ...active, acknowledged: false }) });
+  expect(unacknowledged).toMatchObject({ kind: "error", error: { code: "PLAN_UNCERTAIN" } });
+  let switched = false;
+  const changedAccount = await buy(offer, "owner-1", async () => switched ? null : "user-access-token", {
+    ...options, verify: async () => { switched = true; return active; },
+  });
+  expect(changedAccount).toMatchObject({ kind: "error", error: { code: "AUTH" } });
   expect(s.requests).toHaveLength(0);
 });
 
 test("a Play sandbox that cannot bill is distinct from a TITAN readiness failure", async () => {
   const s = fakeStore();
-  const result = buy((await loadOffers(s.lib))[0], "o", token, s.lib, jest.fn(), ready);
+  const result = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify: jest.fn(), check: ready });
   await s.requested;
   s.errored[0]({ code: "billing-unavailable" });
   const outcome = await result;
@@ -137,7 +189,7 @@ test("a 503 after Play reports a purchase leaves it restorable and makes no clai
   const s = fakeStore();
   const fetcher = jest.fn(async () => new Response('{"error":"unavailable"}', { status: 503 })) as unknown as typeof fetch;
   const verify = (purchase: string, product: string, access: string) => verifyOnServer(purchase, product, access, fetcher);
-  const result = buy((await loadOffers(s.lib))[0], "o", token, s.lib, verify, ready);
+  const result = buy((await loadOffers(s.lib))[0], "o", token, { store: s.lib, verify, check: ready });
   await s.requested;
   s.updated[0]({ productId: "titan01", purchaseToken: "play-token-0123456789", purchaseState: "purchased" });
   const outcome = await result;
@@ -157,6 +209,16 @@ test("restore sends each known purchase, skips foreign products, and stops if ve
   expect(s.finished).toHaveLength(1);
   await expect(restore(token, s.lib, async () => { throw new BillingError("VERIFICATION_UNAVAILABLE"); })).rejects.toMatchObject({ code: "VERIFICATION_UNAVAILABLE" });
   await expect(restore(async () => null, s.lib, verify)).rejects.toMatchObject({ code: "AUTH" });
+});
+
+test("restore stops before acknowledging a purchase or verifying another token after a TITAN account switch", async () => {
+  const s = fakeStore();
+  s.setAvailable([oldCoachUltra, { productId: "titan02", purchaseToken: "second-play-token-1234" }]);
+  let switched = false;
+  const verify = jest.fn(async () => { switched = true; return active; });
+  await expect(restore(async () => switched ? null : "user-access-token", s.lib, verify)).rejects.toMatchObject({ code: "AUTH" });
+  expect(verify).toHaveBeenCalledTimes(1);
+  expect(s.finished).toHaveLength(0);
 });
 
 test("the server call maps every answer to a clear cause and sends only the token and product", async () => {

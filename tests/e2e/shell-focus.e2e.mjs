@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { watchScriptRevision } from "./_versioned-script.mjs";
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server, browser, BASE;
 before(async () => {
@@ -182,12 +183,9 @@ test("shell focus: updated consumers bypass the previous script resource", async
   for (const name of consumers) assert.ok(readFileSync(ROOT + "/" + name, "utf8").includes('/js/app/shell.js?v=300.10'), name);
   const { page, context } = await newPage();
   try {
-    let staleRequests = 0;
-    await page.route("**/js/app/shell.js?v=300.9", route => { staleRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousShellFocus = true;" }); });
+    const assertCurrent = await watchScriptRevision(page, "/js/app/shell.js", { current: "300.10", previous: "300.9" });
     await page.goto(BASE + "/stats");
+    await assertCurrent();
     await page.locator("[data-shell-more]").waitFor();
-    assert.equal(staleRequests, 0);
-    assert.equal(await page.evaluate(() => Boolean(window.previousShellFocus)), false);
-    assert.equal(await page.locator('script[src="/js/app/shell.js?v=300.10"]').count(), 1);
   } finally { await context.close(); }
 });

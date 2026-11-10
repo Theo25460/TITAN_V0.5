@@ -3,6 +3,7 @@
 // never returned and never written to the database. The player's Garmin tokens are kept only as ciphertext (AES-256-GCM, key GARMIN_TOKEN_KEY,
 // bound to the account), solely to renew the access and to withdraw TITAN at Garmin when the player disconnects.
 //   POST ?action=push&token=…   Garmin's push (activities, deregistrations, permission changes). Acknowledged only when the database took them.
+//   POST ?action=dailies&token=… Garmin Health's separately authenticated daily step summaries.
 //   POST ?action=start          signed-in player (Bearer) -> { url } to the Garmin consent screen (OAuth 2.0 + PKCE S256).
 //   GET  /auth/garmin/callback  (rewritten to ?action=callback in netlify.toml; the registered return address is kept exactly) Garmin brings
 //                               the player back with a code or an error. The browser proves it initiated the attempt with a cookie.
@@ -14,6 +15,7 @@ import crypto from 'node:crypto';
 import { readBoundedBytes } from './request-body.mjs';
 
 const MAX_BODY = 524288;
+const MAX_DAILIES_BODY = 4 * 1024 * 1024;
 const MAX_ACTIVITIES = 100;
 const STATE_TTL_MS = 10 * 60 * 1000;
 const HANDOFF_TTL_MS = 2 * 60 * 1000;
@@ -22,6 +24,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const GARMIN_USER = /^[A-Za-z0-9_-]{1,128}$/;
 const CODE = /^[A-Za-z0-9._~\-/+=]{4,2048}$/;
 const ACTIVITY_PERMISSION = 'ACTIVITY_EXPORT';
+const HEALTH_PERMISSION = 'HEALTH_EXPORT';
 const ACTIVITY_FIELDS = ['summaryId', 'activityType', 'startTimeInSeconds', 'durationInSeconds', 'distanceInMeters'];
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
 const reply = (status, body = '', headers = {}) => new Response(typeof body === 'string' ? body : JSON.stringify(body), {
@@ -70,7 +73,24 @@ export function openState(state, secret, now = Date.now()) {
 
 function validAttempt(state) {
     return state && UUID.test(state.u) && /^[A-Za-z0-9_-]{43}$/.test(state.n)
-        && /^[A-Za-z0-9._~-]{43,128}$/.test(state.v) && (state.r === undefined || state.r === 'android');
+        && /^[A-Za-z0-9._~-]{43,128}$/.test(state.v) && (state.r === undefined || state.r === 'android')
+        && (state.d === undefined || state.d === true);
+}
+
+function dailySteps(entry) {
+    if (!entry || typeof entry.userId !== 'string' || !GARMIN_USER.test(entry.userId) || entry.source != null) return null;
+    const { calendarDate, steps, startTimeInSeconds, startTimeOffsetInSeconds, durationInSeconds } = entry;
+    if (typeof calendarDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(calendarDate)
+        || !Number.isInteger(steps) || steps < 0 || steps > 200000
+        || !Number.isSafeInteger(startTimeInSeconds) || startTimeInSeconds < 946684800 || startTimeInSeconds > 4102444800
+        || !Number.isInteger(startTimeOffsetInSeconds) || Math.abs(startTimeOffsetInSeconds) > 50400
+        || !Number.isInteger(durationInSeconds) || durationInSeconds < 1 || durationInSeconds > 90000) return null;
+    const day = new Date((startTimeInSeconds + startTimeOffsetInSeconds) * 1000).toISOString().slice(0, 10);
+    if (calendarDate !== day) return null;
+    return {
+        provider_user: entry.userId, day, steps, started_at: new Date(startTimeInSeconds * 1000).toISOString(),
+        duration_seconds: durationInSeconds
+    };
 }
 
 // A token is sealed before it reaches the database, bound to the account (a ciphertext copied to another account does not open).
@@ -98,7 +118,8 @@ function configuration() {
         clientId: env('GARMIN_CLIENT_ID'), clientSecret: env('GARMIN_CLIENT_SECRET'),
         authUrl: env('GARMIN_AUTH_URL'), tokenUrl: env('GARMIN_TOKEN_URL'), userIdUrl: env('GARMIN_USER_ID_URL'),
         redirect: env('GARMIN_REDIRECT_URI'), pushToken: env('GARMIN_PUSH_TOKEN'), stateKey: env('GARMIN_STATE_KEY'), tokenKey: env('GARMIN_TOKEN_KEY'),
-        permissionsUrl: env('GARMIN_PERMISSIONS_URL'), registrationUrl: env('GARMIN_REGISTRATION_URL')
+        permissionsUrl: env('GARMIN_PERMISSIONS_URL'), registrationUrl: env('GARMIN_REGISTRATION_URL'),
+        dailiesToken: env('GARMIN_DAILIES_PUSH_TOKEN')
     };
     const https = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.hash; } catch (_) { return false; } };
     const providerUrl = value => {
@@ -109,6 +130,8 @@ function configuration() {
     c.valid = c.enabled && https(c.url) && !!c.key && !!c.publishable && !!c.clientId && !!c.clientSecret && providerUrl(c.authUrl) && providerUrl(c.tokenUrl)
         && providerUrl(c.userIdUrl) && https(c.redirect) && c.pushToken.length >= 24 && c.stateKey.length >= 32 && c.tokenKey.length >= 32
         && (!c.permissionsUrl || providerUrl(c.permissionsUrl)) && (!c.registrationUrl || providerUrl(c.registrationUrl));
+    c.dailiesConfigured = c.dailiesToken.length >= 24 && c.dailiesToken !== c.pushToken;
+    c.dailiesEnabled = c.dailiesConfigured && env('GARMIN_DAILIES_ENABLED') === 'true';
     return c;
 }
 
@@ -129,26 +152,48 @@ export default async function handler(request) {
         return reply(302, '', { location: target.toString(), ...(cookie ? { 'set-cookie': cookie } : {}) });
     };
 
-    if (action === 'push') {
+    if (action === 'push' || action === 'dailies') {
         if (request.method !== 'POST') return reply(405);
-        if (!sameSecret(params.get('token') || '', c.pushToken)) return reply(401);
+        const dailiesPush = action === 'dailies';
+        if (dailiesPush && !c.dailiesEnabled) return reply(503);
+        if (!sameSecret(params.get('token') || '', dailiesPush ? c.dailiesToken : c.pushToken)) return reply(401);
         let body;
         try {
-            const raw = await readBoundedBytes(request, MAX_BODY);
+            const raw = await readBoundedBytes(request, dailiesPush ? MAX_DAILIES_BODY : MAX_BODY);
             if (raw === null) return reply(413);
             body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
             if (!body || typeof body !== 'object' || Array.isArray(body)) return reply(400);
         } catch (_) { return reply(400); }
-        // Summaries only (priority 1): activities, and the ones the player edited on Garmin (same shape, replays are ignored). Details, files, MoveIQ
-        // and every health stream are acknowledged and not collected (GAR-13).
         const list = key => Array.isArray(body?.[key]) ? body[key] : [];
+        if (dailiesPush) {
+            const entries = list('dailies');
+            if (entries.length > MAX_ACTIVITIES) return reply(413);
+            const withdrawals = new Set([...list('deregistrations'), ...list('userPermissionsChange')].map(entry => entry?.userId));
+            const summaries = entries.filter(entry => !withdrawals.has(entry?.userId)).map(dailySteps).filter(Boolean);
+            if (!summaries.length) return reply(200);
+            try {
+                const result = await rpc('titan_garmin_ingest_dailies_v1', { p_dailies: summaries });
+                return reply(result.ok ? 200 : 503);
+            } catch (_) { return reply(503); }
+        }
+        // The activities endpoint cannot attest health data. Details, files, MoveIQ and health summaries are ignored.
         const activities = [...list('activities'), ...list('manuallyUpdatedActivities')], deregistrations = list('deregistrations'), permissionChanges = list('userPermissionsChange');
         if (activities.length + deregistrations.length + permissionChanges.length > MAX_ACTIVITIES) return reply(413);
         try {
             // A withdrawal in this envelope takes precedence over every summary for that Garmin identity.
+            const validPermissionChanges = permissionChanges.filter(entry => Array.isArray(entry?.permissions) && entry.permissions.every(p => typeof p === 'string'));
             const ended = new Set([...deregistrations.map(entry => String(entry?.userId ?? '')),
-                ...permissionChanges.filter(entry => Array.isArray(entry?.permissions) && entry.permissions.every(p => typeof p === 'string')
-                    && !entry.permissions.includes(ACTIVITY_PERMISSION)).map(entry => String(entry?.userId ?? ''))]);
+                ...validPermissionChanges.filter(entry => !entry.permissions.includes(ACTIVITY_PERMISSION)).map(entry => String(entry?.userId ?? ''))]);
+            // Keep processing revocations when enrollment/ingest is paused and the dedicated endpoint is still configured.
+            if (c.dailiesConfigured) {
+                const healthEnded = new Set([...ended, ...validPermissionChanges.filter(entry => !entry.permissions.includes(HEALTH_PERMISSION))
+                    .map(entry => String(entry?.userId ?? ''))]);
+                for (const user of healthEnded) {
+                    if (!GARMIN_USER.test(user)) continue;
+                    const result = await rpc('titan_garmin_revoke_dailies_v1', { p_garmin_user: user });
+                    if (!result.ok) return reply(503);
+                }
+            }
             for (const user of ended) {
                 if (!GARMIN_USER.test(user)) continue;
                 const result = await rpc('titan_garmin_deregister_v1', { p_garmin_user: user });
@@ -185,10 +230,12 @@ export default async function handler(request) {
         if (!c.permissionsUrl) return reply(503, { error: 'GARMIN_CONFIGURATION' });
         const android = params.get('client') === 'android';
         if (android && params.get('flow') !== 'handoff') return reply(426, { error: 'GARMIN_APP_UPDATE_REQUIRED' });
+        const dailies = params.get('dailies') === '1';
+        if (dailies && !c.dailiesEnabled) return reply(503, { error: 'GARMIN_CONFIGURATION' });
         const verifier = b64u(crypto.randomBytes(48));
         const challenge = b64u(crypto.createHash('sha256').update(verifier).digest());
         const nonce = b64u(crypto.randomBytes(32));
-        const state = { u: user, v: verifier, n: nonce, ...(android ? { r: 'android' } : {}) };
+        const state = { u: user, v: verifier, n: nonce, ...(android ? { r: 'android' } : {}), ...(dailies ? { d: true } : {}) };
         try {
             const started = await rpc('titan_garmin_oauth_start_v1', oauthAttempt(state));
             if (started.status === 429) return reply(429, { error: 'rate_limited' });
@@ -223,6 +270,12 @@ export default async function handler(request) {
             const who = await network(c.userIdUrl, { method: 'GET', headers: bearerHeaders });
             const garminUser = String(who.data?.userId ?? '');
             if (!who.ok || !GARMIN_USER.test(garminUser)) return outcome('error', stage);
+            const requestedDailies = state.d && c.dailiesEnabled;
+            if (requestedDailies) {
+                stage = 'state';
+                const bound = await rpc('titan_garmin_oauth_bind_dailies_v1', { ...oauthAttempt(state), p_garmin_user: garminUser });
+                if (!bound.ok || bound.data !== true) return outcome('error', stage);
+            }
             // Permissions actually granted (GAR-12). A list that does not include any activity access means the player unticked it on Garmin.
             stage = 'permissions';
             if (!c.permissionsUrl) return outcome('error', stage);
@@ -233,7 +286,8 @@ export default async function handler(request) {
             stage = 'link';
             const lifetime = Number(token.data.expires_in), refresh = token.data.refresh_token;
             const expiresAt = Number.isFinite(lifetime) && lifetime > 0 && lifetime <= 31_536_000 ? new Date(Date.now() + lifetime * 1000).toISOString() : null;
-            const linked = await rpc('titan_garmin_oauth_link_v1', {
+            const withDailies = requestedDailies && names.includes(HEALTH_PERMISSION);
+            const linked = await rpc(withDailies ? 'titan_garmin_oauth_link_dailies_v1' : 'titan_garmin_oauth_link_v1', {
                 ...oauthAttempt(state), p_garmin_user: garminUser, p_access_enc: sealSecret(token.data.access_token, c.tokenKey, state.u),
                 p_refresh_enc: typeof refresh === 'string' && refresh && refresh.length <= 6000 ? sealSecret(refresh, c.tokenKey, state.u) : null, p_expires_at: expiresAt
             });

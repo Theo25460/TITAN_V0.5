@@ -5,7 +5,7 @@
 import crypto from 'node:crypto';
 import { readBoundedBytes } from './request-body.mjs';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const PLAY_ACCOUNT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TOKEN = /^[A-Za-z0-9._~-]{16,2048}$/;
 const PRODUCT = /^[a-z0-9._-]{1,100}$/i;
 const MAX_BODY = 4096;
@@ -13,6 +13,26 @@ const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/a
 const ACCESS_STATES = new Set(['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD']);
 
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
+export function allowsPlayTestPurchases(databaseUrl) {
+    const isolatedUrl = env('PLAY_TEST_SUPABASE_URL').trim().replace(/\/+$/, '');
+    return env('PLAY_ALLOW_TEST_PURCHASES') === 'true' && databaseUrl === isolatedUrl
+        && new URL(databaseUrl).hostname !== 'oubmftfufwwzwpgvrcag.supabase.co';
+}
+
+export function playEntitlementPayload(subscription) {
+    return {
+        p_is_active: subscription.active,
+        p_status: subscription.status,
+        p_is_test: subscription.accessKind === 'test',
+        p_needs_ack: subscription.active && subscription.needsAcknowledgement,
+        p_linked_token: subscription.active ? subscription.linkedPurchaseToken : null,
+        p_order_id: subscription.orderId,
+        p_product_id: subscription.productId,
+        p_renews_at: subscription.renewsAt,
+        p_ends_at: subscription.endsAt
+    };
+}
+
 const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 function unavailable(stage, details = {}) {
     // Only fixed labels, variable names and upstream HTTP statuses. Never log URLs, bodies or exceptions.
@@ -25,6 +45,12 @@ export async function network(url, init) {
     let data = null;
     try { data = await response.json(); } catch (_) { /* Upstream bodies are never reflected. */ }
     return { ok: response.ok, status: response.status, data };
+}
+
+export function acknowledgePlaySubscription(packageName, productId, purchaseToken, googleHeaders) {
+    return network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`, {
+        method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}'
+    });
 }
 
 const base64url = value => Buffer.from(value).toString('base64url');
@@ -130,20 +156,33 @@ export default async function handler(request) {
         const auth = await network(`${url}/auth/v1/user`, { method: 'GET', headers: { apikey: publishable, Authorization: bearer, Accept: 'application/json' } });
         if (!auth.ok) return auth.status === 401 || auth.status === 403 ? reply(401, { error: 'authentication_required' }) : unavailable(stage, { status: auth.status });
         const owner = auth.data;
-        if (!owner || typeof owner.id !== 'string' || !UUID.test(owner.id) || owner.is_anonymous !== false) return reply(401, { error: 'authentication_required' });
-        // Readiness covers runtime configuration, the product and the session. Only verification touches Google or the ledger.
-        if (readiness) return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
+        if (!owner || typeof owner.id !== 'string' || !PLAY_ACCOUNT_ID.test(owner.id) || owner.is_anonymous !== false) return reply(401, { error: 'authentication_required' });
+        if (readiness) {
+            stage = 'supabase_checkout';
+            const ready = await rpc('titan_play_checkout_ready_v1', { p_user_id: owner.id });
+            if (!ready.ok || ready.data !== true) return unavailable(stage, { status: ready.status });
+        }
 
         stage = 'google_oauth';
         const accessToken = await googleAccessToken({ client_email: account.client_email, private_key: privateKey });
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
+        if (readiness) {
+            // Fail before opening Play if Google rejects the credential or the requested offer is unavailable.
+            stage = 'google_catalog';
+            const catalog = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/subscriptions/${encodeURIComponent(productId)}`, { method: 'GET', headers: googleHeaders });
+            if (!catalog.ok) return unavailable(stage, { status: catalog.status });
+            if (catalog.data?.productId !== productId || !catalog.data?.basePlans?.some(plan => plan.state === 'ACTIVE' && plan.autoRenewingBasePlanType?.billingPeriodDuration === 'P1M')) {
+                return unavailable(stage);
+            }
+            return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
+        }
         // Order by when the Google read starts: a delayed older response must not overwrite a newer read.
         const eventAt = new Date().toISOString();
         stage = 'google_lookup';
         const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: googleHeaders });
         if (lookup.status === 404 || lookup.status === 410 || lookup.status === 400) return reply(422, { error: 'purchase_not_found' });
         if (!lookup.ok) return unavailable(stage, { status: lookup.status });
-        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
+        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
         if (subscription.error) return reply(422, { error: subscription.error.toLowerCase() });
         if (subscription.productId !== productId) return reply(422, { error: 'purchase_product_mismatch' });
         if (subscription.linkedPurchaseToken === purchaseToken) return reply(422, { error: 'subscription_invalid' });
@@ -151,56 +190,19 @@ export default async function handler(request) {
         // made for another account (or without one) is refused: a leaked token cannot be attached to a different player.
         if (subscription.boundAccount !== owner.id) return reply(409, { error: subscription.boundAccount ? 'purchase_bound_to_other_account' : 'purchase_not_bound' });
 
-        // A pending or abandoned replacement leaves the previous entitlement alone.
-        const linkedToken = subscription.active ? subscription.linkedPurchaseToken : null;
-        const retireLinked = async () => {
-            stage = 'linked_entitlement_write';
-            const retired = await rpc('titan_apply_entitlement_v1', {
-                p_user_id: owner.id, p_source: 'google_play', p_external_id: linkedToken, p_is_active: false,
-                p_status: 'replaced', p_event_name: 'replaced', p_event_at: eventAt, p_order_id: null,
-                p_product_id: subscription.productId, p_variant_id: null, p_renews_at: null, p_ends_at: new Date().toISOString(),
-                p_trial_ends_at: null, p_refunded_at: null
-            });
-            if (!retired.ok && retired.data?.message === 'ENTITLEMENT_OWNED_BY_OTHER') return reply(409, { error: 'purchase_already_used' });
-            if (!retired.ok || retired.data !== true) return unavailable(stage, { status: retired.status });
-            return null;
-        };
-        let previousOwner = null;
-        if (linkedToken) {
-            stage = 'linked_entitlement_owner';
-            const previous = await rpc('titan_entitlement_owner_v1', { p_source: 'google_play', p_external_id: linkedToken });
-            if (!previous.ok || (previous.data !== null && (typeof previous.data !== 'string' || !UUID.test(previous.data)))) {
-                return unavailable(stage, { status: previous.status });
-            }
-            previousOwner = previous.data;
-            if (previousOwner !== null && previousOwner !== owner.id) return reply(409, { error: 'purchase_already_used' });
-            if (previousOwner === null) {
-                // Record the inactive prior token before granting so the ledger can reject a competing first owner.
-                const refusal = await retireLinked();
-                if (refusal) return refusal;
-            }
-        }
-
         stage = 'entitlement_write';
-        const applied = await rpc('titan_apply_entitlement_v1', {
-            p_user_id: owner.id, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: subscription.active,
-            p_status: subscription.status, p_event_name: 'verify', p_event_at: eventAt, p_order_id: subscription.orderId,
-            p_product_id: subscription.productId, p_variant_id: null, p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt,
-            p_trial_ends_at: null, p_refunded_at: null
+        const applied = await rpc('titan_apply_play_entitlement_v1', {
+            p_user_id: owner.id, p_external_id: purchaseToken, p_event_name: 'verify', p_event_at: eventAt,
+            ...playEntitlementPayload(subscription)
         });
         if (!applied.ok) return applied.data?.message === 'ENTITLEMENT_OWNED_BY_OTHER' ? reply(409, { error: 'purchase_already_used' }) : unavailable(stage, { status: applied.status });
         if (applied.data !== true) return unavailable(applied.data === false ? 'stale_entitlement_read' : stage);
 
-        if (previousOwner === owner.id) {
-            // Keep existing access in place until the same account's replacement has been recorded.
-            const refusal = await retireLinked();
-            if (refusal) return refusal;
-        }
         // Google refunds an unacknowledged purchase after three days: acknowledge only once access is recorded.
         let acknowledged = subscription.acknowledged;
         if (subscription.active && subscription.needsAcknowledgement) {
             try {
-                const ack = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptions/${encodeURIComponent(subscription.productId)}/tokens/${encodeURIComponent(purchaseToken)}:acknowledge`, { method: 'POST', headers: { ...googleHeaders, 'Content-Type': 'application/json' }, body: '{}' });
+                const ack = await acknowledgePlaySubscription(packageName, subscription.productId, purchaseToken, googleHeaders);
                 acknowledged = ack.ok;
                 if (!ack.ok) console.warn('[play-billing] acknowledgement_pending', { status: ack.status });
             } catch (_) {

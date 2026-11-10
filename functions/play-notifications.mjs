@@ -1,24 +1,18 @@
 // ADR-004 phase 3 bis: Google Play real-time developer notifications (Pub/Sub push) for TITAN+ subscriptions.
 // A notification only says "something changed for this purchase token": the content is never trusted. The server
-// re-reads the subscription from Google and records what Google answers, for the account the token is already
-// linked to. Disabled unless PLAY_BILLING_ENABLED=true. Authentication, strongest first: a Pub/Sub OIDC token signed
+// re-reads the subscription from Google for the existing owner or the account bound by Google to a new purchase.
+// Disabled unless PLAY_BILLING_ENABLED=true. Authentication, strongest first: a Pub/Sub OIDC token signed
 // by Google for PLAY_RTDN_AUDIENCE and PLAY_RTDN_SERVICE_ACCOUNT; or the secret in the push URL (PLAY_RTDN_TOKEN).
 import crypto from 'node:crypto';
-import { googleAccessToken, interpretSubscription } from './play-billing.mjs';
+import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
 import { verifyPubSubJwt } from './play-auth.mjs';
+import { readBoundedBytes } from './request-body.mjs';
 
 const TOKEN = /^[A-Za-z0-9._~-]{16,2048}$/;
 const MAX_BODY = 16384;
 const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
 const reply = (status, body = '') => new Response(body, { status });
-
-async function network(url, init) {
-    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
-    let data = null;
-    try { data = await response.json(); } catch (_) { /* Upstream bodies are never reflected. */ }
-    return { ok: response.ok, status: response.status, data };
-}
 
 function sameSecret(given, expected) {
     const a = crypto.createHash('sha256').update(String(given)).digest(), b = crypto.createHash('sha256').update(String(expected)).digest();
@@ -47,9 +41,9 @@ export default async function handler(request) {
 
     let notification;
     try {
-        const raw = await request.text();
-        if (Buffer.byteLength(raw, 'utf8') > MAX_BODY) return reply(413);
-        const envelope = JSON.parse(raw);
+        const raw = await readBoundedBytes(request, MAX_BODY);
+        if (raw === null) return reply(413);
+        const envelope = JSON.parse(raw.toString('utf8'));
         notification = JSON.parse(Buffer.from(String(envelope?.message?.data || ''), 'base64').toString('utf8'));
     } catch (_) { return reply(400); }
     if (!notification || typeof notification !== 'object') return reply(400);
@@ -68,32 +62,45 @@ export default async function handler(request) {
     try {
         const owner = await rpc('titan_entitlement_owner_v1', { p_source: 'google_play', p_external_id: purchaseToken });
         if (!owner.ok) return reply(503);
-        // Not linked to any account yet: the player's own verification call will record it; nothing to do here.
-        if (typeof owner.data !== 'string') return reply(200);
+        const firstPurchase = owner.data === null;
+        if (!firstPurchase && (typeof owner.data !== 'string' || !PLAY_ACCOUNT_ID.test(owner.data))) return reply(503);
+        if (firstPurchase && notification.subscriptionNotification?.notificationType !== 4) return reply(200);
 
         const accessToken = await googleAccessToken(account);
+        const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
         // Capture before awaiting Google so an older delayed response cannot outrank a newer verification.
         const eventAt = new Date().toISOString();
-        const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
+        const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: googleHeaders });
         // Google no longer knows a token it once sold (refunded, or an expired subscription past its retention): the account keeps no access from it.
         if (lookup.status === 404 || lookup.status === 410) {
-            const gone = await rpc('titan_apply_entitlement_v1', {
-                p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: false, p_status: 'gone',
-                p_event_name: eventName, p_event_at: eventAt, p_order_id: null, p_product_id: null, p_variant_id: null,
-                p_renews_at: null, p_ends_at: new Date().toISOString(), p_trial_ends_at: null, p_refunded_at: null
+            if (firstPurchase) return reply(200);
+            const gone = await rpc('titan_apply_play_entitlement_v1', {
+                p_user_id: owner.data, p_external_id: purchaseToken, p_is_active: false, p_status: 'gone',
+                p_event_name: eventName, p_event_at: eventAt, p_is_test: null, p_ends_at: eventAt
             });
             return gone.ok ? reply(200) : reply(503);
         }
         if (!lookup.ok) return reply(503);
-        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: env('PLAY_ALLOW_TEST_PURCHASES') === 'true' });
-        if (subscription.error) return reply(200);
+        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+        if (subscription.error || subscription.linkedPurchaseToken === purchaseToken) return reply(200);
+        const userId = firstPurchase ? subscription.boundAccount : owner.data;
+        if (typeof userId !== 'string' || !PLAY_ACCOUNT_ID.test(userId)) return reply(200);
+        if (firstPurchase && !subscription.active) return reply(200);
+        if (subscription.boundAccount && subscription.boundAccount !== userId) return reply(200);
         // Notification timestamps are untrusted; use the server-side Google request start captured above.
-        const applied = await rpc('titan_apply_entitlement_v1', {
-            p_user_id: owner.data, p_source: 'google_play', p_external_id: purchaseToken, p_is_active: subscription.active,
-            p_status: subscription.status, p_event_name: eventName,
-            p_event_at: eventAt, p_order_id: subscription.orderId, p_product_id: subscription.productId, p_variant_id: null,
-            p_renews_at: subscription.renewsAt, p_ends_at: subscription.endsAt, p_trial_ends_at: null, p_refunded_at: null
+        const applied = await rpc('titan_apply_play_entitlement_v1', {
+            p_user_id: userId, p_external_id: purchaseToken, p_event_name: eventName, p_event_at: eventAt,
+            ...playEntitlementPayload(subscription)
         });
-        return applied.ok ? reply(200) : reply(503);
+        if (!applied.ok) {
+            const rejected = ['ENTITLEMENT_OWNED_BY_OTHER', 'PROFILE_NOT_FOUND', 'PLAY_REPLACEMENT_INVALID'].includes(applied.data?.message);
+            return reply(rejected ? 200 : 503);
+        }
+        if (applied.data !== true) return reply(applied.data === false ? 200 : 503);
+        if (subscription.active && subscription.needsAcknowledgement) {
+            const ack = await acknowledgePlaySubscription(packageName, subscription.productId, purchaseToken, googleHeaders);
+            if (!ack.ok) return reply(503);
+        }
+        return reply(200);
     } catch (_) { return reply(503); }
 }

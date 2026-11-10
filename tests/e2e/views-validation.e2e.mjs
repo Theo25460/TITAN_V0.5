@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { watchScriptRevision } from "./_versioned-script.mjs";
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server, browser, BASE;
 before(async () => {
@@ -203,11 +204,10 @@ test('view name: an account transition clears the old draft and its error', asyn
 test('view name: the versioned page does not reuse the preceding script resource', async () => {
   const { page, context } = await newPage();
   try {
-    await page.route('**/js/app/vues.js?v=300.2', route => route.fulfill({ contentType: 'text/javascript', body: 'window.legacyViewScript=true;' }));
+    const assertCurrent = await watchScriptRevision(page, "/js/app/vues.js", { current: "300.5", previous: "300.2" });
     await page.goto(BASE + '/stats');
-    assert.equal(await page.locator('script[src*="/js/app/vues.js?"]').getAttribute('src'), '/js/app/vues.js?v=300.5');
+    await assertCurrent();
     await page.locator('#views-panel').waitFor({ state: 'attached' });
     assert.equal(await page.locator('#views-name-error').count(), 1);
-    assert.equal(await page.evaluate(() => Boolean(window.legacyViewScript)), false);
   } finally { await context.close(); }
 });

@@ -42,6 +42,10 @@ for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offli
     if(url.pathname==='/rest/v1/profiles')return reply(profile());
     if(url.pathname==='/rest/v1/training_logs')return reply(serverLogs);
     if(url.pathname==='/rest/v1/rpc/titan_save_profile_state')return reply(profile());
+    if(url.pathname==='/rest/v1/rpc/titan_get_progression_snapshot'){
+     const {id,xp,credits,level}=profile();
+     return reply([{server_user_id:id,xp,credits,level,checked_at:new Date().toISOString()}]);
+    }
     if(url.pathname.startsWith('/rest/v1/rpc/'))return route.fulfill({status:404,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({code:'PGRST202',message:'Optional synthetic RPC unavailable'})});
     if(url.pathname.startsWith('/rest/v1/'))return reply([]);
     return route.abort('internetdisconnected');
@@ -77,8 +81,9 @@ for(const width of [360,1280])for(const mode of ['unavailable','lost-ack','offli
    outage=false;
    // The app may also resend by itself once the server answers; the button then disappears with the queue, which is the same end state.
    await page.locator('[data-retry]').click({timeout:2000}).catch(async e=>{if(!/Timeout/.test(e.message))throw e;});
-   
    await page.waitForFunction(()=>window.TitanQueue.list().length===0&&window.state.history[0]?.syncStatus==='confirmed');
+   // Current balances arrive separately from the replayable receipt, after the send lock is released.
+   await page.waitForFunction(expected=>window.titanGetProgressionSnapshot()?.xp===expected,receipt.xp_after);
    assert.equal(grants,1,'synthetic authority granted this event once');
    assert.ok(requests.length>=2);assert.ok(requests.every(r=>r.authorization===`Bearer ${token}`));
    assert.ok(requests.every(r=>r.body.p_details.client_event_id===original.item.payload.details.client_event_id));

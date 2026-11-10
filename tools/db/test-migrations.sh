@@ -123,4 +123,6 @@ if guard=$(python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]
 fi
 [[ "$guard" == "Refused: reward and appeal concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Source consent and cross-source import concurrency contracts (real overlapping connections)"
+python3 "$ROOT/tools/db/test-import-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

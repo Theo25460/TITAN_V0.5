@@ -38,6 +38,7 @@
   let showcase = null; // showcase [{key,label}] (server, V11-23); null until read
   let showcaseTask = null;
   let garminLinked = null; // true/false once titan_garmin_status_v1 answered (an authorised source is not necessarily linked); null = unknown
+  let garminDailiesAuthorized = false;
   let sources = null; // connected activity sources [{source,granted,imported,...}] (server, V11-30); null until read
   let sourcesTask = null;
   let pioneer = null; // Pionnier badge {granted, cohort} (server, V11-60); null until read
@@ -203,7 +204,10 @@
       const fresh = await context.client.rpc("titan_sources_v1").setHeader("Authorization", `Bearer ${session.access_token}`);
       if (sourcesTask !== job || !bitsCurrent(job)) return false;
       if (!fresh.error && Array.isArray(fresh.data)) sources = fresh.data.filter((x) => x && typeof x.source === "string");
-      if (kind === "revoke" && source === "garmin") garminLinked = false;
+      if (kind === "revoke" && source === "garmin") {
+        garminLinked = false;
+        garminDailiesAuthorized = false;
+      }
       return true;
     } catch (error) {
       if (sourcesTask === job && bitsCurrent(job)) throw error;
@@ -224,20 +228,23 @@
   /* V11-05: "Connecter Garmin" is behind the server flag screens.garmin (off unless the owner turns it on after Garmin's agreement and the real tests).
      Consent first, then the server builds the Garmin consent address (PKCE) and the player goes there. */
   const garminOn = () => !guest() && window.titanFlags?.enabled?.("screens.garmin", false) === true;
+  const garminDailiesOn = () => garminOn() && window.titanFlags?.enabled?.("screens.garmin_dailies", false) === true;
   let garminTask = null;
-  async function connectGarmin() {
-    if (garminTask || sourcesTask || !cardContextValid(bitsContext)) return false;
+  async function connectGarmin(dailies) {
+    if (garminTask || sourcesTask || !cardContextValid(bitsContext) || (dailies && !garminDailiesOn())) return false;
     const context = bitsContext;
-    const job = { context, focus: "[data-garmin-connect]" };
+    const job = { context, focus: dailies ? '[data-garmin-connect="dailies"]' : '[data-garmin-connect=""]' };
     garminTask = job;
     render();
     try {
       const session = await readBitsSession(job);
       if (garminTask !== job || !bitsCurrent(job)) return false;
-      const consent = await context.client.rpc("titan_set_source_consent_v1", { p_source: "garmin", p_granted: true }).setHeader("Authorization", `Bearer ${session.access_token}`);
-      if (garminTask !== job || !bitsCurrent(job)) return false;
-      if (consent.error) throw consent.error;
-      const response = await fetch("/.netlify/functions/garmin?action=start", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) });
+      if (!(dailies && garminLinked === true)) {
+        const consent = await context.client.rpc("titan_set_source_consent_v1", { p_source: "garmin", p_granted: true }).setHeader("Authorization", `Bearer ${session.access_token}`);
+        if (garminTask !== job || !bitsCurrent(job)) return false;
+        if (consent.error) throw consent.error;
+      }
+      const response = await fetch(`/.netlify/functions/garmin?action=start${dailies ? "&dailies=1" : ""}`, { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) });
       if (garminTask !== job || !bitsCurrent(job)) return false;
       const data = response.ok ? await response.json().catch(() => null) : null;
       if (!data || typeof data.url !== "string" || !/^https:\/\//.test(data.url)) throw new Error("GARMIN_UNAVAILABLE");
@@ -258,10 +265,16 @@
   }
 
   function garminConnectHtml() {
-    if (!garminOn() || ((sources || []).some((x) => x.source === "garmin" && x.granted) && garminLinked !== false)) return "";
+    if (!garminOn()) return "";
+    const activityConnect = !(sources || []).some((x) => x.source === "garmin" && x.granted) || garminLinked === false;
+    const dailies = garminDailiesOn();
+    if (!activityConnect && !dailies) return "";
+    const busy = garminTask ? ' disabled aria-busy="true"' : "";
     return `<section class="asc-section" data-garmin-block aria-labelledby="pf-garmin"><div class="asc-section-head"><h2 id="pf-garmin">Garmin</h2></div>
-      <p class="asc-small asc-muted">Relie ta montre Garmin : tes séances arrivent dans ton journal sans les saisir. Tu choisis ce que Garmin partage sur son écran, tu peux tout retirer ici à tout moment, et rien n’est repris sans ton accord.</p>
-      <button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect ${garminTask ? "disabled aria-busy=\"true\"" : ""}>${icon("cloudUp")} Connecter Garmin</button></section>`;
+      ${activityConnect ? `<p class="asc-small asc-muted">Relie ta montre Garmin : tes séances arrivent dans ton journal sans les saisir. Tu choisis ce que Garmin partage sur son écran, tu peux tout retirer ici à tout moment, et rien n’est repris sans ton accord.</p>
+      <button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect${busy}>${icon("cloudUp")} Connecter Garmin</button>` : ""}
+      ${dailies ? `<p class="asc-small asc-muted">Si tu l’autorises chez Garmin, seul ton total de pas par jour alimente les Sentiers du Titan. Tu peux retirer ce partage dans Garmin Connect.</p>
+      ${garminDailiesAuthorized ? '<p class="asc-small">Pas Garmin autorisés</p>' : `<button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect="dailies"${busy}>${activityConnect ? "Connecter Garmin et autoriser les pas" : "Autoriser les pas Garmin"}</button>`}` : ""}</section>`;
   }
 
   function sourcesBlockHtml() {
@@ -524,6 +537,7 @@
     showcaseTask = null;
     sources = null;
     garminLinked = null;
+    garminDailiesAuthorized = false;
     pioneer = null;
     sourcesTask = null;
     cardUnavailable = false;
@@ -601,7 +615,10 @@
           const g = await within(job.context.client.rpc("titan_garmin_status_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
           if (!bitsCurrent(job)) return;
           await readBitsSession(job);
-          if (bitsCurrent(job) && !g.error && g.data && typeof g.data.linked === "boolean") garminLinked = g.data.linked;
+          if (bitsCurrent(job) && !g.error && g.data && typeof g.data.linked === "boolean") {
+            garminLinked = g.data.linked;
+            garminDailiesAuthorized = garminLinked && g.data.dailies_authorized === true;
+          }
         }
       } catch {}
     } catch {
@@ -1026,7 +1043,7 @@
         },
       });
     if (b.hasAttribute("data-garmin-connect")) {
-      return connectGarmin().catch(() => window.titanShell.toast({ type: "warn", message: "Garmin n’est pas disponible pour le moment. Réessaie plus tard." }));
+      return connectGarmin(b.dataset.garminConnect === "dailies").catch(() => window.titanShell.toast({ type: "warn", message: "Garmin n’est pas disponible pour le moment. Réessaie plus tard." }));
     }
     const sourceKind = b.dataset.sourceRevoke !== undefined ? "revoke" : b.dataset.sourceArchive !== undefined ? "archive" : null;
     if (sourceKind) {
@@ -1167,6 +1184,7 @@
       if (!bitsCurrent(job)) return;
       if (response.error || typeof response.data?.linked !== "boolean") throw new Error("GARMIN_STATUS_UNCONFIRMED");
       garminLinked = response.data.linked;
+      garminDailiesAuthorized = garminLinked && response.data.dailies_authorized === true;
       render();
       notice(garminLinked
         ? ["ok", "Garmin relié", "Le serveur confirme la liaison. Tes prochaines séances Garmin arriveront dans ton journal."]

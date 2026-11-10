@@ -31,12 +31,12 @@ async function run(callback, { env = {}, rows = due } = {}) {
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.endsWith('/titan_play_entitlements_due_v1')) return Response.json(rows);
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) { const a = answers[decodeURIComponent(u.pathname.split('/').pop())]; return Response.json(a.data, { status: a.status }); }
-        if (u.pathname.endsWith('/titan_apply_entitlement_v1')) return Response.json(true);
+        if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return Response.json(true);
         throw new Error(`unexpected request ${url}`);
     };
     try { return await callback(calls); } finally { globalThis.Netlify = pn; globalThis.fetch = pf; }
 }
-const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_entitlement_v1')).map(c => c.body);
+const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_play_entitlement_v1')).map(c => c.body);
 
 test('disabled or misconfigured: nothing is read or written', async () => {
     // Off on purpose: 200 "disabled", no call at all (no hourly 503 in the logs while billing is closed).
@@ -58,7 +58,7 @@ test('every due token is re-read from Google and only Google\'s answer is record
         assert.equal(byToken['tok-gone-0123456789abcd'].p_status, 'gone');
         assert.equal(byToken['tok-down-0123456789abcd'], undefined, 'Google unavailable: access is left as it was');
         assert.equal(byToken['tok-other-0123456789abc'].p_is_active, false, 'a product the team does not allow never extends access');
-        assert.ok(applied(calls).every(b => b.p_event_name === 'reconcile' && b.p_source === 'google_play'));
+        assert.ok(applied(calls).every(b => b.p_event_name === 'reconcile'));
         assert.equal(applied(calls).find(b => b.p_external_id === 'tok-active-0123456789ab').p_user_id, due[0].user_id);
     });
 });

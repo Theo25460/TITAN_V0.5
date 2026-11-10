@@ -34,6 +34,7 @@ function harness(query, { linked = true, guest = false, hold = false } = {}) {
     bitsCurrent: job => job.context === context && owner === context.owner,
     readBitsSession: async () => ({ access_token: "token-a", user: { id: "a" } }),
     garminLinked: null,
+    garminDailiesAuthorized: false,
     render() {},
   });
   return { ...api, notices, requests, urls, started, switchOwner: () => { owner = "b"; }, release: () => release() };

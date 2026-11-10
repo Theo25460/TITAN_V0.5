@@ -29,21 +29,24 @@ function request(body = { purchase_token: TOKEN, product_id: 'titan_plus' }, hea
 function readiness(product = 'titan_plus', authorization = 'Bearer fake-user-token-used-only-in-tests') {
     return new Request(`https://titan.example.test/functions/play-billing?product_id=${product}`, { headers: { authorization } });
 }
-async function run(callback, { env = {}, google = { status: 200, data: subscription() }, linkedOwner = USER, linkedOwnerStatus = 200, rpcError = null, rpcResult = true, authStatus = 200, ackFails = false, ackTransportFails = false } = {}) {
+async function run(callback, { env = {}, google = { status: 200, data: subscription() }, rpcError = null, rpcResult = true, authStatus = 200, checkoutDbReady = true, oauthStatus = 200, catalogStatus = 200, ackFails = false, ackTransportFails = false } = {}) {
     const previousNetlify = globalThis.Netlify, previousFetch = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
     globalThis.fetch = async (url, init = {}) => {
         const u = new URL(url), body = init.body && String(init.body).startsWith('{') ? JSON.parse(init.body) : init.body;
         calls.push({ host: u.host, path: u.pathname, method: init.method || 'GET', body });
-        if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
+        if (u.host === 'oauth2.googleapis.com') return Response.json(oauthStatus === 200 ? { access_token: 'google-access-token-synthetic' } : {}, { status: oauthStatus });
+        if (u.host === 'androidpublisher.googleapis.com' && /\/subscriptions\/[^/]+$/.test(u.pathname)) {
+            return Response.json({ productId: u.pathname.split('/').pop(), basePlans: [{ state: 'ACTIVE', autoRenewingBasePlanType: { billingPeriodDuration: 'P1M' } }] }, { status: catalogStatus });
+        }
         if (u.pathname === '/auth/v1/user') return Response.json(authStatus === 200 ? { id: USER, is_anonymous: false } : {}, { status: authStatus });
+        if (u.pathname.endsWith('/titan_play_checkout_ready_v1')) return Response.json(checkoutDbReady, { status: checkoutDbReady ? 200 : 404 });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data || {}, { status: google.status });
         if (u.pathname.endsWith(':acknowledge')) {
             if (ackTransportFails) throw new Error(`request failed for ${url}`);
             return ackFails ? Response.json({}, { status: 500 }) : Response.json({});
         }
-        if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return Response.json(linkedOwner, { status: linkedOwnerStatus });
         if (u.pathname.startsWith('/rest/v1/rpc/')) {
             const error = typeof rpcError === 'function' ? rpcError(body) : rpcError;
             return error ? Response.json({ message: error }, { status: 400 }) : Response.json(rpcResult);
@@ -52,14 +55,15 @@ async function run(callback, { env = {}, google = { status: 200, data: subscript
     };
     try { return await callback(calls); } finally { globalThis.Netlify = previousNetlify; globalThis.fetch = previousFetch; }
 }
-const rpcs = calls => calls.filter(c => c.path.endsWith('/titan_apply_entitlement_v1'));
+const rpcs = calls => calls.filter(c => c.path.endsWith('/titan_apply_play_entitlement_v1'));
 
 test('authenticated checkout readiness checks the requested product without touching purchases', async () => {
     await run(async calls => {
         const response = await handler(readiness());
         assert.equal(response.status, 204);
         assert.equal(response.headers.get('cache-control'), 'no-store');
-        assert.deepEqual(calls.map(c => c.path), ['/auth/v1/user']);
+        assert.deepEqual(calls.map(c => c.path), ['/auth/v1/user', '/rest/v1/rpc/titan_play_checkout_ready_v1', '/token', '/androidpublisher/v3/applications/fr.titanapp.app/subscriptions/titan_plus']);
+        assert.deepEqual(calls[1].body, { p_user_id: USER });
     });
     await run(async calls => {
         assert.equal((await handler(readiness(undefined, ''))).status, 401);
@@ -74,6 +78,17 @@ test('authenticated checkout readiness checks the requested product without touc
             assert.equal((await handler(readiness())).status, 503);
             assert.deepEqual(calls, []);
         }, { env });
+    }
+});
+
+test('checkout refuses a missing schema, invalid Google credentials or unreadable products before money can move', async () => {
+    const databasePaths = ['/auth/v1/user', '/rest/v1/rpc/titan_play_checkout_ready_v1'];
+    for (const [options, stages] of [[{ checkoutDbReady: false }, databasePaths], [{ oauthStatus: 401 }, [...databasePaths, '/token']],
+        [{ catalogStatus: 403 }, [...databasePaths, '/token', '/androidpublisher/v3/applications/fr.titanapp.app/subscriptions/titan_plus']]]) {
+        await run(async calls => {
+            assert.equal((await handler(readiness())).status, 503);
+            assert.deepEqual(calls.map(c => c.path), stages);
+        }, options);
     }
 });
 
@@ -165,9 +180,10 @@ test('an active purchase grants access from Google\'s answer, keeps the token se
         assert.equal(answer.active, true);
         assert.ok(!JSON.stringify(answer).includes(TOKEN), 'the token is never echoed');
         const [recorded] = rpcs(calls);
-        assert.equal(recorded.path, '/rest/v1/rpc/titan_apply_entitlement_v1');
+        assert.equal(recorded.path, '/rest/v1/rpc/titan_apply_play_entitlement_v1');
         assert.equal(recorded.body.p_user_id, USER, 'the account comes from the verified session, not the request');
-        assert.equal(recorded.body.p_source, 'google_play');
+        assert.equal(recorded.body.p_is_test, false);
+        assert.equal(recorded.body.p_needs_ack, true);
         assert.equal(recorded.body.p_external_id, TOKEN);
         assert.equal(recorded.body.p_is_active, true);
         const order = calls.map(c => c.path.endsWith(':acknowledge') ? 'ack' : c.path.startsWith('/rest/v1/rpc/') ? 'record' : '');
@@ -210,57 +226,25 @@ test('a token already used by another account, an unknown token and a Google out
     await run(async () => assert.equal((await handler(request())).status, 503), { rpcError: 'something unexpected' });
 });
 
-test('a replacing purchase retires the previous token of the same account', async () => {
+test('a replacing purchase sends both tokens in one database transaction before acknowledgement', async () => {
     await run(async calls => {
         assert.equal((await handler(request())).status, 200);
-        const [first, second] = rpcs(calls);
-        assert.equal(first.body.p_external_id, TOKEN);
-        assert.equal(second.body.p_external_id, OLD_TOKEN);
-        assert.equal(second.body.p_is_active, false);
-        assert.equal(second.body.p_user_id, USER);
-        const ownerCheck = calls.find(c => c.path.endsWith('/titan_entitlement_owner_v1'));
-        assert.deepEqual(ownerCheck?.body, { p_source: 'google_play', p_external_id: OLD_TOKEN });
-        assert.ok(calls.indexOf(ownerCheck) < calls.indexOf(first));
+        const writes = rpcs(calls);
+        assert.equal(writes.length, 1);
+        assert.equal(writes[0].body.p_external_id, TOKEN);
+        assert.equal(writes[0].body.p_linked_token, OLD_TOKEN);
+        assert.equal(writes[0].body.p_user_id, USER);
     }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) } });
 });
 
-test('a replacement for another account’s prior token fails before writing or acknowledging', async () => {
-    const other = '00000000-0000-4000-8000-0000000000b2';
+test('the database refusal of a foreign predecessor prevents acknowledgement', async () => {
     await run(async calls => {
         const response = await handler(request());
         assert.equal(response.status, 409);
         assert.deepEqual(await response.json(), { error: 'purchase_already_used' });
-        assert.deepEqual(rpcs(calls), []);
+        assert.equal(rpcs(calls)[0].body.p_linked_token, OLD_TOKEN);
         assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
-    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, linkedOwner: other,
-        rpcError: body => body.p_external_id === OLD_TOKEN ? 'ENTITLEMENT_OWNED_BY_OTHER' : null });
-});
-
-test('an unknown prior token is recorded inactive before the replacement is granted', async () => {
-    await run(async calls => {
-        assert.equal((await handler(request())).status, 200);
-        const writes = rpcs(calls).map(c => [c.body.p_external_id, c.body.p_is_active]);
-        assert.deepEqual(writes, [[OLD_TOKEN, false], [TOKEN, true]]);
-    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, linkedOwner: null });
-});
-
-test('a competing owner of a previously unknown prior token prevents the new grant', async () => {
-    await run(async calls => {
-        const response = await handler(request());
-        assert.equal(response.status, 409);
-        assert.deepEqual(await response.json(), { error: 'purchase_already_used' });
-        assert.deepEqual(rpcs(calls).map(c => c.body.p_external_id), [OLD_TOKEN]);
-        assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
-    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, linkedOwner: null,
-        rpcError: body => body.p_external_id === OLD_TOKEN ? 'ENTITLEMENT_OWNED_BY_OTHER' : null });
-});
-
-test('an unavailable prior-token owner lookup leaves access untouched', async () => {
-    await run(async calls => {
-        assert.equal((await handler(request())).status, 503);
-        assert.deepEqual(rpcs(calls), []);
-        assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
-    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, linkedOwnerStatus: 503 });
+    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, rpcError: 'ENTITLEMENT_OWNED_BY_OTHER' });
 });
 
 test('an unfinished replacement never revokes the previous paid token', async () => {
@@ -269,7 +253,7 @@ test('an unfinished replacement never revokes the previous paid token', async ()
             const response = await handler(request());
             assert.equal(response.status, 200);
             assert.equal((await response.json()).active, false);
-            assert.deepEqual(rpcs(calls).map(c => c.body.p_external_id), [TOKEN]);
+            assert.deepEqual(rpcs(calls).map(c => [c.body.p_external_id, c.body.p_linked_token]), [[TOKEN, null]]);
             assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
         }, { google: { status: 200, data: subscription({ subscriptionState, linkedPurchaseToken: OLD_TOKEN, startTime: undefined }) } });
     }
@@ -287,9 +271,9 @@ test('a failed linked-token retirement is retryable and is never acknowledged as
     await run(async calls => {
         const response = await handler(request());
         assert.equal(response.status, 503);
-        assert.deepEqual(rpcs(calls).map(c => c.body.p_external_id), [TOKEN, OLD_TOKEN]);
+        assert.deepEqual(rpcs(calls).map(c => [c.body.p_external_id, c.body.p_linked_token]), [[TOKEN, OLD_TOKEN]]);
         assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
-    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, rpcError: body => body.p_external_id === OLD_TOKEN ? 'unavailable' : null });
+    }, { google: { status: 200, data: subscription({ linkedPurchaseToken: OLD_TOKEN }) }, rpcError: 'PLAY_REPLACEMENT_STALE' });
 });
 
 test('an ignored stale entitlement write cannot trigger acknowledgement or report active access', async () => {
@@ -367,11 +351,17 @@ test('purchase provenance comes from Google and does not assert a commercial amo
         assert.equal(body.access_kind, 'test');
         assert.equal(body.active, true);
         assert.equal('paid' in body, false);
-        assert.equal(rpcs(calls)[0].body.p_source, 'google_play');
-    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true' }, google });
-    await run(async () => {
+        assert.equal(rpcs(calls)[0].body.p_is_test, true);
+    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true', PLAY_TEST_SUPABASE_URL: ENV.SUPABASE_URL }, google });
+    const production = 'https://oubmftfufwwzwpgvrcag.supabase.co';
+    await run(async calls => {
+        assert.equal((await handler(request())).status, 422);
+        assert.equal(rpcs(calls).length, 0);
+    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true', PLAY_TEST_SUPABASE_URL: production, SUPABASE_URL: production }, google });
+    await run(async calls => {
         const body = await (await handler(request())).json();
         assert.equal(body.access_kind, 'verified_purchase');
+        assert.equal(rpcs(calls)[0].body.p_is_test, false);
         assert.equal('paid' in body, false);
         assert.equal('amount_received' in body, false);
     }, { google: { status: 200, data: subscription({ latestOrderId: undefined }) } });

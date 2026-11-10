@@ -24,8 +24,8 @@ const BEARER = 'Bearer ' + 'x'.repeat(40);
 const OTHER_BEARER = 'Bearer ' + 'y'.repeat(40);
 const OTHER_USER = '00000000-0000-4000-8000-0000000000ff';
 
-async function startOAuth({ android = false, bearer = BEARER } = {}) {
-    const response = await handler(at(`action=start${android ? '&client=android&flow=handoff' : ''}`, { method: 'POST', headers: { authorization: bearer } }));
+async function startOAuth({ android = false, bearer = BEARER, dailies = false } = {}) {
+    const response = await handler(at(`action=start${android ? '&client=android&flow=handoff' : ''}${dailies ? '&dailies=1' : ''}`, { method: 'POST', headers: { authorization: bearer } }));
     assert.equal(response.status, 200);
     return {
         state: new URL((await response.json()).url).searchParams.get('state'),
@@ -149,6 +149,76 @@ test('Garmin pushes strip unneeded fields from activity summaries before sending
             durationInSeconds: 2400, distanceInMeters: 8000
         });
     });
+});
+
+const DAILIES_TOKEN = 'synthetic-dailies-secret-0123456789abcdef';
+const DAILIES_ENV = { GARMIN_DAILIES_ENABLED: 'true', GARMIN_DAILIES_PUSH_TOKEN: DAILIES_TOKEN };
+const DAILIES_LINK = 'titan_garmin_oauth_link_dailies_v1';
+const dailiesPush = (body, token = DAILIES_TOKEN) => at(`action=dailies&token=${token}`, { method: 'POST', body: JSON.stringify(body) });
+const daily = {
+    userId: 'garmin-user-9', calendarDate: '2026-10-30', steps: 12400,
+    startTimeInSeconds: 1793314800, startTimeOffsetInSeconds: 3600, durationInSeconds: 86400,
+    summaryId: 'example-summary', restingHeartRateInBeatsPerMinute: 64, userAccessToken: 'synthetic-unused-token'
+};
+
+test('Garmin Dailies are independently enabled and authenticated and minimize the provider payload', async () => {
+    await run(async calls => {
+        assert.equal((await handler(dailiesPush({ dailies: [daily] }))).status, 503);
+        assert.equal(rpcCalls(calls).length, 0);
+    });
+    await run(async calls => {
+        assert.equal((await handler(dailiesPush({ dailies: [daily] }, PUSH))).status, 401);
+        assert.equal((await handler(push({ dailies: [daily] }))).status, 200);
+        assert.equal(rpcCalls(calls).length, 0, 'the Activity push token cannot attest daily steps');
+        const response = await handler(dailiesPush({ dailies: [
+            daily,
+            { ...daily, userId: 'wrong user!' },
+            { ...daily, steps: '12400' },
+            { ...daily, calendarDate: '2026-10-31' },
+            { ...daily, durationInSeconds: 999999 },
+            { ...daily, source: 'FITBIT' }
+        ], thirdPartyDailies: [daily] }));
+        assert.equal(response.status, 200);
+        assert.deepEqual(rpcCalls(calls).map(call => [call.path.split('/').pop(), call.body]), [['titan_garmin_ingest_dailies_v1', { p_dailies: [{
+            provider_user: daily.userId, day: daily.calendarDate, steps: daily.steps,
+            started_at: '2026-10-29T23:00:00.000Z', duration_seconds: daily.durationInSeconds,
+        }] }]]);
+    }, { env: DAILIES_ENV });
+    await run(async () => {
+        assert.equal((await handler(dailiesPush({ dailies: [daily] }))).status, 503);
+    }, { env: DAILIES_ENV, rpc: () => Response.json({}, { status: 500 }) });
+});
+
+test('Garmin Dailies bind optional permission to an explicit and independently verified OAuth choice', async () => {
+    for (const [requested, allowed, expectedLink] of [[false, true, LINK_RPC], [true, false, LINK_RPC], [true, true, DAILIES_LINK]]) {
+        await run(async calls => {
+            const { state, cookie } = await startOAuth({ dailies: requested });
+            const callback = await returnOAuth(state, cookie);
+            assert.equal((await completeWeb(cookieFrom(callback), OTHER_BEARER)).status, 403);
+            assert.equal(calls.filter(call => call.path === '/token').length, 0);
+            assert.deepEqual(await webResult(callback), { garmin: 'ok' });
+            const writes = rpcCalls(calls).filter(call => call.path.includes('oauth_link'));
+            assert.deepEqual(writes.map(call => [call.path.split('/').pop(), call.body.p_user]), [[expectedLink, USER]]);
+            const bound = calls.findIndex(call => call.path.endsWith('/titan_garmin_oauth_bind_dailies_v1'));
+            const permissions = calls.findIndex(call => call.path === '/user/permissions');
+            assert.equal(bound !== -1, requested);
+            if (requested) assert.ok(bound < permissions, 'bind the attempt before the permission read so withdrawal can invalidate it');
+        }, { env: DAILIES_ENV, rpc(name) { return name === DAILIES_LINK ? Response.json({ linked: true }) : successRpc(name); },
+            garmin: { permissions: Response.json(['ACTIVITY_EXPORT', ...(allowed ? ['HEALTH_EXPORT'] : [])]) } });
+    }
+});
+
+test('withdrawal of Garmin health export stops Dailies without revoking activity export', async () => {
+    await run(async calls => {
+        const result = await handler(push({ userPermissionsChange: [{ userId: daily.userId, permissions: ['ACTIVITY_EXPORT'] }], activities: [activity('1', daily.userId)] }));
+        assert.equal(result.status, 200);
+        assert.deepEqual(rpcCalls(calls).map(call => call.path.split('/').pop()), ['titan_garmin_revoke_dailies_v1', 'titan_garmin_ingest_v1']);
+    }, { env: DAILIES_ENV });
+    await run(async calls => {
+        const result = await handler(push({ deregistrations: [{ userId: daily.userId }], activities: [activity('1', daily.userId)] }));
+        assert.equal(result.status, 200);
+        assert.deepEqual(rpcCalls(calls).map(call => call.path.split('/').pop()), ['titan_garmin_revoke_dailies_v1', 'titan_garmin_deregister_v1']);
+    }, { env: { ...DAILIES_ENV, GARMIN_DAILIES_ENABLED: 'false' } });
 });
 
 test('browser Garmin returns cannot link an account without its initiating browser cookie', async () => {

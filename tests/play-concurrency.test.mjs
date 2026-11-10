@@ -55,7 +55,7 @@ for (const reader of ['billing', 'notifications', 'reconcile']) {
         }
         return Response.json(resource(false));
       }
-      if (path.endsWith('/titan_apply_entitlement_v1')) {
+      if (path.endsWith('/titan_apply_play_entitlement_v1')) {
         const payload = JSON.parse(init.body);
         writes.push(payload);
         // Match titan_apply_entitlement_v1: older events are ignored, equal/newer events may update.
