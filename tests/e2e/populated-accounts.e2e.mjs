@@ -44,7 +44,7 @@ async function populated(path, { count = Number(process.env.POP_COUNT || 400), w
 }
 const axeViolations = page => page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(" ")).join(" | ")}`)));
 
-for (const [path, ready] of [["/aujourdhui", "#qg-ascent"], ["/stats", "#wk-month-title"], ["/profile", "[data-title-block], #adn"], ["/journal", "main"], ["/records", "main"], ["/objectifs", "main"], ["/prevoir", "main"], ["/adventure", "main"]]) {
+for (const [path, ready] of [["/aujourdhui", "#qg-ascent"], ["/stats", "#wk-month-title"], ["/profile", ".pf-passport-stats"], ["/journal", "main"], ["/records", "main"], ["/objectifs", "main"], ["/prevoir", "main"], ["/adventure", "main"]]) {
   test(`populated account on ${path}: no error, nothing unreadable, and drawn quickly`, async () => {
     const { page, context, errors, ms } = await populated(path);
     try {
