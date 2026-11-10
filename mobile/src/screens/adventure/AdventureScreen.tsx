@@ -41,7 +41,11 @@ export function AdventureScreen() {
   // The crest only appears where the text keeps its room: on a narrow phone it squeezed the name and broke words in the middle.
   const { width } = useWindowDimensions();
   const s = q.data;
-  const quests = useMemo(() => AdventureRules.weeklyQuests(active, prefs.weeklyGoalSessions, new Date(), { favoriteSports: prefs.favoriteSports }), [active, prefs.weeklyGoalSessions, prefs.favoriteSports]);
+  const quests = useMemo(() => {
+    const now = new Date();
+    const cadence = Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses, now });
+    return AdventureRules.weeklyQuestPaths(active, prefs.weeklyGoalSessions, now, { favoriteSports: prefs.favoriteSports, cadencePaused: cadence.currentPaused });
+  }, [active, prefs.weeklyGoalSessions, prefs.favoriteSports, prefs.cadencePauses]);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
@@ -111,10 +115,16 @@ export function AdventureScreen() {
             <AdventureHelp />
 
             <Section title="Quêtes de la semaine">
-              {quests.map((qq) => {
-                const done = qq.value >= qq.target;
+              <T variant="small">{quests.why}</T>
+              {[quests.main, ...quests.alternatives].map((qq, i) => {
+                const count = Math.min(qq.value ?? 0, qq.target ?? 0);
+                const progress = qq.target ? count / qq.target : null;
+                const done = progress === 1;
+                const status = progress == null ? "" : ` · ${count}/${qq.target}`;
+                const kind = i === 0 ? "Piste proposée" : "Alternative facultative";
                 return (
-                  <Card key={qq.id} tone={done ? "accent" : "flat"} onPress={() => navigateHref(navigation, qq.href)} accessibilityLabel={`${qq.name} : ${qq.value} sur ${qq.target}`} style={{ gap: 6 }}>
+                  <Card key={qq.id} tone={i === 0 ? "accent" : "flat"} onPress={() => navigateHref(navigation, qq.href)} accessibilityLabel={`${kind} · ${qq.name}${status}`} style={{ gap: 6 }}>
+                    <T variant="eyebrow" tone={i === 0 ? "accent" : "faint"}>{kind}{status}</T>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
                       <Icon name={done ? "check" : "flag"} size={20} color={done ? colors.cy : colors.tx3} />
                       <View style={{ flex: 1 }}>
@@ -123,16 +133,13 @@ export function AdventureScreen() {
                           {qq.text}
                         </T>
                       </View>
-                      <T variant="num" tone={done ? "accent" : "default"}>
-                        {Math.min(qq.value, qq.target)}/{qq.target}
-                      </T>
                     </View>
-                    <ProgressBar value={qq.value / qq.target} height={5} accessibilityLabel={qq.name} />
+                    {progress != null ? <ProgressBar value={progress} height={5} accessibilityLabel={qq.name} /> : null}
                   </Card>
                 );
               })}
               <T variant="caption" tone="faint">
-                Des repères pour une semaine équilibrée, adaptés à ta cadence. Ils ne demandent jamais un sport précis.
+                Ces pistes restent libres et n’ajoutent ni XP ni crédits.
               </T>
             </Section>
 

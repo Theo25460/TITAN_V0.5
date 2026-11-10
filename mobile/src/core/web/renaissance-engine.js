@@ -94,6 +94,31 @@
     }
     return quests;
   }
+
+  function weeklyQuestPaths(logs, goal, now, prefs = {}) {
+    const journal = (logs || []).filter((l) => l?.sport && (!l.syncStatus || l.syncStatus === "confirmed"));
+    const quests = weeklyQuests(journal, goal, now, prefs);
+    const note = quests.find((q) => q.id === "perspective");
+    const context = quests.find((q) => q.id === "context");
+    if (prefs.cadencePaused) {
+      return {
+        main: note,
+        alternatives: [context, { id: "rest", name: "Garder la pause", text: "Laisse la semaine ouverte à ton rythme.", href: "/prevoir" }],
+        why: "Ton repère de jours actifs est en pause. Tu peux simplement garder une trace si tu en as envie.",
+      };
+    }
+    const activeDays = quests.find((q) => q.id === "return");
+    const favorite = quests.find((q) => q.id === "sport-rhythm");
+    return favorite ? {
+      main: { ...favorite, href: `/training?sport=${encodeURIComponent(favorite.sport)}` },
+      alternatives: [activeDays, note],
+      why: "Ce sport fait partie de tes favoris. Les deux autres pistes conviennent à toutes les disciplines.",
+    } : {
+      main: activeDays,
+      alternatives: [note, context],
+      why: "Ton journal permet de retrouver tes jours actifs, quels que soient les sports que tu pratiques.",
+    };
+  }
   // A receipt confirms rewards, but only fresh account-matched server evidence
   // explicitly naming the session can attribute a chapter contribution.
   function sessionImpact({logId, owner, status, rewardHeld = false, historical = false, snapshot, snapshotReady = false} = {}) {
@@ -139,6 +164,7 @@
     rank,
     activeLogs,
     weeklyQuests,
+    weeklyQuestPaths,
     sessionImpact,
     simulate,
     snapshot: null,
