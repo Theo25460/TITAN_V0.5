@@ -103,7 +103,7 @@
       const key = F().dateKey(cursor);
       const isCurrent = cursor.getTime() === current.getTime();
       const active = days.get(key)?.size || 0;
-      if (paused.has(key) && !isCurrent) {
+      if (paused.has(key)) {
         weeks.push({ start: key, activeDays: active, state: "pause", fill: 0 });
       } else {
         const held = active >= goal;
@@ -126,7 +126,8 @@
     let lifetimeHeld = 0;
     for (const [key, set] of days) if (set.size >= goal && !paused.has(key)) lifetimeHeld++;
     const thisWeek = weeks[weeks.length - 1];
-    const remaining = Math.max(0, goal - (thisWeek?.activeDays || 0));
+    const currentPaused = paused.has(F().dateKey(current));
+    const remaining = currentPaused ? 0 : Math.max(0, goal - (thisWeek?.activeDays || 0));
     const daysLeft = 7 - ((new Date(now).getDay() + 6) % 7);
     return {
       target: goal,
@@ -135,9 +136,10 @@
       window: counted.length,
       lifetimeHeld,
       currentDays: thisWeek?.activeDays || 0,
+      currentPaused,
       remaining,
       daysLeftInWeek: daysLeft,
-      reachable: remaining <= daysLeft,
+      reachable: !currentPaused && remaining <= daysLeft,
     };
   }
 
@@ -362,7 +364,7 @@
         priority: 100,
         tone: "err",
         title: `${f.plural(broken.length, "séance attend", "séances attendent")} une correction`,
-        text: "Elles sont conservées sur cet appareil. Ouvre-les pour les corriger ou les exporter.",
+        text: "Le serveur a refusé l’envoi. Consulte le motif avant de réessayer.",
         why: "Le serveur a refusé ces enregistrements. Ils ne sont ni perdus ni synchronisés.",
         cta: { label: "Voir les séances", href: "/journal#attente" },
       });
@@ -584,31 +586,43 @@
 
   /** The one thing that deserves attention now (QG hero). */
   function nextAction(ctx = {}) {
+    const { draftSport, online = true, guest = false, historyAvailable = true } = ctx;
+    if (draftSport)
+      return {
+        id: "session-draft",
+        tone: "cy",
+        eyebrow: "À reprendre",
+        title: `Ton brouillon de ${sportMeta(draftSport).label.toLowerCase()}`,
+        text: "Retrouve les mesures déjà saisies sur cet appareil.",
+        cta: { label: "Reprendre le brouillon", href: `/training?sport=${encodeURIComponent(draftSport)}` },
+      };
+    const pending = guest ? [] : (ctx.pending || []);
+    const top = insights({ ...ctx, pending }).find(({ id }) => id === "sync-error"
+      || (online && !guest && id.startsWith("chapter-"))
+      || id.startsWith("goal-") || ["plan-today", "cadence", "return"].includes(id));
+    if (top?.id === "sync-error") return top;
+    const waiting = pending.filter(({ status }) => status === "pending").length;
+    if (waiting)
+      return {
+        id: "sync-pending",
+        tone: "info",
+        eyebrow: "Synchronisation",
+        title: F().plural(waiting, "séance en attente d’envoi", "séances en attente d’envoi"),
+        text: online ? "L’envoi reste à confirmer. Tes séances sont conservées sur cet appareil." : "Tes séances restent sur cet appareil et seront envoyées au retour de la connexion.",
+        cta: { label: "Voir les séances en attente", href: "/journal#attente" },
+      };
+    if (top) return top;
     const now = ctx.now || new Date();
     const list = activeLogs(ctx.logs || [], now);
-    const f = F();
-    const top = insights(ctx)[0];
-    if (!list.length)
+    if (!list.length && historyAvailable)
       return {
         id: "first",
         tone: "cy",
         title: "Ta première séance",
         text: "Choisis ton sport, note l’essentiel. TITAN s’occupe du reste : progression, repères et premier chapitre.",
         why: "Aucune séance enregistrée pour l’instant.",
-        cta: { label: "Enregistrer ma première séance", href: ctx.plan?.sport ? `/training?sport=${encodeURIComponent(ctx.plan.sport)}` : "/training" },
+        cta: { label: "Enregistrer ma première séance", href: "/training" },
       };
-    if (top && top.priority >= 60) return top;
-    const today = list.filter((l) => f.dateKey(l.date) === f.dateKey(now));
-    if (today.length)
-      return {
-        id: "done-today",
-        tone: "ok",
-        title: today.length > 1 ? `${today.length} séances aujourd’hui` : "Séance enregistrée aujourd’hui",
-        text: "Le repos fait partie de la progression. Reviens quand tu veux.",
-        why: today.map((l) => sportMeta(l.sport).label).join(", "),
-        cta: { label: "Voir dans le journal", href: "/journal" },
-      };
-    if (top) return top;
     const weekday = (new Date(now).getDay() + 6) % 7;
     const habit = new Map();
     for (const l of list) {
@@ -620,8 +634,8 @@
     return {
       id: "record",
       tone: "cy",
-      title: sport && n >= 2 ? `Le ${dayName}, c’est souvent ${sportMeta(sport).label.toLowerCase()}` : "Prêt pour une séance ?",
-      text: "Enregistre ton effort en moins d’une minute.",
+      title: sport && n >= 2 ? `Le ${dayName}, c’est souvent ${sportMeta(sport).label.toLowerCase()}` : "Note ta prochaine séance",
+      text: "Choisis ton sport et ajoute les mesures que tu veux retrouver dans ton journal.",
       why: sport && n >= 2 ? `${n} séances de ${sportMeta(sport).label.toLowerCase()} un ${dayName} dans ton journal.` : "Ton journal grandit à chaque séance.",
       cta: { label: "Enregistrer une séance", href: sport && n >= 2 ? `/training?sport=${encodeURIComponent(sport)}` : "/training" },
     };

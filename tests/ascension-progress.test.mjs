@@ -62,6 +62,20 @@ test("soft streak (IDEA06): rest days inside a week cost nothing, and a missed w
   assert.equal(paused.weeks.find((w) => w.start === "2026-09-21").state, "pause");
 });
 
+test("cadence pauses the current target without losing journal days or past held weeks", () => {
+  const logs = [log("2026-09-29T08:00:00"), log("2026-10-01T08:00:00"), log("2026-10-05T08:00:00")];
+  const opts = { now: NOW, target: 2, pauses: ["2026-10-05"] };
+  const paused = P.cadence(logs, opts);
+  assert.equal(paused.weeks.at(-1).state, "pause");
+  assert.equal(paused.currentPaused, true);
+  assert.equal(paused.currentDays, 1);
+  assert.equal(paused.remaining, 0);
+  assert.equal(paused.held, 1);
+  assert.equal(paused.lifetimeHeld, 1);
+  assert.equal(P.insights({ logs, now: NOW, cadenceTarget: 2, pauses: opts.pauses }).some((i) => i.id === "cadence"), false);
+  assert.equal(P.cadence(logs, { ...opts, pauses: [] }).remaining, 1);
+});
+
 test("progressive discovery (ACT06): screens are introduced when they become concrete, last in line, and never for ever", () => {
   const day = (d) => `2026-09-${String(d).padStart(2, "0")}T07:00:00`;
   const base = [1, 3, 5, 8, 10].map((d, i) => log(day(d), { val: 5 + i, details: { duration: 30 + i } }));
@@ -154,6 +168,37 @@ test("next action: first session, pending corrections, goals, return after a pau
   const back = P.nextAction({ logs, now: NOW });
   assert.equal(back.id, "return");
   assert.ok(back.why.includes("13 jours"));
+});
+
+test("QG resumes a draft before sending a queued session or opening today's plan", () => {
+  const plan = { sport: "running", minutes: 45 };
+  const pending = [{ status: "pending" }];
+  const draft = P.nextAction({ now: NOW, plan, pending, draftSport: "yoga" });
+  assert.equal(draft.id, "session-draft");
+  assert.equal(draft.cta.href, "/training?sport=yoga");
+  assert.equal(P.nextAction({ now: NOW, plan, pending }).cta.href, "/journal#attente");
+});
+
+test("QG shows rejected submissions even when the confirmed journal is empty", () => {
+  const action = P.nextAction({ now: NOW, pending: [{ status: "error" }] });
+  assert.equal(action.id, "sync-error");
+  assert.equal(action.cta.href, "/journal#attente");
+});
+
+test("QG favours today's plan over a recent record", () => {
+  const logs = [log("2026-09-10T07:00:00", { val: 10 }), log("2026-10-06T07:00:00", { val: 12.4 })];
+  const action = P.nextAction({ logs, now: NOW, plan: { sport: "yoga" } });
+  assert.equal(action.id, "plan-today");
+  assert.equal(action.cta.href, "/training?sport=yoga");
+});
+
+test("QG requires a connection for a ready chapter and distinguishes missing history from an empty journal", () => {
+  const adventure = { campaigns: [{ id: "valley", chapter: 1, target: 1, evidence: { days: 1 } }] };
+  assert.equal(P.nextAction({ now: NOW, adventure }).cta.href, "/adventure?world=valley");
+  assert.equal(P.nextAction({ now: NOW, adventure, guest: true }).cta.href, "/training");
+  const offline = P.nextAction({ now: NOW, adventure, online: false, historyAvailable: false });
+  assert.equal(offline.id, "record");
+  assert.equal(offline.cta.href, "/training");
 });
 
 test("insights explain records with the previous mark and never invent one for a first session", () => {

@@ -360,6 +360,7 @@ window.logActivity = async function(sportKey, dataInput, options = {}) {
     if(!window.state||!window.SPORTS_CONFIG?.[sportKey])throw new Error('Choisis un sport.');
     if(!window.TitanQueue)throw new Error('Le stockage de cet appareil est indisponible. Exporte tes données avant de continuer.');
     const config=window.SPORTS_CONFIG[sportKey];
+    const owner=window.state.user.id, client=window.titanClient, epoch=window.titanAccountTransition?.epoch;
     const details=window.titanSanitizeSessionDetails?window.titanSanitizeSessionDetails(dataInput,window.state.user,sportKey):dataInput;
     const weighted=(details.exercises||[]).reduce((n,e)=>n+(Number(e.volume)||0),0);
     const reps=(details.exercises||[]).reduce((n,e)=>n+(Number(e.totalReps)||0),0);
@@ -371,10 +372,11 @@ window.logActivity = async function(sportKey, dataInput, options = {}) {
     if(!details.unitOverride&&details.exercises?.length&&!details.exercises.some(e=>Number(e.volume)>0))details.unitOverride='reps';
     const payload={sport:sportKey,category:config.cat||'training',val:value,unit:details.unitOverride||config.unit||'',date,details};
     // The durable write MUST succeed before clearing the form or celebrating a save.
-    const guest=String(window.state.user.id).startsWith('guest_');
+    const guest=String(owner).startsWith('guest_');
     const log={...payload,id:details.client_event_id,client_event_id:details.client_event_id,cat:payload.category,xp:0,syncStatus:guest?'local':'pending',revision:1,created_at:new Date().toISOString()};
-    if(guest)await window.TitanQueue.saveGuestSession(window.state.user.id,log);
+    if(guest)await window.TitanQueue.saveGuestSession(owner,log);
     else await queuePendingTrainingLog(payload);
+    if(owner!==window.state?.user?.id||client!==window.titanClient||epoch!==window.titanAccountTransition?.epoch||window.titanAccountTransition?.active)return log;
     window.state.history=window.state.history||[];
     if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);
     window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));

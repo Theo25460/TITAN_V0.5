@@ -30,7 +30,7 @@ export type SportForm = "distance" | "swim" | "strength" | "bodyweight" | "climb
 export type Family = "endurance" | "force" | "technique" | "jeu" | "mobilite";
 export type SportEntry = { id: string; label: string; family: Family; form: SportForm; score?: number };
 export type CadenceWeek = { start: string; activeDays: number; state: "held" | "current" | "partial" | "missed" | "pause"; fill: number };
-export type Cadence = { target: number; weeks: CadenceWeek[]; held: number; window: number; lifetimeHeld: number; currentDays: number; remaining: number; daysLeftInWeek: number; reachable: boolean };
+export type Cadence = { target: number; weeks: CadenceWeek[]; held: number; window: number; lifetimeHeld: number; currentDays: number; currentPaused: boolean; remaining: number; daysLeftInWeek: number; reachable: boolean };
 export type Mastery = { sport: string; label: string; family: Family; sessions: number; minutes: number; estimatedMinutes: number; hours: number; weeks: number; last: string | null; level: number; name: string; next: { level: number; name: string; hours: number; weeks: number } | null; progress: number };
 export type WeekSummary = { sessions: number; activeDays: number; minutes: number; estimatedMinutes: number; distance: number; effortMinutes: number; xp: number; bySport: Record<string, { sport: string; label: string; sessions: number; minutes: number }> };
 export type RecordEntry = { id: string; kind: "distance" | "time" | "duration" | "strength" | "climbing"; sport: string; label: string; value: number | string; unit: string; log: TrainingLog; context: string; previous?: RecordEntry | null; first?: boolean };
@@ -146,7 +146,11 @@ export const Questions = g.TitanQuestions as {
 
 export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; name: string }[]; avatars: AvatarDef[]; routes: RouteDef[]; version: number };
 
-export const AdventureRules = g.TitanAdventure as { sessionImpact(input: { logId?: string; owner: string; status: string; rewardHeld?: boolean; historical?: boolean; snapshot?: import("./types").AdventureSnapshot | null; snapshotReady?: boolean }): { state: "pending" | "confirmed" | "historical"; text: string; campaignId?: string }; weeklyQuests(logs: TrainingLog[], goal?: number, now?: Date, prefs?: { favoriteSports?: string[] }): { id: string; name: string; text: string; value: number; target: number; unit: string; icon: string; href: string }[] };
+type WeeklyQuest = { id: string; name: string; text: string; href: string; value?: number; target?: number; unit?: string; icon?: string };
+export const AdventureRules = g.TitanAdventure as {
+  sessionImpact(input: { logId?: string; owner: string; status: string; rewardHeld?: boolean; historical?: boolean; snapshot?: import("./types").AdventureSnapshot | null; snapshotReady?: boolean }): { state: "pending" | "confirmed" | "historical"; text: string; campaignId?: string };
+  weeklyQuestPaths(logs: TrainingLog[], goal?: number, now?: Date, prefs?: { favoriteSports?: string[]; cadencePaused?: boolean }): { main: WeeklyQuest; alternatives: WeeklyQuest[]; why: string };
+};
 
 export type EncounterPhase = { id: string; name: string; value: number; target: number; unit: string; complete: boolean; state: "done" | "active" | "waiting" };
 export type Encounter = { kind: "obstacle" | "guardian"; name: string; text: string; phases: EncounterPhase[]; percent: number; ready: boolean; state: "ready" | "active" };

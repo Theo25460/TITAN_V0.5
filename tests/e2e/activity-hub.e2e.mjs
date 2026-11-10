@@ -139,6 +139,68 @@ test('an account transition removes another account draft from the hub',async()=
  }finally{await context.close();}
 });
 
+test('a form edit survives an immediate reload', async () => {
+ const { page, context } = await fixture('/training?sport=running');
+ try {
+  await page.locator('[data-k="note"]').waitFor();
+  await page.evaluate(() => {
+   const note = document.querySelector('[data-k="note"]');
+   note.value = 'Dernière modification';
+   note.dispatchEvent(new Event('input', { bubbles: true }));
+   location.reload();
+  }).catch(error => {
+   if (!/Execution context was destroyed/.test(error.message)) throw error;
+  });
+  await page.waitForEvent('load');
+  assert.equal(await page.locator('[data-k="note"]').inputValue(), 'Dernière modification');
+ } finally { await context.close(); }
+});
+
+test('a session stored for the previous account cannot alter the current form or journal', async () => {
+ const { page, context } = await fixture('/training?sport=running');
+ try {
+  await page.locator('[data-k="durM"]').fill('24');
+  await page.evaluate(() => {
+   const saveGuestSession = window.TitanQueue.saveGuestSession;
+   const logActivity = window.logActivity;
+   window.firstOwner = window.state.user.id;
+   window.TitanQueue.saveGuestSession = async (owner, log) => {
+    await saveGuestSession(owner, log);
+    await new Promise(resolve => { window.releasePreviousSave = resolve; });
+   };
+   window.logActivity = async (...args) => {
+    try { return await logActivity(...args); }
+    finally { window.previousSaveReturned = true; }
+   };
+  });
+  await page.locator('[data-act="save"]').click();
+  await page.waitForFunction(() => window.releasePreviousSave);
+  await page.evaluate(() => {
+   const nextOwner = 'guest_session_second_account';
+   window.titanAccountTransition = { epoch: window.titanAccountTransition.epoch + 1, active: true };
+   window.dispatchEvent(new Event('titan:account-changing'));
+   window.state.user = { ...window.state.user, id: nextOwner };
+   window.state.history = [];
+   localStorage.setItem(`titan_seance_draft_v3:${nextOwner}`, JSON.stringify({ sport: 'cycling', note: 'Brouillon du compte B', updatedAt: Date.now() }));
+   window.titanAccountTransition.active = false;
+   history.replaceState(null, '', '/training');
+   window.dispatchEvent(new Event('titan:account-changed'));
+   window.releasePreviousSave();
+  });
+  await page.waitForFunction(() => window.previousSaveReturned);
+  assert.equal(await page.locator('[data-k="note"]').inputValue(), 'Brouillon du compte B');
+  assert.equal(await page.locator('dialog.moment-sheet[open]').count(), 0);
+  const saved = await page.evaluate(async () => ({
+   currentHistory: window.state.history.length,
+   oldHistory: await window.TitanQueue.readHistory(window.firstOwner),
+   newDraft: JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`)),
+  }));
+  assert.equal(saved.currentHistory, 0);
+  assert.equal(saved.oldHistory.length, 1);
+  assert.equal(saved.newDraft.note, 'Brouillon du compte B');
+ } finally { await context.close(); }
+});
+
 test('recording modes stay above the page and the GPX sport picker is searchable by keyboard',async()=>{
  const {page,context}=await fixture();try{
   await enable(page);

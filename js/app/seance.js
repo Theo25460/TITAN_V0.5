@@ -20,7 +20,6 @@
   let S = null;
   let root = null;
   let timerTick = null;
-  let saveTimer = null;
   let saving = null;
   let gpxSequence = 0;
   // The original file is available for export only while this local preview is open.
@@ -64,19 +63,13 @@
   }
 
   /* ---------- Persistence of the draft and the timer ---------- */
-  function persist(immediate = false) {
-    clearTimeout(saveTimer);
-    const draft = S, draftOwner = owner(), epoch = window.titanAccountTransition?.epoch;
-    const write = () => {
-      if (S !== draft || owner() !== draftOwner || epoch !== window.titanAccountTransition?.epoch || window.titanAccountTransition?.active) return;
-      try {
-        if (S && S.step === "form") localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined, previewMetrics: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
-      } catch {
-        if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
-      }
-    };
-    if (immediate) write();
-    else saveTimer = setTimeout(write, 250);
+  function persist() {
+    if (S?.step !== "form" || window.titanAccountTransition?.active) return;
+    try {
+      localStorage.setItem(draftKey(), JSON.stringify({ ...S, gpx: S.gpx ? {...S.gpx, previewSegments: undefined, previewMetrics: undefined} : null, gpxPath: undefined, updatedAt: Date.now() }));
+    } catch {
+      if (!saving) status("Brouillon non sauvegardé : le stockage de l’appareil est plein.", "warn");
+    }
   }
   function readDraft() {
     try {
@@ -723,6 +716,9 @@
     }
     const form = root.querySelector(".seance-form");
     const task = { controls: new Map(), labels: new Map(), busy: new Map() };
+    const draft = S, submitOwner = owner(), client = window.titanClient, epoch = window.titanAccountTransition?.epoch;
+    const current = () => saving === task && S === draft && owner() === submitOwner && client === window.titanClient
+      && epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
     saving = task; // Reserve before logActivity can start a durable write.
     ++gpxSequence; // A file read from before this submission cannot replace its draft.
     root.querySelectorAll("button, input, select, textarea").forEach(control => {
@@ -740,13 +736,15 @@
     // The existing status is in the save bar, outside the busy form and button.
     status("Enregistrement…");
     try {
-      const sport = S.sport;
+      const sport = draft.sport;
       const t = timer();
       const log = await window.logActivity(sport, b.data, { quiet: true });
+      if (!current()) return;
       if (!log) throw new Error("Séance non enregistrée.");
       clearDraft();
       if (elapsedMs(t)) setTimer({ elapsed: 0, started: null });
-      window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: owner(), logId: log.client_event_id } }));
+      window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: submitOwner, logId: log.client_event_id } }));
+      if (!current()) return;
       const count = P().activeLogs(window.state?.history || []).length;
       if (count <= 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: S_().familyOf(sport) });
       localGpxOriginal = null;
@@ -756,6 +754,7 @@
       render();
       window.TitanMoment?.open(log);
     } catch (error) {
+      if (!current()) return;
       status(error?.message || "Séance non enregistrée.", "err");
       window.titanShell.toast({ type: "err", title: "Séance non enregistrée", message: error?.message || "Réessaie : rien n’a été perdu, le brouillon est conservé." });
     } finally {
@@ -953,7 +952,7 @@
     if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
       if (hubOpen || !hubOn()) return;
-      ++gpxSequence; persist(true); hubOpen = true; manualRequested = false;
+      ++gpxSequence; persist(); hubOpen = true; manualRequested = false;
       history.replaceState(null,"","/training"); render(); root.querySelector("[data-hub-title]")?.focus(); return;
     }
     if (t.dataset.act === "resume") { ++gpxSequence; hubOpen = false; render(); root.querySelector("h1")?.setAttribute("tabindex","-1"); root.querySelector("h1")?.focus(); return; }
@@ -1137,7 +1136,7 @@
   window.addEventListener("titan:account-changing", () => {
     ++gpxSequence;
     localGpxOriginal = null;
-    clearTimeout(saveTimer);
+    saving = null;
     clearInterval(timerTick);
     S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;
     if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>';
