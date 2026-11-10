@@ -2,6 +2,7 @@
    offered first, Santé Connect second, nothing when there is nothing to say. The hook is replaced by a fixed answer. */
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { summarize, type DayRow } from "../src/lib/steps";
+import { navigateHref } from "../src/navigation/href";
 
 const mockNavigate = jest.fn();
 const mockSteps: { value: Record<string, unknown> } = { value: {} };
@@ -100,6 +101,25 @@ describe("QG steps card", () => {
 });
 
 describe("Steps screen", () => {
+  test("waits for initial readings before claiming no data or history", () => {
+    mockSteps.value = base([], null, { loading: true });
+    screenOf();
+    expect(screen.getByLabelText("Chargement des pas")).toBeTruthy();
+    expect(screen.queryByText("Pas de chiffre")).toBeNull();
+    expect(screen.queryByText(/Pas encore d’historique/)).toBeNull();
+  });
+
+  test("opens Sentiers directly from the steps screen and its shared Web route", () => {
+    mockSteps.value = base([], null);
+    screenOf();
+    fireEvent.press(screen.getByText("Explorer les Sentiers du Titan"));
+    expect(mockNavigate).toHaveBeenLastCalledWith("Sentiers");
+    navigateHref({ navigate: mockNavigate }, "/adventure?world=aube#sentiers");
+    expect(mockNavigate).toHaveBeenLastCalledWith("Sentiers");
+    navigateHref({ navigate: mockNavigate }, "/adventure");
+    expect(mockNavigate).toHaveBeenLastCalledWith("Tabs", { screen: "Adventure" });
+  });
+
   test("ring, goal, week, sources: the counter is switched on from here, with the permission result told", async () => {
     const enable = jest.fn(async () => "blocked");
     mockSteps.value = base([{ day: today, steps: 3000, sources: ["titan"] }], 8000, { source: "titan", own: own({ enabled: false, enable }) });

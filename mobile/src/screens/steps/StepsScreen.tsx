@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Alert, ask } from "../../components/Dialog";
 import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { Button } from "../../components/Button";
@@ -11,6 +11,7 @@ import { Icon } from "../../components/Icon";
 import { Group, ListRow } from "../../components/ListRow";
 import { Ring } from "../../components/Progress";
 import { Screen } from "../../components/Screen";
+import { LoadingCards } from "../../components/States";
 import { stepsStatus } from "../../components/StepsCard";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
@@ -28,12 +29,23 @@ const km = (steps: number) => String(approxKm(steps)).replace(".", ",");
     default way to count; Santé Connect stays available for people who already use it. */
 export function StepsScreen() {
   const s = useSteps();
-  const navigation = useNavigation() as unknown as { navigate: (n: string) => void };
+  const navigation = useNavigation();
   const toast = useToast();
+  const { width, fontScale } = useWindowDimensions();
   const [editing, setEditing] = useState(false);
+  if (s.loading && !s.hasAny) return <Screen><LoadingCards count={1} label="Chargement des pas" /></Screen>;
   const v = s.view;
   const status = stepsStatus(s, Date.now());
   const done = v.ratio !== null && v.ratio >= 1;
+  const outsideRing = width < 360 || fontScale > 1.3;
+  const reading = <View style={styles.reading}>
+    {v.today !== null ? (
+      <T variant="display" numberOfLines={1} adjustsFontSizeToFit accessibilityLabel={`${stepsText(v.today)} pas aujourd’hui`}>
+        {stepsText(v.today)}
+      </T>
+    ) : <T tone="muted" center>{s.failed ? "Pas indisponibles" : "Pas de chiffre"}</T>}
+    <T variant="caption" tone="faint" center>{v.goal ? `sur ${stepsText(v.goal)}` : "pas aujourd’hui"}</T>
+  </View>;
   const trend = v.trend === "up" ? "En hausse sur la semaine" : v.trend === "down" ? "En baisse sur la semaine" : v.trend === "flat" ? "Stable sur la semaine" : null;
 
   const toggleOwn = async (on: boolean) => {
@@ -50,22 +62,10 @@ export function StepsScreen() {
   return (
     <Screen>
       <Card style={{ alignItems: "center", gap: space.s3, paddingVertical: space.s6 }} testID="steps-hero">
-        <Ring value={v.ratio ?? 0} size={168} stroke={12} color={done ? colors.ok : colors.cy}>
-          <View style={{ alignItems: "center", paddingHorizontal: 12 }}>
-            {v.today !== null ? (
-              <T variant="display" numberOfLines={1} adjustsFontSizeToFit accessibilityLabel={`${stepsText(v.today)} pas aujourd’hui`}>
-                {stepsText(v.today)}
-              </T>
-            ) : (
-              <T tone="muted" center>
-                Pas de chiffre
-              </T>
-            )}
-            <T variant="caption" tone="faint">
-              {v.goal ? `sur ${stepsText(v.goal)}` : "pas aujourd’hui"}
-            </T>
-          </View>
-        </Ring>
+        {v.today !== null && v.goal ? <Ring value={v.ratio ?? 0} size={outsideRing ? 92 : 168} stroke={outsideRing ? 8 : 12} color={done ? colors.ok : colors.cy}>
+          {outsideRing ? <Icon name={done ? "check" : "run"} color={done ? colors.ok : colors.cy} /> : reading}
+        </Ring> : null}
+        {outsideRing || v.today === null || !v.goal ? reading : null}
         {v.today !== null ? (
           <T variant="small" center>
             {done ? "Objectif atteint. " : v.goal ? `Encore ${stepsText(Math.max(0, v.goal - v.today))} pas. ` : ""}≈ {km(v.today)} km
@@ -73,7 +73,7 @@ export function StepsScreen() {
         ) : null}
         <View style={styles.status}>
           {status.live ? <View style={styles.dot} /> : null}
-          <T variant="caption" tone={status.level === "fresh" ? "accent" : "warn"} center testID="steps-freshness">
+          <T variant="caption" tone={status.level === "fresh" ? "accent" : "warn"} center style={styles.statusText} testID="steps-freshness">
             {status.live ? `En direct · ${status.text}` : status.text}
           </T>
         </View>
@@ -88,6 +88,8 @@ export function StepsScreen() {
           </T>
         ) : null}
       </Card>
+
+      <Button kind="secondary" icon="compass" label="Explorer les Sentiers du Titan" onPress={() => navigation.navigate("Sentiers")} />
 
       <Group title="Objectif">
         <View style={styles.goal}>
@@ -179,7 +181,9 @@ export function StepsScreen() {
 }
 
 const styles = StyleSheet.create({
-  status: { flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "center" },
+  reading: { alignItems: "center", paddingHorizontal: space.s3, maxWidth: "100%" },
+  status: { flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "center", maxWidth: "100%" },
+  statusText: { flexShrink: 1 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cy },
   goal: { padding: space.s4, gap: space.s3 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

@@ -10,6 +10,7 @@ import { OnboardingScreen } from "../screens/auth/OnboardingScreen";
 import { SignupScreen } from "../screens/auth/SignupScreen";
 import { WelcomeScreen } from "../screens/auth/WelcomeScreen";
 import { WorldScreen } from "../screens/adventure/WorldScreen";
+import { SentiersScreen } from "../screens/adventure/SentiersScreen";
 import { CommunityScreen } from "../screens/community/CommunityScreen";
 import { GoalsScreen } from "../screens/progress/GoalsScreen";
 import { JournalScreen } from "../screens/progress/JournalScreen";
@@ -97,6 +98,7 @@ function SignedIn() {
       <Stack.Screen name="Goals" component={GoalsScreen} options={{ title: "Objectifs" }} />
       <Stack.Screen name="Plan" component={PlanScreen} options={{ title: "Ma semaine type" }} />
       <Stack.Screen name="World" component={WorldScreen} options={{ title: "Aventure" }} />
+      <Stack.Screen name="Sentiers" component={SentiersScreen} options={{ title: "Les Sentiers du Titan" }} />
       <Stack.Screen name="Atelier" component={AtelierScreen} options={{ title: "Atelier" }} />
       <Stack.Screen name="Community" component={CommunityScreen} options={{ title: "Communauté" }} />
       <Stack.Screen name="PublicCard" component={PublicCardScreen} options={{ title: "Carte publique" }} />

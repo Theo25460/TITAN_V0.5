@@ -51,6 +51,32 @@ async function fixture({ slow = false, missing = false, width = 390 } = {}) {
   }, { slow, missing });
   return { context, page, errors };
 }
+test('campaign receipts restore the correct world and clear on account change', async () => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 850 }, serviceWorkers: 'block' });
+  try {
+    await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.abort());
+    const page = await context.newPage();
+    await page.goto(base + '/adventure');
+    const story = page.locator('[data-world-story]');
+    await story.getByText('Balise 1', { exact: true }).waitFor();
+    assert.equal(await story.locator('.is-restored').count(), 0);
+    await page.evaluate(() => {
+      const previous = window.TitanAdventure.snapshot;
+      window.TitanAdventure.snapshot = { ...previous, rewards: [
+        { world: 'aube', chapter: 1, earned_at: '2026-11-05T12:00:00Z' },
+      ] };
+      dispatchEvent(new Event('titan:adventure-updated'));
+    });
+    await story.getByText('Les lanternes du sentier', { exact: true }).waitFor();
+    assert.equal(await story.locator('.is-restored').count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await page.evaluate(() => {
+      window.titanAccountTransition = { active: true };
+      dispatchEvent(new Event('titan:account-changing'));
+      return document.querySelectorAll('[data-world-story]').length;
+    }), 0);
+  } finally { await context.close(); }
+});
 test('the direct Sentiers link scrolls after the adventure has loaded', async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 850 }, serviceWorkers: 'block' });
   try {

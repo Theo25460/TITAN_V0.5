@@ -12,6 +12,45 @@ before(async()=>{
  browser=await chromium.launch();
 });
 after(async()=>{await browser?.close();server?.kill();});
+
+test('region tabs use one keyboard stop and keep focus and the Sentiers anchor', async () => {
+ const context = await browser.newContext({viewport:{width:320,height:760},serviceWorkers:'block'});
+ try {
+  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort());
+  await context.addInitScript(() => localStorage.setItem('titan_first_run_guide_v2','done'));
+  const page = await context.newPage();
+  await page.goto(base+'/adventure?world=aube#sentiers');
+  const tabs = page.getByRole('tablist', {name:'Régions'}).getByRole('tab');
+  const first = tabs.first(), last = tabs.last(), panel = page.getByRole('tabpanel');
+  const selected = () => page.getByRole('tab', {selected:true}).getAttribute('data-world');
+  const focused = () => page.evaluate(() => document.activeElement.dataset.world);
+  assert.equal(await first.getAttribute('tabindex'), '0');
+  assert.deepEqual(await tabs.evaluateAll(nodes => nodes.map(tab => tab.tabIndex)), [0,-1,-1,-1]);
+  assert.equal(await first.getAttribute('aria-controls'), await panel.getAttribute('id'));
+  await first.focus();
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await focused(), await last.getAttribute('data-world'));
+  assert.equal(await selected(), 'aube');
+  await page.evaluate(() => dispatchEvent(new Event('titan:periodic-quests-updated')));
+  assert.equal(await focused(), await last.getAttribute('data-world'));
+  assert.deepEqual(await tabs.evaluateAll(nodes => nodes.map(tab => tab.tabIndex)), [-1,-1,-1,0]);
+  await page.keyboard.press('Home');
+  assert.equal(await focused(), 'aube');
+  await page.keyboard.press('End');
+  await page.keyboard.press('Space');
+  assert.equal(await selected(), await last.getAttribute('data-world'));
+  assert.equal(await focused(), await selected());
+  assert.equal(await panel.getAttribute('aria-labelledby'), await last.getAttribute('id'));
+  assert.equal(new URL(page.url()).hash, '#sentiers');
+  assert.equal(new URL(page.url()).searchParams.get('world'), await selected());
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await focused(), 'aube');
+  await page.keyboard.press('Tab');
+  assert.equal(await panel.evaluate(el => document.activeElement === el), true);
+  assert.deepEqual(await tabs.evaluateAll(nodes => nodes.map(tab => tab.tabIndex)), [-1,-1,-1,0]);
+ } finally { await context.close(); }
+});
+
 async function fixture({active=true,slow=false}={}){
  const context=await browser.newContext({viewport:{width:390,height:850},serviceWorkers:'block'});
  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort());

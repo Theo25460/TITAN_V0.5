@@ -4,14 +4,16 @@
 type Nav = { navigate: (...args: any[]) => void };
 
 export function navigateHref(navigation: Nav, href: string) {
-  const [path, query = ""] = href.split("?");
+  const [pathname, fragment] = href.split("#", 2);
+  const [path, query = ""] = pathname!.split("?", 2);
   const params = Object.fromEntries(new URLSearchParams(query));
-  const clean = path.split("#")[0].replace(/\/+$/, "") || "/";
+  const clean = path?.replace(/\/+$/, "") || "/";
   switch (clean) {
     case "/training":
       if (params.sport) return navigation.navigate("SessionForm", { sport: params.sport });
       return navigation.navigate("Tabs", { screen: "Record" });
     case "/journal":
+      if (fragment === "attente") return navigation.navigate("Pending");
       return navigation.navigate("Journal", params.sport ? { sport: params.sport } : undefined);
     case "/records":
       return navigation.navigate("Records");
@@ -22,6 +24,8 @@ export function navigateHref(navigation: Nav, href: string) {
     case "/stats":
       return navigation.navigate("Tabs", { screen: "Progress" });
     case "/adventure":
+      if (fragment === "sentiers") return navigation.navigate("Sentiers");
+      if (params.world) return navigation.navigate("World", { id: params.world });
       return navigation.navigate("Tabs", { screen: "Adventure" });
     case "/profile":
       return navigation.navigate("Tabs", { screen: "Profile" });

@@ -63,7 +63,8 @@ export function ProfileScreen() {
   const navigation = useNavigation();
   const { signOut, email, owner } = useAuth();
   const profile = useProfile();
-  const adventure = useAdventure().data;
+  const adventureQuery = useAdventure();
+  const adventure = adventureQuery.data;
   const atelier = useAtelier();
   const avatarAction = useAdventureAction();
   const online = useOnline();
@@ -72,13 +73,14 @@ export function ProfileScreen() {
   const queue = useQueue();
   const toast = useToast();
   const { width, fontScale } = useWindowDimensions();
-  const { active } = useLogs();
+  const logs = useLogs();
+  const { active } = logs;
   const dna = useMemo(() => Progress.dna(active), [active]);
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const p = profile.data;
-  const level = adventure?.level ?? p?.level ?? 1;
+  const level = adventure?.level ?? p?.level;
   const xp = adventure?.xp ?? p?.xp ?? 0;
-  const need = adventure?.next_level_xp ?? EffortRules.levelRequirement(level);
+  const need = adventure?.next_level_xp ?? (level !== undefined ? EffortRules.levelRequirement(level) : 0);
   const code = social.data?.me.friend_code ?? p?.friend_code ?? null;
   const stacked = width < 360 || fontScale > 1.3;
   const values: Record<Metric, string> = {
@@ -154,35 +156,36 @@ export function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
-      <Screen tab refreshing={profile.isRefetching} onRefresh={() => { profile.refetch(); social.refetch(); atelier.refetch(); }}>
+      <Screen tab refreshing={profile.isRefetching || adventureQuery.isRefetching || logs.isRefetching || social.isRefetching || atelier.isRefetching}
+        onRefresh={() => { profile.refetch(); adventureQuery.refetch(); logs.refetch(); social.refetch(); atelier.refetch(); }}>
         <T variant="eyebrow" tone="accent">Mon passeport TITAN</T>
         <Card style={{ gap: space.s4 }}>
           <View style={[styles.head, stacked && styles.stacked]}>
             <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={80} />
             <View style={styles.rowText}>
               <T variant="h2">{p?.username || "Athlète"}</T>
-              <T variant="small" tone="accent">{p || adventure ? `Niveau ${level} · ${EffortRules.rank(level).name}` : "Progression en attente de synchronisation"}</T>
+              <T variant="small" tone="accent" accessibilityLiveRegion="polite">{level !== undefined ? `Niveau ${level} · ${EffortRules.rank(level).name}` : profile.isLoading || adventureQuery.isLoading ? "Chargement de ta progression…" : "Progression en attente de synchronisation"}</T>
             </View>
           </View>
           <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
-          <View style={[styles.head, stacked && styles.stacked]}>
+          {level !== undefined ? <View style={[styles.head, stacked && styles.stacked]}>
             <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 64} />
             <View style={[styles.rowText, { alignSelf: "stretch" }]}>
               <T variant="small">Vers le niveau {level + 1}</T>
               <T variant="caption">{Format.number(xp)} / {Format.number(need)} XP</T>
               <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
             </View>
-          </View>
+          </View> : null}
           {code ? <ProfileRow compact title={`Code ami ${code}`} icon="share"
             onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
         </Card>
-        <View testID="profile-metrics" style={[styles.metrics, stacked && styles.stacked]}>
+        {logs.data !== undefined ? <View testID="profile-metrics" style={[styles.metrics, stacked && styles.stacked]}>
           {choices.map(metric => (
             <View key={metric} style={styles.metric} accessible accessibilityLabel={`${METRICS[metric]} : ${values[metric]}`}>
               <T variant="num">{values[metric]}</T><T variant="caption">{METRICS[metric]}</T>
             </View>
           ))}
-        </View>
+        </View> : <Card tone="flat"><T variant="small" accessibilityLiveRegion="polite">{logs.isLoading ? "Chargement de tes indicateurs…" : "Tes indicateurs sont en attente de synchronisation."}</T></Card>}
         <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel="Mon parcours sportif" style={{ gap: space.s2 }}>
           <Icon name="chart" color={colors.cy} />
           <T variant="h3">Mon parcours sportif</T>
@@ -232,8 +235,8 @@ export function ProfileScreen() {
         {!online ? <T variant="small">Le changement de personnage demande une connexion.</T> : null}
         {Codex.avatars.map(avatar => (
           <ProfileRow compact key={avatar.id} title={avatar.name}
-            subtitle={avatar.level > level ? `Niveau ${avatar.level} requis` : adventure?.avatar === avatar.id ? "Personnage actuel" : "Choisir ce personnage"}
-            disabled={avatar.level > level || !online || !adventure || avatarAction.isPending}
+            subtitle={level === undefined ? "Progression indisponible" : avatar.level > level ? `Niveau ${avatar.level} requis` : adventure?.avatar === avatar.id ? "Personnage actuel" : "Choisir ce personnage"}
+            disabled={level === undefined || avatar.level > level || !online || !adventure || avatarAction.isPending}
             onPress={() => {
               avatarAction.mutateAsync({ action: "avatar", params: { avatar: avatar.id } })
                 .then(() => { if (currentOwner.current === owner) toast({ kind: "ok", title: `${avatar.name} t’accompagne` }); })

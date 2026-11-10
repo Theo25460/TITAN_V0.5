@@ -30,6 +30,7 @@ export type RootParams = {
   Goals: undefined;
   Plan: undefined;
   World: { id: string };
+  Sentiers: undefined;
   Atelier: undefined;
   Community: undefined;
   Settings: undefined;

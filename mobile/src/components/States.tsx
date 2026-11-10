@@ -63,9 +63,9 @@ export function Skeleton({ height = 18, width = "100%", style }: { height?: numb
   return <Animated.View style={[{ height, width, borderRadius: radius.r1, backgroundColor: colors.bg3, opacity: pulse }, style]} />;
 }
 
-export function LoadingCards({ count = 3 }: { count?: number }) {
+export function LoadingCards({ count = 3, label = "Chargement" }: { count?: number; label?: string }) {
   return (
-    <View style={{ gap: space.s4 }} accessibilityLabel="Chargement" accessibilityRole="progressbar">
+    <View style={{ gap: space.s4 }} accessibilityLabel={label} accessibilityRole="progressbar">
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={styles.card}>
           <Skeleton width="40%" height={12} />

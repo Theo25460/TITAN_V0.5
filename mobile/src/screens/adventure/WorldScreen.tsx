@@ -1,7 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { WorldPathMap } from "../../components/WorldPathMap";
+import { WorldStory } from "../../components/WorldStory";
 import { AdventureEncounters } from "../../components/AdventureEncounters";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -34,6 +35,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
   const action = useAdventureAction();
   const toast = useToast();
   const online = useOnline();
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 360 || fontScale > 1.3;
   const [showChapters, setShowChapters] = useState(false);
   const [routeChoice, setRouteChoice] = useState("rhythm");
   const [reveal, setReveal] = useState<RevealContent | null>(null);
@@ -42,8 +45,9 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
   const c = s?.campaigns.find((x) => x.id === world.id);
   const cp = useMemo(() => (c ? Progress.campaignProgress(c) : null), [c]);
   const encounter = useMemo(() => (c && cp ? CampaignEncounters.describe(c, cp) : null), [c, cp]);
-  if (q.isLoading && !s) return <Screen><LoadingCards /></Screen>;
-  if (!s) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
+  if (q.isLoading && !s) return <Screen><LoadingCards label={`Chargement de ${world.name}`} /></Screen>;
+  if (!s && q.isPaused) return <Screen><Card tone="flat"><T accessibilityLiveRegion="polite">La campagne se chargera au retour de la connexion.</T></Card></Screen>;
+  if (!s) return <Screen><ErrorState title="Campagne indisponible" error={q.error} onRetry={() => q.refetch()} /></Screen>;
 
   const chapter = c?.chapter ?? 0;
   const access = worldAccess(s, world.id);
@@ -92,13 +96,13 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
           <View style={styles.heroMeta}>
             <View style={styles.pill}>
               <Icon name="medal" size={14} color={world.color} />
-              <T variant="caption" tone="default">
+              <T variant="caption" tone="default" style={styles.shrink}>
                 {badges}/9 balises allumées
               </T>
             </View>
             <View style={styles.pill}>
               <Icon name="shield" size={14} color={colors.am} />
-              <T variant="caption" tone="default">
+              <T variant="caption" tone="default" style={styles.shrink}>
                 {world.guardian}
               </T>
             </View>
@@ -107,6 +111,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </View>
       </View>
       <T tone="muted">{done ? world.ending : world.intro}</T>
+      {q.isError || q.isPaused ? <T variant="caption" tone="warn" accessibilityLiveRegion="polite">Dernière progression connue. L’actualisation reprendra avec la connexion.</T> : null}
+      <WorldStory snapshot={s} world={world.id} owner={owner} color={world.color} />
 
       {locked ? (
         <Card style={{ gap: 6 }}>
@@ -180,14 +186,14 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
                 <T variant="small">{encounter.text}</T>
                 {encounter.phases.map((p) => (
                   <View key={p.id} style={{ gap: 6 }}>
-                    <View style={styles.between}>
+                    <View style={[styles.between, compact && styles.stacked]}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
                         <Icon name={p.state === "done" ? "check" : p.state === "active" ? "flag" : "clock"} size={14} color={p.state === "done" ? world.color : p.state === "active" ? colors.tx : colors.tx4} />
                         <T variant="small" tone={p.state === "waiting" ? "faint" : "default"} style={{ flex: 1 }}>
                           {p.name}
                         </T>
                       </View>
-                      <T variant="bodyStrong" tone={p.complete ? "default" : "muted"}>
+                      <T variant="bodyStrong" tone={p.complete ? "default" : "muted"} style={styles.shrink}>
                         {Format.number(p.value)}/{Format.number(p.target)}
                       </T>
                     </View>
@@ -251,7 +257,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
                     {ch.name}
                   </T>
                   <T variant="caption" tone={isDone ? "default" : "faint"} color={isDone ? world.color : undefined}>
-                    {isDone ? `Insigne · ${ch.title}` : ch.boss ? `${world.guardian} · ${ch.target} jours actifs + 150 min d’effort` : `${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}`}
+                    {isDone ? `Insigne · ${ch.title}` : isCurrent && cp ? cp.objectives.map(o => `${Format.number(o.target)} ${o.label}`).join(" · ") : s.version >= 4 ? "Objectif fixé au départ du chapitre" : ch.boss ? `${world.guardian} · ${ch.target} jours actifs + 150 min d’effort` : `${ch.target} jour${ch.target > 1 ? "s" : ""} actif${ch.target > 1 ? "s" : ""}`}
                   </T>
                 </View>
               </View>
@@ -268,7 +274,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
 const styles = StyleSheet.create({
   hero: { minHeight: 236, paddingTop: 44, borderRadius: radius.r3, overflow: "hidden", justifyContent: "flex-end", borderWidth: 1, borderColor: colors.line2 },
   heroMeta: { flexDirection: "row", gap: space.s2, flexWrap: "wrap" },
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: "rgba(5,7,10,0.65)", borderWidth: 1, borderColor: colors.line2 },
+  pill: { flexDirection: "row", flexShrink: 1, alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: "rgba(5,7,10,0.65)", borderWidth: 1, borderColor: colors.line2 },
+  shrink: { flexShrink: 1 },
   route: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, minHeight: 56 },
   bossCard: { borderColor: "rgba(244,187,84,0.45)" },
   story: { fontStyle: "italic" },
@@ -276,6 +283,7 @@ const styles = StyleSheet.create({
   obstacleIcon: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
   guardian: { width: 72, height: 72, borderRadius: radius.r2, borderWidth: 2, borderColor: colors.am },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.s2 },
+  stacked: { flexDirection: "column", alignItems: "flex-start" },
   step: { flexDirection: "row", alignItems: "stretch", gap: space.s3, minHeight: 64 },
   rail: { width: 44, alignItems: "center" },
   segment: { width: 3, flex: 1, borderRadius: 2 },

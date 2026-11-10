@@ -46,14 +46,14 @@
     return s?.campaigns?.find((c) => c.id === world.id) || { id: world.id, chapter: 0, evidence: { days: 0, source_ids: [] }, target: 0 };
   }
 
-  function worldsHtml(s, world) {
+  function worldsHtml(s, world, focusedWorld) {
     return `<div class="av-worlds" role="tablist" aria-label="Régions">${C()
       .worlds.map((w) => {
         const p = s.campaigns.find((c) => c.id === w.id);
         const finished = p?.chapter >= 10;
         const access = isGuest() ? "Découverte" : window.TitanAdventureAccess?.worldAccess(s, w.id).state !== "open"
           ? "Indisponible" : Number(s.version) < 3 && p?.tier === "plus" ? "TITAN+" : "Gratuit";
-        return `<button type="button" role="tab" class="av-world" data-world="${w.id}" aria-selected="${w.id === world.id}" style="--world:${w.color}">
+        return `<button type="button" role="tab" class="av-world" id="av-tab-${w.id}" data-world="${w.id}" aria-controls="av-region-panel" aria-selected="${w.id === world.id}" tabindex="${w.id === (focusedWorld || world.id) ? 0 : -1}" style="--world:${w.color}">
           <img src="/assets/renaissance/${w.image}-xs.webp" alt="" width="480" height="270" loading="lazy" decoding="async">
           <span class="av-world-copy"><small>${access} · ${finished ? "terminé" : `${done(p)}/9`}</small><strong>${esc(w.name)}</strong><span>${esc(w.subtitle)}</span></span>
           <span class="av-world-bar"><span style="--p:${Math.round((finished ? 9 : done(p)) / 9 * 100)}%"></span></span>
@@ -210,6 +210,11 @@
   function render() {
     if (!root) return;
     const journeyHost = root.querySelector("[data-journey-host]");
+    const worldTabs = root.querySelector(".av-worlds");
+    const tabScroll = worldTabs?.scrollLeft || 0;
+    const active = document.activeElement;
+    const focusedWorld = worldTabs?.contains(active) ? active.closest('[role="tab"][data-world]')?.dataset.world : null;
+    const panelFocused = active === root.querySelector("#av-region-panel");
     const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
     const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
     const s = A()?.snapshot;
@@ -225,13 +230,16 @@
     root.innerHTML = `
       ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
-      ${worldsHtml(s, world)}
+      ${worldsHtml(s, world, focusedWorld)}
+      <div id="av-region-panel" role="tabpanel" aria-labelledby="av-tab-${world.id}" tabindex="0">
+        <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
+        ${window.titanAccountTransition?.active ? "" : window.TitanJourneyPanel?.worldStoryHtml?.(s, world, window.state?.user?.id) || ""}
+        ${guardianHtml(world, p, s)}
+        ${valleyHtml(world, p, s)}
+        <section class="av-panel" data-rpg-host aria-label="Journal des rencontres"></section>
+      </div>
       ${window.TitanPeriodicQuests?.html() || ""}
       ${questLogHtml(s)}
-      <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
-      ${guardianHtml(world, p, s)}
-      ${valleyHtml(world, p, s)}
-      <section class="av-panel" data-rpg-host aria-label="Journal des rencontres"></section>
       <section class="av-panel" id="sentiers" data-journey-host aria-label="Sentiers et jalons de carrière"></section>
       ${carnetHtml(world, p)}
       ${questSouvenirsHtml(world, s)}
@@ -252,6 +260,9 @@
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
     const quests = root.querySelector("[data-rpg-quests]");
     if (quests && quests.dataset.rpgQuests === openQuests) quests.open = true;
+    root.querySelector(".av-worlds").scrollLeft = tabScroll;
+    if (focusedWorld) root.querySelector(`#av-tab-${focusedWorld}`)?.focus({ preventScroll: true });
+    else if (panelFocused) root.querySelector("#av-region-panel")?.focus({ preventScroll: true });
   }
 
   async function mutate(action, params) {
@@ -317,6 +328,29 @@
   }
 
   let booted = false;
+  function onTabKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const tab = e.target.closest('.av-worlds [role="tab"]');
+    if (!tab) return;
+    const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')];
+    const offset = e.key === "ArrowRight" ? 1 : -1;
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (tabs.indexOf(tab) + offset + tabs.length) % tabs.length;
+    e.preventDefault();
+    tabs[next].focus();
+  }
+
+  function onTabFocus(e) {
+    const current = e.target.closest('.av-worlds [role="tab"]');
+    if (!current) return;
+    current.parentElement.querySelectorAll('[role="tab"]').forEach((tab) => { tab.tabIndex = tab === current ? 0 : -1; });
+  }
+
+  function onTabExit(e) {
+    const tablist = e.target.closest(".av-worlds");
+    if (!tablist || tablist.contains(e.relatedTarget)) return;
+    tablist.querySelectorAll('[role="tab"]').forEach((tab) => { tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1; });
+  }
+
   function start() {
     root = document.getElementById("aventure");
     if (!root || !window.state?.user || !window.TitanAdventure || !window.TitanCodex) return;
@@ -324,14 +358,19 @@
       booted = true;
       SP()?.ensure?.();
       window.TitanPeriodicQuests?.refresh();
+      root.addEventListener("keydown", onTabKey);
+      root.addEventListener("focusin", onTabFocus);
+      root.addEventListener("focusout", onTabExit);
       root.addEventListener("click", (e) => {
         const b = e.target.closest("button");
         if (!b) return;
         if (b.dataset.world) {
           selected = b.dataset.world;
-          history.replaceState(null, "", `/adventure?world=${selected}`);
+          const url = new URL(location.href);
+          url.searchParams.set("world", selected);
+          history.replaceState(history.state, "", url);
           render();
-          root.querySelector(`[data-world="${selected}"]`)?.focus();
+          root.querySelector(`#av-tab-${selected}`)?.focus();
           return;
         }
         if (b.hasAttribute("data-retry")) return A().refresh({ force: true });
@@ -354,7 +393,7 @@
   };
   ["titan:adventure-updated", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, queue));
   window.addEventListener("titan:periodic-quests-updated", () => { if (root && window.TitanAdventure?.snapshot) render(); });
-  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter], [data-quest-souvenirs]").forEach(el => el.remove()));
+  window.addEventListener("titan:account-changing", () => root?.querySelectorAll("[data-valley-encounter], [data-campaign-encounter], [data-quest-souvenirs], [data-world-story]").forEach(el => el.remove()));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

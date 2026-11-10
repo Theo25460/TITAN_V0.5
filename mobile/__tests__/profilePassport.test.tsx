@@ -7,6 +7,7 @@ const mockWrite = jest.fn(async (_key: string, _value: unknown) => {});
 const mockRead = jest.fn(async (_key: string, fallback: unknown) => fallback);
 let mockOwner = "owner-a";
 let mockAccess: boolean | undefined = true;
+let mockLoading = false;
 const NAME = "Un pseudo très long de trente-cinq caractères";
 
 jest.mock("@react-navigation/native", () => ({ useNavigation: () => ({ navigate: mockNavigate }) }));
@@ -39,13 +40,13 @@ jest.mock("../src/lib/storage", () => ({
 jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: mockOwner, email: "test@example.test", signOut: jest.fn() }) }));
 jest.mock("../src/data/queue", () => ({ useQueue: () => ({ items: [] }) }));
 jest.mock("../src/data/hooks", () => ({
-  useProfile: () => ({ data: { id: mockOwner, username: NAME, level: 1, xp: 0 }, refetch: jest.fn() }),
-  useAdventure: () => ({ data: { owner: mockOwner, level: 10, xp: 400, next_level_xp: 1000, avatar: "scout" } }),
+  useProfile: () => ({ data: mockLoading ? undefined : { id: mockOwner, username: NAME, level: 1, xp: 0 }, isLoading: mockLoading, refetch: jest.fn() }),
+  useAdventure: () => ({ data: mockLoading ? undefined : { owner: mockOwner, level: 10, xp: 400, next_level_xp: 1000, avatar: "scout" }, isLoading: mockLoading }),
   useAdventureAction: () => ({ mutateAsync: mockAvatar, isPending: false }),
   useAtelier: () => ({ data: mockAccess === undefined ? undefined : { plus: { active: mockAccess } }, isLoading: false, refetch: jest.fn() }),
   useSocial: () => ({ data: { me: { friend_code: "TN-TEST" } }, refetch: jest.fn() }),
   usePrefs: () => ({ weeklyGoalSessions: 3, cadencePauses: [], favoriteSports: [] }),
-  useLogs: () => ({ active: [] }),
+  useLogs: () => ({ data: mockLoading ? undefined : [], active: [], isLoading: mockLoading }),
 }));
 jest.mock("../src/core", () => ({
   Codex: { avatars: [{ id: "scout", name: "Éclaireuse", level: 1 }, { id: "warden", name: "Gardien", level: 20 }] },
@@ -59,6 +60,22 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockOwner = "owner-a";
   mockAccess = true;
+  mockLoading = false;
+});
+
+test("shows loading instead of a default rank and totals until the data arrives", async () => {
+  mockLoading = true;
+  const view = render(<ProfileScreen />);
+  await act(async () => {});
+  expect(view.getByText("Chargement de ta progression…")).toBeTruthy();
+  expect(view.getByText("Chargement de tes indicateurs…")).toBeTruthy();
+  expect(view.queryByTestId("rank-crest")).toBeNull();
+  expect(view.queryByText(/Vers le niveau/)).toBeNull();
+  expect(view.queryByLabelText("Séances : 12")).toBeNull();
+  mockLoading = false;
+  view.rerender(<ProfileScreen />);
+  expect(view.getByTestId("rank-crest")).toBeTruthy();
+  expect(view.getByLabelText("Séances : 12")).toBeTruthy();
 });
 
 test("shows the confirmed rank and three metrics, with two actions to sources and subscription", async () => {

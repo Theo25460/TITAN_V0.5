@@ -68,7 +68,7 @@
   }
 
   function worldStoryHtml(snapshot, world, owner) {
-    const story = root.TitanJourney?.worldStory(snapshot, world.id, owner);
+    const story = root.TitanJourney?.worldStory?.(snapshot, world.id, owner);
     if (!story) return "";
     const scenes = story.scenes.map(scene => `<li class="${scene.earnedAt ? "is-restored" : ""}">
       ${icon(scene.earnedAt ? scene.icon : "lock")}

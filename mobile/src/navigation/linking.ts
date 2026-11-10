@@ -1,4 +1,4 @@
-import type { LinkingOptions } from "@react-navigation/native";
+import { getStateFromPath, type LinkingOptions } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import { Linking } from "react-native";
 import type { RootParams } from "./types";
@@ -16,12 +16,17 @@ export const linking: LinkingOptions<RootParams> = {
     screens: {
       Tabs: { screens: { QG: "qg", Progress: "progres", Record: "seance", Adventure: "aventure", Profile: "profil" } },
       Journal: "journal",
+      Sentiers: "sentiers",
       Goals: "objectifs",
       Community: "communaute",
       Atelier: "atelier",
       Settings: "reglages",
       Garmin: "garmin",
     },
+  },
+  getStateFromPath(path, options) {
+    const isSentiers = /^\/?aventure\/?(?:\?[^#]*)?#sentiers$/.test(path);
+    return getStateFromPath(isSentiers ? "/sentiers" : path, options);
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
