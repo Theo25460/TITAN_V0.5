@@ -3,7 +3,6 @@ import { avatarImages, heroImage } from "../core/images";
 import { colors, radius, space, TOUCH } from "../theme/tokens";
 import { Avatar } from "./Avatar";
 import { RankCrest, rankIdOf } from "./Crest";
-import { Button } from "./Button";
 import { Brand } from "./Brand";
 import { Tap } from "./Pressable";
 import { Shade } from "./Shade";
@@ -11,10 +10,10 @@ import { T } from "./Text";
 
 /** The QG's welcome: the world the player is walking through as a backdrop, the brand, the rank, and TITAN's voice (immersion).
     One block replaces the bare top bar and greeting, so the first screen feels like arriving somewhere, not opening a form. */
-export function QgBanner({ greeting, line, level, rankName, avatar, frame, image, accent, onProfile, worldName, chapterText, onRecord }: {
+export function QgBanner({ greeting, line, level, rankName, avatar, frame, image, accent, onProfile, worldName, chapterText }: {
   greeting: string;
   line: string;
-  level: number;
+  level?: number;
   rankName: string;
   avatar?: string;
   frame?: string;
@@ -24,7 +23,6 @@ export function QgBanner({ greeting, line, level, rankName, avatar, frame, image
   onProfile: () => void;
   worldName?: string;
   chapterText?: string;
-  onRecord?: () => void;
 }) {
   return (
     <View style={styles.wrap} testID="qg-banner">
@@ -32,25 +30,25 @@ export function QgBanner({ greeting, line, level, rankName, avatar, frame, image
       <Shade from={0.55} start={0.05} to={0.94} />
       <View style={styles.top}>
         <Brand size={26} />
-        <Tap onPress={onProfile} accessibilityLabel={`Profil, niveau ${level}, ${rankName}`} style={styles.me} testID="qg-profile">
-          <View style={{ alignItems: "flex-end" }}>
+        <Tap onPress={onProfile} accessibilityLabel={level === undefined ? "Profil" : `Profil, niveau ${level}, ${rankName}`} style={styles.me} testID="qg-profile">
+          {level !== undefined ? <View style={{ alignItems: "flex-end" }}>
             <T variant="caption" tone="default">
               Niv. {level}
             </T>
             <T variant="caption" color={accent ?? colors.cy2} numberOfLines={1}>
               {rankName}
             </T>
-          </View>
+          </View> : null}
           <Avatar id={avatar && avatarImages[avatar] ? avatar : "scout"} frame={frame} size={36} />
         </Tap>
       </View>
-      <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+      {level !== undefined ? <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
         <RankCrest rank={rankIdOf(level)} size={48} />
         <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
           <T variant="bodyStrong">{worldName ?? "Ton prochain monde t’attend"}</T>
           <T variant="caption" tone="muted">{chapterText ?? "Choisis une campagne : tes prochaines séances y allumeront les balises."}</T>
         </View>
-      </View>
+      </View> : null}
       <View style={styles.bottom}>
         <T variant="h2">
           {greeting}
@@ -59,7 +57,6 @@ export function QgBanner({ greeting, line, level, rankName, avatar, frame, image
           {line}
         </T>
       </View>
-      {onRecord ? <Button label="Enregistrer un effort" icon="plus" onPress={onRecord} testID="qg-record-primary" /> : null}
     </View>
   );
 }

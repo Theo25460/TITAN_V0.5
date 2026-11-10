@@ -162,7 +162,7 @@ export function ProfileScreen() {
         <Card style={{ gap: space.s4 }}>
           <View style={[styles.head, stacked && styles.stacked]}>
             <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={80} />
-            <View style={styles.rowText}>
+            <View style={[styles.rowText, stacked && styles.intrinsic]}>
               <T variant="h2">{p?.username || "Athlète"}</T>
               <T variant="small" tone="accent" accessibilityLiveRegion="polite">{level !== undefined ? `Niveau ${level} · ${EffortRules.rank(level).name}` : profile.isLoading || adventureQuery.isLoading ? "Chargement de ta progression…" : "Progression en attente de synchronisation"}</T>
             </View>
@@ -170,7 +170,7 @@ export function ProfileScreen() {
           <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
           {level !== undefined ? <View style={[styles.head, stacked && styles.stacked]}>
             <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 64} />
-            <View style={[styles.rowText, { alignSelf: "stretch" }]}>
+            <View style={[styles.rowText, { alignSelf: "stretch" }, stacked && styles.intrinsic]}>
               <T variant="small">Vers le niveau {level + 1}</T>
               <T variant="caption">{Format.number(xp)} / {Format.number(need)} XP</T>
               <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
@@ -181,7 +181,7 @@ export function ProfileScreen() {
         </Card>
         {logs.data !== undefined ? <View testID="profile-metrics" style={[styles.metrics, stacked && styles.stacked]}>
           {choices.map(metric => (
-            <View key={metric} style={styles.metric} accessible accessibilityLabel={`${METRICS[metric]} : ${values[metric]}`}>
+            <View key={metric} style={[styles.metric, stacked && styles.intrinsic]} accessible accessibilityLabel={`${METRICS[metric]} : ${values[metric]}`}>
               <T variant="num">{values[metric]}</T><T variant="caption">{METRICS[metric]}</T>
             </View>
           ))}
@@ -252,7 +252,8 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: space.s4 },
-  stacked: { flexDirection: "column", alignItems: "stretch" },
+  stacked: { flexDirection: "column", alignItems: "stretch", flexWrap: "nowrap" },
+  intrinsic: { flex: 0 },
   action: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s3, borderRadius: 12, borderWidth: 1, borderColor: colors.line2 },
   row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s4, borderTopWidth: 1, borderTopColor: colors.line },
   rowText: { flex: 1, minWidth: 0, gap: 4 },

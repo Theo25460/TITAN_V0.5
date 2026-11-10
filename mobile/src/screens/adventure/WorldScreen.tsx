@@ -111,7 +111,9 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </View>
       </View>
       <T tone="muted">{done ? world.ending : world.intro}</T>
-      {q.isError || q.isPaused ? <T variant="caption" tone="warn" accessibilityLiveRegion="polite">Dernière progression connue. L’actualisation reprendra avec la connexion.</T> : null}
+      {q.isError || q.isPaused ? <T variant="caption" tone="warn" accessibilityLiveRegion="polite">
+        {q.isPaused ? "Dernière progression connue. L’actualisation reprendra avec la connexion." : "Dernière progression connue. Actualise pour réessayer."}
+      </T> : null}
       <WorldStory snapshot={s} world={world.id} owner={owner} color={world.color} />
 
       {locked ? (
@@ -187,7 +189,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
                 {encounter.phases.map((p) => (
                   <View key={p.id} style={{ gap: 6 }}>
                     <View style={[styles.between, compact && styles.stacked]}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: compact ? 0 : 1 }}>
                         <Icon name={p.state === "done" ? "check" : p.state === "active" ? "flag" : "clock"} size={14} color={p.state === "done" ? world.color : p.state === "active" ? colors.tx : colors.tx4} />
                         <T variant="small" tone={p.state === "waiting" ? "faint" : "default"} style={{ flex: 1 }}>
                           {p.name}
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
   obstacleIcon: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
   guardian: { width: 72, height: 72, borderRadius: radius.r2, borderWidth: 2, borderColor: colors.am },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.s2 },
-  stacked: { flexDirection: "column", alignItems: "flex-start" },
+  stacked: { flexDirection: "column", alignItems: "stretch" },
   step: { flexDirection: "row", alignItems: "stretch", gap: space.s3, minHeight: 64 },
   rail: { width: 44, alignItems: "center" },
   segment: { width: 3, flex: 1, borderRadius: 2 },

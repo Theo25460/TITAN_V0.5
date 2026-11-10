@@ -5,14 +5,14 @@ import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, soci
 
 jest.setTimeout(60000); // the CI runner is slow when every suite runs in parallel: a screen test took 43 s there against ~20 s locally
 const mockState = { empty: false, loading: false };
+const mockNav = { navigate: jest.fn(), goBack: jest.fn(), replace: jest.fn(), reset: jest.fn(), setOptions: jest.fn(), dispatch: jest.fn() };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
 const mockMutation = () => ({ mutate: jest.fn(), mutateAsync: jest.fn(async () => ({})), isPending: false });
 
 jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: null } }) } } }));
 jest.mock("@react-navigation/native", () => {
   const actual = jest.requireActual("@react-navigation/native");
-  const nav = { navigate: jest.fn(), goBack: jest.fn(), replace: jest.fn(), reset: jest.fn(), setOptions: jest.fn(), dispatch: jest.fn() };
-  return { ...actual, useNavigation: () => nav, usePreventRemove: jest.fn() };
+  return { ...actual, useNavigation: () => mockNav, usePreventRemove: jest.fn() };
 });
 jest.mock("../src/data/auth", () => ({
   useOwner: () => "owner-a",
@@ -122,6 +122,48 @@ describe("with account data", () => {
       expect(screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
     } finally {
       mockState.empty = false;
+    }
+  });
+  test("QG reprend le brouillon du compte depuis son action principale", async () => {
+    const { clearDraft, loadDrafts, saveDraft } = require("../src/data/drafts");
+    const { freshDraft } = require("../src/core/session");
+    const draft = { ...freshDraft("yoga"), durM: "25" };
+    await loadDrafts("owner-a");
+    await saveDraft("owner-a", draft);
+    const view = show(<S.Home />);
+    try {
+      expect(screen.queryByTestId("qg-record-primary")).toBeNull();
+      expect(screen.queryByTestId("repeat-last")).toBeNull();
+      fireEvent.press(screen.getByRole("button", { name: "Reprendre le brouillon" }));
+      expect(mockNav.navigate).toHaveBeenLastCalledWith("SessionForm", { sport: "yoga" });
+    } finally {
+      view.unmount();
+      await clearDraft("owner-a", draft);
+    }
+  });
+  test("QG garde les accès Sport, Aventure et Progrès pendant le chargement", () => {
+    mockState.loading = true;
+    show(<S.Home />);
+    for (const [name, target] of [["Sport", "Record"], ["Aventure", "Adventure"], ["Progrès", "Progress"]]) {
+      fireEvent.press(screen.getByRole("button", { name }));
+      expect(mockNav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: target });
+    }
+  });
+  test("QG ouvre les séances en attente et propose une action locale hors ligne", async () => {
+    const queue = require("../src/data/queue");
+    const { buildSession, freshDraft, toPayload } = require("../src/core/session");
+    const online = jest.spyOn(require("../src/lib/network"), "useOnline").mockReturnValue(false);
+    await queue.loadQueue("owner-a");
+    const item = await queue.enqueue("owner-a", toPayload(buildSession({ ...freshDraft("yoga"), durM: "25" }), "yoga", "qg-pending", "UTC"));
+    const view = show(<S.Home />);
+    try {
+      fireEvent.press(screen.getByRole("button", { name: "Voir les séances en attente" }));
+      expect(mockNav.navigate).toHaveBeenLastCalledWith("Pending");
+      expect(screen.getByText(/Hors ligne\. Tes séances saisies ici/)).toBeTruthy();
+    } finally {
+      view.unmount();
+      online.mockRestore();
+      await queue.discard("owner-a", item.key);
     }
   });
   test("Progrès : semaine, tendances, maîtrise", async () => {

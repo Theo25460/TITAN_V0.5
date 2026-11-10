@@ -13,30 +13,31 @@ import { StepsCardView, StepsTile } from "./StepsCard";
 import { T } from "./Text";
 import { useToast } from "./Toast";
 
-type Cadence = { currentDays: number; target: number; held: number; window: number };
+type Cadence = { currentDays: number; target: number; held: number; window: number; currentPaused?: boolean };
 
 /** The week as a tile: a ring of active days against the goal. The detail (notches, minutes, XP) lives in Progrès. */
 export function WeekTile({ cadence, sessions }: { cadence: Cadence; sessions: number }) {
   const navigation = useNavigation() as unknown as { navigate: (n: string, p?: object) => void };
-  const reached = cadence.target > 0 && cadence.currentDays >= cadence.target;
+  const reached = !cadence.currentPaused && cadence.target > 0 && cadence.currentDays >= cadence.target;
   const tint = reached ? colors.ok : colors.cy;
   return (
-    <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} testID="week-tile" style={styles.tile} accessibilityLabel={`Ma semaine : ${cadence.currentDays} jours actifs sur ${cadence.target}, ${sessions} séance${sessions > 1 ? "s" : ""}. Ouvrir Progrès.`}>
+    <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} testID="week-tile" style={styles.tile} accessibilityLabel={`Ma semaine : ${cadence.currentDays} jours actifs${cadence.currentPaused ? ", cadence en pause" : ` sur ${cadence.target}`}, ${sessions} séance${sessions > 1 ? "s" : ""}. Ouvrir Progrès.`}>
       <View style={styles.top}>
-        <Ring value={cadence.target ? cadence.currentDays / cadence.target : 0} size={56} stroke={6} color={tint}>
+        {cadence.currentPaused ? <Icon name="calendar" size={24} color={colors.tx3} /> : <Ring value={cadence.target ? cadence.currentDays / cadence.target : 0} size={56} stroke={6} color={tint}>
           <Icon name={reached ? "check" : "calendar"} size={20} color={tint} />
-        </Ring>
+        </Ring>}
       </View>
       <View>
         <T variant="num" numberOfLines={1}>
           {cadence.currentDays}
-          <T variant="small" tone="faint">
+          {cadence.currentPaused ? null : <T variant="small" tone="faint">
             /{cadence.target}
-          </T>
+          </T>}
         </T>
         <T variant="caption" tone="faint" numberOfLines={2}>
           jours actifs · {sessions} séance{sessions > 1 ? "s" : ""}
         </T>
+        {cadence.currentPaused ? <T variant="caption" tone="muted">Cadence en pause</T> : null}
       </View>
     </Card>
   );

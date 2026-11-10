@@ -15,7 +15,6 @@ import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { Ring } from "../../components/Progress";
 import { Tap } from "../../components/Pressable";
-import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
 import { SessionRow } from "../../components/SessionRow";
@@ -23,13 +22,15 @@ import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../data/hooks";
+import { useDraftSport } from "../../data/drafts";
 import { useQueue } from "../../data/queue";
 import { avatarImages, worldImages } from "../../core/images";
 import { useAfterPaint } from "../../lib/deferred";
+import { useOnline } from "../../lib/network";
 import { useSteps } from "../../data/steps";
 import { dayOfYear, voiceLine } from "../../lib/voice";
 import { navigateHref } from "../../navigation/href";
-import { colors, radius, space, TOUCH } from "../../theme/tokens";
+import { colors, space } from "../../theme/tokens";
 
 const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -45,6 +46,8 @@ export function HomeScreen() {
   const adventure = useAdventure();
   const prefs = usePrefs();
   const queue = useQueue();
+  const draft = useDraftSport();
+  const online = useOnline();
   const visit = useLastVisit();
   const steps = useSteps();
   const { active } = logsQ;
@@ -54,13 +57,14 @@ export function HomeScreen() {
     return day?.sport && Sports.conf(day.sport) ? { sport: day.sport, minutes: day.minutes ?? null } : null;
   }, [prefs.schedule]);
   const ctx = useMemo(
-    () => ({ logs: active, goals: goals.data ?? [], cadenceTarget: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses, adventure: adventure.data ?? null, pending: queue.items, plan: planToday }),
-    [active, goals.data, prefs, adventure.data, queue.items, planToday],
+    () => ({
+      logs: active, goals: goals.data ?? [], cadenceTarget: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses,
+      adventure: online ? adventure.data ?? null : null, pending: queue.owner === owner ? queue.items : [], plan: planToday,
+      draftSport: draft?.sport && Sports.conf(draft.sport) ? draft.sport : undefined, online, historyAvailable: logsQ.data !== undefined,
+    }),
+    [active, goals.data, prefs, adventure.data, queue.owner, queue.items, owner, planToday, draft?.sport, online, logsQ.data],
   );
   const action = useMemo(() => Progress.nextAction(ctx), [ctx]);
-  // Whatever the priority of the day is, recording a session is always one tap away: repeat the last one, or open the Séance tab.
-  const heroRecords = !!action.cta && action.cta.href.startsWith("/training");
-  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   // The secondary markers sit below the fold and cost as much as the main action (nextAction calls insights itself):
   // they are computed once the first frame is on screen.
   const insights = useAfterPaint(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]) ?? [];
@@ -82,7 +86,9 @@ export function HomeScreen() {
   const todayKey = new Date().toDateString();
   const sessionsToday = active.filter((l) => new Date(l.date).toDateString() === todayKey).length;
   const daysAway = visit.since ? Math.floor((Date.now() - visit.since) / 86_400_000) : null;
-  const voice = voiceLine({ hour, dayOfYear: dayOfYear(new Date()), sessions: active.length, sessionsToday, weekDays: cadence.currentDays, weekTarget: cadence.target, chapterReady: !!cp?.ready, worldName: world?.name ?? null, stepsRatio: null, daysAway });
+  const voice = ctx.historyAvailable
+    ? voiceLine({ hour, dayOfYear: dayOfYear(new Date()), sessions: active.length, sessionsToday, weekDays: cadence.currentDays, weekTarget: cadence.currentPaused ? 0 : cadence.target, chapterReady: online && !!cp?.ready, worldName: world?.name ?? null, stepsRatio: null, daysAway })
+    : "Tu peux saisir une séance sur ce téléphone.";
   const loading = (logsQ.isLoading && !logsQ.data) || (profile.isLoading && !profile.data);
 
   const refresh = () => {
@@ -100,61 +106,40 @@ export function HomeScreen() {
         <QgBanner
           greeting={`${hello}, ${name}`}
           line={voice}
-          level={level}
+          level={snap || profile.data ? level : undefined}
           rankName={rank.name}
           avatar={snap?.avatar}
           frame={String((profile.data?.appearance as Record<string, unknown> | undefined)?.frame ?? "")}
           image={world ? worldImages[world.image] : null}
           accent={world?.color}
           worldName={world?.name}
-          chapterText={world ? `Chapitre ${Math.min(9, campaign!.chapter)} · ${cp?.ready ? "balise prête à valider" : world.chapters[Math.min(9, campaign!.chapter) - 1]?.name ?? "chemin en cours"}` : undefined}
-          onRecord={() => navigation.navigate("Tabs", { screen: "Record" })}
+          chapterText={world ? `Chapitre ${Math.min(9, campaign!.chapter)} · ${cp?.ready && online ? "balise prête à valider" : world.chapters[Math.min(9, campaign!.chapter) - 1]?.name ?? "chemin en cours"}` : undefined}
           onProfile={() => navigation.navigate("Tabs", { screen: "Profile" })}
         />
 
-        {queue.items.length ? (
-          <Card onPress={() => navigation.navigate("Pending")} tone="flat" accessibilityLabel="Voir les séances en attente d’envoi">
-            <View style={styles.row}>
-              <Icon name={queue.items.some((i) => i.status === "error") ? "alert" : "offline"} color={queue.items.some((i) => i.status === "error") ? colors.err : colors.warn} />
-              <T variant="small" tone="default" style={{ flex: 1 }}>
-                {queue.items.length} séance{queue.items.length > 1 ? "s" : ""} {queue.sending ? "en cours d’envoi" : "en attente d’envoi"}
-                {queue.items.some((i) => i.status === "error") ? " · une correction est nécessaire" : ""}
-              </T>
-              <Icon name="chevron" size={18} color={colors.tx4} />
-            </View>
+        <Reveal order={1}>
+          <Card tone="accent" style={{ gap: space.s3 }}>
+            <T variant="eyebrow" tone={action.tone === "err" ? "err" : "accent"}>
+              {action.eyebrow ?? (action.tone === "err" ? "Attention" : "À faire maintenant")}
+            </T>
+            <T variant="h2">{action.title}</T>
+            <T tone="muted">{action.text}</T>
+            <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta.href)} testID="qg-hero-cta" />
           </Card>
-        ) : null}
+        </Reveal>
+        <View style={styles.destinations}>
+          <Button small kind="ghost" label="Sport" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} />
+          <Button small kind="ghost" label="Aventure" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
+          <Button small kind="ghost" label="Progrès" onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} />
+        </View>
+        {!online ? <T variant="small" tone="warn">Hors ligne. Tes séances saisies ici restent sur cet appareil.</T> : null}
 
         {loading ? (
           <LoadingCards count={2} />
-        ) : logsQ.error && !logsQ.data ? (
+        ) : online && logsQ.error && !logsQ.data ? (
           <ErrorState error={logsQ.error} onRetry={() => logsQ.refetch()} />
         ) : (
           <>
-            <Reveal order={1}>
-              <Card tone={action.tone === "am" ? "amber" : "accent"} style={{ gap: space.s3 }}>
-                <T variant="eyebrow" tone={action.tone === "am" ? "amber" : "accent"}>
-                  {action.tone === "am" ? "Moment remarquable" : action.tone === "err" ? "Attention" : action.tone === "ok" ? "Aujourd’hui" : "À faire maintenant"}
-                </T>
-                <T variant="h2">{action.title}</T>
-                <T tone="muted">{action.text}</T>
-                {action.why ? (
-                  <T variant="caption" tone="faint">
-                    Pourquoi : {action.why}
-                  </T>
-                ) : null}
-                {action.cta ? <Button kind="secondary" label={action.cta.label} onPress={() => navigateHref(navigation, action.cta!.href)} testID="qg-hero-cta" /> : null}
-              </Card>
-            </Reveal>
-
-            <Reveal order={2}>
-              {heroRecords ? null : repeat ? (
-                <RepeatLastCard log={repeat} compact />
-              ) : (
-                <Button label="Enregistrer une séance" kind="secondary" icon="plus" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} testID="qg-record" />
-              )}
-            </Reveal>
-
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
@@ -192,8 +177,8 @@ export function HomeScreen() {
                       <T variant="bodyStrong" numberOfLines={1}>
                         {world.chapters[Math.min(9, campaign!.chapter) - 1]?.name}
                       </T>
-                      <T variant="caption" tone={cp.ready ? "accent" : "faint"} numberOfLines={1}>
-                        {cp.status === "complete" ? "Monde terminé" : cp.ready ? "Chapitre prêt à être validé" : cp.objectives.map((o) => `${Math.round(o.value)}/${o.target} ${o.label}`).join(" · ")}
+                      <T variant="caption" tone={cp.ready && online ? "accent" : "faint"} numberOfLines={1}>
+                        {cp.status === "complete" ? "Monde terminé" : cp.ready ? online ? "Chapitre prêt à être validé" : "Connexion nécessaire pour valider" : cp.objectives.map((o) => `${Math.round(o.value)}/${o.target} ${o.label}`).join(" · ")}
                       </T>
                     </View>
                     <Icon name="chevron" size={18} color={colors.tx4} />
@@ -243,8 +228,7 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: TOUCH, paddingLeft: 10, borderRadius: radius.pill },
+  destinations: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   campaign: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s2, paddingRight: space.s3, borderRadius: 14, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
   worldThumb: { width: 56, height: 56, borderRadius: 10 },
