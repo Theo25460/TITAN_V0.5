@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { watchScriptRevision } from "./_versioned-script.mjs";
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server, browser, BASE;
 before(async () => {
@@ -172,11 +173,10 @@ test('report pagination: if both page buttons become unavailable the focus retur
 test('report pagination: the new page does not execute the previous script resource', async () => {
   const { page, context, errors } = await newPage();
   try {
-    await page.route('**/js/app/rapports.js?v=300.2', route => route.fulfill({ contentType: 'text/javascript', body: 'window.legacyReportScript=true;' }));
+    const assertCurrent = await watchScriptRevision(page, "/js/app/rapports.js", { current: "300.5", previous: "300.2" });
     await page.goto(BASE + '/stats');
-    assert.equal(await page.locator('script[src*="/js/app/rapports.js?"]').getAttribute('src'), '/js/app/rapports.js?v=300.5');
+    await assertCurrent();
     await page.locator('#report-panel').waitFor({ state: 'attached' });
-    assert.equal(await page.evaluate(() => Boolean(window.legacyReportScript)), false);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

@@ -24,7 +24,7 @@ const push = (notification, token = PUSH) => new Request(`https://titan.example.
 });
 const event = (type = 2, extra = {}) => ({ version: '1.0', packageName: 'fr.titanapp.app', eventTimeMillis: String(Date.now()), subscriptionNotification: { version: '1.0', notificationType: type, purchaseToken: TOKEN, subscriptionId: 'titan_plus' }, ...extra });
 
-async function run(callback, { env = {}, owner = USER, google = { status: 200, data: subscription() }, dbOk = true } = {}) {
+async function run(callback, { env = {}, owner = USER, google = { status: 200, data: subscription() }, dbOk = true, ackStatus = 200 } = {}) {
     const previousNetlify = globalThis.Netlify, previousFetch = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
@@ -35,12 +35,13 @@ async function run(callback, { env = {}, owner = USER, google = { status: 200, d
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data, { status: google.status });
         if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return dbOk ? Response.json(owner) : Response.json({}, { status: 500 });
-        if (u.pathname.endsWith('/titan_apply_entitlement_v1')) return dbOk ? Response.json(true) : Response.json({}, { status: 500 });
+        if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return dbOk ? Response.json(true) : Response.json({}, { status: 500 });
+        if (u.pathname.endsWith(':acknowledge')) return Response.json({}, { status: ackStatus });
         throw new Error(`unexpected request ${url}`);
     };
     try { return await callback(calls); } finally { globalThis.Netlify = previousNetlify; globalThis.fetch = previousFetch; }
 }
-const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_entitlement_v1'));
+const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_play_entitlement_v1'));
 
 test('a wrong or missing push secret, a disabled service and bad payloads do nothing', async () => {
     await run(async calls => {
@@ -63,6 +64,24 @@ test('a renewal re-reads Google and records the answer for the linked account', 
         assert.equal(recorded.body.p_is_active, true);
         assert.match(recorded.body.p_event_name, /^rtdn:2$/);
     });
+});
+
+test('RTDN processes a purchased subscription while the app is closed and acknowledges only after the write', async () => {
+    const data = { ...subscription(), acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', externalAccountIdentifiers: { obfuscatedExternalAccountId: USER } };
+    await run(async calls => {
+        assert.equal((await handler(push(event(4)))).status, 200);
+        const [recorded] = applied(calls);
+        assert.equal(recorded?.body.p_user_id, USER);
+        assert.equal(recorded.body.p_is_active, true);
+        const ack = calls.find(c => c.path.endsWith(':acknowledge'));
+        assert.ok(ack && calls.indexOf(ack) > calls.indexOf(recorded));
+    }, { owner: null, google: { status: 200, data } });
+    await run(async () => assert.equal((await handler(push(event(4)))).status, 503), { google: { status: 200, data }, ackStatus: 500 });
+    await run(async calls => {
+        assert.equal((await handler(push(event(4, { userId: USER })))).status, 200);
+        assert.equal(applied(calls).length, 0);
+        assert.ok(!calls.some(c => c.path.endsWith(':acknowledge')));
+    }, { owner: null, google: { status: 200, data: subscription() } });
 });
 
 test('what the notification claims is never trusted: Google decides (an expiry notice over an active purchase stays active, and the reverse)', async () => {

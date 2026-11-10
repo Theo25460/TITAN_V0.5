@@ -22,14 +22,28 @@ export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progres
 export type PlanId = string;
 
 /* The subset of expo-iap used here; the real module is loaded lazily, tests inject a fake. */
-export type IapPurchase = { productId: string; purchaseToken?: string | null; purchaseState?: string };
+export type IapPurchase = {
+  productId: string;
+  purchaseToken?: string | null;
+  purchaseState?: string;
+  obfuscatedAccountIdAndroid?: string | null;
+  isSuspendedAndroid?: boolean | null;
+  pendingPurchaseUpdateAndroid?: unknown;
+};
 export type IapProduct = { id: string; title?: string; displayName?: string | null; displayPrice: string; subscriptionOffers?: { id?: string; offerTokenAndroid?: string | null; basePlanIdAndroid?: string | null; displayPrice: string }[] | null };
+type GoogleSubscriptionRequest = {
+  skus: string[];
+  obfuscatedAccountId: string;
+  subscriptionOffers: { sku: string; offerToken: string }[];
+  purchaseToken?: string;
+  subscriptionProductReplacementParams?: { oldProductId: string; replacementMode: "charge-full-price" | "with-time-proration" };
+};
 export type IapLib = {
   initConnection(): Promise<boolean>;
   endConnection(): Promise<unknown>;
   fetchProducts(a: { skus: string[]; type: "subs" }): Promise<IapProduct[] | null | undefined>;
-  requestPurchase(a: { request: { google: { skus: string[]; obfuscatedAccountId: string; subscriptionOffers: { sku: string; offerToken: string }[] } }; type: "subs" }): Promise<unknown>;
-  getAvailablePurchases(): Promise<IapPurchase[]>;
+  requestPurchase(a: { request: { google: GoogleSubscriptionRequest }; type: "subs" }): Promise<unknown>;
+  getAvailablePurchases(options?: { includeSuspendedAndroid: boolean }): Promise<IapPurchase[]>;
   finishTransaction(a: { purchase: IapPurchase; isConsumable: boolean }): Promise<unknown>;
   purchaseUpdatedListener(l: (p: IapPurchase) => void): { remove(): void };
   purchaseErrorListener(l: (e: { code?: string; message?: string }) => void): { remove(): void };
@@ -62,9 +76,32 @@ export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
 
 export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean; access_kind?: "test" | "verified_purchase" };
 export class BillingError extends Error {
-  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
+  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "PLAN_UNCERTAIN" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
     super(code);
   }
+}
+
+async function readCurrentPlayPurchase(owner: string, l: IapLib) {
+  let purchases: IapPurchase[];
+  try {
+    purchases = await l.getAvailablePurchases({ includeSuspendedAndroid: true });
+  } catch {
+    throw new BillingError("STORE_UNAVAILABLE");
+  }
+  if (!Array.isArray(purchases)) throw new BillingError("STORE_UNAVAILABLE");
+  const known = purchases.filter((p) => PLANS.some((plan) => plan.id === p.productId));
+  if (known.length === 0) return null;
+  const [purchase] = known;
+  if (known.length !== 1 || purchase.obfuscatedAccountIdAndroid !== owner || !purchase.purchaseToken
+    || purchase.purchaseState !== "purchased" || purchase.isSuspendedAndroid || purchase.pendingPurchaseUpdateAndroid) {
+    throw new BillingError("PLAN_UNCERTAIN");
+  }
+  return { productId: purchase.productId, purchaseToken: purchase.purchaseToken };
+}
+
+/** UI hint from Play after initialization. The purchase token stays local to checkout. */
+export async function loadCurrentPlayProduct(owner: string): Promise<string | null> {
+  return (await readCurrentPlayPurchase(owner, iap()))?.productId ?? null;
 }
 
 function billingEndpoint(): string | null {
@@ -134,18 +171,48 @@ function purchaseFailure(error?: { code?: string; message?: string }): Outcome {
   return { kind: "error", error: new Error(error?.message || "PURCHASE_ERROR") };
 }
 
-/** Checks readiness before opening Play. Completes the purchase after the server confirms recorded access. */
-export async function buy(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer, check = checkCheckoutOnServer): Promise<Outcome> {
+type CheckoutOptions = {
+  currentProductId?: string | null;
+  store?: IapLib;
+  verify?: typeof verifyOnServer;
+  check?: typeof checkCheckoutOnServer;
+};
+
+/** Verifies the current purchase before replacing it and completes the new purchase after server confirmation. */
+export async function buy(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, options: CheckoutOptions = {}): Promise<Outcome> {
+  const { currentProductId = null, store: l = iap(), verify = verifyOnServer, check = checkCheckoutOnServer } = options;
+  const google: GoogleSubscriptionRequest = {
+    skus: [offer.id],
+    obfuscatedAccountId: owner,
+    subscriptionOffers: [{ sku: offer.id, offerToken: offer.offerToken }],
+  };
   try {
     const access = await getAccessToken();
     if (!access) return { kind: "error", error: new BillingError("AUTH") };
     await check(offer.id, access);
-    if (!(await getAccessToken())) return { kind: "error", error: new BillingError("AUTH") };
+    const current = await readCurrentPlayPurchase(owner, l);
+    if ((current?.productId ?? null) !== currentProductId || current?.productId === offer.id) throw new BillingError("PLAN_UNCERTAIN");
+    const currentAccess = await getAccessToken();
+    if (!currentAccess) throw new BillingError("AUTH");
+    if (current) {
+      const verdict = await verify(current.purchaseToken, current.productId, currentAccess);
+      if (!verdict.active || !verdict.acknowledged) throw new BillingError("PLAN_UNCERTAIN");
+      if (!(await getAccessToken())) throw new BillingError("AUTH");
+      const currentRank = PLANS.findIndex((p) => p.id === current.productId);
+      const targetRank = PLANS.findIndex((p) => p.id === offer.id);
+      // Immediate changes avoid a second renewal. For a lower tier, Play credits unused value toward the next renewal.
+      google.purchaseToken = current.purchaseToken;
+      google.subscriptionProductReplacementParams = {
+        oldProductId: current.productId,
+        replacementMode: targetRank > currentRank ? "charge-full-price" : "with-time-proration",
+      };
+    }
   } catch (err) {
     return { kind: "error", error: err as Error };
   }
   return new Promise<Outcome>((resolve) => {
     let done = false;
+    let verifying = false;
     const finish = (o: Outcome) => {
       if (done) return;
       done = true;
@@ -154,38 +221,41 @@ export async function buy(offer: Offer, owner: string, getAccessToken: () => Pro
       resolve(o);
     };
     const u = l.purchaseUpdatedListener(async (p) => {
-      if (p.productId !== offer.id) return;
+      if (done || verifying || p.productId !== offer.id || (google.purchaseToken && p.purchaseToken === google.purchaseToken)) return;
       if (p.purchaseState && p.purchaseState.toLowerCase() === "pending") return finish({ kind: "pending" });
       if (!p.purchaseToken) return finish({ kind: "error", error: new BillingError("REFUSED") });
+      verifying = true;
       try {
         const access = await getAccessToken();
         if (!access) return finish({ kind: "error", error: new BillingError("AUTH") });
         const verdict = await verify(p.purchaseToken, p.productId, access);
+        if (!(await getAccessToken())) return finish({ kind: "error", error: new BillingError("AUTH") });
         if (verdict.active) await l.finishTransaction({ purchase: p, isConsumable: false }).catch(() => {});
         finish({ kind: "active", verdict });
       } catch (err) {
         finish({ kind: "error", error: err as Error });
       }
     });
-    const e = l.purchaseErrorListener((err) => finish(purchaseFailure(err)));
-    // The signed-in account id travels with the purchase: the server refuses a token made for anybody else.
-    l.requestPurchase({ request: { google: { skus: [offer.id], obfuscatedAccountId: owner, subscriptionOffers: [{ sku: offer.id, offerToken: offer.offerToken }] } }, type: "subs" })
-      .catch((err) => finish(purchaseFailure(err)));
+    const reportStoreError = (err: { code?: string; message?: string }) => { if (!verifying) finish(purchaseFailure(err)); };
+    const e = l.purchaseErrorListener(reportStoreError);
+    l.requestPurchase({ request: { google }, type: "subs" }).catch(reportStoreError);
   });
 }
 
 /** Sends every active purchase Play knows for this Google account to the server (new phone, reinstall, a purchase whose answer was lost). */
 export async function restore(getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer): Promise<{ checked: number; active: number; failed: number }> {
+  if (!(await getAccessToken())) throw new BillingError("AUTH");
   if (!(await l.initConnection())) throw new BillingError("STORE_UNAVAILABLE");
   const purchases = (await l.getAvailablePurchases()) ?? [];
   let active = 0;
   let failed = 0;
-  const access = await getAccessToken();
-  if (!access) throw new BillingError("AUTH");
   for (const p of purchases) {
     if (!p.purchaseToken || !PLANS.some((x) => x.id === p.productId)) continue;
+    const access = await getAccessToken();
+    if (!access) throw new BillingError("AUTH");
     try {
       const v = await verify(p.purchaseToken, p.productId, access);
+      if (!(await getAccessToken())) throw new BillingError("AUTH");
       if (v.active) {
         active++;
         await l.finishTransaction({ purchase: p, isConsumable: false }).catch(() => {});
@@ -199,7 +269,7 @@ export async function restore(getAccessToken: () => Promise<string | null>, l: I
   return { checked: purchases.length, active, failed };
 }
 
-/** Plan changes and cancellation are done in Google Play's own subscription centre (separate subscriptions, one bill each). */
+/** Open the store's management and cancellation screen for an existing subscription. */
 export const manageInPlay = (productId?: PlanId, l: IapLib = iap()) => l.deepLinkToSubscriptions(productId ? { skuAndroid: productId } : {});
 
 export const messageFor = (e: unknown): string => {
@@ -209,6 +279,7 @@ export const messageFor = (e: unknown): string => {
       CHECKOUT_UNAVAILABLE: "Le service d’abonnement TITAN est indisponible. Réessaie plus tard.",
       VERIFICATION_UNAVAILABLE: "TITAN ne peut pas vérifier ton achat pour le moment. Consulte Google Play, puis utilise « Restaurer mes achats ».",
       STORE_UNAVAILABLE: "La facturation Google Play est indisponible sur cet appareil ou ce compte. Vérifie le compte Play et la version installée.",
+      PLAN_UNCERTAIN: "Vérifie ton abonnement dans Google Play ou utilise « Restaurer mes achats » avant de choisir une offre.",
       AUTH: "Reconnecte-toi, puis réessaie.",
       ALREADY_USED: "Cet abonnement est déjà utilisé par un autre compte TITAN.",
       NOT_BOUND: "Cet achat n’a pas été fait depuis ce compte TITAN. Il n’est pas rattaché.",

@@ -4685,8 +4685,8 @@ async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = fals
       a, b, actor: a, entered: false, heldOnce: false, calls: [],
       profile: { id: a, username: "Compte A", credits: 10, xp: 0, level: 1, friend_code: gate === "friend" ? null : "A-FRIEND", state_version: 1 },
     };
-    const step = async (name, value) => {
-      f.calls.push({ name, owner: window.state.user.id });
+    const step = async (name, value, request = {}) => {
+      f.calls.push({ name, owner: window.state.user.id, ...request });
       if (name === gate && !f.heldOnce) {
         f.heldOnce = f.entered = true;
         await new Promise(resolve => { f.release = resolve; });
@@ -4696,10 +4696,18 @@ async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = fals
     window.TITAN_DB_STATUS.issues = [];
     window.titanMaybeSubmitCacheReconciliation = undefined;
     window.titanClient = {
-      auth: { getSession: () => step("session", { data: { session: { user: { id: f.actor, user_metadata: {} } } } }), onAuthStateChange() {} },
+      auth: { getSession: () => step("session", { data: { session: { access_token: `fixture-token-${f.actor}`, user: { id: f.actor, user_metadata: {} } } } }), onAuthStateChange() {} },
       from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: () => step("profile", { data: gate === "create" ? null : structuredClone(f.profile) }) }),
-      rpc: (name) => {
-        if (name === "titan_save_profile_state") return step("create", { data: structuredClone(f.profile) });
+      rpc: (name, args) => {
+        if (name === "titan_save_profile_state") {
+          let authorization;
+          return {
+            setHeader(key, value) { if (key === "Authorization") authorization = value; return this; },
+            then(resolve, reject) {
+              return step("create", { data: structuredClone(f.profile) }, { authorization, profileOwner: args?.p_state?.user?.id }).then(resolve, reject);
+            },
+          };
+        }
         if (name === "titan_assign_friend_code") return step("friend", { data: "A-FRIEND" });
         if (name === "titan_atelier") return step("appearance", { data: { owner: f.actor, appearance: {}, items: [], plus: { active: false } } });
         return Promise.resolve({ error: { code: "PGRST202" } });
@@ -4720,7 +4728,7 @@ async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = fals
     const sync = window.syncWithSupabase;
     window.syncWithSupabase = () => Promise.resolve();
     f.run = () => sync();
-    f.start = () => { f.pending = sync(); };
+    f.start = () => { f.pending = sync().finally(() => { f.finished = true; }); };
   }, { gate, fromGuest, emptyHistory });
   return fixture;
 }
@@ -4729,7 +4737,14 @@ test("bootstrap: delayed responses never replace another account's profile or hi
   for (const [gate, emptyHistory] of [...["session", "profile", "create", "friend", "appearance", "history", "migrate", "refresh", "saveHistory"].map(x => [x, false]), ["appearance", true]]) {
     const { page, context, errors } = await bootstrapPage(gate, false, emptyHistory);
     await page.evaluate(() => { window.bootstrapFixture.start(); });
-    await page.waitForFunction(() => window.bootstrapFixture.entered);
+    await page.waitForFunction(() => window.bootstrapFixture.entered || window.bootstrapFixture.finished);
+    const checkpoint = await page.evaluate(() => ({ entered: window.bootstrapFixture.entered, calls: window.bootstrapFixture.calls, issues: window.TITAN_DB_STATUS.issues, owner: window.bootstrapFixture.a }));
+    assert.equal(checkpoint.entered, true, `${gate}: bootstrap never reached the delayed request (${JSON.stringify(checkpoint)})`);
+    if (gate === "create") {
+      assert.deepEqual(checkpoint.calls.find(call => call.name === "create"), {
+        name: "create", owner: checkpoint.owner, authorization: `Bearer fixture-token-${checkpoint.owner}`, profileOwner: checkpoint.owner,
+      });
+    }
     const result = await page.evaluate(async () => {
       const f = window.bootstrapFixture;
       f.actor = f.b;

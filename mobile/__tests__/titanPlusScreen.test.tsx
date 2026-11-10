@@ -1,12 +1,13 @@
-/* The offers screen: four cards, prices only from Google Play, buttons only for what Play returns, nothing to buy for an account
-   that already has access, an honest "coming soon" when billing is not switched on. Play is faked; no payment is possible here. */
+/* The offers screen reads store prices and gates new purchases and replacements on the account and Play inventory. */
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 process.env.EXPO_PUBLIC_TITAN_BILLING = "1";
 const mockProfile = { data: { is_elite: false } as { is_elite: boolean } | undefined };
+const mockFetchProfile = jest.fn(async () => mockProfile.data ?? null);
 let mockSessionOwner = "owner-a";
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/data/hooks", () => ({ keys: { profile: (o: string) => ["profile", o] }, useProfile: () => mockProfile }));
+jest.mock("../src/data/api", () => ({ fetchProfile: () => mockFetchProfile() }));
 jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "t", user: { id: mockSessionOwner } } } }) } } }));
 jest.mock("@tanstack/react-query", () => ({ ...jest.requireActual("@tanstack/react-query"), useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
 
@@ -31,7 +32,7 @@ const fake = (products: { id: string; price: string }[], overrides = {}) =>
     deepLinkToSubscriptions: async () => undefined,
     ...overrides,
   });
-beforeEach(() => { mockProfile.data = { is_elite: false }; mockSessionOwner = "owner-a"; });
+beforeEach(() => { mockProfile.data = { is_elite: false }; mockSessionOwner = "owner-a"; mockFetchProfile.mockClear(); });
 afterAll(() => billing._setIapForTests(null));
 
 test("four cards; each price is exactly what Google Play returned; a missing product says so; no price is invented", async () => {
@@ -64,6 +65,52 @@ test("an account that already has access sees no buy button, only a way to manag
   await screen.findByText("4,99 € / mois");
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
   expect(screen.getByText("Ouvrir mes abonnements Google Play")).toBeTruthy();
+});
+
+test("a loading profile never exposes a new subscription action", async () => {
+  mockProfile.data = undefined;
+  fake([{ id: "titan01", price: "Plus offer" }]);
+  show();
+  await screen.findByText("Plus offer");
+  expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
+});
+
+test("a current Google Play subscriber can replace their plan instead of starting a second subscription", async () => {
+  mockProfile.data = { is_elite: true };
+  const current = { productId: "titan01", purchaseToken: "old-play-token-1234", purchaseState: "purchased", obfuscatedAccountIdAndroid: "owner-a" };
+  const requestPurchase = jest.fn().mockRejectedValue({ code: "user-cancelled" });
+  fake([{ id: "titan01", price: "Plus offer" }, { id: "titan02", price: "Coach offer" }], { getAvailablePurchases: async () => [current], requestPurchase });
+  const fetcher = jest.spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    .mockResolvedValueOnce(new Response(JSON.stringify({ active: true, acknowledged: true, status: "active", ends_at: null }), { status: 200 }));
+  try {
+    show();
+    const change = await screen.findByRole("button", { name: "Passer à Coach" });
+    expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
+    expect(screen.queryByTestId("subscribe-coach")).toBeNull();
+    await act(async () => { fireEvent.press(change); });
+    expect(fetcher).toHaveBeenNthCalledWith(2, "https://titan-app.fr/functions/play-billing", expect.objectContaining({
+      method: "POST", body: JSON.stringify({ purchase_token: "old-play-token-1234", product_id: "titan01" }),
+    }));
+    expect(requestPurchase).toHaveBeenCalledWith({ type: "subs", request: { google: {
+      skus: ["titan02"], obfuscatedAccountId: "owner-a", subscriptionOffers: [{ sku: "titan02", offerToken: "tok-titan02" }],
+      purchaseToken: "old-play-token-1234", subscriptionProductReplacementParams: { oldProductId: "titan01", replacementMode: "charge-full-price" },
+    } } });
+  } finally { fetcher.mockRestore(); }
+});
+
+test("a stale free profile cannot start a separate subscription when TITAN reports existing access", async () => {
+  const requestPurchase = jest.fn().mockRejectedValue({ code: "user-cancelled" });
+  fake([{ id: "titan01", price: "Plus offer" }], { requestPurchase });
+  mockFetchProfile.mockResolvedValueOnce({ is_elite: true });
+  const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { status: 204 }));
+  try {
+    show();
+    const subscribe = await screen.findByTestId("subscribe-titan_plus");
+    await act(async () => { fireEvent.press(subscribe); });
+    expect(requestPurchase).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent(/Restaurer mes achats/);
+  } finally { fetcher.mockRestore(); }
 });
 
 test("when Google Play is unreachable the screen stays honest: coming soon, nothing to buy", async () => {

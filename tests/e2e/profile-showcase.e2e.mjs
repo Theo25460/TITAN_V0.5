@@ -228,18 +228,39 @@ test("account deletion: a Garmin link is withdrawn first, best effort, and a fai
   } finally { await context.close(); }
 });
 
-async function withFlag(flag, sources = [], garminStatus) {
+async function withFlag(flag, sources = [], garminStatus, dailies = false) {
   const f = await profilePage({ sources, garminStatus });
   const { page } = f;
-  await page.evaluate(flag => {
-    window.titanFlags = { enabled: (key, fallback) => key === "screens.garmin" ? flag : fallback };
+  await page.evaluate(({ flag, dailies }) => {
+    const flags = { "screens.garmin": flag, "screens.garmin_dailies": dailies };
+    window.titanFlags = { enabled: (key, fallback) => flags[key] ?? fallback };
     window.garminCalls = [];
     const rpc = window.titanClient.rpc;
     window.titanClient.rpc = (name, args = {}) => { if (name === "titan_set_source_consent_v1") window.garminCalls.push(`rpc:${name}:${args.p_source}:${args.p_granted}`); return rpc(name, args); };
     dispatchEvent(new CustomEvent("titan:history-updated"));
-  }, flag);
+  }, { flag, dailies });
   return f;
 }
+
+test("garmin Dailies: an activity link can explicitly add steps without regranting activity access", async () => {
+  const row = { source: "garmin", granted: true, granted_at: "2026-11-03T14:33:00Z", imported: 1 };
+  const { page, context, errors } = await withFlag(true, [row], true, true);
+  const requests = [];
+  try {
+    await page.route("**/.netlify/functions/garmin*", route => {
+      requests.push(route.request().url().split("?")[1]);
+      return route.fulfill({ status: 503, body: "" });
+    });
+    const button = page.getByRole("button", { name: "Autoriser les pas Garmin" });
+    await button.waitFor({ timeout: 3000 });
+    assert.match(await page.locator("[data-garmin-block]").innerText(), /total de pas par jour/);
+    await button.click();
+    await page.locator(".asc-toast, [role=status]").filter({ hasText: /Garmin n’est pas disponible/ }).first().waitFor();
+    assert.deepEqual(requests, ["action=start&dailies=1"]);
+    assert.deepEqual(await page.evaluate(() => window.garminCalls), []);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
 
 test("garmin connect: hidden while the server flag is off, nothing is sent", async () => {
   const { page, context, errors } = await withFlag(false);

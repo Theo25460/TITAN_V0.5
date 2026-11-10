@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
+import { watchScriptRevision } from "./_versioned-script.mjs";
 const ROOT = new URL("../..", import.meta.url).pathname;
 let server, browser, BASE;
 before(async () => {
@@ -208,13 +209,10 @@ test("image export: updated Stats and Records bypass the previous card script", 
   for (const path of ["/stats", "/records"]) {
     const { page, context } = await newPage();
     try {
-      let previousRequests = 0;
-      await page.route("**/js/app/card.js?v=300.1", route => { previousRequests++; return route.fulfill({ contentType: "text/javascript", body: "window.previousImageExporter = true;" }); });
+      const assertCurrent = await watchScriptRevision(page, "/js/app/card.js", { current: "300.4-v12", previous: "300.1" });
       await page.goto(BASE + path);
+      await assertCurrent();
       await page.waitForFunction(() => Boolean(window.TitanCard));
-      assert.equal(previousRequests, 0);
-      assert.equal(await page.evaluate(() => Boolean(window.previousImageExporter)), false);
-      assert.equal(await page.locator('script[src="/js/app/card.js?v=300.4-v12"]').count(), 1);
     } finally { await context.close(); }
   }
 });

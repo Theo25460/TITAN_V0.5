@@ -14,6 +14,7 @@ export function GarminScreen() {
   const owner = useOwner();
   const q = useQuery({ queryKey: ["garmin", owner], queryFn: () => readGarmin(owner), retry: false });
   const [consent, setConsent] = useState(false);
+  const [dailyConsent, setDailyConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
   const alive = useRef(true);
@@ -28,6 +29,7 @@ export function GarminScreen() {
     awaitingReturn.current = false;
     setBusy(false);
     setConsent(false);
+    setDailyConsent(false);
     setMessage(null);
     const current = () => alive.current && generation === epoch.current;
     let returnSequence = 0;
@@ -70,7 +72,7 @@ export function GarminScreen() {
     });
     return () => { alive.current = false; ++epoch.current; completion.current?.abort(); sub.remove(); links.remove(); };
   }, [owner]);
-  async function run(remove: boolean) {
+  async function run(remove: boolean, dailies = false) {
     if (lock.current) return;
     const generation = epoch.current;
     const current = () => alive.current && generation === epoch.current;
@@ -82,7 +84,7 @@ export function GarminScreen() {
       if (remove) await disconnectGarmin(owner, fetch, current);
       else {
         awaitingReturn.current = true;
-        await connectGarmin(owner, consent, Linking.openURL, fetch, current);
+        await connectGarmin(owner, consent, Linking.openURL, fetch, current, dailies);
       }
       if (!current()) return;
       if (remove || awaitingReturn.current) {
@@ -101,12 +103,18 @@ export function GarminScreen() {
       <Card testID="garmin-states" style={{ gap: 6 }}>
         <T variant="bodyStrong">{q.data?.linked ? "Compte Garmin connecté" : q.data?.authorized ? "Autorisé, liaison à terminer" : "Aucun compte Garmin connecté"}</T>
         <T tone="muted" testID="garmin-authorized">Autorisation : {q.data?.authorized ? "donnée" : "non donnée"}</T>
+        {q.data?.dailiesEnabled && q.data.linked ? <T tone="muted">Pas Garmin : {q.data.dailies_authorized ? "autorisés" : "non autorisés"}</T> : null}
         <T tone="muted" testID="garmin-received">{q.data?.last_event_at ? `Dernière activité reçue : ${new Date(q.data.last_event_at).toLocaleString("fr-FR")}` : "Aucune activité reçue de Garmin pour l’instant."}</T>
         <T tone="muted" testID="garmin-integrated">{q.data?.imported ? `${q.data.imported} activité${q.data.imported > 1 ? "s" : ""} intégrée${q.data.imported > 1 ? "s" : ""} à ton journal${q.data.attached ? `, ${q.data.attached} rattachée${q.data.attached > 1 ? "s" : ""} à une séance déjà saisie` : ""}.` : "Aucune activité intégrée au journal."}</T>
       </Card>
       {!q.data?.enabled ? <T tone="warn">La connexion Garmin n’est pas encore activée pour cette version. Tu peux toujours retirer une autorisation existante.</T> : !q.data.linked ? <>
         <ToggleRow label="J’autorise l’import de mes activités Garmin dans TITAN" value={consent} onChange={setConsent} disabled={busy} />
-        <Button label="Connecter Garmin" disabled={!consent} loading={busy} onPress={() => run(false)} testID="garmin-connect" />
+        {q.data.dailiesEnabled ? <ToggleRow label="J’autorise aussi le total quotidien de mes pas pour les Sentiers du Titan" value={dailyConsent} onChange={setDailyConsent} disabled={busy} /> : null}
+        <Button label="Connecter Garmin" disabled={!consent} loading={busy} onPress={() => run(false, q.data.dailiesEnabled && dailyConsent)} testID="garmin-connect" />
+      </> : null}
+      {q.data?.enabled && q.data.dailiesEnabled && !q.data.dailies_authorized ? <>
+        <T tone="muted">Si tu l’autorises chez Garmin, seul ton total de pas par jour alimente les Sentiers du Titan. Tu peux retirer ce partage dans Garmin Connect.</T>
+        {q.data.linked && q.data.authorized ? <Button label="Autoriser les pas Garmin" kind="secondary" loading={busy} onPress={() => run(false, true)} /> : null}
       </> : null}
       <Button label="Retirer l’autorisation Garmin" kind="secondary" loading={busy} onPress={() => run(true)} testID="garmin-disconnect" />
     </>}

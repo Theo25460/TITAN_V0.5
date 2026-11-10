@@ -1,16 +1,17 @@
 let mockOwner = "a";
 let mockFlags = true;
+let mockDailiesFlag = false;
 let mockSources: unknown = [];
 const mockCalls: { name: string; params: Record<string, unknown>; token: string }[] = [];
 jest.mock("../src/lib/supabase", () => ({ supabase: {
   auth: { getSession: async () => ({ data: { session: { user: { id: mockOwner }, access_token: `token-${mockOwner}` } } }) },
   rpc: (name: string, params: Record<string, unknown>) => ({ setHeader: (_key: string, token: string) => {
     mockCalls.push({ name, params, token });
-    return Promise.resolve({ data: name === "titan_feature_flags_v1" ? { flags: { "screens.garmin": mockFlags } } : name === "titan_garmin_status_v1" ? { linked: false } : name === "titan_sources_v1" ? mockSources : name === "titan_economy_limits" ? { messageMaxLength: 280, chatGuildCost: 0 } : name === "titan_list_guild_messages" ? [] : { id: "message-1" }, error: null });
+    return Promise.resolve({ data: name === "titan_feature_flags_v1" ? { flags: { "screens.garmin": mockFlags, "screens.garmin_dailies": mockDailiesFlag } } : name === "titan_garmin_status_v1" ? { linked: false } : name === "titan_sources_v1" ? mockSources : name === "titan_economy_limits" ? { messageMaxLength: 280, chatGuildCost: 0 } : name === "titan_list_guild_messages" ? [] : { id: "message-1" }, error: null });
   } }),
 } }));
 import { connectGarmin, disconnectGarmin, garminFailureMessage, garminReturnMessage, readGarmin, loadGuildChat, postGuildMessage } from "../src/lib/nativeConnections";
-beforeEach(() => { mockOwner = "a"; mockFlags = true; mockSources = []; mockCalls.length = 0; });
+beforeEach(() => { mockOwner = "a"; mockFlags = true; mockDailiesFlag = false; mockSources = []; mockCalls.length = 0; });
 const network = (status = 200, url = "https://connect.garmin.com/oauth/confirm") => jest.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({ ok: status === 200, status, json: async () => ({ url }) } as Response));
 
 test("Garmin requires explicit consent and a server flag; no request when either is missing", async () => {
@@ -28,6 +29,16 @@ test("Garmin grants the current account, pins its token, then opens the approved
   expect(String(fetcher.mock.calls[0][0])).toContain("action=start&client=android&flow=handoff");
   expect(fetcher.mock.calls[0][1]).toMatchObject({ headers: { Authorization: "Bearer token-a" } });
   expect(open).toHaveBeenCalledWith("https://connect.garmin.com/oauth/confirm");
+});
+test("Garmin requests verified steps only after explicit choice while the Dailies rollout is enabled", async () => {
+  const open = jest.fn(async () => undefined); const fetcher = network();
+  await expect(connectGarmin("a", true, open, fetcher, () => true, true)).rejects.toThrow("GARMIN_UNAVAILABLE");
+  expect(fetcher).not.toHaveBeenCalled();
+  mockDailiesFlag = true;
+  await connectGarmin("a", true, open, fetcher);
+  expect(String(fetcher.mock.calls[0][0])).not.toContain("dailies=1");
+  await connectGarmin("a", true, open, fetcher, () => true, true);
+  expect(String(fetcher.mock.calls[1][0])).toContain("&dailies=1");
 });
 test("Garmin rejects unsafe redirects and a changed account before opening the browser", async () => {
   const open = jest.fn(async () => undefined);
