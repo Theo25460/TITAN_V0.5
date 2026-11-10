@@ -164,3 +164,30 @@ test('onboarding resume: same-owner client and epoch replacements discard stale 
   assert.deepEqual(errors,[]);
  }finally{await close(context);}
 });
+
+test('onboarding first victory: a resumed demo opens the real form for the chosen sport',async()=>{
+ const {page,context,errors,owner}=await fixture();
+ try{
+  const before=await page.evaluate(()=>({history:window.state.history,xp:window.state.user.xp,credits:window.state.user.credits}));
+  await page.locator('[data-pick="swimming"]').click();
+  await page.locator('[data-pick="running"]').click();
+  await page.locator('[data-first-victory]').click();
+  await step(page,4);
+  await page.reload();
+  const demo=page.locator('[data-adventure-demo]');
+  await demo.waitFor();
+  assert.equal(await demo.count(),1);
+  assert.match(await demo.innerText(),/Démo.*Aventure/is);
+  assert.match(await demo.innerText(),/Natation/);
+  assert.deepEqual(await page.evaluate(()=>({history:window.state.history,xp:window.state.user.xp,credits:window.state.user.credits})),before);
+  await page.locator('[data-back]').click();await step(page,1);
+  assert.equal(await page.locator('[data-pick="swimming"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-first-victory]').click();
+  assert.equal(await page.locator('[data-finish][href="/aujourdhui"]').count(),1,'session remains optional');
+  await page.getByRole('link',{name:/saisir.*natation/i}).click();
+  await page.waitForURL('**/training?sport=swimming');
+  await page.locator('[data-k="meters"]').waitFor();
+  assert.equal(await page.evaluate(key=>localStorage.getItem(key),PREFIX+owner),null);
+  assert.deepEqual(errors,[]);
+ }finally{await close(context);}
+});

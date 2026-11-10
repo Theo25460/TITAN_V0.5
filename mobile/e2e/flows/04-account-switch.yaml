@@ -44,7 +44,7 @@ appId: fr.titanapp.app
 - tapOn:
     id: "onboarding-next"
 - tapOn:
-    id: "onboarding-finish"
+    id: "onboarding-later"
 - extendedWaitUntil:
     visible: ".*Athlete B.*"
     timeout: 20000

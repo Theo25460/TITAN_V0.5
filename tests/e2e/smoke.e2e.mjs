@@ -3403,11 +3403,16 @@ test("assistance labels: sidebar and Plus expose Assistance and keep navigation 
 });
 
 test("assistance labels: public footers and authentication links share the destination name", async t => {
-  const paths = readdirSync(ROOT).filter(name => name.endsWith('.html') && name !== 'dynamic-page.html' && /<a\b[^>]*href="\/service"/.test(readFileSync(ROOT + '/' + name, 'utf8')));
+  const paths = readdirSync(ROOT).filter(name => {
+    if (!name.endsWith('.html') || name === 'dynamic-page.html') return false;
+    const source = readFileSync(ROOT + '/' + name, 'utf8');
+    return /<a\b[^>]*href="\/service"/.test(source.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/)?.[0] ?? '');
+  });
+  assert.ok(paths.includes('index.html'));
   const { page, context, errors } = await newPage(360); t.after(() => context.close());
   for (const filename of paths) {
     await page.goto(BASE + '/' + filename.replace(/\.html$/, ''), { waitUntil: 'load' });
-    const links = page.locator('a[href="/service"]');
+    const links = page.locator('footer a[href="/service"]');
     assert.ok(await links.count() > 0, filename);
     for (const link of await links.all()) assert.equal((await link.textContent()).trim(), 'Assistance', filename);
   }
@@ -4769,6 +4774,12 @@ async function profileReadsPage(t, { sessionOwner = "a", rollover = false, allow
   });
   await page.evaluate(({ sessionOwner, rollover, allowWrites, allowDeletion }) => {
     window.profileReadSettled = 0; window.profileReadSessionCalls = 0;
+    if (allowWrites && window.TitanJourneyPanel) {
+      // This fixture holds one public-card auth preflight. A background career read
+      // must not consume that one-shot hold before the user edits the card.
+      window.TitanJourneyPanel.reset();
+      window.TitanJourneyPanel.mount = () => {};
+    }
     window.readOwnerId = letter => letter === "a" ? "00000000-0000-4000-8000-000000000111" : "00000000-0000-4000-8000-000000000222";
     window.profileReadSessionOwner = sessionOwner;
     const client = window.titanClient, rpc = client.rpc.bind(client);

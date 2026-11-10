@@ -8,7 +8,9 @@
   const D = () => window.TitanData;
 
   const STEPS = ["sports", "rythme", "prive", "go"];
+  const LAST_STEP = STEPS.length - 1;
   let step = 0;
+  let shortPath = false;
   let picked = [];
   let target = 3;
   let analytics = false;
@@ -54,7 +56,7 @@
     if (!current()) return;
     try {
       localStorage.setItem(DRAFT_PREFIX + view.owner, JSON.stringify({ version: 1, ownerId: view.owner,
-        basis: view.basis, updatedAt: Date.now(), step, sports: picked, target }));
+        basis: view.basis, updatedAt: Date.now(), step, sports: picked, target, shortPath }));
       draftSaveFailed = false;
     } catch { draftSaveFailed = true; }
   }
@@ -75,11 +77,12 @@
     const chips = [...new Set([...picked, ...popular])];
     return `<p class="asc-eyebrow cy">1 · Tes sports</p>
       <h1>Qu’est-ce que tu pratiques&#8239;?</h1>
-      <p class="asc-lead">Choisis jusqu’à 5 sports. Ils seront en tête quand tu enregistres une séance. Tu peux en pratiquer d’autres à tout moment.</p>
+      <p class="asc-lead">Choisis ton sport pour ta première séance. Tu peux garder jusqu’à 5 sports en favoris.</p>
       <div class="seance-search"><label class="sr-only" for="ob-q">Rechercher un sport</label><span class="seance-search-icon">${icon("search")}</span><input id="ob-q" class="asc-input" type="search" autocomplete="off" placeholder="Padel, natation, escalade…" value="${esc(query)}"></div>
       ${results.length ? `<div class="seance-chips ob-results">${results.map((r) => `<button type="button" class="seance-chip" data-pick="${esc(r.id)}" aria-pressed="${picked.includes(r.id)}">${icon(SP().iconOf(r.id))}${esc(r.label)}</button>`).join("")}</div>` : ""}
       <div class="seance-chips">${chips.map((id) => `<button type="button" class="seance-chip" data-pick="${esc(id)}" aria-pressed="${picked.includes(id)}">${icon(SP().iconOf(id))}${esc(SP().label(id))}</button>`).join("")}</div>
-      <p class="asc-small asc-muted" aria-live="polite">${limitHit ? "5 sports maximum : retire-en un pour en choisir un autre. " : ""}${picked.length ? `${picked.length}/5 : ${esc(picked.map((s) => SP().label(s)).join(", "))}` : "Aucun sport choisi pour l’instant."}</p>`;
+      <p class="asc-small asc-muted" aria-live="polite">${limitHit ? "5 sports maximum : retire-en un pour en choisir un autre. " : ""}${picked.length ? `Première séance · ${esc(SP().label(picked[0]))}. ${picked.length}/5 favoris.` : "Aucun sport choisi pour l’instant."}</p>
+      ${picked.length ? '<button type="button" class="asc-btn asc-btn-primary asc-btn-block" data-first-victory>Préparer ma séance</button>' : ""}`;
   }
 
   function rhythmStep() {
@@ -103,14 +106,23 @@
 
   function goStep() {
     const first = picked[0];
+    const label = first ? esc(SP().label(first)) : "";
     return `<p class="asc-eyebrow cy">4 · C’est parti</p>
-      <h1>Ta première séance pose ton premier repère.</h1>
-      <p class="asc-lead">${guest() ? "Tu es en mode découverte : tes séances restent sur cet appareil et pourront rejoindre un compte plus tard." : "Ton compte est prêt."} Enregistre une séance récente, même courte, pour retrouver tes mesures et commencer ton suivi.</p>
-      <p class="asc-small asc-muted">L’aventure est facultative : démarre une campagne avant ta prochaine séance pour y faire compter tes jours actifs.</p>
+      <h1>Ta première séance</h1>
+      <p class="asc-lead">Note une séance que tu as faite, même courte. Elle te servira de repère dans ton journal.</p>
+      ${guest() ? '<p class="asc-small asc-muted">En mode découverte, tes séances restent sur cet appareil et pourront rejoindre un compte plus tard.</p>' : ""}
+      ${label ? `<article class="asc-note" aria-labelledby="ob-demo-title" data-adventure-demo>
+        ${icon("compass")}
+        <div class="asc-stack-sm">
+          <h2 class="asc-eyebrow am" id="ob-demo-title">Démo · Aventure</h2>
+          <p><strong>Séance · ${label}</strong></p>
+          <p>Une séance éligible peut ajouter un jour actif à ta quête si tu as déjà lancé une campagne.</p>
+        </div>
+      </article>` : '<p class="asc-small asc-muted">L’aventure est facultative : démarre une campagne avant ta prochaine séance pour y faire compter tes jours actifs.</p>'}
       <div class="asc-stack-sm ob-go">
-        <a class="asc-btn asc-btn-primary asc-btn-block" data-finish href="/training${first ? `?sport=${encodeURIComponent(first)}` : ""}">${icon("plus")} ${first ? `Enregistrer une séance de ${esc(SP().label(first).toLowerCase())}` : "Enregistrer ma première séance"}</a>
-        <a class="asc-btn asc-btn-secondary asc-btn-block" data-finish href="/adventure">${icon("compass")} Démarrer mon aventure d’abord</a>
-        <a class="asc-btn asc-btn-ghost asc-btn-block" data-finish href="/aujourdhui">Découvrir mon QG d’abord</a>
+        <a class="asc-btn asc-btn-primary asc-btn-block" data-finish href="/training${first ? `?sport=${encodeURIComponent(first)}` : ""}">${icon("plus")} ${label ? `Saisir ma séance · ${label}` : "Choisir un sport pour ma séance"}</a>
+        <a class="asc-btn asc-btn-secondary asc-btn-block" data-finish href="/aujourdhui">Aller au QG</a>
+        <a class="asc-btn asc-btn-ghost asc-btn-block" data-finish href="/adventure">${icon("compass")} Démarrer mon aventure d’abord</a>
       </div>`;
   }
 
@@ -118,10 +130,22 @@
     if (!root) return;
     const focusedTarget = root.contains(document.activeElement) ? document.activeElement.closest('[role="radio"][data-target]')?.dataset.target : null;
     const body = [sportsStep, rhythmStep, privacyStep, goStep][step]();
+    const hasShortcut = step === 0 && picked.length > 0;
     root.innerHTML = `${progress()}${draftSaveFailed ? '<p class="asc-note" role="status">Tes choix restent sur cette page. Leur reprise sur cet appareil est indisponible.</p>' : ''}<div class="ob-body">${body}</div>
-      ${step < STEPS.length - 1 ? `<div class="ob-nav">${step > 0 ? `<button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button>` : '<span></span>'}<button type="button" class="asc-btn asc-btn-primary" data-next>${step === 0 && !picked.length ? "Passer" : "Continuer"}</button></div>` : step > 0 ? `<div class="ob-nav"><button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button><span></span></div>` : ""}`;
+      <div class="ob-nav">
+        ${step > 0 ? `<button type="button" class="asc-btn asc-btn-ghost" data-back>${icon("chevronLeft")} Retour</button>` : '<span></span>'}
+        ${step < LAST_STEP ? `<button type="button" class="asc-btn ${hasShortcut ? "asc-btn-secondary" : "asc-btn-primary"}" data-next>${step === 0 ? (hasShortcut ? "Régler mon rythme" : "Passer") : "Continuer"}</button>` : '<span></span>'}
+      </div>`;
     root.querySelector("h1")?.setAttribute("tabindex", "-1");
     if (focusedTarget && document.activeElement === document.body) root.querySelector(`[data-target="${focusedTarget}"]`)?.focus({ preventScroll: true });
+  }
+
+  function move(next, shortcut = false) {
+    step = next;
+    shortPath = shortcut;
+    saveDraft();
+    render();
+    root.querySelector("h1")?.focus();
   }
 
   function onRadioKey(e) {
@@ -247,6 +271,7 @@
     draftSaveFailed = false;
     const draft = readDraft(view);
     step = draft?.step ?? 0; query = ''; limitHit = false;
+    shortPath = step === LAST_STEP && draft?.shortPath === true;
     picked = Array.isArray(u.favoriteSports) ? u.favoriteSports.filter((s) => window.SPORTS_CONFIG?.[s]).slice(0, 5) : [];
     target = Math.min(7, Math.max(1, parseInt(u.weeklyGoalSessions, 10) || 3));
     if (draft) { picked = draft.sports; target = draft.target; }
@@ -297,17 +322,13 @@
         return render();
       }
       if (b.hasAttribute("data-next")) {
-        step = Math.min(STEPS.length - 1, step + 1);
-        saveDraft();
-        render();
-        root.querySelector("h1")?.focus();
-        return;
+        return move(Math.min(LAST_STEP, step + 1));
+      }
+      if (b.hasAttribute("data-first-victory")) {
+        return move(LAST_STEP, true);
       }
       if (b.hasAttribute("data-back")) {
-        step = Math.max(0, step - 1);
-        saveDraft();
-        render();
-        root.querySelector("h1")?.focus();
+        move(shortPath ? 0 : Math.max(0, step - 1));
       }
     });
   }

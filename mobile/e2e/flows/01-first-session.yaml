@@ -32,10 +32,10 @@ appId: fr.titanapp.app
 - tapOn:
     id: "sport-running"
 - tapOn:
-    id: "onboarding-next"
-- takeScreenshot: 04-onboarding-rythme
-- tapOn:
-    id: "onboarding-next"
+    id: "onboarding-preview"
+- assertVisible:
+    id: "onboarding-adventure-demo"
+- takeScreenshot: 04-onboarding-demo
 - tapOn:
     id: "onboarding-finish"
 - extendedWaitUntil:

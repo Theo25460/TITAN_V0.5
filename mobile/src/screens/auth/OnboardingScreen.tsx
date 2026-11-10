@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
+import { Card } from "../../components/Card";
 import { Icon, type IconName } from "../../components/Icon";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
@@ -20,7 +21,7 @@ const PROMISES: [IconName, string, string][] = [
   ["download", "Tes données t’appartiennent.", "Export et suppression du compte à tout moment depuis les réglages."],
 ];
 
-/** First run, under a minute: sports, weekly rhythm, privacy promises. Saved like the website (onboardedAt). */
+/** First run: sports, optional weekly rhythm, and a preview before the real session. */
 export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const prefs = usePrefs();
@@ -28,21 +29,40 @@ export function OnboardingScreen() {
   const toast = useToast();
   const navigation = useNavigation();
   const [step, setStep] = useState(0);
+  const [previewBack, setPreviewBack] = useState(1);
   const [picked, setPicked] = useState<string[]>(prefs.favoriteSports.slice(0, 5));
   const [target, setTarget] = useState(prefs.weeklyGoalSessions);
   const [limitHit, setLimitHit] = useState(false);
+  const saving = useRef<"record" | "home" | null>(null);
+  const firstSport = picked.find((id) => Sports.conf(id));
+  const firstLabel = firstSport ? Sports.label(firstSport) : null;
 
   const toggle = (id: string) => {
     setLimitHit(false);
     setPicked((p) => (p.includes(id) ? p.filter((s) => s !== id) : p.length >= 5 ? (setLimitHit(true), p) : [...p, id]));
   };
 
+  function showPreview(from: number) {
+    setPreviewBack(from);
+    setStep(2);
+  }
+
   async function finish(next: "record" | "home") {
+    if (saving.current) return;
+    saving.current = next;
     try {
       await save.mutateAsync({ prefs: { favoriteSports: picked.slice(0, 5), weeklyGoalSessions: target, onboardedAt: new Date().toISOString() } });
-      navigation.reset(next === "record" && picked[0] ? { index: 1, routes: [{ name: "Tabs" }, { name: "SessionForm", params: { sport: picked[0] } }] } : { index: 0, routes: [{ name: "Tabs" }] });
+      if (next === "home") {
+        navigation.reset({ index: 0, routes: [{ name: "Tabs" }] });
+      } else if (firstSport) {
+        navigation.reset({ index: 1, routes: [{ name: "Tabs" }, { name: "SessionForm", params: { sport: firstSport } }] });
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: "Tabs", params: { screen: "Record" } }] });
+      }
     } catch (e) {
       toast({ kind: "err", title: "Préférences non enregistrées", message: errorMessage(e) });
+    } finally {
+      saving.current = null;
     }
   }
 
@@ -55,15 +75,19 @@ export function OnboardingScreen() {
         ))}
       </View>
       <Screen
+        key={step}
         footer={
-          <View style={{ flexDirection: "row", gap: space.s3 }}>
-            {step > 0 ? <Button label="Retour" kind="secondary" onPress={() => setStep(step - 1)} style={{ flex: 1 }} /> : null}
-            {step < 2 ? (
-              <Button label={step === 0 && !picked.length ? "Passer" : "Continuer"} onPress={() => setStep(step + 1)} style={{ flex: 2 }} testID="onboarding-next" />
-            ) : (
-              <Button label={picked[0] ? `Enregistrer une séance` : "Découvrir mon QG"} loading={save.isPending} onPress={() => finish(picked[0] ? "record" : "home")} style={{ flex: 2 }} testID="onboarding-finish" />
-            )}
-          </View>
+          step === 0 && firstSport ? (
+            <View style={styles.actions}>
+              <Button label="Préparer ma séance" onPress={() => showPreview(0)} style={{ flex: 2 }} testID="onboarding-preview" />
+              <Button label="Régler mon rythme" kind="secondary" onPress={() => setStep(1)} style={{ flex: 2 }} testID="onboarding-next" />
+            </View>
+          ) : step < 2 ? (
+            <View style={styles.actions}>
+              {step === 1 ? <Button label="Retour" kind="secondary" onPress={() => setStep(0)} style={{ flex: 1 }} /> : null}
+              <Button label={step === 0 ? "Passer" : "Continuer"} onPress={() => step === 0 ? setStep(1) : showPreview(1)} style={{ flex: 2 }} testID="onboarding-next" />
+            </View>
+          ) : null
         }
       >
         {step === 0 ? (
@@ -72,12 +96,12 @@ export function OnboardingScreen() {
               1 · Tes sports
             </T>
             <T variant="h1">Qu’est-ce que tu pratiques ?</T>
-            <T tone="muted">Choisis jusqu’à 5 sports. Ils seront en tête quand tu enregistres une séance.</T>
+            <T tone="muted">Choisis ton sport pour ta première séance. Tu peux garder jusqu’à 5 sports en favoris.</T>
             <SportSearch onPick={toggle} selected={picked} />
             <SportGrid ids={popular} selected={picked} onPick={toggle} />
             <T variant="small" accessibilityLiveRegion="polite">
               {limitHit ? "5 sports maximum : retire-en un pour en choisir un autre. " : ""}
-              {picked.length ? `${picked.length}/5 : ${picked.map(Sports.label).join(", ")}` : "Aucun sport choisi pour l’instant."}
+              {firstLabel ? `Première séance · ${firstLabel}. ${picked.length}/5 favoris.` : "Aucun sport choisi pour l’instant."}
             </T>
           </>
         ) : step === 1 ? (
@@ -101,9 +125,25 @@ export function OnboardingScreen() {
         ) : (
           <>
             <T variant="eyebrow" tone="accent">
-              3 · Ce qui t’appartient
+              3 · Première séance
             </T>
-            <T variant="h1">Tes données restent à toi.</T>
+            <T variant="h1">Ta première séance</T>
+            <T tone="muted">Note une séance que tu as faite, même courte. Elle te servira de repère dans ton journal.</T>
+            {firstLabel ? (
+              <Card tone="amber" style={styles.demo} testID="onboarding-adventure-demo">
+                <Icon name="compass" color={colors.am} />
+                <View style={styles.demoCopy}>
+                  <T variant="eyebrow" tone="amber">Démo · Aventure</T>
+                  <T variant="bodyStrong">Séance · {firstLabel}</T>
+                  <T variant="small">Une séance éligible peut ajouter un jour actif à ta quête si tu as déjà lancé une campagne.</T>
+                </View>
+              </Card>
+            ) : null}
+            <View style={styles.destinations}>
+              <Button label={firstLabel ? `Saisir ma séance · ${firstLabel}` : "Choisir un sport pour ma séance"} icon="plus" loading={save.isPending && saving.current === "record"} disabled={save.isPending} onPress={() => finish("record")} testID="onboarding-finish" />
+              <Button label="Aller au QG" kind="secondary" loading={save.isPending && saving.current === "home"} disabled={save.isPending} onPress={() => finish("home")} testID="onboarding-later" />
+              <Button label="Retour" kind="ghost" disabled={save.isPending} onPress={() => setStep(previewBack)} />
+            </View>
             {PROMISES.map(([icon, title, text]) => (
               <View key={title} style={styles.promise}>
                 <Icon name={icon} size={22} color={colors.cy} />
@@ -113,7 +153,6 @@ export function OnboardingScreen() {
                 </View>
               </View>
             ))}
-            <T variant="small">L’aventure est facultative : démarre une campagne dans l’onglet Aventure pour y faire compter tes jours actifs.</T>
           </>
         )}
       </Screen>
@@ -124,6 +163,10 @@ export function OnboardingScreen() {
 const styles = StyleSheet.create({
   steps: { flexDirection: "row", gap: 6, paddingHorizontal: space.s4, paddingVertical: space.s3 },
   stepBar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.bg4 },
+  actions: { flexDirection: "row", gap: space.s3 },
+  destinations: { gap: space.s2 },
+  demo: { flexDirection: "row", alignItems: "flex-start", gap: space.s3 },
+  demoCopy: { flex: 1, gap: space.s1 },
   targets: { flexDirection: "row", gap: 6 },
   target: { flex: 1, aspectRatio: 0.8, minHeight: 48, borderRadius: radius.r2, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center" },
   targetOn: { backgroundColor: colors.cy, borderColor: colors.cy },
