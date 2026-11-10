@@ -1,5 +1,5 @@
 // Founder decision of 21/10/2026: Paddle disabled, no purchase on the web, TITAN+ "Bientôt disponible" until Google Play Billing is validated.
-// Nothing public may name Paddle as seller, state a price for TITAN+, or lead to a web checkout.
+// Nothing public may name Paddle as seller, state a price for a paid plan, or lead to a web checkout.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -7,15 +7,12 @@ import { readFileSync, readdirSync } from "node:fs";
 const root = new URL("../", import.meta.url);
 const pages = readdirSync(root).filter((f) => f.endsWith(".html") && !/^(admin|sys_core_override_99|googleb8fedd43e28cf7d4)\.html$/.test(f));
 
-test("no public page names Paddle as seller or payment processor, or states a TITAN+ price", () => {
+test("no public page names Paddle as seller or payment processor, or states a price for a paid plan", () => {
   for (const file of pages) {
     const html = readFileSync(new URL(file, root), "utf8");
     const text = html.replace(/<script[\s\S]*?<\/script>/g, (m) => (m.includes("ld+json") ? m : "")); // the sport "Paddle" is a sport, not the vendor
     assert.ok(!/(opérés? par|vendeur officiel|reçu Paddle|par Paddle|via Paddle|Paddle,? vendeur|chez Paddle|relève de Paddle)/i.test(text), `${file} names Paddle as vendor`);
-    // 02/11/2026 (specification COACH-01): the two Coach prices are decided and may be published (Coach 19,99 euros, Coach Ultra 39,99 euros a month, as created in Google Play).
-    // The individual TITAN+ price is NOT decided: any other price on a public page is still refused.
-    const withoutCoachPrices = html.replace(/Coach(?: Ultra)? \((19,99|39,99) € par mois/g, "Coach (").replace(/<td>Coach(?: Ultra)?<\/td><td>(19,99|39,99) € par mois/g, "<td>Coach</td><td>").replace(/<p class="pub-price">(19,99|39,99) € <small>par mois/g, '<p class="pub-price">Coach <small>par mois');
-    assert.ok(!/TITAN\+[^<]{0,40}\b[1-9]\d*([,.]\d+)?\s?(€|euros?)|\b[1-9]\d*([,.]\d+)?\s?(€|euros?)\s?(\/|par)\s?mois|"price":"[1-9]/i.test(withoutCoachPrices), `${file} states a TITAN+ price`);
+    assert.ok(!/TITAN\+[^<]{0,40}\b[1-9]\d*([,.]\d+)?\s?(€|euros?)|\b[1-9]\d*([,.]\d+)?\s?(€|euros?)\s?(\/|par)\s?mois|"price":"[1-9]/i.test(html), `${file} states a paid plan price`);
     assert.ok(!/href="\/boutique#plus"/.test(html), `${file} leads to a web purchase`);
   }
 });

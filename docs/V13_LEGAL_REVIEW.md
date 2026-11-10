@@ -11,6 +11,8 @@
 |---|---|---|
 | Prix et période | `mobile/src/lib/playBilling.ts` | L’offre et le prix affichés viennent de Google Play. La période apparaît dans les conditions Play avant achat. |
 | Références souhaitées | LEG001 | TITAN+ 4,99 €, Coach 19,99 €, Coach Ultra 39,99 €. Montants de travail soumis à la configuration de Play Console. |
+| Configuration France au 10 novembre | Play Console | Trois forfaits de base actifs à renouvellement mensuel. TITAN+ 5,99 €, Coach 23,99 €, Coach Ultra 47,99 €. L’éditeur doit arbitrer l’écart avec les tarifs du cahier des charges avant ouverture commerciale. |
+| Affichage Web | `tools/build-public-site.mjs` | Les pages publiques renvoient au prix applicable affiché par Google Play. |
 | Disponibilité | `BILLING_BUILD`, `PLAY_BILLING_ENABLED`, `js/config.js` | Achat fermé par défaut. `webCheckout` désactivé. |
 | Attribution | `functions/play-billing.mjs` | Le serveur relit Google et vérifie produit, état et propriétaire du jeton. Un achat en attente ne confère pas d’accès. |
 | Provenance | `testPurchase` Google | Le verdict `access_kind` distingue `test` de `verified_purchase`. Un achat vérifié peut comporter un essai gratuit. |
@@ -24,4 +26,4 @@ Le verdict de provenance est issu d’une lecture Google fraîche. Le ledger n�
 
 Les conditions expliquent le renouvellement, l’arrêt du renouvellement dans le compte Google, la restauration et le maintien de l’accès pendant la période réglée sauf révocation. Elles renvoient aux procédures de remboursement applicables selon l’achat et le pays. [Abonnements Google Play](https://support.google.com/googleplay/answer/7018481?hl=fr) · [Remboursements](https://support.google.com/googleplay/answer/2479637?hl=fr) · [Contenus et services numériques dans l’EEE et au Royaume-Uni](https://support.google.com/googleplay/answer/15576634?hl=fr)
 
-Avant une ouverture commerciale, confirmer dans Play Console les produits `titan01` (surcharge possible), `titan02`, `titan03`, les prix TTC, périodes, renouvellements et essais. Effectuer un achat de licence sur appareil. La revue humaine doit établir l’identité et les coordonnées légales de l’éditeur, l’immatriculation et la TVA applicables, le médiateur compétent et les règles de rétractation, remboursement et mineurs. Vérifier ensuite les quatre URL sur le site déployé.
+Avant une ouverture commerciale, confirmer dans Play Console les produits `titan01` (surcharge possible), `titan02`, `titan03`, les prix TTC, périodes, renouvellements et essais. Sur téléphone avec un compte testeur de licence, vérifier l’achat, l’état en attente, la restauration, l’arrêt du renouvellement et la révocation après remboursement. La revue humaine doit établir l’identité et les coordonnées légales de l’éditeur, l’immatriculation et la TVA applicables, le médiateur compétent et les règles de rétractation, remboursement et mineurs. Vérifier ensuite les quatre URL sur le site déployé.

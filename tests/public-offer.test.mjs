@@ -49,6 +49,15 @@ test("committed landing and prices are reproducible from the offer generator", (
   }
 });
 
+test("paid offers defer regional prices to Play on every public entry point", () => {
+  for (const name of ["index.html", "titan-plus.html", "pour-les-coachs.html"]) {
+    const html = generated(name);
+    assert.doesNotMatch(html, /(?:\d+[,.]\d{2})\s*€/, name);
+    assert.match(html, /tarif applicable.*Google Play|Tarif affiché par Google Play/, name);
+    assert.equal(html, readFileSync(join(root, name), "utf8"), name);
+  }
+});
+
 test('campaign access offer follows four free regions with an explicit server rollout',()=>{
  for(const name of ['index.html','titan-plus.html','aventures-sportives.html']){
   const html=generated(name);assert.match(html,/quatre campagnes|Quatre campagnes/);
