@@ -1,0 +1,2613 @@
+{
+  "schema_version": 2,
+  "project": "TITAN",
+  "purpose": "canonical visual identity for 260 sports",
+  "catalog": "js/core/sports-catalog.js",
+  "catalog_count": 260,
+  "branch": "design/titan-sports-library-consolidation-20261112",
+  "baseline": "football-v05 approved by owner in conversation; binary import pending",
+  "migration_policy": "No work on main or app until user approves individual visuals",
+  "status": "in_production",
+  "assets": [
+    {
+      "sport_id": "football",
+      "sport_name": "Football",
+      "batch": "B01",
+      "status": "approved_reference_pending_binary",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": "football V05 validated, transparent, subtle embossed TITAN mark"
+    },
+    {
+      "sport_id": "basketball",
+      "sport_name": "Basketball",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "tennis",
+      "sport_name": "Tennis",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "badminton",
+      "sport_name": "Badminton",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycling",
+      "sport_name": "Vélo",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "running",
+      "sport_name": "Course à pied",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "muscu_builder",
+      "sport_name": "Musculation",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "swimming",
+      "sport_name": "Natation",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hiking",
+      "sport_name": "Randonnée",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "climbing",
+      "sport_name": "Escalade (mètres grimpés)",
+      "batch": "B01",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "abs_session",
+      "sport_name": "Abdos",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "acrobatic_gymnastics",
+      "sport_name": "Gym acrobatique",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "adventure_racing",
+      "sport_name": "Raid aventure",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "aerobic_gymnastics",
+      "sport_name": "Gym aérobic",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "aikido",
+      "sport_name": "Aïkido",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "alpine_skiing",
+      "sport_name": "Ski alpin",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "alpinism",
+      "sport_name": "Alpinisme",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "american_football",
+      "sport_name": "Football américain",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "aquagym",
+      "sport_name": "Aquagym",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "aquathlon",
+      "sport_name": "Aquathlon",
+      "batch": "B02",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "archery",
+      "sport_name": "Tir à l’arc",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "arm_wrestling",
+      "sport_name": "Bras de fer sportif",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "arnis_eskrima",
+      "sport_name": "Arnis / Eskrima",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "artistic_cycling",
+      "sport_name": "Cyclisme artistique",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "artistic_gymnastics",
+      "sport_name": "Gym artistique",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "artistic_swimming",
+      "sport_name": "Natation artistique",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "athletics",
+      "sport_name": "Athlétisme",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "australian_rules_football",
+      "sport_name": "Football australien",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ballet",
+      "sport_name": "Danse classique",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bandy",
+      "sport_name": "Bandy",
+      "batch": "B03",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "baseball",
+      "sport_name": "Baseball",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "basketball_3x3",
+      "sport_name": "Basketball 3x3",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "beach_handball",
+      "sport_name": "Beach handball",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "beach_soccer",
+      "sport_name": "Beach soccer",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "beach_tennis",
+      "sport_name": "Beach tennis",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "beach_volleyball",
+      "sport_name": "Beach volley",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "biathlon",
+      "sport_name": "Biathlon",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "billiards_pool",
+      "sport_name": "Billard pool",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bjj",
+      "sport_name": "Jiu-jitsu brésilien",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "blind_football",
+      "sport_name": "Cécifoot",
+      "batch": "B04",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bmx",
+      "sport_name": "BMX dirt",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bmx_freestyle",
+      "sport_name": "BMX freestyle",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bmx_racing",
+      "sport_name": "BMX racing",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bobsleigh",
+      "sport_name": "Bobsleigh",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bocce",
+      "sport_name": "Bocce",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "boccia",
+      "sport_name": "Boccia",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bodyboarding",
+      "sport_name": "Bodyboard",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bodyweight",
+      "sport_name": "Poids du corps",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bouldering",
+      "sport_name": "Escalade bloc",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "bowling",
+      "sport_name": "Bowling",
+      "batch": "B05",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "boxing",
+      "sport_name": "Boxe anglaise",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "breakdance",
+      "sport_name": "Breaking",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "camogie",
+      "sport_name": "Camogie",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "canoe_polo",
+      "sport_name": "Canoë-polo",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "canoe_slalom",
+      "sport_name": "Canoë slalom",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "canoe_sprint",
+      "sport_name": "Canoë sprint",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "canyoning",
+      "sport_name": "Canyoning",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "capoeira",
+      "sport_name": "Capoeira",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cheerleading",
+      "sport_name": "Cheerleading",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "circus",
+      "sport_name": "Arts du cirque",
+      "batch": "B06",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "climbing_route",
+      "sport_name": "Escalade voie",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "coastal_rowing",
+      "sport_name": "Aviron de mer",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cricket",
+      "sport_name": "Cricket",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "croquet",
+      "sport_name": "Croquet",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cross_country_skiing",
+      "sport_name": "Ski de fond",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "crossfit",
+      "sport_name": "CrossFit",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "curling",
+      "sport_name": "Curling",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycle_ball",
+      "sport_name": "Cycle-ball",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycle_polo",
+      "sport_name": "Cycle polo",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycling_indoor",
+      "sport_name": "Vélo d’intérieur",
+      "batch": "B07",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycling_road",
+      "sport_name": "Cyclisme sur route",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cycling_track",
+      "sport_name": "Cyclisme sur piste",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "cyclocross",
+      "sport_name": "Cyclo-cross",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "dance",
+      "sport_name": "Danse",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "darts",
+      "sport_name": "Fléchettes",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "dips",
+      "sport_name": "Dips",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "disc_golf",
+      "sport_name": "Disc golf",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "diving",
+      "sport_name": "Plongée",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "dodgeball",
+      "sport_name": "Dodgeball",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "dragon_boat",
+      "sport_name": "Bateau-dragon",
+      "batch": "B08",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "dressage",
+      "sport_name": "Dressage",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "duathlon",
+      "sport_name": "Duathlon",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "elliptical",
+      "sport_name": "Vélo elliptique",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "equestrian",
+      "sport_name": "Équitation",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "eventing",
+      "sport_name": "Concours complet",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "farmers_walk",
+      "sport_name": "Marche du fermier",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "fell_running",
+      "sport_name": "Course en montagne",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "fencing",
+      "sport_name": "Escrime",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "field_hockey",
+      "sport_name": "Hockey sur gazon",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "figure_skating",
+      "sport_name": "Patinage artistique",
+      "batch": "B09",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "finswimming",
+      "sport_name": "Nage avec palmes",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "fitness_class",
+      "sport_name": "Cours collectif",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "flag_football",
+      "sport_name": "Flag football",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "floorball",
+      "sport_name": "Floorball",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "freediving",
+      "sport_name": "Apnée",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "freestyle_skiing",
+      "sport_name": "Ski freestyle",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "freestyle_wrestling",
+      "sport_name": "Lutte libre",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "futnet",
+      "sport_name": "Futnet",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "futsal",
+      "sport_name": "Futsal",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "gaelic_football",
+      "sport_name": "Football gaélique",
+      "batch": "B10",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "goalball",
+      "sport_name": "Goalball",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "golf",
+      "sport_name": "Golf",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "grappling",
+      "sport_name": "Grappling",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "gravel",
+      "sport_name": "Gravel",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "greco_roman_wrestling",
+      "sport_name": "Lutte gréco-romaine",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "grip_sport",
+      "sport_name": "Grip sport",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "gymnastics",
+      "sport_name": "Gymnastique",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "handball",
+      "sport_name": "Handball",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "handbike",
+      "sport_name": "Handbike",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hapkido",
+      "sport_name": "Hapkido",
+      "batch": "B11",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "highland_games",
+      "sport_name": "Highland games",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hiit",
+      "sport_name": "HIIT",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hiphop",
+      "sport_name": "Hip-hop",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "horse_racing",
+      "sport_name": "Course hippique",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hurdles",
+      "sport_name": "Course de haies",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hurling",
+      "sport_name": "Hurling",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "hyrox",
+      "sport_name": "Hyrox",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ice_climbing",
+      "sport_name": "Cascade de glace",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ice_hockey",
+      "sport_name": "Hockey sur glace",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ice_skating",
+      "sport_name": "Patinage sur glace",
+      "batch": "B12",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "inline_hockey",
+      "sport_name": "Roller hockey",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "inline_speed_skating",
+      "sport_name": "Roller de vitesse",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "judo",
+      "sport_name": "Judo",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kabaddi",
+      "sport_name": "Kabaddi",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "karate",
+      "sport_name": "Karaté",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "karting",
+      "sport_name": "Karting",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kayak",
+      "sport_name": "Kayak",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kendo",
+      "sport_name": "Kendo",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kettlebell",
+      "sport_name": "Kettlebell",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kho_kho",
+      "sport_name": "Kho kho",
+      "batch": "B13",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kickboxing",
+      "sport_name": "Kickboxing",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kitesurf",
+      "sport_name": "Kitesurf",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "korfball",
+      "sport_name": "Korfball",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "krav_maga",
+      "sport_name": "Krav-maga",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "kung_fu",
+      "sport_name": "Kung-fu",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "lacrosse",
+      "sport_name": "Lacrosse",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "lacrosse_sixes",
+      "sport_name": "Lacrosse sixes",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "lifesaving_sport",
+      "sport_name": "Sauvetage sportif",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "luge",
+      "sport_name": "Luge",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "mma",
+      "sport_name": "MMA",
+      "batch": "B14",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "modern_pentathlon",
+      "sport_name": "Pentathlon moderne",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "motocross",
+      "sport_name": "Motocross",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "mountain_bike",
+      "sport_name": "VTT",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "muscu_gym",
+      "sport_name": "Musculation en salle",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "muscu_home",
+      "sport_name": "Musculation à la maison",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "netball",
+      "sport_name": "Netball",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "nordic_combined",
+      "sport_name": "Combiné nordique",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "nordic_walk",
+      "sport_name": "Marche nordique",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "obstacle_course",
+      "sport_name": "Course à obstacles",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "open_water_swimming",
+      "sport_name": "Nage en eau libre",
+      "batch": "B15",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "orienteering",
+      "sport_name": "Course d’orientation",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "outrigger_canoe",
+      "sport_name": "Pirogue va’a",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "paddle",
+      "sport_name": "Paddle",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "padel",
+      "sport_name": "Padel",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "para_athletics",
+      "sport_name": "Para-athlétisme",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "para_cycling",
+      "sport_name": "Para-cyclisme",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "para_powerlifting",
+      "sport_name": "Para powerlifting",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "para_swimming",
+      "sport_name": "Para-natation",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "paragliding",
+      "sport_name": "Parapente",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "parkour",
+      "sport_name": "Parkour",
+      "batch": "B16",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "petanque",
+      "sport_name": "Pétanque",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "pickleball",
+      "sport_name": "Pickleball",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "pilates",
+      "sport_name": "Pilates",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "plank",
+      "sport_name": "Gainage",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "platform_tennis",
+      "sport_name": "Platform tennis",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "pole_dance",
+      "sport_name": "Pole dance",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "polo",
+      "sport_name": "Polo",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "pompes",
+      "sport_name": "Pompes",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "powerlifting",
+      "sport_name": "Force athlétique",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "qigong",
+      "sport_name": "Qi Gong",
+      "batch": "B17",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "race_walking",
+      "sport_name": "Marche athlétique",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "racketlon",
+      "sport_name": "Racketlon",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "racquetball",
+      "sport_name": "Racquetball",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rafting",
+      "sport_name": "Rafting",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "real_tennis",
+      "sport_name": "Jeu de paume",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rhythmic_gymnastics",
+      "sport_name": "Gym rythmique",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ringette",
+      "sport_name": "Ringette",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rogaining",
+      "sport_name": "Rogaining",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "roller",
+      "sport_name": "Roller",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "roller_derby",
+      "sport_name": "Roller derby",
+      "batch": "B18",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "roller_ski",
+      "sport_name": "Ski-roues",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rope_jump",
+      "sport_name": "Corde à sauter",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rowing",
+      "sport_name": "Aviron",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rowing_machine",
+      "sport_name": "Rameur",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rucking",
+      "sport_name": "Rucking",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rugby",
+      "sport_name": "Rugby",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "rugby_sevens",
+      "sport_name": "Rugby à 7",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sailing",
+      "sport_name": "Voile",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "salsa",
+      "sport_name": "Danses latines",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sambo",
+      "sport_name": "Sambo",
+      "batch": "B19",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sandbag",
+      "sport_name": "Sac de sable",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "savate",
+      "sport_name": "Savate boxe française",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sepak_takraw",
+      "sport_name": "Sepak takraw",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "shooting",
+      "sport_name": "Tir sportif",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "short_track_speed_skating",
+      "sport_name": "Short track",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "show_jumping",
+      "sport_name": "Saut d’obstacles",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sitting_volleyball",
+      "sport_name": "Volley assis",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "skateboarding",
+      "sport_name": "Skateboard",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "skeleton",
+      "sport_name": "Skeleton",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ski_jumping",
+      "sport_name": "Saut à ski",
+      "batch": "B20",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ski_mountaineering",
+      "sport_name": "Ski alpinisme",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ski_orienteering",
+      "sport_name": "Orientation à ski",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ski_touring",
+      "sport_name": "Ski de randonnée",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "skimboarding",
+      "sport_name": "Skimboard",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "skydiving",
+      "sport_name": "Parachutisme",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "snooker",
+      "sport_name": "Snooker",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "snorkeling",
+      "sport_name": "Snorkeling",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "snowboard",
+      "sport_name": "Snowboard",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "snowshoeing",
+      "sport_name": "Raquettes",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "softball",
+      "sport_name": "Softball",
+      "batch": "B21",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "speed_skating",
+      "sport_name": "Patinage de vitesse",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "speed_skiing",
+      "sport_name": "Kilomètre lancé",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "spinning",
+      "sport_name": "Spinning",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sport_climbing",
+      "sport_name": "Escalade sportive",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "springboard_diving",
+      "sport_name": "Plongeon",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sprint",
+      "sport_name": "Fractionné",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "squash",
+      "sport_name": "Squash",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "squat",
+      "sport_name": "Squats au poids du corps",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "stair_climbing",
+      "sport_name": "Montée d’escaliers",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "street_workout",
+      "sport_name": "Street workout",
+      "batch": "B22",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "stretching",
+      "sport_name": "Stretching",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "strongman",
+      "sport_name": "Strongman",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "sumo",
+      "sport_name": "Sumo",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "surfing",
+      "sport_name": "Surf",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "surfski",
+      "sport_name": "Surfski",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "swimrun",
+      "sport_name": "Swimrun",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "table_tennis",
+      "sport_name": "Tennis de table",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "taekwondo",
+      "sport_name": "Taekwondo",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "taichi",
+      "sport_name": "Tai Chi",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "tchoukball",
+      "sport_name": "Tchoukball",
+      "batch": "B23",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "telemark_skiing",
+      "sport_name": "Ski télémark",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "thaiboxing",
+      "sport_name": "Boxe thaï",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "tractions",
+      "sport_name": "Tractions",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "trail",
+      "sport_name": "Trail",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "trampoline_gymnastics",
+      "sport_name": "Trampoline",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "treadmill",
+      "sport_name": "Tapis de course",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "trekking",
+      "sport_name": "Trek",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "triathlon",
+      "sport_name": "Triathlon",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "trx",
+      "sport_name": "TRX",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "tug_of_war",
+      "sport_name": "Tir à la corde",
+      "batch": "B24",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "ultimate",
+      "sport_name": "Ultimate",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "underwater_hockey",
+      "sport_name": "Hockey subaquatique",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "underwater_rugby",
+      "sport_name": "Rugby subaquatique",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "velotaf",
+      "sport_name": "Vélotaf",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "via_ferrata",
+      "sport_name": "Via ferrata",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "volleyball",
+      "sport_name": "Volleyball",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wakeboard",
+      "sport_name": "Wakeboard",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "walking",
+      "sport_name": "Marche",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "water_polo",
+      "sport_name": "Water-polo",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "water_skiing",
+      "sport_name": "Ski nautique",
+      "batch": "B25",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "weightlifting",
+      "sport_name": "Haltérophilie",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wheelchair_basketball",
+      "sport_name": "Basket fauteuil",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wheelchair_rugby",
+      "sport_name": "Rugby fauteuil",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wheelchair_tennis",
+      "sport_name": "Tennis fauteuil",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "windsurf",
+      "sport_name": "Planche à voile",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wrestling",
+      "sport_name": "Lutte",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "wushu",
+      "sport_name": "Wushu",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "yoga",
+      "sport_name": "Yoga",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "yoga_mobility",
+      "sport_name": "Mobilité",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    },
+    {
+      "sport_id": "zumba",
+      "sport_name": "Zumba",
+      "batch": "B26",
+      "status": "planned",
+      "subject": null,
+      "version": null,
+      "asset_path": null,
+      "approval_note": null
+    }
+  ]
+}
