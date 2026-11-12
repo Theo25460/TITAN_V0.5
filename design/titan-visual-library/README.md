@@ -1,31 +1,19 @@
-# TITAN — Bibliothèque visuelle officielle
+# TITAN — Bibliothèque visuelle
 
-Bibliothèque versionnée des assets **explicitement approuvés** pour TITAN. Source de vérité des décisions graphiques avant intégration Android (priorité) puis Web.
+## Chantier sportif V2
 
-## État
-- **Lot 01 — Sports 3D : 10/10 validés pour la bibliothèque** (12 novembre 2026).
-- **Intégration Android/Web : non lancée.** Aucun changement d'écran ou de composant dans ce commit.
-- **Abonnements TITAN+ / Coach / Coach Ultra : exclus de la refonte.**
-- Objectif ultérieur : iconographie individuelle des 260 sports, par lots de 10 avec validation explicite.
+Les **260 sports officiels** sont répertoriés dans [le registre V2](v2/registry/canonical-sports.json).
 
-## Navigation
-- [Charte](CHARTER.md)
-- [Catalogue JSON](registry/sports-lot-01.json)
-- [Lot 01 et aperçu](sports/lot-01/README.md)
-- [INSTRUCTIONS-WORK](INSTRUCTIONS-WORK.md)
+- [Stratégie et état V2](v2/README.md)
+- [Charte pictogrammes V2](v2/CHARTER.md)
+- [Consignes Work V2](v2/INSTRUCTIONS-WORK.md)
 
-## Règle d'approbation
-Le fichier peut exister dans `proposals/` avant validation, mais **seuls les assets dans `sports/lot-XX/icons/` répertoriés `approved_for_library` sont réutilisables**. Les demandes de modifications génèrent une nouvelle version ; aucune substitution silencieuse. La validation d'une direction artistique n'approuve pas automatiquement les illustrations ultérieures.
+**Branche de production actuelle :** `design/titan-sports-library-consolidation-20261112`.
 
-## Organisation cible
-`sports/lot-XX/icons/`, `ui-icons/`, `rpg/`, `rewards/`, `states/`, `marketing/`, `registry/`, `proposals/`. Ne pas multiplier les copies dans `image/`, `assets/`, `mobile/assets/` avant intégration contrôlée.
+### Nettoyage effectué le 12 novembre 2026
 
-## Lot 02 — Sports 11–60
-- **50 pictogrammes 3D approuvés pour la bibliothèque**, issus de la planche validée.
-- [Fichiers individuels et aperçus](sports/lot-02/README.md) · [registre JSON](sports/lot-02/registry.json) · [planche complète](sports/lot-02/MASTER-LOT-02.webp).
-- Recadrages WebP 160 × 160 px, fond sombre inclus ; intégration Android et Web non démarrée.
-- **Total approuvé : 60 pictogrammes / 260 sports visés.**
+Les anciennes images des lots 01 et 02 et leurs registres historiques ont été retirés de **cette branche de travail uniquement** pour repartir de zéro. Elles sont intactes sur `main` et sur la branche de sauvegarde `design/archive-titan-sports-library-20261112`.
 
-## Consolidation 12 novembre 2026
+**Aucun visuel V2 nouveau n'est encore intégré à Android ou au Web.** Le Football V05 est une référence esthétique approuvée par le propriétaire ; son fichier maître doit encore être importé et vérifié dans GitHub. Les autres concepts du lot 01 sont en attente de validation.
 
-Le catalogue technique des sports est vérifié. Voir [le plan de migration des planches](sports/visual-refresh-2026-11-12/README.md) et [le registre de correspondance](registry/visual-review-2026-11-12.json). Les sources graphiques complètes sont fournies dans l'archive de la conversation et ne sont **pas encore importées au dépôt**.
+Il est interdit d'utiliser les illustrations en `planned` / `proposed` ou de supprimer un asset actuellement utilisé par l'application sans remplacement et recette de non-régression.
