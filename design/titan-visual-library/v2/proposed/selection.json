@@ -1,0 +1,475 @@
+{
+  "version": 1,
+  "status": "proposed",
+  "note": "Sélection partielle ; validation et contrôle complet nécessaires.",
+  "sports": [
+    {
+      "id": "abs_session",
+      "status": "proposed",
+      "webp_96": "selected/abs_session/96.webp",
+      "webp_256": "selected/abs_session/256.webp"
+    },
+    {
+      "id": "acrobatic_gymnastics",
+      "status": "proposed",
+      "webp_96": "selected/acrobatic_gymnastics/96.webp",
+      "webp_256": "selected/acrobatic_gymnastics/256.webp"
+    },
+    {
+      "id": "adventure_racing",
+      "status": "proposed",
+      "webp_96": "selected/adventure_racing/96.webp",
+      "webp_256": "selected/adventure_racing/256.webp"
+    },
+    {
+      "id": "aerobic_gymnastics",
+      "status": "proposed",
+      "webp_96": "selected/aerobic_gymnastics/96.webp",
+      "webp_256": "selected/aerobic_gymnastics/256.webp"
+    },
+    {
+      "id": "aikido",
+      "status": "proposed",
+      "webp_96": "selected/aikido/96.webp",
+      "webp_256": "selected/aikido/256.webp"
+    },
+    {
+      "id": "alpine_skiing",
+      "status": "proposed",
+      "webp_96": "selected/alpine_skiing/96.webp",
+      "webp_256": "selected/alpine_skiing/256.webp"
+    },
+    {
+      "id": "alpinism",
+      "status": "proposed",
+      "webp_96": "selected/alpinism/96.webp",
+      "webp_256": "selected/alpinism/256.webp"
+    },
+    {
+      "id": "american_football",
+      "status": "proposed",
+      "webp_96": "selected/american_football/96.webp",
+      "webp_256": "selected/american_football/256.webp"
+    },
+    {
+      "id": "aquagym",
+      "status": "proposed",
+      "webp_96": "selected/aquagym/96.webp",
+      "webp_256": "selected/aquagym/256.webp"
+    },
+    {
+      "id": "archery",
+      "status": "proposed",
+      "webp_96": "selected/archery/96.webp",
+      "webp_256": "selected/archery/256.webp"
+    },
+    {
+      "id": "arnis_eskrima",
+      "status": "proposed",
+      "webp_96": "selected/arnis_eskrima/96.webp",
+      "webp_256": "selected/arnis_eskrima/256.webp"
+    },
+    {
+      "id": "artistic_cycling",
+      "status": "proposed",
+      "webp_96": "selected/artistic_cycling/96.webp",
+      "webp_256": "selected/artistic_cycling/256.webp"
+    },
+    {
+      "id": "artistic_gymnastics",
+      "status": "proposed",
+      "webp_96": "selected/artistic_gymnastics/96.webp",
+      "webp_256": "selected/artistic_gymnastics/256.webp"
+    },
+    {
+      "id": "artistic_swimming",
+      "status": "proposed",
+      "webp_96": "selected/artistic_swimming/96.webp",
+      "webp_256": "selected/artistic_swimming/256.webp"
+    },
+    {
+      "id": "athletics",
+      "status": "proposed",
+      "webp_96": "selected/athletics/96.webp",
+      "webp_256": "selected/athletics/256.webp"
+    },
+    {
+      "id": "australian_rules_football",
+      "status": "proposed",
+      "webp_96": "selected/australian_rules_football/96.webp",
+      "webp_256": "selected/australian_rules_football/256.webp"
+    },
+    {
+      "id": "badminton",
+      "status": "proposed",
+      "webp_96": "selected/badminton/96.webp",
+      "webp_256": "selected/badminton/256.webp"
+    },
+    {
+      "id": "ballet",
+      "status": "proposed",
+      "webp_96": "selected/ballet/96.webp",
+      "webp_256": "selected/ballet/256.webp"
+    },
+    {
+      "id": "bandy",
+      "status": "proposed",
+      "webp_96": "selected/bandy/96.webp",
+      "webp_256": "selected/bandy/256.webp"
+    },
+    {
+      "id": "baseball",
+      "status": "proposed",
+      "webp_96": "selected/baseball/96.webp",
+      "webp_256": "selected/baseball/256.webp"
+    },
+    {
+      "id": "basketball",
+      "status": "proposed",
+      "webp_96": "selected/basketball/96.webp",
+      "webp_256": "selected/basketball/256.webp"
+    },
+    {
+      "id": "basketball_3x3",
+      "status": "proposed",
+      "webp_96": "selected/basketball_3x3/96.webp",
+      "webp_256": "selected/basketball_3x3/256.webp"
+    },
+    {
+      "id": "beach_handball",
+      "status": "proposed",
+      "webp_96": "selected/beach_handball/96.webp",
+      "webp_256": "selected/beach_handball/256.webp"
+    },
+    {
+      "id": "beach_soccer",
+      "status": "proposed",
+      "webp_96": "selected/beach_soccer/96.webp",
+      "webp_256": "selected/beach_soccer/256.webp"
+    },
+    {
+      "id": "beach_tennis",
+      "status": "proposed",
+      "webp_96": "selected/beach_tennis/96.webp",
+      "webp_256": "selected/beach_tennis/256.webp"
+    },
+    {
+      "id": "beach_volleyball",
+      "status": "proposed",
+      "webp_96": "selected/beach_volleyball/96.webp",
+      "webp_256": "selected/beach_volleyball/256.webp"
+    },
+    {
+      "id": "biathlon",
+      "status": "proposed",
+      "webp_96": "selected/biathlon/96.webp",
+      "webp_256": "selected/biathlon/256.webp"
+    },
+    {
+      "id": "billiards_pool",
+      "status": "proposed",
+      "webp_96": "selected/billiards_pool/96.webp",
+      "webp_256": "selected/billiards_pool/256.webp"
+    },
+    {
+      "id": "bjj",
+      "status": "proposed",
+      "webp_96": "selected/bjj/96.webp",
+      "webp_256": "selected/bjj/256.webp"
+    },
+    {
+      "id": "bmx_freestyle",
+      "status": "proposed",
+      "webp_96": "selected/bmx_freestyle/96.webp",
+      "webp_256": "selected/bmx_freestyle/256.webp"
+    },
+    {
+      "id": "bmx_racing",
+      "status": "proposed",
+      "webp_96": "selected/bmx_racing/96.webp",
+      "webp_256": "selected/bmx_racing/256.webp"
+    },
+    {
+      "id": "bobsleigh",
+      "status": "proposed",
+      "webp_96": "selected/bobsleigh/96.webp",
+      "webp_256": "selected/bobsleigh/256.webp"
+    },
+    {
+      "id": "bocce",
+      "status": "proposed",
+      "webp_96": "selected/bocce/96.webp",
+      "webp_256": "selected/bocce/256.webp"
+    },
+    {
+      "id": "boccia",
+      "status": "proposed",
+      "webp_96": "selected/boccia/96.webp",
+      "webp_256": "selected/boccia/256.webp"
+    },
+    {
+      "id": "bodyboarding",
+      "status": "proposed",
+      "webp_96": "selected/bodyboarding/96.webp",
+      "webp_256": "selected/bodyboarding/256.webp"
+    },
+    {
+      "id": "bodyweight",
+      "status": "proposed",
+      "webp_96": "selected/bodyweight/96.webp",
+      "webp_256": "selected/bodyweight/256.webp"
+    },
+    {
+      "id": "bouldering",
+      "status": "proposed",
+      "webp_96": "selected/bouldering/96.webp",
+      "webp_256": "selected/bouldering/256.webp"
+    },
+    {
+      "id": "bowling",
+      "status": "proposed",
+      "webp_96": "selected/bowling/96.webp",
+      "webp_256": "selected/bowling/256.webp"
+    },
+    {
+      "id": "boxing",
+      "status": "proposed",
+      "webp_96": "selected/boxing/96.webp",
+      "webp_256": "selected/boxing/256.webp"
+    },
+    {
+      "id": "breakdance",
+      "status": "proposed",
+      "webp_96": "selected/breakdance/96.webp",
+      "webp_256": "selected/breakdance/256.webp"
+    },
+    {
+      "id": "camogie",
+      "status": "proposed",
+      "webp_96": "selected/camogie/96.webp",
+      "webp_256": "selected/camogie/256.webp"
+    },
+    {
+      "id": "canoe_polo",
+      "status": "proposed",
+      "webp_96": "selected/canoe_polo/96.webp",
+      "webp_256": "selected/canoe_polo/256.webp"
+    },
+    {
+      "id": "canoe_sprint",
+      "status": "proposed",
+      "webp_96": "selected/canoe_sprint/96.webp",
+      "webp_256": "selected/canoe_sprint/256.webp"
+    },
+    {
+      "id": "canyoning",
+      "status": "proposed",
+      "webp_96": "selected/canyoning/96.webp",
+      "webp_256": "selected/canyoning/256.webp"
+    },
+    {
+      "id": "capoeira",
+      "status": "proposed",
+      "webp_96": "selected/capoeira/96.webp",
+      "webp_256": "selected/capoeira/256.webp"
+    },
+    {
+      "id": "cheerleading",
+      "status": "proposed",
+      "webp_96": "selected/cheerleading/96.webp",
+      "webp_256": "selected/cheerleading/256.webp"
+    },
+    {
+      "id": "circus",
+      "status": "proposed",
+      "webp_96": "selected/circus/96.webp",
+      "webp_256": "selected/circus/256.webp"
+    },
+    {
+      "id": "climbing",
+      "status": "proposed",
+      "webp_96": "selected/climbing/96.webp",
+      "webp_256": "selected/climbing/256.webp"
+    },
+    {
+      "id": "climbing_route",
+      "status": "proposed",
+      "webp_96": "selected/climbing_route/96.webp",
+      "webp_256": "selected/climbing_route/256.webp"
+    },
+    {
+      "id": "coastal_rowing",
+      "status": "proposed",
+      "webp_96": "selected/coastal_rowing/96.webp",
+      "webp_256": "selected/coastal_rowing/256.webp"
+    },
+    {
+      "id": "cricket",
+      "status": "proposed",
+      "webp_96": "selected/cricket/96.webp",
+      "webp_256": "selected/cricket/256.webp"
+    },
+    {
+      "id": "croquet",
+      "status": "proposed",
+      "webp_96": "selected/croquet/96.webp",
+      "webp_256": "selected/croquet/256.webp"
+    },
+    {
+      "id": "cross_country_skiing",
+      "status": "proposed",
+      "webp_96": "selected/cross_country_skiing/96.webp",
+      "webp_256": "selected/cross_country_skiing/256.webp"
+    },
+    {
+      "id": "cycling",
+      "status": "proposed",
+      "webp_96": "selected/cycling/96.webp",
+      "webp_256": "selected/cycling/256.webp"
+    },
+    {
+      "id": "hiking",
+      "status": "proposed",
+      "webp_96": "selected/hiking/96.webp",
+      "webp_256": "selected/hiking/256.webp"
+    },
+    {
+      "id": "judo",
+      "status": "proposed",
+      "webp_96": "selected/judo/96.webp",
+      "webp_256": "selected/judo/256.webp"
+    },
+    {
+      "id": "karting",
+      "status": "proposed",
+      "webp_96": "selected/karting/96.webp",
+      "webp_256": "selected/karting/256.webp"
+    },
+    {
+      "id": "kickboxing",
+      "status": "proposed",
+      "webp_96": "selected/kickboxing/96.webp",
+      "webp_256": "selected/kickboxing/256.webp"
+    },
+    {
+      "id": "kitesurf",
+      "status": "proposed",
+      "webp_96": "selected/kitesurf/96.webp",
+      "webp_256": "selected/kitesurf/256.webp"
+    },
+    {
+      "id": "mma",
+      "status": "proposed",
+      "webp_96": "selected/mma/96.webp",
+      "webp_256": "selected/mma/256.webp"
+    },
+    {
+      "id": "motocross",
+      "status": "proposed",
+      "webp_96": "selected/motocross/96.webp",
+      "webp_256": "selected/motocross/256.webp"
+    },
+    {
+      "id": "muscu_builder",
+      "status": "proposed",
+      "webp_96": "selected/muscu_builder/96.webp",
+      "webp_256": "selected/muscu_builder/256.webp"
+    },
+    {
+      "id": "muscu_gym",
+      "status": "proposed",
+      "webp_96": "selected/muscu_gym/96.webp",
+      "webp_256": "selected/muscu_gym/256.webp"
+    },
+    {
+      "id": "nordic_walk",
+      "status": "proposed",
+      "webp_96": "selected/nordic_walk/96.webp",
+      "webp_256": "selected/nordic_walk/256.webp"
+    },
+    {
+      "id": "open_water_swimming",
+      "status": "proposed",
+      "webp_96": "selected/open_water_swimming/96.webp",
+      "webp_256": "selected/open_water_swimming/256.webp"
+    },
+    {
+      "id": "padel",
+      "status": "proposed",
+      "webp_96": "selected/padel/96.webp",
+      "webp_256": "selected/padel/256.webp"
+    },
+    {
+      "id": "pickleball",
+      "status": "proposed",
+      "webp_96": "selected/pickleball/96.webp",
+      "webp_256": "selected/pickleball/256.webp"
+    },
+    {
+      "id": "pole_dance",
+      "status": "proposed",
+      "webp_96": "selected/pole_dance/96.webp",
+      "webp_256": "selected/pole_dance/256.webp"
+    },
+    {
+      "id": "rope_jump",
+      "status": "proposed",
+      "webp_96": "selected/rope_jump/96.webp",
+      "webp_256": "selected/rope_jump/256.webp"
+    },
+    {
+      "id": "running",
+      "status": "proposed",
+      "webp_96": "selected/running/96.webp",
+      "webp_256": "selected/running/256.webp"
+    },
+    {
+      "id": "sailing",
+      "status": "proposed",
+      "webp_96": "selected/sailing/96.webp",
+      "webp_256": "selected/sailing/256.webp"
+    },
+    {
+      "id": "skydiving",
+      "status": "proposed",
+      "webp_96": "selected/skydiving/96.webp",
+      "webp_256": "selected/skydiving/256.webp"
+    },
+    {
+      "id": "snorkeling",
+      "status": "proposed",
+      "webp_96": "selected/snorkeling/96.webp",
+      "webp_256": "selected/snorkeling/256.webp"
+    },
+    {
+      "id": "snowshoeing",
+      "status": "proposed",
+      "webp_96": "selected/snowshoeing/96.webp",
+      "webp_256": "selected/snowshoeing/256.webp"
+    },
+    {
+      "id": "squash",
+      "status": "proposed",
+      "webp_96": "selected/squash/96.webp",
+      "webp_256": "selected/squash/256.webp"
+    },
+    {
+      "id": "swimming",
+      "status": "proposed",
+      "webp_96": "selected/swimming/96.webp",
+      "webp_256": "selected/swimming/256.webp"
+    },
+    {
+      "id": "tennis",
+      "status": "proposed",
+      "webp_96": "selected/tennis/96.webp",
+      "webp_256": "selected/tennis/256.webp"
+    },
+    {
+      "id": "weightlifting",
+      "status": "proposed",
+      "webp_96": "selected/weightlifting/96.webp",
+      "webp_256": "selected/weightlifting/256.webp"
+    }
+  ]
+}
