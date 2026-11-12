@@ -3,8 +3,8 @@
   "product": "TITAN",
   "batch": "lot-02",
   "range": "11-60",
-  "count": 50,
-  "status": "approved_for_library",
+  "count": 48,
+  "status": "legacy-approved-with-retirement-plan",
   "approval": "Utilisateur: « Parfait ajoute les au dépôts github et on passe au lot suivant »",
   "source": "MASTER-LOT-02.png",
   "technical": {
@@ -377,21 +377,6 @@
       "integrated_in_app": false
     },
     {
-      "id": "SPT-035",
-      "number": 35,
-      "name": "Canoë",
-      "slug": "canoe",
-      "filename": "35-canoe.webp",
-      "path": "sports/lot-02/icons/35-canoe.webp",
-      "size_bytes": 4008,
-      "sha256": "1c92b3a6031ae7eadd90288bece60237f489382741b45f98f8b55b69006ce9da",
-      "width": 160,
-      "height": 160,
-      "format": "webp",
-      "approved_for_library": true,
-      "integrated_in_app": false
-    },
-    {
       "id": "SPT-036",
       "number": 36,
       "name": "Stand up paddle",
@@ -602,21 +587,6 @@
       "integrated_in_app": false
     },
     {
-      "id": "SPT-050",
-      "number": 50,
-      "name": "Trottinette freestyle",
-      "slug": "trottinette-freestyle",
-      "filename": "50-trottinette-freestyle.webp",
-      "path": "sports/lot-02/icons/50-trottinette-freestyle.webp",
-      "size_bytes": 2876,
-      "sha256": "ff9164c485a9c21140bcd386046d5c837e3a6b9b703f202515bfe8815fd4057f",
-      "width": 160,
-      "height": 160,
-      "format": "webp",
-      "approved_for_library": true,
-      "integrated_in_app": false
-    },
-    {
       "id": "SPT-051",
       "number": 51,
       "name": "Parkour",
@@ -765,6 +735,19 @@
       "format": "webp",
       "approved_for_library": true,
       "integrated_in_app": false
+    }
+  ],
+  "removal_note": "Two noncatalog legacy icons removed; all other legacy icons retained until verified replacement files exist in GitHub.",
+  "removed_unmatched": [
+    {
+      "name": "Canoë",
+      "old_path": "sports/lot-02/icons/35-canoe.webp",
+      "reason": "no matching canonical sports catalog entry"
+    },
+    {
+      "name": "Trottinette freestyle",
+      "old_path": "sports/lot-02/icons/50-trottinette-freestyle.webp",
+      "reason": "no matching canonical sports catalog entry"
     }
   ]
 }

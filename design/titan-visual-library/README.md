@@ -25,3 +25,7 @@ Le fichier peut exister dans `proposals/` avant validation, mais **seuls les ass
 - [Fichiers individuels et aperçus](sports/lot-02/README.md) · [registre JSON](sports/lot-02/registry.json) · [planche complète](sports/lot-02/MASTER-LOT-02.webp).
 - Recadrages WebP 160 × 160 px, fond sombre inclus ; intégration Android et Web non démarrée.
 - **Total approuvé : 60 pictogrammes / 260 sports visés.**
+
+## Consolidation 12 novembre 2026
+
+Le catalogue technique des sports est vérifié. Voir [le plan de migration des planches](sports/visual-refresh-2026-11-12/README.md) et [le registre de correspondance](registry/visual-review-2026-11-12.json). Les sources graphiques complètes sont fournies dans l'archive de la conversation et ne sont **pas encore importées au dépôt**.
