@@ -418,6 +418,12 @@
       "webp_256": "selected/rope_jump/256.webp"
     },
     {
+      "id": "rowing_machine",
+      "status": "proposed",
+      "webp_96": "selected/rowing_machine/96.webp",
+      "webp_256": "selected/rowing_machine/256.webp"
+    },
+    {
       "id": "running",
       "status": "proposed",
       "webp_96": "selected/running/96.webp",
@@ -430,6 +436,12 @@
       "webp_256": "selected/sailing/256.webp"
     },
     {
+      "id": "skateboarding",
+      "status": "proposed",
+      "webp_96": "selected/skateboarding/96.webp",
+      "webp_256": "selected/skateboarding/256.webp"
+    },
+    {
       "id": "skydiving",
       "status": "proposed",
       "webp_96": "selected/skydiving/96.webp",
@@ -440,6 +452,12 @@
       "status": "proposed",
       "webp_96": "selected/snorkeling/96.webp",
       "webp_256": "selected/snorkeling/256.webp"
+    },
+    {
+      "id": "snowboard",
+      "status": "proposed",
+      "webp_96": "selected/snowboard/96.webp",
+      "webp_256": "selected/snowboard/256.webp"
     },
     {
       "id": "snowshoeing",
@@ -460,16 +478,34 @@
       "webp_256": "selected/swimming/256.webp"
     },
     {
+      "id": "taekwondo",
+      "status": "proposed",
+      "webp_96": "selected/taekwondo/96.webp",
+      "webp_256": "selected/taekwondo/256.webp"
+    },
+    {
       "id": "tennis",
       "status": "proposed",
       "webp_96": "selected/tennis/96.webp",
       "webp_256": "selected/tennis/256.webp"
     },
     {
+      "id": "water_polo",
+      "status": "proposed",
+      "webp_96": "selected/water_polo/96.webp",
+      "webp_256": "selected/water_polo/256.webp"
+    },
+    {
       "id": "weightlifting",
       "status": "proposed",
       "webp_96": "selected/weightlifting/96.webp",
       "webp_256": "selected/weightlifting/256.webp"
+    },
+    {
+      "id": "windsurf",
+      "status": "proposed",
+      "webp_96": "selected/windsurf/96.webp",
+      "webp_256": "selected/windsurf/256.webp"
     }
   ]
 }
