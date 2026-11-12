@@ -1,9 +1,9 @@
 # TITAN — Sports 3D, lot 02 (11–60)
 
-**50 pictogrammes approuvés pour la bibliothèque, non intégrés à l'application.**
+**48 pictogrammes conservés pour la bibliothèque, non intégrés à l'application.**
 
 - `MASTER-LOT-02.png` : planche source approuvée, conservée intacte.
-- `icons/` : 50 fichiers individuels WebP, numérotés, 160×160px, fond sombre intégré.
+- `icons/` : 48 fichiers individuels WebP, numérotés, 160×160px, fond sombre intégré.
 - `registry.json` : identifiants de travail, libellés, chemins, SHA-256 et statut.
 
 ## Catalogue
@@ -34,7 +34,6 @@
 | 32 | Cyclo-cross | ![Cyclo-cross](icons/32-cyclo-cross.webp) |
 | 33 | Triathlon | ![Triathlon](icons/33-triathlon.webp) |
 | 34 | Aviron | ![Aviron](icons/34-aviron.webp) |
-| 35 | Canoë | ![Canoë](icons/35-canoe.webp) |
 | 36 | Stand up paddle | ![Stand up paddle](icons/36-stand-up-paddle.webp) |
 | 37 | Surf | ![Surf](icons/37-surf.webp) |
 | 38 | Planche à voile | ![Planche à voile](icons/38-planche-a-voile.webp) |
@@ -49,7 +48,6 @@
 | 47 | Patinage | ![Patinage](icons/47-patinage.webp) |
 | 48 | Roller | ![Roller](icons/48-roller.webp) |
 | 49 | Skateboard | ![Skateboard](icons/49-skateboard.webp) |
-| 50 | Trottinette freestyle | ![Trottinette freestyle](icons/50-trottinette-freestyle.webp) |
 | 51 | Parkour | ![Parkour](icons/51-parkour.webp) |
 | 52 | Tir à l’arc | ![Tir à l’arc](icons/52-tir-a-larc.webp) |
 | 53 | Tir sportif | ![Tir sportif](icons/53-tir-sportif.webp) |
@@ -69,3 +67,5 @@
 - Mapper les IDs du vrai catalogue TITAN avant implémentation. Ne pas supposer que le slug est l'identifiant interne du sport.
 - Ne pas modifier la section abonnements.
 - Aucun déploiement ni modification UI ne résulte de cet ajout.
+
+> **Nettoyage 12/11/2026 :** les deux images hors catalogue `35-canoe.webp` et `50-trottinette-freestyle.webp` ont été retirées. Les autres anciennes variantes restent disponibles jusqu'à remplacement vérifié. Voir [migration visuelle](../visual-refresh-2026-11-12/README.md).
