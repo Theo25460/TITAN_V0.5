@@ -7,7 +7,9 @@
   "counts": {
     "sheet_assets": 50,
     "new_proposals": 20,
-    "unmatched_legacy_removed": 2
+    "unmatched_legacy_removed": 2,
+    "replacement_entries_legacy": 17,
+    "source_sports_new_to_previous_lots": 33
   },
   "attachment": "TITAN_VISUAL_LIBRARY_REVIEW.zip (ChatGPT conversation download, not stored in GitHub)",
   "binary_assets_uploaded": false,
@@ -484,7 +486,7 @@
       "binary_in_github": false,
       "local_bundle_path": "source-boards/sheet-E.png",
       "asset_path_in_bundle": "icons/source-E-03-*.webp",
-      "replacement_required": false
+      "replacement_required": true
     },
     {
       "sport_id": "sailing",
@@ -767,6 +769,7 @@
     }
   ],
   "supersession": {
-    "rule": "remove old images only after approved replacements have been uploaded and checked; preserve history in git"
+    "rule": "remove old images only after approved replacements have been uploaded and checked; preserve history in git",
+    "note": "Stand up paddle maps to canonical sport ID paddle and supersedes the previous Stand up paddle icon despite different catalog display name."
   }
 }
