@@ -19,3 +19,9 @@ Le fichier peut exister dans `proposals/` avant validation, mais **seuls les ass
 
 ## Organisation cible
 `sports/lot-XX/icons/`, `ui-icons/`, `rpg/`, `rewards/`, `states/`, `marketing/`, `registry/`, `proposals/`. Ne pas multiplier les copies dans `image/`, `assets/`, `mobile/assets/` avant intégration contrôlée.
+
+## Lot 02 — Sports 11–60
+- **50 pictogrammes 3D approuvés pour la bibliothèque**, issus de la planche validée.
+- [Fichiers individuels et aperçus](sports/lot-02/README.md) · [registre JSON](sports/lot-02/registry.json) · [planche complète](sports/lot-02/MASTER-LOT-02.webp).
+- Recadrages WebP 160 × 160 px, fond sombre inclus ; intégration Android et Web non démarrée.
+- **Total approuvé : 60 pictogrammes / 260 sports visés.**
