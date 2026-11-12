@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "product": "TITAN",
+  "collection": "sports-icons",
+  "batch": "lot-01",
+  "date": "2026-11-12",
+  "status": "approved_for_library",
+  "app_integration": "not_started",
+  "approval_note": "Lot 01 validé par le propriétaire (« Nickel, ajoute ça au dépôt GitHub »).",
+  "source": {
+    "kind": "individual_crops_from_approved_contact_sheet",
+    "source_dimensions": [
+      1774,
+      887
+    ],
+    "format": "PNG",
+    "note": "La planche visuelle générée en conversation est la référence esthétique. Les fichiers ici sont des recadrages optimisés, pas des modèles 3D éditables."
+  },
+  "technical": {
+    "format": "webp",
+    "width": 160,
+    "height": 160,
+    "alpha": false,
+    "background": "bleu-noir très sombre inclus dans l'image",
+    "recommended_display": "32–64 px sur fond sombre",
+    "hi_res_master_available_in_repository": false
+  },
+  "items": [
+    {
+      "id": "SPT-01",
+      "name": "Course à pied",
+      "slug": "course-a-pied",
+      "group": "endurance",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/01-course-a-pied.webp",
+      "github_blob_sha": "34e60184d9139a6bfec9a546cc8ca81284ff078b",
+      "sha256": "f9bef221b8c80dad69cb7af698f8b751492b08b494fcc99fb85cd8c487adc265",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Course à pied.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-02",
+      "name": "VTT",
+      "slug": "vtt",
+      "group": "endurance",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/02-vtt.webp",
+      "github_blob_sha": "348a781d67aef85a180ac1afe30b76bab203f27b",
+      "sha256": "0654f9dc72dda6af94c7fddbc38a48b62e54387727d72b08b55ee6d3524c744d",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour VTT.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-03",
+      "name": "Gravel",
+      "slug": "gravel",
+      "group": "endurance",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/03-gravel.webp",
+      "github_blob_sha": "5240bfc5f411f60f285cf35137e33d6bafa74b8d",
+      "sha256": "e5af9c5160aeb7b7a832539af7a4a10b4feecdebc996459a53f53e36ff5fa49b",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Gravel.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-04",
+      "name": "Natation",
+      "slug": "natation",
+      "group": "endurance",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/04-natation.webp",
+      "github_blob_sha": "b1740987cd8f5989fff477b022e330c1db9dad12",
+      "sha256": "bd26400bb9d388866e21f73b44fffd816a6cac9b177c8dfe7d0db887208fd8ae",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Natation.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-05",
+      "name": "Badminton",
+      "slug": "badminton",
+      "group": "jeu",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/05-badminton.webp",
+      "github_blob_sha": "904f2bbaa01858defb39fd21e88fd7870b702e23",
+      "sha256": "0183de051045ebadc393a4e3d9df6ee355c2db2581a86d8c60d0d57047501820",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Badminton.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-06",
+      "name": "Escalade",
+      "slug": "escalade",
+      "group": "technique",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/06-escalade.webp",
+      "github_blob_sha": "976c5b344edf41a33972b8f724232c9d0bebe1b3",
+      "sha256": "6e4e57fa9f3306b788470484eb37c87fe40d4b15629ba74cf7aa6377493b1dc0",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Escalade.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-07",
+      "name": "Musculation",
+      "slug": "musculation",
+      "group": "force",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/07-musculation.webp",
+      "github_blob_sha": "6c7b7355914b66167450fb2e223d50f28e990a00",
+      "sha256": "c16fc03a322ca5258dc1356e20a24aa856df414e79c58fd0a8799910dec23a05",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Musculation.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-08",
+      "name": "Football",
+      "slug": "football",
+      "group": "jeu",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/08-football.webp",
+      "github_blob_sha": "dd85eadfe46d86280c722ccdb3e424aea2558b70",
+      "sha256": "d15c0bd64d3bef7dfbf7f074d8eb1f608d283b4055e9836df1a9342b310633af",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Football.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-09",
+      "name": "Yoga",
+      "slug": "yoga",
+      "group": "mobilite",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/09-yoga.webp",
+      "github_blob_sha": "87bbe7e917c044413f6bc8952c6290b99789474e",
+      "sha256": "cb2547f483c6d2b5c5fddc570aabb0ab3b83694a20e6093bf519be1191a713a3",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Yoga.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    },
+    {
+      "id": "SPT-10",
+      "name": "Kayak",
+      "slug": "kayak",
+      "group": "endurance",
+      "status": "approved_for_library",
+      "version": "v1",
+      "path": "sports/lot-01/icons/10-kayak.webp",
+      "github_blob_sha": "07f95598195ce6e847bba8133d3a343082cb57de",
+      "sha256": "f4096201293b3aaaea1ca387cbe00e4b035f7244c2fc6a2105c9a76e975ba0be",
+      "app_sport_id": null,
+      "description": "Pictogramme d'objet ou matériel 3D réaliste pour Kayak.",
+      "platforms": [
+        "Android",
+        "Web"
+      ]
+    }
+  ],
+  "restrictions": [
+    "Ne pas remplacer les images approuvées sans validation expresse",
+    "Ne pas intégrer automatiquement à l'application",
+    "Ne jamais supposer qu'un nom de fichier est l'identifiant du sport dans le catalogue",
+    "Ne pas inclure les visuels des abonnements dans la refonte",
+    "Ne pas présenter ces fichiers comme des originaux 3D ou comme des exports avec alpha"
+  ]
+}
