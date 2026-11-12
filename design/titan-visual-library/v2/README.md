@@ -1,17 +1,16 @@
-# TITAN — Bibliothèque sportive V2 (chantier)
+# TITAN — Bibliothèque sportive V2
 
-**Etat : production en cours, aucune intégration dans l'app.**
+**Statut : chantier graphique ; aucune intégration Android/Web.**
 
-Cette branche repart du commit main 67e17c79 et ne conserve **aucune planche sportive historique en actif**. Les anciens fichiers sont intacts sur main et la branche de secours `design/archive-titan-sports-library-20261112`.
+Cette branche contient le registre des [260 sports officiels](registry/canonical-sports.json), répartis en lots B01 à B26. Les anciens assets de travail ont été retirés **de la branche seulement** ; `main` et l'archive conservent leurs versions.
 
-## Conventions
-- **Source de vérité pour les IDs** : `js/core/sports-catalog.js` (260 sports).
-- **Registre complet** : `registry/canonical-sports.json` (lots B01…B26).
-- **Etat** : `planned`, `proposed`, `approved_reference_pending_binary`, `approved_for_library`, `integrated`, `rejected`.
-- **Règle** : seules les versions `approved_for_library` ayant un fichier réel, une empreinte et une validation explicite peuvent être intégrées.
-- **Sports non validés** : conserver les images/fallback de l'application, aucune substitution automatique.
-- **Football V05** est la référence artistique approuvée ; son image ne doit être marquée `approved_for_library` que lorsque le binaire a effectivement été importé et vérifié.
-- Chaque objet doit être spécifique au sport, sur fond transparent, avec marque TITAN discrète et test 32/48/64 px.
+## Référence artistique : Football V05
 
-## Périmètre
-Ce chantier n'édite pas les écrans Android/Web, les visuels des abonnements, ni les données Supabase. Une branche d'intégration distincte sera utilisée une fois les images validées.
+![Football V05](examples/football-v05-160.webp)
+
+- `examples/football-v05-160.webp` : aperçu **160×160**, véritable canal alpha ; **pas un master haute définition ni un asset prêt à intégrer**.
+- SHA-256 : `1dba289bac7f8d5493e43cf41e72459f07d89018eb2211b68db474aa79556ca1`
+- Style explicitement approuvé : cuir noir/blanc usé, lumière studio discrète, double chevron TITAN ton sur ton.
+- Original 1254×1254 RGBA : `a_clean_isolated_product_style_render_transparent.png` dans la conversation d'origine, à importer pour les exports finaux.
+
+Lire [CHARTER](CHARTER.md), [INSTRUCTIONS-WORK](INSTRUCTIONS-WORK.md) et les versions [racine](../INSTRUCTIONS-WORK.md). Le registre de Football reste en état de référence en attendant l'import du master et la vérification finale. Aucune image non approuvée n'entre dans l'application.

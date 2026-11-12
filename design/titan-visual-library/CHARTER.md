@@ -1,19 +1,16 @@
-# TITAN — Charte des pictogrammes sportifs 3D (v1)
+# TITAN — Charte officielle de l'iconographie des 260 sports (V2)
 
-## Intention
-Des **objets et équipements sportifs reconnaissables** représentés comme des miniatures 3D de studio, avec matériaux crédibles, détails fonctionnels cohérents et présentation sobre. Le style se fonde sur les 10 pictogrammes du premier lot approuvé.
+**Référence validée :** Football V05, `v2/examples/football-v05-160.webp` (aperçu ; master original non importé). La marque exacte est le **double chevron officiel** de `image/titan-mark.svg`, très discret.
 
-## Règles
-1. Un sport = un sujet visuellement spécifique : VTT et gravel ne doivent jamais être interchangeables.
-2. Objet principal isolé, sans personnage, scène sportive ou paysage ajouté.
-3. Matériaux réalistes et photographie de produit maîtrisée : métal, carbone, textile, cuir, caoutchouc, eau selon l'objet.
-4. Éclairage studio doux, direction stable, cadrage centré avec marge périphérique, ombres contrôlées.
-5. Palette compatible bleu-noir TITAN, cyan seulement comme accent discret ; jamais de néon omniprésent.
-6. Pas d'objets impossibles, de logos ressemblant à une marque réelle, de gravures incohérentes, de détails gratuits ou d'effet plastique.
-7. Prévisualisation sur fond TITAN sombre et vérification à 32 px, 48 px et 64 px.
-8. Priorité WebP optimisé ; version transparente possible **après nouvelle validation** et contrôle des contours.
-9. Un lot contient 10 créations distinctes. Chaque création possède identifiant, statut, version, source, usage, formats et note de validation.
-10. Aucun visuel des abonnements TITAN+, Coach et Coach Ultra n'est modifié.
+1. **Sujet** : un objet ou équipement précis, reconnaissable à 32/48/64px. Les sports proches (gravel/VTT, football/futsal, etc.) doivent être distingués.
+2. **Rendu** : photographie produit 3D réaliste premium. Cuir, carbone, métal, tissu, coutures, rayons et autres détails fonctionnels crédibles ; légère usure naturelle si appropriée.
+3. **Fond** : vraie transparence RGBA, sans scène, damier imprimé, halo, contour, ombre de sol ou cadrage coupé. Laisser 7–12% de marge.
+4. **Éclairage** : lumière studio douce haut/gauche ; léger reflet bleu acier ou cyan toléré, sans effet néon ni science-fiction.
+5. **Identité TITAN** : petit double chevron mat en gris bleuté ton sur ton, intégré physiquement. Facultatif si le branding paraît artificiel. Jamais central ou criard par défaut.
+6. **Cohérence** : luminosité, dimensions relatives, perspective, niveau de détail et qualité de découpe uniformes. Ne pas forcer une palette noire/cyan sur des objets naturellement colorés.
+7. **Technique** : chaque sport nécessite son propre master haute résolution transparent, puis WebP 512/256/96 et prévisualisations à 32/48/64px. Une vignette 160px n'est **pas** un master.
+8. **Qualité** : vérifier géométrie, matériaux, disciplines voisines, absence de doublons, alpha et bords sur fonds clair et bleu-noir.
+9. **Gouvernance** : chaque image/version attend l'approbation explicite de l'utilisateur. Une planche de revue ou un style général approuvé ne valide pas les futurs masters.
+10. **Périmètre** : ne pas toucher aux visuels TITAN+/Coach/Coach Ultra, à l'XP, aux paiements, à Supabase ou à la production de l'application.
 
-## Avertissement de production
-Le lot 01 actuellement stocké est issu d'une **planche composite recadrée** et compressée à **160 × 160 px**. Il n'existe pas de calques 3D éditables ou de vraie transparence dans ces fichiers. Ne pas les agrandir arbitrairement ; si un export plus grand est nécessaire, solliciter une nouvelle proposition et validation plutôt que d'inventer un master.
+Le but est une collection durable et homogène, pas une production de masse sans relecture.
