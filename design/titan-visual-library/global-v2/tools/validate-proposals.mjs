@@ -38,8 +38,8 @@ for(const item of registry.assets){
  try{
   const mini=item.derived.find(x=>x.endsWith("-256.webp")||x.endsWith("-android.webp"))||item.derived[0];
   const src=path.join(repo,mini);
-  const {data,info}=await sharp(src).resize(9,8,{fit:"fill"}).greyscale().removeAlpha().raw().toBuffer({resolveWithObject:true});
-  let bits=0n;for(let y=0;y<8;y++)for(let x=0;x<8;x++){const i=y*9+x;bits=(bits<<1n)|(data[i]>data[i+1]?1n:0n);}
+  const {data,info}=await sharp(src).resize(17,16,{fit:"fill"}).greyscale().removeAlpha().raw().toBuffer({resolveWithObject:true});
+  let bits=0n;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=y*17+x;bits=(bits<<1n)|(data[i]>data[i+1]?1n:0n);}
   fingerprint.push({id:item.id,family:item.family,bitset:bits,source:mini});
  }catch(err){warnings.push("Unable to compute perceptual signature: "+item.id+" "+err.message);}
 }
@@ -50,7 +50,7 @@ for(let i=0;i<fingerprint.length;i++)for(let j=i+1;j<fingerprint.length;j++){
  if(a.family!==b.family||a.id===b.id)continue;
  // A low Hamming distance flags inspection, not necessarily duplication.
  const d=popcount(a.bitset^b.bitset);
- if(d<=4)pairs.push({a:a.id,b:b.id,distance:d,family:a.family});
+ if(d<=16)pairs.push({a:a.id,b:b.id,distance:d,family:a.family});
 }
 const selected=registry.assets.filter(a=>a.family==="rank"||a.family==="guardian"&&a.id.startsWith("guardian-object-")||a.family==="avatar"&&a.id.startsWith("avatar-token-"));
 const cw=200,ch=162,cols=4,rows=Math.ceil(selected.length/cols),wide=cols*cw,high=rows*ch+55;
@@ -74,7 +74,7 @@ await sharp({create:{width:wide,height:high,channels:4,background:"#05070aff"}})
 const stat=await sharp(out).metadata();
 report.files.push({path:rel(out),bytes:fs.statSync(out).size,width:stat.width,height:stat.height,alpha:stat.hasAlpha,sha256:sha(out)});
 report.counts.sheets+=1;
-report.quality_v2={verified_references:verified,master_assets:registry.assets.length,perceptual_near_duplicates:pairs,threshold_hamming:4,missing_files_or_hash_failures:failures,warnings,scale_contact_sheet:rel(out),checks:["master existence","web/android variant existence","SHA-256 per derived file","SVG opacity/alpha","portrait-friendly small sizes contact sheet","photographic license metadata","WebP size warnings","dHash near-duplicate screening"]};
+report.quality_v2={verified_references:verified,master_assets:registry.assets.length,perceptual_near_duplicates:pairs,threshold_hamming:16,missing_files_or_hash_failures:failures,warnings,scale_contact_sheet:rel(out),checks:["master existence","web/android variant existence","SHA-256 per derived file","SVG opacity/alpha","portrait-friendly small sizes contact sheet","photographic license metadata","WebP size warnings","dHash near-duplicate screening"]};
 fs.writeFileSync(qaPath,JSON.stringify(report,null,2)+"\n");
 const galleryPath=path.join(root,"preview/GALLERY.md");
 let gallery=fs.readFileSync(galleryPath,"utf8");

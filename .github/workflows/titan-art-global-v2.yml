@@ -22,13 +22,15 @@ jobs:
         run: npm install --prefix design/titan-visual-library/global-v2/tools/.deps --no-save --no-package-lock sharp@0.34.5
       - name: Obtain and inspect licensed photographic sources
         run: node design/titan-visual-library/global-v2/tools/download-world-photos.mjs
+      - name: Remove repeated framing from unique UI objects
+        run: node design/titan-visual-library/global-v2/tools/rebuild-ui-plates.mjs
       - name: Generate WebP PNG preview registry and QA
         run: node design/titan-visual-library/global-v2/tools/render.mjs
       - name: Validate hashes, Web/Android exports, similarity and small sizes
         run: node design/titan-visual-library/global-v2/tools/validate-proposals.mjs
       - name: Save proposed assets to this branch only
         run: |
-          git add design/titan-visual-library/global-v2/proposed/masters/renaissance/ design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/ design/titan-visual-library/global-v2/proposed/exports/ design/titan-visual-library/global-v2/preview/ design/titan-visual-library/global-v2/registry/assets.json design/titan-visual-library/global-v2/sources/photographic-worlds.lock.json
+          git add design/titan-visual-library/global-v2/proposed/masters/ui/ design/titan-visual-library/global-v2/proposed/masters/renaissance/ design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/ design/titan-visual-library/global-v2/proposed/exports/ design/titan-visual-library/global-v2/preview/ design/titan-visual-library/global-v2/registry/assets.json design/titan-visual-library/global-v2/sources/photographic-worlds.lock.json
           if ! git diff --cached --quiet; then
             git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "design(titan): exports and review gallery [skip art]"
             git push origin HEAD:design/titan-illustrations-global-v2-20261113
