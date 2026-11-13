@@ -1,0 +1,549 @@
+{
+  "scope": "Registre partiel ciblé — rangs et ressources Renaissance explicitement mappées; autres usages non inventoriés.",
+  "assets": [
+    {
+      "id": "valley",
+      "family": "world",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/valley-small.webp",
+        "assets/renaissance/valley-xs.webp",
+        "assets/renaissance/valley.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/valley-small.webp",
+        "assets/renaissance/valley-xs.webp",
+        "assets/renaissance/valley.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/valley-small.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/valley-small.webp": "af000a3593a5d37fd173f3ca06f4028d8f9f382f6a72dddd083bf1805b47b84b",
+        "assets/renaissance/valley-xs.webp": "5ae91a094353806b959ad1fcf860003d39db9c618ea5d831b7828ed3c4dfa4a9",
+        "assets/renaissance/valley.webp": "468f658dc67856d9fee26326b0bde724e4cba4e462522c4644cfacc72620752a",
+        "mobile/assets/rpg/valley-small.webp": "af000a3593a5d37fd173f3ca06f4028d8f9f382f6a72dddd083bf1805b47b84b"
+      }
+    },
+    {
+      "id": "archipelago",
+      "family": "world",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/archipelago-small.webp",
+        "assets/renaissance/archipelago-xs.webp",
+        "assets/renaissance/archipelago.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/archipelago-small.webp",
+        "assets/renaissance/archipelago-xs.webp",
+        "assets/renaissance/archipelago.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/archipelago-small.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/archipelago-small.webp": "b77658d4590c75ddbbc70d6f7ae37ac9035b9826f2f8bec6d2e34eaa2902fffe",
+        "assets/renaissance/archipelago-xs.webp": "f971b812e0216efe6c140160f0b097ccf7e9276d33e95f1ade6bcea06d18f827",
+        "assets/renaissance/archipelago.webp": "806de15a2fb51eb0e0a84efb90acf4b9e9498481030fb78ac5a3d624754ab61c",
+        "mobile/assets/rpg/archipelago-small.webp": "b77658d4590c75ddbbc70d6f7ae37ac9035b9826f2f8bec6d2e34eaa2902fffe"
+      }
+    },
+    {
+      "id": "forge",
+      "family": "world",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/forge-small.webp",
+        "assets/renaissance/forge-xs.webp",
+        "assets/renaissance/forge.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/forge-small.webp",
+        "assets/renaissance/forge-xs.webp",
+        "assets/renaissance/forge.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/forge-small.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/forge-small.webp": "07d0ae6df7d525d379d33e2167ad25ef281b629357e0852b859c1b9b7cf31558",
+        "assets/renaissance/forge-xs.webp": "31c8a9ec8e1bd2a7a55a572c198a7d6949d733a4074e808aa3a06d878bd5957e",
+        "assets/renaissance/forge.webp": "9dd6a70d8082f96cd8cd7c4865a09f1aee69d6420b4a7e14b55debd8972708e4",
+        "mobile/assets/rpg/forge-small.webp": "07d0ae6df7d525d379d33e2167ad25ef281b629357e0852b859c1b9b7cf31558"
+      }
+    },
+    {
+      "id": "aurora",
+      "family": "world",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/aurora-small.webp",
+        "assets/renaissance/aurora-xs.webp",
+        "assets/renaissance/aurora.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/aurora-small.webp",
+        "assets/renaissance/aurora-xs.webp",
+        "assets/renaissance/aurora.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/aurora-small.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/aurora-small.webp": "6ede4e21d7924c384059d9220428ae71a9e3fd5177ed5033d045b65489ec39d5",
+        "assets/renaissance/aurora-xs.webp": "1756b9a9f04902e12022a8bfcc21426cd5758a0143546c4244c30a24b46aa52d",
+        "assets/renaissance/aurora.webp": "df038c8e100211945ed918bd4d727852187b15cdaf4d57c3ed8e44e3368ea006",
+        "mobile/assets/rpg/aurora-small.webp": "6ede4e21d7924c384059d9220428ae71a9e3fd5177ed5033d045b65489ec39d5"
+      }
+    },
+    {
+      "id": "guardian-aube",
+      "family": "guardian",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/guardian-aube-s.webp",
+        "assets/renaissance/guardian-aube.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/guardian-aube-s.webp",
+        "assets/renaissance/guardian-aube.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/guardian-aube-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/guardian-aube-s.webp": "2bc0115e9137fea1eb1be9b45a86f579516359f458e6a444ef2126590d814e0f",
+        "assets/renaissance/guardian-aube.webp": "55034e10e1dfa4f7a66a10cf0edfbe3cf999df74a4262a00d05cb0b7c0418c17",
+        "mobile/assets/rpg/guardian-aube-s.webp": "2bc0115e9137fea1eb1be9b45a86f579516359f458e6a444ef2126590d814e0f"
+      }
+    },
+    {
+      "id": "guardian-marees",
+      "family": "guardian",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/guardian-marees-s.webp",
+        "assets/renaissance/guardian-marees.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/guardian-marees-s.webp",
+        "assets/renaissance/guardian-marees.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/guardian-marees-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/guardian-marees-s.webp": "57d2945658f9589e754263d9aecdb3760d451fd91d5b41f37efa0486f4457308",
+        "assets/renaissance/guardian-marees.webp": "2ea2cfdf49d0e8040d701011128b7616de2ea04122be3603c1fcc9f2d77868e4",
+        "mobile/assets/rpg/guardian-marees-s.webp": "57d2945658f9589e754263d9aecdb3760d451fd91d5b41f37efa0486f4457308"
+      }
+    },
+    {
+      "id": "guardian-forge",
+      "family": "guardian",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/guardian-forge-s.webp",
+        "assets/renaissance/guardian-forge.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/guardian-forge-s.webp",
+        "assets/renaissance/guardian-forge.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/guardian-forge-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/guardian-forge-s.webp": "9c11bb5dfef294509b7a45b7caf03fdbed7b8177394aab9c9330a980c50df490",
+        "assets/renaissance/guardian-forge.webp": "bc5204e8c2f87a8cd6d0c6c1fe9f6ca069d351bfbdbeeaa670bb50c470b84d17",
+        "mobile/assets/rpg/guardian-forge-s.webp": "9c11bb5dfef294509b7a45b7caf03fdbed7b8177394aab9c9330a980c50df490"
+      }
+    },
+    {
+      "id": "guardian-aurores",
+      "family": "guardian",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/guardian-aurores-s.webp",
+        "assets/renaissance/guardian-aurores.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/guardian-aurores-s.webp",
+        "assets/renaissance/guardian-aurores.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/guardian-aurores-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/guardian-aurores-s.webp": "b9c82f681f5e4b94d987eb4c197714d58c804ac614bbc4819a28663b7c529d79",
+        "assets/renaissance/guardian-aurores.webp": "9d66ca3774d3fd11d91be3db6617803a17c1e09a650b3d93acf543b5af2368c3",
+        "mobile/assets/rpg/guardian-aurores-s.webp": "b9c82f681f5e4b94d987eb4c197714d58c804ac614bbc4819a28663b7c529d79"
+      }
+    },
+    {
+      "id": "scout",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/scout-s.webp",
+        "assets/renaissance/scout.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/scout-s.webp",
+        "assets/renaissance/scout.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/scout-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/scout-s.webp": "06e57962b7551d11251118534daccdcb969c5754005129b23dc8d9c671653816",
+        "assets/renaissance/scout.webp": "ff069cd55812c3650eff938b2fe3152fc776a21bd97e8e05b03d8817c679bab8",
+        "mobile/assets/rpg/scout-s.webp": "06e57962b7551d11251118534daccdcb969c5754005129b23dc8d9c671653816"
+      }
+    },
+    {
+      "id": "ranger",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/ranger-s.webp",
+        "assets/renaissance/ranger.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/ranger-s.webp",
+        "assets/renaissance/ranger.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/ranger-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/ranger-s.webp": "5a540f087396070a1c6e28b1da59cc6a21ef7faa04b808a96746c769f8c87b5d",
+        "assets/renaissance/ranger.webp": "f450a2a5c121134fe0d437483aa5d0b8930891c545424b717e024ce4cb10ec1b",
+        "mobile/assets/rpg/ranger-s.webp": "5a540f087396070a1c6e28b1da59cc6a21ef7faa04b808a96746c769f8c87b5d"
+      }
+    },
+    {
+      "id": "keeper",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/keeper-s.webp",
+        "assets/renaissance/keeper.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/keeper-s.webp",
+        "assets/renaissance/keeper.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/keeper-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/keeper-s.webp": "a5f6ee686a06eefd5501c887f1ff2ce61a6782cd87b297193d32d4e4490952bb",
+        "assets/renaissance/keeper.webp": "d48bd0478e7c9f49e768076586df317f2d3bacf7c8603fbafb832d8eece2bdde",
+        "mobile/assets/rpg/keeper-s.webp": "a5f6ee686a06eefd5501c887f1ff2ce61a6782cd87b297193d32d4e4490952bb"
+      }
+    },
+    {
+      "id": "artisan",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/artisan-s.webp",
+        "assets/renaissance/artisan.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/artisan-s.webp",
+        "assets/renaissance/artisan.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/artisan-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/artisan-s.webp": "fd1cb5daeb722e0eff0ecd5f96b1fc287f144951a7c0e6c61ff0d5c2c41d836e",
+        "assets/renaissance/artisan.webp": "ac31c03cc000a4280314c2066d75f46e2d39c6efc3578d9e2684f1215f392cb7",
+        "mobile/assets/rpg/artisan-s.webp": "fd1cb5daeb722e0eff0ecd5f96b1fc287f144951a7c0e6c61ff0d5c2c41d836e"
+      }
+    },
+    {
+      "id": "navigator",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/navigator-s.webp",
+        "assets/renaissance/navigator.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/navigator-s.webp",
+        "assets/renaissance/navigator.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/navigator-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/navigator-s.webp": "18741c1e5b2339bff0f8434fa9fd2941f18f22314c1b1892e6fdcb27ac6954bd",
+        "assets/renaissance/navigator.webp": "1917529a967f23446951d50863074c155803840b4ea4a57a4406dbc8be525f35",
+        "mobile/assets/rpg/navigator-s.webp": "18741c1e5b2339bff0f8434fa9fd2941f18f22314c1b1892e6fdcb27ac6954bd"
+      }
+    },
+    {
+      "id": "sentinel",
+      "family": "avatar",
+      "priority": "P1",
+      "usage": "Renaissance / aventure",
+      "sources": [
+        "assets/renaissance/sentinel-s.webp",
+        "assets/renaissance/sentinel.webp"
+      ],
+      "web_targets": [
+        "assets/renaissance/sentinel-s.webp",
+        "assets/renaissance/sentinel.webp"
+      ],
+      "android_targets": [
+        "mobile/assets/rpg/sentinel-s.webp"
+      ],
+      "status": "existing_unreviewed",
+      "decision": "pending_visual_review",
+      "version": "existing",
+      "presence": true,
+      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "sha256": {
+        "assets/renaissance/sentinel-s.webp": "75b01cfa367947a5f79acebe776e089f98855d92ace9c5cf935b859409343ee1",
+        "assets/renaissance/sentinel.webp": "05eec2ad196a4aa640f2262d3cc116d0b24a15087c7a8a5e13a4323149963bbf",
+        "mobile/assets/rpg/sentinel-s.webp": "75b01cfa367947a5f79acebe776e089f98855d92ace9c5cf935b859409343ee1"
+      }
+    },
+    {
+      "id": "eclaireur",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "explorateur",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "sentinelle",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "gardien",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "champion",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "titan",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    },
+    {
+      "id": "legende",
+      "family": "rank",
+      "priority": "P0",
+      "usage": "Blason de grade",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "pending_proposal",
+      "decision": "existing_fallback_retained",
+      "version": null,
+      "presence": true,
+      "rights": null,
+      "sha256": {}
+    }
+  ]
+}
