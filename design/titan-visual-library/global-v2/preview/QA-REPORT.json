@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-11-13T13:02:50.013Z",
+  "generated_at": "2026-11-13T13:04:11.803Z",
   "counts": {
     "vectors": 138,
     "remasters": 15,
-    "png": 153,
-    "webp": 306,
-    "sheets": 9
+    "photos": 4,
+    "png": 157,
+    "webp": 318,
+    "sheets": 10
   },
   "issues": [],
   "duplicate_source_pairs": [],
@@ -3683,6 +3684,134 @@
       "sha256": "9ac9388f8f4cde3b6173caccfbd1c259267e9b193b49d61b13fc9a3def6afdc9"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/valley.png",
+      "bytes": 2189349,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "80f9337601888caa62e2e71ee51de0832b145e2b0086d65de4500b855ed0348f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-web.webp",
+      "bytes": 64910,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "be9eaa6fa0b012849f85f7922892d74b4d880092702ea96da2f5028fd623e87e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-android.webp",
+      "bytes": 15312,
+      "width": 600,
+      "height": 338,
+      "alpha": false,
+      "sha256": "64858808f8901fecb0d8b14016e9bd19182076cbfc53b0fee1e847cabe77a388"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-thumb.webp",
+      "bytes": 4302,
+      "width": 320,
+      "height": 180,
+      "alpha": false,
+      "sha256": "53ea657ee62bfa34a9832ea675c1ffee6d358661e0821aac8f27289323686f96"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/archipelago.png",
+      "bytes": 2857048,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "0ebcbdf35065f73dd1ca332ba44cc26bd1e98769862f78441b1b1eb9c89cd9c0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-web.webp",
+      "bytes": 114414,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "c36164442259b39039ce08ac31c5763bc87d52df2a6c637ce0ad5c0cfbbc1953"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-android.webp",
+      "bytes": 15898,
+      "width": 600,
+      "height": 338,
+      "alpha": false,
+      "sha256": "94d3cf9ccc5c4eeb1158cb3aed7ec83a6f796906ddbed1b0830da9818cc08b36"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-thumb.webp",
+      "bytes": 4116,
+      "width": 320,
+      "height": 180,
+      "alpha": false,
+      "sha256": "9ad44c28f7d262844eb6baea4c946a80476df9bb3ef3c5696a02fe3ed5bdf8ac"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/forge.png",
+      "bytes": 1231915,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "d4cc17627c1ed610fc776148d34cf9562ec2c2e6068fb374b7181935f50da1ef"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-web.webp",
+      "bytes": 26240,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "0b66effe307323445266b917ed31e041a1b5e2a026d38ee7d1d9cbb368fe99c0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-android.webp",
+      "bytes": 7568,
+      "width": 600,
+      "height": 338,
+      "alpha": false,
+      "sha256": "c633b9224e8238df558e62cbe74cf4670c1e8db6cdcb99a133a0ef8ce1625c08"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-thumb.webp",
+      "bytes": 2296,
+      "width": 320,
+      "height": 180,
+      "alpha": false,
+      "sha256": "245a8f6baddc2cbba785e6c8ad646951ee62582e9013ee492aa5ee7dd474e39f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/aurora.png",
+      "bytes": 3007726,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "34741d7a5fed740de003689c22f9d0eea89bef3aa1a20d1eac35b078fbdcae55"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-web.webp",
+      "bytes": 108038,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "c639135ea60f7780dd139a746f64d2a148cbc254b1a99accd361c96574aa8b20"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-android.webp",
+      "bytes": 16354,
+      "width": 600,
+      "height": 338,
+      "alpha": false,
+      "sha256": "a311b9990d993cc8fb389c45a7a3ffb0d379db943f2a5c25ac852227c452d080"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-thumb.webp",
+      "bytes": 3264,
+      "width": 320,
+      "height": 180,
+      "alpha": false,
+      "sha256": "2c71596f008ae606f4df465a1d32be83b0d6e1885ee4cb04bf744243ef899851"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/preview/contact-ranks.webp",
       "bytes": 22568,
       "width": 816,
@@ -3739,6 +3868,14 @@
       "sha256": "51f0b5ff7d71102ca917ed52299ca7bea4aa1abf24ad19f4915e5e407d7408f7"
     },
     {
+      "path": "design/titan-visual-library/global-v2/preview/contact-photo-worlds.webp",
+      "bytes": 41914,
+      "width": 928,
+      "height": 686,
+      "alpha": false,
+      "sha256": "d4a2e401371c5ed311c6fe433af812e5e73adccf1d869d0eb8209b33bddf43b9"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/preview/contact-characters.webp",
       "bytes": 110704,
       "width": 920,
@@ -3758,7 +3895,8 @@
   "notes": [
     "Static dimension and alpha checks only",
     "No visual or real device test; review required",
-    "15 remasters retain original subjects rather than new ImageGen creations"
+    "15 remasters retain original subjects rather than new ImageGen creations",
+    "New landscape photographs from Unsplash are proposed alternatives, not original AI-generated artwork"
   ],
   "protected_production_paths_unchanged": true
 }

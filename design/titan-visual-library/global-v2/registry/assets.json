@@ -1,12 +1,13 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-13T13:02:50.011Z",
+  "updated_at": "2026-11-13T13:04:11.800Z",
   "proposals": {
     "new_vector_masters": 138,
     "photo_remasters": 15,
-    "png": 153,
-    "webp": 306,
-    "contact_sheets": 9
+    "new_photographic_candidates": 4,
+    "png": 157,
+    "webp": 318,
+    "contact_sheets": 10
   },
   "assets": [
     {
@@ -4932,6 +4933,134 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp": "0bf404323a9b15b7efc40218c6bdcc355ec92266ce15e7aa54460ba5d9c6fa87",
         "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp": "57e5ccd9e8482cd4ce01a78fb969f8bfdffe17b4959e7604b296b994fc7a1831"
       }
+    },
+    {
+      "id": "world-photo-valley",
+      "family": "world-photo",
+      "priority": "P1",
+      "name": "Vallée de l'Aube",
+      "usage": "Photographic alternative for Renaissance world valley",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/valley.png",
+      "source_original": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/valley-source.jpg",
+      "source_sha256": "0c89ae1c15eb125e0f4c7cb200e20ac364465cd61b92bb664e72047edbc00cb6",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-android.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-thumb.webp"
+      ],
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/valley.png": "80f9337601888caa62e2e71ee51de0832b145e2b0086d65de4500b855ed0348f",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-web.webp": "be9eaa6fa0b012849f85f7922892d74b4d880092702ea96da2f5028fd623e87e",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-android.webp": "64858808f8901fecb0d8b14016e9bd19182076cbfc53b0fee1e847cabe77a388",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/valley-thumb.webp": "53ea657ee62bfa34a9832ea675c1ffee6d358661e0821aac8f27289323686f96"
+      },
+      "presence": true,
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.1-photographic",
+      "format": "png + webp",
+      "rights": "Licensed Unsplash free photo by Vasu Pendyala; https://unsplash.com/photos/mountain-valley-with-lake-at-sunrise-HKZYYiJXmJs",
+      "license_url": "https://unsplash.com/license",
+      "photographer": "Vasu Pendyala",
+      "source_page": "https://unsplash.com/photos/mountain-valley-with-lake-at-sunrise-HKZYYiJXmJs",
+      "candidate_for": "valley",
+      "technique": "Real photograph, subtle color grade. Existing RPG image and fallback preserved."
+    },
+    {
+      "id": "world-photo-archipelago",
+      "family": "world-photo",
+      "priority": "P1",
+      "name": "Archipel des Marées",
+      "usage": "Photographic alternative for Renaissance world archipelago",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/archipelago.png",
+      "source_original": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/archipelago-source.jpg",
+      "source_sha256": "00fd5655c1df93bf97c6d8b9db447dc3b7abcd8d0c96bdcd9ae407709ee5ee4f",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-android.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-thumb.webp"
+      ],
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/archipelago.png": "0ebcbdf35065f73dd1ca332ba44cc26bd1e98769862f78441b1b1eb9c89cd9c0",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-web.webp": "c36164442259b39039ce08ac31c5763bc87d52df2a6c637ce0ad5c0cfbbc1953",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-android.webp": "94d3cf9ccc5c4eeb1158cb3aed7ec83a6f796906ddbed1b0830da9818cc08b36",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/archipelago-thumb.webp": "9ad44c28f7d262844eb6baea4c946a80476df9bb3ef3c5696a02fe3ed5bdf8ac"
+      },
+      "presence": true,
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.1-photographic",
+      "format": "png + webp",
+      "rights": "Licensed Unsplash free photo by Jean Carlo Emer; https://unsplash.com/photos/white-lighthouse-on-a-rugged-cliff-by-the-ocean-QDEXHid5sAM",
+      "license_url": "https://unsplash.com/license",
+      "photographer": "Jean Carlo Emer",
+      "source_page": "https://unsplash.com/photos/white-lighthouse-on-a-rugged-cliff-by-the-ocean-QDEXHid5sAM",
+      "candidate_for": "archipelago",
+      "technique": "Real photograph, subtle color grade. Existing RPG image and fallback preserved."
+    },
+    {
+      "id": "world-photo-forge",
+      "family": "world-photo",
+      "priority": "P1",
+      "name": "Forges d'Obsidienne",
+      "usage": "Photographic alternative for Renaissance world forge",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/forge.png",
+      "source_original": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/forge-source.jpg",
+      "source_sha256": "e799b26d4d6314dabad528311d32e36e7c22625b4640eb4946c3c234b9fc0437",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-android.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-thumb.webp"
+      ],
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/forge.png": "d4cc17627c1ed610fc776148d34cf9562ec2c2e6068fb374b7181935f50da1ef",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-web.webp": "0b66effe307323445266b917ed31e041a1b5e2a026d38ee7d1d9cbb368fe99c0",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-android.webp": "c633b9224e8238df558e62cbe74cf4670c1e8db6cdcb99a133a0ef8ce1625c08",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/forge-thumb.webp": "245a8f6baddc2cbba785e6c8ad646951ee62582e9013ee492aa5ee7dd474e39f"
+      },
+      "presence": true,
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.1-photographic",
+      "format": "png + webp",
+      "rights": "Licensed Unsplash free photo by Balázs Gábor; https://unsplash.com/photos/volcanic-landscape-with-dark-lava-fields-and-distant-mountains-17rvUGnEPCU",
+      "license_url": "https://unsplash.com/license",
+      "photographer": "Balázs Gábor",
+      "source_page": "https://unsplash.com/photos/volcanic-landscape-with-dark-lava-fields-and-distant-mountains-17rvUGnEPCU",
+      "candidate_for": "forge",
+      "technique": "Real photograph, subtle color grade. Existing RPG image and fallback preserved."
+    },
+    {
+      "id": "world-photo-aurora",
+      "family": "world-photo",
+      "priority": "P1",
+      "name": "Citadelle des Aurores",
+      "usage": "Photographic alternative for Renaissance world aurora",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/aurora.png",
+      "source_original": "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/aurora-source.jpg",
+      "source_sha256": "adb5ef99597f860fc3e391df0dae05b9a9757f6013f9c293a5994215d6aa7ff2",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-android.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-thumb.webp"
+      ],
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/aurora.png": "34741d7a5fed740de003689c22f9d0eea89bef3aa1a20d1eac35b078fbdcae55",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-web.webp": "c639135ea60f7780dd139a746f64d2a148cbc254b1a99accd361c96574aa8b20",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-android.webp": "a311b9990d993cc8fb389c45a7a3ffb0d379db943f2a5c25ac852227c452d080",
+        "design/titan-visual-library/global-v2/proposed/exports/photographic-worlds/aurora-thumb.webp": "2c71596f008ae606f4df465a1d32be83b0d6e1885ee4cb04bf744243ef899851"
+      },
+      "presence": true,
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.1-photographic",
+      "format": "png + webp",
+      "rights": "Licensed Unsplash free photo by Rafael Peier; https://unsplash.com/photos/northern-lights-illuminate-a-starry-sky-over-snowy-mountains-XXX2uavaR38",
+      "license_url": "https://unsplash.com/license",
+      "photographer": "Rafael Peier",
+      "source_page": "https://unsplash.com/photos/northern-lights-illuminate-a-starry-sky-over-snowy-mountains-XXX2uavaR38",
+      "candidate_for": "aurora",
+      "technique": "Real photograph, subtle color grade. Existing RPG image and fallback preserved."
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 **PROPOSED — approbation requise. Aucun asset integre au code ni deploye.**
 
-Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 153 | WebP: 306
+Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 157 | WebP: 318
 
 ## Grades TITAN
 
@@ -170,6 +170,15 @@ Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 153 | Web
 - [archipelago](../proposed/masters/renaissance/archipelago.png) — archipelago — **proposed** — [export](../proposed/exports/renaissance/archipelago-web.webp) [export](../proposed/exports/renaissance/archipelago-android.webp)
 - [forge](../proposed/masters/renaissance/forge.png) — forge — **proposed** — [export](../proposed/exports/renaissance/forge-web.webp) [export](../proposed/exports/renaissance/forge-android.webp)
 - [aurora](../proposed/masters/renaissance/aurora.png) — aurora — **proposed** — [export](../proposed/exports/renaissance/aurora-web.webp) [export](../proposed/exports/renaissance/aurora-android.webp)
+
+## Mondes · nouvelles alternatives photographiques
+
+![Contact sheet photo-worlds](./contact-photo-worlds.webp)
+
+- [world-photo-valley](../proposed/masters/photographic-worlds/valley.png) — Vallée de l'Aube — **proposed** — [export](../proposed/exports/photographic-worlds/valley-web.webp) [export](../proposed/exports/photographic-worlds/valley-android.webp) [export](../proposed/exports/photographic-worlds/valley-thumb.webp)
+- [world-photo-archipelago](../proposed/masters/photographic-worlds/archipelago.png) — Archipel des Marées — **proposed** — [export](../proposed/exports/photographic-worlds/archipelago-web.webp) [export](../proposed/exports/photographic-worlds/archipelago-android.webp) [export](../proposed/exports/photographic-worlds/archipelago-thumb.webp)
+- [world-photo-forge](../proposed/masters/photographic-worlds/forge.png) — Forges d'Obsidienne — **proposed** — [export](../proposed/exports/photographic-worlds/forge-web.webp) [export](../proposed/exports/photographic-worlds/forge-android.webp) [export](../proposed/exports/photographic-worlds/forge-thumb.webp)
+- [world-photo-aurora](../proposed/masters/photographic-worlds/aurora.png) — Citadelle des Aurores — **proposed** — [export](../proposed/exports/photographic-worlds/aurora-web.webp) [export](../proposed/exports/photographic-worlds/aurora-android.webp) [export](../proposed/exports/photographic-worlds/aurora-thumb.webp)
 
 ## Gardiens et avatars · remasters
 

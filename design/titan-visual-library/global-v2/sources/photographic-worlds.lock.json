@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-11-13T13:03:32.346Z",
+  "items": [
+    {
+      "id": "valley",
+      "file": "proposed/masters/photographic-worlds/valley-source.jpg",
+      "width": 2000,
+      "height": 1333,
+      "bytes": 394129,
+      "sha256": "0c89ae1c15eb125e0f4c7cb200e20ac364465cd61b92bb664e72047edbc00cb6",
+      "license": "https://unsplash.com/license",
+      "author": "Vasu Pendyala",
+      "page": "https://unsplash.com/photos/mountain-valley-with-lake-at-sunrise-HKZYYiJXmJs"
+    },
+    {
+      "id": "archipelago",
+      "file": "proposed/masters/photographic-worlds/archipelago-source.jpg",
+      "width": 2000,
+      "height": 1326,
+      "bytes": 752719,
+      "sha256": "00fd5655c1df93bf97c6d8b9db447dc3b7abcd8d0c96bdcd9ae407709ee5ee4f",
+      "license": "https://unsplash.com/license",
+      "author": "Jean Carlo Emer",
+      "page": "https://unsplash.com/photos/white-lighthouse-on-a-rugged-cliff-by-the-ocean-QDEXHid5sAM"
+    },
+    {
+      "id": "forge",
+      "file": "proposed/masters/photographic-worlds/forge-source.jpg",
+      "width": 2000,
+      "height": 3000,
+      "bytes": 1200849,
+      "sha256": "e799b26d4d6314dabad528311d32e36e7c22625b4640eb4946c3c234b9fc0437",
+      "license": "https://unsplash.com/license",
+      "author": "Balázs Gábor",
+      "page": "https://unsplash.com/photos/volcanic-landscape-with-dark-lava-fields-and-distant-mountains-17rvUGnEPCU"
+    },
+    {
+      "id": "aurora",
+      "file": "proposed/masters/photographic-worlds/aurora-source.jpg",
+      "width": 2000,
+      "height": 1334,
+      "bytes": 684167,
+      "sha256": "adb5ef99597f860fc3e391df0dae05b9a9757f6013f9c293a5994215d6aa7ff2",
+      "license": "https://unsplash.com/license",
+      "author": "Rafael Peier",
+      "page": "https://unsplash.com/photos/northern-lights-illuminate-a-starry-sky-over-snowy-mountains-XXX2uavaR38"
+    }
+  ]
+}
