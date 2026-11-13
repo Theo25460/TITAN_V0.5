@@ -1,6 +1,6 @@
 {
-  "scope": "Targeted registry of original vector proposals and non-destructive photo remasters. Active web/android fallbacks remain unchanged; additional in-app illustration occurrences require review before integration.",
-  "updated_at": "2026-11-13T12:58:31.514Z",
+  "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
+  "updated_at": "2026-11-13",
   "proposals": {
     "new_vector_masters": 106,
     "photo_remasters": 15,
@@ -3844,6 +3844,742 @@
         "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-96.webp"
       ],
       "source_sha256": "59d93b2e31e5141b2b53fc2204188e0b1113435b3a84941e6d61c804eb4a60ab"
+    },
+    {
+      "id": "guardian-object-aube",
+      "family": "guardian",
+      "priority": "P1",
+      "name": "Veilleur de l’Aube",
+      "usage": "Veilleur de l’Aube",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-aube.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-aube.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "guardian-aube"
+    },
+    {
+      "id": "guardian-object-marees",
+      "family": "guardian",
+      "priority": "P1",
+      "name": "Gardien des Marées",
+      "usage": "Gardien des Marées",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-marees.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-marees.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "guardian-marees"
+    },
+    {
+      "id": "guardian-object-forge",
+      "family": "guardian",
+      "priority": "P1",
+      "name": "Gardien des Forges",
+      "usage": "Gardien des Forges",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-forge.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-forge.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "guardian-forge"
+    },
+    {
+      "id": "guardian-object-aurores",
+      "family": "guardian",
+      "priority": "P1",
+      "name": "Gardien des Aurores",
+      "usage": "Gardien des Aurores",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-aurores.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/guardian-objects/guardian-object-aurores.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "guardian-aurores"
+    },
+    {
+      "id": "avatar-token-scout",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Éclaireur · équipement de repérage",
+      "usage": "Éclaireur · équipement de repérage",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-scout.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-scout.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "scout"
+    },
+    {
+      "id": "avatar-token-ranger",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Ranger · jumelles de terrain",
+      "usage": "Ranger · jumelles de terrain",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-ranger.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-ranger.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "ranger"
+    },
+    {
+      "id": "avatar-token-keeper",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Gardien · lampe d’expédition",
+      "usage": "Gardien · lampe d’expédition",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-keeper.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-keeper.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "keeper"
+    },
+    {
+      "id": "avatar-token-artisan",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Artisan · pied à coulisse",
+      "usage": "Artisan · pied à coulisse",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-artisan.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-artisan.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "artisan"
+    },
+    {
+      "id": "avatar-token-navigator",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Navigateur · sextant",
+      "usage": "Navigateur · sextant",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-navigator.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-navigator.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "navigator"
+    },
+    {
+      "id": "avatar-token-sentinel",
+      "family": "avatar",
+      "priority": "P1",
+      "name": "Sentinelle · radio de veille",
+      "usage": "Sentinelle · radio de veille",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-sentinel.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/avatar-tokens/avatar-token-sentinel.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": "sentinel"
+    },
+    {
+      "id": "empty-moments",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Moments · aucun partage",
+      "usage": "Moments · aucun partage",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-moments.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-moments.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-guild",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Guilde · première équipe",
+      "usage": "Guilde · première équipe",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-guild.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-guild.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-binom",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Binôme · duo à créer",
+      "usage": "Binôme · duo à créer",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-binom.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-binom.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-ranking",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Classement · aucune participation",
+      "usage": "Classement · aucune participation",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-ranking.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-ranking.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-weekly-quests",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Quêtes hebdomadaires",
+      "usage": "Quêtes hebdomadaires",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-weekly-quests.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-weekly-quests.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-season",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Saison · première participation",
+      "usage": "Saison · première participation",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-season.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-season.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "profile-passport",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Profil · passeport sportif",
+      "usage": "Profil · passeport sportif",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/profile-passport.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/profile-passport.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "sport-dna",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "ADN sportif · exploration des pratiques",
+      "usage": "ADN sportif · exploration des pratiques",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/sport-dna.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/sport-dna.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-atelier",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Atelier · collection à constituer",
+      "usage": "Atelier · collection à constituer",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-atelier.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-atelier.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-notifications",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Notifications · aucune alerte",
+      "usage": "Notifications · aucune alerte",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-notifications.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-notifications.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "report-summary",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Rapports · récapitulatif",
+      "usage": "Rapports · récapitulatif",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/report-summary.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/report-summary.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "record-detail",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Record · séance source",
+      "usage": "Record · séance source",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/record-detail.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/record-detail.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "gps-tracking",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "GPS · enregistrement actif",
+      "usage": "GPS · enregistrement actif",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/gps-tracking.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/gps-tracking.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "gps-location-missing",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "GPS · position indisponible",
+      "usage": "GPS · position indisponible",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/gps-location-missing.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/gps-location-missing.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "import-error",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Import GPX · fichier invalide",
+      "usage": "Import GPX · fichier invalide",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/import-error.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/import-error.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-route-library",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Parcours · carnet d’itinéraires",
+      "usage": "Parcours · carnet d’itinéraires",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-route-library.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-route-library.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-coach-clients",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Coaching · athlètes absents",
+      "usage": "Coaching · athlètes absents",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-coach-clients.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-coach-clients.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-program",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Programme · séance à construire",
+      "usage": "Programme · séance à construire",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-program.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-program.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-workout",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Séance · premier entraînement",
+      "usage": "Séance · premier entraînement",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-workout.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-workout.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "empty-discovery",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Découverte · sports à essayer",
+      "usage": "Découverte · sports à essayer",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/empty-discovery.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/empty-discovery.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "success-upload",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Import réussi · activité reçue",
+      "usage": "Import réussi · activité reçue",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/success-upload.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/success-upload.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
+    },
+    {
+      "id": "error-system",
+      "family": "ui-illustration",
+      "priority": "P2",
+      "name": "Erreur système · action à reprendre",
+      "usage": "Erreur système · action à reprendre",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/ui/error-system.svg",
+      "sources": [
+        "design/titan-visual-library/global-v2/proposed/masters/ui/error-system.svg"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2.1",
+      "rights": "Original TITAN vector illustration, no third-party source",
+      "format": "svg",
+      "technical_targets": [
+        "Web 256px",
+        "Android 96px"
+      ],
+      "constraints": "No code integration before approval",
+      "candidate_for": null
     }
   ]
 }
