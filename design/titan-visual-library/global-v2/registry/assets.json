@@ -1,13 +1,12 @@
 {
   "scope": "Targeted registry of original vector proposals and non-destructive photo remasters. Active web/android fallbacks remain unchanged; additional in-app illustration occurrences require review before integration.",
-  "updated_at": "2026-11-13T11:35:18.776Z",
+  "updated_at": "2026-11-13T11:37:20.335Z",
   "proposals": {
-    "new_vector_masters": 58,
+    "new_vector_masters": 106,
     "photo_remasters": 15,
-    "png": 73,
-    "webp": 146,
-    "contact_sheets": 8,
-    "reward_state_masters": 48
+    "png": 121,
+    "webp": 242,
+    "contact_sheets": 9
   },
   "assets": [
     {
@@ -2564,8 +2563,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-512.png": "9ecb4edcdff1f0a52889939a14d743086699ed4244b165560e181e70e3870acc",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-256.webp": "1f3bb9553d08fae7cc11364c44983ea03f04a5e7608ebf12e7c6cdfe5664c851",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-96.webp": "7434251f93c3b2c1962c4ec8f0b3b92838f62f86722c75505665ef2826321f30"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-earned-96.webp"
+      ],
+      "source_sha256": "fb351e9b0773903d71fad4f3932707d864ffaa77fa7226806591091a701fa62c"
     },
     {
       "id": "first-effort-locked",
@@ -2581,8 +2590,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-512.png": "8a4871643867e1e17c878faf0e421f66109bfa114f6cc02808119a71b52b36ee",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-256.webp": "6376a8c5a1f5f3bbfce4c9a4e9e1b10f3da6fca0a0116b9d59a7934146dce0cb",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-96.webp": "e37288230cab8585c1dbc02922a08e9991b05e22fb92c9de40deb4392d536b07"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-locked-96.webp"
+      ],
+      "source_sha256": "ca4b919daa95193a8878f755b37085b2c693e6a44aa1aecb8c5a90eedca3f1c6"
     },
     {
       "id": "first-effort-discovered",
@@ -2598,8 +2617,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-512.png": "08b72877e43261987d2b05abea2ee5d96fb7ca9cef3d80e493c20ba548a62e24",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-256.webp": "befff7f363e4087e4b9f2dd0d86c7ed0de7a01f1003b986085dfadd812e7d4a6",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-96.webp": "b8925423b198412b08b82b8f757f689c439b4f4ac5525911794bd5f93183bce1"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-discovered-96.webp"
+      ],
+      "source_sha256": "205d770b0f87ab7d2f247f532798d305feb1bb0751c5914300502291a4a5d79e"
     },
     {
       "id": "first-effort-rare",
@@ -2615,8 +2644,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-512.png": "fa072f278120e1c6e5f533a5d1ebc1be2d10f8980d44d46fd38c30d6571d9867",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-256.webp": "7763cc081d0f8e22e7e2fd3ed4169240dd3fbc9ce5996964d9b7d573a7881f8a",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-96.webp": "7a32e750afe3cb01948945452953ef082f2eed317221d87e96ddfe5b9cde85c7"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/first-effort-rare-96.webp"
+      ],
+      "source_sha256": "92364f66d286113a849a5e8e5ecb09b441a7aa4047667f24e52bcc68323f1ef9"
     },
     {
       "id": "record-earned",
@@ -2632,8 +2671,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-512.png": "c7654a79e1fb22684bed2f7ebd14aa41ce16c08cf1a5a4b3bc5a5d3cb326ea28",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-256.webp": "4ff8c2e5ec34d15d76368bad066368c85d42c0522e6548cccbab0770261a2561",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-96.webp": "8885035106e7a9588bb3c341c6e0d27fd4d2593f2306a433b98fc24b858b460a"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-earned-96.webp"
+      ],
+      "source_sha256": "75bed2e7b5d7ab8d960848266273611441fb907a1082926ba2fc43c53e346c19"
     },
     {
       "id": "record-locked",
@@ -2649,8 +2698,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-512.png": "2c1204076fb770e229acadaa006c81231e5567b9adad269875467343803f2b0c",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-256.webp": "2797c66d10cfd05aee048b6d2b6b4e71926a22483170bfd7037f9096d925260e",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-96.webp": "fad2d812120062a89d9c461e5efa91d82a3e4206e6a1c90e9d871a28d8662ebf"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-locked-96.webp"
+      ],
+      "source_sha256": "b794e814d45c78c40ac73c8f222da9c6146998c82453616e1f599b4fdf62da80"
     },
     {
       "id": "record-discovered",
@@ -2666,8 +2725,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-512.png": "9094c3260998c5ef69d96298bcace2b6d57d80c382782899574c7809446e1caa",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-256.webp": "a6f822466dd31bcf429b6d0a6dea850894a0945ad68818059146b2a6664bd6c0",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-96.webp": "dc521c328dc97b849ac320bdbcb1f22c1fcf866bf646d9d707f332741f153da8"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-discovered-96.webp"
+      ],
+      "source_sha256": "8ec87fb4996da1f75be2fd8c5fc956212d83fda25f3743395805cad51e45bc8c"
     },
     {
       "id": "record-rare",
@@ -2683,8 +2752,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-512.png": "a288967e803456aec150f1e9dc0a6f4be592cde67ca4b4d61e6ac2953de32b79",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-256.webp": "6c496cac6a8066b063f280e2be57e0de342abdeb661397a8fc8687c2479bdbf4",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-96.webp": "4fc3baf55c770f995362a4a9b0a2d57863a7b5888827d8932eb1dd54c08c58aa"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/record-rare-96.webp"
+      ],
+      "source_sha256": "2aa887847eb49b155d2fc83dd4f7ae9ed7828526d35eb8fa3b765c0933a13a0b"
     },
     {
       "id": "streak-earned",
@@ -2700,8 +2779,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-512.png": "f72fe0757e2fdc354b42c96c772f95850848731d3bcc63b0ec56aaa528f826ae",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-256.webp": "b9627c2ba90be5eff5cadc3c9ecffbc73b16d2dabe685744527f9e3f4e8880dd",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-96.webp": "9e73f84088536bf5badf132645e7fb577b47023be5b63797397bf8215e597d5a"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-earned-96.webp"
+      ],
+      "source_sha256": "8cadaf741069b0ccd36f89100d94156d4c4feaab1239e9847e1501472a093e65"
     },
     {
       "id": "streak-locked",
@@ -2717,8 +2806,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-512.png": "cc0769d94fd8ba81fe6debd67349e324df737876f06f124e54b3b8e6265ad987",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-256.webp": "619ba7a735d2cb5642796e73685af8d8e22e80f3c40ea4ee16e6556ce0ff2c43",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-96.webp": "509d7c3dbf8cb107e036130b15bd433f339b6bd7778b06ed823082f0adba9a3a"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-locked-96.webp"
+      ],
+      "source_sha256": "e899a86f5286803523682795a50d8321615a9752d3e8171ce50e481cf20fa455"
     },
     {
       "id": "streak-discovered",
@@ -2734,8 +2833,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-512.png": "88776c8b6dab09b00907b91169c7c956bc35e93958f355a3b481137976a587a7",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-256.webp": "e30cf6dd091a7162902ca96ae6f8faa665acf4d7f929f6f70e5fab3fc2dfd8ce",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-96.webp": "dc737211dda501a14e1df599ab7fbb5b0a5a40a88d3808c38587a9a902a4c7de"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-discovered-96.webp"
+      ],
+      "source_sha256": "355b9ffe36fda3bb9fc87e6aeed2576ed3a431f5cc9d0bf3a2a1e3a58330cdcc"
     },
     {
       "id": "streak-rare",
@@ -2751,8 +2860,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-512.png": "2c3327cc503c67b26858867b73e1a4cfd3faf82d28e3f357af04206c50861d44",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-256.webp": "010b882d2c89fb80eeb96085b3529cc828a2e7218a4ea966273b0a5374352ec6",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-96.webp": "010ada18e51d179b13e60e63ed36f40f2943c2b0869eddf19e753e1ceb6099da"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/streak-rare-96.webp"
+      ],
+      "source_sha256": "04c1e5ec0eddfa4bb6f31acf4c919d8013fac286812db17b58e6078fd4cbc712"
     },
     {
       "id": "weekly-earned",
@@ -2768,8 +2887,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-512.png": "2cc98925b562d62281c8c242df4de4c33eea543af3d29472a10eba6f76f00a10",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-256.webp": "42e4c5649e8f54231abb09be979fc382b2226722c50c77211ab54330bc17a7cb",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-96.webp": "b4082725365d33e25e8b836f0ed2b7d1a42cc3f85ead2133e680b6f71869b1ca"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-earned-96.webp"
+      ],
+      "source_sha256": "555a1a236a41a8705e46374040134a139f075455c477540b4d613f08a7465e04"
     },
     {
       "id": "weekly-locked",
@@ -2785,8 +2914,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-512.png": "99789cb19bacf821517f60e192b0abd7b0ecd1a160c7b74bf0018af4ebcd767b",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-256.webp": "fb8efbce4b97f4e630297b3fd053b92d84fd6b2c49f4d9be7fbb412dad3f78ef",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-96.webp": "4be61ef4b7176dbb6a6e14aa4902cf52047a0be0243bfe525bf5903ccd7cfc6e"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-locked-96.webp"
+      ],
+      "source_sha256": "09dce38f304d252c40b14d37afcfb6c2f0b1b2fdbccefe12f1ba7d58fd91dfdc"
     },
     {
       "id": "weekly-discovered",
@@ -2802,8 +2941,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-512.png": "c730b321d97c444d5b50d451d22a517b20f252b92a912e7f3865a05df6c351a0",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-256.webp": "98c769f50dc55f90516476895e3576206b7ee35bf7bae5eb8f21ef2a96e9f109",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-96.webp": "59ab73ab1284c5b7605a7d37d8a53fd03de5e2765a2c5059d8b8895c265b81f9"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-discovered-96.webp"
+      ],
+      "source_sha256": "82c2539a085a7ccca52307da8e9ca3cd6ea6612daf8cb7d58fe63a2536e2244c"
     },
     {
       "id": "weekly-rare",
@@ -2819,8 +2968,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-512.png": "e816094d6227d5d7e1e06e2c0babd161deb9586190c3489414ff051eb3a168bf",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-256.webp": "1c46e90557d910ddd20727435d19fbbd8c8f04dab49d8d1b1b8f840b2e872b79",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-96.webp": "8c037831a53a31626d517db3355fc26cccaf8d9d133677fc12496c31c68658a3"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/weekly-rare-96.webp"
+      ],
+      "source_sha256": "41d532203ca3f73f5d00f17e1fe51c05827350612df7f1fa9b73d7fd6244ae84"
     },
     {
       "id": "challenge-earned",
@@ -2836,8 +2995,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-512.png": "9cd99e1e216ec1af6860e4d746527d010f690cf575b36a3bdcdcd789a3cf41fe",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-256.webp": "eb34262d081abf765d42aed7d28c027bba54e7a21de2b8476e97d8a7b34d076f",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-96.webp": "0af22552fa9fc7b26cdfd36d25c37425fd8525f1d12535520bff87192cf42614"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-earned-96.webp"
+      ],
+      "source_sha256": "ad3cf5fdacfeace40a08b4678880df851a5a9456733d529530a17bf94fe9ff67"
     },
     {
       "id": "challenge-locked",
@@ -2853,8 +3022,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-512.png": "8ee016107e1d9cb941bf0324343ecd17c1447b09312895c32a14f2fcb6443635",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-256.webp": "4d8882307659fd052e6422ef5f01efcb2fbdbd67ba7ec1f54dbe5bfe5daf13fa",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-96.webp": "13c798a42f138afc560d04cbdc3c2c8da1165acb8a5a2a866ed8a0488e773dab"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-locked-96.webp"
+      ],
+      "source_sha256": "72c8fcd8a92c6565a31d64013bb4a6700b8652d4a83835e4aaaa462133f9dbb5"
     },
     {
       "id": "challenge-discovered",
@@ -2870,8 +3049,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-512.png": "65859d458be40732db5e76f2a28ce08276557d1c0a30235d2b849f2556a9d99f",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-256.webp": "8e43dded6f0a3d2150bbc308258a21b90885500bf4109be9eafd35db96181bae",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-96.webp": "1f313604a3ab15112b4d6c0fc7ed732d4d1ffd02ba07d655424dd9975506300b"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-discovered-96.webp"
+      ],
+      "source_sha256": "971daaa9507dc27dfa5591712dc3b827ce6b433e59bd89941ef8b739f4f780f2"
     },
     {
       "id": "challenge-rare",
@@ -2887,8 +3076,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-512.png": "fd8a9d6a1423ae5eed03961830ebc32acdfa06035aba7040caa9ed3cd1abaad9",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-256.webp": "bb9980cec830d7108ae95c15d372a65fce840f3e03e9d67471fc27ee8ad044e1",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-96.webp": "5bc37a101fe21d94b7736efbed02ca4144bd1cb6f8651207026e2e56aab8dd39"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/challenge-rare-96.webp"
+      ],
+      "source_sha256": "f008d630dfe5d20c4dc26a4722ee0e60bafec389bbb3a75f8affcdc9cb48352b"
     },
     {
       "id": "exploration-earned",
@@ -2904,8 +3103,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-512.png": "728f7d3629e38cad858f013f2c5c40167fdf73ea875ac43989d78546c837ffc9",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-256.webp": "babc6696741bfae62d9864fee8addcac992f262d434635f9f3febcb41ab312f3",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-96.webp": "a13a364cbe1389b7e40d2b46bac0c16611ff3189b4e81ceb79da100b92cf4b0c"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-earned-96.webp"
+      ],
+      "source_sha256": "d76f9f132592abb88417759247cdf3b4b3ae5163542cdbe68936ebe15a9acc24"
     },
     {
       "id": "exploration-locked",
@@ -2921,8 +3130,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-512.png": "411b84c7ca84034ff1582ab431f9defa254e9b79e389ec82a8f2edb8ae5ebbd8",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-256.webp": "d53b76db5c73cc94455d9e7286e91220e95d7e381f2336efaf19a38b5138c7c3",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-96.webp": "a7f4fee9c1ef0e5e1080bc0f36a40a62e2ffe660145adb9321325ca05b14aa2a"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-locked-96.webp"
+      ],
+      "source_sha256": "8dd3920258ac266bda2bb71be01f74974d547e65e1d955badfe3fc2445eecee1"
     },
     {
       "id": "exploration-discovered",
@@ -2938,8 +3157,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-512.png": "89842527d10f689ee907526bf71d52d765bf7d6945d53f27341df302a8867afd",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-256.webp": "50d326152def41434cbafd087ed3cb4039588abef6cb28955ed10edc5bce489a",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-96.webp": "5f8842ea3c2e4efd7a5a217a9bbb84ed73ca3e7935bcdab313d0eeeffbb21c79"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-discovered-96.webp"
+      ],
+      "source_sha256": "383a6a87e34315a7e78d854739f4e498bb879b352ee81815c4294f0c758ccbc3"
     },
     {
       "id": "exploration-rare",
@@ -2955,8 +3184,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-512.png": "0469ef2ceac88ab172deb4e7eafad80945dcf7256f29c00f89d718ad6a0e1fb7",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-256.webp": "3b4e6cbab5bf70e978561a00e306e55a9cbd7377c6e6a3323b05ca56eb563e50",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-96.webp": "800aa8a5f579d08f343352d09a1eba4dc19f81346b013769a14bda86a99cd915"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/exploration-rare-96.webp"
+      ],
+      "source_sha256": "b1ee6637209a6b49bcadfec3620bf0935654bf8750ca5aa3629ab4f68d51e76c"
     },
     {
       "id": "collection-earned",
@@ -2972,8 +3211,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-512.png": "4e97a2bd0f5ffdcee82fa88b9867261afc62d6479ed32dc37a22b6eaee2289ef",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-256.webp": "b528517093e53853a6967766ba7e033d1830159daa2150403e4b0f2939fe2bf4",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-96.webp": "beccd8e2afaaced5ab9cdf8a108a2381f7b0ebb74904a8144bd58b1e13f8299b"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-earned-96.webp"
+      ],
+      "source_sha256": "f16a29bb67fb6bbfe3f6d110930ee4bc9c24d2ff09542d479afa6646f7461cff"
     },
     {
       "id": "collection-locked",
@@ -2989,8 +3238,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-512.png": "19df3080bb8f6f705777dc7c2ac406101c59db946cd7f61ef662287600d6b93f",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-256.webp": "8a4cae3cb297fe1f43118b544c155cc13c3f4aa6a07d4866f3a94a470db7fab7",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-96.webp": "dc231c7d0bd4e6986f5e8f95bf6e63700f3ad533988315bb859c15dd08e081ed"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-locked-96.webp"
+      ],
+      "source_sha256": "5ec28ec04929518cf46487900dfdce7b83834adf685934a35e6c22dbc30532d3"
     },
     {
       "id": "collection-discovered",
@@ -3006,8 +3265,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-512.png": "ae6c10a9b2ebe01c115a6bd91abfe2ac6adead25fa4ff8d6bd5088e4963c6fbc",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-256.webp": "1161aad55e51398d4b5ffa27a0dee466ded93bcbdc77c8c7aaea40f938fd7fff",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-96.webp": "cca4dcb5fd78f52fbea7103c952e5ff703cf0912b7320d09c4c332a2ff17b509"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-discovered-96.webp"
+      ],
+      "source_sha256": "3e7802c722a27611080edf5fc716f2d1a1f0ed13d424a32f6a25f381440f1f9c"
     },
     {
       "id": "collection-rare",
@@ -3023,8 +3292,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-512.png": "2c8751916a92dcd01d55b39b3954c886bec45f4fd66146ecf9969d5bccf60ddc",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-256.webp": "084dfec5ac29ee834dda70a68822a3be672ca40fca87116fa7c5d58b7dd8d1f2",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-96.webp": "5a090884a7748389cecbfbc0d17093d8ab71d7f724b507f28ccd2acb833884a1"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/collection-rare-96.webp"
+      ],
+      "source_sha256": "16419acb09d0cd07615008f6f21373012c85a16a6b84cc70bac54c1038ab60e6"
     },
     {
       "id": "achievement-earned",
@@ -3040,8 +3319,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-512.png": "5cae39f65c60a7fabfb211c235920f0a448f622603f92c3f6d6d1a5d5d7116e4",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-256.webp": "bb0b135f08ef34d1a0f74ad20e9299d5c56f738141f4fc26bf32b94aa715dbf8",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-96.webp": "be2453c465eadb1a29d0c780d3e16d7b05a26bc254e5b6bd81a4e216864854bf"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-earned-96.webp"
+      ],
+      "source_sha256": "6de377cd94107607472dd024d08747812ba0173d6902874fb37ef2bfbc742b36"
     },
     {
       "id": "achievement-locked",
@@ -3057,8 +3346,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-512.png": "b4cf04c6d7e699e5813736d11f9e5dbc62ec43216a53bef26f595b6dfd591e25",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-256.webp": "377f770e3b293a9afe7a2178447e2a45fc8672819901c46d9b193933fd090cb6",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-96.webp": "7f90cd259364c1d700f9fc41ad76df58e6814118a04f43f44be8d27dbf4008d2"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-locked-96.webp"
+      ],
+      "source_sha256": "053f0532a33c56ff7ec1a64b315b60c0bacf7506b33701f7fe9f478699c6fbb6"
     },
     {
       "id": "achievement-discovered",
@@ -3074,8 +3373,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-512.png": "468a13bfd5eab1d7d2ced11de2750c4e657b47120b01a27efacef3a697d0395e",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-256.webp": "6f02f4b3c353d2111ddbb50e081c350879dea026b8ee4639e92201c3ab90288c",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-96.webp": "b0351e74876ff00194773159a1bb1020087d77770f34a49627a0b26d07b9780d"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-discovered-96.webp"
+      ],
+      "source_sha256": "fec62154f9f893bf5ff67e32eb4078f947b4934aab1996ca1766608bfcb48241"
     },
     {
       "id": "achievement-rare",
@@ -3091,8 +3400,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-512.png": "eecda424c562769f3be203bfc6f348407f56c3db8bfa94aabbd4ae0a384c237d",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-256.webp": "6e1fc9f039e75df6337ce01e540129c4c35a50319e2919541d61bf4878bcdac5",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-96.webp": "94983d24b6451717c910c30ac3310e398f13845d7159b211ea0d1f161233e948"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/achievement-rare-96.webp"
+      ],
+      "source_sha256": "e34a171b7bb8191856aa4178362046fd0dfac7e1215f4510ce46ce19e599eebf"
     },
     {
       "id": "quest-earned",
@@ -3108,8 +3427,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-512.png": "e387ec103955d8f99b3ae421baa440386025238d5f6ec1a3a66e91e606adc560",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-256.webp": "2c7fbc91807b6d8082271a117ce294a455db6a3502ccbfd60c0b83a8388ef9a9",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-96.webp": "acdcfd4afb79636a0610514d975f4df84360148c6fa39516bc46d4a3f388f708"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-earned-96.webp"
+      ],
+      "source_sha256": "d46afbe89230fe2df6048d38bde87f9198ecca272b5bcceeab992586dd93599c"
     },
     {
       "id": "quest-locked",
@@ -3125,8 +3454,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-512.png": "8231668648f9f6d7e571f46ef5ff6a7b3cd9a42dbc0968a3dc3a37277dcdadec",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-256.webp": "b523c7992d38a37576e4acfccfa4427a1a093b9e22cf878800a6e82261c6bc76",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-96.webp": "70cde5f090a0873145c9af87b22f3277e959fe4a3d95ce44041ca311375d0d84"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-locked-96.webp"
+      ],
+      "source_sha256": "d9b09552d3209bbc5b38a56394302919a0a3d85c9e0abc732e47a538fbf8ce69"
     },
     {
       "id": "quest-discovered",
@@ -3142,8 +3481,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-512.png": "df6665f90a104c37b1562d12039b1d0b5097ea6e4e42ee6348f71fb8f740b8c9",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-256.webp": "637db6296d5a096530c42a0d28d0818ac74420c2863e4403bfaf92fd9140fe1a",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-96.webp": "92c63015b51ae0debb1f8c85c5db15d53c1ed36daa39717ca47b904a6e67bab1"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-discovered-96.webp"
+      ],
+      "source_sha256": "86db037520e4884c82dbf5ab1855dc7971a05087168f3f6e1182ff0fdb95351a"
     },
     {
       "id": "quest-rare",
@@ -3159,8 +3508,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-512.png": "73c15579db653482a7a3651616057dcda2a7dc7a1f8afc41fc7f9a78118a0c15",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-256.webp": "db12d18c1ebc5fa798ad9e25516577f43f45f68f651dc62cde5533f187ce5f28",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-96.webp": "5f918cbd26ec2f8679a479dc7c67bc1efd4ac4e059e4cb69e8d03dad386ce7f0"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/quest-rare-96.webp"
+      ],
+      "source_sha256": "0fadd0012a815c0cc9a18a76627a592bcad9c61c61f5c2071aa4d7732de99ed3"
     },
     {
       "id": "duel-earned",
@@ -3176,8 +3535,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-512.png": "e7d9076e992aab0540acebee5ca78f3a1cdf6e04255a3d8be5ce9f2436545e8f",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-256.webp": "f3e4837327109b20428a2c34bbb4f8009304d5c40a69a478130c8d6788a3ab26",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-96.webp": "6864c8bf7155480fa11503b8db62a0840eaec847fd7b4058d829ba385a7b897d"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-earned-96.webp"
+      ],
+      "source_sha256": "0948e554961a09f79f935a3380e372d9393c16daee786fc289a3103f8de22a3f"
     },
     {
       "id": "duel-locked",
@@ -3193,8 +3562,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-512.png": "ec19f3b39242f1ddc552811a3619bb2e1704578824ceba3c8302d362864c28f2",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-256.webp": "a6368e37473a3e7afa165d02c9c1bea372a7d59b7292b1cac57de289982f8a22",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-96.webp": "98681bd5e9c870c6d25151756bb05f5172cdc19ceec5404e777026b095a85b2d"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-locked-96.webp"
+      ],
+      "source_sha256": "e1ef64e84efcb118f5aabb893839bd077754dbf97e54e86252ad13fd1e278881"
     },
     {
       "id": "duel-discovered",
@@ -3210,8 +3589,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-512.png": "f622318c76320d05108c015b88a2c5094814ede14d298fbf7a6e363586c08a69",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-256.webp": "44784cfab97721900e4041df76a554728cd17e21a1ee168d1f549cf9e866df98",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-96.webp": "2106936caf00940cea4b91aa90e246008d6725eeff4c60564a43da4c90eb11a7"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-discovered-96.webp"
+      ],
+      "source_sha256": "f6e3a3ef9860f887e636dfb80557dc997f604ee4829e56b49d797e115eb22ff0"
     },
     {
       "id": "duel-rare",
@@ -3227,8 +3616,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-512.png": "e73e3498237aa3be19c88dd7b818518979f5cd3d867e6f4d6d6af9201d5b332c",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-256.webp": "60777ca87f9db083fd5c06bdc729c9419df70b2e429b9e5116eed64e8e88a88c",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-96.webp": "f7f40ed89fee05e5d59990ca25413a89e11faa0c8d8931a693b46c4ac6e2f074"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/duel-rare-96.webp"
+      ],
+      "source_sha256": "17093515d2583c6d8e9e8aefaa5e0ebfb79ea8ccf6f8082cd411cc9b284d5624"
     },
     {
       "id": "milestone-earned",
@@ -3244,8 +3643,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-512.png": "1afe2a4fb808b50a9fe93e7f301a03297d20886171aae48d7f5ef22af5682f7a",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-256.webp": "dddea467bb853cd6dcdda1930d5ac17a30e4f98eb7824de02c0242683e8d6820",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-96.webp": "ad0a6f35f91a14f7ccb884b5880b089587f70786cc445ec805925a7ea19f8c9e"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-earned-96.webp"
+      ],
+      "source_sha256": "5318d6e60e2b058d9502d73aa0b65597967c62d7008f822c8d080f46bde9553d"
     },
     {
       "id": "milestone-locked",
@@ -3261,8 +3670,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-512.png": "9a592b0efa8f8ef0ca48ec77884cb8add824e67e5cba5e84a73ad042d36d027e",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-256.webp": "d0c4ab3b2b8fb47bf176edec4e27f602314a347c51ed05a5c5dcf2d295bbc86e",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-96.webp": "7d98b5854eba5e388bfbcbdf8b967880caf464504c5221585d2b82811946d165"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-locked-96.webp"
+      ],
+      "source_sha256": "f8933a3e6a48c02ca6be1f86e9720e03961efb001f329281a9ed4cef097bc9a2"
     },
     {
       "id": "milestone-discovered",
@@ -3278,8 +3697,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-512.png": "17cd3a6a86e19392ac6330e06a9b1717aad930149e1fc52a42d81d4c295d60b7",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-256.webp": "4315fbe9d1b4ff5e6971dea4d810ec0aa95dffaafc0f92f14bcfad7ef63fc7a0",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-96.webp": "bc538ac1f858deec3df7c6c6627fb5b14173ff00920cce5a7c530b539e888167"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-discovered-96.webp"
+      ],
+      "source_sha256": "b2829d556f7792ffaffa9e4765e00440ea91dd6bf89f1962482b17ec983f19a6"
     },
     {
       "id": "milestone-rare",
@@ -3295,8 +3724,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-512.png": "cad53bf884dd259af212c35a564c747d1cc4c66537ad2d9ce8102fec84c4263b",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-256.webp": "f24cffe40cae06ef393eb2d36fd4d2033bd52352ca214f0dcc983546ded987f7",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-96.webp": "32ea328aed0b191e9f78316957977588540e4870813a3fe4010b52976d08f0e6"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/milestone-rare-96.webp"
+      ],
+      "source_sha256": "950c3052f59553074bdd63f5c610b694b48224534ff6a9f8f9848ee5c78f65b0"
     },
     {
       "id": "rare-earned",
@@ -3312,8 +3751,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-512.png": "26f97b89e8efe870956b059ef733e84d67776de9a5e2e884251458b3eab392c4",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-256.webp": "47c1066714c63295e86c91b86a9dd8251cf0a95aed0ceb36c8e06e6279b118cd",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-96.webp": "7e20cbb4456ba09d3da23a2ed695e45d166f1c6f4d6499b8539603c5a3c6cf28"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-earned-96.webp"
+      ],
+      "source_sha256": "9ef3db804490bc2f8d34d24b54eb4f4177a97b16da1a1ad049ce201f15765901"
     },
     {
       "id": "rare-locked",
@@ -3329,8 +3778,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-512.png": "3451de30a63a0b027b52d6e732ca870c2f9ac60454ac2c1b18d5b4d410edff98",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-256.webp": "35791d4df8a94e060996f4dc7f3a284394281e36afc5da12c2f8b3fe3505a5b1",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-96.webp": "f87cc9f4d8244372fa73772e17f37b980308791709f8cbc718e8958c1ec100db"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-locked-96.webp"
+      ],
+      "source_sha256": "5f88be89c4e25a220768b3a15de1f34bb00557d1382616bf0de4d377eb6dac93"
     },
     {
       "id": "rare-discovered",
@@ -3346,8 +3805,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-512.png": "62f41fc738b1f811ca5f71ddaea3ec599674e1ac5f17959693b1fe09554454ce",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-256.webp": "5a4422628f5d1929399bab50ab343d69abd750448bd9ae7d754731d4dd09cbe2",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-96.webp": "1f2fc6aa28608188f9845d8f6f1e8b713814fc2c1d213fd913a0d493fea1b4b4"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-discovered-96.webp"
+      ],
+      "source_sha256": "4867cdda5703a7348d214efc8c0ee787bf683279e044363a6c43bcb55c6e21af"
     },
     {
       "id": "rare-rare",
@@ -3363,8 +3832,18 @@
       "rights": "Original TITAN source; derived material-state artwork, no third-party content",
       "rules_unchanged": true,
       "format": "svg",
-      "sha256": null,
-      "presence": true
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-512.png": "f6e7eb55ec9e1e921c5fe3b3557c529575c4557d341c2ae6fed424bcfd0aba2a",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-256.webp": "172c90be5ecbab4e36b5429db81cec7e95acb3e580b3aed6fe94c11d95901255",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-96.webp": "25a5746b783e807b49ccc7853eb083ec5f224a1205a55d3580e862e9e0399cfc"
+      },
+      "presence": true,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/reward-states/rare-rare-96.webp"
+      ],
+      "source_sha256": "59d93b2e31e5141b2b53fc2204188e0b1113435b3a84941e6d61c804eb4a60ab"
     }
   ]
 }
