@@ -67,6 +67,7 @@ const groups=[
 ["tiers","Paliers intermediaires",registry.assets.filter(a=>a.family==="level-tier"&&a.status==="proposed"),5,150,150],
 ["beacons","Balises de chapitres",registry.assets.filter(a=>a.family==="chapter-beacon"&&a.status==="proposed"),4,180,180],
 ["rewards","Recompenses et records",registry.assets.filter(a=>a.family==="reward"&&a.status==="proposed"),4,180,180],
+["reward-states","Etats des recompenses",registry.assets.filter(a=>a.family==="reward-state"&&a.status==="proposed"),5,150,150],
 ["ui","Etats et modules",registry.assets.filter(a=>a.family==="ui-illustration"&&a.status==="proposed"),4,180,180],
 ["worlds","Mondes Renaissance · remasters",registry.assets.filter(a=>a.family==="world"&&a.status==="proposed"),2,440,260],
 ["characters","Gardiens et avatars · remasters",registry.assets.filter(a=>["guardian","avatar"].includes(a.family)&&a.status==="proposed"),5,160,160],
