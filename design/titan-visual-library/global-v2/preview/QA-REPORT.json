@@ -1,15 +1,159 @@
 {
-  "generated_at": "2026-11-13T12:58:31.516Z",
+  "generated_at": "2026-11-13T13:02:50.013Z",
   "counts": {
-    "vectors": 106,
+    "vectors": 138,
     "remasters": 15,
-    "png": 121,
-    "webp": 242,
+    "png": 153,
+    "webp": 306,
     "sheets": 9
   },
   "issues": [],
   "duplicate_source_pairs": [],
   "files": [
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-512.png",
+      "bytes": 155630,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "2119165e0259d5fe5fea9066d275977a1d1e655857a28240e85fe5e4eda6a8ed"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-256.webp",
+      "bytes": 18216,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1ecdb4f509672c652a23c99a531cfff334fa38e198a75d20e92396f6fc0b336a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-96.webp",
+      "bytes": 3548,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "70f0bf1f655ca44f4cf5e13ffda570a27ba052cb4ce22c03b721e2c607bb7904"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-512.png",
+      "bytes": 162756,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "61fb19803dc52620231567f274d421e3ecc65bce381ac14b2834556637232e96"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-256.webp",
+      "bytes": 18774,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "24741b66ee434273b6f87594f7a274169e38cb02914106271570a669f604b60e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-96.webp",
+      "bytes": 3670,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "e8259ac42b3a0e58a7ba15a66b95ec5452b6305ae3dabe003e7ca26f8e845bba"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-512.png",
+      "bytes": 156483,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "eacb2094ea8512f2512bdca0fac8ea6a678ae800e73ded82ae96929dc72eb449"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-256.webp",
+      "bytes": 18962,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "91078a21821c08847a88b846c07821a6f2c9300ff1d3e9d0d390d883715217ea"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-96.webp",
+      "bytes": 3652,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "3ed1a3c46d31b3729a3a70e7d5f70df88d8c3901d67264d9b21e0f37913dcaf4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-512.png",
+      "bytes": 152317,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "d7038787dc467c08461b81653f4c02cbc48b303348c8eacfd15ec820ecb2d5b9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-256.webp",
+      "bytes": 18516,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "3697c6cc754b12e29d075781e96c415d3d5c4213ff1b63543ca0c94914f68569"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-96.webp",
+      "bytes": 3598,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "20088edddae040f264ccc173b0ea1c051e7b7de2631e8c4c0cd2396ab71bb25f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-512.png",
+      "bytes": 152551,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "59f6152bfcae66b64e73edbb7abd75a90affea52f9225e1090cd6aa24344e083"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-256.webp",
+      "bytes": 18842,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "2af13abec389914fe36a95ada1fbf03a44b37050d722ed7efdc25914e4581961"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-96.webp",
+      "bytes": 3616,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "2b4416f5c07f102ebff084f2379dc92ad962f990072491988fcf4ad124a4eec1"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-512.png",
+      "bytes": 158287,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4de236cb0f9b384316017c9b3899ec46e3e8dba8e12fe46766f49f84a5a2b42c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-256.webp",
+      "bytes": 18262,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "4e90c2dbcb1c6a3537d777bddee24bbd1ad71f7c42ebb3bba022005b08c48064"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-96.webp",
+      "bytes": 3586,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "11535f786bdc09036348d3fae059d33e07bdf213d172091893f1b49e334c8073"
+    },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-512.png",
       "bytes": 36306,
@@ -105,6 +249,102 @@
       "height": 96,
       "alpha": true,
       "sha256": "0056e9439ba99c8ef6d54f20eafac9d5c22a4cea085f70a2fb54074da5918ee9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-512.png",
+      "bytes": 117571,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4c76fe643e660e603e07deef6eadfae2f4d93cd229ba05406b3056f9ebf44e83"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-256.webp",
+      "bytes": 12322,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "491a228fddbd2c1273cb1894bff5ffa8f69a968bab7c4f227eb2ea8f04be3f62"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-96.webp",
+      "bytes": 2686,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "5a930b1a3cb953a6600fa77d0084e68af742f7ac48a299e1fb3e375127284c6b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-512.png",
+      "bytes": 150311,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "d4deea6ada669350a2e10f67bcccaff253d7c1ba20796de015bdc73f222f9808"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-256.webp",
+      "bytes": 18054,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "d541a7541e53a8ad1e0c4ff16774ee94e60eec91b5e2b4ee0f2bd2659898e35c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-96.webp",
+      "bytes": 3464,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "5558eb0cc4bba5c3d0f3fd25afe72ff2c1c9f54c08f13b975b13ec156d0155ff"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-512.png",
+      "bytes": 168688,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "6819c5b0c2a7f40459ca438f9fe5f534738586a25d86cd38c11032964319c9cc"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-256.webp",
+      "bytes": 22220,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "d53a9ceb57c3d6a822be93b503f183ac85d489652a0c097a65a2a6f8ab3bfa0f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-96.webp",
+      "bytes": 4330,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "e1035fadeff6b2a1a2709501a67eb1636d35177b4fe54a844e8ab93a37214715"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-512.png",
+      "bytes": 170785,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4d9f9386f90da7c3ddfff6d6ee23f8bd061960efb4157ee7e25b508b6ca6ba7c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-256.webp",
+      "bytes": 18500,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "c27c03aa889a6df7c26adab9786c97c684830a1ae2c2fe1ff97944e3eef4b2be"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-96.webp",
+      "bytes": 3868,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "715ed63ea2634df9a58a7de17141d4a2a6160f6dacb4619a40d447b0c7c443b3"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-512.png",
@@ -2243,6 +2483,54 @@
       "sha256": "193af80cc6a847028e53772579e74fabc72e42ef409823e300d088d79a381da5"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png",
+      "bytes": 166385,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "97f55e5261f0b24ce243655620a701779d0f24641a3125a33d75a6dca7435491"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp",
+      "bytes": 18112,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "4d8e51b617bbde968766b7ccfa5ce107b7d5ce813b49fd90b1877e8428da56ee"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp",
+      "bytes": 3604,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "f8e3b8ca9d391f7da18b621ee5e5177af947ceb4a30cb89ca1e1fe806e07642a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png",
+      "bytes": 164368,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "f0b4367b78d6b0024ddd93ed5d893fd82c21861413eabf65e5588766dce861e6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp",
+      "bytes": 18714,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1f5082a2eee49092dcc6816b15e7c650b2612e6d70c17eb60b8d229379e9ef87"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp",
+      "bytes": 3644,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "143a026244be8ad328800f7a4670c3e97f79016035acc7c921f20218baddad05"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-512.png",
       "bytes": 26978,
       "width": 512,
@@ -2289,6 +2577,30 @@
       "height": 96,
       "alpha": true,
       "sha256": "f2e95859a6d5b75338c757a55d545361465383b3a3b9b378ad642071a2c64608"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png",
+      "bytes": 151610,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "d9780687e125c447ddf2f9842a2df72fc102b3e4a7fb3e03e9e4234926e0cb90"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp",
+      "bytes": 17908,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "c3737675679e40bfdc59f4347212a0b8bb72e865f6f23fb5d9658d3d09136013"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp",
+      "bytes": 3574,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "feaed4bb254fd5c956e85b35b712f8119a53cc214fd4c28ee50725dc7db608e1"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-512.png",
@@ -2339,6 +2651,30 @@
       "sha256": "89dd857918b6292baa29b5a0f2c3cfd795a02d23e370d31f533cef71731b6964"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png",
+      "bytes": 151965,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "100f700e43929c11a0743f6460f5810892bd75c77f64e23de9cd2b5b948dc9ba"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp",
+      "bytes": 18460,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1b589c2167c903a7fb6f4b227fa5998f072c7830aae95a94412f34a4b7382fd4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp",
+      "bytes": 3600,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "63cc9f5d3a266590aef7b3892e04e655cfc09bcc97a5793a9631115ffdb86cb4"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-512.png",
       "bytes": 53549,
       "width": 512,
@@ -2361,6 +2697,30 @@
       "height": 96,
       "alpha": true,
       "sha256": "1dc6bb5aa43a8042f840369155b906fe3a87405c182b7d7eb443acfd1b0177b0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png",
+      "bytes": 148884,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "baa123a9a64ae286e01e0f66d6e98fb1bddbdc92c7edd1237def323d57fe611a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp",
+      "bytes": 18200,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "c67fbc78627b2c5732dff24b29c141c6b988770f423fd88060bc7ba1f3418787"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp",
+      "bytes": 3492,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "47b813b878cba08793228452562733fad98d22de425f76b905dde11d220a77a9"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-512.png",
@@ -2387,6 +2747,78 @@
       "sha256": "a8753cd96bb361d0e7071310466b281c035d596c95fb03a3b31e9d1a1d9a9858"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png",
+      "bytes": 165166,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "2e4b59978030d358609b2afe69ae09d9d70ce09d961694ad737afeca68d47dc5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp",
+      "bytes": 18268,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "38e5940b8aa956cb2eb9e9acf078f2008e2b807293b5e7d4cae62501f3209ee0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp",
+      "bytes": 3616,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "2e75eee01c6284e8f9a61c6c1c4ff1cbe1dcfab537eb26c5390d17ba6721cc02"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png",
+      "bytes": 150385,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "27ece1abc5778613fab04c551627f9fa45775caecd198833ad0586229ee267d8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp",
+      "bytes": 18070,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "94e8e6f94bff694b8220f4384f50bfe036d845976559b28db46c81c21683e183"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp",
+      "bytes": 3504,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "e398b0bc4eeb8a8728f7fd511c48e85b57c9818402c34bfd5ecbc2820f39206a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png",
+      "bytes": 160015,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "676b99b2f7a0e2b89d6a81f021b2083629bf858e6cbc9eaca138894a86bdf77b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp",
+      "bytes": 17932,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "740d3755386907d5fb8d62656352572f5caf16d8694c42e9133fdf752cb38e85"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp",
+      "bytes": 3564,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "79159699dc89ad97199960bbeafbd7c7e5d15ff543dfca2753a776cf9301388f"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-512.png",
       "bytes": 30028,
       "width": 512,
@@ -2409,6 +2841,30 @@
       "height": 96,
       "alpha": true,
       "sha256": "590440099eee19a325a15e860b25c02cfd98cc8742bc235558658c2e70845b90"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png",
+      "bytes": 159857,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "c64618a67347ba4af14a52bb7ccbc322059ad9d99afaa07c18abcf012bd090bd"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp",
+      "bytes": 17768,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "5171958a06c23ae27ab952a0e681744d8701600ce74dd0b63334f29940ef580a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp",
+      "bytes": 3496,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "ad67d2edb8623bf2dd98abefe7a20bd4dd225578fd31c0d747cf9bc673348766"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-512.png",
@@ -2435,6 +2891,30 @@
       "sha256": "2e44ceccd341825a40b59fc1c874effe1db22701d5ec64ed18887958a5a30986"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png",
+      "bytes": 172241,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "5df58e310714dc6770917d09ea7d60edbacfddbce57e4722d9597b0f398c92e8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp",
+      "bytes": 17904,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "15252159cdf09a7ec7796b4340a0d1ce2fc21a256d06eea92d99450760a8f85a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp",
+      "bytes": 3560,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "06fd58fd656eea25f89e4f502ab04d5a3eadf54cad4c3e5e6339530369514d08"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-512.png",
       "bytes": 21210,
       "width": 512,
@@ -2459,6 +2939,30 @@
       "sha256": "5666fbbf3df5931764a44f3a13cb3240b3e9250c6f85bf84b7d76c1ec3040bda"
     },
     {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png",
+      "bytes": 158136,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "c89e062aca4ea4e00af12866eafaf417e43bcc495d5c06cb1c306ded0246d50a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp",
+      "bytes": 18020,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1b6e66186715d8989463ac76bca324caf9d62b340d3ae2bdebf1d85e78507369"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp",
+      "bytes": 3598,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "af6d017a257efa33d1726d1a2a4c1cd2a26063a2a97f917f66f8cc315b63d3c6"
+    },
+    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-512.png",
       "bytes": 27717,
       "width": 512,
@@ -2481,6 +2985,150 @@
       "height": 96,
       "alpha": true,
       "sha256": "6d7f432279a0b0eadda9648d9e18b973f550f367cde1649e8d4707438e4da799"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png",
+      "bytes": 164038,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "89ae9828dae9f352697ece94bd141140252d7f7d948c68c2add20a4d36355be7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp",
+      "bytes": 18082,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "aa3a5937da68adc6da6c8b37ac899bcae1ec002734553c59bf2314f3b70069bc"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp",
+      "bytes": 3572,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "019019f0e6d3e55f2202008da64a4bc36bcaf833638192a5ad640cd4c7062bbf"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png",
+      "bytes": 155484,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "5ab46d40cc2c266e87ae27e46ae96d0d1dafa8d22349816d9334a3e48accab4a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp",
+      "bytes": 18098,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "dcd07de0fc7cc114aa22c2e548013d0c913de84154ed45221766294cc8dc5fad"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp",
+      "bytes": 3492,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "ee95a09446e556df416d590ffc964e33afd572e760b1965565e2cf05b5313a57"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png",
+      "bytes": 159888,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "22572f577779510836d50ff7c0d05173966e1e13edf54fc4b5f8639bea9558ad"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp",
+      "bytes": 18072,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "0bf404323a9b15b7efc40218c6bdcc355ec92266ce15e7aa54460ba5d9c6fa87"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp",
+      "bytes": 3526,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "57e5ccd9e8482cd4ce01a78fb969f8bfdffe17b4959e7604b296b994fc7a1831"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png",
+      "bytes": 165847,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "539bcf7bde8c072910fffb259690a25a968ba067aa174c773af0d888d961fce1"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp",
+      "bytes": 18402,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "bc1b829cf3d658cce2cae642c94219d5916f0cade985727e871ac6e152bc5fad"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp",
+      "bytes": 3600,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "3e1efce9e5b2a1fda0c74449e83d5c7e31be62fa295f55830a3ca3109a17a76b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png",
+      "bytes": 162681,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "099e3ae354041f9035007258eace5c4fe6aea3c2210a6231e2fd0e8a4c56344f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp",
+      "bytes": 18576,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "d4e15158dd4f6c785c2bdde2686ec7524005b2f9fb0766e995deaeb893d0b357"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp",
+      "bytes": 3662,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "8aebd3c9a8708de48c119597297c010641661f74b9c3fdb0cdef3430e40f8a79"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png",
+      "bytes": 169139,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "f0e33c4712686003dda13ded36a7402fc995ea4d5eb06e73d8f6cdb078ca368e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp",
+      "bytes": 17696,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "b0ec68a9d633a6b6bba5e8b1809af7342220272c1e75c924ff3692bec86fd24c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp",
+      "bytes": 3546,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "fd4dd3e01cf363ee5010c58828e472a559e6b4deb4101aa0a122823540a96d95"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
@@ -2529,6 +3177,126 @@
       "height": 96,
       "alpha": true,
       "sha256": "c6befc1d4e2d9bce65ecba3c57b30f28bd0dc6d494e8be6273f05ad01c56c0e2"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png",
+      "bytes": 156958,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "e533aa2a18929b6fc6bbfd7404e264b1a1e2279052b1e44286107485d9292d03"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp",
+      "bytes": 18380,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "e5389a623569c756f1f8d3d713b05c27314fdc00c6b242203dd8afa7e33ac194"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp",
+      "bytes": 3658,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "22e6eef419c2170feedb85a8ba234f6500b4f2b52a4871a6942ecdb66389871e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png",
+      "bytes": 169786,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "90072dc08776f22b159ccdcb2386a1069be77bd302b01421fa59efa3c22336f3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp",
+      "bytes": 18968,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "dc7d3d58afbcd2310f8e14ddd0f7c57b89a336c82e4b92bfa3d87c83f1ff20e2"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp",
+      "bytes": 3714,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "2a99a929964fb8f953109d6a673d873791be5b30be7db2e646a13f82c81c2550"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png",
+      "bytes": 163757,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "19e58978771c6729e9b3dff6ee92f28e6936b1960d9ad1ea6867a6c04197c2ca"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp",
+      "bytes": 17968,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "151db98ad0f8335c6aa7cb13982084c53b589ea719001312829d80364e3b1a61"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp",
+      "bytes": 3598,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "ff110b29ff56221a296c62fc75cd9cdcbd3414009c706fc9155d0ceb59d2743f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png",
+      "bytes": 157422,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "c6f623367bf6f1f5f078acb4f3e7b3c5b597204d5c65b6b068d7d3c0ad76e194"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp",
+      "bytes": 18550,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "4596475d1bb21f33825078ae8100685590d6073c3b4d0b36531c793eddbbb393"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp",
+      "bytes": 3660,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "70aebca6d3c564116ef0b236fc1a1edc983f0bae879ec9d8f1fbc221fffd3e00"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png",
+      "bytes": 156618,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "f9325e9d883019dcfa1c87141d2d26f42e4f4cd955b3ebc2e6c65366c99b1d2b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp",
+      "bytes": 18424,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "dbc16464d022dbcb5dd12b9b5515f7d71814b6b14eb4658c583c2d94b0d06032"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp",
+      "bytes": 3568,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "1dd81f6fa0a68ece0d4a548d40837f6d49de79a2eadd60478f29c682f200c5a9"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sync-512.png",
@@ -2956,11 +3724,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-ui.webp",
-      "bytes": 31850,
+      "bytes": 108968,
       "width": 816,
-      "height": 992,
+      "height": 2157,
       "alpha": false,
-      "sha256": "f4edc605f6bfd9d97b48cf6a9078b2ffcb08f91123c6f114cfd7849c19db0be5"
+      "sha256": "2059ab68db344f64779989f988d1a16cb7a01a93014ba50b3fef54e0b47f776c"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-worlds.webp",
@@ -2972,11 +3740,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-characters.webp",
-      "bytes": 78826,
+      "bytes": 110704,
       "width": 920,
-      "height": 486,
+      "height": 912,
       "alpha": false,
-      "sha256": "0921f968edb450acec6af5580abe2073e7350ead6b0b4c09c052fce0fc2823a7"
+      "sha256": "3510cf0aebcbf02aad925c6a4075a5794230ea1849a870f180623d4bff8c448d"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-hero.webp",

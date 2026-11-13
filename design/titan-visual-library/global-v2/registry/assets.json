@@ -1,11 +1,11 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-13",
+  "updated_at": "2026-11-13T13:02:50.011Z",
   "proposals": {
-    "new_vector_masters": 106,
+    "new_vector_masters": 138,
     "photo_remasters": 15,
-    "png": 121,
-    "webp": 242,
+    "png": 153,
+    "webp": 306,
     "contact_sheets": 9
   },
   "assets": [
@@ -3866,7 +3866,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "guardian-aube"
+      "candidate_for": "guardian-aube",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-96.webp"
+      ],
+      "source_sha256": "b8e762d57b840f86f3e20c4cda87d51e936235be318779086d3348ca72c52521",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-512.png": "4c76fe643e660e603e07deef6eadfae2f4d93cd229ba05406b3056f9ebf44e83",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-256.webp": "491a228fddbd2c1273cb1894bff5ffa8f69a968bab7c4f227eb2ea8f04be3f62",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aube-96.webp": "5a930b1a3cb953a6600fa77d0084e68af742f7ac48a299e1fb3e375127284c6b"
+      }
     },
     {
       "id": "guardian-object-marees",
@@ -3889,7 +3900,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "guardian-marees"
+      "candidate_for": "guardian-marees",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-96.webp"
+      ],
+      "source_sha256": "5162fdbbbb17d283d29df2232b12f5ffffb5d0ab6ca1d3fd3e0c43c626923c12",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-512.png": "4d9f9386f90da7c3ddfff6d6ee23f8bd061960efb4157ee7e25b508b6ca6ba7c",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-256.webp": "c27c03aa889a6df7c26adab9786c97c684830a1ae2c2fe1ff97944e3eef4b2be",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-marees-96.webp": "715ed63ea2634df9a58a7de17141d4a2a6160f6dacb4619a40d447b0c7c443b3"
+      }
     },
     {
       "id": "guardian-object-forge",
@@ -3912,7 +3934,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "guardian-forge"
+      "candidate_for": "guardian-forge",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-96.webp"
+      ],
+      "source_sha256": "6c715db3d855afa7e3f13233bfa6de821ed284f64070b0d81bc412cf48f635e0",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-512.png": "6819c5b0c2a7f40459ca438f9fe5f534738586a25d86cd38c11032964319c9cc",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-256.webp": "d53a9ceb57c3d6a822be93b503f183ac85d489652a0c097a65a2a6f8ab3bfa0f",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-forge-96.webp": "e1035fadeff6b2a1a2709501a67eb1636d35177b4fe54a844e8ab93a37214715"
+      }
     },
     {
       "id": "guardian-object-aurores",
@@ -3935,7 +3968,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "guardian-aurores"
+      "candidate_for": "guardian-aurores",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-96.webp"
+      ],
+      "source_sha256": "4e3f051fa90b81af4116ff65c54c9ca55e7ea339cece7844c4f0230c4c6e18f0",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-512.png": "d4deea6ada669350a2e10f67bcccaff253d7c1ba20796de015bdc73f222f9808",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-256.webp": "d541a7541e53a8ad1e0c4ff16774ee94e60eec91b5e2b4ee0f2bd2659898e35c",
+        "design/titan-visual-library/global-v2/proposed/exports/guardian-objects/guardian-object-aurores-96.webp": "5558eb0cc4bba5c3d0f3fd25afe72ff2c1c9f54c08f13b975b13ec156d0155ff"
+      }
     },
     {
       "id": "avatar-token-scout",
@@ -3958,7 +4002,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "scout"
+      "candidate_for": "scout",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-96.webp"
+      ],
+      "source_sha256": "1e06aa5220b3115ccd970e5271cc5e0133cd56e1b56d615363aa2c3810a9b559",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-512.png": "59f6152bfcae66b64e73edbb7abd75a90affea52f9225e1090cd6aa24344e083",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-256.webp": "2af13abec389914fe36a95ada1fbf03a44b37050d722ed7efdc25914e4581961",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-scout-96.webp": "2b4416f5c07f102ebff084f2379dc92ad962f990072491988fcf4ad124a4eec1"
+      }
     },
     {
       "id": "avatar-token-ranger",
@@ -3981,7 +4036,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "ranger"
+      "candidate_for": "ranger",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-96.webp"
+      ],
+      "source_sha256": "5fc7aaff045e1f91f04bbf191ef9041b41056463e62c5e714ea2fac87a40cc6d",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-512.png": "d7038787dc467c08461b81653f4c02cbc48b303348c8eacfd15ec820ecb2d5b9",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-256.webp": "3697c6cc754b12e29d075781e96c415d3d5c4213ff1b63543ca0c94914f68569",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-ranger-96.webp": "20088edddae040f264ccc173b0ea1c051e7b7de2631e8c4c0cd2396ab71bb25f"
+      }
     },
     {
       "id": "avatar-token-keeper",
@@ -4004,7 +4070,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "keeper"
+      "candidate_for": "keeper",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-96.webp"
+      ],
+      "source_sha256": "de7a0446d3a12198ea24cbcaf7a44d70e96551cdb4b1fe4ec8ce962a28567e71",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-512.png": "61fb19803dc52620231567f274d421e3ecc65bce381ac14b2834556637232e96",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-256.webp": "24741b66ee434273b6f87594f7a274169e38cb02914106271570a669f604b60e",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-keeper-96.webp": "e8259ac42b3a0e58a7ba15a66b95ec5452b6305ae3dabe003e7ca26f8e845bba"
+      }
     },
     {
       "id": "avatar-token-artisan",
@@ -4027,7 +4104,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "artisan"
+      "candidate_for": "artisan",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-96.webp"
+      ],
+      "source_sha256": "eea37826c1239b26c15ca3ce3e22df111f7dd3d777deddc4ca642ff52d1c6410",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-512.png": "2119165e0259d5fe5fea9066d275977a1d1e655857a28240e85fe5e4eda6a8ed",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-256.webp": "1ecdb4f509672c652a23c99a531cfff334fa38e198a75d20e92396f6fc0b336a",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-artisan-96.webp": "70f0bf1f655ca44f4cf5e13ffda570a27ba052cb4ce22c03b721e2c607bb7904"
+      }
     },
     {
       "id": "avatar-token-navigator",
@@ -4050,7 +4138,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "navigator"
+      "candidate_for": "navigator",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-96.webp"
+      ],
+      "source_sha256": "a4573b886ed8955003e765abf023e937b50a24a7b642cf5f7e7d95228b1d6da7",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-512.png": "eacb2094ea8512f2512bdca0fac8ea6a678ae800e73ded82ae96929dc72eb449",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-256.webp": "91078a21821c08847a88b846c07821a6f2c9300ff1d3e9d0d390d883715217ea",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-navigator-96.webp": "3ed1a3c46d31b3729a3a70e7d5f70df88d8c3901d67264d9b21e0f37913dcaf4"
+      }
     },
     {
       "id": "avatar-token-sentinel",
@@ -4073,7 +4172,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": "sentinel"
+      "candidate_for": "sentinel",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-96.webp"
+      ],
+      "source_sha256": "4ce69284570545c094d24320e5cd68789f7d794a928da6a9a418f6cbf7ea9b39",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-512.png": "4de236cb0f9b384316017c9b3899ec46e3e8dba8e12fe46766f49f84a5a2b42c",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-256.webp": "4e90c2dbcb1c6a3537d777bddee24bbd1ad71f7c42ebb3bba022005b08c48064",
+        "design/titan-visual-library/global-v2/proposed/exports/avatar-tokens/avatar-token-sentinel-96.webp": "11535f786bdc09036348d3fae059d33e07bdf213d172091893f1b49e334c8073"
+      }
     },
     {
       "id": "empty-moments",
@@ -4096,7 +4206,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp"
+      ],
+      "source_sha256": "f529af9963b6ff500242de5b82e0c6af8947f76ef800b3702c626c9d96ba7de7",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png": "2e4b59978030d358609b2afe69ae09d9d70ce09d961694ad737afeca68d47dc5",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp": "38e5940b8aa956cb2eb9e9acf078f2008e2b807293b5e7d4cae62501f3209ee0",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp": "2e75eee01c6284e8f9a61c6c1c4ff1cbe1dcfab537eb26c5390d17ba6721cc02"
+      }
     },
     {
       "id": "empty-guild",
@@ -4119,7 +4240,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp"
+      ],
+      "source_sha256": "a647a4fe66ffe4c2afdd0a80e533ebb88c217a73340904386a5965dce87f9fa5",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png": "baa123a9a64ae286e01e0f66d6e98fb1bddbdc92c7edd1237def323d57fe611a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp": "c67fbc78627b2c5732dff24b29c141c6b988770f423fd88060bc7ba1f3418787",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp": "47b813b878cba08793228452562733fad98d22de425f76b905dde11d220a77a9"
+      }
     },
     {
       "id": "empty-binom",
@@ -4142,7 +4274,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp"
+      ],
+      "source_sha256": "7cee5551059b134df17b9d2458c6d05d2647b62acb88c1f12427e9c038dce9ca",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png": "f0b4367b78d6b0024ddd93ed5d893fd82c21861413eabf65e5588766dce861e6",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp": "1f5082a2eee49092dcc6816b15e7c650b2612e6d70c17eb60b8d229379e9ef87",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp": "143a026244be8ad328800f7a4670c3e97f79016035acc7c921f20218baddad05"
+      }
     },
     {
       "id": "empty-ranking",
@@ -4165,7 +4308,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp"
+      ],
+      "source_sha256": "b215c8f2760617fcb4696fbeb4a6bab49f25be9d308a9f3356ad0064f27745dc",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png": "c64618a67347ba4af14a52bb7ccbc322059ad9d99afaa07c18abcf012bd090bd",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp": "5171958a06c23ae27ab952a0e681744d8701600ce74dd0b63334f29940ef580a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp": "ad67d2edb8623bf2dd98abefe7a20bd4dd225578fd31c0d747cf9bc673348766"
+      }
     },
     {
       "id": "empty-weekly-quests",
@@ -4188,7 +4342,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp"
+      ],
+      "source_sha256": "fb8b8826dbc826bb3112c0ab8038bf33b644c6dff9362f80840ef1ce38f60dc4",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png": "89ae9828dae9f352697ece94bd141140252d7f7d948c68c2add20a4d36355be7",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp": "aa3a5937da68adc6da6c8b37ac899bcae1ec002734553c59bf2314f3b70069bc",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp": "019019f0e6d3e55f2202008da64a4bc36bcaf833638192a5ad640cd4c7062bbf"
+      }
     },
     {
       "id": "empty-season",
@@ -4211,7 +4376,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp"
+      ],
+      "source_sha256": "ad0195132df883a08a6c5423878ef2d58234d0c29fa8f82b1490e0d6dbcd65e8",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png": "c89e062aca4ea4e00af12866eafaf417e43bcc495d5c06cb1c306ded0246d50a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp": "1b6e66186715d8989463ac76bca324caf9d62b340d3ae2bdebf1d85e78507369",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp": "af6d017a257efa33d1726d1a2a4c1cd2a26063a2a97f917f66f8cc315b63d3c6"
+      }
     },
     {
       "id": "profile-passport",
@@ -4234,7 +4410,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp"
+      ],
+      "source_sha256": "7458c62d428bcc4420edf076876201197583dc9df513c12c47b198d939617263",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png": "e533aa2a18929b6fc6bbfd7404e264b1a1e2279052b1e44286107485d9292d03",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp": "e5389a623569c756f1f8d3d713b05c27314fdc00c6b242203dd8afa7e33ac194",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp": "22e6eef419c2170feedb85a8ba234f6500b4f2b52a4871a6942ecdb66389871e"
+      }
     },
     {
       "id": "sport-dna",
@@ -4257,7 +4444,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp"
+      ],
+      "source_sha256": "2618d3c1421e294565b86fdab697856685c1e50e24fa2fe9f5c97d2f8774c768",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png": "c6f623367bf6f1f5f078acb4f3e7b3c5b597204d5c65b6b068d7d3c0ad76e194",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp": "4596475d1bb21f33825078ae8100685590d6073c3b4d0b36531c793eddbbb393",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp": "70aebca6d3c564116ef0b236fc1a1edc983f0bae879ec9d8f1fbc221fffd3e00"
+      }
     },
     {
       "id": "empty-atelier",
@@ -4280,7 +4478,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp"
+      ],
+      "source_sha256": "2df155b73aa8dfb16fc54facef38de763257c7e47c6c20d603d27041c78b8cf0",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png": "97f55e5261f0b24ce243655620a701779d0f24641a3125a33d75a6dca7435491",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp": "4d8e51b617bbde968766b7ccfa5ce107b7d5ce813b49fd90b1877e8428da56ee",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp": "f8e3b8ca9d391f7da18b621ee5e5177af947ceb4a30cb89ca1e1fe806e07642a"
+      }
     },
     {
       "id": "empty-notifications",
@@ -4303,7 +4512,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp"
+      ],
+      "source_sha256": "9e7b536531b97a2cb5344efbd14604510f6eb11a723047fbf7e6d30b4c6c6609",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png": "27ece1abc5778613fab04c551627f9fa45775caecd198833ad0586229ee267d8",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp": "94e8e6f94bff694b8220f4384f50bfe036d845976559b28db46c81c21683e183",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp": "e398b0bc4eeb8a8728f7fd511c48e85b57c9818402c34bfd5ecbc2820f39206a"
+      }
     },
     {
       "id": "report-summary",
@@ -4326,7 +4546,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp"
+      ],
+      "source_sha256": "e538c3fa53b2ff39dd3bddc3fda8a32da547a6f221cc92188cefe778e13cdbac",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png": "19e58978771c6729e9b3dff6ee92f28e6936b1960d9ad1ea6867a6c04197c2ca",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp": "151db98ad0f8335c6aa7cb13982084c53b589ea719001312829d80364e3b1a61",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp": "ff110b29ff56221a296c62fc75cd9cdcbd3414009c706fc9155d0ceb59d2743f"
+      }
     },
     {
       "id": "record-detail",
@@ -4349,7 +4580,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp"
+      ],
+      "source_sha256": "dbdd3b76bd79ee0cda9a044d93543934cb90a2eb78cf7e1c3e67ea98f0c40517",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png": "90072dc08776f22b159ccdcb2386a1069be77bd302b01421fa59efa3c22336f3",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp": "dc7d3d58afbcd2310f8e14ddd0f7c57b89a336c82e4b92bfa3d87c83f1ff20e2",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp": "2a99a929964fb8f953109d6a673d873791be5b30be7db2e646a13f82c81c2550"
+      }
     },
     {
       "id": "gps-tracking",
@@ -4372,7 +4614,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp"
+      ],
+      "source_sha256": "5fb42ab287ce25c373157c5a879b5768a6811e4927f8f5820a6fbb8009078285",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png": "099e3ae354041f9035007258eace5c4fe6aea3c2210a6231e2fd0e8a4c56344f",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp": "d4e15158dd4f6c785c2bdde2686ec7524005b2f9fb0766e995deaeb893d0b357",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp": "8aebd3c9a8708de48c119597297c010641661f74b9c3fdb0cdef3430e40f8a79"
+      }
     },
     {
       "id": "gps-location-missing",
@@ -4395,7 +4648,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp"
+      ],
+      "source_sha256": "018d4480397f6cb25215dfb6f8134e4f591e939b8f4614c58f6edd3ff6377cc7",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png": "539bcf7bde8c072910fffb259690a25a968ba067aa174c773af0d888d961fce1",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp": "bc1b829cf3d658cce2cae642c94219d5916f0cade985727e871ac6e152bc5fad",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp": "3e1efce9e5b2a1fda0c74449e83d5c7e31be62fa295f55830a3ca3109a17a76b"
+      }
     },
     {
       "id": "import-error",
@@ -4418,7 +4682,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp"
+      ],
+      "source_sha256": "9a9e8c11e151a68b22bd850a6cd1cd9d5ee6a51d7111c8204b476b7df25b5bbf",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png": "f0e33c4712686003dda13ded36a7402fc995ea4d5eb06e73d8f6cdb078ca368e",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp": "b0ec68a9d633a6b6bba5e8b1809af7342220272c1e75c924ff3692bec86fd24c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp": "fd4dd3e01cf363ee5010c58828e472a559e6b4deb4101aa0a122823540a96d95"
+      }
     },
     {
       "id": "empty-route-library",
@@ -4441,7 +4716,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp"
+      ],
+      "source_sha256": "c9ceb6ec8a1de79d3d5edf46a8188df15c52072b61b5a19fb7cf66f1d693e846",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png": "5df58e310714dc6770917d09ea7d60edbacfddbce57e4722d9597b0f398c92e8",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp": "15252159cdf09a7ec7796b4340a0d1ce2fc21a256d06eea92d99450760a8f85a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp": "06fd58fd656eea25f89e4f502ab04d5a3eadf54cad4c3e5e6339530369514d08"
+      }
     },
     {
       "id": "empty-coach-clients",
@@ -4464,7 +4750,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp"
+      ],
+      "source_sha256": "25cd5094dc2dc961d6f0c21354305238c4bc72300b4000f6f53ee691bb068c0f",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png": "d9780687e125c447ddf2f9842a2df72fc102b3e4a7fb3e03e9e4234926e0cb90",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp": "c3737675679e40bfdc59f4347212a0b8bb72e865f6f23fb5d9658d3d09136013",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp": "feaed4bb254fd5c956e85b35b712f8119a53cc214fd4c28ee50725dc7db608e1"
+      }
     },
     {
       "id": "empty-program",
@@ -4487,7 +4784,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp"
+      ],
+      "source_sha256": "15df4542ee20821fd4a327835255af2c117554b4786456a376e65629cdfcf830",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png": "676b99b2f7a0e2b89d6a81f021b2083629bf858e6cbc9eaca138894a86bdf77b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp": "740d3755386907d5fb8d62656352572f5caf16d8694c42e9133fdf752cb38e85",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp": "79159699dc89ad97199960bbeafbd7c7e5d15ff543dfca2753a776cf9301388f"
+      }
     },
     {
       "id": "empty-workout",
@@ -4510,7 +4818,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp"
+      ],
+      "source_sha256": "2bfaa26b2cd9ac7dfb08ef1dbd6093c0bd4febea7fdd4375f4328c2afcbff206",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png": "5ab46d40cc2c266e87ae27e46ae96d0d1dafa8d22349816d9334a3e48accab4a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp": "dcd07de0fc7cc114aa22c2e548013d0c913de84154ed45221766294cc8dc5fad",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp": "ee95a09446e556df416d590ffc964e33afd572e760b1965565e2cf05b5313a57"
+      }
     },
     {
       "id": "empty-discovery",
@@ -4533,7 +4852,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp"
+      ],
+      "source_sha256": "ddce3c4f1915f0a6dbb65395e9e83d55257ebd470c53547af7787abdaf23e56e",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png": "100f700e43929c11a0743f6460f5810892bd75c77f64e23de9cd2b5b948dc9ba",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp": "1b589c2167c903a7fb6f4b227fa5998f072c7830aae95a94412f34a4b7382fd4",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp": "63cc9f5d3a266590aef7b3892e04e655cfc09bcc97a5793a9631115ffdb86cb4"
+      }
     },
     {
       "id": "success-upload",
@@ -4556,7 +4886,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp"
+      ],
+      "source_sha256": "fdabd3555cf40301cea7a32eae909d54b0fa8779c651ecaf537b8e8b284ecef8",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png": "f9325e9d883019dcfa1c87141d2d26f42e4f4cd955b3ebc2e6c65366c99b1d2b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp": "dbc16464d022dbcb5dd12b9b5515f7d71814b6b14eb4658c583c2d94b0d06032",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp": "1dd81f6fa0a68ece0d4a548d40837f6d49de79a2eadd60478f29c682f200c5a9"
+      }
     },
     {
       "id": "error-system",
@@ -4579,7 +4920,18 @@
         "Android 96px"
       ],
       "constraints": "No code integration before approval",
-      "candidate_for": null
+      "candidate_for": null,
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp"
+      ],
+      "source_sha256": "f744fb57635c4a3a93221e951ea71a37d54653b71f896b31d5ad218abb630aa6",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png": "22572f577779510836d50ff7c0d05173966e1e13edf54fc4b5f8639bea9558ad",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp": "0bf404323a9b15b7efc40218c6bdcc355ec92266ce15e7aa54460ba5d9c6fa87",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp": "57e5ccd9e8482cd4ce01a78fb969f8bfdffe17b4959e7604b296b994fc7a1831"
+      }
     }
   ]
 }
