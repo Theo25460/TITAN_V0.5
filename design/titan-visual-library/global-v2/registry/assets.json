@@ -1,6 +1,6 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-13T13:10:01.793Z",
+  "updated_at": "2026-11-13T13:13:04.971Z",
   "proposals": {
     "new_vector_masters": 138,
     "photo_remasters": 15,
@@ -2417,16 +2417,16 @@
         "android": "pending_approval"
       },
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png": "438a8343b3477d187a4dac194ad82c5b4b06204d37b28e211ac9f5a92fd51f7e",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp": "46afb8c034b99420d8c4b674b67efb091c0d952d3289bb3459f80208384d7dc8",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp": "b99cc3f9fd1bba1f5d2cfe5b8dac025abea6157879d4de919ad1f4c21c84f73f"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png": "3d9e3a5e9b634e7350e2d5812674ff2c3336238c5f0d5d1c451e241c3d1daf03",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp": "c1d81abda827414990c8b2e623fb970b4ac6aa5236bf6d4d1f790f8504f25000",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp": "422a9ec40b673ed227fb6033364e19b199f00ed57e0953d13d4b4ba8502de3d1"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
         "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp"
       ],
-      "source_sha256": "7552f4cb8d156e01b675b5519a78b87805f44d3cc24578da764eabda1ee7f12c",
+      "source_sha256": "d1b0443599fa70697371d9dd8ed56ed463c1a4793527bcaebfdddc64522f9f85",
       "presence": true
     },
     {

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T13:10:01.795Z",
+  "generated_at": "2026-11-13T13:13:04.974Z",
   "counts": {
     "vectors": 138,
     "remasters": 15,
@@ -3133,27 +3133,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
-      "bytes": 21328,
+      "bytes": 42177,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "438a8343b3477d187a4dac194ad82c5b4b06204d37b28e211ac9f5a92fd51f7e"
+      "sha256": "3d9e3a5e9b634e7350e2d5812674ff2c3336238c5f0d5d1c451e241c3d1daf03"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp",
-      "bytes": 4488,
+      "bytes": 4078,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "46afb8c034b99420d8c4b674b67efb091c0d952d3289bb3459f80208384d7dc8"
+      "sha256": "c1d81abda827414990c8b2e623fb970b4ac6aa5236bf6d4d1f790f8504f25000"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp",
-      "bytes": 1386,
+      "bytes": 1328,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "b99cc3f9fd1bba1f5d2cfe5b8dac025abea6157879d4de919ad1f4c21c84f73f"
+      "sha256": "422a9ec40b673ed227fb6033364e19b199f00ed57e0953d13d4b4ba8502de3d1"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/offline-512.png",
@@ -3853,11 +3853,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-ui.webp",
-      "bytes": 82122,
+      "bytes": 82672,
       "width": 816,
       "height": 2157,
       "alpha": false,
-      "sha256": "43d56e9fbc732c649b20e119142e89a665a7af3eb56194f077871664639c0dd3"
+      "sha256": "0a2a93d8af663e163f909aab616e996121649fbb170257981f14bbe0f8a245d8"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-worlds.webp",
@@ -3910,86 +3910,7 @@
   "quality_v2": {
     "verified_references": 613,
     "master_assets": 157,
-    "perceptual_near_duplicates": [
-      {
-        "a": "rewards-first-effort",
-        "b": "rewards-streak",
-        "distance": 13,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-first-effort",
-        "b": "rewards-collection",
-        "distance": 14,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-record",
-        "b": "rewards-streak",
-        "distance": 4,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-record",
-        "b": "rewards-collection",
-        "distance": 9,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-record",
-        "b": "rewards-achievement",
-        "distance": 16,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-streak",
-        "b": "rewards-collection",
-        "distance": 7,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-streak",
-        "b": "rewards-achievement",
-        "distance": 16,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-weekly",
-        "b": "rewards-duel",
-        "distance": 16,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-exploration",
-        "b": "rewards-quest",
-        "distance": 12,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-collection",
-        "b": "rewards-achievement",
-        "distance": 13,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-milestone",
-        "b": "rewards-rare",
-        "distance": 16,
-        "family": "reward"
-      },
-      {
-        "a": "ui-empty-routes",
-        "b": "ui-import-gpx",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "avatar-token-keeper",
-        "b": "avatar-token-sentinel",
-        "distance": 13,
-        "family": "avatar"
-      }
-    ],
+    "perceptual_near_duplicates": [],
     "threshold_hamming": 16,
     "missing_files_or_hash_failures": [],
     "warnings": [],
