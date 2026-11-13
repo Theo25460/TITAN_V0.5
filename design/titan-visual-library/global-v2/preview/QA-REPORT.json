@@ -1,0 +1,1836 @@
+{
+  "generated_at": "2026-11-13T11:32:53.885Z",
+  "counts": {
+    "vectors": 58,
+    "remasters": 15,
+    "png": 73,
+    "webp": 146,
+    "sheets": 8
+  },
+  "issues": [],
+  "duplicate_source_pairs": [],
+  "files": [
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-512.png",
+      "bytes": 36306,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "77b67cc5132a4c74199f95e5a25feb9a43d29cf44060af6fe275018a9c1cbbed"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-256.webp",
+      "bytes": 4986,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "0d36777bc8735b481ac184528cfb4bd99ee1a47d4eba6c12187fd2f2473980fc"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-96.webp",
+      "bytes": 1500,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "389ae03e1c00f12bb08e1f592c6dee4a8caf2b9ace05a4a96e484faa3d362e36"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-512.png",
+      "bytes": 40907,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "86259399d9ae6f36b0b55129cdb9f3029ed203c08f3e2b5c04d104e53a93d4da"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-256.webp",
+      "bytes": 5178,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "2b10850cccaecdb98cc6bdf5619536803bdf025b684d2af2e1a11ca2ba9438e9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-96.webp",
+      "bytes": 1602,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "90e698528110287ca2586114fc089d3099010846519e00e2c829a6693170374b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-512.png",
+      "bytes": 33862,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4abda2c4a4efae22a7848041bca9398f4d5b91730f395506d57a8627a02a361c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-256.webp",
+      "bytes": 4498,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "c354422f54827c0e93eadd8ba1c770da8e5c6ba1be88156d3abc78bc23c2f827"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-96.webp",
+      "bytes": 1312,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "d10ebeb98a2650271c21259d22cf9e2fd5d9dec2d390d9ad7cc6a75bae6a6ff9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-512.png",
+      "bytes": 24377,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "46d4d2962387bd40bf7ff34d0ab6748b0a56105a5dcbeb9f5a2b207083f07745"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-256.webp",
+      "bytes": 3414,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "9035d8072c1935eb920c46b4daf0d3b535ade25702b532994a2e643d12cf096e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-96.webp",
+      "bytes": 1068,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "0056e9439ba99c8ef6d54f20eafac9d5c22a4cea085f70a2fb54074da5918ee9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-512.png",
+      "bytes": 75747,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "d45e05332db20730349d1b867a8cd3af0189ae5e9b41053281887e7e48776f30"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-256.webp",
+      "bytes": 8222,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "634f36db7624c10049beafade6bcd4a279b05ce29cb77f0e805cbf2ac51150de"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-96.webp",
+      "bytes": 2256,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "8f129e4827b6ab4b7183efad6759342ebe2a83e97324064447c47906f8a8e841"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-512.png",
+      "bytes": 75844,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "806220258b51cb01b5f4d800c199f4c20502161e6e231d2064b6b6800a868990"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-256.webp",
+      "bytes": 8250,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1d1e744d464e14649b77f28561f4af53524d24c24c2a0587b46dd2e83c8aad74"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-96.webp",
+      "bytes": 2258,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "3183796bf90805c29c9747ba71a1c97752b4a8911ec7bcd04d3f0e33e7eb5812"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-512.png",
+      "bytes": 76379,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "8e6e4f88fe9e51b7b9c4c98e1f6478e27ce356bfe6128d8fb84bd9d515ce0d25"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-256.webp",
+      "bytes": 8398,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "6d1f6d88fdc50d2a983a17295fe79b822d6fabe9d4753c58215fa4694f8625e0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-96.webp",
+      "bytes": 2272,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "7551689cde78f21cdd30ad7233d3074a3e0f8079a30c4af6b99864181bc1cc24"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-512.png",
+      "bytes": 53677,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "e171590456df7fe2c196b7e588831247694bb70915b1a3e89a53a0ee28c686a6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-256.webp",
+      "bytes": 5980,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "0dc0d1ed0f93547e99cb1a3ab447e978797299a5ebd392eba55b0b57f8f81128"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-96.webp",
+      "bytes": 1732,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "748362c3f7b8dba123dca2f4b6e53e629e89f1fc7d521b5d900b957581d4d32c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-512.png",
+      "bytes": 54030,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "35e837df0cdd56cd6db4f2097f64b0d580da94c00aeb9f061bb3b3c290bdf612"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-256.webp",
+      "bytes": 6148,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "b7ec8e2db9cd9644f3fa4aac12b214c5d2cde963ac439abd6aad3c88f3eb652e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-96.webp",
+      "bytes": 1760,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "8be2c3b3a7ba7a8dd83e27dbc278c339904c443fe1c3ba5b508dbb06dca46ef3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-512.png",
+      "bytes": 54642,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "1fa31eb0518141b3248ff82d051c427d0747994ea7fbb0ce6f3808b3cf690f41"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-256.webp",
+      "bytes": 6230,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "bcf9383910e899ed5a8a9605ced33dbbb5518599a7ebc5bae545bf03906bb8eb"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-96.webp",
+      "bytes": 1782,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "71413f7d73621866290b347efb9793281f418de784d5dd36819fd9bed503b95f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-512.png",
+      "bytes": 82526,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "5b8f6eb9eba88e4e56d207f0d787ce7a84349ca4213fec8c6c0de740950a2167"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-256.webp",
+      "bytes": 8150,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "6698f92f0c3cfad606304c1fd4f27f89b50fb95248fbb4040a2710afcf6a2e2a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-96.webp",
+      "bytes": 2192,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "77cb6b106fdd488b26a942b742fc145c2731f59f83aa6e6476b7eefdc579bfe0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-512.png",
+      "bytes": 82572,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "81fc85fb9a3ece4a86c92906101a8095fdfb2454906b00debff47288fac3d33d"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-256.webp",
+      "bytes": 8152,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "18b9bfa47f85db1470906846266bd759ad22b4e86cb668fa1e1ed842a9269d17"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-96.webp",
+      "bytes": 2204,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "1397f804d71a30661e8c4736c5e1c006ca65bc6b68b15c333bda932f86e31d9b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-512.png",
+      "bytes": 82980,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "c80a5ffdad7d16be52aa9f524a94447bdce79c4ef9ee7d5fe2b5f07c3ffcfa54"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-256.webp",
+      "bytes": 8226,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "2dcf73bca4ec7fb10789f430122a143d9b3920a6b17198f81a78b2ecd2c95614"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-96.webp",
+      "bytes": 2212,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "6f95a580815eb23c10fc92756454f8ea39c83750a23125fd28b0cd9669296cae"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-512.png",
+      "bytes": 80085,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "279d1fb20155927e1ca23ba1afc729c1954826b7edbefa3c35f3988aeaa76293"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-256.webp",
+      "bytes": 7924,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "10ec0fd80acdcb71c97aa7ccd735d7b668a621d713b83d707673b3a4f9db3cd8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-96.webp",
+      "bytes": 2144,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "9fefedf93e304b4d67457011ea1caa43c59e68c848d886efd7cbb1c768f86bf0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-512.png",
+      "bytes": 80328,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "3ba969f610115e42e153d918c85bc733b4379cce4bc665bf0d49ac5efdbf945e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-256.webp",
+      "bytes": 8092,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "989807963c8629542eb711c7ef3f39360c89465b883f9f98c7e29e5163d27d0e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-96.webp",
+      "bytes": 2166,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "a3312eede6f41155dc0db7aae6465b3df552e89ba5c967491a553da673e71923"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-512.png",
+      "bytes": 81056,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "680b3c3aba64f7c61334dfaab0c36da24e1c5feddb32f63c209864907a56bed6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-256.webp",
+      "bytes": 8088,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "72c49a14f46aae5edad2e84d9a36a05e792c43bb521d7af27a9ef01cd54103bf"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-96.webp",
+      "bytes": 2184,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "a3c144e12c67a8f3870e1c99746118e8d81d54afd1b19dfbda4a16b453073e21"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-512.png",
+      "bytes": 116278,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4e37be80ad14e76e50c1197091f17407df1ad35dc3b95189ef12b3a0e573e75e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-256.webp",
+      "bytes": 12238,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a515643e06c034e452871c38db4c2da8da4f4c9e4db0d683c1ed800d73691838"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-96.webp",
+      "bytes": 3130,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "22952823da49dcd6fc620ed353d58ff0416928cb3ed8df49413fc7fdb9024f57"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-512.png",
+      "bytes": 116485,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "e179ece10fba4eea51fe369dc6fe6db316d587977a7ed0e44995e0e38eb49502"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-256.webp",
+      "bytes": 12260,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a7df1e0dc83feaf47291990f347f8ea24f56188a89f43e3a5aee2dc050a4ded5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-96.webp",
+      "bytes": 3136,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "0fed48c6daefb4e4cefdb2797e8c3ee0500a3a1da3d514e186a29c9ec03182ee"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-512.png",
+      "bytes": 116809,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "bcc506e5749b202ba19a422f1369b52d224356a8fa96e2ec4e95c4f33a46a1c6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-256.webp",
+      "bytes": 12378,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "8c7c096af2ad47607d1f25a769a5c693a9a899cae08d670938ef91d528acfd28"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-96.webp",
+      "bytes": 3140,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "9266f752123c395f2ab91daf533daec2d85cc5b6e35e8725bc5db22a46926174"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-512.png",
+      "bytes": 62210,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "305dcc712051a5314f8427e5ec36ce81b5e118298381ff837418d3527abb76c8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-256.webp",
+      "bytes": 6100,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "8b8eede994ed4e6f30f330f17ac312f8af9e9408635359acda5c7104f0e18559"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-96.webp",
+      "bytes": 1736,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "23cdc849db497400e4971f493e145c8887a9c9151352e9d26204bbce58a9fe0f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-512.png",
+      "bytes": 62357,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "b65525572c883b04e5464e15f8f395657eb8f90c424a83e49673cb3e86c6be26"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-256.webp",
+      "bytes": 6160,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "b7df3c547b8ba0611d8527c0359af8055622fd9b34c12130af29a0a4261d712e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-96.webp",
+      "bytes": 1726,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "f4e445816565b98e16c67a990bf90ed6c9e6808b77f50ebcc4bc37c8d955a73b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-512.png",
+      "bytes": 62756,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "9c930de0ebed17537ddbbd511f603f4be8daf3f2d4ce4d74da6d880f0dd41b78"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-256.webp",
+      "bytes": 6256,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "528f4f9987192e41d61eada1ff3b3256da78dca60c801fde9f464597818cc370"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-96.webp",
+      "bytes": 1748,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "64bb43041030bdb36f29fa9c5981b8ea0bcaf964cc0a00a782a436571b244014"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-512.png",
+      "bytes": 94259,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "6797007581cb5d6f6134481abb3dc5711146a39314893d5616b7bcf262652438"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-256.webp",
+      "bytes": 10076,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "fcc1c93fa657457944d35f65ab7482e07723d0f3157478c8864cfdbc8a414273"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-96.webp",
+      "bytes": 2712,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "274e0c9feb35b20fffc556aa464a409117daab8003eda5cbe69997ff0ef637ac"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-512.png",
+      "bytes": 94455,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "b201d3de61fc37cc7d1ca62349b3971805a0879f41fd7ee8e6f7459791c019dc"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-256.webp",
+      "bytes": 10076,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "f44d69b2c8b89ccb03e4f7c0d24738e03ddb1985dc47337b1080d4e466cb136b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-96.webp",
+      "bytes": 2714,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "04e1c5efa9a4e5da272bc174d5625aed259815b6bd9d655054f3cddae3e5d3ee"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-512.png",
+      "bytes": 94720,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "256d2347e57772133382c954120d452afc2d42dc684da987335fd6f9650971f2"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-256.webp",
+      "bytes": 10028,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "05429260bb6e43dfef129521d23f6b0cf096f4d3ff01ff18a501d254c0aa75cb"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-96.webp",
+      "bytes": 2718,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "be73b94f9f44b059a20ed3ef146569698833a162dffea8ba274cbe70d656dfac"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png",
+      "bytes": 75218,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "f7df21329b0d1cbcece706208fa83a219420420af3b5e2a1f242907f2b1fc244"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-256.webp",
+      "bytes": 8236,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "863fb93eace840872c0ec3be72cdc04bc15c54542d5c450f9ea225e5d232f394"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp",
+      "bytes": 2256,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "ab032152a7aa657adc916db14a07ac3681bdc62a533f1ae251ba7827f3ac9b50"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
+      "bytes": 52851,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp",
+      "bytes": 5750,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp",
+      "bytes": 1686,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
+      "bytes": 82080,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp",
+      "bytes": 8050,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp",
+      "bytes": 2176,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
+      "bytes": 79711,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp",
+      "bytes": 7730,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp",
+      "bytes": 2122,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png",
+      "bytes": 115959,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "973679c0f29c17932c5f52fa1486a84b1346d01f446db9d5667ce7c6e8e20935"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-256.webp",
+      "bytes": 12172,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "e8312dd2bb23764ade0e41dc9311829d782b8bc223e6d6b2a0194b3af3680874"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp",
+      "bytes": 3096,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "cec8833a3cb85f1057051e93c4ebb8345882896e4bc43ea199c78bf623160c0b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
+      "bytes": 61764,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp",
+      "bytes": 6094,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp",
+      "bytes": 1692,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png",
+      "bytes": 94002,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "d4cb483d1b0db02146ec0287702b242605d8ca40b1260f1ac79e2b450bb19b39"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-256.webp",
+      "bytes": 10066,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "5ba48957f87306de2a55d960d0ae8615b81dfd748f7a8ba6cf9eed603b3c9a45"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp",
+      "bytes": 2712,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "886c2a0ddfbe438b1fd86ba8b7e4b081987b04d18fbb6d7c5719a9ce74cb7382"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-512.png",
+      "bytes": 69317,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "b05b0d5fe6ec808a12e7d830b02d618df9d839691311ff58c216e59a84e229c7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-256.webp",
+      "bytes": 8594,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "9a76037b35e58d212b57d9455b778eb58bd5b447f726e922b8bf8d53a86e4d4e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-96.webp",
+      "bytes": 2258,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "f0461c30fa5370ecf58941c7464f456ab0b284f7ed06a2836ab2c106e70a111d"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-512.png",
+      "bytes": 63598,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "0736cbc19c87945103ea9b5d496526437ebe23b0b5d14b9f6d2ed484b364c709"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-256.webp",
+      "bytes": 7538,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "cf989a0392e981969d3c18fed2f43bd190bfcf030c51a48a496f7098a53f1581"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-96.webp",
+      "bytes": 2074,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "5ce43fe4a9f2ca6dac48f209f12c3daca0c2b6b3f09ffbf7451a14522f63ba60"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-512.png",
+      "bytes": 66807,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "61767fe3ef07358c449228afd27d038b2c817fe3d57f127617302849dad2e75c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-256.webp",
+      "bytes": 7970,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "5e4612d9bcf1917a412876dba8eba8e3275db597ee1bafd7016c0fa1055c4cc3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-96.webp",
+      "bytes": 2204,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "4e2c09a0f621949f0fc85e7408939440c1be50e18e6939830f4b7f2269572309"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-512.png",
+      "bytes": 67054,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "2140618ed988d6b7ff599e798020f0e7bd06b118289229179bdb9f17bc455000"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-256.webp",
+      "bytes": 7840,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "235727a1d4ad771d40b01b7f206e12b655d0853e8c854b6f0d058acf66725145"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-96.webp",
+      "bytes": 2092,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "e5f5cd382b33e4eaa24a09166d90d2ac1d674099d47b95d2b250825f95dd0412"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-512.png",
+      "bytes": 69610,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "8c1303c4cb966a46abff5fa213c1ca2634ca46787fff4f456e56e2c4417d5b15"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-256.webp",
+      "bytes": 8546,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a9634b6d405c026fa38f33db5c7c96175aa3c0d7d0feee51141871925f10850e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-96.webp",
+      "bytes": 2300,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "92c7378f8eb8827f24c5639bae04411356bbfb19d03f69b4b8f72ddf4558a355"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-512.png",
+      "bytes": 64433,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "53e9a42154a8b685519cb94441baabac8e7b6a41e47f523c6ce179cc220527e5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-256.webp",
+      "bytes": 7700,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "83d73f0fba18a3f67d75eac67345ec97d089e60107c2e76b7a2c8ea42cebc601"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-96.webp",
+      "bytes": 2082,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "2fd47a4e957d8a2b537c9e3af2a77d1df57c9fb4e2a420e543a2ec759ebcceff"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-512.png",
+      "bytes": 64963,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "ebc0244909f7ee3b3ffcc50a82554076b59178ce38935105ecaf032e3765267b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-256.webp",
+      "bytes": 7760,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "328cbe548fbb23a8f58a67793f999f752383a9ff812bd7da1686365b6ddb85b1"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-96.webp",
+      "bytes": 2088,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "0037337d458d65f479ce0d2e8857bdd1c53a0006e216a7698e7baaebb10950e4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-512.png",
+      "bytes": 66852,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "6e98a3d82a636ce1ec3fe5030ae4c9154670e4543c59114b3a4fc614d0c7e89b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-256.webp",
+      "bytes": 8178,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a2d5b0d7329e3d9de84054a1a07de873db02f5c7e3fd47c289725c7f2a09e002"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-96.webp",
+      "bytes": 2252,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "b47529c6318f2adaa9470eb4190ac2ebc15f1a45bb10c52a3d4592d37afa4fed"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-512.png",
+      "bytes": 72918,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "4080b22c0da61ff1448ef5d9919101fae1f6072cbec831dc07fcd85842ff4628"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-256.webp",
+      "bytes": 8578,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "df532726f9a62fefd194815ff2421ff7a561b5897a763d287155d558293cf9ac"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-96.webp",
+      "bytes": 2270,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "3c8bc5cb354b439d3182830878f1c6c67339d1bb78914c89c6fe1ed29cdffcc3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/record-512.png",
+      "bytes": 64565,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "7dcc17f36a9982257464c94f12470f729843bc20e32d6feb7fb2161371c9a2c6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/record-256.webp",
+      "bytes": 7682,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "eec9be680c1deeaa83f90a52a95da8a6051588de537984975af8d571ab3f6d67"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/record-96.webp",
+      "bytes": 2016,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "cfcfcb5ce16015cb3d427fc26cad6f0d09dae99524bb85ce22a8752849244ee2"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-512.png",
+      "bytes": 70389,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "1b3cfb350c9dad974d0c41beb772cd98082cf41db833ab5a54672b536e7143ec"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-256.webp",
+      "bytes": 7872,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "e50675d41717eab2e878f15f655fa90f291b6bcbdfdf45d4db7282aca5a35537"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-96.webp",
+      "bytes": 2080,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "f25aaa4a8885773d56a5d18ae96a81fb633f1b2db41323357f4d90d9c4342c08"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-512.png",
+      "bytes": 62339,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "48df922729efb525424cc8399557f40e5c1a9d907e8deff30a317b7203fc55e7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-256.webp",
+      "bytes": 7670,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "c3498a55717a8d09a2d2fe51a04d4f1784c34169a7d4807433f423162dc19bb7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-96.webp",
+      "bytes": 2116,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "ae8c83a50261331bbc717926113578fe87e41176f2c6926be422042876077592"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/completed-512.png",
+      "bytes": 40003,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "75cd5493891b59fd1db0f09c4ceb6f5ddb94b256b07a46dcaad5586c33ffad85"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/completed-256.webp",
+      "bytes": 6276,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a621456ebc1b07ef5deff4baa36b4cf42c7c9ad0d4edfa985ff996922bab2bc7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/completed-96.webp",
+      "bytes": 1922,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "193af80cc6a847028e53772579e74fabc72e42ef409823e300d088d79a381da5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-512.png",
+      "bytes": 26978,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "09f5f12d8cb2362646317d97a08239e2e82eebd28e6c4816096551ee268196aa"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-256.webp",
+      "bytes": 3300,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "948798bcd3daa6b643dbbe8df1924f95728e77f80e17201054a7125dfca474a7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-96.webp",
+      "bytes": 1116,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "9821a6e697480713e1e122c92bece08a77693657022848d872ac092514891d04"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-512.png",
+      "bytes": 42500,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "0dcad41954e1c59c004bca720af991678f05417659ccc1248089a01ccd2da3ef"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-256.webp",
+      "bytes": 7062,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "0c870cdf4b210dae452a33d5ad1a0d2c326cfd97b7f08b964125738036a9144c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-96.webp",
+      "bytes": 2004,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "f2e95859a6d5b75338c757a55d545361465383b3a3b9b378ad642071a2c64608"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-512.png",
+      "bytes": 29590,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "3410c061017f991d4a4761af26a48aa46ac537e1295d24ef2efd530236f1dcf5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-256.webp",
+      "bytes": 5114,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "02031d7bb1a13bcfbeb9a9d1ff635d923a08ecb97db01ac69c04f3a62f007df0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-96.webp",
+      "bytes": 1624,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "142ef2a9a7e90305217f3e2ffe6fbebe905b6f9abbbc3aff864c22a6641b2ec6"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-512.png",
+      "bytes": 30496,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "27b3ca8ddc0226d4bb84047f6028db53fc1cbc4270c561e496afdd088412d77c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-256.webp",
+      "bytes": 5036,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "1351ac45ebe283f4837ec5953b9f68ec7c9640499fcf7f27206f4e8e2b3575a3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-96.webp",
+      "bytes": 1660,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "89dd857918b6292baa29b5a0f2c3cfd795a02d23e370d31f533cef71731b6964"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-512.png",
+      "bytes": 53549,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "590f66f14821037eef875aff74685d41c438a82e76163ba16144cfc08a3e487e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-256.webp",
+      "bytes": 7942,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "11bb2ff2103dea21ae1b08a284ceca9545569af080c0bb68839a306232865512"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-96.webp",
+      "bytes": 2474,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "1dc6bb5aa43a8042f840369155b906fe3a87405c182b7d7eb443acfd1b0177b0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-512.png",
+      "bytes": 33206,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "e0f3dddc01c109d03172be07cf33f4e5d7b16cd60daa809833fbce991d08a404"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-256.webp",
+      "bytes": 5252,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "963e8809b166d7e956358a8aa34102e84a7f744291170ad423271f09443068d9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-96.webp",
+      "bytes": 1690,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "a8753cd96bb361d0e7071310466b281c035d596c95fb03a3b31e9d1a1d9a9858"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-512.png",
+      "bytes": 30028,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "abc74b5d5073492b19eb57bb47ec3e5e0fae246e7b211d5a9800a2b7849aa9f4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-256.webp",
+      "bytes": 3218,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "d2f380cc751be4ca88cbffc20f657a6069c856ea31c6b7b22e8b7f7398cd4f59"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-96.webp",
+      "bytes": 1108,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "590440099eee19a325a15e860b25c02cfd98cc8742bc235558658c2e70845b90"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-512.png",
+      "bytes": 32051,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "ca7a4e606a98915a4aa435515e60b993a3eab17772b295e1f0da2befb2c397e3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-256.webp",
+      "bytes": 4546,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "ac7e5d2161273a8b3773ce6a1d699e4a9cbc1fab55e31d51aa410ce838ba5fc3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-96.webp",
+      "bytes": 1522,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "2e44ceccd341825a40b59fc1c874effe1db22701d5ec64ed18887958a5a30986"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-512.png",
+      "bytes": 21210,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "cb9fd579f7f246e32f8ca10fe2ce58e47c1d11d897ec8edd68406f98f3cd44f7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-256.webp",
+      "bytes": 4470,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "8668db4b94b4a9d7dff4504a369e855c0e76bd2e62ff578da90a11490eb0db78"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-96.webp",
+      "bytes": 1382,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "5666fbbf3df5931764a44f3a13cb3240b3e9250c6f85bf84b7d76c1ec3040bda"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-512.png",
+      "bytes": 27717,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "2a816abb8a1eec86d2e0cee99f2428546664d190ba1b632cddcd54955c0aa5ce"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-256.webp",
+      "bytes": 3900,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "98f5fc91046dee722dfa15c89b44dddc8d3450146e1063f0cc826875d8ec734b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-96.webp",
+      "bytes": 1336,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "6d7f432279a0b0eadda9648d9e18b973f550f367cde1649e8d4707438e4da799"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
+      "bytes": 21328,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "438a8343b3477d187a4dac194ad82c5b4b06204d37b28e211ac9f5a92fd51f7e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp",
+      "bytes": 4488,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "46afb8c034b99420d8c4b674b67efb091c0d952d3289bb3459f80208384d7dc8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp",
+      "bytes": 1386,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "b99cc3f9fd1bba1f5d2cfe5b8dac025abea6157879d4de919ad1f4c21c84f73f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/offline-512.png",
+      "bytes": 33903,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "e89c9bb73fe1ac657e29f8b1e0a10ed520e42eda381504add09ffdd3ab7c8fd5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/offline-256.webp",
+      "bytes": 7322,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "a6c05616bf705c59c5e00ff97b66233b92fc56b7024b32a1d90758d37016e63a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/offline-96.webp",
+      "bytes": 2314,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "c6befc1d4e2d9bce65ecba3c57b30f28bd0dc6d494e8be6273f05ad01c56c0e2"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sync-512.png",
+      "bytes": 36559,
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "sha256": "5417d3c7c369f94c61f6a4983e4a86d3f77a15297224d8d192377e7e4c780ad0"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sync-256.webp",
+      "bytes": 6494,
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "sha256": "958c51e102e98c78bcdabb374d2f01a1e7cf9588becd77bac81408c41f7f2423"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sync-96.webp",
+      "bytes": 1986,
+      "width": 96,
+      "height": 96,
+      "alpha": true,
+      "sha256": "7ccc130fc1f28470c2694651ed1e34d82e9959f1a3e8fc4495c4b9e280201c49"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/valley.png",
+      "bytes": 3018365,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "a7fa189d24b7079f4cc1e006163688e01a29c3ab2a3d869c104c4bd17b11ace4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-web.webp",
+      "bytes": 166416,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "c893e83a97fea6f822a36a780eabcda3d93236fbe27ad04f171bf2b198a1ae40"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-android.webp",
+      "bytes": 27060,
+      "width": 480,
+      "height": 270,
+      "alpha": false,
+      "sha256": "aab8b72c7ec38b6787ac080c25572086bc5dfe4c4a19121278219f9be09e854a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/archipelago.png",
+      "bytes": 3629592,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "304d4ae7ed2431fd79cf7a4beff3638aa3a2105e674b33b487ea4c75cd6db942"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-web.webp",
+      "bytes": 233754,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "f6d0e934472dc8466e1ddb8c272d2ca14a18b814115f2d638fd0c786ff91ed4f"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-android.webp",
+      "bytes": 37522,
+      "width": 480,
+      "height": 270,
+      "alpha": false,
+      "sha256": "cce705b79b9f8a976afded048e649a3889dbb4c473d68d6c405a68a145b85c18"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/forge.png",
+      "bytes": 3602014,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "78bb5d8180bbfcc19a4e1b53f2ec438426c047a8e1fba9944edc201fe18a9bfc"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-web.webp",
+      "bytes": 239116,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "3bfe69727c8cac46d6692ae251d8e5b17c0d56714b0d7b9362ff00d6ba254453"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-android.webp",
+      "bytes": 36794,
+      "width": 480,
+      "height": 270,
+      "alpha": false,
+      "sha256": "80d1f0462f9bc1a1d057334c1fa96226a3afc54467095d57905b8d4d7b1c9f17"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/aurora.png",
+      "bytes": 3440561,
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "0ee904aa3119d7452dc88a30b2afc7d5d338c527c03db0b86bca6b36e22fe302"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-web.webp",
+      "bytes": 199728,
+      "width": 1200,
+      "height": 675,
+      "alpha": false,
+      "sha256": "948cc560cb89e95ea3d99333046e3f39ab9ca4f38904cb65e34e25620a1771b8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-android.webp",
+      "bytes": 33614,
+      "width": 480,
+      "height": 270,
+      "alpha": false,
+      "sha256": "e0f7505b47f6b225324d0dce4f4d3b4d2df1c30ba24c6eb0be61355456033c21"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aube.png",
+      "bytes": 1070278,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "3e04bc65c5ebd9808f701ee295ed3a5da7087f293e7f829286b8f10d95ed8de8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-web.webp",
+      "bytes": 78050,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "39863927d8ffce61ec1066936849fca0e4945e83c916343bca19723bd485002e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-android.webp",
+      "bytes": 18038,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "01b268d48f5f4d8817f29e640cf705992632a679e022ff939d349477dff6dde3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-marees.png",
+      "bytes": 935218,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "033e05453d9e89c0d511957dd872bff5719de97b1f7ba3960e87f58aaa6eb0ae"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-web.webp",
+      "bytes": 65056,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "02ba3f7717914207e6a07e7ff828e18178b74f9fcf7f183470b83e620b97d837"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-android.webp",
+      "bytes": 15730,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "e90df4dd1877f8bc0654d0fa3f2cbda0fe7a974b6eebfc229b5288afb40414c3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-forge.png",
+      "bytes": 1025281,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "26403f54e48aef5f65b0e6477b1a755aa48c3b2c10925a2ab4d2703afcba6ab7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-web.webp",
+      "bytes": 69356,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "5a8a36f7768f2f73ec135cb1412d46da8454e0c8cc78dcd963bf5255bc76f7df"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-android.webp",
+      "bytes": 16294,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "adf99246d82eb1776a06bd44abff54499c6920cb58a208be89ff05b249eb9a80"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aurores.png",
+      "bytes": 992871,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "b7426cbdfb6d761e8250f4cfd3daaae3bd47ef52073dc933071f3bd7baff0793"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-web.webp",
+      "bytes": 71694,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "7d757fd53b5e0fa5c2791ae56d3d5b490c678981fb18950d13f796dba711821e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-android.webp",
+      "bytes": 16954,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "ea8c8d45b81fd945e4d6019dde3946aba55850ffaf73d40dda14e7c52388e805"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/scout.png",
+      "bytes": 888835,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "253b6540e2f32844d7398e5759e4c250f2c8116b661098352aeb7190a7597792"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-web.webp",
+      "bytes": 47436,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "315a8d6623723d34d4b76df4bb7f36a8edfef08f869aa8cb3aab5adbb960bd46"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-android.webp",
+      "bytes": 13900,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "c25bd1d2a194f47a12ce3f4ca47da37023d01703f11af34530a72c9afeefb8c3"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/ranger.png",
+      "bytes": 958770,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "81b1e22eb91d1dea183e012747ba290bb45b551bdbfed44536ea2e25b9063e0e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-web.webp",
+      "bytes": 59308,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "4287a2ba9230703d16334098c3e98a687dbc366f1f868f03bac00d5ca8aca9df"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-android.webp",
+      "bytes": 15202,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "3539938f14acbbda3e916ea5ebe1d393aa43945380ebd8fbd361177bb992474c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/keeper.png",
+      "bytes": 952656,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "06b53abd6edcff03bf6e0572599c046e68b4b0216dff494f94d7086a7b47622e"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-web.webp",
+      "bytes": 55168,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "bfbbe39dbbfef7e2876485e51756e3e3c6b72961c917a699ed2368b318e74bd4"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-android.webp",
+      "bytes": 15470,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "539d5509a04148819071556fb3eaf92d3d15fda49fe09db7ee5712f98dcf1c27"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/artisan.png",
+      "bytes": 926137,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "552ecdbfd816baa692a124136ad2b80d00305699d6b3fe937d3a506880493b4d"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-web.webp",
+      "bytes": 50684,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "dc6baeb83b7a036fc3990bf9d1aae6027c00ae72f26311d2f6ed47f0f1f921e9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-android.webp",
+      "bytes": 13702,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "89ae3dc5effddb6df4a2f9f050bd562b70cdced437044f649b5baf00050c680a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/navigator.png",
+      "bytes": 890920,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "8e238507d970617400110f0d13193834d7cf8d35cd8497475ff3716406c89841"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-web.webp",
+      "bytes": 45180,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "e5512b4ed431ca15a9dbbb0459fc62b6879535c8cf908039c22cd65607090f20"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-android.webp",
+      "bytes": 12888,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "74156e39d9c25d2e60131f07bcaaa8207b53e2a7a060274be04ed57306fc2157"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/sentinel.png",
+      "bytes": 833966,
+      "width": 640,
+      "height": 640,
+      "alpha": false,
+      "sha256": "4e496176f9b86fc79b70e2a4fc332c2f702a64d6fe98ac8d18bde925fd47f415"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-web.webp",
+      "bytes": 38742,
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "004ff626f6483e6d55deaeccf5e5afb40b6a1a047c4393650d0ae190ad703b4c"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-android.webp",
+      "bytes": 11212,
+      "width": 256,
+      "height": 256,
+      "alpha": false,
+      "sha256": "e588a51fd2edc119661315c8c9c0f03e86a9bcd98ebc596013e0b3ab55904415"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/masters/renaissance/editorial-hero.png",
+      "bytes": 1352338,
+      "width": 1680,
+      "height": 946,
+      "alpha": false,
+      "sha256": "56a933f1734c66ddb9b8832e960a8c22db77ffa7f2456a862aefe9bf9725858b"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-web.webp",
+      "bytes": 47476,
+      "width": 1200,
+      "height": 676,
+      "alpha": false,
+      "sha256": "7699b3fdaef2f8df936a3161da33616869ee54f7b2e9fa4f12d3aa681f8ed947"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-android.webp",
+      "bytes": 9060,
+      "width": 480,
+      "height": 270,
+      "alpha": false,
+      "sha256": "9ac9388f8f4cde3b6173caccfbd1c259267e9b193b49d61b13fc9a3def6afdc9"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-ranks.webp",
+      "bytes": 23764,
+      "width": 816,
+      "height": 526,
+      "alpha": false,
+      "sha256": "fd10f305870a25bbbd6933d775c1df53743f360aa6da5ef6caf417cfec7dc874"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-tiers.webp",
+      "bytes": 70838,
+      "width": 870,
+      "height": 1075,
+      "alpha": false,
+      "sha256": "38771296ad4647082335533e3fcfd106c30c04277673dd3f54b870658612a1f8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-beacons.webp",
+      "bytes": 12210,
+      "width": 816,
+      "height": 293,
+      "alpha": false,
+      "sha256": "461a2368d0b36c8e9dfb3841e2c2bff2589dae4feace1b89ee96008997cdaeb8"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-rewards.webp",
+      "bytes": 40640,
+      "width": 816,
+      "height": 759,
+      "alpha": false,
+      "sha256": "a53a26f92f1cff871118bcd7f798b03b72f71bc47978a1c182b0a9b769721c0a"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-ui.webp",
+      "bytes": 31850,
+      "width": 816,
+      "height": 992,
+      "alpha": false,
+      "sha256": "f4edc605f6bfd9d97b48cf6a9078b2ffcb08f91123c6f114cfd7849c19db0be5"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-worlds.webp",
+      "bytes": 123120,
+      "width": 928,
+      "height": 686,
+      "alpha": false,
+      "sha256": "51f0b5ff7d71102ca917ed52299ca7bea4aa1abf24ad19f4915e5e407d7408f7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-characters.webp",
+      "bytes": 78826,
+      "width": 920,
+      "height": 486,
+      "alpha": false,
+      "sha256": "0921f968edb450acec6af5580abe2073e7350ead6b0b4c09c052fce0fc2823a7"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-hero.webp",
+      "bytes": 15898,
+      "width": 604,
+      "height": 433,
+      "alpha": false,
+      "sha256": "506977946ad177e31a1769991338f5e2ce58386b72321c0beea7a4a406f62a77"
+    }
+  ],
+  "notes": [
+    "Static dimension and alpha checks only",
+    "No visual or real device test; review required",
+    "15 remasters retain original subjects rather than new ImageGen creations"
+  ],
+  "protected_production_paths_unchanged": true
+}

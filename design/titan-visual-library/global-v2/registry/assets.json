@@ -1,10 +1,12 @@
 {
   "scope": "Registre partiel ciblé — rangs et ressources Renaissance explicitement mappées; autres usages non inventoriés.",
-  "updated_at": "2026-11-13",
+  "updated_at": "2026-11-13T11:32:53.884Z",
   "proposals": {
     "new_vector_masters": 58,
-    "p0": 44,
-    "p2": 14
+    "photo_remasters": 15,
+    "png": 73,
+    "webp": 146,
+    "contact_sheets": 8
   },
   "assets": [
     {
@@ -25,17 +27,25 @@
       "android_targets": [
         "mobile/assets/rpg/valley-small.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/valley-small.webp": "af000a3593a5d37fd173f3ca06f4028d8f9f382f6a72dddd083bf1805b47b84b",
-        "assets/renaissance/valley-xs.webp": "5ae91a094353806b959ad1fcf860003d39db9c618ea5d831b7828ed3c4dfa4a9",
-        "assets/renaissance/valley.webp": "468f658dc67856d9fee26326b0bde724e4cba4e462522c4644cfacc72620752a",
-        "mobile/assets/rpg/valley-small.webp": "af000a3593a5d37fd173f3ca06f4028d8f9f382f6a72dddd083bf1805b47b84b"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/valley.png": "a7fa189d24b7079f4cc1e006163688e01a29c3ab2a3d869c104c4bd17b11ace4",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-web.webp": "c893e83a97fea6f822a36a780eabcda3d93236fbe27ad04f171bf2b198a1ae40",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-android.webp": "aab8b72c7ec38b6787ac080c25572086bc5dfe4c4a19121278219f9be09e854a"
+      },
+      "name": "valley",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/valley.png",
+      "source_original": "assets/renaissance/valley.webp",
+      "source_sha256": "468f658dc67856d9fee26326b0bde724e4cba4e462522c4644cfacc72620752a",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/valley-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "archipelago",
@@ -55,17 +65,25 @@
       "android_targets": [
         "mobile/assets/rpg/archipelago-small.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/archipelago-small.webp": "b77658d4590c75ddbbc70d6f7ae37ac9035b9826f2f8bec6d2e34eaa2902fffe",
-        "assets/renaissance/archipelago-xs.webp": "f971b812e0216efe6c140160f0b097ccf7e9276d33e95f1ade6bcea06d18f827",
-        "assets/renaissance/archipelago.webp": "806de15a2fb51eb0e0a84efb90acf4b9e9498481030fb78ac5a3d624754ab61c",
-        "mobile/assets/rpg/archipelago-small.webp": "b77658d4590c75ddbbc70d6f7ae37ac9035b9826f2f8bec6d2e34eaa2902fffe"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/archipelago.png": "304d4ae7ed2431fd79cf7a4beff3638aa3a2105e674b33b487ea4c75cd6db942",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-web.webp": "f6d0e934472dc8466e1ddb8c272d2ca14a18b814115f2d638fd0c786ff91ed4f",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-android.webp": "cce705b79b9f8a976afded048e649a3889dbb4c473d68d6c405a68a145b85c18"
+      },
+      "name": "archipelago",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/archipelago.png",
+      "source_original": "assets/renaissance/archipelago.webp",
+      "source_sha256": "806de15a2fb51eb0e0a84efb90acf4b9e9498481030fb78ac5a3d624754ab61c",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/archipelago-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "forge",
@@ -85,17 +103,25 @@
       "android_targets": [
         "mobile/assets/rpg/forge-small.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/forge-small.webp": "07d0ae6df7d525d379d33e2167ad25ef281b629357e0852b859c1b9b7cf31558",
-        "assets/renaissance/forge-xs.webp": "31c8a9ec8e1bd2a7a55a572c198a7d6949d733a4074e808aa3a06d878bd5957e",
-        "assets/renaissance/forge.webp": "9dd6a70d8082f96cd8cd7c4865a09f1aee69d6420b4a7e14b55debd8972708e4",
-        "mobile/assets/rpg/forge-small.webp": "07d0ae6df7d525d379d33e2167ad25ef281b629357e0852b859c1b9b7cf31558"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/forge.png": "78bb5d8180bbfcc19a4e1b53f2ec438426c047a8e1fba9944edc201fe18a9bfc",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-web.webp": "3bfe69727c8cac46d6692ae251d8e5b17c0d56714b0d7b9362ff00d6ba254453",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-android.webp": "80d1f0462f9bc1a1d057334c1fa96226a3afc54467095d57905b8d4d7b1c9f17"
+      },
+      "name": "forge",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/forge.png",
+      "source_original": "assets/renaissance/forge.webp",
+      "source_sha256": "9dd6a70d8082f96cd8cd7c4865a09f1aee69d6420b4a7e14b55debd8972708e4",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/forge-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "aurora",
@@ -115,23 +141,31 @@
       "android_targets": [
         "mobile/assets/rpg/aurora-small.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/aurora-small.webp": "6ede4e21d7924c384059d9220428ae71a9e3fd5177ed5033d045b65489ec39d5",
-        "assets/renaissance/aurora-xs.webp": "1756b9a9f04902e12022a8bfcc21426cd5758a0143546c4244c30a24b46aa52d",
-        "assets/renaissance/aurora.webp": "df038c8e100211945ed918bd4d727852187b15cdaf4d57c3ed8e44e3368ea006",
-        "mobile/assets/rpg/aurora-small.webp": "6ede4e21d7924c384059d9220428ae71a9e3fd5177ed5033d045b65489ec39d5"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/aurora.png": "0ee904aa3119d7452dc88a30b2afc7d5d338c527c03db0b86bca6b36e22fe302",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-web.webp": "948cc560cb89e95ea3d99333046e3f39ab9ca4f38904cb65e34e25620a1771b8",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-android.webp": "e0f7505b47f6b225324d0dce4f4d3b4d2df1c30ba24c6eb0be61355456033c21"
+      },
+      "name": "aurora",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/aurora.png",
+      "source_original": "assets/renaissance/aurora.webp",
+      "source_sha256": "df038c8e100211945ed918bd4d727852187b15cdaf4d57c3ed8e44e3368ea006",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/aurora-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "guardian-aube",
       "family": "guardian",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Gardien Renaissance",
       "sources": [
         "assets/renaissance/guardian-aube-s.webp",
         "assets/renaissance/guardian-aube.webp"
@@ -143,22 +177,31 @@
       "android_targets": [
         "mobile/assets/rpg/guardian-aube-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/guardian-aube-s.webp": "2bc0115e9137fea1eb1be9b45a86f579516359f458e6a444ef2126590d814e0f",
-        "assets/renaissance/guardian-aube.webp": "55034e10e1dfa4f7a66a10cf0edfbe3cf999df74a4262a00d05cb0b7c0418c17",
-        "mobile/assets/rpg/guardian-aube-s.webp": "2bc0115e9137fea1eb1be9b45a86f579516359f458e6a444ef2126590d814e0f"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aube.png": "3e04bc65c5ebd9808f701ee295ed3a5da7087f293e7f829286b8f10d95ed8de8",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-web.webp": "39863927d8ffce61ec1066936849fca0e4945e83c916343bca19723bd485002e",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-android.webp": "01b268d48f5f4d8817f29e640cf705992632a679e022ff939d349477dff6dde3"
+      },
+      "name": "guardian-aube",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aube.png",
+      "source_original": "assets/renaissance/guardian-aube.webp",
+      "source_sha256": "55034e10e1dfa4f7a66a10cf0edfbe3cf999df74a4262a00d05cb0b7c0418c17",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aube-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "guardian-marees",
       "family": "guardian",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Gardien Renaissance",
       "sources": [
         "assets/renaissance/guardian-marees-s.webp",
         "assets/renaissance/guardian-marees.webp"
@@ -170,22 +213,31 @@
       "android_targets": [
         "mobile/assets/rpg/guardian-marees-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/guardian-marees-s.webp": "57d2945658f9589e754263d9aecdb3760d451fd91d5b41f37efa0486f4457308",
-        "assets/renaissance/guardian-marees.webp": "2ea2cfdf49d0e8040d701011128b7616de2ea04122be3603c1fcc9f2d77868e4",
-        "mobile/assets/rpg/guardian-marees-s.webp": "57d2945658f9589e754263d9aecdb3760d451fd91d5b41f37efa0486f4457308"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-marees.png": "033e05453d9e89c0d511957dd872bff5719de97b1f7ba3960e87f58aaa6eb0ae",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-web.webp": "02ba3f7717914207e6a07e7ff828e18178b74f9fcf7f183470b83e620b97d837",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-android.webp": "e90df4dd1877f8bc0654d0fa3f2cbda0fe7a974b6eebfc229b5288afb40414c3"
+      },
+      "name": "guardian-marees",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-marees.png",
+      "source_original": "assets/renaissance/guardian-marees.webp",
+      "source_sha256": "2ea2cfdf49d0e8040d701011128b7616de2ea04122be3603c1fcc9f2d77868e4",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-marees-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "guardian-forge",
       "family": "guardian",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Gardien Renaissance",
       "sources": [
         "assets/renaissance/guardian-forge-s.webp",
         "assets/renaissance/guardian-forge.webp"
@@ -197,22 +249,31 @@
       "android_targets": [
         "mobile/assets/rpg/guardian-forge-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/guardian-forge-s.webp": "9c11bb5dfef294509b7a45b7caf03fdbed7b8177394aab9c9330a980c50df490",
-        "assets/renaissance/guardian-forge.webp": "bc5204e8c2f87a8cd6d0c6c1fe9f6ca069d351bfbdbeeaa670bb50c470b84d17",
-        "mobile/assets/rpg/guardian-forge-s.webp": "9c11bb5dfef294509b7a45b7caf03fdbed7b8177394aab9c9330a980c50df490"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-forge.png": "26403f54e48aef5f65b0e6477b1a755aa48c3b2c10925a2ab4d2703afcba6ab7",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-web.webp": "5a8a36f7768f2f73ec135cb1412d46da8454e0c8cc78dcd963bf5255bc76f7df",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-android.webp": "adf99246d82eb1776a06bd44abff54499c6920cb58a208be89ff05b249eb9a80"
+      },
+      "name": "guardian-forge",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-forge.png",
+      "source_original": "assets/renaissance/guardian-forge.webp",
+      "source_sha256": "bc5204e8c2f87a8cd6d0c6c1fe9f6ca069d351bfbdbeeaa670bb50c470b84d17",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-forge-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "guardian-aurores",
       "family": "guardian",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Gardien Renaissance",
       "sources": [
         "assets/renaissance/guardian-aurores-s.webp",
         "assets/renaissance/guardian-aurores.webp"
@@ -224,22 +285,31 @@
       "android_targets": [
         "mobile/assets/rpg/guardian-aurores-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/guardian-aurores-s.webp": "b9c82f681f5e4b94d987eb4c197714d58c804ac614bbc4819a28663b7c529d79",
-        "assets/renaissance/guardian-aurores.webp": "9d66ca3774d3fd11d91be3db6617803a17c1e09a650b3d93acf543b5af2368c3",
-        "mobile/assets/rpg/guardian-aurores-s.webp": "b9c82f681f5e4b94d987eb4c197714d58c804ac614bbc4819a28663b7c529d79"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aurores.png": "b7426cbdfb6d761e8250f4cfd3daaae3bd47ef52073dc933071f3bd7baff0793",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-web.webp": "7d757fd53b5e0fa5c2791ae56d3d5b490c678981fb18950d13f796dba711821e",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-android.webp": "ea8c8d45b81fd945e4d6019dde3946aba55850ffaf73d40dda14e7c52388e805"
+      },
+      "name": "guardian-aurores",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/guardian-aurores.png",
+      "source_original": "assets/renaissance/guardian-aurores.webp",
+      "source_sha256": "9d66ca3774d3fd11d91be3db6617803a17c1e09a650b3d93acf543b5af2368c3",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/guardian-aurores-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "scout",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/scout-s.webp",
         "assets/renaissance/scout.webp"
@@ -251,22 +321,31 @@
       "android_targets": [
         "mobile/assets/rpg/scout-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/scout-s.webp": "06e57962b7551d11251118534daccdcb969c5754005129b23dc8d9c671653816",
-        "assets/renaissance/scout.webp": "ff069cd55812c3650eff938b2fe3152fc776a21bd97e8e05b03d8817c679bab8",
-        "mobile/assets/rpg/scout-s.webp": "06e57962b7551d11251118534daccdcb969c5754005129b23dc8d9c671653816"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/scout.png": "253b6540e2f32844d7398e5759e4c250f2c8116b661098352aeb7190a7597792",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-web.webp": "315a8d6623723d34d4b76df4bb7f36a8edfef08f869aa8cb3aab5adbb960bd46",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-android.webp": "c25bd1d2a194f47a12ce3f4ca47da37023d01703f11af34530a72c9afeefb8c3"
+      },
+      "name": "scout",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/scout.png",
+      "source_original": "assets/renaissance/scout.webp",
+      "source_sha256": "ff069cd55812c3650eff938b2fe3152fc776a21bd97e8e05b03d8817c679bab8",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/scout-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "ranger",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/ranger-s.webp",
         "assets/renaissance/ranger.webp"
@@ -278,22 +357,31 @@
       "android_targets": [
         "mobile/assets/rpg/ranger-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/ranger-s.webp": "5a540f087396070a1c6e28b1da59cc6a21ef7faa04b808a96746c769f8c87b5d",
-        "assets/renaissance/ranger.webp": "f450a2a5c121134fe0d437483aa5d0b8930891c545424b717e024ce4cb10ec1b",
-        "mobile/assets/rpg/ranger-s.webp": "5a540f087396070a1c6e28b1da59cc6a21ef7faa04b808a96746c769f8c87b5d"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/ranger.png": "81b1e22eb91d1dea183e012747ba290bb45b551bdbfed44536ea2e25b9063e0e",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-web.webp": "4287a2ba9230703d16334098c3e98a687dbc366f1f868f03bac00d5ca8aca9df",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-android.webp": "3539938f14acbbda3e916ea5ebe1d393aa43945380ebd8fbd361177bb992474c"
+      },
+      "name": "ranger",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/ranger.png",
+      "source_original": "assets/renaissance/ranger.webp",
+      "source_sha256": "f450a2a5c121134fe0d437483aa5d0b8930891c545424b717e024ce4cb10ec1b",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/ranger-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "keeper",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/keeper-s.webp",
         "assets/renaissance/keeper.webp"
@@ -305,22 +393,31 @@
       "android_targets": [
         "mobile/assets/rpg/keeper-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/keeper-s.webp": "a5f6ee686a06eefd5501c887f1ff2ce61a6782cd87b297193d32d4e4490952bb",
-        "assets/renaissance/keeper.webp": "d48bd0478e7c9f49e768076586df317f2d3bacf7c8603fbafb832d8eece2bdde",
-        "mobile/assets/rpg/keeper-s.webp": "a5f6ee686a06eefd5501c887f1ff2ce61a6782cd87b297193d32d4e4490952bb"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/keeper.png": "06b53abd6edcff03bf6e0572599c046e68b4b0216dff494f94d7086a7b47622e",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-web.webp": "bfbbe39dbbfef7e2876485e51756e3e3c6b72961c917a699ed2368b318e74bd4",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-android.webp": "539d5509a04148819071556fb3eaf92d3d15fda49fe09db7ee5712f98dcf1c27"
+      },
+      "name": "keeper",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/keeper.png",
+      "source_original": "assets/renaissance/keeper.webp",
+      "source_sha256": "d48bd0478e7c9f49e768076586df317f2d3bacf7c8603fbafb832d8eece2bdde",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/keeper-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "artisan",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/artisan-s.webp",
         "assets/renaissance/artisan.webp"
@@ -332,22 +429,31 @@
       "android_targets": [
         "mobile/assets/rpg/artisan-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/artisan-s.webp": "fd1cb5daeb722e0eff0ecd5f96b1fc287f144951a7c0e6c61ff0d5c2c41d836e",
-        "assets/renaissance/artisan.webp": "ac31c03cc000a4280314c2066d75f46e2d39c6efc3578d9e2684f1215f392cb7",
-        "mobile/assets/rpg/artisan-s.webp": "fd1cb5daeb722e0eff0ecd5f96b1fc287f144951a7c0e6c61ff0d5c2c41d836e"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/artisan.png": "552ecdbfd816baa692a124136ad2b80d00305699d6b3fe937d3a506880493b4d",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-web.webp": "dc6baeb83b7a036fc3990bf9d1aae6027c00ae72f26311d2f6ed47f0f1f921e9",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-android.webp": "89ae3dc5effddb6df4a2f9f050bd562b70cdced437044f649b5baf00050c680a"
+      },
+      "name": "artisan",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/artisan.png",
+      "source_original": "assets/renaissance/artisan.webp",
+      "source_sha256": "ac31c03cc000a4280314c2066d75f46e2d39c6efc3578d9e2684f1215f392cb7",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/artisan-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "navigator",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/navigator-s.webp",
         "assets/renaissance/navigator.webp"
@@ -359,22 +465,31 @@
       "android_targets": [
         "mobile/assets/rpg/navigator-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/navigator-s.webp": "18741c1e5b2339bff0f8434fa9fd2941f18f22314c1b1892e6fdcb27ac6954bd",
-        "assets/renaissance/navigator.webp": "1917529a967f23446951d50863074c155803840b4ea4a57a4406dbc8be525f35",
-        "mobile/assets/rpg/navigator-s.webp": "18741c1e5b2339bff0f8434fa9fd2941f18f22314c1b1892e6fdcb27ac6954bd"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/navigator.png": "8e238507d970617400110f0d13193834d7cf8d35cd8497475ff3716406c89841",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-web.webp": "e5512b4ed431ca15a9dbbb0459fc62b6879535c8cf908039c22cd65607090f20",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-android.webp": "74156e39d9c25d2e60131f07bcaaa8207b53e2a7a060274be04ed57306fc2157"
+      },
+      "name": "navigator",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/navigator.png",
+      "source_original": "assets/renaissance/navigator.webp",
+      "source_sha256": "1917529a967f23446951d50863074c155803840b4ea4a57a4406dbc8be525f35",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/navigator-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "sentinel",
       "family": "avatar",
       "priority": "P1",
-      "usage": "Renaissance / aventure",
+      "usage": "Avatar Renaissance",
       "sources": [
         "assets/renaissance/sentinel-s.webp",
         "assets/renaissance/sentinel.webp"
@@ -386,16 +501,25 @@
       "android_targets": [
         "mobile/assets/rpg/sentinel-s.webp"
       ],
-      "status": "existing_unreviewed",
-      "decision": "pending_visual_review",
-      "version": "existing",
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2-remaster",
       "presence": true,
-      "rights": "existing project artwork; see RENAISSANCE_ART.json",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json",
       "sha256": {
-        "assets/renaissance/sentinel-s.webp": "75b01cfa367947a5f79acebe776e089f98855d92ace9c5cf935b859409343ee1",
-        "assets/renaissance/sentinel.webp": "05eec2ad196a4aa640f2262d3cc116d0b24a15087c7a8a5e13a4323149963bbf",
-        "mobile/assets/rpg/sentinel-s.webp": "75b01cfa367947a5f79acebe776e089f98855d92ace9c5cf935b859409343ee1"
-      }
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/sentinel.png": "4e496176f9b86fc79b70e2a4fc332c2f702a64d6fe98ac8d18bde925fd47f415",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-web.webp": "004ff626f6483e6d55deaeccf5e5afb40b6a1a047c4393650d0ae190ad703b4c",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-android.webp": "e588a51fd2edc119661315c8c9c0f03e86a9bcd98ebc596013e0b3ab55904415"
+      },
+      "name": "sentinel",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/sentinel.png",
+      "source_original": "assets/renaissance/sentinel.webp",
+      "source_sha256": "05eec2ad196a4aa640f2262d3cc116d0b24a15087c7a8a5e13a4323149963bbf",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/sentinel-android.webp"
+      ],
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene"
     },
     {
       "id": "eclaireur",
@@ -570,7 +694,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp"
+      ],
+      "source_sha256": "756870a8f84a43a12530fdf80aba1775afb37d9719f2694a5c918323a5c1f59d",
+      "presence": true
     },
     {
       "id": "ranks-explorateur",
@@ -591,7 +726,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp"
+      ],
+      "source_sha256": "225510fedf690b63bfcbff6caa1d5cbfa79e2c456e63cc829b3bc5779c1a67d0",
+      "presence": true
     },
     {
       "id": "ranks-sentinelle",
@@ -612,7 +758,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp"
+      ],
+      "source_sha256": "159a06510a63091541a39b1e8d1e12b5c45c4b82a6ac5457a3e5e807a78dadbe",
+      "presence": true
     },
     {
       "id": "ranks-gardien",
@@ -633,7 +790,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp"
+      ],
+      "source_sha256": "683b1c899e9592e3ccf1c18af8ed8f979becaf8f436d1b1e136b0bb649f25d4a",
+      "presence": true
     },
     {
       "id": "ranks-champion",
@@ -654,7 +822,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png": "f7df21329b0d1cbcece706208fa83a219420420af3b5e2a1f242907f2b1fc244",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-256.webp": "863fb93eace840872c0ec3be72cdc04bc15c54542d5c450f9ea225e5d232f394",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp": "ab032152a7aa657adc916db14a07ac3681bdc62a533f1ae251ba7827f3ac9b50"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp"
+      ],
+      "source_sha256": "58aa20559167b1ca7ed507ccd91bc6e6b052683f096a4c392efec7d13ea934ea",
+      "presence": true
     },
     {
       "id": "ranks-titan",
@@ -675,7 +854,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png": "d4cb483d1b0db02146ec0287702b242605d8ca40b1260f1ac79e2b450bb19b39",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-256.webp": "5ba48957f87306de2a55d960d0ae8615b81dfd748f7a8ba6cf9eed603b3c9a45",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp": "886c2a0ddfbe438b1fd86ba8b7e4b081987b04d18fbb6d7c5719a9ce74cb7382"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp"
+      ],
+      "source_sha256": "1afac0fa3934cf9a9fa56b90cc2ce0c361c82301d4ac0150838bc1d74b6bb3a1",
+      "presence": true
     },
     {
       "id": "ranks-legende",
@@ -696,7 +886,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png": "973679c0f29c17932c5f52fa1486a84b1346d01f446db9d5667ce7c6e8e20935",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-256.webp": "e8312dd2bb23764ade0e41dc9311829d782b8bc223e6d6b2a0194b3af3680874",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp": "cec8833a3cb85f1057051e93c4ebb8345882896e4bc43ea199c78bf623160c0b"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp"
+      ],
+      "source_sha256": "e637647cf70cac03f616f1b0ede16730fd01688848fbd3e6cd3e82eb98b2f676",
+      "presence": true
     },
     {
       "id": "level-tiers-eclaireur-tier-1",
@@ -717,7 +918,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-512.png": "e171590456df7fe2c196b7e588831247694bb70915b1a3e89a53a0ee28c686a6",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-256.webp": "0dc0d1ed0f93547e99cb1a3ab447e978797299a5ebd392eba55b0b57f8f81128",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-96.webp": "748362c3f7b8dba123dca2f4b6e53e629e89f1fc7d521b5d900b957581d4d32c"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-1-96.webp"
+      ],
+      "source_sha256": "e6538e7c878b087cd3714a7757634a43259cbd217634a4dffc23843927e4678c",
+      "presence": true
     },
     {
       "id": "level-tiers-eclaireur-tier-2",
@@ -738,7 +950,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-512.png": "35e837df0cdd56cd6db4f2097f64b0d580da94c00aeb9f061bb3b3c290bdf612",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-256.webp": "b7ec8e2db9cd9644f3fa4aac12b214c5d2cde963ac439abd6aad3c88f3eb652e",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-96.webp": "8be2c3b3a7ba7a8dd83e27dbc278c339904c443fe1c3ba5b508dbb06dca46ef3"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-2-96.webp"
+      ],
+      "source_sha256": "50162772de342bdfea8ef9e3da0920000312863b812fb578730a8d01c88da1ee",
+      "presence": true
     },
     {
       "id": "level-tiers-eclaireur-tier-3",
@@ -759,7 +982,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-512.png": "1fa31eb0518141b3248ff82d051c427d0747994ea7fbb0ce6f3808b3cf690f41",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-256.webp": "bcf9383910e899ed5a8a9605ced33dbbb5518599a7ebc5bae545bf03906bb8eb",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-96.webp": "71413f7d73621866290b347efb9793281f418de784d5dd36819fd9bed503b95f"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/eclaireur-tier-3-96.webp"
+      ],
+      "source_sha256": "f9602c36e0b490e28e15cfcb18cde08703d3c5981359a2855fbed8fb7c40f812",
+      "presence": true
     },
     {
       "id": "level-tiers-explorateur-tier-1",
@@ -780,7 +1014,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-512.png": "5b8f6eb9eba88e4e56d207f0d787ce7a84349ca4213fec8c6c0de740950a2167",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-256.webp": "6698f92f0c3cfad606304c1fd4f27f89b50fb95248fbb4040a2710afcf6a2e2a",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-96.webp": "77cb6b106fdd488b26a942b742fc145c2731f59f83aa6e6476b7eefdc579bfe0"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-1-96.webp"
+      ],
+      "source_sha256": "7f52ebd23bd06ca31092c25f613503674d39538dd5b4af60d1d52789cf9dd8d8",
+      "presence": true
     },
     {
       "id": "level-tiers-explorateur-tier-2",
@@ -801,7 +1046,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-512.png": "81fc85fb9a3ece4a86c92906101a8095fdfb2454906b00debff47288fac3d33d",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-256.webp": "18b9bfa47f85db1470906846266bd759ad22b4e86cb668fa1e1ed842a9269d17",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-96.webp": "1397f804d71a30661e8c4736c5e1c006ca65bc6b68b15c333bda932f86e31d9b"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-2-96.webp"
+      ],
+      "source_sha256": "6d41f84d6cf3985e624c5bc8bc6423965d0db972ede3b58cd1755bd7a91d1386",
+      "presence": true
     },
     {
       "id": "level-tiers-explorateur-tier-3",
@@ -822,7 +1078,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-512.png": "c80a5ffdad7d16be52aa9f524a94447bdce79c4ef9ee7d5fe2b5f07c3ffcfa54",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-256.webp": "2dcf73bca4ec7fb10789f430122a143d9b3920a6b17198f81a78b2ecd2c95614",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-96.webp": "6f95a580815eb23c10fc92756454f8ea39c83750a23125fd28b0cd9669296cae"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/explorateur-tier-3-96.webp"
+      ],
+      "source_sha256": "8c086e8d03abd794d2c5f5339bb91c0943ec75e67c613bd369b415bdb47b692b",
+      "presence": true
     },
     {
       "id": "level-tiers-sentinelle-tier-1",
@@ -843,7 +1110,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-512.png": "305dcc712051a5314f8427e5ec36ce81b5e118298381ff837418d3527abb76c8",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-256.webp": "8b8eede994ed4e6f30f330f17ac312f8af9e9408635359acda5c7104f0e18559",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-96.webp": "23cdc849db497400e4971f493e145c8887a9c9151352e9d26204bbce58a9fe0f"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-1-96.webp"
+      ],
+      "source_sha256": "f7322a0ddde126d98b90a33fd687ed5fbc67460a6ecb68401950f49e00a39c71",
+      "presence": true
     },
     {
       "id": "level-tiers-sentinelle-tier-2",
@@ -864,7 +1142,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-512.png": "b65525572c883b04e5464e15f8f395657eb8f90c424a83e49673cb3e86c6be26",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-256.webp": "b7df3c547b8ba0611d8527c0359af8055622fd9b34c12130af29a0a4261d712e",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-96.webp": "f4e445816565b98e16c67a990bf90ed6c9e6808b77f50ebcc4bc37c8d955a73b"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-2-96.webp"
+      ],
+      "source_sha256": "6c24e64fd4326a1fcaacffa9f9a7266449a4dd17beee9cc2422192933d94b44f",
+      "presence": true
     },
     {
       "id": "level-tiers-sentinelle-tier-3",
@@ -885,7 +1174,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-512.png": "9c930de0ebed17537ddbbd511f603f4be8daf3f2d4ce4d74da6d880f0dd41b78",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-256.webp": "528f4f9987192e41d61eada1ff3b3256da78dca60c801fde9f464597818cc370",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-96.webp": "64bb43041030bdb36f29fa9c5981b8ea0bcaf964cc0a00a782a436571b244014"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/sentinelle-tier-3-96.webp"
+      ],
+      "source_sha256": "4b57399f67139c352ee501bd5b93c7e4a7fb60cd00c876ff4e21cae74b030311",
+      "presence": true
     },
     {
       "id": "level-tiers-gardien-tier-1",
@@ -906,7 +1206,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-512.png": "279d1fb20155927e1ca23ba1afc729c1954826b7edbefa3c35f3988aeaa76293",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-256.webp": "10ec0fd80acdcb71c97aa7ccd735d7b668a621d713b83d707673b3a4f9db3cd8",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-96.webp": "9fefedf93e304b4d67457011ea1caa43c59e68c848d886efd7cbb1c768f86bf0"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-1-96.webp"
+      ],
+      "source_sha256": "5d848b27b11cb97e623d448bac6809a208d4461b1765433c097b95caaede14b4",
+      "presence": true
     },
     {
       "id": "level-tiers-gardien-tier-2",
@@ -927,7 +1238,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-512.png": "3ba969f610115e42e153d918c85bc733b4379cce4bc665bf0d49ac5efdbf945e",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-256.webp": "989807963c8629542eb711c7ef3f39360c89465b883f9f98c7e29e5163d27d0e",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-96.webp": "a3312eede6f41155dc0db7aae6465b3df552e89ba5c967491a553da673e71923"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-2-96.webp"
+      ],
+      "source_sha256": "0db532ab6f788f1f7acb6ab2d8b37d069efd975e9428041994096f265f269f2f",
+      "presence": true
     },
     {
       "id": "level-tiers-gardien-tier-3",
@@ -948,7 +1270,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-512.png": "680b3c3aba64f7c61334dfaab0c36da24e1c5feddb32f63c209864907a56bed6",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-256.webp": "72c49a14f46aae5edad2e84d9a36a05e792c43bb521d7af27a9ef01cd54103bf",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-96.webp": "a3c144e12c67a8f3870e1c99746118e8d81d54afd1b19dfbda4a16b453073e21"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/gardien-tier-3-96.webp"
+      ],
+      "source_sha256": "1b86118bef65f946036b4afc1465ebce222b4ed63cbd6323cc7781bcf5e42f9d",
+      "presence": true
     },
     {
       "id": "level-tiers-champion-tier-1",
@@ -969,7 +1302,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-512.png": "d45e05332db20730349d1b867a8cd3af0189ae5e9b41053281887e7e48776f30",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-256.webp": "634f36db7624c10049beafade6bcd4a279b05ce29cb77f0e805cbf2ac51150de",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-96.webp": "8f129e4827b6ab4b7183efad6759342ebe2a83e97324064447c47906f8a8e841"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-1-96.webp"
+      ],
+      "source_sha256": "7067214ea99a3b2716d74f54aa7cfaa0df35b702c2d52fc74117946271bfee24",
+      "presence": true
     },
     {
       "id": "level-tiers-champion-tier-2",
@@ -990,7 +1334,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-512.png": "806220258b51cb01b5f4d800c199f4c20502161e6e231d2064b6b6800a868990",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-256.webp": "1d1e744d464e14649b77f28561f4af53524d24c24c2a0587b46dd2e83c8aad74",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-96.webp": "3183796bf90805c29c9747ba71a1c97752b4a8911ec7bcd04d3f0e33e7eb5812"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-2-96.webp"
+      ],
+      "source_sha256": "3030fbc8664358172e01723617a3bf2ac346d39b50e37f172a151a4fc2e791e8",
+      "presence": true
     },
     {
       "id": "level-tiers-champion-tier-3",
@@ -1011,7 +1366,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-512.png": "8e6e4f88fe9e51b7b9c4c98e1f6478e27ce356bfe6128d8fb84bd9d515ce0d25",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-256.webp": "6d1f6d88fdc50d2a983a17295fe79b822d6fabe9d4753c58215fa4694f8625e0",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-96.webp": "7551689cde78f21cdd30ad7233d3074a3e0f8079a30c4af6b99864181bc1cc24"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/champion-tier-3-96.webp"
+      ],
+      "source_sha256": "38d8bb5a937cbc3bcf0ad7e5e823764588970ab1f8853c45cdbd345caffa06d7",
+      "presence": true
     },
     {
       "id": "level-tiers-titan-tier-1",
@@ -1032,7 +1398,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-512.png": "6797007581cb5d6f6134481abb3dc5711146a39314893d5616b7bcf262652438",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-256.webp": "fcc1c93fa657457944d35f65ab7482e07723d0f3157478c8864cfdbc8a414273",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-96.webp": "274e0c9feb35b20fffc556aa464a409117daab8003eda5cbe69997ff0ef637ac"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-1-96.webp"
+      ],
+      "source_sha256": "d4568c708db5480d84ec4b144c0d12d571f0a16538ca401e7ec89d523ecd1858",
+      "presence": true
     },
     {
       "id": "level-tiers-titan-tier-2",
@@ -1053,7 +1430,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-512.png": "b201d3de61fc37cc7d1ca62349b3971805a0879f41fd7ee8e6f7459791c019dc",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-256.webp": "f44d69b2c8b89ccb03e4f7c0d24738e03ddb1985dc47337b1080d4e466cb136b",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-96.webp": "04e1c5efa9a4e5da272bc174d5625aed259815b6bd9d655054f3cddae3e5d3ee"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-2-96.webp"
+      ],
+      "source_sha256": "170ff52a89d0a0102459d988d24023a7db368819be69bb84f9f51cd09826d10b",
+      "presence": true
     },
     {
       "id": "level-tiers-titan-tier-3",
@@ -1074,7 +1462,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-512.png": "256d2347e57772133382c954120d452afc2d42dc684da987335fd6f9650971f2",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-256.webp": "05429260bb6e43dfef129521d23f6b0cf096f4d3ff01ff18a501d254c0aa75cb",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-96.webp": "be73b94f9f44b059a20ed3ef146569698833a162dffea8ba274cbe70d656dfac"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/titan-tier-3-96.webp"
+      ],
+      "source_sha256": "967976c39a8c9ec959dec15e2a25e28fa03986f017e6523ac628e5fe50271684",
+      "presence": true
     },
     {
       "id": "level-tiers-legende-tier-1",
@@ -1095,7 +1494,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-512.png": "4e37be80ad14e76e50c1197091f17407df1ad35dc3b95189ef12b3a0e573e75e",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-256.webp": "a515643e06c034e452871c38db4c2da8da4f4c9e4db0d683c1ed800d73691838",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-96.webp": "22952823da49dcd6fc620ed353d58ff0416928cb3ed8df49413fc7fdb9024f57"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-1-96.webp"
+      ],
+      "source_sha256": "355d7886c4c6824e3bc983f20e7a17cee997da2328fb4c802cabbfb663140534",
+      "presence": true
     },
     {
       "id": "level-tiers-legende-tier-2",
@@ -1116,7 +1526,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-512.png": "e179ece10fba4eea51fe369dc6fe6db316d587977a7ed0e44995e0e38eb49502",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-256.webp": "a7df1e0dc83feaf47291990f347f8ea24f56188a89f43e3a5aee2dc050a4ded5",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-96.webp": "0fed48c6daefb4e4cefdb2797e8c3ee0500a3a1da3d514e186a29c9ec03182ee"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-2-96.webp"
+      ],
+      "source_sha256": "d4f2910b654fc5999bd2f850d66235378cbbd4c58882e74a0868e4a8e6fc0d53",
+      "presence": true
     },
     {
       "id": "level-tiers-legende-tier-3",
@@ -1137,7 +1558,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-512.png": "bcc506e5749b202ba19a422f1369b52d224356a8fa96e2ec4e95c4f33a46a1c6",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-256.webp": "8c7c096af2ad47607d1f25a769a5c693a9a899cae08d670938ef91d528acfd28",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-96.webp": "9266f752123c395f2ab91daf533daec2d85cc5b6e35e8725bc5db22a46926174"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/level-tiers/legende-tier-3-96.webp"
+      ],
+      "source_sha256": "c332daee641c3305e83027a2ff8af44d7135ca22f1555549f439582f31f5f87c",
+      "presence": true
     },
     {
       "id": "chapter-beacons-beacon-locked",
@@ -1158,7 +1590,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-512.png": "46d4d2962387bd40bf7ff34d0ab6748b0a56105a5dcbeb9f5a2b207083f07745",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-256.webp": "9035d8072c1935eb920c46b4daf0d3b535ade25702b532994a2e643d12cf096e",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-96.webp": "0056e9439ba99c8ef6d54f20eafac9d5c22a4cea085f70a2fb54074da5918ee9"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-locked-96.webp"
+      ],
+      "source_sha256": "2ee04835d1a1a753d279c4fb680125c2933606b9adb02e672d58acc679ba28a9",
+      "presence": true
     },
     {
       "id": "chapter-beacons-beacon-discovered",
@@ -1179,7 +1622,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-512.png": "4abda2c4a4efae22a7848041bca9398f4d5b91730f395506d57a8627a02a361c",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-256.webp": "c354422f54827c0e93eadd8ba1c770da8e5c6ba1be88156d3abc78bc23c2f827",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-96.webp": "d10ebeb98a2650271c21259d22cf9e2fd5d9dec2d390d9ad7cc6a75bae6a6ff9"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-discovered-96.webp"
+      ],
+      "source_sha256": "61d50005e6758a3fbcac1afc8c03f30183a7c29b036919ab0a41b7c926d74279",
+      "presence": true
     },
     {
       "id": "chapter-beacons-beacon-active",
@@ -1200,7 +1654,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-512.png": "77b67cc5132a4c74199f95e5a25feb9a43d29cf44060af6fe275018a9c1cbbed",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-256.webp": "0d36777bc8735b481ac184528cfb4bd99ee1a47d4eba6c12187fd2f2473980fc",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-96.webp": "389ae03e1c00f12bb08e1f592c6dee4a8caf2b9ace05a4a96e484faa3d362e36"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-active-96.webp"
+      ],
+      "source_sha256": "58cf77658592b0be15c074179e435c759bcaa96bd13c7aa9bfbdd146a771fa5f",
+      "presence": true
     },
     {
       "id": "chapter-beacons-beacon-confirmed",
@@ -1221,7 +1686,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-512.png": "86259399d9ae6f36b0b55129cdb9f3029ed203c08f3e2b5c04d104e53a93d4da",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-256.webp": "2b10850cccaecdb98cc6bdf5619536803bdf025b684d2af2e1a11ca2ba9438e9",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-96.webp": "90e698528110287ca2586114fc089d3099010846519e00e2c829a6693170374b"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/chapter-beacons/beacon-confirmed-96.webp"
+      ],
+      "source_sha256": "e479d482b9aed77b2c6a3a8579e4e6a10361f232aabdee083ade04ea2d3774e3",
+      "presence": true
     },
     {
       "id": "rewards-first-effort",
@@ -1242,7 +1718,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-512.png": "53e9a42154a8b685519cb94441baabac8e7b6a41e47f523c6ce179cc220527e5",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-256.webp": "83d73f0fba18a3f67d75eac67345ec97d089e60107c2e76b7a2c8ea42cebc601",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-96.webp": "2fd47a4e957d8a2b537c9e3af2a77d1df57c9fb4e2a420e543a2ec759ebcceff"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/first-effort-96.webp"
+      ],
+      "source_sha256": "c3be150a4c7403f98589635498c3dad364a5fd83d85a7ed7843461040115c8db",
+      "presence": true
     },
     {
       "id": "rewards-record",
@@ -1263,7 +1750,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-512.png": "7dcc17f36a9982257464c94f12470f729843bc20e32d6feb7fb2161371c9a2c6",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-256.webp": "eec9be680c1deeaa83f90a52a95da8a6051588de537984975af8d571ab3f6d67",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-96.webp": "cfcfcb5ce16015cb3d427fc26cad6f0d09dae99524bb85ce22a8752849244ee2"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/record-96.webp"
+      ],
+      "source_sha256": "87258b4c5a57e82b8061689a2526f6be0e6ed147786b32cbde4b0623c55fdba4",
+      "presence": true
     },
     {
       "id": "rewards-streak",
@@ -1284,7 +1782,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-512.png": "1b3cfb350c9dad974d0c41beb772cd98082cf41db833ab5a54672b536e7143ec",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-256.webp": "e50675d41717eab2e878f15f655fa90f291b6bcbdfdf45d4db7282aca5a35537",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-96.webp": "f25aaa4a8885773d56a5d18ae96a81fb633f1b2db41323357f4d90d9c4342c08"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/streak-96.webp"
+      ],
+      "source_sha256": "5b031ad0578cf4a85ef806dca27bf158c99f779fb4634c985143d9c7bb9854be",
+      "presence": true
     },
     {
       "id": "rewards-weekly",
@@ -1305,7 +1814,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-512.png": "48df922729efb525424cc8399557f40e5c1a9d907e8deff30a317b7203fc55e7",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-256.webp": "c3498a55717a8d09a2d2fe51a04d4f1784c34169a7d4807433f423162dc19bb7",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-96.webp": "ae8c83a50261331bbc717926113578fe87e41176f2c6926be422042876077592"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/weekly-96.webp"
+      ],
+      "source_sha256": "561e2205d2045af1996ce716811e8bceaeb3240a394927384962719043dec107",
+      "presence": true
     },
     {
       "id": "rewards-challenge",
@@ -1326,7 +1846,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-512.png": "0736cbc19c87945103ea9b5d496526437ebe23b0b5d14b9f6d2ed484b364c709",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-256.webp": "cf989a0392e981969d3c18fed2f43bd190bfcf030c51a48a496f7098a53f1581",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-96.webp": "5ce43fe4a9f2ca6dac48f209f12c3daca0c2b6b3f09ffbf7451a14522f63ba60"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/challenge-96.webp"
+      ],
+      "source_sha256": "b80202fa5ea722ffe03e0af8b1857f967415f0f648f2b9cf9d6fb75952fab7f8",
+      "presence": true
     },
     {
       "id": "rewards-exploration",
@@ -1347,7 +1878,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-512.png": "8c1303c4cb966a46abff5fa213c1ca2634ca46787fff4f456e56e2c4417d5b15",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-256.webp": "a9634b6d405c026fa38f33db5c7c96175aa3c0d7d0feee51141871925f10850e",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-96.webp": "92c7378f8eb8827f24c5639bae04411356bbfb19d03f69b4b8f72ddf4558a355"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/exploration-96.webp"
+      ],
+      "source_sha256": "990e26804c24df07e3b825216f8f9be967680c1980e92bb84d8c274fbbc952c1",
+      "presence": true
     },
     {
       "id": "rewards-collection",
@@ -1368,7 +1910,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-512.png": "61767fe3ef07358c449228afd27d038b2c817fe3d57f127617302849dad2e75c",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-256.webp": "5e4612d9bcf1917a412876dba8eba8e3275db597ee1bafd7016c0fa1055c4cc3",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-96.webp": "4e2c09a0f621949f0fc85e7408939440c1be50e18e6939830f4b7f2269572309"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/collection-96.webp"
+      ],
+      "source_sha256": "68ffa1fab9950368907bb953585c072555e394af13aa3cec37e5d5c008cbcb4d",
+      "presence": true
     },
     {
       "id": "rewards-achievement",
@@ -1389,7 +1942,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-512.png": "b05b0d5fe6ec808a12e7d830b02d618df9d839691311ff58c216e59a84e229c7",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-256.webp": "9a76037b35e58d212b57d9455b778eb58bd5b447f726e922b8bf8d53a86e4d4e",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-96.webp": "f0461c30fa5370ecf58941c7464f456ab0b284f7ed06a2836ab2c106e70a111d"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/achievement-96.webp"
+      ],
+      "source_sha256": "ed3333f3993b57c7f94ad7c7d0784f70a6e3aa665cbe8cf1b3b05050ebddf177",
+      "presence": true
     },
     {
       "id": "rewards-quest",
@@ -1410,7 +1974,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-512.png": "6e98a3d82a636ce1ec3fe5030ae4c9154670e4543c59114b3a4fc614d0c7e89b",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-256.webp": "a2d5b0d7329e3d9de84054a1a07de873db02f5c7e3fd47c289725c7f2a09e002",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-96.webp": "b47529c6318f2adaa9470eb4190ac2ebc15f1a45bb10c52a3d4592d37afa4fed"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/quest-96.webp"
+      ],
+      "source_sha256": "463c127955259bd6d6b87b5ad3bc97b08f7defabb04635010f1d9abe9895dc3b",
+      "presence": true
     },
     {
       "id": "rewards-duel",
@@ -1431,7 +2006,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-512.png": "2140618ed988d6b7ff599e798020f0e7bd06b118289229179bdb9f17bc455000",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-256.webp": "235727a1d4ad771d40b01b7f206e12b655d0853e8c854b6f0d058acf66725145",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-96.webp": "e5f5cd382b33e4eaa24a09166d90d2ac1d674099d47b95d2b250825f95dd0412"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/duel-96.webp"
+      ],
+      "source_sha256": "9754aa2c3ef0916a0378b5b9d4e3125d6192457bf2e46d93a77480bb511902a8",
+      "presence": true
     },
     {
       "id": "rewards-milestone",
@@ -1452,7 +2038,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-512.png": "ebc0244909f7ee3b3ffcc50a82554076b59178ce38935105ecaf032e3765267b",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-256.webp": "328cbe548fbb23a8f58a67793f999f752383a9ff812bd7da1686365b6ddb85b1",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-96.webp": "0037337d458d65f479ce0d2e8857bdd1c53a0006e216a7698e7baaebb10950e4"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/milestone-96.webp"
+      ],
+      "source_sha256": "aa606349fcc3e0a4e7b44e7c609bc39275e4f2a85ac5e504f29c1aae31a940cf",
+      "presence": true
     },
     {
       "id": "rewards-rare",
@@ -1473,7 +2070,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-512.png": "4080b22c0da61ff1448ef5d9919101fae1f6072cbec831dc07fcd85842ff4628",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-256.webp": "df532726f9a62fefd194815ff2421ff7a561b5897a763d287155d558293cf9ac",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-96.webp": "3c8bc5cb354b439d3182830878f1c6c67339d1bb78914c89c6fe1ed29cdffcc3"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/rewards/rare-96.webp"
+      ],
+      "source_sha256": "57735d3c9a55bdd281cf8aacb78f136c6632faaffd88e1158114c1454a3209b3",
+      "presence": true
     },
     {
       "id": "ui-empty-journal",
@@ -1494,7 +2102,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-512.png": "e0f3dddc01c109d03172be07cf33f4e5d7b16cd60daa809833fbce991d08a404",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-256.webp": "963e8809b166d7e956358a8aa34102e84a7f744291170ad423271f09443068d9",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-96.webp": "a8753cd96bb361d0e7071310466b281c035d596c95fb03a3b31e9d1a1d9a9858"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-96.webp"
+      ],
+      "source_sha256": "1f8b6989e275cbcd29dcd21565ac44145f6510bec401aeb956fd664b3359eebe",
+      "presence": true
     },
     {
       "id": "ui-empty-records",
@@ -1515,7 +2134,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-512.png": "ca7a4e606a98915a4aa435515e60b993a3eab17772b295e1f0da2befb2c397e3",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-256.webp": "ac7e5d2161273a8b3773ce6a1d699e4a9cbc1fab55e31d51aa410ce838ba5fc3",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-96.webp": "2e44ceccd341825a40b59fc1c874effe1db22701d5ec64ed18887958a5a30986"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-96.webp"
+      ],
+      "source_sha256": "52a346dfac258ad12638f65ff396e6aa1fa898adf9be9a441d3b1515d022721e",
+      "presence": true
     },
     {
       "id": "ui-empty-stats",
@@ -1536,7 +2166,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-512.png": "2a816abb8a1eec86d2e0cee99f2428546664d190ba1b632cddcd54955c0aa5ce",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-256.webp": "98f5fc91046dee722dfa15c89b44dddc8d3450146e1063f0cc826875d8ec734b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-96.webp": "6d7f432279a0b0eadda9648d9e18b973f550f367cde1649e8d4707438e4da799"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-96.webp"
+      ],
+      "source_sha256": "c26bf3785282e28d01edf490615b98ace1194760f173f7135354b7d4510ba01a",
+      "presence": true
     },
     {
       "id": "ui-empty-friends",
@@ -1557,7 +2198,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-512.png": "590f66f14821037eef875aff74685d41c438a82e76163ba16144cfc08a3e487e",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-256.webp": "11bb2ff2103dea21ae1b08a284ceca9545569af080c0bb68839a306232865512",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-96.webp": "1dc6bb5aa43a8042f840369155b906fe3a87405c182b7d7eb443acfd1b0177b0"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-96.webp"
+      ],
+      "source_sha256": "d3fd78131696a9938aacee787159a84ff9bd84b1be5a21adfaf10f452e1322c9",
+      "presence": true
     },
     {
       "id": "ui-empty-quests",
@@ -1578,7 +2230,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-512.png": "abc74b5d5073492b19eb57bb47ec3e5e0fae246e7b211d5a9800a2b7849aa9f4",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-256.webp": "d2f380cc751be4ca88cbffc20f657a6069c856ea31c6b7b22e8b7f7398cd4f59",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-96.webp": "590440099eee19a325a15e860b25c02cfd98cc8742bc235558658c2e70845b90"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-96.webp"
+      ],
+      "source_sha256": "8b58dc051029cd8f8dbf364d0edcec4eccd3618b5dec5be05f344d72a4cf8405",
+      "presence": true
     },
     {
       "id": "ui-empty-devices",
@@ -1599,7 +2262,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-512.png": "27b3ca8ddc0226d4bb84047f6028db53fc1cbc4270c561e496afdd088412d77c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-256.webp": "1351ac45ebe283f4837ec5953b9f68ec7c9640499fcf7f27206f4e8e2b3575a3",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-96.webp": "89dd857918b6292baa29b5a0f2c3cfd795a02d23e370d31f533cef71731b6964"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-devices-96.webp"
+      ],
+      "source_sha256": "58d2027ea03972335bfae8c907aa02d2d99e89e46e4a06af1f17f39b503e51ef",
+      "presence": true
     },
     {
       "id": "ui-empty-coaching",
@@ -1620,7 +2294,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-512.png": "3410c061017f991d4a4761af26a48aa46ac537e1295d24ef2efd530236f1dcf5",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-256.webp": "02031d7bb1a13bcfbeb9a9d1ff635d923a08ecb97db01ac69c04f3a62f007df0",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-96.webp": "142ef2a9a7e90305217f3e2ffe6fbebe905b6f9abbbc3aff864c22a6641b2ec6"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-96.webp"
+      ],
+      "source_sha256": "769d0b40a50d51e58591fb67db6c12e5504a46e87d00b0234844d22290f04aa5",
+      "presence": true
     },
     {
       "id": "ui-empty-routes",
@@ -1641,7 +2326,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-512.png": "cb9fd579f7f246e32f8ca10fe2ce58e47c1d11d897ec8edd68406f98f3cd44f7",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-256.webp": "8668db4b94b4a9d7dff4504a369e855c0e76bd2e62ff578da90a11490eb0db78",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-96.webp": "5666fbbf3df5931764a44f3a13cb3240b3e9250c6f85bf84b7d76c1ec3040bda"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-96.webp"
+      ],
+      "source_sha256": "6e0e3e21fe92126cafd78282bba7bb8a30ed250c40a732e01ce4c2326aee824c",
+      "presence": true
     },
     {
       "id": "ui-sync",
@@ -1662,7 +2358,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-512.png": "5417d3c7c369f94c61f6a4983e4a86d3f77a15297224d8d192377e7e4c780ad0",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-256.webp": "958c51e102e98c78bcdabb374d2f01a1e7cf9588becd77bac81408c41f7f2423",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-96.webp": "7ccc130fc1f28470c2694651ed1e34d82e9959f1a3e8fc4495c4b9e280201c49"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sync-96.webp"
+      ],
+      "source_sha256": "caf77a2ecca2de6b2ffa56090bdbee3bab59e3afc8266ed8737edd5fdeff09f3",
+      "presence": true
     },
     {
       "id": "ui-offline",
@@ -1683,7 +2390,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-512.png": "e89c9bb73fe1ac657e29f8b1e0a10ed520e42eda381504add09ffdd3ab7c8fd5",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-256.webp": "a6c05616bf705c59c5e00ff97b66233b92fc56b7024b32a1d90758d37016e63a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-96.webp": "c6befc1d4e2d9bce65ecba3c57b30f28bd0dc6d494e8be6273f05ad01c56c0e2"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/offline-96.webp"
+      ],
+      "source_sha256": "d15675a0a3da9b1264ba3369247d4a4af9888dbbe825896badd6c7a9225b5d29",
+      "presence": true
     },
     {
       "id": "ui-import-gpx",
@@ -1704,7 +2422,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png": "438a8343b3477d187a4dac194ad82c5b4b06204d37b28e211ac9f5a92fd51f7e",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp": "46afb8c034b99420d8c4b674b67efb091c0d952d3289bb3459f80208384d7dc8",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp": "b99cc3f9fd1bba1f5d2cfe5b8dac025abea6157879d4de919ad1f4c21c84f73f"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-96.webp"
+      ],
+      "source_sha256": "7552f4cb8d156e01b675b5519a78b87805f44d3cc24578da764eabda1ee7f12c",
+      "presence": true
     },
     {
       "id": "ui-completed",
@@ -1725,7 +2454,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-512.png": "75cd5493891b59fd1db0f09c4ceb6f5ddb94b256b07a46dcaad5586c33ffad85",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-256.webp": "a621456ebc1b07ef5deff4baa36b4cf42c7c9ad0d4edfa985ff996922bab2bc7",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-96.webp": "193af80cc6a847028e53772579e74fabc72e42ef409823e300d088d79a381da5"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/completed-96.webp"
+      ],
+      "source_sha256": "737773058af976993bbb2f116c0e7d9e8b365b77e01b71cf44f2398c0a20558e",
+      "presence": true
     },
     {
       "id": "ui-empty-challenges",
@@ -1746,7 +2486,18 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-512.png": "0dcad41954e1c59c004bca720af991678f05417659ccc1248089a01ccd2da3ef",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-256.webp": "0c870cdf4b210dae452a33d5ad1a0d2c326cfd97b7f08b964125738036a9144c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-96.webp": "f2e95859a6d5b75338c757a55d545361465383b3a3b9b378ad642071a2c64608"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-challenges-96.webp"
+      ],
+      "source_sha256": "c379fcdfa4cba5c084de1abd3ebd8921e47819f118722f1f2c819fa32f6530c8",
+      "presence": true
     },
     {
       "id": "ui-empty-calendar",
@@ -1767,7 +2518,43 @@
         "web": "pending_approval",
         "android": "pending_approval"
       },
-      "sha256": null
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-512.png": "09f5f12d8cb2362646317d97a08239e2e82eebd28e6c4816096551ee268196aa",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-256.webp": "948798bcd3daa6b643dbbe8df1924f95728e77f80e17201054a7125dfca474a7",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-96.webp": "9821a6e697480713e1e122c92bece08a77693657022848d872ac092514891d04"
+      },
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-512.png",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-256.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-96.webp"
+      ],
+      "source_sha256": "9d3a001e56dc60169e164026707c1c5e36033050e387134ba5d2be8a344a8e59",
+      "presence": true
+    },
+    {
+      "id": "editorial-hero",
+      "family": "editorial",
+      "priority": "P1",
+      "name": "editorial-hero",
+      "usage": "Accueil / hero",
+      "master": "design/titan-visual-library/global-v2/proposed/masters/renaissance/editorial-hero.png",
+      "source_original": "image/editorial/hero.webp",
+      "source_sha256": "97b2b26a8e08c920dd9407fb4a743f668d55bb4ad8439585dc424852478bc0cb",
+      "derived": [
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-web.webp",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-android.webp"
+      ],
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/masters/renaissance/editorial-hero.png": "56a933f1734c66ddb9b8832e960a8c22db77ffa7f2456a862aefe9bf9725858b",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-web.webp": "7699b3fdaef2f8df936a3161da33616869ee54f7b2e9fa4f12d3aa681f8ed947",
+        "design/titan-visual-library/global-v2/proposed/exports/renaissance/editorial-hero-android.webp": "9ac9388f8f4cde3b6173caccfbd1c259267e9b193b49d61b13fc9a3def6afdc9"
+      },
+      "status": "proposed",
+      "decision": "approval_required",
+      "presence": true,
+      "version": "v2-remaster",
+      "technique": "Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene",
+      "rights": "Existing TITAN ImageGen originals per RENAISSANCE_ART.json"
     }
   ]
 }
