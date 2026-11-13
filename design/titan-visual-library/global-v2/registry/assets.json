@@ -1,6 +1,6 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-13T13:07:48.901Z",
+  "updated_at": "2026-11-13T13:10:01.793Z",
   "proposals": {
     "new_vector_masters": 138,
     "photo_remasters": 15,
@@ -4213,11 +4213,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp"
       ],
-      "source_sha256": "f529af9963b6ff500242de5b82e0c6af8947f76ef800b3702c626c9d96ba7de7",
+      "source_sha256": "ad918654ba37b3fd3a6fe115b11c665ecc6425231e08ac0465d21bacacf87b80",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png": "2e4b59978030d358609b2afe69ae09d9d70ce09d961694ad737afeca68d47dc5",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp": "38e5940b8aa956cb2eb9e9acf078f2008e2b807293b5e7d4cae62501f3209ee0",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp": "2e75eee01c6284e8f9a61c6c1c4ff1cbe1dcfab537eb26c5390d17ba6721cc02"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png": "c703fbfb1ab982265c18f590d960d12475249b571a5cd84c5f73a1848a18a30b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp": "62afaefeed828d12d034311d63e81fd6d17f23f2ac09f834ccc97784f821a2aa",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp": "000ffc5a71df1fb62026fe130be82aa8ebb95d9e78cf14bd569eb55a62e1eeb7"
       }
     },
     {
@@ -4247,11 +4247,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp"
       ],
-      "source_sha256": "a647a4fe66ffe4c2afdd0a80e533ebb88c217a73340904386a5965dce87f9fa5",
+      "source_sha256": "ac318bcb7afddedfef0fcf52b33987e1db793038421e0782fed45e979cc1942a",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png": "baa123a9a64ae286e01e0f66d6e98fb1bddbdc92c7edd1237def323d57fe611a",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp": "c67fbc78627b2c5732dff24b29c141c6b988770f423fd88060bc7ba1f3418787",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp": "47b813b878cba08793228452562733fad98d22de425f76b905dde11d220a77a9"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png": "72537d7ca323dea1e960f6fa8653a2ef4539fec6511ac92a0626b07a1639a915",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp": "c4375fbbd1b1184d2c097c72d558e5b6f9819f6c790ef348fa6ed42bd0f2710f",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp": "126521c74b8aa5c0cdc5abc439daac644daf53fd26ecea7265f5ed9bce6a6b65"
       }
     },
     {
@@ -4281,11 +4281,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp"
       ],
-      "source_sha256": "7cee5551059b134df17b9d2458c6d05d2647b62acb88c1f12427e9c038dce9ca",
+      "source_sha256": "29b9572adcd91a7af12b15a822ad4a9e3f27b510c9a14d4956bf8a196433842a",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png": "f0b4367b78d6b0024ddd93ed5d893fd82c21861413eabf65e5588766dce861e6",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp": "1f5082a2eee49092dcc6816b15e7c650b2612e6d70c17eb60b8d229379e9ef87",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp": "143a026244be8ad328800f7a4670c3e97f79016035acc7c921f20218baddad05"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png": "a01f2c5239a12bd72aba7b789a9685da25e0d5cfa791344ab8c1791137a71c33",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp": "cf19b5c0f8d9b9b30d9e74fea0865cf15b1be7962bf510f7a7781e197686e2b8",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp": "7fd7789f510848a40966f498291eef7b45c230a274216273f068a30e792f5bd3"
       }
     },
     {
@@ -4315,11 +4315,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp"
       ],
-      "source_sha256": "b215c8f2760617fcb4696fbeb4a6bab49f25be9d308a9f3356ad0064f27745dc",
+      "source_sha256": "6690883f23f37ce0c75290a09af5b42f81753f04b70229a72f8967cc464a2b1c",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png": "c64618a67347ba4af14a52bb7ccbc322059ad9d99afaa07c18abcf012bd090bd",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp": "5171958a06c23ae27ab952a0e681744d8701600ce74dd0b63334f29940ef580a",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp": "ad67d2edb8623bf2dd98abefe7a20bd4dd225578fd31c0d747cf9bc673348766"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png": "b3fe6a42da5b4a63391db9ed2278b6721c13d57d93e27109af7757b1c1a2e36d",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp": "5558357abcb3ca37234aff017974909372795e537f59e87426e2863aafb5b86d",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp": "6797ca3f487abcba1f6767f96187b983e35f6e646de8294dbe1c6082900e578e"
       }
     },
     {
@@ -4349,11 +4349,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp"
       ],
-      "source_sha256": "fb8b8826dbc826bb3112c0ab8038bf33b644c6dff9362f80840ef1ce38f60dc4",
+      "source_sha256": "1126e5b16391cf07581ed86ce911dc88ffb9da3f24fae41bba8ed721459a3312",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png": "89ae9828dae9f352697ece94bd141140252d7f7d948c68c2add20a4d36355be7",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp": "aa3a5937da68adc6da6c8b37ac899bcae1ec002734553c59bf2314f3b70069bc",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp": "019019f0e6d3e55f2202008da64a4bc36bcaf833638192a5ad640cd4c7062bbf"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png": "952f7c861a920b638a82c139f6116d9e8d3c9538f0be697c2cdaf5e39a40f074",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp": "28256f3142252146c7982a67041754f85f285a7f0ef8341e0d296bb776b6ed52",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp": "2b32a1818003588a41440c0f365d0f47f2afa1b16febc45a517f13f98b15c234"
       }
     },
     {
@@ -4383,11 +4383,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp"
       ],
-      "source_sha256": "ad0195132df883a08a6c5423878ef2d58234d0c29fa8f82b1490e0d6dbcd65e8",
+      "source_sha256": "1b4849400c85360b07ff9e41904d0ba6ee985f20c5df79c9f4a7fff08cceb262",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png": "c89e062aca4ea4e00af12866eafaf417e43bcc495d5c06cb1c306ded0246d50a",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp": "1b6e66186715d8989463ac76bca324caf9d62b340d3ae2bdebf1d85e78507369",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp": "af6d017a257efa33d1726d1a2a4c1cd2a26063a2a97f917f66f8cc315b63d3c6"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png": "1173a0c249e1b8c57ecb5426e65acce24871321e6a15d1653f253269960d8149",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp": "165b6aadc82b28b384c094a51431fc6b560b05fb55a447300103a19b6a160ab2",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp": "2e111edb46d3c276e723372d06207c3f6864837ec90d591a84d05fc1edec612c"
       }
     },
     {
@@ -4417,11 +4417,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp"
       ],
-      "source_sha256": "7458c62d428bcc4420edf076876201197583dc9df513c12c47b198d939617263",
+      "source_sha256": "e6451b100be5bc6177d84a810458aacc361c9242839b99d68e0c7e9d17e8f2f8",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png": "e533aa2a18929b6fc6bbfd7404e264b1a1e2279052b1e44286107485d9292d03",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp": "e5389a623569c756f1f8d3d713b05c27314fdc00c6b242203dd8afa7e33ac194",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp": "22e6eef419c2170feedb85a8ba234f6500b4f2b52a4871a6942ecdb66389871e"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png": "7a55c2dca62c9f16556c8146d7c3621dcdca02596ae914721dea5afff4ba4eb7",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp": "0653c6ee52805f74bd93062b536744fe94dc34873d34eb47fe5df83a6688c860",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp": "76ccd8af463f11d89e8f9536672eb93615e503a85ca72ede042bda214020fe3a"
       }
     },
     {
@@ -4451,11 +4451,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp"
       ],
-      "source_sha256": "2618d3c1421e294565b86fdab697856685c1e50e24fa2fe9f5c97d2f8774c768",
+      "source_sha256": "584adbf4f1563dd19741654657a8e8023a00c816371b446304dfea1107fe2cdc",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png": "c6f623367bf6f1f5f078acb4f3e7b3c5b597204d5c65b6b068d7d3c0ad76e194",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp": "4596475d1bb21f33825078ae8100685590d6073c3b4d0b36531c793eddbbb393",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp": "70aebca6d3c564116ef0b236fc1a1edc983f0bae879ec9d8f1fbc221fffd3e00"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png": "5c2cf19cb286985bbeaa1d969ae58ec6e4c507e4437cd1cad2ef92f615b786ed",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp": "645fa7518fd064d1d6b82cefb99c120811b0efe03bb9c22d2569d5eee342106c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp": "9038b527fd2541296eb6a568be7679f860351e359f15e0fe37b7f98968e132ac"
       }
     },
     {
@@ -4485,11 +4485,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp"
       ],
-      "source_sha256": "2df155b73aa8dfb16fc54facef38de763257c7e47c6c20d603d27041c78b8cf0",
+      "source_sha256": "3437d80cce4548e32a002192cd65358a27ee781d8d039fcbc825ad7455abd12d",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png": "97f55e5261f0b24ce243655620a701779d0f24641a3125a33d75a6dca7435491",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp": "4d8e51b617bbde968766b7ccfa5ce107b7d5ce813b49fd90b1877e8428da56ee",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp": "f8e3b8ca9d391f7da18b621ee5e5177af947ceb4a30cb89ca1e1fe806e07642a"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png": "a486af0fa447147ec8d453e1e202ed7ee048faa18cfdd4dd66a2a06a991d2f5b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp": "600e0e5d55757ee94529ae03bf4c983dafc96de768cb2d4491ea679e06e8fecb",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp": "874916fd9bee297496bc1783e4a08ba17bd1dbfa08211e60452c51fde7300435"
       }
     },
     {
@@ -4519,11 +4519,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp"
       ],
-      "source_sha256": "9e7b536531b97a2cb5344efbd14604510f6eb11a723047fbf7e6d30b4c6c6609",
+      "source_sha256": "be43c4762e1f2b04ce174464ab32883ac4988f52c1c308503ec58c7a1e26b783",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png": "27ece1abc5778613fab04c551627f9fa45775caecd198833ad0586229ee267d8",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp": "94e8e6f94bff694b8220f4384f50bfe036d845976559b28db46c81c21683e183",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp": "e398b0bc4eeb8a8728f7fd511c48e85b57c9818402c34bfd5ecbc2820f39206a"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png": "a54d21887a543c2bc559c4f3632b9bdfaa450c75633eb88858f9839af11d248c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp": "50dbb023f34e5a45dbabde1514444a88991617970efa1ab1983f5a9393674469",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp": "cab850cc0f5d311b8141e8b1590bb44cb60b096e7ba4bae707b324f2590209f2"
       }
     },
     {
@@ -4553,11 +4553,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp"
       ],
-      "source_sha256": "e538c3fa53b2ff39dd3bddc3fda8a32da547a6f221cc92188cefe778e13cdbac",
+      "source_sha256": "a687798fb14678077e491112a335cb1292108b55c27072e11ef7b8a900da1c15",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png": "19e58978771c6729e9b3dff6ee92f28e6936b1960d9ad1ea6867a6c04197c2ca",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp": "151db98ad0f8335c6aa7cb13982084c53b589ea719001312829d80364e3b1a61",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp": "ff110b29ff56221a296c62fc75cd9cdcbd3414009c706fc9155d0ceb59d2743f"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png": "7463aaf97057afb9936767c0ab581759135febebd75748a49441da3ab6318a6c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp": "48daac234dfaaa1b0b5fc761990052dca67d3b091dde7727c58d4b63a5e84987",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp": "d1fcc17511e7a5b04485fa63621a475e8232f4d522b1b14bf6f9a5c2039da1be"
       }
     },
     {
@@ -4587,11 +4587,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp"
       ],
-      "source_sha256": "dbdd3b76bd79ee0cda9a044d93543934cb90a2eb78cf7e1c3e67ea98f0c40517",
+      "source_sha256": "ca54f71878387d1498005199c7de851358eb7830c93abe45994380ac6b853f26",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png": "90072dc08776f22b159ccdcb2386a1069be77bd302b01421fa59efa3c22336f3",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp": "dc7d3d58afbcd2310f8e14ddd0f7c57b89a336c82e4b92bfa3d87c83f1ff20e2",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp": "2a99a929964fb8f953109d6a673d873791be5b30be7db2e646a13f82c81c2550"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png": "b59b88b7e037407b18af20575bf8c80c4dd3a62dedc2b0411fbf16ff90c48090",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp": "58c320d5788915975f26290366b5df3d508e57f9a9d4e13f0f7ac4673cb75fe5",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp": "23ab7c518b94193594f6b595638bf1b05bf167d97eec698a8c6678cfa43adba6"
       }
     },
     {
@@ -4621,11 +4621,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp"
       ],
-      "source_sha256": "5fb42ab287ce25c373157c5a879b5768a6811e4927f8f5820a6fbb8009078285",
+      "source_sha256": "c0786524c32eefc5267e18c66d6834012d157dba51f5081be9b5a2d5139bf572",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png": "099e3ae354041f9035007258eace5c4fe6aea3c2210a6231e2fd0e8a4c56344f",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp": "d4e15158dd4f6c785c2bdde2686ec7524005b2f9fb0766e995deaeb893d0b357",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp": "8aebd3c9a8708de48c119597297c010641661f74b9c3fdb0cdef3430e40f8a79"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png": "1b569f1d30a5a51e3912e9173a71893f6dd74dd5db77afab8157ac5209c41f5a",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp": "94c30bf3d35b61dcc96aaa575ea0bec2643eec74813b50d1e96721e00232df3b",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp": "491eba2870167369d5869bcd8e42cf99272603101525c1a9853d873191366e02"
       }
     },
     {
@@ -4655,11 +4655,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp"
       ],
-      "source_sha256": "018d4480397f6cb25215dfb6f8134e4f591e939b8f4614c58f6edd3ff6377cc7",
+      "source_sha256": "2d907def0d6fe1e3507d4a6f77918b63077bbf26b06f828b8a660d208c46c8ad",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png": "539bcf7bde8c072910fffb259690a25a968ba067aa174c773af0d888d961fce1",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp": "bc1b829cf3d658cce2cae642c94219d5916f0cade985727e871ac6e152bc5fad",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp": "3e1efce9e5b2a1fda0c74449e83d5c7e31be62fa295f55830a3ca3109a17a76b"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png": "47201a17189d7cf802bbce68bf5041f243463b0f8d322ad765ad98ebc96d7423",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp": "85195cdf47653af6f461b2e50aeb9a831b0d253cc93196b4a9db5f8b24c7b614",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp": "fc1bf8f9ca321634910e67cfe199fb480ecb81ed214632482672db22f8f00db8"
       }
     },
     {
@@ -4689,11 +4689,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp"
       ],
-      "source_sha256": "9a9e8c11e151a68b22bd850a6cd1cd9d5ee6a51d7111c8204b476b7df25b5bbf",
+      "source_sha256": "4b8557f7c0130c171be5f8eef84f7c25b2842ad9fef98ddf14d3cd60e5fa13d8",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png": "f0e33c4712686003dda13ded36a7402fc995ea4d5eb06e73d8f6cdb078ca368e",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp": "b0ec68a9d633a6b6bba5e8b1809af7342220272c1e75c924ff3692bec86fd24c",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp": "fd4dd3e01cf363ee5010c58828e472a559e6b4deb4101aa0a122823540a96d95"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png": "fd445dc2c6a980e28af2c4550eddfa8ce3021deebff5944a95c8ccf8b5a5f8df",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp": "8fdad8b97cb2bf73589750662559258315255d30f3435bd7a873f4466070d0ba",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp": "19b8d779ec83ec73a23bd0e6d9bb95e5a869c3b688c0bc84bb0df080ada14f2e"
       }
     },
     {
@@ -4723,11 +4723,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp"
       ],
-      "source_sha256": "c9ceb6ec8a1de79d3d5edf46a8188df15c52072b61b5a19fb7cf66f1d693e846",
+      "source_sha256": "e180f1e7d6d9d31595627498afa3d7a68403188a9ff6e1cfdc29719fc7880112",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png": "5df58e310714dc6770917d09ea7d60edbacfddbce57e4722d9597b0f398c92e8",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp": "15252159cdf09a7ec7796b4340a0d1ce2fc21a256d06eea92d99450760a8f85a",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp": "06fd58fd656eea25f89e4f502ab04d5a3eadf54cad4c3e5e6339530369514d08"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png": "cc0c6b893361f8ac2635cd498cb68abb0d8088f32b5e118bd9d0a6e27b463bcd",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp": "e331d1468bf0283a7e43024d8cf4d6e6daf9fe876ea593f3bb4bc5a45469b4ec",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp": "e3f7a490b63e0bade2a8228cb51aa77593d972cf9b567655ac1e1963dfeb508c"
       }
     },
     {
@@ -4757,11 +4757,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp"
       ],
-      "source_sha256": "25cd5094dc2dc961d6f0c21354305238c4bc72300b4000f6f53ee691bb068c0f",
+      "source_sha256": "04562de4f54bc50e4d3d9999232e0d2c7377593e1099c611560c877ea8ae6808",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png": "d9780687e125c447ddf2f9842a2df72fc102b3e4a7fb3e03e9e4234926e0cb90",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp": "c3737675679e40bfdc59f4347212a0b8bb72e865f6f23fb5d9658d3d09136013",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp": "feaed4bb254fd5c956e85b35b712f8119a53cc214fd4c28ee50725dc7db608e1"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png": "d429292afbcdec9648217a0924021a68b214cb7efc0d247f9bbedc1317372a23",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp": "9be7b1a1705111c729bc38ba5b4c92092f14f823489fc280ffd60fe95bbf5e23",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp": "62ccbcaaa64e1d225eb1b3cd40ed83006ddad6e228e2a4663be5c6049f89c6da"
       }
     },
     {
@@ -4791,11 +4791,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp"
       ],
-      "source_sha256": "15df4542ee20821fd4a327835255af2c117554b4786456a376e65629cdfcf830",
+      "source_sha256": "e5edd3e195955fcecb7a519a601fb2f7b9a49aab4db2557fdd9a6a0b810ffea2",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png": "676b99b2f7a0e2b89d6a81f021b2083629bf858e6cbc9eaca138894a86bdf77b",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp": "740d3755386907d5fb8d62656352572f5caf16d8694c42e9133fdf752cb38e85",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp": "79159699dc89ad97199960bbeafbd7c7e5d15ff543dfca2753a776cf9301388f"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png": "4f999b1d566890d84aed3bd8bba8e44a6a2dc6b42348eebd89ee8cbd270a1f87",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp": "455d78a6c5e01f4d05f86fa2ce4f3bc8a7719b8d47a6fc935cac63ba1e68a3c4",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp": "a9c8ef9ec71f9df5c3ce5310876e581ddefb8f90b2d7fd55610442d60d0edd83"
       }
     },
     {
@@ -4825,11 +4825,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp"
       ],
-      "source_sha256": "2bfaa26b2cd9ac7dfb08ef1dbd6093c0bd4febea7fdd4375f4328c2afcbff206",
+      "source_sha256": "3c94b998a4b64c5d38d3ca0ad1d55e2267f08a3daeeef51b1a57e335c79df39d",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png": "5ab46d40cc2c266e87ae27e46ae96d0d1dafa8d22349816d9334a3e48accab4a",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp": "dcd07de0fc7cc114aa22c2e548013d0c913de84154ed45221766294cc8dc5fad",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp": "ee95a09446e556df416d590ffc964e33afd572e760b1965565e2cf05b5313a57"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png": "f8d8620ae655e0384df512c3243b85b419116ef88a25ba790d7b0803013b419f",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp": "3914bc74f6deaef7ffe901807bc8df4ce045e165aac66a99b4e22d12ce8b151c",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp": "a0f8007be1be7263b9864f302a371c173ce3aba50a42f38a97fe431c5a2a3a79"
       }
     },
     {
@@ -4859,11 +4859,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp"
       ],
-      "source_sha256": "ddce3c4f1915f0a6dbb65395e9e83d55257ebd470c53547af7787abdaf23e56e",
+      "source_sha256": "54b1cc595a62188f6a9a67d24fb83b2f87aa6bc1e90c7882a0f6a87b2876ec59",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png": "100f700e43929c11a0743f6460f5810892bd75c77f64e23de9cd2b5b948dc9ba",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp": "1b589c2167c903a7fb6f4b227fa5998f072c7830aae95a94412f34a4b7382fd4",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp": "63cc9f5d3a266590aef7b3892e04e655cfc09bcc97a5793a9631115ffdb86cb4"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png": "65ab15c35599dd2e2ad8d70a2f563a964ecf80a453f3b7f99f7bafda6a6836b9",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp": "bf0f76673b3106ad4bb12b386531474caee47fd90c304371a083afc379509277",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp": "dfbd7d2d035e2d7439123c3cc3b3093edda83ee2a78f9ac568522cb6121ace89"
       }
     },
     {
@@ -4893,11 +4893,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp"
       ],
-      "source_sha256": "fdabd3555cf40301cea7a32eae909d54b0fa8779c651ecaf537b8e8b284ecef8",
+      "source_sha256": "60d3a437e0a558255aa96592300ab3ca4bf33b84e86661420018d365083c91b1",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png": "f9325e9d883019dcfa1c87141d2d26f42e4f4cd955b3ebc2e6c65366c99b1d2b",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp": "dbc16464d022dbcb5dd12b9b5515f7d71814b6b14eb4658c583c2d94b0d06032",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp": "1dd81f6fa0a68ece0d4a548d40837f6d49de79a2eadd60478f29c682f200c5a9"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png": "ff85fd7217f690f5695fd0a9a5995f95adb0054e6cfcba8b1bfb416baf224742",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp": "f6e6a4e1236cf32cf43a32b69ef92926b2e1583764746e764d0b81b5410f7ee8",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp": "0018af1f94cc3d663e3c3fe7a29c28c010f2c372ed0b8a61cdfee1229e22375b"
       }
     },
     {
@@ -4927,11 +4927,11 @@
         "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp",
         "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp"
       ],
-      "source_sha256": "f744fb57635c4a3a93221e951ea71a37d54653b71f896b31d5ad218abb630aa6",
+      "source_sha256": "10a77ca8b21088aa8d4655e387ecb558cd3c2bdad1a57dba4eed8c8f9459f118",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png": "22572f577779510836d50ff7c0d05173966e1e13edf54fc4b5f8639bea9558ad",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp": "0bf404323a9b15b7efc40218c6bdcc355ec92266ce15e7aa54460ba5d9c6fa87",
-        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp": "57e5ccd9e8482cd4ce01a78fb969f8bfdffe17b4959e7604b296b994fc7a1831"
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png": "7f55a1fac7154e764e7ce3090fc22129a17bb75587f6e18c21e55ed5d09ee2ae",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp": "3b02f5d72f8b81762ee125cfd4ca1b39609f976230f740a12613aff067de2a19",
+        "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp": "9ac29d297fafed11d37bf47fda8714309602dc63c8a1922fbd4dd9e813080871"
       }
     },
     {

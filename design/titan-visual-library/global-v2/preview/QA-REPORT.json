@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T13:07:48.903Z",
+  "generated_at": "2026-11-13T13:10:01.795Z",
   "counts": {
     "vectors": 138,
     "remasters": 15,
@@ -2485,51 +2485,51 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-512.png",
-      "bytes": 166385,
+      "bytes": 82459,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "97f55e5261f0b24ce243655620a701779d0f24641a3125a33d75a6dca7435491"
+      "sha256": "a486af0fa447147ec8d453e1e202ed7ee048faa18cfdd4dd66a2a06a991d2f5b"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-256.webp",
-      "bytes": 18112,
+      "bytes": 6820,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "4d8e51b617bbde968766b7ccfa5ce107b7d5ce813b49fd90b1877e8428da56ee"
+      "sha256": "600e0e5d55757ee94529ae03bf4c983dafc96de768cb2d4491ea679e06e8fecb"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-atelier-96.webp",
-      "bytes": 3604,
+      "bytes": 1642,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "f8e3b8ca9d391f7da18b621ee5e5177af947ceb4a30cb89ca1e1fe806e07642a"
+      "sha256": "874916fd9bee297496bc1783e4a08ba17bd1dbfa08211e60452c51fde7300435"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-512.png",
-      "bytes": 164368,
+      "bytes": 64248,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "f0b4367b78d6b0024ddd93ed5d893fd82c21861413eabf65e5588766dce861e6"
+      "sha256": "a01f2c5239a12bd72aba7b789a9685da25e0d5cfa791344ab8c1791137a71c33"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-256.webp",
-      "bytes": 18714,
+      "bytes": 5592,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "1f5082a2eee49092dcc6816b15e7c650b2612e6d70c17eb60b8d229379e9ef87"
+      "sha256": "cf19b5c0f8d9b9b30d9e74fea0865cf15b1be7962bf510f7a7781e197686e2b8"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-binom-96.webp",
-      "bytes": 3644,
+      "bytes": 1336,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "143a026244be8ad328800f7a4670c3e97f79016035acc7c921f20218baddad05"
+      "sha256": "7fd7789f510848a40966f498291eef7b45c230a274216273f068a30e792f5bd3"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-calendar-512.png",
@@ -2581,27 +2581,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-512.png",
-      "bytes": 151610,
+      "bytes": 84497,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "d9780687e125c447ddf2f9842a2df72fc102b3e4a7fb3e03e9e4234926e0cb90"
+      "sha256": "d429292afbcdec9648217a0924021a68b214cb7efc0d247f9bbedc1317372a23"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-256.webp",
-      "bytes": 17908,
+      "bytes": 8222,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "c3737675679e40bfdc59f4347212a0b8bb72e865f6f23fb5d9658d3d09136013"
+      "sha256": "9be7b1a1705111c729bc38ba5b4c92092f14f823489fc280ffd60fe95bbf5e23"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coach-clients-96.webp",
-      "bytes": 3574,
+      "bytes": 1984,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "feaed4bb254fd5c956e85b35b712f8119a53cc214fd4c28ee50725dc7db608e1"
+      "sha256": "62ccbcaaa64e1d225eb1b3cd40ed83006ddad6e228e2a4663be5c6049f89c6da"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-coaching-512.png",
@@ -2653,27 +2653,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-512.png",
-      "bytes": 151965,
+      "bytes": 50093,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "100f700e43929c11a0743f6460f5810892bd75c77f64e23de9cd2b5b948dc9ba"
+      "sha256": "65ab15c35599dd2e2ad8d70a2f563a964ecf80a453f3b7f99f7bafda6a6836b9"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-256.webp",
-      "bytes": 18460,
+      "bytes": 4942,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "1b589c2167c903a7fb6f4b227fa5998f072c7830aae95a94412f34a4b7382fd4"
+      "sha256": "bf0f76673b3106ad4bb12b386531474caee47fd90c304371a083afc379509277"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-discovery-96.webp",
-      "bytes": 3600,
+      "bytes": 1302,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "63cc9f5d3a266590aef7b3892e04e655cfc09bcc97a5793a9631115ffdb86cb4"
+      "sha256": "dfbd7d2d035e2d7439123c3cc3b3093edda83ee2a78f9ac568522cb6121ace89"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-friends-512.png",
@@ -2701,27 +2701,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-512.png",
-      "bytes": 148884,
+      "bytes": 77101,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "baa123a9a64ae286e01e0f66d6e98fb1bddbdc92c7edd1237def323d57fe611a"
+      "sha256": "72537d7ca323dea1e960f6fa8653a2ef4539fec6511ac92a0626b07a1639a915"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-256.webp",
-      "bytes": 18200,
+      "bytes": 11232,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "c67fbc78627b2c5732dff24b29c141c6b988770f423fd88060bc7ba1f3418787"
+      "sha256": "c4375fbbd1b1184d2c097c72d558e5b6f9819f6c790ef348fa6ed42bd0f2710f"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-guild-96.webp",
-      "bytes": 3492,
+      "bytes": 2280,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "47b813b878cba08793228452562733fad98d22de425f76b905dde11d220a77a9"
+      "sha256": "126521c74b8aa5c0cdc5abc439daac644daf53fd26ecea7265f5ed9bce6a6b65"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-journal-512.png",
@@ -2749,75 +2749,75 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-512.png",
-      "bytes": 165166,
+      "bytes": 71043,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "2e4b59978030d358609b2afe69ae09d9d70ce09d961694ad737afeca68d47dc5"
+      "sha256": "c703fbfb1ab982265c18f590d960d12475249b571a5cd84c5f73a1848a18a30b"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-256.webp",
-      "bytes": 18268,
+      "bytes": 4502,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "38e5940b8aa956cb2eb9e9acf078f2008e2b807293b5e7d4cae62501f3209ee0"
+      "sha256": "62afaefeed828d12d034311d63e81fd6d17f23f2ac09f834ccc97784f821a2aa"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-moments-96.webp",
-      "bytes": 3616,
+      "bytes": 1146,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "2e75eee01c6284e8f9a61c6c1c4ff1cbe1dcfab537eb26c5390d17ba6721cc02"
+      "sha256": "000ffc5a71df1fb62026fe130be82aa8ebb95d9e78cf14bd569eb55a62e1eeb7"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-512.png",
-      "bytes": 150385,
+      "bytes": 70404,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "27ece1abc5778613fab04c551627f9fa45775caecd198833ad0586229ee267d8"
+      "sha256": "a54d21887a543c2bc559c4f3632b9bdfaa450c75633eb88858f9839af11d248c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-256.webp",
-      "bytes": 18070,
+      "bytes": 9256,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "94e8e6f94bff694b8220f4384f50bfe036d845976559b28db46c81c21683e183"
+      "sha256": "50dbb023f34e5a45dbabde1514444a88991617970efa1ab1983f5a9393674469"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-notifications-96.webp",
-      "bytes": 3504,
+      "bytes": 1918,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "e398b0bc4eeb8a8728f7fd511c48e85b57c9818402c34bfd5ecbc2820f39206a"
+      "sha256": "cab850cc0f5d311b8141e8b1590bb44cb60b096e7ba4bae707b324f2590209f2"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-512.png",
-      "bytes": 160015,
+      "bytes": 68657,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "676b99b2f7a0e2b89d6a81f021b2083629bf858e6cbc9eaca138894a86bdf77b"
+      "sha256": "4f999b1d566890d84aed3bd8bba8e44a6a2dc6b42348eebd89ee8cbd270a1f87"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-256.webp",
-      "bytes": 17932,
+      "bytes": 4426,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "740d3755386907d5fb8d62656352572f5caf16d8694c42e9133fdf752cb38e85"
+      "sha256": "455d78a6c5e01f4d05f86fa2ce4f3bc8a7719b8d47a6fc935cac63ba1e68a3c4"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-program-96.webp",
-      "bytes": 3564,
+      "bytes": 1244,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "79159699dc89ad97199960bbeafbd7c7e5d15ff543dfca2753a776cf9301388f"
+      "sha256": "a9c8ef9ec71f9df5c3ce5310876e581ddefb8f90b2d7fd55610442d60d0edd83"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-quests-512.png",
@@ -2845,27 +2845,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-512.png",
-      "bytes": 159857,
+      "bytes": 96258,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "c64618a67347ba4af14a52bb7ccbc322059ad9d99afaa07c18abcf012bd090bd"
+      "sha256": "b3fe6a42da5b4a63391db9ed2278b6721c13d57d93e27109af7757b1c1a2e36d"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-256.webp",
-      "bytes": 17768,
+      "bytes": 11586,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "5171958a06c23ae27ab952a0e681744d8701600ce74dd0b63334f29940ef580a"
+      "sha256": "5558357abcb3ca37234aff017974909372795e537f59e87426e2863aafb5b86d"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-ranking-96.webp",
-      "bytes": 3496,
+      "bytes": 2338,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "ad67d2edb8623bf2dd98abefe7a20bd4dd225578fd31c0d747cf9bc673348766"
+      "sha256": "6797ca3f487abcba1f6767f96187b983e35f6e646de8294dbe1c6082900e578e"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-records-512.png",
@@ -2893,27 +2893,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-512.png",
-      "bytes": 172241,
+      "bytes": 110411,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "5df58e310714dc6770917d09ea7d60edbacfddbce57e4722d9597b0f398c92e8"
+      "sha256": "cc0c6b893361f8ac2635cd498cb68abb0d8088f32b5e118bd9d0a6e27b463bcd"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-256.webp",
-      "bytes": 17904,
+      "bytes": 8858,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "15252159cdf09a7ec7796b4340a0d1ce2fc21a256d06eea92d99450760a8f85a"
+      "sha256": "e331d1468bf0283a7e43024d8cf4d6e6daf9fe876ea593f3bb4bc5a45469b4ec"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-route-library-96.webp",
-      "bytes": 3560,
+      "bytes": 1970,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "06fd58fd656eea25f89e4f502ab04d5a3eadf54cad4c3e5e6339530369514d08"
+      "sha256": "e3f7a490b63e0bade2a8228cb51aa77593d972cf9b567655ac1e1963dfeb508c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-routes-512.png",
@@ -2941,27 +2941,27 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-512.png",
-      "bytes": 158136,
+      "bytes": 71607,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "c89e062aca4ea4e00af12866eafaf417e43bcc495d5c06cb1c306ded0246d50a"
+      "sha256": "1173a0c249e1b8c57ecb5426e65acce24871321e6a15d1653f253269960d8149"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-256.webp",
-      "bytes": 18020,
+      "bytes": 5626,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "1b6e66186715d8989463ac76bca324caf9d62b340d3ae2bdebf1d85e78507369"
+      "sha256": "165b6aadc82b28b384c094a51431fc6b560b05fb55a447300103a19b6a160ab2"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-season-96.webp",
-      "bytes": 3598,
+      "bytes": 1338,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "af6d017a257efa33d1726d1a2a4c1cd2a26063a2a97f917f66f8cc315b63d3c6"
+      "sha256": "2e111edb46d3c276e723372d06207c3f6864837ec90d591a84d05fc1edec612c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-stats-512.png",
@@ -2989,147 +2989,147 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-512.png",
-      "bytes": 164038,
+      "bytes": 77677,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "89ae9828dae9f352697ece94bd141140252d7f7d948c68c2add20a4d36355be7"
+      "sha256": "952f7c861a920b638a82c139f6116d9e8d3c9538f0be697c2cdaf5e39a40f074"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-256.webp",
-      "bytes": 18082,
+      "bytes": 5754,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "aa3a5937da68adc6da6c8b37ac899bcae1ec002734553c59bf2314f3b70069bc"
+      "sha256": "28256f3142252146c7982a67041754f85f285a7f0ef8341e0d296bb776b6ed52"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-weekly-quests-96.webp",
-      "bytes": 3572,
+      "bytes": 1444,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "019019f0e6d3e55f2202008da64a4bc36bcaf833638192a5ad640cd4c7062bbf"
+      "sha256": "2b32a1818003588a41440c0f365d0f47f2afa1b16febc45a517f13f98b15c234"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-512.png",
-      "bytes": 155484,
+      "bytes": 59128,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "5ab46d40cc2c266e87ae27e46ae96d0d1dafa8d22349816d9334a3e48accab4a"
+      "sha256": "f8d8620ae655e0384df512c3243b85b419116ef88a25ba790d7b0803013b419f"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-256.webp",
-      "bytes": 18098,
+      "bytes": 6082,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "dcd07de0fc7cc114aa22c2e548013d0c913de84154ed45221766294cc8dc5fad"
+      "sha256": "3914bc74f6deaef7ffe901807bc8df4ce045e165aac66a99b4e22d12ce8b151c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/empty-workout-96.webp",
-      "bytes": 3492,
+      "bytes": 1268,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "ee95a09446e556df416d590ffc964e33afd572e760b1965565e2cf05b5313a57"
+      "sha256": "a0f8007be1be7263b9864f302a371c173ce3aba50a42f38a97fe431c5a2a3a79"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-512.png",
-      "bytes": 159888,
+      "bytes": 99100,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "22572f577779510836d50ff7c0d05173966e1e13edf54fc4b5f8639bea9558ad"
+      "sha256": "7f55a1fac7154e764e7ce3090fc22129a17bb75587f6e18c21e55ed5d09ee2ae"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-256.webp",
-      "bytes": 18072,
+      "bytes": 13380,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "0bf404323a9b15b7efc40218c6bdcc355ec92266ce15e7aa54460ba5d9c6fa87"
+      "sha256": "3b02f5d72f8b81762ee125cfd4ca1b39609f976230f740a12613aff067de2a19"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/error-system-96.webp",
-      "bytes": 3526,
+      "bytes": 2450,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "57e5ccd9e8482cd4ce01a78fb969f8bfdffe17b4959e7604b296b994fc7a1831"
+      "sha256": "9ac29d297fafed11d37bf47fda8714309602dc63c8a1922fbd4dd9e813080871"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-512.png",
-      "bytes": 165847,
+      "bytes": 68879,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "539bcf7bde8c072910fffb259690a25a968ba067aa174c773af0d888d961fce1"
+      "sha256": "47201a17189d7cf802bbce68bf5041f243463b0f8d322ad765ad98ebc96d7423"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-256.webp",
-      "bytes": 18402,
+      "bytes": 4070,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "bc1b829cf3d658cce2cae642c94219d5916f0cade985727e871ac6e152bc5fad"
+      "sha256": "85195cdf47653af6f461b2e50aeb9a831b0d253cc93196b4a9db5f8b24c7b614"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-location-missing-96.webp",
-      "bytes": 3600,
+      "bytes": 1054,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "3e1efce9e5b2a1fda0c74449e83d5c7e31be62fa295f55830a3ca3109a17a76b"
+      "sha256": "fc1bf8f9ca321634910e67cfe199fb480ecb81ed214632482672db22f8f00db8"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-512.png",
-      "bytes": 162681,
+      "bytes": 70311,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "099e3ae354041f9035007258eace5c4fe6aea3c2210a6231e2fd0e8a4c56344f"
+      "sha256": "1b569f1d30a5a51e3912e9173a71893f6dd74dd5db77afab8157ac5209c41f5a"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-256.webp",
-      "bytes": 18576,
+      "bytes": 4804,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "d4e15158dd4f6c785c2bdde2686ec7524005b2f9fb0766e995deaeb893d0b357"
+      "sha256": "94c30bf3d35b61dcc96aaa575ea0bec2643eec74813b50d1e96721e00232df3b"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/gps-tracking-96.webp",
-      "bytes": 3662,
+      "bytes": 1106,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "8aebd3c9a8708de48c119597297c010641661f74b9c3fdb0cdef3430e40f8a79"
+      "sha256": "491eba2870167369d5869bcd8e42cf99272603101525c1a9853d873191366e02"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-512.png",
-      "bytes": 169139,
+      "bytes": 87709,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "f0e33c4712686003dda13ded36a7402fc995ea4d5eb06e73d8f6cdb078ca368e"
+      "sha256": "fd445dc2c6a980e28af2c4550eddfa8ce3021deebff5944a95c8ccf8b5a5f8df"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-256.webp",
-      "bytes": 17696,
+      "bytes": 5466,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "b0ec68a9d633a6b6bba5e8b1809af7342220272c1e75c924ff3692bec86fd24c"
+      "sha256": "8fdad8b97cb2bf73589750662559258315255d30f3435bd7a873f4466070d0ba"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-error-96.webp",
-      "bytes": 3546,
+      "bytes": 1406,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "fd4dd3e01cf363ee5010c58828e472a559e6b4deb4101aa0a122823540a96d95"
+      "sha256": "19b8d779ec83ec73a23bd0e6d9bb95e5a869c3b688c0bc84bb0df080ada14f2e"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/import-gpx-512.png",
@@ -3181,123 +3181,123 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-512.png",
-      "bytes": 156958,
+      "bytes": 76446,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "e533aa2a18929b6fc6bbfd7404e264b1a1e2279052b1e44286107485d9292d03"
+      "sha256": "7a55c2dca62c9f16556c8146d7c3621dcdca02596ae914721dea5afff4ba4eb7"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-256.webp",
-      "bytes": 18380,
+      "bytes": 6156,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "e5389a623569c756f1f8d3d713b05c27314fdc00c6b242203dd8afa7e33ac194"
+      "sha256": "0653c6ee52805f74bd93062b536744fe94dc34873d34eb47fe5df83a6688c860"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/profile-passport-96.webp",
-      "bytes": 3658,
+      "bytes": 1570,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "22e6eef419c2170feedb85a8ba234f6500b4f2b52a4871a6942ecdb66389871e"
+      "sha256": "76ccd8af463f11d89e8f9536672eb93615e503a85ca72ede042bda214020fe3a"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-512.png",
-      "bytes": 169786,
+      "bytes": 105211,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "90072dc08776f22b159ccdcb2386a1069be77bd302b01421fa59efa3c22336f3"
+      "sha256": "b59b88b7e037407b18af20575bf8c80c4dd3a62dedc2b0411fbf16ff90c48090"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-256.webp",
-      "bytes": 18968,
+      "bytes": 10966,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "dc7d3d58afbcd2310f8e14ddd0f7c57b89a336c82e4b92bfa3d87c83f1ff20e2"
+      "sha256": "58c320d5788915975f26290366b5df3d508e57f9a9d4e13f0f7ac4673cb75fe5"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/record-detail-96.webp",
-      "bytes": 3714,
+      "bytes": 2408,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "2a99a929964fb8f953109d6a673d873791be5b30be7db2e646a13f82c81c2550"
+      "sha256": "23ab7c518b94193594f6b595638bf1b05bf167d97eec698a8c6678cfa43adba6"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-512.png",
-      "bytes": 163757,
+      "bytes": 77875,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "19e58978771c6729e9b3dff6ee92f28e6936b1960d9ad1ea6867a6c04197c2ca"
+      "sha256": "7463aaf97057afb9936767c0ab581759135febebd75748a49441da3ab6318a6c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-256.webp",
-      "bytes": 17968,
+      "bytes": 4358,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "151db98ad0f8335c6aa7cb13982084c53b589ea719001312829d80364e3b1a61"
+      "sha256": "48daac234dfaaa1b0b5fc761990052dca67d3b091dde7727c58d4b63a5e84987"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/report-summary-96.webp",
-      "bytes": 3598,
+      "bytes": 1262,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "ff110b29ff56221a296c62fc75cd9cdcbd3414009c706fc9155d0ceb59d2743f"
+      "sha256": "d1fcc17511e7a5b04485fa63621a475e8232f4d522b1b14bf6f9a5c2039da1be"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-512.png",
-      "bytes": 157422,
+      "bytes": 81177,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "c6f623367bf6f1f5f078acb4f3e7b3c5b597204d5c65b6b068d7d3c0ad76e194"
+      "sha256": "5c2cf19cb286985bbeaa1d969ae58ec6e4c507e4437cd1cad2ef92f615b786ed"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-256.webp",
-      "bytes": 18550,
+      "bytes": 9802,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "4596475d1bb21f33825078ae8100685590d6073c3b4d0b36531c793eddbbb393"
+      "sha256": "645fa7518fd064d1d6b82cefb99c120811b0efe03bb9c22d2569d5eee342106c"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sport-dna-96.webp",
-      "bytes": 3660,
+      "bytes": 2118,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "70aebca6d3c564116ef0b236fc1a1edc983f0bae879ec9d8f1fbc221fffd3e00"
+      "sha256": "9038b527fd2541296eb6a568be7679f860351e359f15e0fe37b7f98968e132ac"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-512.png",
-      "bytes": 156618,
+      "bytes": 92552,
       "width": 512,
       "height": 512,
       "alpha": true,
-      "sha256": "f9325e9d883019dcfa1c87141d2d26f42e4f4cd955b3ebc2e6c65366c99b1d2b"
+      "sha256": "ff85fd7217f690f5695fd0a9a5995f95adb0054e6cfcba8b1bfb416baf224742"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-256.webp",
-      "bytes": 18424,
+      "bytes": 12574,
       "width": 256,
       "height": 256,
       "alpha": true,
-      "sha256": "dbc16464d022dbcb5dd12b9b5515f7d71814b6b14eb4658c583c2d94b0d06032"
+      "sha256": "f6e6a4e1236cf32cf43a32b69ef92926b2e1583764746e764d0b81b5410f7ee8"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/success-upload-96.webp",
-      "bytes": 3568,
+      "bytes": 2584,
       "width": 96,
       "height": 96,
       "alpha": true,
-      "sha256": "1dd81f6fa0a68ece0d4a548d40837f6d49de79a2eadd60478f29c682f200c5a9"
+      "sha256": "0018af1f94cc3d663e3c3fe7a29c28c010f2c372ed0b8a61cdfee1229e22375b"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ui/sync-512.png",
@@ -3853,11 +3853,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-ui.webp",
-      "bytes": 108968,
+      "bytes": 82122,
       "width": 816,
       "height": 2157,
       "alpha": false,
-      "sha256": "2059ab68db344f64779989f988d1a16cb7a01a93014ba50b3fef54e0b47f776c"
+      "sha256": "43d56e9fbc732c649b20e119142e89a665a7af3eb56194f077871664639c0dd3"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-worlds.webp",
@@ -3913,354 +3913,84 @@
     "perceptual_near_duplicates": [
       {
         "a": "rewards-first-effort",
-        "b": "rewards-record",
-        "distance": 4,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-first-effort",
         "b": "rewards-streak",
-        "distance": 2,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-first-effort",
-        "b": "rewards-weekly",
-        "distance": 3,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-first-effort",
-        "b": "rewards-challenge",
-        "distance": 4,
+        "distance": 13,
         "family": "reward"
       },
       {
         "a": "rewards-first-effort",
         "b": "rewards-collection",
-        "distance": 3,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-first-effort",
-        "b": "rewards-duel",
-        "distance": 4,
+        "distance": 14,
         "family": "reward"
       },
       {
         "a": "rewards-record",
         "b": "rewards-streak",
-        "distance": 2,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-record",
-        "b": "rewards-collection",
-        "distance": 1,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-record",
-        "b": "rewards-achievement",
-        "distance": 1,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-streak",
-        "b": "rewards-collection",
-        "distance": 1,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-streak",
-        "b": "rewards-achievement",
-        "distance": 3,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-weekly",
-        "b": "rewards-challenge",
-        "distance": 3,
-        "family": "reward"
-      },
-      {
-        "a": "rewards-weekly",
-        "b": "rewards-collection",
         "distance": 4,
         "family": "reward"
       },
       {
-        "a": "rewards-weekly",
-        "b": "rewards-duel",
-        "distance": 3,
+        "a": "rewards-record",
+        "b": "rewards-collection",
+        "distance": 9,
         "family": "reward"
       },
       {
-        "a": "rewards-challenge",
+        "a": "rewards-record",
+        "b": "rewards-achievement",
+        "distance": 16,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-streak",
+        "b": "rewards-collection",
+        "distance": 7,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-streak",
+        "b": "rewards-achievement",
+        "distance": 16,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-weekly",
         "b": "rewards-duel",
-        "distance": 2,
+        "distance": 16,
         "family": "reward"
       },
       {
         "a": "rewards-exploration",
         "b": "rewards-quest",
-        "distance": 3,
+        "distance": 12,
         "family": "reward"
       },
       {
         "a": "rewards-collection",
         "b": "rewards-achievement",
-        "distance": 2,
+        "distance": 13,
         "family": "reward"
       },
       {
-        "a": "rewards-duel",
-        "b": "rewards-milestone",
-        "distance": 4,
+        "a": "rewards-milestone",
+        "b": "rewards-rare",
+        "distance": 16,
         "family": "reward"
-      },
-      {
-        "a": "ui-empty-quests",
-        "b": "ui-empty-calendar",
-        "distance": 4,
-        "family": "ui-illustration"
       },
       {
         "a": "ui-empty-routes",
         "b": "ui-import-gpx",
-        "distance": 1,
+        "distance": 3,
         "family": "ui-illustration"
       },
       {
-        "a": "avatar-token-scout",
-        "b": "avatar-token-ranger",
-        "distance": 4,
-        "family": "avatar"
-      },
-      {
-        "a": "avatar-token-scout",
-        "b": "avatar-token-artisan",
-        "distance": 4,
-        "family": "avatar"
-      },
-      {
-        "a": "avatar-token-scout",
-        "b": "avatar-token-navigator",
-        "distance": 2,
-        "family": "avatar"
-      },
-      {
-        "a": "avatar-token-ranger",
-        "b": "avatar-token-navigator",
-        "distance": 4,
-        "family": "avatar"
-      },
-      {
-        "a": "avatar-token-ranger",
+        "a": "avatar-token-keeper",
         "b": "avatar-token-sentinel",
-        "distance": 3,
+        "distance": 13,
         "family": "avatar"
-      },
-      {
-        "a": "empty-moments",
-        "b": "empty-season",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "profile-passport",
-        "distance": 2,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "empty-atelier",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "report-summary",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "gps-tracking",
-        "distance": 2,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "gps-location-missing",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "empty-coach-clients",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "empty-workout",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-moments",
-        "b": "empty-discovery",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-weekly-quests",
-        "b": "sport-dna",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-weekly-quests",
-        "b": "report-summary",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-weekly-quests",
-        "b": "gps-location-missing",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-weekly-quests",
-        "b": "empty-route-library",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-season",
-        "b": "profile-passport",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-season",
-        "b": "report-summary",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-season",
-        "b": "gps-location-missing",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "profile-passport",
-        "b": "sport-dna",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "profile-passport",
-        "b": "report-summary",
-        "distance": 2,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "profile-passport",
-        "b": "gps-tracking",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "profile-passport",
-        "b": "gps-location-missing",
-        "distance": 2,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "sport-dna",
-        "b": "empty-notifications",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "sport-dna",
-        "b": "report-summary",
-        "distance": 1,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "sport-dna",
-        "b": "gps-location-missing",
-        "distance": 1,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-atelier",
-        "b": "gps-tracking",
-        "distance": 2,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-atelier",
-        "b": "empty-discovery",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-notifications",
-        "b": "report-summary",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-notifications",
-        "b": "gps-location-missing",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "report-summary",
-        "b": "gps-location-missing",
-        "distance": 0,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-route-library",
-        "b": "empty-coach-clients",
-        "distance": 3,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-route-library",
-        "b": "empty-program",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-route-library",
-        "b": "empty-workout",
-        "distance": 4,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-coach-clients",
-        "b": "empty-program",
-        "distance": 1,
-        "family": "ui-illustration"
-      },
-      {
-        "a": "empty-workout",
-        "b": "empty-discovery",
-        "distance": 2,
-        "family": "ui-illustration"
       }
     ],
-    "threshold_hamming": 4,
+    "threshold_hamming": 16,
     "missing_files_or_hash_failures": [],
     "warnings": [],
     "scale_contact_sheet": "design/titan-visual-library/global-v2/preview/contact-legibility.webp",
