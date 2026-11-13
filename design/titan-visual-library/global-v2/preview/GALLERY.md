@@ -216,3 +216,9 @@ Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 157 | Web
 Les retouches Renaissance sont des retraitements des images deja presentes, et NON de nouvelles scenes originales.
 Les changements restent exclusivement dans le dossier de propositions; le code Web/Android, les forfaits, logos et pictogrammes sportifs ne sont pas modifies.
 Les validations automatiques ne prouvent pas la qualite esthetique ni la visualisation sur un vrai telephone.
+
+## Contrôle visuel à 32 / 48 / 64 px
+
+![Contrôle de lisibilité 32, 48 et 64 px](./contact-legibility.webp)
+
+Cette planche ne constitue pas une validation esthétique. Les rapprochements perceptuels éventuels sont listés dans [le rapport QA](./QA-REPORT.json).

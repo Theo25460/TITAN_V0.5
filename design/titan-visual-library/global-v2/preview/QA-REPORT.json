@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-13T13:04:11.803Z",
+  "generated_at": "2026-11-13T13:07:48.903Z",
   "counts": {
     "vectors": 138,
     "remasters": 15,
     "photos": 4,
     "png": 157,
     "webp": 318,
-    "sheets": 10
+    "sheets": 11
   },
   "issues": [],
   "duplicate_source_pairs": [],
@@ -3890,6 +3890,14 @@
       "height": 433,
       "alpha": false,
       "sha256": "506977946ad177e31a1769991338f5e2ce58386b72321c0beea7a4a406f62a77"
+    },
+    {
+      "path": "design/titan-visual-library/global-v2/preview/contact-legibility.webp",
+      "bytes": 35502,
+      "width": 800,
+      "height": 865,
+      "alpha": false,
+      "sha256": "94eea31dfffc169528488c5d39b4b4e47a54cea0e46e4a5a4b1e09899f2c2c98"
     }
   ],
   "notes": [
@@ -3898,5 +3906,373 @@
     "15 remasters retain original subjects rather than new ImageGen creations",
     "New landscape photographs from Unsplash are proposed alternatives, not original AI-generated artwork"
   ],
-  "protected_production_paths_unchanged": true
+  "protected_production_paths_unchanged": true,
+  "quality_v2": {
+    "verified_references": 613,
+    "master_assets": 157,
+    "perceptual_near_duplicates": [
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-record",
+        "distance": 4,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-streak",
+        "distance": 2,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-weekly",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-challenge",
+        "distance": 4,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-collection",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-first-effort",
+        "b": "rewards-duel",
+        "distance": 4,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-record",
+        "b": "rewards-streak",
+        "distance": 2,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-record",
+        "b": "rewards-collection",
+        "distance": 1,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-record",
+        "b": "rewards-achievement",
+        "distance": 1,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-streak",
+        "b": "rewards-collection",
+        "distance": 1,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-streak",
+        "b": "rewards-achievement",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-weekly",
+        "b": "rewards-challenge",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-weekly",
+        "b": "rewards-collection",
+        "distance": 4,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-weekly",
+        "b": "rewards-duel",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-challenge",
+        "b": "rewards-duel",
+        "distance": 2,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-exploration",
+        "b": "rewards-quest",
+        "distance": 3,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-collection",
+        "b": "rewards-achievement",
+        "distance": 2,
+        "family": "reward"
+      },
+      {
+        "a": "rewards-duel",
+        "b": "rewards-milestone",
+        "distance": 4,
+        "family": "reward"
+      },
+      {
+        "a": "ui-empty-quests",
+        "b": "ui-empty-calendar",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "ui-empty-routes",
+        "b": "ui-import-gpx",
+        "distance": 1,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "avatar-token-scout",
+        "b": "avatar-token-ranger",
+        "distance": 4,
+        "family": "avatar"
+      },
+      {
+        "a": "avatar-token-scout",
+        "b": "avatar-token-artisan",
+        "distance": 4,
+        "family": "avatar"
+      },
+      {
+        "a": "avatar-token-scout",
+        "b": "avatar-token-navigator",
+        "distance": 2,
+        "family": "avatar"
+      },
+      {
+        "a": "avatar-token-ranger",
+        "b": "avatar-token-navigator",
+        "distance": 4,
+        "family": "avatar"
+      },
+      {
+        "a": "avatar-token-ranger",
+        "b": "avatar-token-sentinel",
+        "distance": 3,
+        "family": "avatar"
+      },
+      {
+        "a": "empty-moments",
+        "b": "empty-season",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "profile-passport",
+        "distance": 2,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "empty-atelier",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "report-summary",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "gps-tracking",
+        "distance": 2,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "gps-location-missing",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "empty-coach-clients",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "empty-workout",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-moments",
+        "b": "empty-discovery",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-weekly-quests",
+        "b": "sport-dna",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-weekly-quests",
+        "b": "report-summary",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-weekly-quests",
+        "b": "gps-location-missing",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-weekly-quests",
+        "b": "empty-route-library",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-season",
+        "b": "profile-passport",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-season",
+        "b": "report-summary",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-season",
+        "b": "gps-location-missing",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "profile-passport",
+        "b": "sport-dna",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "profile-passport",
+        "b": "report-summary",
+        "distance": 2,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "profile-passport",
+        "b": "gps-tracking",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "profile-passport",
+        "b": "gps-location-missing",
+        "distance": 2,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "sport-dna",
+        "b": "empty-notifications",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "sport-dna",
+        "b": "report-summary",
+        "distance": 1,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "sport-dna",
+        "b": "gps-location-missing",
+        "distance": 1,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-atelier",
+        "b": "gps-tracking",
+        "distance": 2,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-atelier",
+        "b": "empty-discovery",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-notifications",
+        "b": "report-summary",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-notifications",
+        "b": "gps-location-missing",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "report-summary",
+        "b": "gps-location-missing",
+        "distance": 0,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-route-library",
+        "b": "empty-coach-clients",
+        "distance": 3,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-route-library",
+        "b": "empty-program",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-route-library",
+        "b": "empty-workout",
+        "distance": 4,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-coach-clients",
+        "b": "empty-program",
+        "distance": 1,
+        "family": "ui-illustration"
+      },
+      {
+        "a": "empty-workout",
+        "b": "empty-discovery",
+        "distance": 2,
+        "family": "ui-illustration"
+      }
+    ],
+    "threshold_hamming": 4,
+    "missing_files_or_hash_failures": [],
+    "warnings": [],
+    "scale_contact_sheet": "design/titan-visual-library/global-v2/preview/contact-legibility.webp",
+    "checks": [
+      "master existence",
+      "web/android variant existence",
+      "SHA-256 per derived file",
+      "SVG opacity/alpha",
+      "portrait-friendly small sizes contact sheet",
+      "photographic license metadata",
+      "WebP size warnings",
+      "dHash near-duplicate screening"
+    ]
+  }
 }
