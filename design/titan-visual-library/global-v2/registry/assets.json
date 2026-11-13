@@ -1,12 +1,13 @@
 {
-  "scope": "Registre partiel ciblé — rangs et ressources Renaissance explicitement mappées; autres usages non inventoriés.",
+  "scope": "Targeted registry of original vector proposals and non-destructive photo remasters. Active web/android fallbacks remain unchanged; additional in-app illustration occurrences require review before integration.",
   "updated_at": "2026-11-13T11:32:53.884Z",
   "proposals": {
     "new_vector_masters": 58,
     "photo_remasters": 15,
     "png": 73,
     "webp": 146,
-    "contact_sheets": 8
+    "contact_sheets": 8,
+    "ranks_with_original_business_ids": 7
   },
   "assets": [
     {
@@ -525,179 +526,36 @@
       "id": "eclaireur",
       "family": "rank",
       "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "explorateur",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "sentinelle",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "gardien",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "champion",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "titan",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "legende",
-      "family": "rank",
-      "priority": "P0",
-      "usage": "Blason de grade",
-      "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
-      ],
-      "web_targets": [
-        "js/app/crest.js"
-      ],
-      "android_targets": [
-        "mobile/src/components/Crest.tsx"
-      ],
-      "status": "pending_proposal",
-      "decision": "existing_fallback_retained",
-      "version": null,
-      "presence": true,
-      "rights": null,
-      "sha256": {}
-    },
-    {
-      "id": "ranks-eclaireur",
-      "family": "rank",
-      "priority": "P0",
-      "name": "Éclaireur",
       "usage": "Éclaireur",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
+      },
+      "name": "Éclaireur",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
       "format": "svg",
       "bytes_utf8": 3747,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
@@ -705,31 +563,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp"
       ],
       "source_sha256": "756870a8f84a43a12530fdf80aba1775afb37d9719f2694a5c918323a5c1f59d",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-explorateur",
+      "id": "explorateur",
       "family": "rank",
       "priority": "P0",
-      "name": "Explorateur",
       "usage": "Explorateur",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
+      },
+      "name": "Explorateur",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
       "format": "svg",
       "bytes_utf8": 4120,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
@@ -737,31 +616,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp"
       ],
       "source_sha256": "225510fedf690b63bfcbff6caa1d5cbfa79e2c456e63cc829b3bc5779c1a67d0",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-sentinelle",
+      "id": "sentinelle",
       "family": "rank",
       "priority": "P0",
-      "name": "Sentinelle",
       "usage": "Sentinelle",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
+      },
+      "name": "Sentinelle",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
       "format": "svg",
       "bytes_utf8": 3936,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
@@ -769,31 +669,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp"
       ],
       "source_sha256": "159a06510a63091541a39b1e8d1e12b5c45c4b82a6ac5457a3e5e807a78dadbe",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-gardien",
+      "id": "gardien",
       "family": "rank",
       "priority": "P0",
-      "name": "Gardien",
       "usage": "Gardien",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
+      },
+      "name": "Gardien",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
       "format": "svg",
       "bytes_utf8": 4001,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
@@ -801,31 +722,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp"
       ],
       "source_sha256": "683b1c899e9592e3ccf1c18af8ed8f979becaf8f436d1b1e136b0bb649f25d4a",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-champion",
+      "id": "champion",
       "family": "rank",
       "priority": "P0",
-      "name": "Champion",
       "usage": "Champion",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png": "f7df21329b0d1cbcece706208fa83a219420420af3b5e2a1f242907f2b1fc244",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-256.webp": "863fb93eace840872c0ec3be72cdc04bc15c54542d5c450f9ea225e5d232f394",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp": "ab032152a7aa657adc916db14a07ac3681bdc62a533f1ae251ba7827f3ac9b50"
+      },
+      "name": "Champion",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/champion.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/champion.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/champion.svg",
       "format": "svg",
       "bytes_utf8": 4000,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png": "f7df21329b0d1cbcece706208fa83a219420420af3b5e2a1f242907f2b1fc244",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-256.webp": "863fb93eace840872c0ec3be72cdc04bc15c54542d5c450f9ea225e5d232f394",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp": "ab032152a7aa657adc916db14a07ac3681bdc62a533f1ae251ba7827f3ac9b50"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-512.png",
@@ -833,31 +775,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/champion-96.webp"
       ],
       "source_sha256": "58aa20559167b1ca7ed507ccd91bc6e6b052683f096a4c392efec7d13ea934ea",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-titan",
+      "id": "titan",
       "family": "rank",
       "priority": "P0",
-      "name": "Titan",
       "usage": "Titan",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png": "d4cb483d1b0db02146ec0287702b242605d8ca40b1260f1ac79e2b450bb19b39",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-256.webp": "5ba48957f87306de2a55d960d0ae8615b81dfd748f7a8ba6cf9eed603b3c9a45",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp": "886c2a0ddfbe438b1fd86ba8b7e4b081987b04d18fbb6d7c5719a9ce74cb7382"
+      },
+      "name": "Titan",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/titan.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/titan.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/titan.svg",
       "format": "svg",
       "bytes_utf8": 4059,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png": "d4cb483d1b0db02146ec0287702b242605d8ca40b1260f1ac79e2b450bb19b39",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-256.webp": "5ba48957f87306de2a55d960d0ae8615b81dfd748f7a8ba6cf9eed603b3c9a45",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp": "886c2a0ddfbe438b1fd86ba8b7e4b081987b04d18fbb6d7c5719a9ce74cb7382"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png",
@@ -865,31 +828,52 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-96.webp"
       ],
       "source_sha256": "1afac0fa3934cf9a9fa56b90cc2ce0c361c82301d4ac0150838bc1d74b6bb3a1",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
-      "id": "ranks-legende",
+      "id": "legende",
       "family": "rank",
       "priority": "P0",
-      "name": "Légende",
       "usage": "Légende",
+      "sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "web_targets": [
+        "js/app/crest.js"
+      ],
+      "android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "status": "proposed",
+      "decision": "approval_required",
+      "version": "v2.0",
+      "presence": true,
+      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "sha256": {
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png": "973679c0f29c17932c5f52fa1486a84b1346d01f446db9d5667ce7c6e8e20935",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-256.webp": "e8312dd2bb23764ade0e41dc9311829d782b8bc223e6d6b2a0194b3af3680874",
+        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp": "cec8833a3cb85f1057051e93c4ebb8345882896e4bc43ea199c78bf623160c0b"
+      },
+      "name": "Légende",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/legende.svg",
       "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/legende.svg",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/legende.svg",
       "format": "svg",
       "bytes_utf8": 4293,
-      "status": "proposed",
-      "version": "v2.0",
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
-      "decision": "approval_required",
       "targets": {
         "web": "pending_approval",
         "android": "pending_approval"
-      },
-      "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png": "973679c0f29c17932c5f52fa1486a84b1346d01f446db9d5667ce7c6e8e20935",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-256.webp": "e8312dd2bb23764ade0e41dc9311829d782b8bc223e6d6b2a0194b3af3680874",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp": "cec8833a3cb85f1057051e93c4ebb8345882896e4bc43ea199c78bf623160c0b"
       },
       "derived": [
         "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png",
@@ -897,7 +881,17 @@
         "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-96.webp"
       ],
       "source_sha256": "e637647cf70cac03f616f1b0ede16730fd01688848fbd3e6cd3e82eb98b2f676",
-      "presence": true
+      "legacy_code_sources": [
+        "js/app/crest.js",
+        "mobile/src/components/Crest.tsx"
+      ],
+      "legacy_web_targets": [
+        "js/app/crest.js"
+      ],
+      "legacy_android_targets": [
+        "mobile/src/components/Crest.tsx"
+      ],
+      "rules_unchanged": true
     },
     {
       "id": "level-tiers-eclaireur-tier-1",
