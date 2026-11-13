@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T11:32:53.885Z",
+  "generated_at": "2026-11-13T11:35:18.777Z",
   "counts": {
     "vectors": 58,
     "remasters": 15,
@@ -1764,11 +1764,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-ranks.webp",
-      "bytes": 23764,
+      "bytes": 22568,
       "width": 816,
       "height": 526,
       "alpha": false,
-      "sha256": "fd10f305870a25bbbd6933d775c1df53743f360aa6da5ef6caf417cfec7dc874"
+      "sha256": "8d029833804e97c9e9097ae45fa2404bd06248fac0e26b9699ee2a8af3e86dc4"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-tiers.webp",

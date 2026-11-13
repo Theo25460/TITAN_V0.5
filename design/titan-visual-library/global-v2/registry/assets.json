@@ -1,13 +1,12 @@
 {
   "scope": "Targeted registry of original vector proposals and non-destructive photo remasters. Active web/android fallbacks remain unchanged; additional in-app illustration occurrences require review before integration.",
-  "updated_at": "2026-11-13T11:32:53.884Z",
+  "updated_at": "2026-11-13T11:35:18.776Z",
   "proposals": {
     "new_vector_masters": 58,
     "photo_remasters": 15,
     "png": 73,
     "webp": 146,
-    "contact_sheets": 8,
-    "ranks_with_original_business_ids": 7
+    "contact_sheets": 8
   },
   "assets": [
     {

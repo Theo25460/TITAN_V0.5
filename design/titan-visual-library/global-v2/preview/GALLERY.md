@@ -8,13 +8,13 @@ Originals vectoriels: 58 | Retouches des visuels existants: 15 | PNG: 73 | WebP:
 
 ![Contact sheet ranks](./contact-ranks.webp)
 
-- [ranks-eclaireur](../proposed/masters/ranks/eclaireur.svg) — Éclaireur — **proposed** — [export](../proposed/exports/ranks/eclaireur-512.png) [export](../proposed/exports/ranks/eclaireur-256.webp) [export](../proposed/exports/ranks/eclaireur-96.webp)
-- [ranks-explorateur](../proposed/masters/ranks/explorateur.svg) — Explorateur — **proposed** — [export](../proposed/exports/ranks/explorateur-512.png) [export](../proposed/exports/ranks/explorateur-256.webp) [export](../proposed/exports/ranks/explorateur-96.webp)
-- [ranks-sentinelle](../proposed/masters/ranks/sentinelle.svg) — Sentinelle — **proposed** — [export](../proposed/exports/ranks/sentinelle-512.png) [export](../proposed/exports/ranks/sentinelle-256.webp) [export](../proposed/exports/ranks/sentinelle-96.webp)
-- [ranks-gardien](../proposed/masters/ranks/gardien.svg) — Gardien — **proposed** — [export](../proposed/exports/ranks/gardien-512.png) [export](../proposed/exports/ranks/gardien-256.webp) [export](../proposed/exports/ranks/gardien-96.webp)
-- [ranks-champion](../proposed/masters/ranks/champion.svg) — Champion — **proposed** — [export](../proposed/exports/ranks/champion-512.png) [export](../proposed/exports/ranks/champion-256.webp) [export](../proposed/exports/ranks/champion-96.webp)
-- [ranks-titan](../proposed/masters/ranks/titan.svg) — Titan — **proposed** — [export](../proposed/exports/ranks/titan-512.png) [export](../proposed/exports/ranks/titan-256.webp) [export](../proposed/exports/ranks/titan-96.webp)
-- [ranks-legende](../proposed/masters/ranks/legende.svg) — Légende — **proposed** — [export](../proposed/exports/ranks/legende-512.png) [export](../proposed/exports/ranks/legende-256.webp) [export](../proposed/exports/ranks/legende-96.webp)
+- [eclaireur](../proposed/masters/ranks/eclaireur.svg) — Éclaireur — **proposed** — [export](../proposed/exports/ranks/eclaireur-512.png) [export](../proposed/exports/ranks/eclaireur-256.webp) [export](../proposed/exports/ranks/eclaireur-96.webp)
+- [explorateur](../proposed/masters/ranks/explorateur.svg) — Explorateur — **proposed** — [export](../proposed/exports/ranks/explorateur-512.png) [export](../proposed/exports/ranks/explorateur-256.webp) [export](../proposed/exports/ranks/explorateur-96.webp)
+- [sentinelle](../proposed/masters/ranks/sentinelle.svg) — Sentinelle — **proposed** — [export](../proposed/exports/ranks/sentinelle-512.png) [export](../proposed/exports/ranks/sentinelle-256.webp) [export](../proposed/exports/ranks/sentinelle-96.webp)
+- [gardien](../proposed/masters/ranks/gardien.svg) — Gardien — **proposed** — [export](../proposed/exports/ranks/gardien-512.png) [export](../proposed/exports/ranks/gardien-256.webp) [export](../proposed/exports/ranks/gardien-96.webp)
+- [champion](../proposed/masters/ranks/champion.svg) — Champion — **proposed** — [export](../proposed/exports/ranks/champion-512.png) [export](../proposed/exports/ranks/champion-256.webp) [export](../proposed/exports/ranks/champion-96.webp)
+- [titan](../proposed/masters/ranks/titan.svg) — Titan — **proposed** — [export](../proposed/exports/ranks/titan-512.png) [export](../proposed/exports/ranks/titan-256.webp) [export](../proposed/exports/ranks/titan-96.webp)
+- [legende](../proposed/masters/ranks/legende.svg) — Légende — **proposed** — [export](../proposed/exports/ranks/legende-512.png) [export](../proposed/exports/ranks/legende-256.webp) [export](../proposed/exports/ranks/legende-96.webp)
 
 ## Paliers intermediaires
 
