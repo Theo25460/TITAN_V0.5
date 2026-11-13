@@ -24,6 +24,8 @@ jobs:
         run: node design/titan-visual-library/global-v2/tools/download-world-photos.mjs
       - name: Generate WebP PNG preview registry and QA
         run: node design/titan-visual-library/global-v2/tools/render.mjs
+      - name: Validate hashes, Web/Android exports, similarity and small sizes
+        run: node design/titan-visual-library/global-v2/tools/validate-proposals.mjs
       - name: Save proposed assets to this branch only
         run: |
           git add design/titan-visual-library/global-v2/proposed/masters/renaissance/ design/titan-visual-library/global-v2/proposed/masters/photographic-worlds/ design/titan-visual-library/global-v2/proposed/exports/ design/titan-visual-library/global-v2/preview/ design/titan-visual-library/global-v2/registry/assets.json design/titan-visual-library/global-v2/sources/photographic-worlds.lock.json
