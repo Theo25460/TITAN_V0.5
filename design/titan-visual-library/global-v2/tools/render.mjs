@@ -8,7 +8,7 @@ const sharp=require("./.deps/node_modules/sharp");
 const base=path.resolve(import.meta.dirname,".."), repo=path.resolve(base,"../../..");
 const masters=path.join(base,"proposed/masters"), exports=path.join(base,"proposed/exports"), preview=path.join(base,"preview");
 const registryPath=path.join(base,"registry/assets.json"), registry=JSON.parse(fs.readFileSync(registryPath,"utf8"));
-const issues=[], files=[], counts={vectors:0,remasters:0,png:0,webp:0,sheets:0};
+const issues=[], files=[], counts={vectors:0,remasters:0,photos:0,png:0,webp:0,sheets:0};
 const mkdir=p=>fs.mkdirSync(path.dirname(p),{recursive:true});
 const sha=p=>crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex");
 const rel=p=>path.relative(repo,p).split(path.sep).join("/");
@@ -62,6 +62,34 @@ for(const [id,family,srcRel,shape] of oldPhotos){
  master:rel(p),source_original:srcRel,source_sha256:sha(src),derived:[rel(w),rel(m)],sha256:Object.fromEntries([p,w,m].map(f=>[rel(f),sha(f)])),status:"proposed",decision:"approval_required",presence:true,version:"v2-remaster",technique:"Subtle non-destructive color and contrast remaster of September 2026 project artwork, not a newly generated scene",rights:"Existing TITAN ImageGen originals per RENAISSANCE_ART.json"});
  counts.remasters++;counts.png++;counts.webp+=2;
 }
+
+const PHOTO_LIST=JSON.parse(fs.readFileSync(path.join(base,"sources/photographic-worlds.json"),"utf8")).items;
+for(const photo of PHOTO_LIST){
+ const src=path.join(masters,"photographic-worlds",photo.id+"-source.jpg");
+ if(!fs.existsSync(src)){issues.push("Missing photo source: "+photo.id);continue;}
+ const p=path.join(masters,"photographic-worlds",photo.id+".png");
+ const w=path.join(exports,"photographic-worlds",photo.id+"-web.webp");
+ const m=path.join(exports,"photographic-worlds",photo.id+"-android.webp");
+ const thumb=path.join(exports,"photographic-worlds",photo.id+"-thumb.webp");
+ for(const f of [p,w,m,thumb])mkdir(f);
+ const original=await sharp(src).metadata();
+ if(original.width<1500||original.height<900){issues.push("Photo not high resolution: "+photo.id);continue;}
+ await sharp(src).resize(1600,900,{fit:"cover",position:"attention",withoutEnlargement:true})
+  .modulate({brightness:.94,saturation:.82}).sharpen({sigma:.6,m1:.32,m2:2.0,x1:2,y2:6,y3:11})
+  .png({compressionLevel:9}).toFile(p);
+ await sharp(p).resize({width:1200,withoutEnlargement:true}).webp({quality:80,effort:5}).toFile(w);
+ await sharp(p).resize({width:600,withoutEnlargement:true}).webp({quality:77,effort:5}).toFile(m);
+ await sharp(p).resize({width:320,withoutEnlargement:true}).webp({quality:74,effort:5}).toFile(thumb);
+ for(const f of [p,w,m,thumb])await check(f,false);
+ upsert({id:"world-photo-"+photo.id,family:"world-photo",priority:"P1",name:photo.label,usage:"Photographic alternative for Renaissance world "+photo.id,
+  master:rel(p),source_original:rel(src),source_sha256:sha(src),derived:[w,m,thumb].map(rel),
+  sha256:Object.fromEntries([p,w,m,thumb].map(f=>[rel(f),sha(f)])),presence:true,status:"proposed",decision:"approval_required",
+  version:"v2.1-photographic",format:"png + webp",rights:"Licensed Unsplash free photo by "+photo.author+"; "+photo.page,
+  license_url:photo.license,photographer:photo.author,source_page:photo.page,candidate_for:photo.id,
+  technique:"Real photograph, subtle color grade. Existing RPG image and fallback preserved."});
+ counts.photos++;counts.png++;counts.webp+=3;
+}
+
 const groups=[
 ["ranks","Grades TITAN",registry.assets.filter(a=>a.family==="rank"&&a.status==="proposed"),4,180,180],
 ["tiers","Paliers intermediaires",registry.assets.filter(a=>a.family==="level-tier"&&a.status==="proposed"),5,150,150],
@@ -70,6 +98,7 @@ const groups=[
 ["reward-states","Etats des recompenses",registry.assets.filter(a=>a.family==="reward-state"&&a.status==="proposed"),5,150,150],
 ["ui","Etats et modules",registry.assets.filter(a=>a.family==="ui-illustration"&&a.status==="proposed"),4,180,180],
 ["worlds","Mondes Renaissance · remasters",registry.assets.filter(a=>a.family==="world"&&a.status==="proposed"),2,440,260],
+["photo-worlds","Mondes · nouvelles alternatives photographiques",registry.assets.filter(a=>a.family==="world-photo"&&a.status==="proposed"),2,440,260],
 ["characters","Gardiens et avatars · remasters",registry.assets.filter(a=>["guardian","avatar"].includes(a.family)&&a.status==="proposed"),5,160,160],
 ["hero","Hero · remaster",registry.assets.filter(a=>a.family==="editorial"&&a.status==="proposed"),1,580,320]
 ];
@@ -96,12 +125,12 @@ for(const [key,label,items,columns,w,h] of groups){
 }
 gallery.push("## Portee et limites","","Les retouches Renaissance sont des retraitements des images deja presentes, et NON de nouvelles scenes originales.","Les changements restent exclusivement dans le dossier de propositions; le code Web/Android, les forfaits, logos et pictogrammes sportifs ne sont pas modifies.","Les validations automatiques ne prouvent pas la qualite esthetique ni la visualisation sur un vrai telephone.");
 mkdir(path.join(preview,"GALLERY.md"));fs.writeFileSync(path.join(preview,"GALLERY.md"),gallery.join("\n")+"\n");
-registry.updated_at=new Date().toISOString();registry.proposals={new_vector_masters:counts.vectors,photo_remasters:counts.remasters,png:counts.png,webp:counts.webp,contact_sheets:counts.sheets};
+registry.updated_at=new Date().toISOString();registry.proposals={new_vector_masters:counts.vectors,photo_remasters:counts.remasters,new_photographic_candidates:counts.photos,png:counts.png,webp:counts.webp,contact_sheets:counts.sheets};
 fs.writeFileSync(registryPath,JSON.stringify(registry,null,2)+"\n");
 const hashes=new Map(), duplicates=[];
 for(const a of registry.assets.filter(x=>x.status==="proposed"&&x.source_sha256)){
  const prev=hashes.get(a.source_sha256);if(prev&&prev!==a.id)duplicates.push([prev,a.id]);else hashes.set(a.source_sha256,a.id);
 }
-fs.writeFileSync(path.join(preview,"QA-REPORT.json"),JSON.stringify({generated_at:new Date().toISOString(),counts,issues,duplicate_source_pairs:duplicates,files,notes:["Static dimension and alpha checks only","No visual or real device test; review required","15 remasters retain original subjects rather than new ImageGen creations"],protected_production_paths_unchanged:true},null,2)+"\n");
+fs.writeFileSync(path.join(preview,"QA-REPORT.json"),JSON.stringify({generated_at:new Date().toISOString(),counts,issues,duplicate_source_pairs:duplicates,files,notes:["Static dimension and alpha checks only","No visual or real device test; review required","15 remasters retain original subjects rather than new ImageGen creations","New landscape photographs from Unsplash are proposed alternatives, not original AI-generated artwork"],protected_production_paths_unchanged:true},null,2)+"\n");
 console.log(JSON.stringify({counts,issues,duplicate_source_pairs:duplicates},null,2));
 if(issues.length)process.exitCode=1;
