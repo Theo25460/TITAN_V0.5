@@ -38,7 +38,11 @@ for(const item of registry.assets){
  try{
   const mini=item.derived.find(x=>x.endsWith("-256.webp")||x.endsWith("-android.webp"))||item.derived[0];
   const src=path.join(repo,mini);
-  const {data,info}=await sharp(src).resize(17,16,{fit:"fill"}).greyscale().removeAlpha().raw().toBuffer({resolveWithObject:true});
+  const inputMeta=await sharp(src).metadata();
+  const cropSharedPlates=["reward","avatar"].includes(item.family);
+  const crop=cropSharedPlates ? {left:Math.round(inputMeta.width*.23),top:Math.round(inputMeta.height*.23),width:Math.round(inputMeta.width*.54),height:Math.round(inputMeta.height*.54)} : null;
+  const signature=crop?sharp(src).extract(crop):sharp(src);
+  const {data,info}=await signature.resize(17,16,{fit:"fill"}).greyscale().removeAlpha().raw().toBuffer({resolveWithObject:true});
   let bits=0n;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=y*17+x;bits=(bits<<1n)|(data[i]>data[i+1]?1n:0n);}
   fingerprint.push({id:item.id,family:item.family,bitset:bits,source:mini});
  }catch(err){warnings.push("Unable to compute perceptual signature: "+item.id+" "+err.message);}
