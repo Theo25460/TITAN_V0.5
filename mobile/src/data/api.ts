@@ -226,7 +226,7 @@ export const setAppearance = (owner: string, slot: string, item: string | null) 
 /* ---------- Community ---------- */
 export type Friend = { id: string; name: string; avatar: string; level: number | null; week_days: number | null; last_active: string | null };
 export type Moment = { id: string; kind: string; title: string; detail: string | null; sport: string | null; created_at: string; mine: boolean; visibility: string; author: { id: string; name: string; avatar: string }; cheers: number; cheered: boolean };
-export type Challenge = { id: string; title: string; metric: "effort_minutes" | "active_days" | "distance_km" | "sessions"; sport: string | null; target: number; starts_at: string; ends_at: string; mine: boolean; my_status: "joined" | "invited"; status: "active" | "ended"; members: { id: string; name: string; status: string; progress: number | null }[] };
+export type Challenge = { id: string; title: string; metric: "effort_minutes" | "active_days" | "distance_km" | "sessions"; sport: string | null; target: number; starts_at: string; ends_at: string; mine: boolean; my_status: "joined" | "invited"; status: "active" | "ended"; members: { id: string | null; name: string; status: string; progress: number | null }[] };
 export type GuildWeek = { guild_id: string; week_start: string; target: number; minutes: number; members: { id: string; name: string; role: string; minutes: number; days: number }[] } | null;
 export type SocialOverview = {
   me: { id: string; friend_code: string; findable: boolean };

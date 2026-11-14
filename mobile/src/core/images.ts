@@ -21,3 +21,12 @@ export const avatarImages: Record<string, number> = {
   sentinel: require("../../assets/rpg/sentinel-s.webp"),
 };
 export const heroImage: number = require("../../assets/rpg/hero-small.webp");
+
+/* Sculpted rank badges approved in design/titan-visual-library/global-v2/approved (transparent WebP). A rank absent from this map keeps
+   the vector crest of components/Crest.tsx until its badge is approved. `small` serves crests up to 86 dp, `large` the big reveals. */
+export const rankImages: Record<string, { small: number; large: number }> = {
+  eclaireur: { small: require("../../assets/rank/eclaireur-256.webp"), large: require("../../assets/rank/eclaireur-512.webp") },
+  explorateur: { small: require("../../assets/rank/explorateur-256.webp"), large: require("../../assets/rank/explorateur-512.webp") },
+  sentinelle: { small: require("../../assets/rank/sentinelle-256.webp"), large: require("../../assets/rank/sentinelle-512.webp") },
+  gardien: { small: require("../../assets/rank/gardien-256.webp"), large: require("../../assets/rank/gardien-512.webp") },
+};

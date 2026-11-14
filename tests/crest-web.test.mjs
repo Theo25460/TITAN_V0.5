@@ -16,8 +16,8 @@ test('levels map to the seven rank crests, from Éclaireur to Légende', () => {
   assert.equal(C.rankIdOf(undefined), 'eclaireur');
 });
 
-test('each crest is a labelled SVG that grows richer with the rank (gem, wings, laurel, crown, rays)', () => {
-  const svg = Object.fromEntries(C.RANKS.map((r) => [r, C.svg(r, 100)]));
+test('each vector crest is a labelled SVG that grows richer with the rank (gem, wings, laurel, crown, rays)', () => {
+  const svg = Object.fromEntries(C.RANKS.map((r) => [r, C.svg(r, 100, { vector: true })]));
   for (const r of C.RANKS) assert.match(svg[r], new RegExp(`aria-label="Blason ${r}"`));
   const count = (s, re) => (s.match(re) || []).length;
   assert.equal(count(svg.eclaireur, /<circle cx="60" cy="46"/g), 0, 'no gem before Sentinelle');
@@ -32,9 +32,35 @@ test('each crest is a labelled SVG that grows richer with the rank (gem, wings, 
   assert.equal(count(svg.legende, /<line /g), 16);
 });
 
+test('a rank whose sculpted badge is approved shows that image; the others keep the vector crest', () => {
+  assert.deepEqual([...C.BADGES], ['eclaireur', 'explorateur', 'sentinelle', 'gardien']);
+  for (const r of C.RANKS) {
+    const html = C.svg(r, 76);
+    if (!C.BADGES.includes(r)) { assert.match(html, /^<svg class="crest"/, `${r} stays vector until its badge is approved`); continue; }
+    assert.match(html, new RegExp(`^<img class="crest crest-badge" src="/assets/ranks/${r}-256\\.webp"`));
+    assert.match(html, new RegExp(`srcset="/assets/ranks/${r}-256\\.webp 256w, /assets/ranks/${r}-512\\.webp 512w" sizes="76px"`));
+    assert.match(html, /width="76" height="76"/, 'the box is reserved before the image loads');
+    assert.match(html, new RegExp(`alt="Blason ${r}"`));
+    for (const size of [256, 512]) {
+      const file = readFileSync(new URL(`../assets/ranks/${r}-${size}.webp`, import.meta.url));
+      assert.equal(file.subarray(0, 4).toString(), 'RIFF');
+      assert.equal(file.subarray(8, 12).toString(), 'WEBP');
+      // VP8X header: bit 0x10 of the flags byte says the file carries transparency; the canvas size follows.
+      assert.equal(file.subarray(12, 16).toString(), 'VP8X', `${r}-${size} is an extended WebP`);
+      assert.ok(file[20] & 0x10, `${r}-${size} is transparent around the badge`);
+      assert.deepEqual([1 + file.readUIntLE(24, 3), 1 + file.readUIntLE(27, 3)], [size, size]);
+      assert.ok(file.length <= (size === 256 ? 24 : 60) * 1024, `${r}-${size} stays light (${file.length} bytes)`);
+    }
+  }
+  // The rank name is read when the rules provide it.
+  const named = { TitanEffort: { RANKS: [{ level: 1, id: 'eclaireur', name: 'Éclaireur' }] } };
+  vm.runInNewContext(src, { window: named });
+  assert.match(named.TitanCrest.svg('eclaireur', 48), /alt="Blason Éclaireur"/);
+});
+
 test('two crests on one page never share a gradient id, and glow can be left out', () => {
   const ids = (s) => [...s.matchAll(/id="([^"]+)"/g)].map((m) => m[1]);
-  const all = [...ids(C.svg('titan', 80)), ...ids(C.svg('titan', 80))];
+  const all = [...ids(C.svg('titan', 80)), ...ids(C.svg('titan', 80)), ...ids(C.svg('gardien', 80, { vector: true })), ...ids(C.svg('gardien', 80, { vector: true }))];
   assert.equal(new Set(all).size, all.length);
   assert.ok(!C.svg('titan', 80, { glow: false }).includes('r="70" fill="url(#g'));
 });

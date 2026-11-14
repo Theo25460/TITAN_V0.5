@@ -3898,6 +3898,8 @@
   .pf-id-main { flex: 1 1 120px; }
   .pf-crest { flex: 1 0 100%; margin: 0; display: flex; justify-content: center; }
 }
+/* An approved rank badge (js/app/crest.js) is a square transparent image: it keeps its ratio wherever a crest was sized by width. */
+.crest-badge { display: block; height: auto; max-width: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 .qg-crest { flex: none; margin-left: auto; }
 .qg-rank-reward { display: flex; flex: none; align-items: center; gap: var(--s4); margin-left: auto; }
 .moment-hero { display: grid; place-items: center; padding: var(--s4) 0 var(--s3); }

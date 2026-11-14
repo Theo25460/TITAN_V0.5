@@ -1,4 +1,4 @@
-import { BillingError, buy, loadOffers, messageFor, PLANS, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
+import { BILLING_TIMEOUT_MS, BillingError, buy, checkoutInFlight, loadOffers, messageFor, offerPriceLabel, PLANS, recoverPurchases, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
 
 type Listener<T> = (v: T) => void;
 function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id: p.id, displayPrice: `${p.id} price`, subscriptionOffers: [{ offerTokenAndroid: `offer-${p.id}`, displayPrice: `${p.id} price` }] }))) {
@@ -104,9 +104,9 @@ test("the default checkout check sends the session and product to the billing en
     const result = buy((await loadOffers(s.lib))[1], "o", token, { store: s.lib });
     s.errored[0]?.({ code: "user-cancelled" });
     expect(await result).toMatchObject({ kind: "error", error: { code: "CHECKOUT_UNAVAILABLE" } });
-    expect(fetcher).toHaveBeenCalledWith("https://titan-app.fr/functions/play-billing?product_id=titan02", {
+    expect(fetcher).toHaveBeenCalledWith("https://titan-app.fr/functions/play-billing?product_id=titan02", expect.objectContaining({
       method: "GET", headers: { Authorization: "Bearer user-access-token" },
-    });
+    }));
     expect(s.requests).toHaveLength(0);
   } finally { fetcher.mockRestore(); }
 });
@@ -204,7 +204,7 @@ test("restore sends each known purchase, skips foreign products, and stops if ve
   const s = fakeStore();
   s.setAvailable([{ productId: "titan01", purchaseToken: "t1-0123456789abcdef" }, { productId: "other", purchaseToken: "t2-0123456789abcdef" }, { productId: "titan02", purchaseToken: "t3-0123456789abcdef" }]);
   const verify = jest.fn(async (t: string) => (t.startsWith("t3") ? Promise.reject(new BillingError("ALREADY_USED")) : active));
-  expect(await restore(token, s.lib, verify)).toEqual({ checked: 3, active: 1, failed: 1 });
+  expect(await restore(token, s.lib, verify)).toEqual({ checked: 3, active: 1, failed: 1, test: 0 });
   expect(verify).toHaveBeenCalledTimes(2);
   expect(s.finished).toHaveLength(1);
   await expect(restore(token, s.lib, async () => { throw new BillingError("VERIFICATION_UNAVAILABLE"); })).rejects.toMatchObject({ code: "VERIFICATION_UNAVAILABLE" });
@@ -232,6 +232,7 @@ test("the server call maps every answer to a clear cause and sends only the toke
   expect(await code(409, { error: "purchase_not_bound" })).toBe("NOT_BOUND");
   expect(await code(422, { error: "purchase_not_found" })).toBe("NOT_FOUND");
   expect(await code(422, { error: "purchase_product_mismatch" })).toBe("REFUSED");
+  expect(await code(422, { error: "test_purchase_refused" })).toBe("TEST_PURCHASE");
   expect(await code(500, {})).toBe("VERIFICATION_UNAVAILABLE");
   expect(await code(200, { ...active, active: "true" })).toBe("VERIFICATION_UNAVAILABLE");
   expect(await verifyOnServer("t", "titan02", "a", jest.fn(async () => { throw new Error("offline"); }) as unknown as typeof fetch).catch((e) => e.code)).toBe("NETWORK");
@@ -274,7 +275,7 @@ test("only isolated E2E builds can send verification to an explicit HTTPS previe
 });
 
 test("messages are in plain French and never show a raw code", () => {
-  for (const c of ["CHECKOUT_UNAVAILABLE", "VERIFICATION_UNAVAILABLE", "AUTH", "ALREADY_USED", "NOT_BOUND", "NOT_FOUND", "NETWORK", "REFUSED"] as const) expect(messageFor(new BillingError(c))).toMatch(/[a-zé]/);
+  for (const c of ["CHECKOUT_UNAVAILABLE", "VERIFICATION_UNAVAILABLE", "AUTH", "ALREADY_USED", "NOT_BOUND", "NOT_FOUND", "NETWORK", "REFUSED", "TEST_PURCHASE"] as const) expect(messageFor(new BillingError(c))).toMatch(/[a-zé]/);
   expect(messageFor(new Error("boom"))).toContain("réessaie");
 });
 
@@ -297,4 +298,130 @@ test("server provenance survives the client adapter without guessing payment fro
   }
   const fetcher = jest.fn(async () => new Response(JSON.stringify(active), { status: 200 })) as unknown as typeof fetch;
   expect((await verifyOnServer("t", "titan01", "a", fetcher)).access_kind).toBeUndefined();
+});
+
+/* V1.3.1 finalisation: a payment Google accepted must not stay without access. */
+
+test("a licence-tester purchase is named for what it is and never sends the player to a restoration that cannot work", async () => {
+  const message = messageFor(new BillingError("TEST_PURCHASE"));
+  expect(message).toMatch(/achat de test/i);
+  expect(message).toMatch(/ne le rattachera pas/);
+  const s = fakeStore();
+  s.setAvailable([{ productId: "titan01", purchaseToken: "t1-0123456789abcdef" }]);
+  const verify = jest.fn(async () => { throw new BillingError("TEST_PURCHASE"); });
+  expect(await restore(token, s.lib, verify)).toEqual({ checked: 1, active: 0, failed: 1, test: 1 });
+  expect(s.finished).toHaveLength(0);
+});
+
+test("the card shows the recurring price with its period, and a free trial is never shown as the price", () => {
+  const monthly = { billingPeriod: "P1M", formattedPrice: "4,99 €", priceAmountMicros: "4990000", recurrenceMode: 1 };
+  expect(offerPriceLabel({ displayPrice: "4,99 €", pricingPhasesAndroid: { pricingPhaseList: [monthly] } })).toBe("4,99 € / mois");
+  const trial = { billingPeriod: "P1W", formattedPrice: "Gratuit", priceAmountMicros: "0", recurrenceMode: 2 };
+  expect(offerPriceLabel({ displayPrice: "Gratuit", pricingPhasesAndroid: { pricingPhaseList: [trial, monthly] } })).toBe("Essai gratuit, puis 4,99 € / mois");
+  const intro = { billingPeriod: "P1M", formattedPrice: "1,99 €", priceAmountMicros: "1990000", recurrenceMode: 2 };
+  expect(offerPriceLabel({ displayPrice: "1,99 €", pricingPhasesAndroid: { pricingPhaseList: [intro, monthly] } })).toBe("1,99 € au départ, puis 4,99 € / mois");
+  // Without phase details, Google's own string is kept untouched.
+  expect(offerPriceLabel({ displayPrice: "4,99 € / mois" })).toBe("4,99 € / mois");
+  expect(offerPriceLabel({ displayPrice: "" }, "x")).toBe("x");
+});
+
+test("when Play lists several offers, the monthly one the server checks is the one sold", async () => {
+  const phase = (billingPeriod: string, formattedPrice: string) => ({ pricingPhasesAndroid: { pricingPhaseList: [{ billingPeriod, formattedPrice, priceAmountMicros: "1", recurrenceMode: 1 }] } });
+  const s = fakeStore({}, [{ id: "titan01", displayPrice: "x", subscriptionOffers: [
+    { offerTokenAndroid: "yearly", displayPrice: "49,99 €", ...phase("P1Y", "49,99 €") },
+    { offerTokenAndroid: "monthly", displayPrice: "4,99 €", ...phase("P1M", "4,99 €") },
+  ] }]);
+  expect(await loadOffers(s.lib)).toMatchObject([{ id: "titan01", offerToken: "monthly", price: "4,99 € / mois" }]);
+});
+
+test("a server that never answers is abandoned after the timeout and reported as a network failure", async () => {
+  jest.useFakeTimers();
+  try {
+    const hanging = jest.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+    })) as unknown as typeof fetch;
+    const pending = verifyOnServer("t", "titan01", "a", hanging).catch((e) => e.code);
+    await jest.advanceTimersByTimeAsync(BILLING_TIMEOUT_MS + 1);
+    expect(await pending).toBe("NETWORK");
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+describe("automatic recovery of a payment that was never confirmed", () => {
+  const mine = (over: Partial<IapPurchase> = {}): IapPurchase => ({ productId: "titan01", purchaseToken: "t1-0123456789abcdef", purchaseState: "purchased", obfuscatedAccountIdAndroid: "owner-1", isAcknowledgedAndroid: false, ...over });
+
+  test("an unacknowledged purchase of this account is verified, completed in Play and counted", async () => {
+    const s = fakeStore();
+    s.setAvailable([mine()]);
+    const verify = jest.fn(async () => active);
+    expect(await recoverPurchases("owner-1", token, { hasAccess: false, store: s.lib, verify })).toBe(1);
+    expect(verify).toHaveBeenCalledWith("t1-0123456789abcdef", "titan01", "user-access-token");
+    expect(s.finished).toHaveLength(1);
+  });
+
+  test("an acknowledged purchase is sent again while the profile still has no access, and left alone once it has", async () => {
+    const s = fakeStore();
+    s.setAvailable([mine({ isAcknowledgedAndroid: true })]);
+    const verify = jest.fn(async () => active);
+    expect(await recoverPurchases("owner-1", token, { hasAccess: true, store: s.lib, verify })).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+    expect(await recoverPurchases("owner-1", token, { hasAccess: false, store: s.lib, verify })).toBe(1);
+    expect(await recoverPurchases("owner-1", token, { hasAccess: null, store: s.lib, verify })).toBe(1);
+  });
+
+  test("purchases of another TITAN account, pending payments and foreign products are never sent", async () => {
+    const s = fakeStore();
+    s.setAvailable([mine({ obfuscatedAccountIdAndroid: "owner-2" }), mine({ obfuscatedAccountIdAndroid: null }), mine({ purchaseState: "pending" }), mine({ productId: "other" }), mine({ purchaseToken: null })]);
+    const verify = jest.fn(async () => active);
+    expect(await recoverPurchases("owner-1", token, { hasAccess: false, store: s.lib, verify })).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+    expect(s.finished).toHaveLength(0);
+  });
+
+  test("it never throws: an unreachable store, a server outage, a refusal or a signed-out session end quietly without completing anything", async () => {
+    const down = fakeStore({ initConnection: async () => false });
+    expect(await recoverPurchases("owner-1", token, { store: down.lib, verify: jest.fn() })).toBe(0);
+    const broken = fakeStore({ getAvailablePurchases: async () => { throw new Error("billing"); } });
+    expect(await recoverPurchases("owner-1", token, { store: broken.lib, verify: jest.fn() })).toBe(0);
+    for (const code of ["VERIFICATION_UNAVAILABLE", "NETWORK", "TEST_PURCHASE", "ALREADY_USED"] as const) {
+      const s = fakeStore();
+      s.setAvailable([mine()]);
+      expect(await recoverPurchases("owner-1", token, { store: s.lib, verify: jest.fn(async () => { throw new BillingError(code); }) })).toBe(0);
+      expect(s.finished).toHaveLength(0);
+    }
+    const s = fakeStore();
+    s.setAvailable([mine()]);
+    const verify = jest.fn(async () => active);
+    expect(await recoverPurchases("owner-1", async () => null, { store: s.lib, verify })).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  test("an inactive verdict is not completed in Play, and an account switch during verification stops before completion", async () => {
+    let s = fakeStore();
+    s.setAvailable([mine()]);
+    expect(await recoverPurchases("owner-1", token, { store: s.lib, verify: jest.fn(async () => ({ ...active, active: false, status: "expired" })) })).toBe(0);
+    expect(s.finished).toHaveLength(0);
+    s = fakeStore();
+    s.setAvailable([mine()]);
+    let calls = 0;
+    const switching = async () => (++calls <= 2 ? "user-access-token" : null);
+    expect(await recoverPurchases("owner-1", switching, { store: s.lib, verify: jest.fn(async () => active) })).toBe(0);
+    expect(s.finished).toHaveLength(0);
+  });
+
+  test("it stays out of the way while a payment sheet is open", async () => {
+    const s = fakeStore();
+    s.setAvailable([]);
+    const purchase = buy((await loadOffers(s.lib))[0], "owner-1", token, { store: s.lib, verify: jest.fn(async () => active), check: ready });
+    await s.requested;
+    expect(checkoutInFlight()).toBe(true);
+    s.setAvailable([mine()]);
+    const verify = jest.fn(async () => active);
+    expect(await recoverPurchases("owner-1", token, { hasAccess: false, store: s.lib, verify })).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+    s.errored[0]({ code: "user-cancelled" });
+    await purchase;
+    expect(checkoutInFlight()).toBe(false);
+  });
 });

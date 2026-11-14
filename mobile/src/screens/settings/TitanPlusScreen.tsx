@@ -92,9 +92,13 @@ export function TitanPlusScreen() {
         setNote("Aucun accès actif n’a été confirmé. Consulte tes abonnements Google Play ou utilise « Restaurer mes achats ».");
         refresh();
       } else if (r.kind === "pending") setNote("Paiement en attente chez Google Play. Une fois confirmé, utilise « Restaurer mes achats ».");
-      else if (r.kind === "error") setNote(messageFor(r.error));
+      else if (r.kind === "error") {
+        setNote(messageFor(r.error));
+        // The server may have granted access although its answer was lost or late: read the profile and Play again instead of trusting the error.
+        refresh();
+      }
       if (r.kind === "active" || r.kind === "pending") setCurrentPlayProduct(undefined);
-      if (r.kind === "active") await refreshStorePlan();
+      if (r.kind === "active" || r.kind === "error") await refreshStorePlan();
     } catch (e) {
       if (alive.current) setNote(messageFor(e));
     } finally { stop(); }
@@ -105,7 +109,7 @@ export function TitanPlusScreen() {
     try {
       const r = await restore(accessToken);
       if (!alive.current) return;
-      setNote(r.active ? "Achats restaurés." : r.checked ? "Aucun abonnement actif n’a pu être rattaché à ce compte." : "Google Play ne signale aucun abonnement.");
+      setNote(r.active ? "Achats restaurés." : r.test ? messageFor(new BillingError("TEST_PURCHASE")) : r.checked ? "Aucun abonnement actif n’a pu être rattaché à ce compte." : "Google Play ne signale aucun abonnement.");
       refresh();
       await refreshStorePlan();
     } catch (e) {

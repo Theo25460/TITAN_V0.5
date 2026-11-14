@@ -58,6 +58,430 @@
       "capture": null
     },
     {
+      "path": "assets/ranks/eclaireur-256.webp",
+      "family": "ranks",
+      "bytes": 10486,
+      "sha256": "9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "version": "sha256:9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 10486,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/eclaireur-512.webp",
+      "family": "ranks",
+      "bytes": 28222,
+      "sha256": "63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "version": "sha256:63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 28222,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/explorateur-256.webp",
+      "family": "ranks",
+      "bytes": 14284,
+      "sha256": "a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "version": "sha256:a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 14284,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/explorateur-512.webp",
+      "family": "ranks",
+      "bytes": 39548,
+      "sha256": "b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "version": "sha256:b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 39548,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/gardien-256.webp",
+      "family": "ranks",
+      "bytes": 18104,
+      "sha256": "617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "version": "sha256:617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 18104,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/gardien-512.webp",
+      "family": "ranks",
+      "bytes": 46824,
+      "sha256": "1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "version": "sha256:1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 46824,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/sentinelle-256.webp",
+      "family": "ranks",
+      "bytes": 14850,
+      "sha256": "0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "version": "sha256:0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 14850,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/sentinelle-512.webp",
+      "family": "ranks",
+      "bytes": 39608,
+      "sha256": "20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "version": "sha256:20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 39608,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "path": "assets/renaissance/archipelago-small.webp",
       "family": "worlds",
       "bytes": 112454,
@@ -10543,6 +10967,382 @@
       "capture": null
     },
     {
+      "path": "mobile/assets/rank/eclaireur-256.webp",
+      "family": "ranks",
+      "bytes": 10486,
+      "sha256": "9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "version": "sha256:9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 10486,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/eclaireur-512.webp",
+      "family": "ranks",
+      "bytes": 28222,
+      "sha256": "63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "version": "sha256:63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 28222,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/explorateur-256.webp",
+      "family": "ranks",
+      "bytes": 14284,
+      "sha256": "a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "version": "sha256:a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 14284,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/explorateur-512.webp",
+      "family": "ranks",
+      "bytes": 39548,
+      "sha256": "b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "version": "sha256:b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 39548,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/gardien-256.webp",
+      "family": "ranks",
+      "bytes": 18104,
+      "sha256": "617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "version": "sha256:617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 18104,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/gardien-512.webp",
+      "family": "ranks",
+      "bytes": 46824,
+      "sha256": "1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "version": "sha256:1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 46824,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/sentinelle-256.webp",
+      "family": "ranks",
+      "bytes": 14850,
+      "sha256": "0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "version": "sha256:0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 14850,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/sentinelle-512.webp",
+      "family": "ranks",
+      "bytes": 39608,
+      "sha256": "20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "version": "sha256:20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 39608,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "path": "mobile/assets/rpg/archipelago-small.webp",
       "family": "worlds",
       "bytes": 112454,
@@ -11803,8 +12603,8 @@
       ],
       "source": "js/app/crest.js",
       "description": "Seven heraldic ranks",
-      "bytes": 7305,
-      "version": "sha256:423720666f429fe34c5e44cf028cbc8b75d873e31d6f436ac4a8a67703c9ed3a",
+      "bytes": 8529,
+      "version": "sha256:9d95f58032989b6e192897d66473e88a4722f911169ed145daa8b413d13ae83a",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11821,8 +12621,8 @@
       ],
       "source": "mobile/src/components/Crest.tsx",
       "description": "Seven native heraldic ranks",
-      "bytes": 8160,
-      "version": "sha256:d17fbc906d595bc0ae3cbd9679a4a8a85d67afe191f7f52de6c38385cb936127",
+      "bytes": 9149,
+      "version": "sha256:c543c579ea9064dadb7e830096b3e670027a6d7cceaeca64a87c5b11a2b809ad",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11839,8 +12639,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 83663,
-      "version": "sha256:102f9bea4fb2d0edee5a05cec107e3b61cffb0da0a1c2f9187bac0ecb8b71019",
+      "bytes": 84991,
+      "version": "sha256:514b61e1354ab6c33409a36faf6009d5c8039e0b14909e22d3fc166a70caebc5",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
