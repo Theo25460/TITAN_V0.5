@@ -193,6 +193,7 @@ test('public build excludes hidden image editor files and directories while pres
   };
   for(const page of ['aujourdhui','training','journal','stats','records','carriere','objectifs','prevoir','adventure','profile','social','coaching','boutique','onboarding','login','service']) files[page+'.html']='<h1>Page</h1>';
   for(const asset of ['scout-s','ranger-s','keeper-s','artisan-s','navigator-s','sentinel-s','guardian-aube-s','guardian-marees-s','guardian-forge-s','guardian-aurores-s','valley-small','valley-xs','archipelago-xs','forge-xs','aurora-xs']) files['assets/renaissance/'+asset+'.webp']='image';
+  for(const rank of ['eclaireur','explorateur','sentinelle','gardien']) files['assets/ranks/'+rank+'-256.webp']='rank-badge';
   const dir=sandbox(files,{git:false});
   try{
     const result=spawnSync(process.execPath,[join(dir,'tools/build-public.mjs')],{encoding:'utf8'});

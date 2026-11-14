@@ -143,6 +143,8 @@ for (const page of APP_PAGES) {
   for (const [, url] of html.matchAll(/(?:src|href)="(\/(?:css|js)\/[^"]+)"/g)) precache.add(url);
 }
 for (const img of ['scout-s', 'ranger-s', 'keeper-s', 'artisan-s', 'navigator-s', 'sentinel-s', 'guardian-aube-s', 'guardian-marees-s', 'guardian-forge-s', 'guardian-aurores-s', 'valley-small', 'valley-xs', 'archipelago-xs', 'forge-xs', 'aurora-xs']) precache.add(`/assets/renaissance/${img}.webp`);
+// The approved rank badges (js/app/crest.js): the small file is enough offline, whatever the rank the sportsman holds.
+for (const rank of ['eclaireur', 'explorateur', 'sentinelle', 'gardien']) precache.add(`/assets/ranks/${rank}-256.webp`);
 for (const url of precache) {
   const file = join(dist, url.split('?')[0].replace(/^\//, '') || 'index.html');
   const page = url.startsWith('/') && !url.includes('.') && url !== '/' ? join(dist, `${url.slice(1)}.html`) : file;

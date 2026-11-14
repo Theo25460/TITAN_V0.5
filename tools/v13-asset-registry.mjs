@@ -69,6 +69,7 @@ function familyOf(path) {
   if (path.includes('/play-store/')) return 'store-listing';
   if (/fonts|\.ttf|\.woff/.test(path)) return 'typography';
   if (name.includes('notification')) return 'notifications';
+  if (/(^|\/)assets\/ranks?\//.test(path)) return 'ranks';
   if (name.startsWith('guardian-')) return 'guardians';
   if (/^(valley|archipelago|forge|aurora)(-|\.)/.test(name)) return 'worlds';
   if (/^(scout|ranger|keeper|artisan|navigator|sentinel)(-|\.)/.test(name) || path.includes('/avatar/')) return 'avatars';
@@ -87,7 +88,9 @@ function usagesOf(path) {
     const dynamic = path.startsWith('assets/renaissance/')
       && /renaissance-catalog|js\/app\/(aventure|profil|shell|atelier)/.test(source.path)
       && source.lines.some(line => /renaissance|TitanCodex/.test(line));
-    return dynamic ? [{ source: source.path, lines: [], evidence: 'dynamic-family' }] : [];
+    // The website builds a rank badge URL from the rank id (js/app/crest.js).
+    const rank = path.startsWith('assets/ranks/') && source.path === 'js/app/crest.js' && source.lines.some(line => line.includes('/assets/ranks/'));
+    return dynamic || rank ? [{ source: source.path, lines: [], evidence: 'dynamic-family' }] : [];
   });
 }
 
@@ -95,6 +98,7 @@ function cropFor(family) {
   if (family === 'worlds' || family === 'public-auth-hero') return 'cover, protect horizon and focal subject';
   if (family === 'avatars') return 'protect face in square and circular masks';
   if (family === 'guardians') return 'contain, protect full silhouette';
+  if (family === 'ranks') return 'contain, whole badge on a transparent square';
   return 'contain, preserve glyph and proportions';
 }
 
@@ -124,15 +128,16 @@ function inventoryAsset(path) {
   return {
     path, family, bytes: bytes.length, sha256, version: `sha256:${sha256}`, format: extname(path).slice(1),
     width, height, ratio: width ? Number((width / height).toFixed(4)) : null,
-    source: path.startsWith('mobile/assets/rpg/') ? 'existing bundled reuse of Web artwork' : 'existing repository asset',
-    visualOwner: 'not established', usage, platform: native ? 'native' : 'web', distribution,
+    source: family === 'ranks' ? 'approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)'
+      : path.startsWith('mobile/assets/rpg/') ? 'existing bundled reuse of Web artwork' : 'existing repository asset',
+    visualOwner: family === 'ranks' ? 'TITAN owner, badge approved for the library on 2026-11-14' : 'not established', usage, platform: native ? 'native' : 'web', distribution,
     expectedDeliveredBytes: original || family === 'store-listing' ? 0 : bytes.length,
     style: legacy ? 'legacy winter and science fiction illustration' : 'Ascension #05070A / #3DD9E8 / #F4BB54',
     crop: cropFor(family), safeArea: 'focal bounds to measure on rendered surfaces',
     background: 'dark #05070A and card surface', colorMode: 'dark intended, system/light contrast pending',
     density: { oneX: 'rendered size pending', twoX: 'rendered size pending', threeX: 'rendered size pending' },
     accessibleAlternative: { status: 'check surrounding label or decorative role', sourceEvidence: usage.map(item => item.source) },
-    rpgUsage: ['worlds', 'guardians', 'avatars', 'legacy-encounters', 'world-map-decoration'].includes(family),
+    rpgUsage: ['worlds', 'guardians', 'avatars', 'ranks', 'legacy-encounters', 'world-map-decoration'].includes(family),
     decision, reason, technicalValidation: width ? 'dimensions-read' : 'non-raster or dimensions unavailable',
     visualValidation: 'pending-human-review', capture: null,
   };

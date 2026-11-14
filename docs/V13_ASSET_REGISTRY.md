@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 199 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 215 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -14,6 +14,7 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | legacy-encounters | 80 | 89968606 | 5771850 |
 | notifications | 1 | 1382 | 1382 |
 | public-auth-hero | 5 | 350839 | 350839 |
+| ranks | 16 | 423852 | 423852 |
 | store-listing | 15 | 6221203 | 0 |
 | subscription | 4 | 154842 | 154842 |
 | typography | 12 | 506691 | 506691 |
@@ -73,6 +74,14 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | Fichier | Famille | Octets | Dimensions | Décision |
 |---|---|---:|---|---|
 | `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | retain |
+| `assets/ranks/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
+| `assets/ranks/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
+| `assets/ranks/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
+| `assets/ranks/explorateur-512.webp` | ranks | 39548 | 512×512 | retain |
+| `assets/ranks/gardien-256.webp` | ranks | 18104 | 256×256 | retain |
+| `assets/ranks/gardien-512.webp` | ranks | 46824 | 512×512 | retain |
+| `assets/ranks/sentinelle-256.webp` | ranks | 14850 | 256×256 | retain |
+| `assets/ranks/sentinelle-512.webp` | ranks | 39608 | 512×512 | retain |
 | `assets/renaissance/archipelago-small.webp` | worlds | 112454 | 800×450 | retain |
 | `assets/renaissance/archipelago-xs.webp` | worlds | 44338 | 480×270 | retain |
 | `assets/renaissance/archipelago.webp` | worlds | 386128 | 1600×900 | retain |
@@ -249,6 +258,14 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `mobile/assets/fonts/TitanDisplay-Heavy.ttf` | typography | 40648 | sans dimension raster | retain |
 | `mobile/assets/fonts/archivo-OFL.txt` | typography | 4503 | sans dimension raster | fix |
 | `mobile/assets/fonts/manrope-OFL.txt` | typography | 4384 | sans dimension raster | fix |
+| `mobile/assets/rank/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
+| `mobile/assets/rank/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
+| `mobile/assets/rank/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
+| `mobile/assets/rank/explorateur-512.webp` | ranks | 39548 | 512×512 | retain |
+| `mobile/assets/rank/gardien-256.webp` | ranks | 18104 | 256×256 | retain |
+| `mobile/assets/rank/gardien-512.webp` | ranks | 46824 | 512×512 | retain |
+| `mobile/assets/rank/sentinelle-256.webp` | ranks | 14850 | 256×256 | retain |
+| `mobile/assets/rank/sentinelle-512.webp` | ranks | 39608 | 512×512 | retain |
 | `mobile/assets/rpg/archipelago-small.webp` | worlds | 112454 | 800×450 | retain |
 | `mobile/assets/rpg/artisan-s.webp` | avatars | 10612 | 192×192 | retain |
 | `mobile/assets/rpg/aurora-small.webp` | worlds | 92238 | 800×450 | retain |
