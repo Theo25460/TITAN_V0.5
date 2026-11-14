@@ -1,6 +1,20 @@
 # TITAN — Galerie globale v2
 
-**PROPOSED — approbation requise. Aucun asset integre au code ni deploye.**
+## Blasons approuvés — Éclaireur et Explorateur (14 novembre 2026)
+
+![Blasons validés](./contact-approved-ranks.webp)
+
+**Approuvés par le propriétaire** — masters PNG RGBA transparents (1254 px), exports PNG 512 et WebP 512/256/96. **Non encore intégrés dans les interfaces actives Web/Android.**
+
+| Grade | Master | PNG 512 | WebP 512 | WebP 256 | WebP 96 |
+|---|---|---|---|---|---|
+| Éclaireur | [PNG](../approved/masters/ranks/eclaireur.png) | [PNG](../approved/exports/ranks/eclaireur-512.png) | [512](../approved/exports/ranks/eclaireur-512.webp) | [256](../approved/exports/ranks/eclaireur-256.webp) | [96](../approved/exports/ranks/eclaireur-96.webp) |
+| Explorateur | [PNG](../approved/masters/ranks/explorateur.png) | [PNG](../approved/exports/ranks/explorateur-512.png) | [512](../approved/exports/ranks/explorateur-512.webp) | [256](../approved/exports/ranks/explorateur-256.webp) | [96](../approved/exports/ranks/explorateur-96.webp) |
+
+Les anciennes propositions restent archivées sous `proposed/`.
+
+
+**Éclaireur et Explorateur approuvés. Les autres candidats attendent approbation ; aucune intégration Web/Android ni publication.**
 
 Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 157 | WebP: 318
 

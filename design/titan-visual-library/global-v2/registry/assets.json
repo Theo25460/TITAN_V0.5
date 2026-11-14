@@ -1,6 +1,6 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-14T11:49:02.063Z",
+  "updated_at": "2026-11-14",
   "proposals": {
     "new_vector_masters": 138,
     "photo_remasters": 15,
@@ -528,8 +528,7 @@
       "priority": "P0",
       "usage": "Éclaireur",
       "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/eclaireur.png"
       ],
       "web_targets": [
         "js/app/crest.js"
@@ -537,19 +536,21 @@
       "android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "status": "proposed",
-      "decision": "approval_required",
-      "version": "v2.0",
+      "status": "approved",
+      "decision": "user_approved",
+      "version": "v2.1-transparent-premium",
       "presence": true,
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "rights": "Original AI-generated artwork, owner-approved for TITAN",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/eclaireur.png": "ac8810ec8ab43fb92be917361931a67e48107f1b65e259ba90818aa3d1d69127",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.png": "2751ec81e5cf2d944cf0bf514ad5f91bd2c0e1851549da6978ddf8ba8c81d5f1",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.webp": "63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-256.webp": "9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-96.webp": "17e287da37410918c97fb7fe3ff1cc579ea33cbcc4416217a1fcf8852a56f852"
       },
       "name": "Éclaireur",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
-      "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
+      "master": "design/titan-visual-library/global-v2/approved/masters/ranks/eclaireur.png",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
       "format": "svg",
       "bytes_utf8": 3747,
@@ -558,9 +559,10 @@
         "android": "pending_approval"
       },
       "derived": [
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp"
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.png",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-256.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-96.webp"
       ],
       "source_sha256": "756870a8f84a43a12530fdf80aba1775afb37d9719f2694a5c918323a5c1f59d",
       "legacy_code_sources": [
@@ -573,7 +575,18 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "previous_proposal": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/eclaireur.svg",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp"
+        ],
+        "version": "v2.0"
+      },
+      "approved_at": "2026-11-14",
+      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production"
     },
     {
       "id": "explorateur",
@@ -581,8 +594,7 @@
       "priority": "P0",
       "usage": "Explorateur",
       "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/explorateur.png"
       ],
       "web_targets": [
         "js/app/crest.js"
@@ -590,19 +602,21 @@
       "android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "status": "proposed",
-      "decision": "approval_required",
-      "version": "v2.0",
+      "status": "approved",
+      "decision": "user_approved",
+      "version": "v2.1-transparent-premium",
       "presence": true,
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "rights": "Original AI-generated artwork, owner-approved for TITAN",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/explorateur.png": "bb55dbdcedd274702d65da37325058cebb0806c6575a5389729ffeafbf24dcf7",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.png": "2845cfe5bf7c25c64b53499cd4aa8f4437574bdb09d4a9dbc7b81245bf90ab31",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.webp": "b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-256.webp": "a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-96.webp": "cd999ca35e09956424f4f416b3491043b4cb5d21bd2d87bd5b1e8eab92e4f587"
       },
       "name": "Explorateur",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
-      "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
+      "master": "design/titan-visual-library/global-v2/approved/masters/ranks/explorateur.png",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
       "format": "svg",
       "bytes_utf8": 4120,
@@ -611,9 +625,10 @@
         "android": "pending_approval"
       },
       "derived": [
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp"
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.png",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-256.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-96.webp"
       ],
       "source_sha256": "225510fedf690b63bfcbff6caa1d5cbfa79e2c456e63cc829b3bc5779c1a67d0",
       "legacy_code_sources": [
@@ -626,7 +641,18 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "previous_proposal": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/explorateur.svg",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp"
+        ],
+        "version": "v2.0"
+      },
+      "approved_at": "2026-11-14",
+      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production"
     },
     {
       "id": "sentinelle",
