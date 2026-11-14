@@ -304,7 +304,7 @@
             <ul class="cm-board">${(c.members || [])
               .slice()
               .sort((a, b) => (Number(b.progress) || 0) - (Number(a.progress) || 0))
-              .map((p) => `<li><span>${esc(p.name)}${p.status === "invited" ? ' <small class="asc-faint">invité</small>' : ""}</span>${p.status === "joined" ? `<span class="asc-ascent thin"><span style="--p:${Math.min(100, Math.round(((Number(p.progress) || 0) / c.target) * 100))}%"></span></span><strong class="asc-num">${esc(m.fmt(Number(p.progress) || 0))}</strong>` : "<span></span><span></span>"}</li>`)
+              .map((p) => `<li><span>${esc(p.name)}${p.status === "invited" ? ' <small class="asc-faint">invité</small>' : ""}</span>${p.status === "joined" && p.id != null ? `<span class="asc-ascent thin"><span style="--p:${Math.min(100, Math.round(((Number(p.progress) || 0) / c.target) * 100))}%"></span></span><strong class="asc-num">${esc(m.fmt(Number(p.progress) || 0))}</strong>` : "<span></span><span></span>"}</li>`)
               .join("")}</ul>
             ${c.my_status === "invited" ? `<div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-challenge="${esc(c.id)}" data-act="join">Relever le défi</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-challenge="${esc(c.id)}" data-act="decline">Décliner</button></div>` : c.status !== "ended" ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-challenge="${esc(c.id)}" data-act="leave">Quitter</button>` : ""}
             <p class="asc-small asc-faint">Effort plafonné à 90 min par jour ; séances ajoutées après le départ du défi. Aucune mise, aucune récompense en crédits.</p>

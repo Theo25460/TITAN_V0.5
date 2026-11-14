@@ -231,17 +231,21 @@ export function CommunityScreen() {
                     {Format.number(c.target)} {METRIC_LABEL[c.metric]}
                     {c.sport ? ` · ${Sports.label(c.sport)}` : " · tous sports"}
                   </T>
-                  {c.members.filter((m) => m.status === "joined").map((m) => (
-                    <View key={m.id} style={{ gap: 2 }}>
+                  {/* The server names a member only to themselves, their friends and the other player of an invitation link. Anyone else
+                      arrives without id or progress: the line says someone takes part, and shows no bar that would read as zero. */}
+                  {c.members.filter((m) => m.status === "joined").map((m, i) => (
+                    <View key={m.id ?? `participant-${i}`} style={{ gap: 2 }}>
                       <View style={styles.row}>
                         <T variant="small" tone="default" style={{ flex: 1 }}>
                           {m.id === owner ? "Toi" : m.name}
                         </T>
-                        <T variant="caption" tone="muted">
-                          {Format.number(Number(m.progress) || 0, 1)} / {Format.number(c.target)}
-                        </T>
+                        {m.id ? (
+                          <T variant="caption" tone="muted">
+                            {Format.number(Number(m.progress) || 0, 1)} / {Format.number(c.target)}
+                          </T>
+                        ) : null}
                       </View>
-                      <ProgressBar value={(Number(m.progress) || 0) / Math.max(1, c.target)} height={5} accessibilityLabel={`Progression de ${m.name}`} />
+                      {m.id ? <ProgressBar value={(Number(m.progress) || 0) / Math.max(1, c.target)} height={5} accessibilityLabel={`Progression de ${m.name}`} /> : null}
                     </View>
                   ))}
                   {c.my_status === "invited" && c.status === "active" ? (
