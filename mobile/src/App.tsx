@@ -11,6 +11,7 @@ import { PickerHost } from "./components/Picker";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/Toast";
 import { AuthProvider } from "./data/auth";
+import { BillingRecovery } from "./data/BillingRecovery";
 import { persister, PERSIST_BUSTER, queryClient, shouldPersist } from "./data/queryClient";
 import { SyncManager } from "./data/SyncManager";
 import "./lib/network";
@@ -45,6 +46,7 @@ export default function App() {
               <NavigationContainer theme={theme} linking={linking}>
                 <StatusBar style="light" />
                 <SyncManager />
+                <BillingRecovery />
                 <GpsAccountGuard />
                 <ErrorBoundary>
                   <RootNavigator />
