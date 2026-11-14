@@ -1,6 +1,6 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-14",
+  "updated_at": "2026-11-14T13:57:00.344Z",
   "proposals": {
     "new_vector_masters": 138,
     "photo_remasters": 15,
@@ -660,8 +660,7 @@
       "priority": "P0",
       "usage": "Sentinelle",
       "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/sentinelle.png"
       ],
       "web_targets": [
         "js/app/crest.js"
@@ -669,30 +668,33 @@
       "android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "status": "proposed",
-      "decision": "approval_required",
-      "version": "v2.0",
+      "status": "approved",
+      "decision": "user_approved",
+      "version": "v2.1-transparent-premium",
       "presence": true,
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "rights": "Original AI-generated artwork, owner-approved for TITAN",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/sentinelle.png": "ce725d075ed42915fcdf65ab32a859c0e3b7f0a3b36d753cd24f28acb2a7c347",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.png": "d6919b09a904b058077b7a664d3ab972497a4cb63971689623b0a36a4751af18",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.webp": "20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-256.webp": "0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-96.webp": "87b52b94b43b0b1e7d0c66a9cfc35340adac371bf3a790d98959889d216cd3fb"
       },
       "name": "Sentinelle",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
-      "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
+      "master": "design/titan-visual-library/global-v2/approved/masters/ranks/sentinelle.png",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
-      "format": "svg",
+      "format": "png",
       "bytes_utf8": 3936,
       "targets": {
-        "web": "pending_approval",
-        "android": "pending_approval"
+        "web": "pending_integration",
+        "android": "pending_integration"
       },
       "derived": [
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp"
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.png",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-256.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-96.webp"
       ],
       "source_sha256": "159a06510a63091541a39b1e8d1e12b5c45c4b82a6ac5457a3e5e807a78dadbe",
       "legacy_code_sources": [
@@ -705,7 +707,19 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "previous_proposal": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/sentinelle.svg",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp"
+        ],
+        "version": "v2.0"
+      },
+      "integration_status": "not_integrated",
+      "approved_at": "2026-11-14",
+      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved, not integrated in production"
     },
     {
       "id": "gardien",
@@ -713,8 +727,7 @@
       "priority": "P0",
       "usage": "Gardien",
       "sources": [
-        "js/app/crest.js",
-        "mobile/src/components/Crest.tsx"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/gardien.png"
       ],
       "web_targets": [
         "js/app/crest.js"
@@ -722,30 +735,33 @@
       "android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "status": "proposed",
-      "decision": "approval_required",
-      "version": "v2.0",
+      "status": "approved",
+      "decision": "user_approved",
+      "version": "v2.1-transparent-premium",
       "presence": true,
-      "rights": "Original vector artwork created specifically for TITAN; no third-party source",
+      "rights": "Original AI-generated artwork, owner-approved for TITAN",
       "sha256": {
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
+        "design/titan-visual-library/global-v2/approved/masters/ranks/gardien.png": "917769e406794e68610cc585451ca9191b25497675617bc6ba0046f380fffc3e",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.png": "c685f8aa2be404f53e44322b292c5eebd92f83b4ae7e746c38f937888d27d526",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.webp": "1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-256.webp": "617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-96.webp": "e1995fdab2d1d4e7e6c52399d29e55fc61774615a08d5472b7eb2e0c08511271"
       },
       "name": "Gardien",
       "source": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
-      "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
+      "master": "design/titan-visual-library/global-v2/approved/masters/ranks/gardien.png",
       "proposed_path": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
-      "format": "svg",
+      "format": "png",
       "bytes_utf8": 4001,
       "targets": {
-        "web": "pending_approval",
-        "android": "pending_approval"
+        "web": "pending_integration",
+        "android": "pending_integration"
       },
       "derived": [
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp",
-        "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp"
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.png",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-256.webp",
+        "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-96.webp"
       ],
       "source_sha256": "683b1c899e9592e3ccf1c18af8ed8f979becaf8f436d1b1e136b0bb649f25d4a",
       "legacy_code_sources": [
@@ -758,7 +774,19 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "previous_proposal": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/gardien.svg",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp"
+        ],
+        "version": "v2.0"
+      },
+      "integration_status": "not_integrated",
+      "approved_at": "2026-11-14",
+      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved, not integrated in production"
     },
     {
       "id": "champion",

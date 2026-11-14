@@ -1,8 +1,10 @@
 # TITAN — Galerie globale v2
 
-## Blasons approuvés — Éclaireur et Explorateur (14 novembre 2026)
+## Blasons approuvés — 4 grades (14 novembre 2026)
 
-![Blasons validés](./contact-approved-ranks.webp)
+![Éclaireur et Explorateur](./contact-approved-ranks.webp)
+
+![Sentinelle et Gardien](./contact-approved-ranks-lot2.webp)
 
 **Approuvés par le propriétaire** — masters PNG RGBA transparents (1254 px), exports PNG 512 et WebP 512/256/96. **Non encore intégrés dans les interfaces actives Web/Android.**
 
@@ -10,11 +12,13 @@
 |---|---|---|---|---|---|
 | Éclaireur | [PNG](../approved/masters/ranks/eclaireur.png) | [PNG](../approved/exports/ranks/eclaireur-512.png) | [512](../approved/exports/ranks/eclaireur-512.webp) | [256](../approved/exports/ranks/eclaireur-256.webp) | [96](../approved/exports/ranks/eclaireur-96.webp) |
 | Explorateur | [PNG](../approved/masters/ranks/explorateur.png) | [PNG](../approved/exports/ranks/explorateur-512.png) | [512](../approved/exports/ranks/explorateur-512.webp) | [256](../approved/exports/ranks/explorateur-256.webp) | [96](../approved/exports/ranks/explorateur-96.webp) |
+| Sentinelle | [PNG](../approved/masters/ranks/sentinelle.png) | [PNG](../approved/exports/ranks/sentinelle-512.png) | [512](../approved/exports/ranks/sentinelle-512.webp) | [256](../approved/exports/ranks/sentinelle-256.webp) | [96](../approved/exports/ranks/sentinelle-96.webp) |
+| Gardien | [PNG](../approved/masters/ranks/gardien.png) | [PNG](../approved/exports/ranks/gardien-512.png) | [512](../approved/exports/ranks/gardien-512.webp) | [256](../approved/exports/ranks/gardien-256.webp) | [96](../approved/exports/ranks/gardien-96.webp) |
 
 Les anciennes propositions restent archivées sous `proposed/`.
 
 
-**Éclaireur et Explorateur approuvés. Les autres candidats attendent approbation ; aucune intégration Web/Android ni publication.**
+**Éclaireur, Explorateur, Sentinelle et Gardien approuvés. Champion, Titan et Légende attendent approbation ; aucune intégration Web/Android ni publication.**
 
 Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 157 | WebP: 318
 

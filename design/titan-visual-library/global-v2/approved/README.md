@@ -1,9 +1,14 @@
 # TITAN — Blasons approuvés le 14 novembre 2026
 
-Éclaireur : bouclier pointu, flèche et sentier ; Explorateur : bouclier octogonal, rose des vents.
+Quatre grades validés par le propriétaire : **Éclaireur**, **Explorateur**, **Sentinelle** et **Gardien**.
 
-Ces deux blasons ont été validés par le propriétaire. Masters PNG RGBA 1254×1254 et exports PNG 512×512, WebP 512/256/96, tous avec transparence. Empreintes SHA-256 consignées dans `registry/assets.json`.
+- Éclaireur : insigne flèche et sentier.
+- Explorateur : rose des vents.
+- Sentinelle : tour de guet et halo d'observation.
+- Gardien : porte fortifiée et citadelle.
 
-Les anciennes variantes SVG sont conservées dans `proposed/`. Les références actives Web/Android et les autres visuels ne sont pas modifiés. Aucune publication n'est effectuée.
+Masters PNG RGBA **1254 × 1254**, exports PNG **512 × 512** et WebP **512/256/96**, avec vraie transparence. Les empreintes SHA-256 des fichiers nouveaux figurent dans `registry/assets.json`.
 
-Contrôles effectués : dimensions et canal alpha. Les tests en contexte d'écran réel et l'intégration restent à faire lors de la mission 4.
+Les anciennes propositions SVG demeurent archivées dans `proposed/`. Les références actives Web/Android sont inchangées. Aucune publication n'a été effectuée.
+
+Contrôles réalisés pour Sentinelle et Gardien : dimensions, canal alpha, export, hash SHA-256 et identité des objets Git. Les tests en contexte d'écran réel et l'intégration restent à faire lors de la mission 4.
