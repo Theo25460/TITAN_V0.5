@@ -28,7 +28,39 @@ import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
 
-/** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
+type Objective = { id: string; remaining: number };
+
+/** "Et maintenant": the one next step after a session, in plain words. It only speaks of a chapter when the fresh server snapshot is
+    the source (`chapterKnown`), and never announces a gain: a pending, refused, held or historical session says what will happen by itself. */
+export function resultNextStep(i: {
+  status: "confirmed" | "pending" | "error";
+  held: boolean;
+  historical: boolean;
+  /** True only when the adventure snapshot was fetched after this screen opened and belongs to this account. */
+  chapterKnown: boolean;
+  chapter?: { number: number; worldName: string; ready: boolean; objectives: Objective[] } | null;
+  week: { paused: boolean; remaining: number };
+}): string {
+  if (i.status === "error") return "Ouvre les envois en attente : tu peux corriger cette séance ou la renvoyer. Rien n’est perdu.";
+  if (i.status === "pending") return "Rien à faire : la séance part toute seule dès que le réseau revient. L’XP s’affichera une fois confirmée par le serveur.";
+  if (i.held) return "Rien à faire : la récompense arrive d’elle-même à la fin du contrôle. Tu peux enregistrer d’autres séances normalement.";
+  if (i.historical) return "Cette séance nourrit tes statistiques, tes records et ta maîtrise. Les séances saisies dans les 30 jours rapportent aussi de l’XP.";
+  if (i.chapterKnown && i.chapter) {
+    const { number, worldName, ready, objectives } = i.chapter;
+    if (ready) return `La balise du chapitre ${number} est prête : va l’allumer dans ${worldName}.`;
+    const days = objectives.find((o) => o.id === "days")?.remaining ?? 0;
+    const effort = Math.round(objectives.find((o) => o.id === "effort")?.remaining ?? 0);
+    const parts = [days > 0 ? `${days} jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""}` : null, effort > 0 ? `${effort} min d’effort` : null].filter(Boolean);
+    if (parts.length) return `Encore ${parts.join(" et ")} pour allumer la balise du chapitre ${number}. Un seul jour actif compte par jour, quel que soit le sport.`;
+  }
+  if (i.chapterKnown && !i.chapter) return "Choisis un monde dans Aventure : tes prochaines séances y allumeront des balises.";
+  if (i.week.paused) return "Ta cadence est en pause : reprends quand tu veux, ta séance est dans ton journal.";
+  return i.week.remaining > 0
+    ? `Encore ${i.week.remaining} jour${i.week.remaining > 1 ? "s" : ""} actif${i.week.remaining > 1 ? "s" : ""} pour tenir ta semaine.`
+    : "Semaine tenue. Le repos compte aussi : la suite t’attend quand tu veux.";
+}
+
+/** The moment after a session, in four beats: what was done, what the server confirmed, what it moved in the adventure, what to do next. */
 /** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
 const revealed = new Set<string>();
 
@@ -87,6 +119,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
     );
 
   const historical = Boolean(log.details?.historical);
+  const held = Boolean(receipt?.reward_held);
+  const cp = campaign && campaign.chapter > 0 && campaign.chapter <= 9 ? Progress.campaignProgress(campaign) : null;
+  const next = resultNextStep({
+    status, held, historical,
+    chapterKnown: impact.state === "confirmed",
+    chapter: campaign && world && cp ? { number: campaign.chapter, worldName: world.name, ready: cp.ready, objectives: cp.objectives } : null,
+    week: { paused: Boolean(cadence.currentPaused), remaining: cadence.remaining },
+  });
   const effort = Progress.effortOf(log);
   const fam = Sports.familyOf(log.sport);
   const tint = familyColors[fam] ?? colors.cy;
@@ -167,8 +207,12 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         </Reveal>
 
         <Reveal order={1}>
-          <Card tone={status === "confirmed" ? "accent" : "flat"} style={{ gap: space.s3 }}>
-            <T variant="eyebrow">{status === "confirmed" ? "TITAN a confirmé" : "Confirmation en attente"}</T>
+          {/* The accent tone and "TITAN a confirmé" are reserved for what the server really granted: a held reward, a refusal or a
+              pending send never borrow them. */}
+          <Card tone={status === "confirmed" && !held ? "accent" : "flat"} style={{ gap: space.s3 }} testID="result-reward">
+            <T variant="eyebrow" tone={status === "error" ? "err" : status === "confirmed" && !held ? "accent" : "warn"}>
+              {status === "error" ? "Envoi refusé" : status !== "confirmed" ? "Confirmation en attente" : held ? "Séance enregistrée · récompense en attente" : "TITAN a confirmé"}
+            </T>
             {status === "confirmed" && receipt?.reward_held ? (
               <View style={{ flexDirection: "row", gap: space.s3, alignItems: "center" }}>
                 <Icon name="clock" size={22} color={colors.warn} />
@@ -341,6 +385,11 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
             </Tap>
           </Reveal>
         ) : !historical ? <Reveal order={5}><Card style={{ gap: space.s3 }}><T variant="eyebrow">Dans ton aventure</T><T accessibilityLiveRegion="polite">{impact.text}</T><Button label="Découvrir les mondes" kind="secondary" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} /></Card></Reveal> : null}
+
+        <View style={styles.block} testID="result-next">
+          <T variant="eyebrow">Et maintenant</T>
+          <T accessibilityLiveRegion="polite">{next}</T>
+        </View>
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
       {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (

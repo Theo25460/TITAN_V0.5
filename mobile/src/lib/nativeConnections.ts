@@ -57,13 +57,25 @@ export async function connectGarmin(owner: string, consent: boolean, open: (url:
   await assertOwner(owner); valid(current);
   await open(url.toString());
 }
-/** A provider outage never prevents withdrawal in TITAN. A database failure remains visible to the athlete. */
-export async function disconnectGarmin(owner: string, network: Network = fetch, current: Current = () => true) {
-  try { await provider(owner, "disconnect", network, current); } catch { /* local withdrawal remains required */ }
+/** "withdrawn": Garmin confirmed that TITAN was removed on its side. "unconfirmed": the link and the authorisation ended in TITAN,
+    but Garmin did not confirm (outage, refusal, expired access): TITAN may still be listed in the athlete's Garmin account. */
+export type GarminWithdrawal = "withdrawn" | "unconfirmed";
+/** A provider outage never prevents withdrawal in TITAN. A database failure remains visible to the athlete.
+    The answer says whether Garmin confirmed its side, so the screen never claims more than what happened. */
+export async function disconnectGarmin(owner: string, network: Network = fetch, current: Current = () => true): Promise<GarminWithdrawal> {
+  let confirmed = false;
+  try { confirmed = (await provider(owner, "disconnect", network, current))?.provider === "withdrawn"; } catch { /* local withdrawal remains required */ }
   valid(current);
   await ownerRpc(owner, "titan_set_source_consent_v1", { p_source: "garmin", p_granted: false });
   valid(current);
   await ownerRpc(owner, "titan_garmin_unlink_v1", {});
+  return confirmed ? "withdrawn" : "unconfirmed";
+}
+/** What the athlete is told after « Déconnecter ». The tokens are erased with the link, so TITAN cannot retry the Garmin side later. */
+export function garminWithdrawalMessage(result: GarminWithdrawal): string {
+  return result === "withdrawn"
+    ? "Garmin est déconnecté : TITAN a été retiré de ton compte Garmin et plus aucune activité n’est importée. Les séances déjà importées restent dans ton journal."
+    : "L’autorisation Garmin a été retirée dans TITAN : plus aucune activité n’est importée. Garmin n’a pas confirmé le retrait de son côté : pour le terminer, retire TITAN des applications connectées de ton compte Garmin Connect. Les séances déjà importées restent dans ton journal.";
 }
 
 /** Only public diagnostic codes are shown. Provider bodies and tokens never enter the UI. */
