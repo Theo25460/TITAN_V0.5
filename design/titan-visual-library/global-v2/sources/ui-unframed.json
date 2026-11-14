@@ -1,0 +1,27 @@
+{
+  "reason": "Avoid same visual plaque/coin backdrop across unrelated functions; preserve unified metal treatments but allow subject silhouettes to stand alone",
+  "files": [
+    "empty-moments",
+    "empty-guild",
+    "empty-binom",
+    "empty-ranking",
+    "empty-weekly-quests",
+    "empty-season",
+    "profile-passport",
+    "sport-dna",
+    "empty-atelier",
+    "empty-notifications",
+    "report-summary",
+    "record-detail",
+    "gps-tracking",
+    "gps-location-missing",
+    "import-error",
+    "empty-route-library",
+    "empty-coach-clients",
+    "empty-program",
+    "empty-workout",
+    "empty-discovery",
+    "success-upload",
+    "error-system"
+  ]
+}
