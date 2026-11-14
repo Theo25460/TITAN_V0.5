@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-14T11:49:02.065Z",
+  "generated_at": "2026-11-14T16:01:46.666Z",
   "counts": {
-    "vectors": 138,
+    "vectors": 134,
     "remasters": 15,
     "photos": 4,
-    "png": 157,
-    "webp": 318,
+    "png": 153,
+    "webp": 310,
     "sheets": 11
   },
   "issues": [],
@@ -876,78 +876,6 @@
       "sha256": "ab032152a7aa657adc916db14a07ac3681bdc62a533f1ae251ba7827f3ac9b50"
     },
     {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-512.png",
-      "bytes": 52851,
-      "width": 512,
-      "height": 512,
-      "alpha": true,
-      "sha256": "0c665d04d9a26d15e6edf3b8fc515a78cdde8bee0652b60eb67374cabaf85ba8"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-256.webp",
-      "bytes": 5750,
-      "width": 256,
-      "height": 256,
-      "alpha": true,
-      "sha256": "6dd47454589d2e8041931b6ed73e35113a3ee09b8e2b51fd11a3976b798b20a1"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/eclaireur-96.webp",
-      "bytes": 1686,
-      "width": 96,
-      "height": 96,
-      "alpha": true,
-      "sha256": "51801b86524287f6771c708fcd86c00a3be246488097dcf6ef23309d0d790230"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-512.png",
-      "bytes": 82080,
-      "width": 512,
-      "height": 512,
-      "alpha": true,
-      "sha256": "aadc959e8148771126a954ccd14102e9b322f63dc4188290c3d32cc766ebf92c"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-256.webp",
-      "bytes": 8050,
-      "width": 256,
-      "height": 256,
-      "alpha": true,
-      "sha256": "6bf7794b089b829640860d7cc2272684b6bc30bf20c2fdd428e01c15b1951e2e"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/explorateur-96.webp",
-      "bytes": 2176,
-      "width": 96,
-      "height": 96,
-      "alpha": true,
-      "sha256": "56f2db19361138a6c1190777e84ef74fcd07c5424a7c5ff5c0db6e63060bd080"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-512.png",
-      "bytes": 79711,
-      "width": 512,
-      "height": 512,
-      "alpha": true,
-      "sha256": "73aa77d67071169275bf43745f400b145795e42f76b9419fc590c6c74a6ab8ec"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-256.webp",
-      "bytes": 7730,
-      "width": 256,
-      "height": 256,
-      "alpha": true,
-      "sha256": "058b61fd410601d0c89e6ea4d9b05814f75fc7f2129ad387648e1783a7f3307e"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/gardien-96.webp",
-      "bytes": 2122,
-      "width": 96,
-      "height": 96,
-      "alpha": true,
-      "sha256": "dbf744b78670d9dfd351ea0494163bc57db12c7e888ed881c03c0d4e6a5dd468"
-    },
-    {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/legende-512.png",
       "bytes": 115959,
       "width": 512,
@@ -970,30 +898,6 @@
       "height": 96,
       "alpha": true,
       "sha256": "cec8833a3cb85f1057051e93c4ebb8345882896e4bc43ea199c78bf623160c0b"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-512.png",
-      "bytes": 61764,
-      "width": 512,
-      "height": 512,
-      "alpha": true,
-      "sha256": "40840cf57b356e978d0b36802649370bcb22d3d36a052a195bb229c3339b02aa"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-256.webp",
-      "bytes": 6094,
-      "width": 256,
-      "height": 256,
-      "alpha": true,
-      "sha256": "2ea5439368fef3cede33a9a8ecd1859021145f6a3dfcafe0575caf1996f1892b"
-    },
-    {
-      "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/sentinelle-96.webp",
-      "bytes": 1692,
-      "width": 96,
-      "height": 96,
-      "alpha": true,
-      "sha256": "bbbfeb5aa87b4790801d7d3e81a3aa91605981f57e531b0c62b079f8fb348eba"
     },
     {
       "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/titan-512.png",
@@ -3813,11 +3717,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-ranks.webp",
-      "bytes": 22568,
+      "bytes": 12474,
       "width": 816,
-      "height": 526,
+      "height": 293,
       "alpha": false,
-      "sha256": "8d029833804e97c9e9097ae45fa2404bd06248fac0e26b9699ee2a8af3e86dc4"
+      "sha256": "c5c100adecbc3d159c7a5e779b52e0f1c65c8583c2ebf5f98ef36d2869a4ce28"
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-tiers.webp",
@@ -3893,11 +3797,11 @@
     },
     {
       "path": "design/titan-visual-library/global-v2/preview/contact-legibility.webp",
-      "bytes": 35502,
+      "bytes": 38720,
       "width": 800,
       "height": 865,
       "alpha": false,
-      "sha256": "94eea31dfffc169528488c5d39b4b4e47a54cea0e46e4a5a4b1e09899f2c2c98"
+      "sha256": "a44c12b70f0936024eeafbcfb9f29b12e8aa32a22456f4630838fac4a974f98e"
     }
   ],
   "notes": [
@@ -3908,7 +3812,7 @@
   ],
   "protected_production_paths_unchanged": true,
   "quality_v2": {
-    "verified_references": 613,
+    "verified_references": 617,
     "master_assets": 157,
     "perceptual_near_duplicates": [],
     "threshold_hamming": 16,

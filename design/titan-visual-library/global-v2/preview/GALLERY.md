@@ -1,35 +1,13 @@
 # TITAN — Galerie globale v2
 
-## Blasons approuvés — 4 grades (14 novembre 2026)
+**PROPOSED — approbation requise. Aucun asset integre au code ni deploye.**
 
-![Éclaireur et Explorateur](./contact-approved-ranks.webp)
-
-![Sentinelle et Gardien](./contact-approved-ranks-lot2.webp)
-
-**Approuvés par le propriétaire** — masters PNG RGBA transparents (1254 px), exports PNG 512 et WebP 512/256/96. **Non encore intégrés dans les interfaces actives Web/Android.**
-
-| Grade | Master | PNG 512 | WebP 512 | WebP 256 | WebP 96 |
-|---|---|---|---|---|---|
-| Éclaireur | [PNG](../approved/masters/ranks/eclaireur.png) | [PNG](../approved/exports/ranks/eclaireur-512.png) | [512](../approved/exports/ranks/eclaireur-512.webp) | [256](../approved/exports/ranks/eclaireur-256.webp) | [96](../approved/exports/ranks/eclaireur-96.webp) |
-| Explorateur | [PNG](../approved/masters/ranks/explorateur.png) | [PNG](../approved/exports/ranks/explorateur-512.png) | [512](../approved/exports/ranks/explorateur-512.webp) | [256](../approved/exports/ranks/explorateur-256.webp) | [96](../approved/exports/ranks/explorateur-96.webp) |
-| Sentinelle | [PNG](../approved/masters/ranks/sentinelle.png) | [PNG](../approved/exports/ranks/sentinelle-512.png) | [512](../approved/exports/ranks/sentinelle-512.webp) | [256](../approved/exports/ranks/sentinelle-256.webp) | [96](../approved/exports/ranks/sentinelle-96.webp) |
-| Gardien | [PNG](../approved/masters/ranks/gardien.png) | [PNG](../approved/exports/ranks/gardien-512.png) | [512](../approved/exports/ranks/gardien-512.webp) | [256](../approved/exports/ranks/gardien-256.webp) | [96](../approved/exports/ranks/gardien-96.webp) |
-
-Les anciennes propositions restent archivées sous `proposed/`.
-
-
-**Éclaireur, Explorateur, Sentinelle et Gardien approuvés. Champion, Titan et Légende attendent approbation ; aucune intégration Web/Android ni publication.**
-
-Originals vectoriels: 138 | Retouches des visuels existants: 15 | PNG: 157 | WebP: 318
+Originals vectoriels: 134 | Retouches des visuels existants: 15 | PNG: 153 | WebP: 310
 
 ## Grades TITAN
 
 ![Contact sheet ranks](./contact-ranks.webp)
 
-- [eclaireur](../proposed/masters/ranks/eclaireur.svg) — Éclaireur — **proposed** — [export](../proposed/exports/ranks/eclaireur-512.png) [export](../proposed/exports/ranks/eclaireur-256.webp) [export](../proposed/exports/ranks/eclaireur-96.webp)
-- [explorateur](../proposed/masters/ranks/explorateur.svg) — Explorateur — **proposed** — [export](../proposed/exports/ranks/explorateur-512.png) [export](../proposed/exports/ranks/explorateur-256.webp) [export](../proposed/exports/ranks/explorateur-96.webp)
-- [sentinelle](../proposed/masters/ranks/sentinelle.svg) — Sentinelle — **proposed** — [export](../proposed/exports/ranks/sentinelle-512.png) [export](../proposed/exports/ranks/sentinelle-256.webp) [export](../proposed/exports/ranks/sentinelle-96.webp)
-- [gardien](../proposed/masters/ranks/gardien.svg) — Gardien — **proposed** — [export](../proposed/exports/ranks/gardien-512.png) [export](../proposed/exports/ranks/gardien-256.webp) [export](../proposed/exports/ranks/gardien-96.webp)
 - [champion](../proposed/masters/ranks/champion.svg) — Champion — **proposed** — [export](../proposed/exports/ranks/champion-512.png) [export](../proposed/exports/ranks/champion-256.webp) [export](../proposed/exports/ranks/champion-96.webp)
 - [titan](../proposed/masters/ranks/titan.svg) — Titan — **proposed** — [export](../proposed/exports/ranks/titan-512.png) [export](../proposed/exports/ranks/titan-256.webp) [export](../proposed/exports/ranks/titan-96.webp)
 - [legende](../proposed/masters/ranks/legende.svg) — Légende — **proposed** — [export](../proposed/exports/ranks/legende-512.png) [export](../proposed/exports/ranks/legende-256.webp) [export](../proposed/exports/ranks/legende-96.webp)
