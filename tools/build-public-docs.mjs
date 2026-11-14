@@ -157,22 +157,22 @@ doc({
   title: "Règles de la communauté et modération | TITAN",
   h1: "Règles de la communauté et modération",
   eyebrow: "Confiance",
-  ref: "Version 1",
-  updated: "21 octobre 2026",
+  ref: "Version 2",
+  updated: "14 novembre 2026",
   description: "Ce qui est interdit dans la communauté TITAN, comment signaler, ce que l’équipe peut décider, ce qui est automatique ou non, et comment contester une décision.",
   body: `${legalNav}
 <div class="pub-note"><strong>En une phrase.</strong> La communauté TITAN est faite pour s’encourager à bouger. Une personne de l’équipe décide de toute sanction, la motive, et tu peux la contester.</div>
 <h2>Ce qui est interdit</h2>
 <ul><li>Le harcèlement, les menaces et les propos haineux ou discriminatoires.</li><li>Les contenus illégaux.</li><li>L’usurpation d’identité : se faire passer pour une autre personne ou pour l’équipe.</li><li>La fraude et la triche : séances fictives, automatisation, exploitation d’une faille (voir les <a href="/legal_cgu">conditions d’utilisation</a>, article 6).</li><li>Le spam.</li><li>Les informations personnelles de tiers.</li></ul>
-<p>Cela vaut pour ce que tu écris ou choisis d’afficher : nom affiché, Moments, messages de guilde et de discussion, intitulés de défis. Tu peux à tout moment bloquer une personne.</p>
+<p>Cela vaut pour ce que tu écris ou choisis d’afficher : nom affiché, Moments, messages de guilde et de discussion, intitulés de défis, nom et annonces d’un club, messages entre un coach et un sportif. Tu peux à tout moment bloquer une personne.</p>
 <h2>Signaler un contenu ou un comportement</h2>
-<p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> en indiquant où tu as vu le problème (espace, date, nom affiché). Une personne de l’équipe lit chaque signalement. TITAN est un projet indépendant : nous ne garantissons pas de délai de réponse, et un signalement abusif peut lui-même être sanctionné.</p>
+<p>Dans un club, les boutons « Signaler ce club » et « Signaler cette annonce » envoient ton signalement à l’équipe ; dans un suivi, un message se signale depuis la conversation. Pour tout le reste, écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> en indiquant où tu as vu le problème (espace, date, nom affiché). Une personne de l’équipe lit chaque signalement. TITAN est un projet indépendant : nous ne garantissons pas de délai de réponse, et un signalement abusif peut lui-même être sanctionné.</p>
 <h2>Ce que l’équipe peut décider</h2>
 ${table(["Mesure", "Ce qu’elle change", "Ce qu’elle ne change pas"], [
   ["Retirer un message", "Un message de discussion signalé n’est plus visible des autres. Un nom affiché ou un autre contenu contraire aux règles est traité au cas par cas, par écrit.", "Ton compte."],
   ["Demander une vérification", "Une alerte s’affiche dans TITAN ; tu lis la demande et tu réponds une fois depuis la page <a href=\"/recours\">Recours</a>.", "Rien d’automatique : répondre ne déclenche aucune sanction."],
   ["Mettre une séance à l’écart", "La séance reste dans ton journal mais ne compte plus dans les classements ni les récompenses compétitives.", "Les XP et crédits déjà acquis."],
-  ["Suspendre le compte", "Tu ne peux plus écrire dans TITAN : enregistrer une séance ou un objectif, acheter, ajouter des amis ou écrire dans la communauté, modifier ton profil, ni envoyer une demande d’assistance depuis l’application (écris alors par e-mail). Aucune durée n’est fixée d’avance : la suspension dure jusqu’à ce que l’équipe la lève, par exemple après un recours accepté.", "Ta progression et tes données, qui ne sont pas supprimées. Tu peux toujours supprimer ton compte, ou demander tes données par e-mail."],
+  ["Suspendre le compte", "Tu ne peux plus écrire dans TITAN : enregistrer une séance ou un objectif, acquérir une pièce de l’Atelier, ajouter des amis ou écrire dans la communauté, modifier ton profil, ni envoyer une demande d’assistance depuis l’application (écris alors par e-mail). Aucune durée n’est fixée d’avance : la suspension dure jusqu’à ce que l’équipe la lève, par exemple après un recours accepté.", "Ta progression et tes données, qui ne sont pas supprimées. Tu peux toujours supprimer ton compte, ou demander tes données par e-mail."],
   ["Bloquer le compte", "Réservé aux cas graves, décidé par une personne de l’équipe avec l’outil d’administration. Un recours contre un blocage est examiné à part par l’équipe.", "Tes droits sur tes données."],
 ])}
 <h2>Ce qui est automatique, et ce qui ne l’est pas</h2>
@@ -193,8 +193,8 @@ doc({
   title: "Supprimer mon compte et mes données | TITAN",
   h1: "Supprimer mon compte TITAN",
   eyebrow: "Confiance",
-  ref: "Version 1",
-  updated: "20 octobre 2026",
+  ref: "Version 2",
+  updated: "14 novembre 2026",
   description: "Comment supprimer ton compte TITAN et tes données depuis l’application ou par e-mail, ce qui est effacé tout de suite, ce qui est conservé et combien de temps.",
   body: `${legalNav}
 <h2>Depuis l’application ou le site</h2>
@@ -203,9 +203,9 @@ doc({
 <h2>Si tu ne peux plus te connecter</h2>
 <p>Écris à <a href="mailto:${SUPPORT}">${SUPPORT}</a> <strong>depuis l’adresse e-mail du compte</strong>, avec l’objet « Suppression de compte ». Nous supprimons le compte et te confirmons par e-mail, au plus tard sous un mois.</p>
 <h2>Si tu es abonné à TITAN+</h2>
-<p>Supprimer le compte ne résilie pas l’abonnement. Si tu t’es abonné dans l’application Android, résilie-le d’abord dans Google Play pour ne plus être facturé.</p>
+<p>Supprimer le compte ne résilie pas l’abonnement. Si tu t’es abonné dans l’application Android, résilie-le d’abord dans <a href="https://play.google.com/store/account/subscriptions" rel="noopener">tes abonnements Google Play</a> pour ne plus être facturé. Pour un abonnement plus ancien, souscrit sur le site, résilie-le auprès du prestataire indiqué sur ton reçu. Si tu es coach, les places TITAN+ de tes sportifs prennent fin avec ton compte.</p>
 <h2>Ce qui est effacé tout de suite</h2>
-<ul><li>Ton profil, tes séances, tes objectifs, ta progression, tes achats et ta collection.</li><li>Tes amitiés, tes défis, tes messages et ton appartenance à une guilde (si tu en étais le chef, elle passe au membre le plus ancien).</li><li>Tes demandes d’assistance, tes recours, tes signalements de bug et tes messages de contact.</li><li>Les copies techniques de tes messages dans le journal d’audit.</li><li>Les données de ton compte conservées sur ton appareil.</li></ul>
+<ul><li>Ton profil, tes séances, tes objectifs, ta progression, tes pièces de l’Atelier et ta collection.</li><li>Tes parcours GPS, tes pas enregistrés sur le serveur, tes liens Santé Connect et Garmin (les jetons Garmin sont effacés).</li><li>Tes amitiés, tes défis, tes messages, tes liens de coaching et ton appartenance à une guilde (si tu en étais le chef, elle passe au membre le plus ancien).</li><li>Tes demandes d’assistance, tes recours, tes signalements de bug et tes messages de contact.</li><li>Les copies techniques de tes messages dans le journal d’audit.</li><li>Les données de ton compte conservées sur ton appareil.</li></ul>
 <h2>Ce qui est conservé, sans ton identité, et combien de temps</h2>
 ${table(["Donnée", "Ce qui reste", "Durée"], [
   ["Statistiques d’usage", "événements anonymes", "13 mois"],
@@ -214,7 +214,7 @@ ${table(["Donnée", "Ce qui reste", "Durée"], [
   ["Journaux d’administration, signaux anti-triche, signalements traités", "traces sans identité", "12 mois"],
   ["Journal d’équilibre du jeu (montants, types d’opération)", "sans identité ni texte", "conservé : garantit l’équité du jeu pour les autres joueurs"],
 ])}
-<p>Ces durées sont appliquées automatiquement chaque jour. Les sauvegardes techniques du fournisseur de base de données expirent selon son propre calendrier. Le paiement d’un abonnement relève de Google, qui conserve ses données selon ses propres obligations légales.</p>
+<p>Ces durées sont appliquées automatiquement chaque jour. Les sauvegardes techniques du fournisseur de base de données expirent selon son propre calendrier. Le paiement d’un abonnement relève de Google Play (ou, pour un ancien abonnement, du prestataire indiqué sur ton reçu), qui conserve ses données selon ses propres obligations légales. Dans l’application Android gratuite, ton choix publicitaire et l’identifiant publicitaire relèvent de Google et des réglages Android : la suppression du compte TITAN ne les efface pas.</p>
 <h2>Tes autres droits</h2>
 <p>Accès, export, rectification, opposition : voir la <a href="/legal_privacy">politique de confidentialité</a>. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).</p>`,
 });
@@ -354,7 +354,7 @@ doc({
   description: "Clubs, salles, associations et coachs : ce que TITAN peut apporter à vos sportifs, et nos conditions (aucune donnée revendue, aucune publicité sur le site).",
   image: "archipelago",
   body: `<p class="pub-lead">TITAN aide les sportifs à pratiquer régulièrement et à comprendre leurs progrès. Si vous accompagnez des sportifs, parlons-en.</p>
-<h2>Ce qui existe déjà</h2><ul><li><strong>Espace coach</strong> : suivi consenti, périmètre choisi par le sportif, propositions de séances. Trois sportifs gratuitement, vingt avec TITAN+. <a href="/pour-les-coachs">Voir le fonctionnement</a>.</li><li><strong>Guildes</strong> : un objectif d’effort hebdomadaire commun, pour un club ou une section.</li><li><strong>Expéditions</strong> : des saisons collectives où chaque minute d’effort compte pareil, quel que soit le sport.</li></ul>
+<h2>Ce qui existe déjà</h2><ul><li><strong>Espace coach</strong> : suivi consenti, périmètre choisi par le sportif, propositions de séances. Trois sportifs suivis sans abonnement, vingt avec TITAN+ ; cinq avec Coach et quinze avec Coach Ultra, TITAN+ inclus pour eux. <a href="/pour-les-coachs">Voir le fonctionnement</a>.</li><li><strong>Guildes</strong> : un objectif d’effort hebdomadaire commun, pour un club ou une section.</li><li><strong>Expéditions</strong> : des saisons collectives où chaque minute d’effort compte pareil, quel que soit le sport.</li></ul>
 <h2>Nos conditions</h2><ul><li>Aucune donnée individuelle n’est partagée avec un partenaire sans le consentement explicite de la personne.</li><li>Aucune revente de données, aucune publicité sur le site.</li><li>Pas de progression achetable, y compris pour un partenaire.</li></ul>
 <h2>Nous écrire</h2><p><a href="mailto:${SUPPORT}?subject=Partenariat">${SUPPORT}</a> — présentez votre structure et ce que vous aimeriez construire.</p>`,
 });
@@ -392,10 +392,10 @@ seoGuide({
   image: "valley",
   lead: "Distance, durée à la seconde, allure, dénivelé : enregistre ta sortie en quelques secondes et vois si tu progresses vraiment.",
   sections: [
-    ["Ce que tu enregistres", `<p>La distance et la durée (heures, minutes, secondes), ton ressenti de 1 à 10, et si tu veux une note. Un fichier GPX de ta montre remplit la distance, le temps en mouvement et le dénivelé ; le tracé GPS n’est pas conservé.</p>`],
+    ["Ce que tu enregistres", `<p>La distance et la durée (heures, minutes, secondes), ton ressenti de 1 à 10, et si tu veux une note. Un fichier GPX de ta montre remplit la distance, le temps en mouvement et le dénivelé ; le tracé du fichier importé n’est pas conservé.</p>`],
     ["Des records honnêtes", `<p>Tes meilleurs temps sur 1, 5, 10, 21,1 et 42,2 km comparent des sorties entières dont la distance est à ±1 % de la référence. Chaque record garde sa séance source et l’historique de ses améliorations.</p>`],
     ["Ton allure, sur des sorties comparables", `<p>Le récap de la semaine compare ton allure sur des sorties de longueur proche, pour ne pas mélanger un fractionné et une sortie longue : « 5:02 /km contre 5:14 il y a deux mois ».</p>`],
-    ["Progresser sans se brûler", `<p>Ton XP vient de l’effort : les 90 premières minutes comptent pleinement, au-delà à moitié. Une semaine régulière vaut mieux qu’un dimanche démesuré, et la maîtrise de la course demande des heures et des semaines de pratique.</p>`],
+    ["Progresser sans se brûler", `<p>Ton XP vient de l’effort : les 90 premières minutes comptent pleinement, les 90 suivantes à moitié. Une semaine régulière vaut mieux qu’un dimanche démesuré, et la maîtrise de la course demande des heures et des semaines de pratique.</p>`],
   ],
   faqItems: [
     ["Faut-il une montre GPS ?", "Non. La distance et la durée suffisent. Le GPX est un plus si tu en as un."],
