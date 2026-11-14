@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 let mockFresh=true, mockStatus='confirmed', mockHeld=false, mockSource='session-1', mockActive=true, mockHasLog=true;
 jest.mock('../src/data/auth',()=>({useOwner:()=> 'owner-a'}));
@@ -32,4 +32,45 @@ test('the locally stored effort remains visible before the journal refreshes', (
   expect(screen.queryByText('TITAN a confirmé')).toBeNull();
   fireEvent.press(screen.getByText('Voir les envois en attente'));
   expect((nav as any).replace).toHaveBeenCalledWith('Pending');
+});
+
+describe('result screen: effort → result → reward → next step (V1.3.1)', () => {
+  const { resultNextStep } = require('../src/screens/session/SessionResultScreen');
+  const week = { paused: false, remaining: 2 };
+  const chapter = { number: 2, worldName: 'La vallée de l’Aube', ready: false, objectives: [{ id: 'days', remaining: 1 }, { id: 'effort', remaining: 45 }] };
+
+  test('a held reward never borrows the "TITAN a confirmé" label, and says nothing is left to do', () => {
+    mockHeld = true;
+    show();
+    expect(screen.queryByText('TITAN a confirmé')).toBeNull();
+    expect(screen.getByText('Séance enregistrée · récompense en attente')).toBeTruthy();
+    expect(within(screen.getByTestId('result-next')).getByText(/la récompense arrive d’elle-même/)).toBeTruthy();
+  });
+  test('a pending session announces no XP and no chapter progress', () => {
+    mockStatus = 'pending';
+    show();
+    expect(screen.queryByText('TITAN a confirmé')).toBeNull();
+    expect(screen.getByText('Confirmation en attente')).toBeTruthy();
+    const next = within(screen.getByTestId('result-next'));
+    expect(next.getByText(/part toute seule/)).toBeTruthy();
+    expect(next.queryByText(/balise/)).toBeNull();
+  });
+  test('a confirmed session ends on one next step taken from the fresh chapter evidence', () => {
+    show();
+    expect(screen.getByText('TITAN a confirmé')).toBeTruthy();
+    expect(within(screen.getByTestId('result-next')).getByText(/Encore 1 jour actif pour allumer la balise du chapitre 2/)).toBeTruthy();
+  });
+  test('the next step is honest for every state', () => {
+    const base = { status: 'confirmed' as const, held: false, historical: false, chapterKnown: true, chapter, week };
+    expect(resultNextStep(base)).toBe('Encore 1 jour actif et 45 min d’effort pour allumer la balise du chapitre 2. Un seul jour actif compte par jour, quel que soit le sport.');
+    expect(resultNextStep({ ...base, chapter: { ...chapter, ready: true } })).toMatch(/La balise du chapitre 2 est prête : va l’allumer dans La vallée de l’Aube/);
+    expect(resultNextStep({ ...base, chapter: null })).toMatch(/Choisis un monde/);
+    // A stale or foreign snapshot never speaks of the chapter: the week is the fallback.
+    expect(resultNextStep({ ...base, chapterKnown: false })).toBe('Encore 2 jours actifs pour tenir ta semaine.');
+    expect(resultNextStep({ ...base, chapterKnown: false, week: { paused: false, remaining: 0 } })).toMatch(/Semaine tenue/);
+    expect(resultNextStep({ ...base, status: 'error' })).toMatch(/envois en attente/);
+    expect(resultNextStep({ ...base, status: 'pending' })).not.toMatch(/balise|chapitre/);
+    expect(resultNextStep({ ...base, held: true })).not.toMatch(/balise|chapitre/);
+    expect(resultNextStep({ ...base, historical: true })).toMatch(/30 jours/);
+  });
 });

@@ -14,7 +14,7 @@ import { Screen } from "../../components/Screen";
 import { Sheet } from "../../components/Sheet";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
+import { CareerRules, Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { useAuth } from "../../data/auth";
 import { useAdventure, useAdventureAction, useAtelier, useLogs, usePrefs, useProfile, useSocial } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
@@ -29,12 +29,14 @@ const DEFAULT_METRICS: Metric[] = ["sessions", "time", "weeks"];
 const validMetrics = (value: unknown): value is Metric[] =>
   Array.isArray(value) && value.length === 3 && new Set(value).size === 3 && value.every(key => Object.hasOwn(METRICS, key));
 
-function ProfileRow({ title, subtitle, icon, onPress, testID, disabled, compact = false }: {
+function ProfileRow({ title, subtitle, icon, onPress, testID, disabled, compact = false, fill = false }: {
   title: string; subtitle?: string; icon?: IconName; onPress: () => void; testID?: string; disabled?: boolean; compact?: boolean;
+  /** Share a row with a sibling (the two actions under the character). */
+  fill?: boolean;
 }) {
   return (
     <Tap testID={testID} onPress={onPress} disabled={disabled} accessibilityState={{ disabled: !!disabled }}
-      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title} style={compact ? styles.action : styles.row}>
+      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title} style={[compact ? styles.action : styles.row, fill && styles.fill]}>
       {icon ? <Icon name={icon} color={colors.cy} size={20} /> : null}
       <View style={styles.rowText}>
         <T variant="bodyStrong">{title}</T>
@@ -83,6 +85,16 @@ export function ProfileScreen() {
   const need = adventure?.next_level_xp ?? (level !== undefined ? EffortRules.levelRequirement(level) : 0);
   const code = social.data?.me.friend_code ?? p?.friend_code ?? null;
   const stacked = width < 360 || fontScale > 1.3;
+  // The character sheet shows what the journal already proves: the sports practised and the personal records, computed by the site's rules.
+  const sports = (dna.topSports ?? []) as { sport?: string; label: string; sessions?: number; minutes?: number }[];
+  const records = useMemo(() => {
+    try {
+      return active.length ? CareerRules.build(active, { range: "all" }).records.slice(0, 3) : [];
+    } catch {
+      return [];
+    }
+  }, [active]);
+  const insignia = adventure?.rewards?.length ?? null;
   const values: Record<Metric, string> = {
     sessions: Format.number(dna.sessions),
     time: Format.hours(dna.minutes),
@@ -159,25 +171,28 @@ export function ProfileScreen() {
       <Screen tab refreshing={profile.isRefetching || adventureQuery.isRefetching || logs.isRefetching || social.isRefetching || atelier.isRefetching}
         onRefresh={() => { profile.refetch(); adventureQuery.refetch(); logs.refetch(); social.refetch(); atelier.refetch(); }}>
         <T variant="eyebrow" tone="accent">Mon passeport TITAN</T>
+        {/* The character: who I am, my rank and its crest, and the XP towards the next level, read as one block. */}
         <Card style={{ gap: space.s4 }}>
           <View style={[styles.head, stacked && styles.stacked]}>
-            <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={80} />
+            <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={72} />
             <View style={[styles.rowText, stacked && styles.intrinsic]}>
               <T variant="h2">{p?.username || "Athlète"}</T>
               <T variant="small" tone="accent" accessibilityLiveRegion="polite">{level !== undefined ? `Niveau ${level} · ${EffortRules.rank(level).name}` : profile.isLoading || adventureQuery.isLoading ? "Chargement de ta progression…" : "Progression en attente de synchronisation"}</T>
             </View>
+            {level !== undefined ? <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 64} /> : null}
           </View>
-          <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
-          {level !== undefined ? <View style={[styles.head, stacked && styles.stacked]}>
-            <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 64} />
-            <View style={[styles.rowText, { alignSelf: "stretch" }, stacked && styles.intrinsic]}>
+          {level !== undefined ? <View style={{ gap: 6 }}>
+            <View style={styles.between}>
               <T variant="small">Vers le niveau {level + 1}</T>
               <T variant="caption">{Format.number(xp)} / {Format.number(need)} XP</T>
-              <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
             </View>
+            <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
           </View> : null}
-          {code ? <ProfileRow compact title={`Code ami ${code}`} icon="share"
-            onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
+          <View style={[styles.actions, stacked && styles.stacked]}>
+            <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
+            {code ? <ProfileRow compact fill={!stacked} title={`Code ami ${code}`} icon="share"
+              onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
+          </View>
         </Card>
         {logs.data !== undefined ? <View testID="profile-metrics" style={[styles.metrics, stacked && styles.stacked]}>
           {choices.map(metric => (
@@ -186,13 +201,56 @@ export function ProfileScreen() {
             </View>
           ))}
         </View> : <Card tone="flat"><T variant="small" accessibilityLiveRegion="polite">{logs.isLoading ? "Chargement de tes indicateurs…" : "Tes indicateurs sont en attente de synchronisation."}</T></Card>}
-        <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel="Mon parcours sportif" style={{ gap: space.s2 }}>
-          <Icon name="chart" color={colors.cy} />
-          <T variant="h3">Mon parcours sportif</T>
-          <T variant="small">Maîtrises, régularité et évolution de ta pratique.</T>
-          <T variant="caption" tone="accent">Voir ma progression</T>
+
+        {/* Sports practised: the journal's own figures, most practised first. */}
+        <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel={`Mes sports. ${sports.length ? sports.map(sp => `${sp.label}${sp.sessions ? `, ${Format.plural(sp.sessions, "séance", "séances")}` : ""}`).join(". ") : "Aucune séance pour l’instant"}. Voir ma progression.`} style={{ gap: space.s3 }} testID="profile-sports">
+          <View style={styles.between}>
+            <T variant="eyebrow">Mes sports</T>
+            <T variant="caption" tone="accent">Voir ma progression</T>
+          </View>
+          {sports.length ? sports.map(sp => (
+            <View key={sp.sport ?? sp.label} style={styles.line}>
+              <Icon name={sp.sport ? Sports.FAMILY_ICON[Sports.familyOf(sp.sport)] : "run"} size={20} color={colors.cy} />
+              <T variant="bodyStrong" style={styles.rowText}>{sp.label}</T>
+              <T variant="caption">{[sp.sessions ? Format.plural(sp.sessions, "séance", "séances") : null, sp.minutes ? Format.hours(sp.minutes) : null].filter(Boolean).join(" · ")}</T>
+            </View>
+          )) : <T variant="small">Enregistre une séance : tes sports, tes records et ta maîtrise apparaîtront ici.</T>}
         </Card>
+
+        {/* Records: only when the journal holds some. Amber is the colour of records, used here and nowhere else on the sheet. */}
+        {records.length ? (
+          <Card onPress={() => navigation.navigate("Records")} accessibilityLabel={`Mes records. ${records.map(r => `${r.label}, ${r.sportLabel}`).join(". ")}. Voir tous les records.`} style={{ gap: space.s3 }} testID="profile-records">
+            <View style={styles.between}>
+              <T variant="eyebrow" tone="amber">Mes records</T>
+              <T variant="caption" tone="accent">Tous les records</T>
+            </View>
+            {records.map(r => (
+              <View key={r.id} style={styles.line}>
+                <Icon name="trophy" size={18} color={colors.am} />
+                <T variant="small" tone="default" style={styles.rowText}>{r.label} · {r.sportLabel}</T>
+                <T variant="bodyStrong">{typeof r.value === "number" ? Format.recordValue(r.unit, r.value) : r.value}</T>
+              </View>
+            ))}
+          </Card>
+        ) : null}
+
+        {/* Distinctions and what the effort earned: insignia, credits, then the career milestones. */}
+        {adventure ? (
+          <View style={[styles.metrics, stacked && styles.stacked]} testID="profile-distinctions">
+            <Tap onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} style={[styles.metric, stacked && styles.intrinsic]} accessibilityLabel={`Insignes d’aventure : ${insignia ?? 0} sur ${Codex.worlds?.length ? Codex.worlds.length * 9 : 36}. Ouvrir l’aventure.`}>
+              <Icon name="medal" size={20} color={colors.am} />
+              <T variant="num">{insignia ?? 0}<T variant="small" tone="faint"> / {Codex.worlds?.length ? Codex.worlds.length * 9 : 36}</T></T>
+              <T variant="caption">Insignes d’aventure</T>
+            </Tap>
+            <Tap onPress={() => navigation.navigate("Atelier")} style={[styles.metric, stacked && styles.intrinsic]} accessibilityLabel={`Crédits : ${Format.number(adventure.credits ?? 0)}. Ouvrir l’Atelier.`}>
+              <Icon name="star" size={20} color={colors.am} />
+              <T variant="num">{Format.number(adventure.credits ?? 0)}</T>
+              <T variant="caption">Crédits à dépenser à l’Atelier</T>
+            </Tap>
+          </View>
+        ) : null}
         <CareerMilestones owner={owner ?? ""} />
+        <ProfileRow compact icon="journal" title="Mon journal" subtitle={logs.data !== undefined ? `${Format.plural(dna.sessions, "séance enregistrée", "séances enregistrées")}` : undefined} onPress={() => navigation.navigate("Journal")} testID="profile-journal" />
         <PassportGroup title="Mon identité" subtitle="Personnage, titres et collection">
           <ProfileRow icon="user" title="Mon personnage" onPress={() => setPersonalise(true)} />
           <ProfileRow icon="star" title="Collection et titres" subtitle="Les souvenirs gagnés par mon effort" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
@@ -201,7 +259,7 @@ export function ProfileScreen() {
         <PassportGroup title="Mon sport" subtitle="Favoris, objectifs et historique">
           <ProfileRow icon="run" title="Mes sports favoris" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map(sport => Sports.label(sport)).join(", ") : "Choisir mes disciplines"} onPress={() => navigation.navigate("Sports")} />
           <ProfileRow icon="target" title="Mes objectifs" onPress={() => navigation.navigate("Tabs", { screen: "Progress", params: { tab: "goals" } })} />
-          <ProfileRow icon="journal" title="Mon historique" onPress={() => navigation.navigate("Tabs", { screen: "Progress", params: { tab: "journal" } })} />
+          <ProfileRow icon="trophy" title="Mes records" onPress={() => navigation.navigate("Records")} />
           <ProfileRow icon="group" title="Ma communauté" onPress={() => navigation.navigate("Community")} />
         </PassportGroup>
         <PassportGroup title="Connexions & compte" subtitle="Sources, confidentialité et abonnement">
@@ -255,6 +313,10 @@ const styles = StyleSheet.create({
   stacked: { flexDirection: "column", alignItems: "stretch", flexWrap: "nowrap" },
   intrinsic: { flex: 0 },
   action: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s3, borderRadius: 12, borderWidth: 1, borderColor: colors.line2 },
+  actions: { flexDirection: "row", gap: space.s2 },
+  fill: { flex: 1, minWidth: 0 },
+  between: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
+  line: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 28 },
   row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s4, borderTopWidth: 1, borderTopColor: colors.line },
   rowText: { flex: 1, minWidth: 0, gap: 4 },
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: space.s3 },

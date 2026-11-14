@@ -9,6 +9,8 @@ const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({ ...jest.requireActual("@react-navigation/native"), useNavigation: () => ({ navigate: mockNavigate }) }));
 jest.mock("../src/data/hooks", () => ({ useLogs: () => ({ active: mockLogs }), usePrefs: () => ({ favoriteSports: ["running"] }) }));
 jest.mock("../src/data/drafts", () => ({ useDraftSport: () => null }));
+// The session tab also reads the account's pending sends (V1.3.1): the account is the fixtures' owner.
+jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 
 const metrics = { frame: { x: 0, y: 0, width: 360, height: 740 }, insets: { top: 24, bottom: 16, left: 0, right: 0 } };
 

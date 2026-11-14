@@ -23,6 +23,29 @@ import { SportQuestions } from "./Questions";
 
 type View_ = "week" | "trends" | "mastery";
 
+type Km = { sport: string; label: string; km: number };
+/** Kilometres per sport over a period, largest first. A run and a ride are both "km" but not the same effort: when several sports
+    contribute, the total is labelled as such and each sport's own distance is listed, so nobody reads 60 km as 60 km of running. */
+export function kmBySport(logs: { sport: string; unit?: string | null; val?: number | string | null; date: string }[], from: number, to: number): Km[] {
+  const out = new Map<string, number>();
+  for (const l of logs) {
+    const t = new Date(l.date).getTime();
+    const km = Number(l.val);
+    if (l.unit !== "km" || !(km > 0) || t < from || t >= to) continue;
+    out.set(l.sport, (out.get(l.sport) ?? 0) + km);
+  }
+  return [...out.entries()].map(([sport, km]) => ({ sport, label: Sports.label(sport), km: Math.round(km * 10) / 10 })).sort((a, b) => b.km - a.km);
+}
+const kmLabel = (km: Km[]) => (km.length > 1 ? "parcourus, tous sports" : "parcourus");
+function KmDetail({ km }: { km: Km[] }) {
+  if (km.length < 2) return null;
+  return (
+    <T variant="caption" tone="muted" testID="km-detail">
+      Distances par sport : {km.map((k) => `${k.label} ${Format.distance(k.km)}`).join(" · ")}
+    </T>
+  );
+}
+
 const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Goals" | "Plan" | "Steps" | "Career" }[] = [
   { icon: "crown", label: "Ma carrière", route: "Career" },
   { icon: "journal", label: "Journal", route: "Journal" },
@@ -32,7 +55,7 @@ const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Go
   { icon: "calendar", label: "Semaine type", route: "Plan" },
 ];
 
-function RecapCard({ recap, title, chapter, paused = false, local = false, onNext }: { recap: Recap; title: string; chapter: WeekChapter; paused?: boolean; local?: boolean; onNext: () => void }) {
+function RecapCard({ recap, title, chapter, km, paused = false, local = false, onNext }: { recap: Recap; title: string; chapter: WeekChapter; km: Km[]; paused?: boolean; local?: boolean; onNext: () => void }) {
   const w = recap.week;
   const { comparison, story } = chapter;
   const world = story && Codex.worlds.find((item) => item.id === story.world);
@@ -53,9 +76,10 @@ function RecapCard({ recap, title, chapter, paused = false, local = false, onNex
         <>
           <StatRow flat>
             <Stat label="de pratique" value={Format.duration(w.minutes)} sub={w.estimatedMinutes ? `dont ${Format.duration(w.estimatedMinutes)} estimées` : undefined} />
-            {w.distance ? <Stat label="parcourus" value={Format.distance(w.distance)} /> : <Stat label="min d’effort" value={String(w.effortMinutes)} />}
+            {w.distance ? <Stat label={kmLabel(km)} value={Format.distance(w.distance)} /> : <Stat label="min d’effort" value={String(w.effortMinutes)} />}
             <Stat label="XP gagnés" value={Format.number(w.xp)} tone="accent" />
           </StatRow>
+          <KmDetail km={km} />
           {recap.topSport ? (
             <T variant="small">
               Sport dominant : <T variant="small" tone="default">{recap.topSport.label}</T> ({Format.duration(recap.topSport.minutes)}, {recap.topSport.sessions} séance{recap.topSport.sessions > 1 ? "s" : ""}).
@@ -107,6 +131,9 @@ export function ProgressScreen() {
   const last = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [] }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const series = useMemo(() => Questions.weeklySeries(active, { weeks: Number(range) }), [active, range]);
   const month = useMemo(() => Training.summarize(active, 30), [active]);
+  const kmCurrent = useMemo(() => kmBySport(journal, current.from.getTime(), current.to.getTime()), [journal, current]);
+  const kmLast = useMemo(() => kmBySport(journal, last.from.getTime(), last.to.getTime()), [journal, last]);
+  const kmMonth = useMemo(() => kmBySport(active, Date.now() - 30 * 86_400_000, Date.now() + 86_400_000), [active]);
   const dna = useMemo(() => Progress.dna(active), [active]);
   const mastery = useMemo(() => Progress.mastery(active), [active]);
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
@@ -146,8 +173,8 @@ export function ProgressScreen() {
         ) : view === "week" ? (
           <>
             <Section title="Ma semaine, mon chapitre">
-              <RecapCard recap={current} title="Cette semaine" chapter={chapter} paused={cadence.currentPaused} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, chapter.next.href)} />
-              <RecapCard recap={last} title="Semaine dernière" chapter={previousChapter} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, previousChapter.next.href)} />
+              <RecapCard recap={current} title="Cette semaine" chapter={chapter} km={kmCurrent} paused={cadence.currentPaused} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, chapter.next.href)} />
+              <RecapCard recap={last} title="Semaine dernière" chapter={previousChapter} km={kmLast} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, previousChapter.next.href)} />
             </Section>
             <Card tone="flat" style={{ gap: 6 }}>
               <T variant="bodyStrong">
@@ -179,8 +206,9 @@ export function ProgressScreen() {
                 <StatRow flat>
                   <Stat label="séances" value={String(month.sessions)} />
                   <Stat label="de pratique" value={Format.duration(month.minutes)} />
-                  {month.distance ? <Stat label="parcourus" value={Format.distance(month.distance)} /> : null}
+                  {month.distance ? <Stat label={kmLabel(kmMonth)} value={Format.distance(month.distance)} /> : null}
                 </StatRow>
+                {month.distance ? <KmDetail km={kmMonth} /> : null}
                 <BarChart
                   data={Training.chartBuckets(month.buckets, 30).map((b) => ({ label: String(new Date(`${b.date}T12:00:00`).getDate()), detail: new Date(`${b.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }), value: b.minutes }))}
                   height={120}

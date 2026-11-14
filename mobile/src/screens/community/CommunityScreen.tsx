@@ -85,6 +85,7 @@ export function CommunityScreen() {
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
               <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
+              <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
               <Button small kind="secondary" icon="share" label="Partager mon code" onPress={() => Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${s.me.friend_code}` }).catch(() => {})} />
             </Card>
             <Card style={{ gap: space.s3 }}>

@@ -36,7 +36,10 @@ test("a short preview opens the real form for the sport shown", async () => {
   fireEvent.press(screen.getByTestId("onboarding-preview"));
 
   const preview = screen.getByTestId("onboarding-adventure-demo");
-  expect(preview).toHaveTextContent(/Démo.*Aventure/i);
+  // A preview, announced as one: it explains what a session triggers and claims no gain before the server check.
+  expect(preview).toHaveTextContent(/Aperçu/);
+  expect(preview).toHaveTextContent(/Rien n’est gagné avant cette vérification/);
+  expect(preview).not.toHaveTextContent(/éligible|quête/);
   expect(preview).toHaveTextContent(/Natation/);
   expect(mockSave).not.toHaveBeenCalled();
   expect(mockReset).not.toHaveBeenCalled();

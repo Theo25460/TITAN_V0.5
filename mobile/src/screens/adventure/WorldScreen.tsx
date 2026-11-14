@@ -118,9 +118,10 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         <Card style={{ gap: 6 }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
             <Icon name="cloud" color={colors.tx2} />
-            <T variant="bodyStrong">Accès à vérifier</T>
+            <T variant="bodyStrong">Disponibilité à confirmer</T>
           </View>
-          <T variant="small">{access.reason}</T>
+          {/* The only non-open state the access rule knows is "not confirmed by the snapshot": no unlock condition exists, so none is stated. */}
+          <T variant="small">TITAN n’a pas encore reçu la confirmation que ce monde est ouvert pour ton compte. Actualise l’aventure ou réessaie plus tard. Tes acquis sont conservés.</T>
         </Card>
       ) : !chapter ? (
         <Reveal>

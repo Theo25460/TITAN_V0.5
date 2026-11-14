@@ -253,8 +253,12 @@ describe("with account data", () => {
     expect(mockNav.navigate).toHaveBeenLastCalledWith("World", { id: "aube" });
     // The four worlds stay one tap away, as a compact selector with the same test identifiers.
     for (const id of ["aube", "marees", "forge", "aurores"]) expect(screen.getByTestId(`world-${id}`)).toBeTruthy();
-    expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(3); // chapter card + world row + collection row
-    expect(screen.getAllByText(/Accès à vérifier/).length).toBe(2);
+    expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(3); // chapter card + world tile + collection row
+    // A world the snapshot does not confirm says so in the player's words, with no invented unlock condition and no server jargon.
+    expect(screen.getAllByText("Disponibilité à confirmer").length).toBe(2);
+    expect(screen.queryByText(/auprès du serveur/)).toBeNull();
+    expect(screen.getByTestId("world-forge").props.accessibilityLabel).toMatch(/Les forges d’Obsidienne.*Disponibilité à confirmer/);
+    expect(screen.getByTestId("world-aube").props.accessibilityLabel).toMatch(/Chapitre 3 sur 9, balise prête à allumer, monde en cours/);
     expect(screen.getByText("2 insignes sur 36")).toBeTruthy();
     show(<S.World {...props({ id: "aube" })} />);
     expect(screen.getByText(/Chapitre 3\/9/)).toBeTruthy();
@@ -266,7 +270,7 @@ describe("with account data", () => {
     expect(screen.getByText("Traverser le courant")).toBeTruthy(); // guardian phase
     expect(screen.getByText("Enregistrer une séance")).toBeTruthy(); // the way forward is a real session
     show(<S.World {...props({ id: "forge" })} />);
-    expect(screen.getByText("Accès à vérifier")).toBeTruthy();
+    expect(screen.getByText("Disponibilité à confirmer")).toBeTruthy();
   });
   test("Profil, Atelier, carte publique", () => {
     show(<S.Profile />);
@@ -408,5 +412,61 @@ describe("discipline-specific native entry", () => {
     expect(screen.getByText("Puissance moyenne")).toBeTruthy();
     fireEvent.press(screen.getByText("Autres mesures (facultatif)"));
     expect(screen.getByText("Puissance maximale")).toBeTruthy();
+  });
+});
+
+describe("V1.3.1 · unités, confidentialité et coaching", () => {
+  test("les kilomètres ne sont jamais un total anonyme entre sports", () => {
+    const { kmBySport } = require("../src/screens/progress/ProgressScreen");
+    const day = (n: number) => new Date(2026, 10, n, 12).toISOString();
+    const rows = [
+      { sport: "running", unit: "km", val: 10, date: day(3) },
+      { sport: "running", unit: "km", val: "5.5", date: day(4) },
+      { sport: "cycling", unit: "km", val: 42, date: day(5) },
+      { sport: "swimming", unit: "m", val: 1500, date: day(5) }, // metres are not kilometres
+      { sport: "running", unit: "km", val: 8, date: day(20) }, // outside the period
+    ];
+    const km = kmBySport(rows, new Date(2026, 10, 1).getTime(), new Date(2026, 10, 8).getTime());
+    expect(km.map((k: { sport: string; km: number }) => [k.sport, k.km])).toEqual([["cycling", 42], ["running", 15.5]]);
+  });
+  test("Progrès : une seule discipline en kilomètres garde le libellé simple", () => {
+    show(<S.Progress />);
+    expect(screen.getAllByText("parcourus").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("km-detail")).toBeNull();
+  });
+  test("Confidentialité : ce qu’un coach voit et où arrêter le partage", () => {
+    show(<S.Privacy />);
+    expect(screen.getByText("Suivi par un coach")).toBeTruthy();
+    expect(screen.getByText(/ne modifie jamais ton journal/)).toBeTruthy();
+    expect(screen.getByText(/Sans invitation acceptée de ta part, aucun coach ne voit rien/)).toBeTruthy();
+    expect(screen.getByTestId("privacy-coaching")).toBeTruthy();
+  });
+  test("Communauté : qui voit mes Moments", () => {
+    show(<S.Community />);
+    expect(screen.getByText(/Tes Moments ne sont vus que par les amis que tu as acceptés/)).toBeTruthy();
+  });
+});
+
+describe("V1.3.1 · grand texte et petit écran", () => {
+  test.each([[320, 1], [412, 2]])("QG et Aventure gardent leurs accès à %i dp, texte × %i", (width, fontScale) => {
+    const dimensions = jest.spyOn(require("react-native"), "useWindowDimensions").mockReturnValue({ width, height: 740, scale: 2, fontScale });
+    try {
+      show(<S.Home />);
+      // The three accesses stack instead of squeezing their labels; each keeps its name, its hint and its destination.
+      for (const [name, target] of [["Sport", "Record"], ["Aventure", "Adventure"], ["Progrès", "Progress"]]) {
+        const access = screen.getByRole("button", { name });
+        expect(access.props.accessibilityHint).toBeTruthy();
+        fireEvent.press(access);
+        expect(mockNav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: target });
+      }
+      expect(screen.getByTestId("qg-progress")).toBeTruthy();
+      // No text of the new blocks is clipped to one line.
+      expect(screen.getByText("Le carnet du passeur").props.numberOfLines).toBeUndefined();
+      show(<S.Adventure />);
+      expect(screen.getByTestId("adventure-main-cta")).toBeTruthy();
+      for (const id of ["aube", "marees", "forge", "aurores"]) expect(screen.getByTestId(`world-${id}`)).toBeTruthy();
+    } finally {
+      dimensions.mockRestore();
+    }
   });
 });

@@ -1,10 +1,10 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
-import { Icon } from "../../components/Icon";
+import { Icon, type IconName } from "../../components/Icon";
 import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
@@ -13,17 +13,37 @@ import { SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
 import { Format, Progress, Sports } from "../../core";
 import { useLogs, usePrefs } from "../../data/hooks";
+import { useOwner } from "../../data/auth";
 import { useDraftSport } from "../../data/drafts";
+import { useQueue } from "../../data/queue";
 import { gpsShortcutSport } from "../../lib/gpsTrack";
-import { colors, space } from "../../theme/tokens";
+import { colors, space, TOUCH } from "../../theme/tokens";
 
-/** Séance tab: resume a draft, pick a sport, replay an effort or track a route. */
+/** One of the other ways to record: a full-width row with what it does in one line. */
+function Way({ icon, title, text, onPress, testID, line }: { icon: IconName; title: string; text: string; onPress: () => void; testID?: string; line?: boolean }) {
+  return (
+    <Tap onPress={onPress} testID={testID} accessibilityLabel={`${title}. ${text}`} style={[styles.way, line && styles.wayLine]}>
+      <Icon name={icon} size={22} color={colors.cy} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <T variant="bodyStrong">{title}</T>
+        <T variant="small">{text}</T>
+      </View>
+      <Icon name="chevron" size={18} color={colors.tx3} />
+    </Tap>
+  );
+}
+
+/** Séance tab: what waits on this phone first, then the ways to record: by hand (the default), with the GPS, from a file or a watch. */
 export function RecordScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const prefs = usePrefs();
   const { active } = useLogs();
   const draft = useDraftSport();
+  const owner = useOwner();
+  const queue = useQueue();
+  const waiting = queue.owner === owner ? queue.items : [];
+  const refused = waiting.filter((i) => i.status === "error").length;
   const [choosing, setChoosing] = useState(false);
   const recent = useMemo(() => {
     const seen = new Map<string, string>();
@@ -48,8 +68,20 @@ export function RecordScreen() {
             Séance
           </T>
           <T variant="h1">Qu’as-tu fait ?</T>
-          <T tone="muted">Enregistre ton effort avec les mesures de ton sport.</T>
+          <T tone="muted">Choisis ton sport et note l’essentiel : une minute suffit.</T>
         </View>
+        {/* What is still on this phone is said first, in one line, with its way out. */}
+        {waiting.length ? (
+          <Card tone="flat" onPress={() => navigation.navigate("Pending")} testID="record-pending" style={styles.pending}
+            accessibilityLabel={refused ? `${Format.plural(refused, "séance refusée", "séances refusées")} par le serveur. Ouvrir les envois en attente pour corriger ou renvoyer.` : `${Format.plural(waiting.length, "séance en attente", "séances en attente")} d’envoi, sur ce téléphone. Ouvrir les envois en attente.`}>
+            <Icon name={refused ? "alert" : "offline"} size={22} color={refused ? colors.err : colors.warn} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <T variant="bodyStrong">{refused ? `${Format.plural(refused, "séance refusée", "séances refusées")} par le serveur` : `${Format.plural(waiting.length, "séance en attente", "séances en attente")} d’envoi`}</T>
+              <T variant="small">{refused ? "Ouvre les envois en attente pour corriger ou renvoyer." : "Sur ce téléphone, envoi dès que possible. Aucune XP avant la confirmation."}</T>
+            </View>
+            <Icon name="chevron" size={18} color={colors.tx3} />
+          </Card>
+        ) : null}
         {draft ? (
           <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
         ) : null}
@@ -88,18 +120,18 @@ export function RecordScreen() {
             </Section>
           </>
         ) : null}
-        {/* The GPS used to be reachable only from inside a running/cycling form (V12-10): it has its own entry now. */}
-        <Card onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} accessibilityLabel={`Suivre ma sortie en GPS, ${Sports.label(gpsSport)}`} testID="gps-shortcut">
-          <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
-            <Icon name="route" size={22} color={colors.cy} />
-            <View style={{ flex: 1 }}>
-              <T variant="bodyStrong">Suivre ma sortie en GPS</T>
-              <T variant="small">{Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé</T>
-            </View>
-            <Icon name="chevron" color={colors.tx3} />
-          </View>
-        </Card>
-        {repeat ? <RepeatLastCard log={repeat} /> : null}
+        {repeat && !choosing ? <RepeatLastCard log={repeat} /> : null}
+        {/* The GPS used to be reachable only from inside a running/cycling form (V12-10), the GPX import and the watch from nowhere on
+            this screen: the three other ways now sit together, each with what it does. */}
+        {!choosing ? (
+          <Section title="Autres façons d’enregistrer">
+            <Card style={{ padding: 0 }}>
+              <Way icon="route" title="Suivre ma sortie en GPS" text={`${Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé`} onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} testID="gps-shortcut" />
+              <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est en haut des mesures.`} onPress={() => open(gpsSport)} testID="record-gpx" />
+              <Way line icon="cloud" title="Depuis une montre ou un capteur" text="Garmin, Santé Connect : voir ce qui est connecté et ce qui arrive dans ton journal." onPress={() => navigation.navigate("Sources")} testID="record-sources" />
+            </Card>
+          </Section>
+        ) : null}
         <T variant="caption" tone="faint">
           Hors ligne aussi : la séance est gardée sur ce téléphone puis envoyée automatiquement.
         </T>
@@ -107,3 +139,9 @@ export function RecordScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  way: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingHorizontal: space.s4, paddingVertical: space.s3, minHeight: TOUCH + space.s4 },
+  wayLine: { borderTopWidth: 1, borderTopColor: colors.line },
+  pending: { flexDirection: "row", alignItems: "center", gap: space.s3 },
+});

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { Linking } from "react-native";
 import { ADS_BUILD } from "../../ads/adIds";
 import { adsManager } from "../../ads/sdk";
 import { Button } from "../../components/Button";
@@ -11,6 +12,7 @@ import { useToast } from "../../components/Toast";
 import { useProfile, useSavePrefs } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
+import { webUrl } from "../../lib/webHub";
 
 type Key = "publicProfile" | "showStats" | "socialPresence" | "friendRankings";
 const ITEMS: [Key, string, string][] = [
@@ -48,6 +50,15 @@ export function PrivacyScreen() {
         ))}
       </Group>
       {!online ? <T variant="caption" tone="warn">Hors ligne : la confidentialité se règle avec une connexion.</T> : null}
+      {/* Coaching lives on the website: the app still says, in one place, what a coach can see and where to change or stop it. */}
+      <Group>
+        <T variant="bodyStrong">Suivi par un coach</T>
+        <T variant="small" tone="muted">
+          Un coach ne voit que ce que tu acceptes de partager : tu choisis la période, les sports et les détails. Il te propose des séances et ne modifie jamais ton journal. Tu peux modifier ou arrêter ce partage à tout moment.
+        </T>
+        <T variant="small" tone="muted">Sans invitation acceptée de ta part, aucun coach ne voit rien.</T>
+        <Button small kind="secondary" icon="globe" label="Voir ou arrêter mon partage sur le site" testID="privacy-coaching" onPress={() => Linking.openURL(webUrl("/coaching")).catch(() => {})} />
+      </Group>
       <T variant="caption" tone="faint">
         {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob après ton consentement. Google peut alors utiliser l’identifiant publicitaire de ton téléphone (tu peux le réinitialiser ou le supprimer dans les réglages Android) ; TITAN lui-même ne le lit pas." : "L’application Android ne collecte aucune statistique d’usage et n’affiche aucune publicité dans cette version."}
       </T>

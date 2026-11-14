@@ -461,7 +461,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         )}
       </Card>
 
-      <Section title="Ressenti (RPE)">
+      <Section title="Ressenti (de 1 à 10)">
         <RpeSelector value={draft.rpe} onChange={(rpe) => setDraft({ rpe })} />
         <T variant="caption" tone="faint">
           {draft.rpe ? `${draft.rpe}/10 · ${RPE_TEXT[draft.rpe]}` : "Facultatif. 5 = modéré par défaut pour le calcul de l’effort."}

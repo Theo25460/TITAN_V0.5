@@ -129,10 +129,18 @@ export function TitanPlusScreen() {
         <T variant="h1" center>
           {live ? "TITAN+" : "TITAN+ — Bientôt disponible"}
         </T>
+        {/* One description of the offer, the reference wording of docs/v131/vocabulaire.md: what it adds, and what it never gives. */}
         <T tone="muted" center>
-          {live ? "Des analyses plus poussées et davantage de confort de personnalisation. Les prix sont ceux de Google Play." : "Des analyses plus poussées et davantage de confort de personnalisation. Pas encore proposé : aucun achat n’est possible aujourd’hui."}
+          TITAN+ ajoute des comparaisons de périodes, des bilans, des vues sauvegardées, plus de routines et un accès temporaire à quatre pièces de l’Atelier.{ADS_BUILD ? " Dans l’application, il retire aussi les publicités." : ""}
+        </T>
+        <T variant="bodyStrong" center testID="plus-fairplay">
+          Il ne donne ni XP, ni crédits, ni avance.
+        </T>
+        <T variant="small" tone="muted" center>
+          {live ? "Le prix et les conditions sont ceux que Google Play affiche avant toute validation." : "Pas encore en vente : aucun paiement n’est possible aujourd’hui."}
         </T>
       </View>
+      <T variant="caption" tone="faint">Les comparaisons et les bilans se consultent sur titan-app.fr, avec le même compte. Le journal, les analyses de base, la progression, les quatre campagnes, la Communauté et l’Atelier sont gratuits, sans limite de durée.</T>
       {profile?.is_elite ? (
         <Card tone="accent">
           <T variant="bodyStrong">Ton compte bénéficie déjà d’un accès TITAN+.</T>

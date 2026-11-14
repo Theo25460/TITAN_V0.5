@@ -40,6 +40,10 @@ test("four cards; each price is exactly what Google Play returned; a missing pro
   show();
   expect(await screen.findByText("4,99 € / mois")).toBeTruthy();
   expect(screen.getByText("19,99 € / mois")).toBeTruthy();
+  // The offer is described once, loyally: what it adds, what it never gives, and what stays free.
+  expect(screen.getByText("Il ne donne ni XP, ni crédits, ni avance.")).toBeTruthy();
+  expect(screen.getByText(/sont gratuits, sans limite de durée/)).toBeTruthy();
+  expect(screen.queryByText(/analyses plus poussées et davantage de confort/i)).toBeNull();
   expect(screen.getByTestId("plan-free")).toBeTruthy();
   expect(screen.getByTestId("plan-coach_pro")).toBeTruthy();
   expect(screen.getByText("Pas encore proposé")).toBeTruthy();

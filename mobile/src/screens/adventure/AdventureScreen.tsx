@@ -41,7 +41,9 @@ export function AdventureScreen() {
   const { active } = useLogs();
   const [pickAvatar, setPickAvatar] = useState(false);
   // The crest only appears where the text keeps its room: on a narrow phone it squeezed the name and broke words in the middle.
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
+  // One world per row when two columns would squeeze the names (narrow phone, large text).
+  const wide = width < 340 || fontScale > 1.3;
   const s = q.data;
   const quests = useMemo(() => {
     const now = new Date();
@@ -128,30 +130,34 @@ export function AdventureScreen() {
             })()}
 
             <Section title="Les quatre mondes">
-              <Card style={{ padding: 0 }}>
-                {[...Codex.worlds].sort((a, b) => Number(b.id === s.selected_world) - Number(a.id === s.selected_world)).map((w, i) => {
+              {/* The illustrated worlds are TITAN's signature: a compact 2 × 2 grid keeps their imagery without four full-width panels.
+                  Fixed order (no re-sorting), so each world keeps its place; the one in progress is framed in its own colour. */}
+              <View style={styles.worlds}>
+                {Codex.worlds.map((w) => {
                   const c = s.campaigns.find((x) => x.id === w.id);
-                  const locked = worldAccess(s, w.id).state !== "open";
+                  const unconfirmed = worldAccess(s, w.id).state !== "open";
                   const cp = c ? Progress.campaignProgress(c) : null;
                   const chapter = c?.chapter ?? 0;
+                  const current = chapter > 0 && chapter < 10 && w.id === s.selected_world;
+                  const status = chapter >= 10 ? "Monde terminé" : chapter ? `Chapitre ${chapter}/9${cp?.ready ? " · balise prête" : ""}` : unconfirmed ? "Disponibilité à confirmer" : "Pas encore commencé";
                   return (
-                    <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })} accessibilityLabel={`${w.name}. ${chapter >= 10 ? "Terminé" : chapter ? `Chapitre ${chapter} sur 9` : "Pas commencé"}${locked ? ", accès à vérifier" : ""}`} style={[styles.worldRow, i > 0 && styles.rowLine]}>
-                      <Image source={worldImages[w.image]} style={[styles.worldThumb, !chapter && { opacity: 0.6 }]} resizeMode="cover" accessibilityIgnoresInvertColors />
-                      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                          <T variant="bodyStrong" style={{ flexShrink: 1 }}>{w.name}</T>
-                          {locked ? <Icon name="lock" size={14} color={colors.tx2} /> : null}
-                        </View>
-                        <T variant="caption" tone="muted">
-                          {chapter >= 10 ? "Monde terminé · gardien vaincu" : chapter ? `Chapitre ${chapter}/9${cp?.ready ? " · balise prête" : ""}` : locked ? "Accès à vérifier auprès du serveur" : `${w.subtitle} · pas encore commencé`}
+                    <Tap key={w.id} testID={`world-${w.id}`} onPress={() => navigation.navigate("World", { id: w.id })}
+                      accessibilityLabel={`${w.name}, ${w.subtitle.toLowerCase()}. ${chapter >= 10 ? "Monde terminé" : chapter ? `Chapitre ${chapter} sur 9${cp?.ready ? ", balise prête à allumer" : ""}${current ? ", monde en cours" : ""}` : unconfirmed ? "Disponibilité à confirmer" : "Pas encore commencé"}. Ouvrir ce monde.`}
+                      style={[styles.worldTile, wide && styles.worldTileWide, current && { borderColor: w.color }]}>
+                      <Image source={worldImages[w.image]} style={[styles.worldImg, unconfirmed && { opacity: 0.35 }]} resizeMode="cover" accessibilityIgnoresInvertColors />
+                      <Shade from={0.05} start={0.25} to={0.96} />
+                      {unconfirmed ? <View style={styles.worldLock}><Icon name="lock" size={16} color={colors.tx2} /></View> : null}
+                      <View style={styles.worldBody}>
+                        <T variant="bodyStrong">{w.name}</T>
+                        <T variant="caption" tone={unconfirmed ? "muted" : "default"} color={cp?.ready ? colors.cy2 : undefined}>
+                          {status}
                         </T>
-                        {chapter > 0 && chapter < 10 ? <ProgressBar value={(chapter - 1 + (cp?.percent ?? 0) / 100) / 9} color={w.color} height={4} accessibilityLabel={`Progression dans ${w.name}`} /> : null}
+                        {chapter > 0 && chapter < 10 ? <ProgressBar value={(chapter - 1 + (cp?.percent ?? 0) / 100) / 9} color={w.color} height={4} track="rgba(238,243,247,0.2)" accessibilityLabel={`Progression dans ${w.name}`} /> : null}
                       </View>
-                      <Icon name="chevron" size={18} color={colors.tx3} />
                     </Tap>
                   );
                 })}
-              </Card>
+              </View>
             </Section>
 
             <AdventureHelp />
@@ -292,9 +298,11 @@ const styles = StyleSheet.create({
   mainBody: { padding: space.s4, paddingTop: space.s3, gap: space.s3 },
   mainLink: { minHeight: TOUCH, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 },
   worldImg: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
-  worldRow: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingHorizontal: space.s4, paddingVertical: space.s3, minHeight: 72 },
-  worldThumb: { width: 56, height: 56, borderRadius: radius.r2 },
-  rowLine: { borderTopWidth: 1, borderTopColor: colors.line },
+  worlds: { flexDirection: "row", flexWrap: "wrap", gap: space.s3 },
+  worldTile: { flexBasis: "45%", flexGrow: 1, minHeight: 136, borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line2, backgroundColor: colors.bg1, justifyContent: "flex-end" },
+  worldTileWide: { flexBasis: "100%", minHeight: 112 },
+  worldBody: { padding: space.s3, gap: 4 },
+  worldLock: { position: "absolute", top: space.s2, right: space.s2, width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.scrim },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   medals: { flexDirection: "row", gap: 6 },
   medal: { flex: 1, aspectRatio: 1, maxWidth: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg1 },
