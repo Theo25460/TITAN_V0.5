@@ -18,6 +18,8 @@ function upsert(x){const i=registry.assets.findIndex(a=>a.id===x.id&&a.family===
 async function check(p,alpha=false){if(!fs.existsSync(p)){issues.push("missing "+rel(p));return null;}const m=await sharp(p).metadata();if(!m.width||!m.height)issues.push("dimensions "+rel(p));if(alpha&&!m.hasAlpha)issues.push("missing alpha "+rel(p));files.push({path:rel(p),bytes:fs.statSync(p).size,width:m.width,height:m.height,alpha:m.hasAlpha,sha256:sha(p)});return m;}
 function listSvgs(dir){if(!fs.existsSync(dir))return [];return fs.readdirSync(dir,{withFileTypes:true}).flatMap(x=>x.isDirectory()?listSvgs(path.join(dir,x.name)):x.name.endsWith(".svg")?[path.join(dir,x.name)]:[]);}
 for(const src of listSvgs(masters)){
+ // A vector proposal replaced by an approved master stays archived in proposed/ as it is: it is no longer rendered, registered or counted.
+ if(registry.assets.some(x=>x.status==="approved"&&x.previous_proposal?.master===rel(src)))continue;
  const sub=path.relative(masters,src).slice(0,-4);
  const out=path.join(exports,sub), png=out+"-512.png",web=out+"-256.webp",small=out+"-96.webp";
  for(const p of [png,web,small])mkdir(p);

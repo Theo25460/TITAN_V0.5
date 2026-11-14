@@ -13,7 +13,9 @@ const sha=p=>crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex"
 const rel=p=>path.relative(repo,p).replaceAll(path.sep,"/");
 let verified=0;
 for(const item of registry.assets){
- if(item.status!=="proposed" || item.decision!=="approval_required")failures.push("Unauthorized state: "+item.id);
+ // Two states exist: a candidate awaiting review, or an asset the owner approved whose master lives under approved/masters/.
+ const approved=item.status==="approved" && item.decision==="user_approved" && typeof item.master==="string" && item.master.startsWith(rel(root)+"/approved/masters/") && !!item.approved_at;
+ if(!approved && (item.status!=="proposed" || item.decision!=="approval_required"))failures.push("Unauthorized state: "+item.id);
  if(!item.master) {failures.push("Missing master reference: "+item.id);continue;}
  const master=path.join(repo,item.master);
  if(!fs.existsSync(master)){failures.push("Missing master: "+item.id);continue;}
@@ -27,7 +29,7 @@ for(const item of registry.assets){
   if(item.sha256?.[ref]!==actual)failures.push("SHA-256 mismatch "+ref);
   const metadata=await sharp(f).metadata();
   if(!metadata.width||!metadata.height)failures.push("Empty dimensions "+ref);
-  if(item.master.endsWith(".svg") && !metadata.hasAlpha)failures.push("Missing alpha "+ref);
+  if((item.master.endsWith(".svg") || approved && item.family==="rank") && !metadata.hasAlpha)failures.push("Missing alpha "+ref);
   if(ref.endsWith(".webp") && fs.statSync(f).size>260000)warnings.push("WebP over 260KB "+ref);
  }
  const buf=fs.readFileSync(master);

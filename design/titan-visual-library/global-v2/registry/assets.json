@@ -555,8 +555,8 @@
       "format": "svg",
       "bytes_utf8": 3747,
       "targets": {
-        "web": "pending_approval",
-        "android": "pending_approval"
+        "web": "integrated_on_branch",
+        "android": "integrated_on_branch"
       },
       "derived": [
         "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.png",
@@ -586,7 +586,32 @@
         "version": "v2.0"
       },
       "approved_at": "2026-11-14",
-      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production"
+      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production",
+      "integration_status": "integrated_on_branch_not_in_production",
+      "integration": {
+        "branch": "claude/titan-v131-finalization-9g6jjo",
+        "commit": "88b0ad4",
+        "date": "2026-11-14",
+        "web_files": [
+          "assets/ranks/eclaireur-256.webp",
+          "assets/ranks/eclaireur-512.webp"
+        ],
+        "android_files": [
+          "mobile/assets/rank/eclaireur-256.webp",
+          "mobile/assets/rank/eclaireur-512.webp"
+        ],
+        "code": [
+          "js/app/crest.js",
+          "mobile/src/components/Crest.tsx",
+          "mobile/src/core/images.ts"
+        ],
+        "source_exports": [
+          "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-512.webp",
+          "design/titan-visual-library/global-v2/approved/exports/ranks/eclaireur-256.webp"
+        ],
+        "verified": "byte-identical copies of the approved exports; Web component rendered at 320–1100 px, Android preview screens QG, Career, Profile, Adventure, level-up and crest gallery captured; unit tests Web and Android",
+        "not_verified": "physical Android device; production deployment (none made)"
+      }
     },
     {
       "id": "explorateur",
@@ -621,8 +646,8 @@
       "format": "svg",
       "bytes_utf8": 4120,
       "targets": {
-        "web": "pending_approval",
-        "android": "pending_approval"
+        "web": "integrated_on_branch",
+        "android": "integrated_on_branch"
       },
       "derived": [
         "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.png",
@@ -652,7 +677,32 @@
         "version": "v2.0"
       },
       "approved_at": "2026-11-14",
-      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production"
+      "technique": "Photorealistic 3D metallic badge, RGBA transparent PNG master 1254x1254; Web and Android optimized exports; approved but not yet integrated in production",
+      "integration_status": "integrated_on_branch_not_in_production",
+      "integration": {
+        "branch": "claude/titan-v131-finalization-9g6jjo",
+        "commit": "88b0ad4",
+        "date": "2026-11-14",
+        "web_files": [
+          "assets/ranks/explorateur-256.webp",
+          "assets/ranks/explorateur-512.webp"
+        ],
+        "android_files": [
+          "mobile/assets/rank/explorateur-256.webp",
+          "mobile/assets/rank/explorateur-512.webp"
+        ],
+        "code": [
+          "js/app/crest.js",
+          "mobile/src/components/Crest.tsx",
+          "mobile/src/core/images.ts"
+        ],
+        "source_exports": [
+          "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-512.webp",
+          "design/titan-visual-library/global-v2/approved/exports/ranks/explorateur-256.webp"
+        ],
+        "verified": "byte-identical copies of the approved exports; Web component rendered at 320–1100 px, Android preview screens QG, Career, Profile, Adventure, level-up and crest gallery captured; unit tests Web and Android",
+        "not_verified": "physical Android device; production deployment (none made)"
+      }
     },
     {
       "id": "sentinelle",
@@ -687,8 +737,8 @@
       "format": "png",
       "bytes_utf8": 3936,
       "targets": {
-        "web": "pending_integration",
-        "android": "pending_integration"
+        "web": "integrated_on_branch",
+        "android": "integrated_on_branch"
       },
       "derived": [
         "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.png",
@@ -717,9 +767,33 @@
         ],
         "version": "v2.0"
       },
-      "integration_status": "not_integrated",
+      "integration_status": "integrated_on_branch_not_in_production",
       "approved_at": "2026-11-14",
-      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved, not integrated in production"
+      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved; integrated on the V1.3.1 finalisation branch, not deployed to production",
+      "integration": {
+        "branch": "claude/titan-v131-finalization-9g6jjo",
+        "commit": "88b0ad4",
+        "date": "2026-11-14",
+        "web_files": [
+          "assets/ranks/sentinelle-256.webp",
+          "assets/ranks/sentinelle-512.webp"
+        ],
+        "android_files": [
+          "mobile/assets/rank/sentinelle-256.webp",
+          "mobile/assets/rank/sentinelle-512.webp"
+        ],
+        "code": [
+          "js/app/crest.js",
+          "mobile/src/components/Crest.tsx",
+          "mobile/src/core/images.ts"
+        ],
+        "source_exports": [
+          "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-512.webp",
+          "design/titan-visual-library/global-v2/approved/exports/ranks/sentinelle-256.webp"
+        ],
+        "verified": "byte-identical copies of the approved exports; Web component rendered at 320–1100 px, Android preview screens QG, Career, Profile, Adventure, level-up and crest gallery captured; unit tests Web and Android",
+        "not_verified": "physical Android device; production deployment (none made)"
+      }
     },
     {
       "id": "gardien",
@@ -754,8 +828,8 @@
       "format": "png",
       "bytes_utf8": 4001,
       "targets": {
-        "web": "pending_integration",
-        "android": "pending_integration"
+        "web": "integrated_on_branch",
+        "android": "integrated_on_branch"
       },
       "derived": [
         "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.png",
@@ -784,9 +858,33 @@
         ],
         "version": "v2.0"
       },
-      "integration_status": "not_integrated",
+      "integration_status": "integrated_on_branch_not_in_production",
       "approved_at": "2026-11-14",
-      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved, not integrated in production"
+      "technique": "Photorealistic 3D metallic rank shield with RGBA transparent master 1254x1254; WebP 512/256/96, PNG 512; approved; integrated on the V1.3.1 finalisation branch, not deployed to production",
+      "integration": {
+        "branch": "claude/titan-v131-finalization-9g6jjo",
+        "commit": "88b0ad4",
+        "date": "2026-11-14",
+        "web_files": [
+          "assets/ranks/gardien-256.webp",
+          "assets/ranks/gardien-512.webp"
+        ],
+        "android_files": [
+          "mobile/assets/rank/gardien-256.webp",
+          "mobile/assets/rank/gardien-512.webp"
+        ],
+        "code": [
+          "js/app/crest.js",
+          "mobile/src/components/Crest.tsx",
+          "mobile/src/core/images.ts"
+        ],
+        "source_exports": [
+          "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-512.webp",
+          "design/titan-visual-library/global-v2/approved/exports/ranks/gardien-256.webp"
+        ],
+        "verified": "byte-identical copies of the approved exports; Web component rendered at 320–1100 px, Android preview screens QG, Career, Profile, Adventure, level-up and crest gallery captured; unit tests Web and Android",
+        "not_verified": "physical Android device; production deployment (none made)"
+      }
     },
     {
       "id": "champion",
