@@ -1,4 +1,4 @@
-import { trimEnds, SHARE_TRIM_M, addFix, ascentM, currentSpeed, decodeTrack, distanceM, emptyTrack, encodeTrack, haversine, movingSeconds, projectTrack, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
+import { trimEnds, SHARE_TRIM_M, MAX_POINTS, addFix, ascentM, compactFix, currentSpeed, decodeTrack, distanceM, emptyTrack, encodeTrack, haversine, movingSeconds, projectTrack, summarize, toGpx, type Fix, type Track } from "../src/lib/gpsTrack";
 import { Gpx } from "../src/core";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -134,4 +134,54 @@ test("sharing: the first and last 300 m are removed, a trace too short to hide b
   expect(gpx).not.toContain("<time>");
   expect(gpx).not.toContain("<ele>");
   expect(gpx).toContain("<trkpt");
+});
+
+// ---- V1.3.1: a very long recording must stay readable by the phone's store and must keep recording ----
+// Android reads one stored value through a 2 MB window; the recording is one value. The figures below are what the location
+// sensor really hands over: doubles widened from floats.
+const sensor = (i: number): Fix => ({ lat: 48.8566123456789 + i * 0.0000271234567, lon: -122.3522198765432 + Math.sin(i / 40) * 0.0003, alt: Math.fround(1235.2 + i * 0.013), altAcc: Math.fround(1.3333334), acc: Math.fround(4.288 + (i % 7) * 0.31), t: 1794650000123 + i * 2003 });
+
+test("a stored fix is rounded to what a phone GPS can mean, and a full recording stays well under the 2 MB a stored value can be read back at", () => {
+  expect(compactFix(sensor(5))).toEqual({ lat: 48.856748, lon: -122.352182, alt: 1235.3, altAcc: 1.3, acc: 5.8, t: 1794650010138 });
+  expect(compactFix({ lat: 1.23456789, lon: 2, alt: null, altAcc: null, acc: null, t: 10.4 })).toEqual({ lat: 1.234568, lon: 2, alt: null, altAcc: null, acc: null, t: 10 });
+  const raw = Array.from({ length: MAX_POINTS }, (_, i) => sensor(i));
+  const stored = JSON.stringify({ v: 1, owner: "00000000-0000-4000-8000-0000000000b1", sport: "cycling", status: "recording", track: { segs: [raw.map(compactFix)], rejected: 0, every: 4000 } });
+  expect(stored.length).toBeLessThan(1_300_000);
+  // What the same number of fixes weighed before: the reason an 8 h outing could no longer be read back.
+  expect(JSON.stringify(raw).length).toBeGreaterThan(1_600_000);
+});
+
+test("at the ceiling the trace is thinned and goes on recording: nothing is refused, the ends stay, the distance holds", () => {
+  const winding = (i: number): Fix => compactFix({ lat: 48.85 + i * 0.00009, lon: 2.35 + Math.sin(i / 25) * 0.0004, alt: 100, altAcc: 5, acc: 5, t: T0 + i * 2000 });
+  let t: Track = emptyTrack();
+  let reference = 0;
+  const total = MAX_POINTS + 4000;
+  for (let i = 0; i < total; i++) {
+    if (i > 0) reference += haversine(winding(i - 1), winding(i));
+    t = addFix(t, winding(i), i === 9000); // one pause on the way
+  }
+  const kept = t.segs.reduce((n, s) => n + s.length, 0);
+  expect(t.rejected).toBe(0);
+  expect(kept).toBeLessThanOrEqual(MAX_POINTS);
+  expect(kept).toBeGreaterThan(MAX_POINTS / 2);
+  expect(t.every).toBe(4000);
+  expect(t.segs).toHaveLength(2);
+  expect(t.segs[0]![0]).toEqual(winding(0));
+  expect(t.segs[0]!.at(-1)).toEqual(winding(8999));
+  expect(t.segs[1]![0]).toEqual(winding(9000));
+  // After thinning, a fix that comes sooner than the new spacing is not kept; the trace still ends on a recent fix.
+  expect(total - 1 - Math.round((t.segs[1]!.at(-1)!.t - T0) / 2000)).toBeLessThanOrEqual(1);
+  const gaps = t.segs[1]!.slice(-50).map((f, i, a) => (i ? f.t - a[i - 1]!.t : 4000));
+  expect(Math.max(...gaps)).toBeLessThanOrEqual(4000);
+  // The pause (one missing edge) is the only distance not measured; thinning itself costs well under 1 %.
+  const pauseEdge = haversine(winding(8999), winding(9000));
+  expect(distanceM(t)).toBeGreaterThan((reference - pauseEdge) * 0.99);
+  expect(distanceM(t)).toBeLessThanOrEqual(reference);
+  expect(movingSeconds(t)).toBeGreaterThan((total - 2) * 2 * 0.99);
+});
+
+test("below the ceiling nothing changes: every valid fix is kept as it came", () => {
+  const t = build(500);
+  expect(t.every).toBeUndefined();
+  expect(t.segs[0]).toHaveLength(500);
 });

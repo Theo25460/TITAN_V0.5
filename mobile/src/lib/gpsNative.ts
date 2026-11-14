@@ -4,18 +4,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { createRecorder, KEY_ACTIVE, type Deps, type Recording } from "./gpsRecorder";
-import type { Fix } from "./gpsTrack";
+import { compactFix, type Fix } from "./gpsTrack";
 
 export const GPS_TASK = "titan-gps-recording";
 
 const deps: Deps = {
+  // A recording that cannot be read is NOT an absent recording: answering null here would offer « Démarrer » and let a new start
+  // overwrite the trace. The failure is passed on: the screen says the recording cannot be read and offers to retry.
   read: async (key) => {
-    try {
-      const raw = await AsyncStorage.getItem(key);
-      return raw ? (JSON.parse(raw) as Recording) : null;
-    } catch {
-      return null;
-    }
+    const raw = await AsyncStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as Recording) : null;
   },
   write: async (key, value) => {
     if (value === null) await AsyncStorage.removeItem(key);
@@ -46,7 +44,7 @@ const deps: Deps = {
 
 export const recorder = createRecorder(deps);
 
-const toFix = (l: Location.LocationObject): Fix => ({
+export const toFix = (l: Location.LocationObject): Fix => compactFix({
   lat: l.coords.latitude,
   lon: l.coords.longitude,
   alt: l.coords.altitude ?? null,
@@ -71,8 +69,12 @@ export function setActiveOwner(owner: string | null, expected?: string) {
 if (!TaskManager.isTaskDefined(GPS_TASK)) {
   TaskManager.defineTask<{ locations?: Location.LocationObject[] }>(GPS_TASK, async ({ data, error }) => {
     if (error || !data?.locations?.length) return;
-    const owner = await getActiveOwner();
-    if (owner) await recorder.append(owner, data.locations.map(toFix));
+    try {
+      const owner = await getActiveOwner();
+      if (owner) await recorder.append(owner, data.locations.map(toFix));
+    } catch {
+      // The store did not answer for this batch. Nothing is overwritten; the next batch is written normally.
+    }
   });
 }
 
@@ -102,5 +104,7 @@ export async function guardAccount(owner: string | null) {
   if (!active || active === owner) return;
   await recorder.reconcile(active).catch(() => {});
   await recorder.pause(active).catch(() => {});
+  // Even when the recording could not be read (so not paused), the location service of the previous account never keeps running.
+  await deps.stopUpdates().catch(() => {});
   await setActiveOwner(null, active);
 }
