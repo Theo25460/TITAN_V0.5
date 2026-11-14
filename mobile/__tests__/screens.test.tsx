@@ -1,5 +1,5 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 import { buildSession, freshDraft, toPayload } from "../src/core/session";
 import { draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
@@ -113,8 +113,16 @@ describe("with account data", () => {
   test("QG", () => {
     show(<S.Home />);
     expect(screen.getByText(/Athlète Test/)).toBeTruthy();
-    expect(screen.getByText(/Niv\. 4/)).toBeTruthy();
+    // The character is read in the banner: level, rank and the XP towards the next level, without opening the profile.
+    expect(screen.getByText(/Niveau 4 ·/)).toBeTruthy();
+    expect(screen.getByText(/XP vers le niveau 5/)).toBeTruthy();
     expect(screen.getByTestId("week-tile")).toBeTruthy();
+    // The chapter in progress is always visible (it used to sit behind "Mes repères d’ascension").
+    expect(screen.getByTestId("qg-chapter")).toBeTruthy();
+    expect(screen.queryByText("Mes repères d’ascension")).toBeNull();
+    // No permission or connection button on the QG: steps are one optional line.
+    expect(screen.queryByTestId("steps-start-open")).toBeNull();
+    expect(screen.queryByTestId("steps-connect-open")).toBeNull();
     // Recording is always one tap from the QG, whatever the priority of the day is (V12-31).
     expect(screen.queryByText("Refaire ma dernière séance") ?? screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
   });
@@ -124,6 +132,10 @@ describe("with account data", () => {
       show(<S.Home />);
       expect(screen.queryByText("Refaire ma dernière séance")).toBeNull();
       expect(screen.queryByTestId("qg-hero-cta") ?? screen.queryByTestId("qg-record")).toBeTruthy();
+      // A newcomer reads what TITAN is, in plain words, and no empty week ring.
+      expect(screen.getByText(/TITAN enregistre tes séances de sport/)).toBeTruthy();
+      expect(screen.queryByTestId("week-tile")).toBeNull();
+      expect(screen.getByText(/Choisis un monde/)).toBeTruthy();
     } finally {
       mockState.empty = false;
     }
@@ -216,9 +228,32 @@ describe("with account data", () => {
     show(<S.Pending />);
     expect(screen.getByText("Tout est synchronisé")).toBeTruthy();
   });
+  test("Aventure sans campagne : une seule invitation, choisir un premier monde", () => {
+    mockState.empty = true;
+    try {
+      show(<S.Adventure />);
+      const main = within(screen.getByTestId("adventure-main"));
+      expect(main.getByText("Choisis ton premier monde")).toBeTruthy();
+      fireEvent.press(main.getByTestId("adventure-main-cta"));
+      expect(mockNav.navigate).toHaveBeenLastCalledWith("World", { id: "aube" });
+      expect(screen.getByTestId("world-aube")).toBeTruthy();
+    } finally {
+      mockState.empty = false;
+    }
+  });
   test("Aventure et monde (chapitre en cours, gardien, région à venir)", () => {
     show(<S.Adventure />);
-    expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(2); // world card + collection row
+    // One dominant card first: the chapter in progress, what it asks, what it gives, one action (RPG-131-01).
+    const main = within(screen.getByTestId("adventure-main"));
+    expect(main.getByText(/La vallée de l’Aube · chapitre 3\/9/)).toBeTruthy();
+    expect(main.getByText("Le carnet du passeur")).toBeTruthy();
+    expect(main.getByText(/À la clé : un insigne et le titre « Conteur »/)).toBeTruthy();
+    // The fixture's chapter has its two active days: the single action is to light the beacon, in the world screen (where the server call lives).
+    fireEvent.press(main.getByTestId("adventure-main-cta"));
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("World", { id: "aube" });
+    // The four worlds stay one tap away, as a compact selector with the same test identifiers.
+    for (const id of ["aube", "marees", "forge", "aurores"]) expect(screen.getByTestId(`world-${id}`)).toBeTruthy();
+    expect(screen.getAllByText(/La vallée de l’Aube/).length).toBe(3); // chapter card + world row + collection row
     expect(screen.getAllByText(/Accès à vérifier/).length).toBe(2);
     expect(screen.getByText("2 insignes sur 36")).toBeTruthy();
     show(<S.World {...props({ id: "aube" })} />);
