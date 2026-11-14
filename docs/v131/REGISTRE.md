@@ -10,12 +10,12 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 | 0 | Reprise, inventaire, sources de vérité | ce fichier, [`cahier-reference.md`](cahier-reference.md) | En cours | `2950f1d` |
 | 1 | Sécurité Supabase | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 3, `lot1-securite.md` | Social : corrigé et vérifié sur réplique. Revue approfondie des fonctions exposées : en cours | `29c2479` |
 | 2 | Paiements | [`lot2-paiements.md`](lot2-paiements.md) | Corrigé ; chaîne réelle non testée (aucun achat) | `c232576`, `36067e6` |
-| 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | `lot2-integrations.md` | En cours | — |
-| 3–4 | UX Android | `lot3-4-ux-android.md` | En cours | — |
+| 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | [`lot2-integrations.md`](lot2-integrations.md) | 7 correctifs testés (simulés ou rejoués localement) ; 3 défauts en cours de correction (A7, A8, GPX) ; rien testé sur compte ou appareil réel | `4760215`, `13071c3`, `9b790a2` |
+| 3–4 | UX Android | [`lot3-4-ux-android.md`](lot3-4-ux-android.md), captures `mobile/docs/avant-apres/v131/` | En cours : QG, Aventure, résultat de séance, profil, progression refondus (points d'étape) | `717e076`, `08fadb4` |
 | 3, 8 | UX Web, performance, accessibilité | `lot3-8-web-ux-performance.md` | À reprendre | — |
 | 5 | Direction artistique | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 5 | 4 blasons approuvés intégrés ; production des visuels manquants bloquée (crédits et réseau du générateur) | `88b0ad4`, design `3ff33c4` |
-| 6 | Textes, juridique, cohérence commerciale | `lot6-textes-juridique.md`, [`vocabulaire.md`](vocabulaire.md) | En cours | — |
-| 7 | SEO | `lot7-seo.md` | À reprendre (audit, puis corrections après le lot 6) | — |
+| 6 | Textes, juridique, cohérence commerciale | [`lot6-textes-juridique.md`](lot6-textes-juridique.md), [`vocabulaire.md`](vocabulaire.md) | Clos côté Web public : publicité, disponibilité, capacités Coach, données déclarées unifiées ; 582 tests verts. Points pour un juriste listés. Ce n'est pas une certification juridique | `1066c66` |
+| 7 | SEO | `lot7-seo.md` | En cours (audit par URL, puis corrections dans les générateurs de pages) | — |
 | 9 | Recette, CI, AAB, GO/NO-GO | § 3 ci-dessous | CI verte sur `2950f1d` | — |
 
 ## 2. Faits établis sur la production (lecture seule, 14 novembre 2026)
@@ -56,6 +56,18 @@ Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 | A4 | Blasons Champion, Titan, Légende et autres familles non produits | P1 | Bloqué par un accès externe (générateur d'images) | `../V131_FINALISATION_2026-11-14.md` § 5 |
 | A5 | TITAN+ payant : 20 sportifs suivis, contre 5 pour Coach | P1 | En attente d'approbation (décision produit) | `lot2-paiements.md` ligne 19 |
 | A6 | Tests avec 5 à 10 nouveaux utilisateurs | P1 | Non terminé (validation humaine) | `lot3-4-ux-android.md` |
+
+| A7 | Une séance saisie à la main et le même effort poussé par Garmin ou Santé Connect donnent deux séances et deux récompenses | P1 | Non terminé : migration `20261114180000` en cours | `lot2-integrations.md` |
+| A8 | Une déconnexion ordinaire efface l'historique local des pas, son réglage et l'objectif | P1 | Non terminé : correctif en cours | `lot2-integrations.md` |
+| A9 | Le site en ligne (build du 4 novembre) affiche encore 19,99 € et 39,99 € par mois pour Coach et Coach Ultra sans mention TTC, des CGU en version 6 sans clauses de renouvellement, remboursement ni restauration, et « pas de publicité » | P1 | En attente d'approbation : déployer le candidat avant d'activer les produits Play | `lot6-textes-juridique.md` |
+| A10 | Identité de l'éditeur, vendeur des abonnements, rétractation, médiateur | P1 | En attente d'approbation (validation juridique humaine ; rien n'a été inventé) | `lot6-textes-juridique.md` § juriste |
+| A11 | Âge minimal : 13 ans annoncés, 15 ans pour consentir seul en France, aucune question d'âge, publicité non marquée pour mineurs | P1 | En attente d'approbation | `lot6-textes-juridique.md` J-03 |
+| A12 | Les outils Coach ne dépendent pas de l'offre : un coach gratuit a la suite que les cartes Coach annoncent | P1 | En attente d'approbation (décision produit) | `lot6-textes-juridique.md` |
+| A13 | `docs/PLAY_CONSOLE.md` déclare « contient des annonces : non » alors que le build gratuit Android peut afficher AdMob | P1, P0 si la fiche Play en ligne le déclare aussi | Bloqué par un accès externe (Play Console) | `lot6-textes-juridique.md` |
+| A14 | Durée de conservation réellement réglée dans GA4 ; comportement du formulaire de consentement publicitaire en cas de refus | P2 | Bloqué par un accès externe (console GA4, appareil) | `lot6-textes-juridique.md` J-14 |
+| A15 | Espaces insécables absentes de toutes les pages (typographie française) | P2 | Non terminé | `lot6-textes-juridique.md` |
+
+« Paddle » : aucune des 11 pages en ligne contrôlées le 14 novembre ne le mentionne ; le résultat de recherche est un cache périmé. Statut : Vérifié conforme.
 
 Les anomalies des lots en cours sont ajoutées ici à la clôture de chaque lot.
 
