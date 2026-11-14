@@ -44,16 +44,18 @@ let appActive = AppState.currentState !== "background" && AppState.currentState 
 function persistNow() {
   if (persistTimer) clearTimeout(persistTimer);
   persistTimer = null;
-  const { owner, ledger } = state;
-  if (owner) writeJSON(ledgerKey(owner), ledger).catch(() => {});
+  const { owner, ledger, ready } = state;
+  // Until the stored ledger has been read, the one in memory is an empty placeholder: writing it would erase the days already counted.
+  if (owner && ready) writeJSON(ledgerKey(owner), ledger).catch(() => {});
 }
 function schedulePersist() {
   if (!persistTimer) persistTimer = setTimeout(persistNow, 3000);
 }
 
 function apply(owner: string, reading: Reading) {
-  // A reading that arrives after the account changed belongs to nobody any more.
-  if (state.owner !== owner) return;
+  // A reading that arrives after the account changed belongs to nobody any more; one that arrives while the stored ledger
+  // is still being read (the same account signed in again) would be counted on an empty placeholder and then thrown away.
+  if (state.owner !== owner || !state.ready) return;
   set({ ledger: applyReading(state.ledger, reading), liveAt: reading.at });
   schedulePersist();
 }

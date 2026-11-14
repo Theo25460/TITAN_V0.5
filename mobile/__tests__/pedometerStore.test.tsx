@@ -70,6 +70,39 @@ describe("TITAN pedometer store", () => {
     await waitFor(() => expect(Object.values(again.result.current.ledger.days).reduce((a, b) => a + b, 0)).toBe(455));
   });
 
+  test("leaving TITAN while the stored steps are still being read never replaces them with an empty ledger", async () => {
+    const key = "titan.pedometer.v1:owner-a";
+    const history = { v: 1, boot: BOOT, last: 900, lastAt: Date.now() - 60_000, days: { "2026-11-01": 8123, "2026-11-02": 6400 }, est: {}, firstAt: Date.now() - 20 * 86_400_000 };
+    await AsyncStorage.setItem(key, JSON.stringify(history));
+    await AsyncStorage.setItem("titan.pedometer-on.v1:owner-a", "true");
+    const s = fakeSensor(1000);
+    _setPedometerForTests(createPedometer(s.native, perms(true)));
+    // The store answers late: the person opens TITAN and leaves it at once (or the screen that shows the steps is closed).
+    const getItem = AsyncStorage.getItem as jest.Mock;
+    const real = getItem.getMockImplementation()!;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    getItem.mockImplementation(async (k: string) => { if (k === key) await gate; return real(k); });
+    try {
+      const { result, unmount } = renderHook(() => usePedometer());
+      expect(result.current.ready).toBe(false);
+      unmount();
+      await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
+      expect(JSON.parse((await real(key)) as string).days).toEqual(history.days);
+    } finally {
+      release();
+      getItem.mockImplementation(real);
+    }
+    await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
+    expect(JSON.parse((await AsyncStorage.getItem(key))!).days["2026-11-01"]).toBe(8123);
+    // Opened again: the history is there and the 100 steps taken since the last reading are added, not lost.
+    _resetPedometerStoreForTests();
+    const again = renderHook(() => usePedometer());
+    await waitFor(() => expect(again.result.current.ready).toBe(true));
+    expect(again.result.current.ledger.days["2026-11-01"]).toBe(8123);
+    await waitFor(() => expect(Object.values(again.result.current.ledger.days).reduce((a, b) => a + b, 0)).toBe(8123 + 6400 + 100));
+  });
+
   test("another account on the same phone never sees these steps", async () => {
     const s = fakeSensor();
     _setPedometerForTests(createPedometer(s.native, perms(true)));

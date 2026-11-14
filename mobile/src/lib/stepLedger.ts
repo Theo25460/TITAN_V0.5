@@ -89,7 +89,10 @@ export function applyReading(ledger: Ledger, r: Reading): Ledger {
   if (ledger.last === null || ledger.lastAt === null) {
     return { ...ledger, boot: r.boot, last: r.total, lastAt: r.at, firstAt: ledger.firstAt ?? r.at, days: { ...ledger.days, [dayKey(r.at)]: ledger.days[dayKey(r.at)] ?? 0 } };
   }
-  const rebooted = ledger.boot !== null && Math.abs(r.boot - ledger.boot) > REBOOT_TOLERANCE_MS;
+  // The boot instant is "wall clock minus uptime": it also moves when the phone's clock is corrected or set by hand, with no reboot.
+  // A real reboot happened AFTER the last reading; a clock change leaves the boot instant before it. Without this second test a
+  // clock moved by a few minutes would credit every step since the last boot a second time.
+  const rebooted = ledger.boot !== null && Math.abs(r.boot - ledger.boot) > REBOOT_TOLERANCE_MS && r.boot > ledger.lastAt - REBOOT_TOLERANCE_MS;
   // After a reboot, or if the total went backwards, the sensor restarted from zero: everything it reports now is new.
   let delta = rebooted || r.total < ledger.last ? r.total : r.total - ledger.last;
   const hours = Math.max(1 / 60, (r.at - ledger.lastAt) / 3_600_000);
