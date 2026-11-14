@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
-import handler, { googleAccessToken, interpretSubscription } from '../functions/play-billing.mjs';
+import handler, { googleAccessToken, interpretSubscription, READINESS_PROBE_TOKEN } from '../functions/play-billing.mjs';
 
 const USER = '00000000-0000-4000-8000-0000000000a1';
 const TOKEN = 'synthetic-purchase-token-0123456789';
@@ -11,8 +11,11 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLen
 const SERVICE_ACCOUNT = JSON.stringify({ client_email: 'billing@example.test', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
 const ENV = {
     PLAY_BILLING_ENABLED: 'true', PLAY_PRODUCT_IDS: 'titan_plus', PLAY_SERVICE_ACCOUNT_JSON: SERVICE_ACCOUNT,
-    SUPABASE_URL: 'https://database.example.test', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fake', SUPABASE_SECRET_KEY: 'sb_secret_fake'
+    SUPABASE_URL: 'https://database.example.test', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fake', SUPABASE_SECRET_KEY: 'sb_secret_fake',
+    PLAY_RTDN_TOKEN: 'synthetic-push-secret-0123456789'
 };
+const CATALOG_PATH = '/androidpublisher/v3/applications/fr.titanapp.app/subscriptions/titan_plus';
+const PROBE_PATH = `/androidpublisher/v3/applications/fr.titanapp.app/purchases/subscriptionsv2/tokens/${READINESS_PROBE_TOKEN}`;
 const future = () => new Date(Date.now() + 20 * 86400000).toISOString();
 const past = () => new Date(Date.now() - 86400000).toISOString();
 const subscription = (over = {}, line = {}) => ({
@@ -29,7 +32,7 @@ function request(body = { purchase_token: TOKEN, product_id: 'titan_plus' }, hea
 function readiness(product = 'titan_plus', authorization = 'Bearer fake-user-token-used-only-in-tests') {
     return new Request(`https://titan.example.test/functions/play-billing?product_id=${product}`, { headers: { authorization } });
 }
-async function run(callback, { env = {}, google = { status: 200, data: subscription() }, rpcError = null, rpcResult = true, authStatus = 200, checkoutDbReady = true, oauthStatus = 200, catalogStatus = 200, ackFails = false, ackTransportFails = false } = {}) {
+async function run(callback, { env = {}, google = { status: 200, data: subscription() }, rpcError = null, rpcResult = true, authStatus = 200, checkoutDbReady = true, oauthStatus = 200, catalogStatus = 200, probeStatus = 404, ackFails = false, ackTransportFails = false } = {}) {
     const previousNetlify = globalThis.Netlify, previousFetch = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
@@ -42,6 +45,7 @@ async function run(callback, { env = {}, google = { status: 200, data: subscript
         }
         if (u.pathname === '/auth/v1/user') return Response.json(authStatus === 200 ? { id: USER, is_anonymous: false } : {}, { status: authStatus });
         if (u.pathname.endsWith('/titan_play_checkout_ready_v1')) return Response.json(checkoutDbReady, { status: checkoutDbReady ? 200 : 404 });
+        if (u.pathname === PROBE_PATH) return Response.json(probeStatus === 200 ? subscription() : {}, { status: probeStatus });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data || {}, { status: google.status });
         if (u.pathname.endsWith(':acknowledge')) {
             if (ackTransportFails) throw new Error(`request failed for ${url}`);
@@ -57,13 +61,15 @@ async function run(callback, { env = {}, google = { status: 200, data: subscript
 }
 const rpcs = calls => calls.filter(c => c.path.endsWith('/titan_apply_play_entitlement_v1'));
 
-test('authenticated checkout readiness checks the requested product without touching purchases', async () => {
+test('authenticated checkout readiness checks the requested product and the right to read purchases, without touching a real purchase', async () => {
     await run(async calls => {
         const response = await handler(readiness());
         assert.equal(response.status, 204);
         assert.equal(response.headers.get('cache-control'), 'no-store');
-        assert.deepEqual(calls.map(c => c.path), ['/auth/v1/user', '/rest/v1/rpc/titan_play_checkout_ready_v1', '/token', '/androidpublisher/v3/applications/fr.titanapp.app/subscriptions/titan_plus']);
+        assert.deepEqual(calls.map(c => c.path), ['/auth/v1/user', '/rest/v1/rpc/titan_play_checkout_ready_v1', '/token', CATALOG_PATH, PROBE_PATH]);
         assert.deepEqual(calls[1].body, { p_user_id: USER });
+        assert.equal(rpcs(calls).length, 0);
+        assert.equal(calls.some(c => c.path.endsWith(':acknowledge')), false);
     });
     await run(async calls => {
         assert.equal((await handler(readiness(undefined, ''))).status, 401);
@@ -84,12 +90,40 @@ test('authenticated checkout readiness checks the requested product without touc
 test('checkout refuses a missing schema, invalid Google credentials or unreadable products before money can move', async () => {
     const databasePaths = ['/auth/v1/user', '/rest/v1/rpc/titan_play_checkout_ready_v1'];
     for (const [options, stages] of [[{ checkoutDbReady: false }, databasePaths], [{ oauthStatus: 401 }, [...databasePaths, '/token']],
-        [{ catalogStatus: 403 }, [...databasePaths, '/token', '/androidpublisher/v3/applications/fr.titanapp.app/subscriptions/titan_plus']]]) {
+        [{ catalogStatus: 403 }, [...databasePaths, '/token', CATALOG_PATH]]]) {
         await run(async calls => {
             assert.equal((await handler(readiness())).status, 503);
             assert.deepEqual(calls.map(c => c.path), stages);
         }, options);
     }
+});
+
+test('checkout stays closed when the service account can list products but cannot read purchases', async () => {
+    // Google answers "unknown purchase" (400, 404 or 410) to an account that may read purchases: only then is Play opened.
+    for (const probeStatus of [400, 404, 410]) {
+        await run(async () => assert.equal((await handler(readiness())).status, 204), { probeStatus });
+    }
+    // A refusal, an outage or an impossible success for a token that does not exist keeps the payment sheet closed.
+    for (const probeStatus of [401, 403, 500, 503, 200]) {
+        await run(async calls => {
+            assert.equal((await handler(readiness())).status, 503);
+            assert.equal(calls.at(-1).path, PROBE_PATH);
+            // An existing purchase can still be verified or restored: the probe only gates new sales.
+            assert.equal(rpcs(calls).length, 0);
+        }, { probeStatus });
+    }
+});
+
+test('checkout stays closed until Google can notify the server, while existing purchases remain verifiable', async () => {
+    for (const env of [{ PLAY_RTDN_TOKEN: '' }, { PLAY_RTDN_TOKEN: 'too-short' }, { PLAY_RTDN_TOKEN: '', PLAY_RTDN_AUDIENCE: 'https://titan.example.test/functions/play-notifications' }]) {
+        await run(async calls => {
+            assert.equal((await handler(readiness())).status, 503);
+            assert.deepEqual(calls, []);
+            assert.equal((await handler(request())).status, 200);
+        }, { env });
+    }
+    await run(async () => assert.equal((await handler(readiness())).status, 204),
+        { env: { PLAY_RTDN_TOKEN: '', PLAY_RTDN_AUDIENCE: 'https://titan.example.test/functions/play-notifications', PLAY_RTDN_SERVICE_ACCOUNT: 'push@example.test' } });
 });
 
 test('pausing checkout leaves verification and restoration available', async () => {

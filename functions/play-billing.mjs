@@ -10,6 +10,8 @@ const TOKEN = /^[A-Za-z0-9._~-]{16,2048}$/;
 const PRODUCT = /^[a-z0-9._-]{1,100}$/i;
 const MAX_BODY = 4096;
 const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
+// Never a real purchase: only used to check that the service account may read purchases at all.
+export const READINESS_PROBE_TOKEN = 'titan-checkout-readiness-probe-0000';
 const ACCESS_STATES = new Set(['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD']);
 
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
@@ -129,6 +131,11 @@ export default async function handler(request) {
     if (invalid.length) return unavailable('configuration', { variables: invalid });
     // A checkout pause keeps restoration, notifications and reconciliation available for existing purchases.
     if (readiness && env('PLAY_CHECKOUT_ENABLED') === 'false') return unavailable('checkout_paused');
+    // A sale is only opened when Google can also reach the notification endpoint: it is what confirms a purchase made while the app
+    // is closed, a renewal or a refund. Verification and restoration of existing purchases do not depend on it.
+    if (readiness && !(env('PLAY_RTDN_AUDIENCE') && env('PLAY_RTDN_SERVICE_ACCOUNT')) && env('PLAY_RTDN_TOKEN').length < 24) {
+        return unavailable('configuration', { variables: ['PLAY_RTDN'] });
+    }
 
     const bearer = request.headers.get('authorization') || '';
     if (!/^Bearer [A-Za-z0-9._~-]{20,8192}$/.test(bearer)) return reply(401, { error: 'authentication_required' });
@@ -174,6 +181,12 @@ export default async function handler(request) {
             if (catalog.data?.productId !== productId || !catalog.data?.basePlans?.some(plan => plan.state === 'ACTIVE' && plan.autoRenewingBasePlanType?.billingPeriodDuration === 'P1M')) {
                 return unavailable(stage);
             }
+            // Reading the catalogue and reading a purchase are two different Play Console permissions. A service account that can only do
+            // the first would let Google take the payment and then fail every verification, restoration and notification. Ask Google
+            // for a purchase that cannot exist: "unknown purchase" proves the permission, a refusal or an outage closes the checkout.
+            stage = 'google_purchases';
+            const probe = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${READINESS_PROBE_TOKEN}`, { method: 'GET', headers: googleHeaders });
+            if (probe.ok || probe.status === 401 || probe.status === 403 || probe.status >= 500) return unavailable(stage, { status: probe.status });
             return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
         }
         // Order by when the Google read starts: a delayed older response must not overwrite a newer read.
