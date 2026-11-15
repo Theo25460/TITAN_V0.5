@@ -2926,7 +2926,14 @@
           "source": "css/ascension-app.css",
           "lines": [
             62,
-            1866
+            1922
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            27
           ],
           "evidence": "literal"
         },
@@ -3014,12 +3021,19 @@
         {
           "source": "suivi-escalade.html",
           "lines": [
-            30
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
+          "lines": [
+            27
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
           "lines": [
             27
           ],
@@ -3046,6 +3060,7 @@
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
           "css/ascension-app.css",
+          "defis-sportifs.html",
           "index.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
@@ -3060,7 +3075,8 @@
           "progression-sportive.html",
           "sports.html",
           "suivi-escalade.html",
-          "suivi-sportif.html"
+          "suivi-sportif.html",
+          "suivi-velo.html"
         ]
       },
       "rpgUsage": true,
@@ -3356,6 +3372,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            15
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "fonctionnalites.html",
           "lines": [
             15
@@ -3552,6 +3575,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            15
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             15
@@ -3610,6 +3640,7 @@
           "css/ascension.css",
           "debuter-titan.html",
           "defi.html",
+          "defis-sportifs.html",
           "fonctionnalites.html",
           "index.html",
           "journal-course-a-pied.html",
@@ -3638,6 +3669,7 @@
           "stats.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html",
           "training.html",
@@ -3825,6 +3857,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            16
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "fonctionnalites.html",
           "lines": [
             16
@@ -4021,6 +4060,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            16
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             16
@@ -4080,6 +4126,7 @@
           "css/fonts.css",
           "debuter-titan.html",
           "defi.html",
+          "defis-sportifs.html",
           "fonctionnalites.html",
           "index.html",
           "journal-course-a-pied.html",
@@ -4108,6 +4155,7 @@
           "stats.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html",
           "training.html",
@@ -4171,9 +4219,9 @@
     {
       "path": "docs/play-store/README.md",
       "family": "store-listing",
-      "bytes": 1998,
-      "sha256": "370bf90690694daa088ad5261813a409da0e40dd59d1b68d8a4723c4da4094fd",
-      "version": "sha256:370bf90690694daa088ad5261813a409da0e40dd59d1b68d8a4723c4da4094fd",
+      "bytes": 4879,
+      "sha256": "beffab4294ddf7bae872e9ff68f881d8f69c22a29c104d9911ff458bf760bf70",
+      "version": "sha256:beffab4294ddf7bae872e9ff68f881d8f69c22a29c104d9911ff458bf760bf70",
       "format": "md",
       "width": null,
       "height": null,
@@ -4576,6 +4624,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             33
@@ -4786,6 +4841,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             14
@@ -4851,6 +4913,7 @@
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
           "defi.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -4881,6 +4944,7 @@
           "stats.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "sys_core_override_99.html",
           "titan-plus.html",
@@ -4952,6 +5016,13 @@
         },
         {
           "source": "debuter-titan.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
           "lines": [
             14
           ],
@@ -5091,6 +5162,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             14
@@ -5128,6 +5206,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -5147,6 +5226,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -7990,6 +8070,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            19
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             34,
@@ -8134,6 +8221,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            19
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             19
@@ -8180,6 +8274,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -8200,6 +8295,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "sys_core_override_99.html",
           "titan-plus.html"
@@ -8392,7 +8488,7 @@
             505,
             543,
             580,
-            863
+            720
           ],
           "evidence": "literal"
         },
@@ -9677,6 +9773,14 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            12,
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             29,
@@ -9832,6 +9936,14 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            12,
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             12,
@@ -9872,6 +9984,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -9891,6 +10004,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -10244,6 +10358,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             35
@@ -10384,6 +10505,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             14
@@ -10421,6 +10549,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -10441,6 +10570,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -12086,7 +12216,14 @@
           "source": "css/ascension-app.css",
           "lines": [
             62,
-            1866
+            1922
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            27
           ],
           "evidence": "literal"
         },
@@ -12149,12 +12286,19 @@
         {
           "source": "suivi-escalade.html",
           "lines": [
-            30
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
+          "lines": [
+            27
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
           "lines": [
             27
           ],
@@ -12181,6 +12325,7 @@
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
           "css/ascension-app.css",
+          "defis-sportifs.html",
           "index.html",
           "js/app/atelier.js",
           "mobile/src/core/images.ts",
@@ -12190,7 +12335,8 @@
           "progression-sportive.html",
           "sports.html",
           "suivi-escalade.html",
-          "suivi-sportif.html"
+          "suivi-sportif.html",
+          "suivi-velo.html"
         ]
       },
       "rpgUsage": true,
@@ -12240,9 +12386,9 @@
     {
       "path": "mobile/docs/play-store/phone-01-qg.png",
       "family": "store-listing",
-      "bytes": 188054,
-      "sha256": "89ef31e8ce59cac32afef20eede4ed2258ca1affab22aab019f23e00eae45f82",
-      "version": "sha256:89ef31e8ce59cac32afef20eede4ed2258ca1affab22aab019f23e00eae45f82",
+      "bytes": 767035,
+      "sha256": "b71816ca339aa91a773fff40a6da51194cb20f1c9d2addb7c904dd65f7dfc965",
+      "version": "sha256:b71816ca339aa91a773fff40a6da51194cb20f1c9d2addb7c904dd65f7dfc965",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12277,9 +12423,9 @@
     {
       "path": "mobile/docs/play-store/phone-02-apres-seance.png",
       "family": "store-listing",
-      "bytes": 161039,
-      "sha256": "89f6d2951060c0cdc9de04a919470d13aef9f7aba0c5f4665e9be21804e4058c",
-      "version": "sha256:89f6d2951060c0cdc9de04a919470d13aef9f7aba0c5f4665e9be21804e4058c",
+      "bytes": 136127,
+      "sha256": "a89e22cb0d930b9020332d587ec6cd4bdefe6840c1f85273696dcbf266ca8ff6",
+      "version": "sha256:a89e22cb0d930b9020332d587ec6cd4bdefe6840c1f85273696dcbf266ca8ff6",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12314,9 +12460,9 @@
     {
       "path": "mobile/docs/play-store/phone-03-tes-questions.png",
       "family": "store-listing",
-      "bytes": 210663,
-      "sha256": "0fcf9ca287880b4ab79afdb95f5d4b3837eeee9e82fb3e2b82a76888db6b2cd8",
-      "version": "sha256:0fcf9ca287880b4ab79afdb95f5d4b3837eeee9e82fb3e2b82a76888db6b2cd8",
+      "bytes": 195028,
+      "sha256": "f42196ea34c4cf41b1357a7187d795e9eb8a847bfbd1ab9aaac189673fde4fb4",
+      "version": "sha256:f42196ea34c4cf41b1357a7187d795e9eb8a847bfbd1ab9aaac189673fde4fb4",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12351,9 +12497,9 @@
     {
       "path": "mobile/docs/play-store/phone-04-monde.png",
       "family": "store-listing",
-      "bytes": 834638,
-      "sha256": "55349768143eeb3c2cbe442bf24cd15dc3324d25b4a3aa0c42241969736e571f",
-      "version": "sha256:55349768143eeb3c2cbe442bf24cd15dc3324d25b4a3aa0c42241969736e571f",
+      "bytes": 856811,
+      "sha256": "d1cf1d74d6a277f07e40188cf7cc9a1b1755f985af8004b1e980566020f3aa9c",
+      "version": "sha256:d1cf1d74d6a277f07e40188cf7cc9a1b1755f985af8004b1e980566020f3aa9c",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12388,9 +12534,9 @@
     {
       "path": "mobile/docs/play-store/phone-05-aventure.png",
       "family": "store-listing",
-      "bytes": 2094859,
-      "sha256": "d7e996dde6cb3cf2c701ab5100fcacb7fe2bbe617e6b92b5743865aff0fb6723",
-      "version": "sha256:d7e996dde6cb3cf2c701ab5100fcacb7fe2bbe617e6b92b5743865aff0fb6723",
+      "bytes": 1570677,
+      "sha256": "f6b25415c9cbd406a3ba7966fbc16d47672a1a628ada6e3a5167e7275b225f86",
+      "version": "sha256:f6b25415c9cbd406a3ba7966fbc16d47672a1a628ada6e3a5167e7275b225f86",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12425,9 +12571,9 @@
     {
       "path": "mobile/docs/play-store/phone-06-records.png",
       "family": "store-listing",
-      "bytes": 192398,
-      "sha256": "31ae52e1e9f150e38de04ee6e124f4f85dc90db6574822aa66ad4ce2927fab08",
-      "version": "sha256:31ae52e1e9f150e38de04ee6e124f4f85dc90db6574822aa66ad4ce2927fab08",
+      "bytes": 189616,
+      "sha256": "4fbbe8ff5cd50855c5009e92354341a6e0389f6064eb1a3979d2fe94cc1d40a0",
+      "version": "sha256:4fbbe8ff5cd50855c5009e92354341a6e0389f6064eb1a3979d2fe94cc1d40a0",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -12471,8 +12617,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 37948,
-      "version": "sha256:6fc3caf23e57ad36a6668e77c1945906bc561e419073c942d565eca0a603447f",
+      "bytes": 39435,
+      "version": "sha256:cf7231e9d8fb8195f83f0928dbe056ea9137466361e06f616e07d71ca39a8ddd",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12803,8 +12949,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 12634,
-      "version": "sha256:2337ea2d1fd88bce22d47018ad165f9c8db1705d5fc1b07d9cb264ed4ef984ee",
+      "bytes": 14348,
+      "version": "sha256:7499041ecc33d684c18e99a9b07c4358738b6fb54226fd2fe56e636b48d2d560",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -15223,6 +15369,11 @@
       "capture": null
     },
     {
+      "source": "defis-sportifs.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "dynamic-page.html",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15879,6 +16030,11 @@
     },
     {
       "source": "suivi-sportif.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "suivi-velo.html",
       "visualValidation": "pending-human-review",
       "capture": null
     },
