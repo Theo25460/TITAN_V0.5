@@ -30,6 +30,16 @@ async function rpc<T>(name: string, params?: Record<string, unknown>, ms?: numbe
   return data as T;
 }
 
+/** Public feature flags, readable before any sign-in (titan_feature_flags_v1 answers visitors too). Unknown = off. */
+export async function fetchPublicFlags(): Promise<Record<string, boolean>> {
+  try {
+    const r = await rpc<{ flags?: Record<string, boolean> }>("titan_feature_flags_v1", {}, 6000);
+    return r?.flags ?? {};
+  } catch {
+    return {};
+  }
+}
+
 /** Ensures the request runs for the account that asked for it (no cross-account leak after a switch). */
 export async function assertOwner(owner: string) {
   const { data } = await supabase.auth.getSession();

@@ -36,6 +36,7 @@ export type RootParams = {
   Community: { ami?: string; guilde?: string } | undefined;
   Events: undefined;
   Retro: { year?: number } | undefined;
+  SaveAccount: undefined;
   Settings: undefined;
   Account: undefined;
   Privacy: undefined;

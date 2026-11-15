@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 let mockFresh=true, mockStatus='confirmed', mockHeld=false, mockSource='session-1', mockActive=true, mockHasLog=true;
-jest.mock('../src/data/auth',()=>({useOwner:()=> 'owner-a'}));
+jest.mock('../src/data/auth',()=>({useOwner:()=> 'owner-a',useAuth:()=>({isDiscovery:false})}));
 jest.mock('../src/data/api',()=>({momentShare:jest.fn()}));
 jest.mock('../src/data/queue',()=>({useQueue:()=>({items:[]})}));
 jest.mock('../src/data/receipts',()=>({useReceipt:()=>mockStatus==='confirmed'?{log_id:'session-1',xp:0,credits:0,reward_held:mockHeld}:undefined}));

@@ -6,6 +6,7 @@ import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
 import { EventsTeaser } from "../community/EventsScreen";
 import { retroYear } from "../../lib/retro";
+import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
@@ -130,6 +131,7 @@ export function HomeScreen() {
           </Card>
         </Reveal>
         {/* AUD-23/24: the tab bar already reaches Séance, Aventure and Progrès; the QG now surfaces what only it can — events and the circle. */}
+        <DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} />
         {retroYear() && active.length ? (
           <Card tone="amber" onPress={() => navigation.navigate("Retro", { year: retroYear()! })} accessibilityLabel={`TITAN Rétro ${retroYear()} : ton année en images`} testID="qg-retro">
             <T variant="eyebrow" tone="amber">TITAN Rétro {retroYear()}</T>

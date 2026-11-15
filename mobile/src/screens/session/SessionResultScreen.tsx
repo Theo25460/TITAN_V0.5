@@ -6,6 +6,7 @@ import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
 import { maybeAskForReview } from "../../lib/review";
 import { shareCardImage } from "../../lib/shareImage";
 import { ShareCard, type ShareCardData } from "../../components/ShareCard";
+import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -382,6 +383,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           }}
         />
       ) : null}
+      {status === "confirmed" ? <View style={{ paddingHorizontal: space.s4 }}><DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} /></View> : null}
       {status === "confirmed" && !historical ? (
         <View style={styles.offscreen} pointerEvents="none">
           <ShareCard ref={cardRef} data={cardData} />

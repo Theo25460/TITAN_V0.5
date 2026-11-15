@@ -28,6 +28,11 @@ type AuthValue = {
   signIn(email: string, password: string): Promise<void>;
   signInWithGoogle(): Promise<void>;
   signUp(name: string, email: string, password: string): Promise<{ needsConfirmation: boolean }>;
+  /** AUD-20: true for a discovery account (Supabase anonymous sign-in) that has not been saved with an e-mail yet. */
+  isDiscovery: boolean;
+  startDiscovery(): Promise<void>;
+  /** Turns the discovery account into a regular one: same id, same sessions and progress. Supabase confirms the e-mail. */
+  saveDiscovery(name: string, email: string, password: string): Promise<{ needsConfirmation: boolean }>;
   resendConfirmation(email: string): Promise<void>;
   resetPassword(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
@@ -170,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       owner: session?.user.id ?? null,
       email: session?.user.email ?? null,
+      isDiscovery: Boolean((session?.user as { is_anonymous?: boolean } | undefined)?.is_anonymous),
       notice,
       clearNotice: () => setNotice(null),
       async signIn(email, password) {
@@ -187,6 +193,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         if (error) throw new Error(toAppError(error).message);
         return { needsConfirmation: !data.session };
+      },
+      async startDiscovery() {
+        const { error } = await supabase.auth.signInAnonymously({ options: { data: { username: "Athlète" } } });
+        if (error) throw new Error(/disabled/i.test(error.message) ? "Le mode découverte n’est pas encore ouvert. Crée ton compte en quelques secondes." : toAppError(error).message);
+      },
+      async saveDiscovery(name, email, password) {
+        const { data, error } = await supabase.auth.updateUser(
+          { email: email.trim().toLowerCase(), password, data: { full_name: name.trim(), username: name.trim() } },
+          { emailRedirectTo: `${SITE_URL}/onboarding` },
+        );
+        if (error) throw new Error(toAppError(error).message);
+        return { needsConfirmation: !data.user?.email_confirmed_at };
       },
       async resendConfirmation(email) {
         const { error } = await supabase.auth.resend({ type: "signup", email: email.trim().toLowerCase(), options: { emailRedirectTo: `${SITE_URL}/onboarding` } });
