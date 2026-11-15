@@ -1,7 +1,7 @@
 -- Read-only. Run alongside postflight-v13.sql after the authorized migration window.
 -- Every row must be true before exposing the corresponding services.
 with versions(version) as (values
-  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000')
+  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000'), ('20261114170000'), ('20261114180000')
 ), restricted(signature) as (values
   ('private.titan_coach_plan(uuid)'),
   ('private.titan_coach_capacity(uuid)'),
@@ -87,4 +87,47 @@ union all
 select 'play-plan:' || p.product_id, exists (
   select 1 from private.titan_plan_products configured where configured.product_id = p.product_id and configured.plan = p.plan
 ) from expected_plans p
+union all
+-- 20261114170000 (docs/v131/lot1-securite.md): no function of the application schemas keeps a caller-controlled search_path.
+select 'search_path:every application function pinned', not exists (
+  select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname in ('public', 'private')
+     and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')
+)
+union all
+select 'intent day check:stable, empty search_path, closed to API roles', coalesce((
+  select f.provolatile = 's' and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
+     and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
+    from pg_proc f where f.oid = to_regprocedure('private.titan_intent_day_ok(date)')), false)
+union all
+-- The body retyped on production had lost these two keys: jsonb_build_object then fails for a Garmin link or a buddy pair.
+select 'export:' || k.label, coalesce((
+  select position(k.marker in f.prosrc) > 0 and position(k.broken in f.prosrc) = 0
+    from pg_proc f where f.oid = to_regprocedure('private.titan_export_extras_before_rpg_v1(uuid)')), false)
+  from (values
+    ('garmin link names last_event_at', $m$'last_event_at', g.last_event_at$m$, 'g.revoked_at, g.last_event_at)'),
+    ('buddy pair names ended_at', $m$'ended_at', b.ended_at$m$, 'b.ends_on, b.ended_at)')
+  ) as k(label, marker, broken)
+union all
+select 'export:sections added, internal functions closed', coalesce((
+  select position($m$'coachLinks'$m$ in f.prosrc) > 0 and position($m$'appeals'$m$ in f.prosrc) > 0 and position($m$'entitlements'$m$ in f.prosrc) > 0
+     and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
+     and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
+     and position('private.titan_export_extras_v1(v_uid) || private.titan_export_extras_v131_v1(v_uid)' in e.prosrc) > 0
+     and has_function_privilege('authenticated', e.oid, 'EXECUTE') and not has_function_privilege('anon', e.oid, 'EXECUTE')
+    from pg_proc f, pg_proc e
+   where f.oid = to_regprocedure('private.titan_export_extras_v131_v1(uuid)') and e.oid = to_regprocedure('public.export_own_data()')), false)
+union all
+select 'bug reports:anonymous intake bounded by a restrictive policy', exists (
+  select 1 from pg_policy p where p.polrelid = to_regclass('public.bug_reports') and p.polname = 'bug_reports_intake_bounds_v131'
+     and not p.polpermissive and p.polcmd = 'a'
+     and pg_get_expr(p.polwithcheck, p.polrelid) like '%admin_note IS NULL%' and pg_get_expr(p.polwithcheck, p.polrelid) like '%octet_length%'
+)
+union all
+-- 20261114180000: an import is matched to the session already saved for the same effort instead of creating a second one.
+select 'import dedupe:a session saved now is matched by its end, empty search_path, closed to API roles', coalesce((
+  select position('l.created_at - l.date between' in f.prosrc) > 0 and position($m$'hasGpx'$m$ in f.prosrc) > 0
+     and f.prosecdef and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
+     and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
+    from pg_proc f where f.oid = to_regprocedure('private.titan_import_core(uuid,text,text,text,timestamptz,numeric,numeric)')), false)
 order by ok, "check";
