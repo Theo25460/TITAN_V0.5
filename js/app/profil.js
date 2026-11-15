@@ -59,11 +59,11 @@
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
     return `<section class="asc-hero pf-hero">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
-        <div class="pf-id-main"><p class="asc-eyebrow">Mon passeport TITAN</p><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div>${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
-      <a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>
-      <div class="pf-level"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
+        <div class="pf-id-main"><p class="asc-eyebrow">Mon passeport TITAN</p><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
+      <div class="pf-level">${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}<div class="pf-level-main"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
         ${pr.guest || pr.confirmed ? `<span class="asc-ascent" role="progressbar" aria-label="Progression vers le niveau suivant" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="--p:${pct}%"></span></span>` : ""}
-        <p class="asc-small asc-muted">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div>
+        <p class="asc-small asc-muted">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div></div>
+      <a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>
     </section>`;
   }
 
@@ -178,7 +178,14 @@
     }
   }
 
-  const SOURCE_NAMES = { health_connect: "Health Connect", garmin: "Garmin" };
+  const SOURCE_NAMES = { health_connect: "Santé Connect", garmin: "Garmin" };
+  /* What Garmin answered when TITAN asked to be removed there (`withdrawn`, `refused`, `unavailable`, `skipped`, or null when the request
+     itself failed). The link and the tokens are gone on TITAN's side whatever the answer, so the player must be told when a step is left
+     for them in Garmin Connect: TITAN can no longer retry (same wording as the Android app). */
+  let garminWithdrawal = undefined;
+  const GARMIN_WITHDRAWN = "Garmin est déconnecté : TITAN a été retiré de ton compte Garmin et plus aucune activité n’est importée. Les séances déjà importées restent dans ton journal.";
+  const GARMIN_UNCONFIRMED = "L’autorisation Garmin a été retirée dans TITAN : plus aucune activité n’est importée. Garmin n’a pas confirmé le retrait de son côté : pour le terminer, retire TITAN des applications connectées de ton compte Garmin Connect. Les séances déjà importées restent dans ton journal.";
+  const garminWithdrawalMessage = (provider) => provider === "withdrawn" ? GARMIN_WITHDRAWN : GARMIN_UNCONFIRMED;
 
   /* V11-30: stop a connected source, or archive what it brought. Same account/client/epoch guards; the server only acts on the caller's own rows. */
   async function sourceAction(kind, source) {
@@ -192,8 +199,14 @@
       if (sourcesTask !== job || !bitsCurrent(job)) return false;
       // Garmin: TITAN is withdrawn at Garmin first (best effort); the local consent is withdrawn in any case so the player can always leave.
       if (kind === "revoke" && source === "garmin") {
-        try { await fetch("/.netlify/functions/garmin?action=disconnect", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) }); } catch { /* handled by the consent withdrawal below */ }
+        let provider = null;
+        try {
+          const response = await fetch("/.netlify/functions/garmin?action=disconnect", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, signal: AbortSignal.timeout(10000) });
+          const data = response.ok ? await response.json().catch(() => null) : null;
+          provider = typeof data?.provider === "string" ? data.provider : null;
+        } catch { /* the consent withdrawal below still ends the import; the player is told Garmin did not confirm */ }
         if (sourcesTask !== job || !bitsCurrent(job)) return false;
+        job.provider = provider;
       }
       const call = kind === "revoke"
         ? context.client.rpc("titan_set_source_consent_v1", { p_source: source, p_granted: false })
@@ -207,6 +220,7 @@
       if (kind === "revoke" && source === "garmin") {
         garminLinked = false;
         garminDailiesAuthorized = false;
+        garminWithdrawal = job.provider;
       }
       return true;
     } catch (error) {
@@ -280,6 +294,7 @@
   function sourcesBlockHtml() {
     if (guest() || !sources || !sources.length) return "";
     return `<section id="sources-connectees" class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
+      ${garminWithdrawal !== undefined ? `<p class="asc-note${garminWithdrawal === "withdrawn" ? "" : " warn"}" role="status" data-garmin-withdrawal="${esc(garminWithdrawal || "unconfirmed")}">${icon(garminWithdrawal === "withdrawn" ? "check" : "info")}<span>${esc(garminWithdrawalMessage(garminWithdrawal))}</span></p>` : ""}
       <div class="asc-list">${sources.map((x) => {
         const name = SOURCE_NAMES[x.source] || x.source;
         const since = x.granted_at ? new Date(x.granted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
@@ -522,6 +537,7 @@
     && !window.titanAccountTransition?.active && !guest();
 
   function resetServerBits() {
+    garminWithdrawal = undefined;
     bitsContext = null;
     bitsTask = null;
     cardTask = null;
@@ -684,6 +700,17 @@
     if (scroll) target.scrollIntoView();
   }
 
+  /* Where a focused control without an id sits in the profile: its tag and stable attributes, its rank among the controls that share
+     them, and the start of its label. Enough to find the same control in the redrawn page, and to give up if the page changed. */
+  function focusPlace(el) {
+    const stable = [...el.attributes].filter(a => a.name.startsWith("data-") || ["href", "name", "type", "role", "aria-label"].includes(a.name));
+    const selector = el.tagName.toLowerCase() + stable.map(a => `[${a.name}="${a.value.replace(/["\\]/g, "\\$&")}"]`).join("");
+    try {
+      const index = [...root.querySelectorAll(selector)].indexOf(el);
+      return index < 0 ? null : { selector, index, text: el.textContent.trim().slice(0, 60) };
+    } catch (_) { return null; }
+  }
+
   function render() {
     if (!root) return;
     // Capture focus at render time so a late avatar response cannot reclaim it.
@@ -691,6 +718,9 @@
     const attribute = focused?.hasAttribute("data-cadence") ? "data-cadence" : focused?.hasAttribute("data-avatar") ? "data-avatar" : null;
     const value = attribute ? focused.getAttribute(attribute) : null;
     const opened = new Set([...root.querySelectorAll("[data-profile-group][open]")].map(group => group.dataset.profileGroup));
+    // Any other focused control of the profile (a link, a button, a section heading reached with Tab) is found again after the redraw:
+    // a save that completes in the background must not send the keyboard back to the top of the page.
+    const place = !attribute && root.contains(document.activeElement) && !document.activeElement.id ? focusPlace(document.activeElement) : null;
     B().preserveFocus(() => { root.innerHTML = `${heroHtml()}${passportStatsHtml()}
       <a class="pf-sport-passport" href="/stats">${icon("chart")}<span><strong>Mon parcours sportif</strong><small>Maîtrises, régularité et évolution de ta pratique.</small></span>${icon("chevron")}</a>
       <div data-profile-career></div>
@@ -706,6 +736,10 @@
         next.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]').forEach(radio => { radio.tabIndex = radio === next ? 0 : -1; });
         next.focus({ preventScroll: true });
       }
+    }
+    if (place && document.activeElement === document.body) {
+      const again = root.querySelectorAll(place.selector)[place.index];
+      if (again && again.textContent.trim().slice(0, 60) === place.text) again.focus({ preventScroll: true });
     }
     root.setAttribute("aria-busy", "false");
     if (location.hash && !root.dataset.scrolled) {
@@ -1049,7 +1083,15 @@
     if (sourceKind) {
       const source = sourceKind === "revoke" ? b.dataset.sourceRevoke : b.dataset.sourceArchive;
       return sourceAction(sourceKind, source)
-        .then((done) => done && window.titanShell.toast({ type: "ok", title: sourceKind === "revoke" ? "Accès retiré" : "Séances archivées", message: sourceKind === "revoke" ? "Plus aucune séance ne sera reçue de cette source." : "Les séances reçues ne sont plus dans ton journal. La page se recharge pour le montrer." }))
+        .then((done) => {
+          if (!done) return done;
+          const garmin = sourceKind === "revoke" && source === "garmin";
+          const unconfirmed = garmin && garminWithdrawal !== "withdrawn";
+          window.titanShell.toast({ type: unconfirmed ? "warn" : "ok", title: sourceKind === "revoke" ? (unconfirmed ? "Accès retiré dans TITAN" : "Accès retiré") : "Séances archivées",
+            message: garmin ? (unconfirmed ? "Garmin n’a pas confirmé le retrait : termine-le dans Garmin Connect. Le détail est affiché dans « Sources connectées »." : "TITAN a aussi été retiré de ton compte Garmin.")
+              : sourceKind === "revoke" ? "Plus aucune séance ne sera reçue de cette source." : "Les séances reçues ne sont plus dans ton journal. La page se recharge pour le montrer." });
+          return done;
+        })
         .then((done) => { if (done && sourceKind === "archive") setTimeout(() => location.reload(), 1200); })
         .catch(() => window.titanShell.toast({ type: "warn", message: "Cette action n’a pas pu être faite. Réessaie." }));
     }
