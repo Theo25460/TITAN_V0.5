@@ -102,3 +102,17 @@ test("an opened guild link fills the join field for someone without a guild", as
   show({ guilde: "G-K7P2Q" });
   expect(await screen.findByDisplayValue("G-K7P2Q", undefined, slow)).toBeTruthy();
 });
+
+test("a challenge without any friend selected becomes an open challenge shared by link (AUD-22)", async () => {
+  mockSocial.mockReturnValue({ ...social, friends: [] });
+  mockRpc.mockImplementation((name: string) => ({
+    setHeader: () => Promise.resolve({ data: name === "titan_challenge_open_create_v1" ? { id: "c9", token: "a".repeat(64), expiresAt: "2026-11-30" } : null, error: null }),
+    then: (yes: (v: unknown) => unknown) => Promise.resolve({ data: name === "titan_challenge_open_create_v1" ? { id: "c9", token: "a".repeat(64), expiresAt: "2026-11-30" } : null, error: null }).then(yes),
+  }));
+  show();
+  fireEvent.press(await screen.findByText("Défis", undefined, slow));
+  fireEvent.press(await screen.findByTestId("new-challenge", undefined, slow));
+  fireEvent.changeText(screen.getByPlaceholderText("Une semaine qui bouge"), "Je te défie");
+  fireEvent.press(screen.getByTestId("challenge-submit"));
+  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: expect.stringContaining("https://titan-app.fr/defi?t=" + "a".repeat(64)) }), slow);
+});

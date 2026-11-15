@@ -249,6 +249,10 @@ export const momentShare = (p: { kind: string; title: string; detail?: string | 
   rpc("titan_moment_share", { p_kind: p.kind, p_title: p.title, p_detail: p.detail ?? null, p_sport: p.sport ?? null, p_log_id: p.logId ?? null, p_visibility: p.visibility ?? "friends" });
 export const challengeCreate = (p: { title: string; metric: Challenge["metric"]; sport: string | null; target: number; days: number; invitees: string[] }) =>
   rpc<{ id: string; invited: number }>("titan_challenge_create", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days, p_invitees: p.invitees });
+/** AUD-22: a challenge open to anyone holding its one-use link (no friend needed), and a fresh link for an existing own challenge. */
+export const challengeOpenCreate = (p: { title: string; metric: Challenge["metric"]; sport: string | null; target: number; days: number }) =>
+  rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_open_create_v1", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days });
+export const challengeLinkCreate = (id: string) => rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_link_create_v1", { p_challenge: id });
 export const challengeRespond = (id: string, action: "join" | "decline" | "leave") => rpc("titan_challenge_respond", { p_id: id, p_action: action });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };

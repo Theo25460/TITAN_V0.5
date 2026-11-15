@@ -22,7 +22,7 @@ import { Format, Sports } from "../../core";
 import * as api from "../../data/api";
 import { useOwner } from "../../data/auth";
 import { keys, useSavePrefs, useSocial } from "../../data/hooks";
-import { friendInviteMessage, guildInviteMessage, parseInvite } from "../../lib/invite";
+import { challengeInviteMessage, friendInviteMessage, guildInviteMessage, parseInvite } from "../../lib/invite";
 import type { RootParams } from "../../navigation/types";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
@@ -228,7 +228,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           )
         ) : tab === "challenges" ? (
           <>
-            <Button label="Lancer un défi" icon="flag" disabled={!s.friends.length} onPress={() => setNewChallenge(true)} />
+            <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
             {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}
             {exp ? (
               <Card tone="accent" style={{ gap: space.s2 }}>
@@ -285,6 +285,11 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                     </View>
                   ) : c.my_status === "joined" && c.status === "active" && !c.mine ? (
                     <Button small kind="ghost" label="Quitter le défi" onPress={() => act(`l-${c.id}`, () => api.challengeRespond(c.id, "leave"))} />
+                  ) : c.mine && c.status === "active" ? (
+                    <Button small kind="secondary" icon="share" label="Inviter par lien" loading={busy === `k-${c.id}`} testID={`challenge-link-${c.id}`} onPress={() => act(`k-${c.id}`, async () => {
+                      const r = await api.challengeLinkCreate(c.id);
+                      await Share.share({ message: challengeInviteMessage(c.title, r.token) }).catch(() => {});
+                    })} />
                   ) : null}
                 </Card>
               ))
@@ -294,7 +299,20 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           <GuildPanel overview={s} onAct={act} busy={busy} owner={owner} initialCode={invite.guild ?? ""} />
         )}
       </Screen>
-      <ChallengeSheet visible={newChallenge} onClose={() => setNewChallenge(false)} friends={s.friends} onCreate={(p) => act("create", () => api.challengeCreate(p), "Défi lancé").then(() => setNewChallenge(false))} />
+      <ChallengeSheet
+        visible={newChallenge}
+        onClose={() => setNewChallenge(false)}
+        friends={s.friends}
+        onCreate={(p) =>
+          act("create", async () => {
+            // AUD-22: without a friend selected, the challenge is open to whoever receives its link.
+            if (!p.invitees.length) {
+              const r = await api.challengeOpenCreate(p);
+              await Share.share({ message: challengeInviteMessage(p.title, r.token) }).catch(() => {});
+            } else await api.challengeCreate(p);
+          }, "Défi lancé").then(() => setNewChallenge(false))
+        }
+      />
     </>
   );
 }
@@ -378,7 +396,6 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
     if (title.trim().length < 2) return setError("Donne un nom au défi.");
     if (!(t > 0)) return setError("Choisis un objectif supérieur à zéro.");
     if (!(d >= 1 && d <= 31)) return setError("Un défi dure de 1 à 31 jours.");
-    if (!invitees.length) return setError("Invite au moins un ami.");
     if (metric === "distance_km") return setError("Le défi en distance demande un sport : choisis plutôt minutes, jours ou séances.");
     setBusy(true);
     setError(null);
@@ -386,7 +403,7 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
     setBusy(false);
   }
   return (
-    <Sheet visible={visible} onClose={onClose} title="Nouveau défi" footer={<View style={{ gap: 6 }}>{error ? <T variant="small" tone="err">{error}</T> : null}<Button label="Lancer le défi" loading={busy} onPress={submit} /></View>}>
+    <Sheet visible={visible} onClose={onClose} title="Nouveau défi" footer={<View style={{ gap: 6 }}>{error ? <T variant="small" tone="err">{error}</T> : null}<Button label={invitees.length ? "Lancer le défi" : "Créer et partager le lien"} loading={busy} onPress={submit} testID="challenge-submit" /></View>}>
       <Field label="Nom" value={title} onChangeText={setTitle} maxLength={60} placeholder="Une semaine qui bouge" />
       <Segmented value={metric === "distance_km" ? "active_days" : metric} onChange={setMetric} options={[{ value: "active_days", label: "Jours" }, { value: "sessions", label: "Séances" }, { value: "effort_minutes", label: "Minutes" }]} accessibilityLabel="Mesure du défi" />
       <View style={styles.row}>
@@ -394,7 +411,7 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
         <Field compact label="Durée (jours)" value={days} onChangeText={setDays} keyboardType="number-pad" />
       </View>
       <T variant="caption" tone="muted">
-        Inviter (1 à 10 amis)
+        {friends.length ? "Inviter des amis (jusqu’à 10), ou n’en choisir aucun pour partager un lien que n’importe qui peut rejoindre." : "Tu recevras un lien à envoyer : n’importe qui peut rejoindre, même sans être ton ami."}
       </T>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
         {friends.map((f) => (

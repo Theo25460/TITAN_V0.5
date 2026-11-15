@@ -37,3 +37,12 @@ export function parseInvite(params: unknown): { friend: string | null; guild: st
   const p = (params && typeof params === "object" ? params : {}) as Record<string, unknown>;
   return { friend: isFriendCode(p.ami) ? clean(p.ami) : null, guild: isGuildCode(p.guilde) ? clean(p.guilde) : null };
 }
+
+/** AUD-22: the website's public challenge page shows the rules, then sign-in and « Rejoindre ». The token is one-use. */
+export function challengeInviteUrl(token: string): string {
+  return `${INVITE_ORIGIN}/defi?t=${encodeURIComponent(token)}`;
+}
+
+export function challengeInviteMessage(title: string, token: string): string {
+  return `Je te défie sur TITAN : « ${title.trim() || "Défi"} ». Tous les sports comptent, sans mise. ${challengeInviteUrl(token)}`;
+}
