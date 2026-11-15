@@ -37,6 +37,7 @@ jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { SafeAreaProvider } = require("react-native-safe-area-context");
 const { ToastProvider } = require("../src/components/Toast");
+const { DialogHost, resetDialogs } = require("../src/components/Dialog");
 const { GpsRecordScreen } = require("../src/screens/session/GpsRecordScreen");
 const { GpsAccountGuard } = require("../src/components/GpsAccountGuard");
 const exportFile = require("../src/lib/exportFile");
@@ -105,6 +106,26 @@ test("start, pause, resume, finish, then the totals become the form draft and th
   expect(JSON.stringify(draft)).not.toContain("48.85");
   expect(mockStore.get("titan.gps.v1:owner-a") ?? null).toBeNull();
   expect(mockState.active).toBeNull();
+});
+
+test("abandoning a finished outing asks first: « Garder » keeps the trace, only an explicit confirmation deletes it (AUD-07)", async () => {
+  resetDialogs();
+  render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><GpsRecordScreen navigation={nav} route={{ params: { sport: "running" } }} /><DialogHost /></ToastProvider></SafeAreaProvider>);
+  fireEvent.press(await screen.findByTestId("gps-start"));
+  await screen.findByText(/Enregistrement en cours/);
+  await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 12 }, (_, i) => fix(i)))));
+  fireEvent.press(screen.getByTestId("gps-finish"));
+  await screen.findByText(/Séance terminée/);
+  fireEvent.press(screen.getByText("Abandonner cette séance"));
+  expect(await screen.findByText("Abandonner cette séance ?")).toBeTruthy();
+  fireEvent.press(screen.getByText("Garder"));
+  await waitFor(() => expect(screen.queryByText("Abandonner cette séance ?")).toBeNull());
+  expect(mockStore.get("titan.gps.v1:owner-a")).toBeTruthy();
+  expect(nav.goBack).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByText("Abandonner cette séance"));
+  fireEvent.press(await screen.findByText("Supprimer la trace"));
+  await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
+  expect(mockStore.get("titan.gps.v1:owner-a") ?? null).toBeNull();
 });
 
 test("a recording left running by a lost service is shown as interrupted, not extended", async () => {

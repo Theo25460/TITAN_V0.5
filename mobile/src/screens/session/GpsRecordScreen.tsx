@@ -147,13 +147,17 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       await shareTextFile(`titan-${rec.sport}-${day}.gpx`, recorder.gpx(rec, `${Sports.label(rec.sport)} ${day}`), "application/gpx+xml");
     }, "Export impossible");
 
-  const discard = () =>
-    run(async () => {
+  /* A whole outing must never vanish on one tap (AUD-07): the trace is only deleted after an explicit confirmation. */
+  const discard = async () => {
+    const sure = await ask("Abandonner cette séance ?", "La trace GPS et la durée enregistrées seront supprimées de ce téléphone. Tu ne pourras pas les récupérer.", { confirmLabel: "Supprimer la trace", cancelLabel: "Garder" });
+    if (!sure || !mounted.current) return;
+    return run(async () => {
       await recorder.discard(owner);
       await setActiveOwner(null, owner);
       setRec(null);
       navigation.goBack();
     }, "Abandon impossible");
+  };
 
   if (readError) return <Screen><T tone="err" accessibilityRole="alert">Impossible de lire l’enregistrement sur ce téléphone.</T><Button label="Réessayer" onPress={() => retryRead((n) => n + 1)} /></Screen>;
   if (!ready) return <Screen><T tone="muted">Chargement…</T></Screen>;

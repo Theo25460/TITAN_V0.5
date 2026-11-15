@@ -1,4 +1,4 @@
-import { BillingError, buy, loadOffers, messageFor, PLANS, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
+import { BillingError, buy, FREE_PLAN, loadOffers, mentionsAds, messageFor, PLANS, restore, verifyOnServer, visiblePerks, type IapLib, type IapPurchase } from "../src/lib/playBilling";
 
 type Listener<T> = (v: T) => void;
 function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id: p.id, displayPrice: `${p.id} price`, subscriptionOffers: [{ offerTokenAndroid: `offer-${p.id}`, displayPrice: `${p.id} price` }] }))) {
@@ -297,4 +297,17 @@ test("server provenance survives the client adapter without guessing payment fro
   }
   const fetcher = jest.fn(async () => new Response(JSON.stringify(active), { status: 200 })) as unknown as typeof fetch;
   expect((await verifyOnServer("t", "titan01", "a", fetcher)).access_kind).toBeUndefined();
+});
+
+
+test("every displayed perk exists, and a build without ads never mentions ads (AUD-03)", () => {
+  const all = PLANS.flatMap((p) => [p.tagline, ...p.perks]).concat(FREE_PLAN.perks);
+  expect(all.join(" ")).not.toMatch(/Analyses plus poussées/);
+  for (const plan of [...PLANS, FREE_PLAN]) {
+    const shown = visiblePerks(plan.perks, false);
+    expect(shown.some(mentionsAds)).toBe(false);
+    expect(shown.length).toBeGreaterThan(0);
+  }
+  expect(visiblePerks(PLANS[0].perks, true)).toContain("Aucune publicité");
+  for (const coach of PLANS.filter((p) => p.kind === "coach")) expect(visiblePerks(coach.perks, false)).toContain("TITAN+ pour toi");
 });
