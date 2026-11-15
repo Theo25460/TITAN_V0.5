@@ -59,7 +59,7 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
     {error ? <T accessibilityRole="alert" tone="err">{error}</T> : null}
     {!s ? <><T variant="small">{error ? "Tu peux réessayer." : "Le journal des rencontres se prépare…"}</T>{error ? <Button label="Réessayer" onPress={() => { const epoch = generation.current; setError(""); fetchAdventureRpg(owner, world).then(data => { if (epoch === generation.current) setSnapshot(data); }).catch(e => { if (epoch === generation.current) setError(errorText(e)); }); }} loading={busy} /> : null}</> : !s.active ? <>
       <T>Trois arcs, six jalons chacun : lieux, choix, monstres, récits et trésors cosmétiques.</T>
-      <T variant="small">Les prochaines séances seront attribuées une seule fois à ce monde pour les rencontres. Tes XP et coins suivent leurs règles habituelles.</T>
+      <T variant="small">Les prochaines séances seront attribuées une seule fois à ce monde pour les rencontres. Tes XP et crédits suivent leurs règles habituelles.</T>
       <Button label="Ouvrir ce chemin" onPress={() => act("start")} loading={busy} />
     </> : <>
       <T variant="small">{s.days} jours admissibles · {s.effort} points confirmés · {s.rewards.length}/18 souvenirs. Cible figée : {s.target} points par jalon d’après les 28 jours précédant le départ ; 90 au plus par jour sur tous les mondes.</T>
@@ -78,12 +78,12 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
       {current && scene ? <View style={{ gap: space.s2 }}>
         <T variant="h3">{scene.name}</T><T>{scene.story}</T>
         {["monster", "miniboss"].includes(scene.kind) ? <View accessible accessibilityRole="progressbar" accessibilityLabel="Passage dégagé par l’effort confirmé" accessibilityValue={{ min: 0, max: s.target, now: Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target)) }}><T variant="small">{Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target))}/{s.target} points confirmés pour cette rencontre.</T></View> : null}
-        <T variant="small">{current.ready ? "Le serveur confirme les préparatifs." : `${Math.max(0, current.effortTarget - s.effort)} points restant(s) · ${Math.min(s.days, current.daysTarget)}/${current.daysTarget} jours distincts · chapitre ${scene.chapter} à atteindre.`}</T>
+        <T variant="small">{current.ready ? "Les préparatifs sont prêts." : `${Math.max(0, current.effortTarget - s.effort)} points restant(s) · ${Math.min(s.days, current.daysTarget)}/${current.daysTarget} jours distincts · chapitre ${scene.chapter} à atteindre.`}</T>
         {scene.kind === "choice" ? scene.choices.map((choice, i) => <Button key={choice} label={choice} kind="secondary" disabled={!current.ready || busy} onPress={() => act("claim", scene.ordinal, i)} />) : <Button label={["monster", "miniboss"].includes(scene.kind) ? "Dégager le passage" : "Poursuivre le récit"} disabled={!current.ready} onPress={() => act("claim", scene.ordinal)} loading={busy} />}
       </View> : <T>Les dix-huit jalons rejoignent ton carnet.</T>}
       <T variant="h3">Bestiaire · {bestiary.length}/6</T>
       {bestiary.map(n => <View key={n.ordinal} style={{ gap: 4 }}><T variant="bodyStrong">{n.name} · arc {n.arc}</T><T variant="small">{n.story}</T></View>)}
-      <T variant="h3">Exploits par familles</T><T variant="small">Trois jours distincts dans une famille débloquent un titre cosmétique, sans XP ni coins.</T>
+      <T variant="h3">Exploits par familles</T><T variant="small">Trois jours distincts dans une famille débloquent un titre cosmétique, sans XP ni crédits.</T>
       {s.familyTitles.map(f => <T key={f.family}>{catalog.familyTitle(f.family)}</T>)}
     </>}
   </Card>;

@@ -217,7 +217,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <T tone="muted">Android a arrêté le suivi (arrêt de l’application, batterie). TITAN a gardé ce qui était enregistré jusqu’à la dernière position. Reprends, ou termine.</T>
         </Card>
       ) : null}
-      {noSignal ? <T variant="small" tone="warn" accessibilityRole="alert">Signal GPS faible : TITAN attend une position fiable. Rien n’est inventé.</T> : null}
+      {noSignal ? <T variant="small" tone="warn" accessibilityRole="alert">Signal GPS faible : TITAN attend une position fiable avant de compter la distance.</T> : null}
       <Card>
         <T variant="display" accessibilityLabel={`Temps actif ${clock(s.activeSeconds)}`}>{clock(s.activeSeconds)}</T>
         <T tone="muted">Temps actif</T>

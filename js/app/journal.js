@@ -258,7 +258,7 @@
     const r = l.details?.serverReward;
     if (String(window.state?.user?.id || "").startsWith("guest_")) return { cls: "", text: `≈ ${F().number(P().effortOf(l).xp)} XP estimés (mode découverte).` };
     if (l.syncStatus === "confirmed" && r && typeof r === "object" && r.reward_held) {
-      return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP retenus par précaution, au plus 24 h ; ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+      return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP arrivent d’eux-mêmes d’ici 24 h, après une vérification de routine.` };
     }
     if (l.syncStatus === "confirmed") {
       const xp = Number(r?.xp ?? l.xp) || 0;

@@ -154,7 +154,7 @@ export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggest
       ))}
       <Button label={bodyweight ? "Ajouter un mouvement" : "Ajouter un exercice"} kind="secondary" icon="plus" disabled={exercises.length >= 30} onPress={() => onChange([...exercises, emptyExercise(bodyweight ? "bodyweight" : "weighted")])} />
       <T variant="caption" tone="faint">
-        La charge la plus élevée par exercice devient un record sourcé. Pas de 1RM estimé.
+        La charge la plus élevée de chaque exercice devient un record.
       </T>
     </View>
   );

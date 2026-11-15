@@ -177,8 +177,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                     Récompense en vérification
                   </T>
                   <T variant="small">
-                    {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits sont retenus par précaution, au plus{" "}
-                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h : ils arrivent d’eux-mêmes si rien n’est trouvé. Ta séance est bien enregistrée.
+                    Ta séance est bien enregistrée. Tes {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits arrivent d’eux-mêmes d’ici{" "}
+                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h, après une vérification de routine.
                   </T>
                 </View>
               </View>
@@ -202,9 +202,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="small" accessibilityLiveRegion="polite">
                   {capped
                     ? xp > 0
-                      ? `XP confirmés, plafond de fair-play atteint : ${Format.number(xp)} comptés sur ${Format.number(receipt!.requested_xp)}.`
+                      ? `Plafond de fair-play atteint : ${Format.number(xp)} XP comptés sur ${Format.number(receipt!.requested_xp)}.`
                       : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP."
-                    : "XP confirmés par le serveur."}
+                    : "Bien joué : ton effort est compté."}
                 </T>
                 {leveledUp ? (
                   <View style={styles.levelUp}>
@@ -231,7 +231,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <Icon name={status === "confirmed" ? "journal" : status === "error" ? "alert" : "offline"} size={22} color={status === "confirmed" ? colors.cy : status === "error" ? colors.err : colors.warn} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <T variant="bodyStrong" accessibilityLiveRegion="polite">
-                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Le serveur a refusé cette séance" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
+                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Cette séance n’a pas pu être enregistrée" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
                   </T>
                   <T variant="small">
                     {status === "confirmed"

@@ -337,7 +337,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         {fieldError("date") || fieldError("time") ? <T variant="caption" tone="err">{fieldError("date") || fieldError("time")}</T> : null}
         {historical ? (
           <T variant="caption" tone="warn">
-            Séance de plus de 30 jours : elle rejoint ton journal comme historique, sans XP ni crédits (règle du serveur).
+            Séance de plus de 30 jours : elle rejoint ton journal comme historique, sans XP ni crédits.
           </T>
         ) : null}
       </Section>
@@ -480,7 +480,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </View>
           <T variant="caption" tone="muted">
             {preview.estimated ? "Durée estimée d’après la distance ou les séries. " : ""}
-            {Math.round(preview.counted)} min comptées × intensité {String(preview.intensity).replace(".", ",")}. Estimation : le serveur confirme l’XP réelle (plafonds 1 800/jour, 9 600/semaine).
+            {Math.round(preview.counted)} min d’effort × intensité {String(preview.intensity).replace(".", ",")}. Le total exact s’affiche dès que la séance est enregistrée.
           </T>
         </Card>
       ) : null}
