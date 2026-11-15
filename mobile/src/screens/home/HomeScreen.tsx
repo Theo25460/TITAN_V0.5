@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
 import { EventsTeaser } from "../community/EventsScreen";
+import { retroYear } from "../../lib/retro";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
@@ -129,6 +130,12 @@ export function HomeScreen() {
           </Card>
         </Reveal>
         {/* AUD-23/24: the tab bar already reaches Séance, Aventure and Progrès; the QG now surfaces what only it can — events and the circle. */}
+        {retroYear() && active.length ? (
+          <Card tone="amber" onPress={() => navigation.navigate("Retro", { year: retroYear()! })} accessibilityLabel={`TITAN Rétro ${retroYear()} : ton année en images`} testID="qg-retro">
+            <T variant="eyebrow" tone="amber">TITAN Rétro {retroYear()}</T>
+            <T variant="bodyStrong">Ton année en images est prête : à partager en story.</T>
+          </Card>
+        ) : null}
         <EventsTeaser onPress={() => navigation.navigate("Events")} />
         <View style={styles.destinations}>
           <Button small kind="ghost" icon="flag" label="Quêtes et événements" onPress={() => navigation.navigate("Events")} testID="qg-events" />
