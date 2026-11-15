@@ -25,7 +25,7 @@ const { social } = jest.requireActual("../test-fixtures/data");
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 
 function show(params?: { ami?: string; guilde?: string }) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   client.setQueryData(["profile", "owner-a"], { privacy: { showStats: true } });
   render(
     <QueryClientProvider client={client}>
