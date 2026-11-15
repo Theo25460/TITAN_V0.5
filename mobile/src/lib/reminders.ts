@@ -21,8 +21,6 @@ export async function ensurePermission(explain?: () => Promise<boolean>): Promis
   return next.granted;
 }
 
-/** Monday = 1 … Sunday = 7 in TITAN; expo uses 1 = Sunday … 7 = Saturday. */
-const toExpoWeekday = (d: number) => (d % 7) + 1;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 /** The local calendar day of a session date: a bare "YYYY-MM-DD" is already a local day, a full timestamp is read in local time. */
@@ -62,14 +60,35 @@ export function reminderText(at: Date, activeDays: ReadonlySet<string>, target =
   return { title: "Un créneau pour bouger ?", body: `Encore ${left} jours actifs pour tenir ta semaine. Même une courte séance compte.` };
 }
 
-export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date(), weekTarget = 0 }: { activeDays?: ReadonlySet<string>; now?: Date; weekTarget?: number } = {}) {
+export type WeekStats = { sessions: number; minutes: number; activeDays: number };
+
+/** AUD-47: the Monday recap says what this week really was (re-planned after every session), never a generic sentence. */
+export function recapText(week: WeekStats | null, target = 0): { title: string; body: string } {
+  if (!week || !week.sessions) return { title: "Ta semaine TITAN", body: "Une nouvelle semaine commence : une séance suffit pour la lancer." };
+  const h = week.minutes >= 60 ? `${Math.floor(week.minutes / 60)} h ${String(Math.round(week.minutes % 60)).padStart(2, "0")}` : `${Math.round(week.minutes)} min`;
+  const held = target > 0 && week.activeDays >= target;
+  return {
+    title: held ? "Semaine tenue !" : "Ta semaine TITAN",
+    body: `${week.activeDays}${target ? `/${target}` : ""} jour${week.activeDays > 1 ? "s" : ""} actif${week.activeDays > 1 ? "s" : ""} · ${week.sessions} séance${week.sessions > 1 ? "s" : ""} · ${h} d’effort. Ton récap complet t’attend.`,
+  };
+}
+
+/** The next Monday 9:00 after `now`. */
+export function nextMonday(now: Date): Date {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0, 0);
+  const add = (8 - d.getDay()) % 7 || 7;
+  d.setDate(d.getDate() + add);
+  return d;
+}
+
+export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date(), weekTarget = 0, week = null }: { activeDays?: ReadonlySet<string>; now?: Date; weekTarget?: number; week?: WeekStats | null } = {}) {
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!s.weeklyRecap && !s.training) return;
   await ensureChannels();
   if (s.weeklyRecap)
     await Notifications.scheduleNotificationAsync({
-      content: { title: "Ta semaine TITAN", body: "Ton récap est prêt : volume, records et prochaine étape.", data: { url: "titan://progres" }, color: ACCENT },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: toExpoWeekday(1), hour: 9, minute: 0, channelId: CHANNELS.recap.id },
+      content: { ...recapText(week, weekTarget), data: { url: "titan://progres" }, color: ACCENT },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: nextMonday(now), channelId: CHANNELS.recap.id },
     });
   for (const at of planTrainingReminders(s, now, activeDays)) {
     const text = reminderText(at, activeDays, weekTarget);

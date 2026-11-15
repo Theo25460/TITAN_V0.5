@@ -1,0 +1,123 @@
+-- AUD-48 (lot « irremplaçable », 15/11/2026): life chapters — the athlete names the periods of their sporting life (« Prépa marathon »,
+-- « Reprise après blessure », « Année à Lyon ») and TITAN tells each one in figures (active days, effort minutes, sessions). The history
+-- becomes a story that only exists here. One chapter is open at a time: starting a new one closes the previous one the day before.
+-- Private by construction (no API grant, own rows only), 60 characters per title, 100 chapters per account, dates from 1990 to today.
+-- Exported (same export layer as the cadence claims and capsules, gates unchanged) and erased with the account. Nothing granted.
+-- Additive. The caller owns the transaction: never BEGIN/COMMIT here. Requires 20261115150000 (capsules in the export layer).
+-- Rollback: drop function public.titan_chapters_v1(), public.titan_chapter_start_v1(text, date), public.titan_chapter_close_v1(uuid, date),
+-- public.titan_chapter_delete_v1(uuid); re-create private.titan_export_extras_v1 as in 20261115150000; drop table private.titan_life_chapters.
+
+create table if not exists private.titan_life_chapters (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null check (char_length(title) between 2 and 60),
+  starts_on date not null check (starts_on >= date '1990-01-01'),
+  ends_on date check (ends_on is null or ends_on >= starts_on),
+  created_at timestamptz not null default now()
+);
+create index if not exists titan_life_chapters_user_idx on private.titan_life_chapters (user_id, starts_on);
+alter table private.titan_life_chapters enable row level security;
+revoke all on private.titan_life_chapters from public, anon, authenticated;
+
+create or replace function public.titan_chapters_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_today date := (now() at time zone 'Europe/Paris')::date;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', c.id, 'title', c.title, 'startsOn', c.starts_on, 'endsOn', c.ends_on, 'open', c.ends_on is null,
+        'days', s.days, 'minutes', s.minutes, 'sessions', s.sessions) order by c.starts_on desc)
+    from private.titan_life_chapters c
+    cross join lateral (
+      select count(*) filter (where d.minutes > 0)::integer as days, coalesce(round(sum(d.minutes)), 0)::integer as minutes, coalesce(sum(d.sessions), 0)::integer as sessions
+      from private.titan_effort_days(v_uid, c.starts_on::timestamp at time zone 'Europe/Paris',
+        (coalesce(c.ends_on, v_today) + 1)::timestamp at time zone 'Europe/Paris', '-infinity'::timestamptz, 1440) d
+    ) s
+    where c.user_id = v_uid), '[]'::jsonb);
+end;
+$function$;
+
+create or replace function public.titan_chapter_start_v1(p_title text, p_starts_on date default null)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_today date := (now() at time zone 'Europe/Paris')::date;
+  v_start date := coalesce(p_starts_on, v_today);
+  v_title text := btrim(regexp_replace(coalesce(p_title, ''), '[[:cntrl:]<>]', ' ', 'g'));
+  v_id uuid;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if exists (select 1 from public.profiles p where p.id = v_uid and coalesce(p.is_suspended, false)) then raise exception 'ACCOUNT_SUSPENDED' using errcode = '42501'; end if;
+  if char_length(v_title) not between 2 and 60 then raise exception 'CHAPTER_TITLE_INVALID' using errcode = '22023'; end if;
+  if v_start > v_today or v_start < date '1990-01-01' then raise exception 'CHAPTER_DATE_INVALID' using errcode = '22023'; end if;
+  perform pg_advisory_xact_lock(hashtext('titan_chapter:' || v_uid::text));
+  if (select count(*) from private.titan_life_chapters c where c.user_id = v_uid) >= 100 then raise exception 'CHAPTER_LIMIT_100' using errcode = '22023'; end if;
+  -- The open chapter ends the day before the new one (or the same day if both start the same day).
+  update private.titan_life_chapters set ends_on = greatest(starts_on, v_start - 1)
+   where user_id = v_uid and ends_on is null and starts_on <= v_start;
+  if exists (select 1 from private.titan_life_chapters c where c.user_id = v_uid and c.ends_on is null) then
+    raise exception 'CHAPTER_OPEN_LATER' using errcode = '22023';
+  end if;
+  insert into private.titan_life_chapters (user_id, title, starts_on) values (v_uid, v_title, v_start) returning id into v_id;
+  return v_id;
+end;
+$function$;
+
+create or replace function public.titan_chapter_close_v1(p_id uuid, p_ends_on date default null)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid(); v_today date := (now() at time zone 'Europe/Paris')::date;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  update private.titan_life_chapters set ends_on = greatest(starts_on, least(coalesce(p_ends_on, v_today), v_today))
+   where id = p_id and user_id = v_uid and ends_on is null;
+  return found;
+end;
+$function$;
+
+create or replace function public.titan_chapter_delete_v1(p_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  delete from private.titan_life_chapters where id = p_id and user_id = v_uid;
+  return found;
+end;
+$function$;
+
+revoke all on function public.titan_chapters_v1(), public.titan_chapter_start_v1(text, date), public.titan_chapter_close_v1(uuid, date), public.titan_chapter_delete_v1(uuid) from public, anon;
+grant execute on function public.titan_chapters_v1(), public.titan_chapter_start_v1(text, date), public.titan_chapter_close_v1(uuid, date), public.titan_chapter_delete_v1(uuid) to authenticated;
+
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_cadence_v1(p_uid) || jsonb_build_object(
+    'cadenceWeekClaims', coalesce((
+      select jsonb_agg(jsonb_build_object('week', c.week_start, 'days', c.days, 'target', c.target, 'credits', c.credits, 'claimed_at', c.claimed_at) order by c.week_start)
+      from private.titan_cadence_claims c where c.user_id = p_uid), '[]'::jsonb),
+    'timeCapsules', coalesce((
+      select jsonb_agg(jsonb_build_object('message', t.message, 'months', t.months, 'deliver_on', t.deliver_on, 'written_minutes', t.written_minutes,
+        'written_days', t.written_days, 'created_at', t.created_at, 'opened_at', t.opened_at) order by t.created_at)
+      from private.titan_time_capsules t where t.user_id = p_uid), '[]'::jsonb),
+    'lifeChapters', coalesce((
+      select jsonb_agg(jsonb_build_object('title', l.title, 'starts_on', l.starts_on, 'ends_on', l.ends_on, 'created_at', l.created_at) order by l.starts_on)
+      from private.titan_life_chapters l where l.user_id = p_uid), '[]'::jsonb));
+$$;
+revoke all on function private.titan_export_extras_v1(uuid) from public, anon, authenticated;

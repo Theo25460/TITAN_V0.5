@@ -42,3 +42,12 @@ test("a reminder says how many active days are left in the player's week (AUD-32
   expect(reminderText(new Date(2026, 10, 19, 18), new Set(["2026-11-16", "2026-11-17", "2026-11-18"]), 3).title).toBe("Ta semaine est déjà tenue");
   expect(reminderText(wednesday, new Set(), 0).title).toBe("Un créneau pour bouger ?");
 });
+
+test("the Monday recap tells the real week and is planned for next Monday 9:00 (AUD-47)", () => {
+  const { recapText, nextMonday } = jest.requireActual("../src/lib/reminders");
+  expect(recapText({ sessions: 4, minutes: 160, activeDays: 3 }, 3)).toEqual({ title: "Semaine tenue !", body: "3/3 jours actifs · 4 séances · 2 h 40 d’effort. Ton récap complet t’attend." });
+  expect(recapText({ sessions: 0, minutes: 0, activeDays: 0 }, 3).title).toBe("Ta semaine TITAN");
+  const m = nextMonday(new Date(2026, 10, 18, 20));
+  expect([m.getDay(), m.getDate(), m.getHours()]).toEqual([1, 23, 9]);
+  expect(nextMonday(new Date(2026, 10, 16, 8)).getDate()).toBe(23);
+});

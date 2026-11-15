@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "../../components/Button";
+import { LifeChapters } from "../../components/LifeChapters";
 import { useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Card } from "../../components/Card";
@@ -244,6 +245,7 @@ export function CareerScreen() {
             </Section>
           ) : null}
 
+          <LifeChapters />
           <Section title="Grands moments">
             {c.milestones.length ? (
               <Card style={{ gap: space.s3 }} testID="career-milestones">

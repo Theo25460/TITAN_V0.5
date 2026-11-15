@@ -3,7 +3,8 @@
    day already trained. Nothing happens for a person who never turned reminders on. */
 import { useEffect, useMemo, useState } from "react";
 import { AppState } from "react-native";
-import { applyReminders, DEFAULT_REMINDERS, localDayOf, type ReminderSettings } from "../lib/reminders";
+import { applyReminders, DEFAULT_REMINDERS, localDayOf, type ReminderSettings, type WeekStats } from "../lib/reminders";
+import { Progress, Questions } from "../core";
 import { ownerKey, readJSON } from "../lib/storage";
 import { useOwner } from "./auth";
 import { useLogs, usePrefs } from "./hooks";
@@ -12,6 +13,12 @@ export function ReminderSync() {
   const owner = useOwner();
   const { active } = useLogs();
   const target = usePrefs().weeklyGoalSessions;
+  // AUD-47: this week's figures, for the Monday recap planned now and re-planned after every session.
+  const week = useMemo<WeekStats | null>(() => {
+    const cur = Questions.weeklySeries(Progress.activeLogs(active), { weeks: 1 }).find((w) => w.current);
+    return cur ? { sessions: cur.sessions, minutes: Math.round(cur.minutes), activeDays: cur.activeDays } : null;
+  }, [active]);
+  const weekKey = week ? `${week.sessions}:${week.minutes}:${week.activeDays}` : "none";
   const [today, setToday] = useState(() => localDayOf(new Date()));
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
@@ -27,13 +34,14 @@ export function ReminderSync() {
     let alive = true;
     readJSON<ReminderSettings>(ownerKey("reminders", owner), DEFAULT_REMINDERS)
       .then((s) => {
-        if (!alive || !s.training) return;
-        return applyReminders(s, { activeDays: new Set(key ? key.split(",") : []), weekTarget: target });
+        if (!alive || (!s.training && !s.weeklyRecap)) return;
+        return applyReminders(s, { activeDays: new Set(key ? key.split(",") : []), weekTarget: target, week });
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [owner, key, today, target]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, key, today, target, weekKey]);
   return null;
 }

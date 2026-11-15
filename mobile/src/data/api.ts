@@ -340,6 +340,12 @@ export type HistoryImportResult = { imported: number; linked: number; duplicate:
 export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
   ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
 
+/* ---------- Life chapters (AUD-48) ---------- */
+export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };
+export const fetchChapters = (owner: string) => ownerRpc<LifeChapter[]>(owner, "titan_chapters_v1", {});
+export const chapterStart = (owner: string, title: string) => ownerRpc<string>(owner, "titan_chapter_start_v1", { p_title: title, p_starts_on: null });
+export const chapterClose = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_chapter_close_v1", { p_id: id, p_ends_on: null });
+
 /* ---------- Time capsules (AUD-40) ---------- */
 export type Practice = { minutes: number; days: number };
 export type Capsules = {
