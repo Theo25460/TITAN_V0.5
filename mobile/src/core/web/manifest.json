@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "f2567cf5480a1874fc5e690d2719259c7d3c222f",
+  "sha": "02a2347b4452816fb0cc20a045c09ea63bb8a53c",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "60544074e7e8f3e6c6d95689a4d8b2f12c8bfdcc5274d276e5a7454ee4c098f7",
@@ -19,6 +19,7 @@
     "adventure-rpg.js": "4cd62cf0bc586ede0e246a8a6904c023c974aa93923827c02d02c5594c20e684",
     "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
     "journey.js": "7496b2b2ba1cad6e695d8e580ea5a5583b4d079c3b89f38b19a0552e2514b921",
-    "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265"
+    "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265",
+    "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51"
   }
 }

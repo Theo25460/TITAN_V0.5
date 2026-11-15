@@ -20,6 +20,7 @@ export const linking: LinkingOptions<RootParams> = {
       Sentiers: "sentiers",
       Goals: "objectifs",
       Community: "communaute",
+      Events: "evenements",
       Atelier: "atelier",
       Settings: "reglages",
       Garmin: "garmin",

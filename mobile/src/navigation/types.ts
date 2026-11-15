@@ -34,6 +34,7 @@ export type RootParams = {
   Sentiers: undefined;
   Atelier: undefined;
   Community: { ami?: string; guilde?: string } | undefined;
+  Events: undefined;
   Settings: undefined;
   Account: undefined;
   Privacy: undefined;

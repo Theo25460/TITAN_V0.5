@@ -288,6 +288,29 @@ export const guildJoin = (code: string) => rpc("titan_join_guild", { p_code: cod
 export const guildLeave = () => rpc("titan_leave_guild");
 export const guildSend = (content: string) => rpc("titan_send_guild_message", { p_content: content });
 
+/* ---------- Events (AUD-23): the server layer the website already shows ---------- */
+export type PeriodicQuests = { version: number; week: unknown; month: unknown; souvenirs: { weeks: number; months: number } };
+export type CommonQuest = { id: string; title: string; detail: string | null; weekStart: string; endsAt: string; target: number; minutes: number; members: number; joined: boolean; mine: number; state: "open" | "done" | "closed" } | null;
+export type SeasonState = { current: { id: string; name: string; rules: string | null; startsOn: string; endsOn: string; state: "upcoming" | "running"; participants: number; joined: boolean; myMinutes: number; myDays: number } | null; archive: unknown[] };
+export type WorldGoal = { id: string; title: string; detail: string | null; startsOn: string; endsOn: string; levels: number[]; minutes: number; members: number; joined: boolean; mine: number; level: number; state: "open" | "upcoming" | "closed" } | null;
+export type EventsState = { quests: PeriodicQuests | null; common: CommonQuest; season: SeasonState | null; goal: WorldGoal };
+
+/** Each piece is optional: an RPC missing on an older server only hides its card. */
+export async function fetchEvents(owner: string): Promise<EventsState> {
+  const safe = <T,>(p: Promise<T>) => p.catch((e) => (toAppError(e).code === "UNAVAILABLE" ? null : Promise.reject(e)));
+  const [quests, common, season, goal] = await Promise.all([
+    safe(ownerRpc<PeriodicQuests>(owner, "titan_periodic_quests_v1", {})),
+    safe(ownerRpc<CommonQuest>(owner, "titan_common_quest_v1", {})),
+    safe(ownerRpc<SeasonState>(owner, "titan_season_v1", {})),
+    safe(ownerRpc<WorldGoal>(owner, "titan_world_goal_v1", {})),
+  ]);
+  return { quests: quests ?? null, common: common ?? null, season: season ?? null, goal: goal ?? null };
+}
+export const questClaim = (owner: string, scope: "week" | "month") => ownerRpc(owner, "titan_periodic_quest_claim_v1", { p_scope: scope });
+export const commonQuestJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_common_quest_join_v1", { p_quest: id, p_join: join });
+export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_season_join_v1", { p_season: id, p_join: join });
+export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
+
 /* ---------- Public card ---------- */
 export type CardSettings = { enabled: boolean; slug: string | null; show: Record<string, boolean> } & Record<string, unknown>;
 export const fetchCardSettings = (owner: string) => ownerRpc<CardSettings>(owner, "titan_public_card_settings", {});

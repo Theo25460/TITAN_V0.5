@@ -144,13 +144,13 @@ describe("with account data", () => {
       await cleanup();
     }
   });
-  test("QG garde les accès Sport, Aventure et Progrès pendant le chargement", () => {
+  test("QG garde l’accès aux événements et à la communauté pendant le chargement (AUD-23/24)", () => {
     mockState.loading = true;
     show(<S.Home />);
-    for (const [name, target] of [["Sport", "Record"], ["Aventure", "Adventure"], ["Progrès", "Progress"]]) {
-      fireEvent.press(screen.getByRole("button", { name }));
-      expect(mockNav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: target });
-    }
+    fireEvent.press(screen.getByTestId("qg-events"));
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("Events");
+    fireEvent.press(screen.getByTestId("qg-community"));
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("Community");
   });
   test("QG ouvre les séances en attente et propose une action locale hors ligne", async () => {
     const online = jest.spyOn(network, "useOnline").mockReturnValue(false);

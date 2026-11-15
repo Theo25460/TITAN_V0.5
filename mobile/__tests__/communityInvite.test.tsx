@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Share } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DialogHost, resetDialogs } from "../src/components/Dialog";
+
+// Under a full parallel run the first render can exceed the 1 s default: give async queries more room.
+const slow = { timeout: 5000 };
 import { ToastProvider } from "../src/components/Toast";
 import { friendInviteMessage, friendInviteUrl, guildInviteMessage, isFriendCode, isGuildCode, parseInvite } from "../src/lib/invite";
 import { CommunityScreen } from "../src/screens/community/CommunityScreen";
@@ -61,41 +64,41 @@ test("codes and links: only well-formed codes are accepted and every message car
 
 test("a findable profile shares its code with a link at once", async () => {
   show();
-  fireEvent.press(await screen.findByTestId("share-friend-code"));
-  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: friendInviteMessage("TN-ABCD") }));
+  fireEvent.press(await screen.findByTestId("share-friend-code", undefined, slow));
+  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: friendInviteMessage("TN-ABCD") }), slow);
   expect(mockSave).not.toHaveBeenCalled();
 });
 
 test("an unfindable profile is offered the switch first; cancelling sends nothing, accepting saves then shares", async () => {
   mockSocial.mockReturnValue({ ...social, me: { ...social.me, findable: false } });
   show();
-  fireEvent.press(await screen.findByTestId("share-friend-code"));
-  expect(await screen.findByText("Rendre ton profil trouvable ?")).toBeTruthy();
+  fireEvent.press(await screen.findByTestId("share-friend-code", undefined, slow));
+  expect(await screen.findByText("Rendre ton profil trouvable ?", undefined, slow)).toBeTruthy();
   fireEvent.press(screen.getByText("Annuler"));
-  await waitFor(() => expect(screen.queryByText("Rendre ton profil trouvable ?")).toBeNull());
+  await waitFor(() => expect(screen.queryByText("Rendre ton profil trouvable ?")).toBeNull(), slow);
   expect(share).not.toHaveBeenCalled();
   expect(mockSave).not.toHaveBeenCalled();
 
   fireEvent.press(screen.getByTestId("share-friend-code"));
-  fireEvent.press(await screen.findByText("Rendre trouvable et partager"));
-  await waitFor(() => expect(share).toHaveBeenCalled());
+  fireEvent.press(await screen.findByText("Rendre trouvable et partager", undefined, slow));
+  await waitFor(() => expect(share).toHaveBeenCalled(), slow);
   expect(mockSave).toHaveBeenCalledWith({ prefs: {}, privacy: { publicProfile: true, showStats: true, socialPresence: false, friendRankings: false } });
 });
 
 test("a guild member sees the join code and can invite with a link", async () => {
   show({ guilde: "G-K7P2Q" });
-  expect(await screen.findByText("Code de guilde : G-K7P2Q")).toBeTruthy();
+  expect(await screen.findByText("Code de guilde : G-K7P2Q", undefined, slow)).toBeTruthy();
   fireEvent.press(screen.getByText("Inviter dans la guilde"));
-  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: guildInviteMessage("Les Aubes", "G-K7P2Q") }));
+  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: guildInviteMessage("Les Aubes", "G-K7P2Q") }), slow);
 });
 
 test("an opened friend link fills the code field; a malformed one is ignored", async () => {
   show({ ami: "tn-zz99" });
-  expect(await screen.findByDisplayValue("TN-ZZ99")).toBeTruthy();
+  expect(await screen.findByDisplayValue("TN-ZZ99", undefined, slow)).toBeTruthy();
 });
 
 test("an opened guild link fills the join field for someone without a guild", async () => {
   mockSocial.mockReturnValue({ ...social, guild: null });
   show({ guilde: "G-K7P2Q" });
-  expect(await screen.findByDisplayValue("G-K7P2Q")).toBeTruthy();
+  expect(await screen.findByDisplayValue("G-K7P2Q", undefined, slow)).toBeTruthy();
 });

@@ -12,6 +12,7 @@ import { WelcomeScreen } from "../screens/auth/WelcomeScreen";
 import { WorldScreen } from "../screens/adventure/WorldScreen";
 import { SentiersScreen } from "../screens/adventure/SentiersScreen";
 import { CommunityScreen } from "../screens/community/CommunityScreen";
+import { EventsScreen } from "../screens/community/EventsScreen";
 import { ReminderSync } from "../data/ReminderSync";
 import { GoalsScreen } from "../screens/progress/GoalsScreen";
 import { JournalScreen } from "../screens/progress/JournalScreen";
@@ -107,6 +108,7 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="Sentiers" component={SentiersScreen} options={{ title: "Les Sentiers du Titan" }} />
       <Stack.Screen name="Atelier" component={AtelierScreen} options={{ title: "Atelier" }} />
       <Stack.Screen name="Community" component={CommunityScreen} options={{ title: "Communauté" }} />
+      <Stack.Screen name="Events" component={EventsScreen} options={{ title: "Quêtes et événements" }} />
       <Stack.Screen name="PublicCard" component={PublicCardScreen} options={{ title: "Carte publique" }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Réglages" }} />
       <Stack.Screen name="Account" component={AccountScreen} options={{ title: "Compte" }} />

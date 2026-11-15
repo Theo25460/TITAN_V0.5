@@ -4,6 +4,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
+import { EventsTeaser } from "../community/EventsScreen";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
@@ -127,10 +128,11 @@ export function HomeScreen() {
             <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta.href)} testID="qg-hero-cta" />
           </Card>
         </Reveal>
+        {/* AUD-23/24: the tab bar already reaches Séance, Aventure and Progrès; the QG now surfaces what only it can — events and the circle. */}
+        <EventsTeaser onPress={() => navigation.navigate("Events")} />
         <View style={styles.destinations}>
-          <Button small kind="ghost" label="Sport" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} />
-          <Button small kind="ghost" label="Aventure" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
-          <Button small kind="ghost" label="Progrès" onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} />
+          <Button small kind="ghost" icon="flag" label="Quêtes et événements" onPress={() => navigation.navigate("Events")} testID="qg-events" />
+          <Button small kind="ghost" icon="group" label="Ma communauté" onPress={() => navigation.navigate("Community")} testID="qg-community" />
         </View>
         {loading ? (
           <LoadingCards count={2} />

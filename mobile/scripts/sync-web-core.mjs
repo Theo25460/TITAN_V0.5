@@ -31,6 +31,7 @@ export const MODULES = [
   "js/core/career.js",
   "js/core/journey.js",
   "js/core/adventure-access.js",
+  "js/core/periodic-quests.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };
