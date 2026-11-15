@@ -33,3 +33,12 @@ test("a bare session date is already a local day", () => {
   expect(localDayOf("2026-11-16")).toBe("2026-11-16");
   expect(localDayOf(new Date(2026, 10, 16, 23, 30))).toBe("2026-11-16");
 });
+
+test("a reminder says how many active days are left in the player's week (AUD-32)", () => {
+  const { reminderText } = jest.requireActual("../src/lib/reminders");
+  const wednesday = new Date(2026, 10, 18, 18, 0);
+  expect(reminderText(wednesday, new Set(["2026-11-16"]), 3).body).toContain("Encore 2 jours actifs");
+  expect(reminderText(wednesday, new Set(["2026-11-16", "2026-11-17"]), 3).title).toBe("Plus qu’un jour pour tenir ta semaine");
+  expect(reminderText(new Date(2026, 10, 19, 18), new Set(["2026-11-16", "2026-11-17", "2026-11-18"]), 3).title).toBe("Ta semaine est déjà tenue");
+  expect(reminderText(wednesday, new Set(), 0).title).toBe("Un créneau pour bouger ?");
+});

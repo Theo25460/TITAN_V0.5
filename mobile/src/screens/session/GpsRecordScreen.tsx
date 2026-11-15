@@ -19,6 +19,7 @@ import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } fr
 import type { Recording } from "../../lib/gpsRecorder";
 import { currentSpeed } from "../../lib/gpsTrack";
 import { haptic } from "../../lib/haptics";
+import { setVoiceEnabled, speak, splitAnnouncement, voiceEnabled } from "../../lib/voiceCoach";
 import { colors, space } from "../../theme/tokens";
 import type { RootParams } from "../../navigation/types";
 
@@ -70,6 +71,23 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   }, [live]);
 
   const summary = useMemo(() => (rec ? recorder.summary(rec, now) : null), [rec, now]);
+  // AUD-30: one spoken split per whole kilometre while recording.
+  const [voice, setVoice] = useState(true);
+  useEffect(() => {
+    voiceEnabled().then((v) => mounted.current && setVoice(v));
+  }, []);
+  const lastKm = useRef<number | null>(null);
+  useEffect(() => {
+    if (!summary || !live) return;
+    const km = summary.distanceKm;
+    if (lastKm.current === null) {
+      lastKm.current = km;
+      return;
+    }
+    const text = splitAnnouncement(lastKm.current, km, summary.activeSeconds, Sports.paceMode(rec?.sport ?? sport) === "pace" ? "pace" : "speed");
+    lastKm.current = km;
+    if (text && voice) speak(text);
+  }, [summary, live, voice, rec?.sport, sport]);
   const speed = rec && live ? currentSpeed(rec.track, now) : null;
   const paceMode = Sports.paceMode(rec?.sport ?? sport);
   const shown = (kmh: number | null) => (kmh === null ? "–" : paceMode === "pace" ? Format.pace(1, 60 / Math.max(kmh, 0.1)) : `${kmh.toFixed(1).replace(".", ",")} km/h`);
@@ -205,6 +223,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <View style={{ flexDirection: "row", gap: space.s2 }}>
             <Button label={live ? "Pause" : "Reprendre"} kind="secondary" icon={live ? "pause" : "play"} loading={busy} onPress={toggle} style={{ flex: 1 }} testID="gps-toggle" />
             <Button label="Terminer" icon="check" loading={busy} onPress={finish} style={{ flex: 1 }} testID="gps-finish" />
+            <Button small kind="ghost" label={voice ? "Voix : oui" : "Voix : non"} accessibilityHint="Annonce vocale à chaque kilomètre" onPress={() => { const next = !voice; setVoice(next); void setVoiceEnabled(next); }} testID="gps-voice" />
           </View>
         )
       }

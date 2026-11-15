@@ -48,7 +48,21 @@ export function planTrainingReminders(s: ReminderSettings, now: Date, activeDays
   return out;
 }
 
-export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date() }: { activeDays?: ReadonlySet<string>; now?: Date } = {}) {
+/** AUD-32: what a reminder says, from the week as it will stand on that day (days already active before it, the player's own goal). */
+export function reminderText(at: Date, activeDays: ReadonlySet<string>, target = 0): { title: string; body: string } {
+  if (target < 1) return { title: "Un créneau pour bouger ?", body: "Même une courte séance fait avancer ta semaine et ton aventure." };
+  const monday = new Date(at.getFullYear(), at.getMonth(), at.getDate() - ((at.getDay() + 6) % 7));
+  let done = 0;
+  for (let d = new Date(monday); d < at; d.setDate(d.getDate() + 1)) if (activeDays.has(localDayOf(d))) done++;
+  const left = Math.max(0, target - done);
+  const daysLeftInWeek = 7 - ((at.getDay() + 6) % 7);
+  if (left === 0) return { title: "Ta semaine est déjà tenue", body: "Tout ce qui suit est du bonus. Une séance douce ou du repos : les deux comptent." };
+  if (left === 1) return { title: "Plus qu’un jour pour tenir ta semaine", body: "Une séance courte suffit : 20 minutes comptent autant qu’une autre." };
+  if (left >= daysLeftInWeek) return { title: "Un créneau pour bouger ?", body: `Encore ${left} jours actifs possibles cette semaine. Sans pression : la semaine prochaine repart de zéro.` };
+  return { title: "Un créneau pour bouger ?", body: `Encore ${left} jours actifs pour tenir ta semaine. Même une courte séance compte.` };
+}
+
+export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date(), weekTarget = 0 }: { activeDays?: ReadonlySet<string>; now?: Date; weekTarget?: number } = {}) {
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!s.weeklyRecap && !s.training) return;
   await ensureChannels();
@@ -57,11 +71,13 @@ export async function applyReminders(s: ReminderSettings, { activeDays = new Set
       content: { title: "Ta semaine TITAN", body: "Ton récap est prêt : volume, records et prochaine étape.", data: { url: "titan://progres" }, color: ACCENT },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: toExpoWeekday(1), hour: 9, minute: 0, channelId: CHANNELS.recap.id },
     });
-  for (const at of planTrainingReminders(s, now, activeDays))
+  for (const at of planTrainingReminders(s, now, activeDays)) {
+    const text = reminderText(at, activeDays, weekTarget);
     await Notifications.scheduleNotificationAsync({
-      content: { title: "Un créneau pour bouger ?", body: "Même une courte séance fait avancer ta semaine et ton aventure.", data: { url: "titan://seance" }, color: ACCENT, categoryIdentifier: CATEGORY_REMINDER },
+      content: { ...text, data: { url: "titan://seance" }, color: ACCENT, categoryIdentifier: CATEGORY_REMINDER },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: CHANNELS.reminders.id },
     });
+  }
 }
 
 export async function cancelReminders() {

@@ -61,7 +61,7 @@ function PassportGroup({ title, subtitle, children }: { title: string; subtitle:
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { signOut, email, owner } = useAuth();
+  const { signOut, email, owner, isDiscovery } = useAuth();
   const profile = useProfile();
   const adventureQuery = useAdventure();
   const adventure = adventureQuery.data;
@@ -144,6 +144,19 @@ export function ProfileScreen() {
 
   function logout() {
     const pending = queue.items.length;
+    // AUD-33: a discovery account has no e-mail or password: signing out loses it for good, so saving comes first.
+    if (isDiscovery) {
+      Alert.alert(
+        "Ton compte d’essai sera perdu",
+        "Ce compte n’a ni e-mail ni mot de passe : une fois déconnecté, tes séances et ta progression ne pourront plus être retrouvées. Sauvegarde-le d’abord, c’est gratuit.",
+        [
+          { text: "Sauvegarder mon compte", onPress: () => navigation.navigate("SaveAccount") },
+          { text: "Annuler", style: "cancel" },
+          { text: "Perdre le compte et me déconnecter", style: "destructive", onPress: () => signOut().catch(() => toast({ kind: "err", title: "Déconnexion impossible" })) },
+        ],
+      );
+      return;
+    }
     Alert.alert(
       "Se déconnecter ?",
       pending ? `${Format.plural(pending, "séance n’a", "séances n’ont")} pas encore été ${pending > 1 ? "envoyées" : "envoyée"}. Elles restent sur ce téléphone et partiront à ta prochaine connexion avec ce compte.` : "Tes données restent sur ton compte TITAN. Les informations affichées sur ce téléphone seront effacées.",

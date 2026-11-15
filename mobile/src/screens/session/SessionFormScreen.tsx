@@ -4,7 +4,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { usePreventRemove } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -19,7 +19,7 @@ import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Format, Gpx, Sports } from "../../core";
-import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
+import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_LADDER, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
 import { draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
@@ -426,6 +426,12 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
               <Field compact label="Réussites" value={draft.climbing.successes} onChangeText={(successes) => setDraft((d) => ({ ...d, climbing: { ...d.climbing, successes } }))} keyboardType="number-pad" placeholder="5" error={fieldError("climbing.successes") ? " " : null} />
               <Field compact label="Meilleure cotation" value={draft.climbing.best} onChangeText={(best) => setDraft((d) => ({ ...d, climbing: { ...d.climbing, best } }))} autoCapitalize="none" placeholder={draft.climbing.system === "V-scale bloc" ? "V4" : "6a+"} error={fieldError("climbing.best") ? " " : null} />
             </View>
+            <T variant="caption" tone="muted">Meilleure cotation réussie</T>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }} testID="grade-ladder">
+              {(GRADE_LADDER[draft.climbing.system] ?? []).map((g) => (
+                <Chip key={g} label={g} selected={draft.climbing.best.trim().toLowerCase() === g.toLowerCase()} onPress={() => setDraft((d) => ({ ...d, climbing: { ...d.climbing, best: d.climbing.best === g ? "" : g } }))} />
+              ))}
+            </ScrollView>
             {fieldError("climbing.successes") || fieldError("climbing.best") ? <T variant="caption" tone="err">{fieldError("climbing.successes") || fieldError("climbing.best")}</T> : null}
             {durationBlock("Durée")}
           </>
