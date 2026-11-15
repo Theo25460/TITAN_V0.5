@@ -11,14 +11,15 @@ export const BILLING_BUILD = process.env.EXPO_PUBLIC_TITAN_BILLING === "1";
     (Play tags `titan-coach` / `coach-ultra` are labels, not product ids). The TITAN+ id is the one to confirm in Play Console: it can be
     set per build with EXPO_PUBLIC_TITAN_PLUS_SKU, and a product Google does not return is simply not offered (nothing is guessed).
     `plan` is the server's own key for the offer (private.titan_plan_products): it never changes, whatever the store calls the product.
-    The perks are what the offer gives; the PRICE is never written here: it comes from Google Play. */
+    The perks are what the offer gives, in the same words as titan-app.fr/titan-plus (docs/v131/vocabulaire.md); the analyses and the
+    coach workspace open on the website, and the card says so before the purchase. The PRICE is never written here: it comes from Google Play. */
 export const PLUS_SKU = process.env.EXPO_PUBLIC_TITAN_PLUS_SKU || "titan01";
 export const PLANS = [
-  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Analyses plus poussées", "Davantage de confort de personnalisation", "Aucune publicité"] },
-  { id: "titan02", plan: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Toute la suite Coach : calendrier, séances, messages, check-ins"] },
+  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Comparaisons sur 4, 12 ou 26 semaines et bilans détaillés, à consulter sur titan-app.fr", "20 routines nommées au lieu de 5", "Aucune publicité"] },
+  { id: "titan02", plan: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Espace coach sur titan-app.fr : calendrier, séances, messages, check-ins"] },
   { id: "titan03", plan: "coach_pro", kind: "coach", name: "Coach Ultra", tagline: "Pour accompagner 15 sportifs", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Exactement la même suite Coach : tu paies la capacité, pas des fonctions"] },
 ] as const;
-export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progresser", perks: ["Journal, statistiques de base et records", "Progression, aventure et quêtes", "Enregistrement manuel et GPS", "Publicités rares et discrètes, jamais pendant l’effort"] } as const;
+export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progresser", perks: ["Journal, statistiques de base et records", "Progression, aventure et quêtes", "Enregistrement manuel et GPS", "Publicités, jamais pendant une séance"] } as const;
 export type PlanId = string;
 
 /* The subset of expo-iap used here; the real module is loaded lazily, tests inject a fake. */
