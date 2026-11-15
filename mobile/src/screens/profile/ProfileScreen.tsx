@@ -189,7 +189,7 @@ export function ProfileScreen() {
             <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
           </View> : null}
           <View style={[styles.actions, stacked && styles.stacked]}>
-            <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
+            <ProfileRow compact fill={!stacked} title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
             {code ? <ProfileRow compact fill={!stacked} title="Code ami" subtitle={`${code} · partager`} icon="share"
               onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
           </View>
@@ -311,10 +311,12 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: space.s4 },
   stacked: { flexDirection: "column", alignItems: "stretch", flexWrap: "nowrap" },
-  intrinsic: { flex: 0 },
+  // Explicit (not `flex: 0`): the stacked cells keep their content height on every platform.
+  intrinsic: { flexGrow: 0, flexShrink: 0, flexBasis: "auto" },
   action: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s3, borderRadius: 12, borderWidth: 1, borderColor: colors.line2 },
-  actions: { flexDirection: "row", gap: space.s2 },
-  fill: { flex: 1, minWidth: 0 },
+  // The two actions share a row when both fit and wrap otherwise (long name of an action at a large text size): never squeezed letter by letter.
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  fill: { flexGrow: 1, flexShrink: 0, flexBasis: "auto" },
   between: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
   line: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 28 },
   row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s4, borderTopWidth: 1, borderTopColor: colors.line },

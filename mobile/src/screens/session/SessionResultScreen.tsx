@@ -177,7 +177,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
               <T variant="eyebrow" tone="accent">
                 {historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · {Format.relativeDay(log.date)}
               </T>
-              <T variant="h2" numberOfLines={1}>
+              <T variant="h2" numberOfLines={2}>
                 {Sports.label(log.sport)}
               </T>
             </View>
@@ -374,7 +374,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="caption" color={world.color}>
                   {world.name} · chapitre {campaign.chapter}
                 </T>
-                <T variant="bodyStrong" numberOfLines={1}>
+                <T variant="bodyStrong" numberOfLines={2}>
                   {world.chapters[campaign.chapter - 1]?.name}
                 </T>
                 {impact.campaignId ? <ProgressBar value={chapterDays / Math.max(1, campaign.target)} color={world.color} height={5} delay={800} accessibilityLabel="Avancée du chapitre confirmée" /> : null}
