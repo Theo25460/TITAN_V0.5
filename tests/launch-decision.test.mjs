@@ -26,7 +26,8 @@ test("the web checkout is switched off in the configuration and refused by the c
   assert.equal(buttons.length, 1, "one dormant web checkout button remains in the code");
   assert.match(atelier, /window\.TITAN_PAYMENTS\?\.webCheckout === true && !window\.titanInAndroidApp\?\.\(\) \? `<div class="at-plus-cta"><button[^>]*data-checkout/, "and it is only rendered when the switch is on, never in the Android app");
   assert.ok(!/e-mail de reçu Paddle/.test(atelier), "the Atelier names no Paddle receipt");
-  assert.match(atelier, /TITAN\+ : bientôt disponible\. Aucun paiement n’est proposé pour le moment/);
+  assert.match(atelier, /TITAN\+ s’achète uniquement dans l’application Android, avec Google Play\. Aucun paiement n’est proposé sur le site\./);
+  assert.ok(!/Paddle avant paiement/.test(atelier), "the dormant web branch names no seller");
 });
 
 test("the legal texts describe Google Play, not a web seller", () => {

@@ -385,7 +385,7 @@
       byFam[f] = S_().all().filter((s) => s.family === f).map((s) => s.id).sort((a, b) => S_().label(a).localeCompare(S_().label(b), "fr"));
     }
     return `
-      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1>Qu’as-tu fait&#8239;?</h1></div></header>
+      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1></div></header>
       <nav class="asc-subnav" data-subnav></nav>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
@@ -584,7 +584,7 @@
     return `
       <header class="seance-head">
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-act="back" aria-label="Changer de sport">${icon("chevronLeft")}</button>
-        <div class="seance-head-main"><p class="asc-eyebrow cy">Nouvelle séance</p><h1 class="seance-title">${esc(S_().label(S.sport))}</h1></div>
+        <div class="seance-head-main"><p class="asc-eyebrow cy">Nouvelle séance</p><h1 class="seance-title" tabindex="-1" data-form-title>${esc(S_().label(S.sport))}</h1></div>
         ${familyChip(S.sport)}
       </header>
       <div class="seance-chrono" data-running="${!!t.started}">
@@ -691,9 +691,12 @@
     const url = `/training?sport=${encodeURIComponent(sport)}`;
     if (step && history.state?.seance !== "form") history.pushState({ seance: "form" }, "", url);
     else history.replaceState(history.state?.seance === "form" ? history.state : null, "", url);
+    const hadFocus = root.contains(document.activeElement);
     render();
     persist();
     window.scrollTo({ top: 0 });
+    // The chosen chip or row is gone with the list: the keyboard continues from the title of the form, not from the top of the page.
+    if (hadFocus && document.activeElement === document.body) root.querySelector("[data-form-title]")?.focus({ preventScroll: true });
   }
 
   /* Back / Forward inside the page. Back from the form shows the picker and keeps the draft on the device (the QG and the next
@@ -708,7 +711,7 @@
       S = fresh();
       hubOpen = hubOn() && !manualRequested;
       render();
-      (root.querySelector("#sport-q") || root.querySelector("[data-hub-title]"))?.focus({ preventScroll: true });
+      (root.querySelector("[data-pick-title]") || root.querySelector("[data-hub-title]"))?.focus({ preventScroll: true });
       window.scrollTo({ top: 0 });
       return;
     }
@@ -809,6 +812,8 @@
       if (fromPicker) history.back();
       else history.replaceState(null, "", "/training");
       render();
+      // The save button is gone with the form: give the result sheet a place to hand the focus back to when it closes.
+      if (document.activeElement === document.body) (root.querySelector("[data-pick-title]") || root.querySelector("[data-hub-title]"))?.focus({ preventScroll: true });
       window.TitanMoment?.open(log);
     } catch (error) {
       if (!current()) return;

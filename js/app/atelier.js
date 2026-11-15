@@ -284,7 +284,7 @@
       return wear + purchase;
     }
     if (wear) return wear;
-    if (item.unlock === "plus") return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+ · bientôt</a>`;
+    if (item.unlock === "plus") return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+</a>`;
     if (item.unlock === "rank") return `<span class="asc-small asc-faint">Niveau ${item.min_level}</span>`;
     const short = item.price - (Number(data.credits) || 0);
     return short > 0 ? `<span class="asc-small asc-faint">Encore ${F().number(short)}</span>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}">Débloquer</button>`;
@@ -365,15 +365,15 @@
     if (p.active)
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Ton accès TITAN+.</h2>
         <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton accès TITAN+ est actif."}</p>
-        <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Jusqu’à 20 sportifs dans l’espace coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
+        <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Espace coach : 20 sportifs suivis avec TITAN+ seul ; 5 ou 15 avec une offre Coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
         <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
         <p class="asc-small asc-faint">Un accès actif peut être offert, de test ou inclus par un coach : il ne prouve pas un paiement. Pour un abonnement, utilise le prestataire indiqué sur ton reçu ; les <a href="/legal_cgu">conditions d’utilisation</a> expliquent la résiliation et les remboursements. Pour une aide : écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de confort pour ta pratique.</h2>
-      <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> dans l’espace coach au lieu de 3</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
+      <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> suivis avec TITAN+ seul ; 5 ou 15 avec une offre Coach</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
       <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
       ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition s’afficheront dès que l’Atelier répond.</p>` : ""}
-      ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">Prix final, période, taxes et résiliation affichés par Paddle avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ : bientôt disponible. Aucun paiement n’est proposé pour le moment. À son ouverture, l’abonnement sera proposé dans l’application Android, via Google Play.</span></p>`}
+      ${playBillingOffered() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-play-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+ avec Google Play</button><span class="asc-small asc-muted" data-play-price>Prix et résiliation affichés par Google Play avant paiement.</span></div>` : window.TITAN_PAYMENTS?.webCheckout === true && !window.titanInAndroidApp?.() ? `<div class="at-plus-cta"><button type="button" class="asc-btn asc-btn-primary" data-checkout ${guest() ? "disabled" : ""}>${icon("crown")} Passer à TITAN+</button><span class="asc-small asc-muted">Prix final, période, taxes et résiliation affichés par le prestataire de paiement avant paiement.</span></div>` : `<p class="asc-note">${icon("info")}<span>TITAN+ s’achète uniquement dans l’application Android, avec Google Play. Aucun paiement n’est proposé sur le site.</span></p>`}
       ${guest() && (playBillingOffered() || window.TITAN_PAYMENTS?.webCheckout === true) ? `<p class="asc-small asc-faint">Un compte est nécessaire : l’abonnement se rattache à ton profil.</p>` : ""}
       <p class="asc-small asc-faint">Le journal, les records, les objectifs, l’analyse, les quatre campagnes et la Communauté restent gratuits, sans limite de durée.</p></section>`;
   }
@@ -384,7 +384,7 @@
     if (guest()) {
       root.innerHTML = `<section class="asc-hero at-wallet"><div class="at-wallet-main"><p class="asc-eyebrow cy">Atelier</p><h2 class="cm-exp-title">Ton style se gagne à l’effort.</h2>
           <p class="asc-lead">Chaque séance rapporte des crédits. Ils débloquent des cadres, des ambiances de carte et des styles de cartes partageables. Rien ici ne change ta progression.</p>
-          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/titan-plus">TITAN+ · bientôt</a></div></div></section>
+          <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/titan-plus">TITAN+</a></div></div></section>
         ${plusHtml()}`;
       root.setAttribute("aria-busy", "false");
       return;

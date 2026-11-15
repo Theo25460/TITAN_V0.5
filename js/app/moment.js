@@ -255,6 +255,11 @@
       onClose: () => {
         closed = true;
         clearTimeout(focusTimer);
+        // The session page redraws its list behind the sheet (history update): the element that had the focus may be gone, and the
+        // focus would fall on the page body. Hand it to the page title instead, once the browser has finished closing the dialog.
+        setTimeout(() => {
+          if (document.activeElement === document.body && !document.querySelector("dialog[open]")) document.querySelector("[data-pick-title], [data-hub-title]")?.focus({ preventScroll: true });
+        }, 0);
         window.removeEventListener("titan:history-updated", update);
         window.removeEventListener("titan:adventure-updated", update);
         window.removeEventListener("titan:account-changing", closeForAccount);

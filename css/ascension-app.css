@@ -17,6 +17,13 @@
   .rc-sport .asc-section-head h2 { overflow-wrap: anywhere; }
 }
 
+/* Keyboard focus on a field: a 2 px ring, not only a border that changes colour (WCAG 2.4.7, stronger than the 1 px border of ascension.css). */
+.asc .asc-input:focus-visible,
+.asc select:focus-visible,
+.asc textarea:focus-visible { outline: 2px solid var(--cy-2); outline-offset: 1px; }
+/* A heading that receives focus after a step change is a landmark for the keyboard, not a control. */
+.asc h1[tabindex="-1"]:focus, .asc h2[tabindex="-1"]:focus { outline: none; }
+
 /* ---------- QG ---------- */
 .qg-head {
   margin-bottom: var(--s6);
@@ -123,7 +130,7 @@
   border: 1px solid var(--cy-line); color: var(--cy); font-family: var(--font-display); font-weight: 800; font-size: 14px;
 }
 @media (min-width: 860px) { .qg-how-list { grid-template-columns: repeat(3, 1fr); gap: var(--s6); } }
-#qg-lead { margin-top: var(--s2); max-width: 52ch; }
+#qg-lead { margin: 0 0 var(--s4); max-width: 52ch; }
 .qg-gain { color: var(--cy); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .qg-gain.is-estimate { color: var(--tx-2); font-weight: 600; }
 .qg-week.is-new { grid-template-columns: 1fr; }
@@ -2845,6 +2852,8 @@
   font-size: 11.5px;
   color: var(--tx-3);
 }
+/* On the tinted background of the chosen character, the faint grey fell under 4.5:1 (axe, WCAG 1.4.3). */
+.pf-avatar-pick[aria-checked="true"] small { color: var(--tx-2); }
 .pf-avatar-pick[aria-checked="true"] {
   border-color: var(--cy);
   background: var(--cy-soft);

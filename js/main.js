@@ -672,7 +672,7 @@ window.buyItem = async function(itemId, options = {}) {
     window.__titanPurchaseLocks = window.__titanPurchaseLocks || {};
     const lockKey = String(itemId || '');
     if (window.__titanPurchaseLocks[lockKey]) {
-        if(typeof window.showNotification === 'function') window.showNotification('info', 'TRANSACTION', 'Validation deja en cours.');
+        if(typeof window.showNotification === 'function') window.showNotification('info', 'TRANSACTION', 'Validation déjà en cours.');
         return;
     }
     window.__titanPurchaseLocks[lockKey] = Date.now();
@@ -963,7 +963,7 @@ window.openEliteCheckout = async function(options = {}) {
     if (!current()) return false;
     const now = Date.now();
     if (window.__titanEliteCheckoutLock && now - window.__titanEliteCheckoutLock < 5000) {
-        if(typeof window.showNotification === 'function') window.showNotification('info', 'PAIEMENT', 'Ouverture du paiement deja en cours.');
+        if(typeof window.showNotification === 'function') window.showNotification('info', 'PAIEMENT', 'Ouverture du paiement déjà en cours.');
         return false;
     }
     window.__titanEliteCheckoutLock = now;
@@ -979,7 +979,7 @@ window.openEliteCheckout = async function(options = {}) {
 
     const checkoutData = window.buildEliteCheckoutData();
     if (!window.state || !window.state.user || window.state.user.id.startsWith('guest_')) {
-        if(typeof window.showNotification === 'function') window.showNotification('error', 'CONNEXION REQUISE', 'Connecte-toi pour rattacher Elite a ton profil.');
+        if(typeof window.showNotification === 'function') window.showNotification('error', 'CONNEXION REQUISE', 'Connecte-toi pour rattacher TITAN+ à ton profil.');
         if (btn) {
             btn.innerHTML = originalText;
             btn.classList.remove('disabled');
@@ -992,7 +992,7 @@ window.openEliteCheckout = async function(options = {}) {
     }
 
     if (!checkoutData) {
-        if(typeof window.showNotification === 'function') window.showNotification('error', 'PAIEMENT', 'Le checkout Paddle Elite doit encore etre configure.');
+        if(typeof window.showNotification === 'function') window.showNotification('error', 'PAIEMENT', 'Le paiement n’est pas disponible.');
         if (btn) {
             btn.innerHTML = originalText;
             btn.classList.remove('disabled');
@@ -1010,7 +1010,7 @@ window.openEliteCheckout = async function(options = {}) {
         return true;
     } catch (error) {
         console.error('[Elite] Paddle checkout unavailable:', error);
-        if(typeof window.showNotification === 'function') window.showNotification('error', 'PAIEMENT', 'Impossible d ouvrir Paddle pour le moment.');
+        if(typeof window.showNotification === 'function') window.showNotification('error', 'PAIEMENT', 'Le paiement n’est pas disponible pour le moment.');
         return false;
     } finally {
         if (btn) {

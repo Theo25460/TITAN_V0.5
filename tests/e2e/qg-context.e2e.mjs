@@ -266,7 +266,7 @@ test('a new account reads what TITAN does and its week target, without empty fig
   await page.evaluate(()=>{window.state.history=[{id:'s1',sport:'yoga',date:new Date().toISOString(),val:30,unit:'min',details:{duration:30}}];window.dispatchEvent(new Event('titan:history-updated'));});
   await page.getByRole('heading',{name:'Dernière séance'}).waitFor();
   assert.equal(await how.count(),0,'the explanation leaves once a session exists');
-  assert.equal(await page.locator('#qg-lead').isVisible(),false);
+  assert.equal(await page.locator('#qg-lead').count(),0);
   assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });

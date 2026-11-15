@@ -21,7 +21,6 @@
     const el = root();
     if (el) { el.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; el.setAttribute("aria-busy", "true"); }
     const title = document.getElementById("qg-title"); if (title) title.textContent = "Ton QG";
-    const lead = document.getElementById("qg-lead"); if (lead) lead.hidden = true;
     const dialog = cadenceDialog; cadenceDialog = null; if (dialog?.open) dialog.close();
   }
   function adopt() {
@@ -373,8 +372,10 @@
     const name = (window.state.user.name || "").trim();
     document.getElementById("qg-date").textContent = f.longDate(now);
     document.getElementById("qg-title").textContent = guest || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
-    const lead = document.getElementById("qg-lead"); if (lead) lead.hidden = list.length > 0;
+    // A new account reads one line about TITAN first. It is drawn with the rest of the QG (not kept hidden in the page head), so
+    // nothing already on screen moves when it appears.
     paint(el, `
+      ${list.length ? "" : `<p class="asc-lead" id="qg-lead">Ton journal de sport : chaque séance fait monter ton niveau et avancer ton aventure.</p>`}
       ${ascentHtml(D().progression())}
       ${heroHtml(action)}
       ${destinationsHtml()}

@@ -92,8 +92,9 @@ test("session page: Back returns from the form to the list of sports and keeps t
     await page.goto(BASE + "/aujourdhui");
     await page.locator(".qg-hero .asc-btn-primary").click();
     await page.waitForURL("**/training");
-    await page.locator('#seance [data-sport="yoga"]').first().click();
+    await page.locator('#seance [data-sport="yoga"]').first().press("Enter");
     await page.waitForURL("**/training?sport=yoga");
+    assert.equal(await page.evaluate(() => document.activeElement?.matches("[data-form-title]")), true, "the keyboard continues from the title of the form");
     await page.locator('[data-k="durM"]').fill("25");
     await page.waitForFunction(() => JSON.parse(localStorage.getItem(`titan_seance_draft_v3:${window.state.user.id}`) || "null")?.durM === "25");
 
@@ -144,6 +145,7 @@ test("a double click on Enregistrer sends one session, and the result reads: don
     await recap.waitFor();
     await recap.locator('.moment-gain.has-ring').waitFor(); // the server receipt arrived
     assert.equal(count(calls, "titan_submit_training_session"), 1, "one request for one session");
+    assert.equal(await page.evaluate(() => !!document.activeElement?.closest("dialog[open]")), true, "the focus is inside the result");
     assert.equal(await page.evaluate(() => window.state.history.length), 1);
 
     assert.deepEqual(await recap.locator("h3").allInnerTexts().then(list => list.map(t => t.trim().toLowerCase())), ["tu as fait", "ce que ça change", "et ensuite ?"]);
@@ -153,6 +155,8 @@ test("a double click on Enregistrer sends one session, and the result reads: don
     assert.match(await recap.locator(".moment-reward").innerText(), /Confirmée par le serveur/);
     assert.ok((await recap.locator(".moment-next").innerText()).trim().length > 20, "one next step is written out");
     assert.equal(await recap.locator(".asc-btn-primary").count(), 1, "one primary action");
+    await recap.locator('[data-moment="done"]').press("Enter");
+    await page.waitForFunction(() => !document.querySelector("dialog[open]") && document.activeElement?.matches("[data-pick-title]"));
     assert.deepEqual(errors, []);
   } finally { await context.unrouteAll({ behavior: "ignoreErrors" }); await context.close(); }
 });
