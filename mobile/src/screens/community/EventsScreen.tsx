@@ -46,7 +46,7 @@ export function EventsScreen() {
 
   if (q.isLoading && !q.data) return <Screen><LoadingCards /></Screen>;
   if (!q.data) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
-  const { quests, common, season, goal, cadence } = q.data;
+  const { quests, common, season, goal, cadence, titles } = q.data;
   const heldWeeks = cadence ? [cadence.current, cadence.previous].filter((w) => w.held && !w.claimed) : [];
   const label = (s: string) => Sports.label(s);
   const views = [quests?.week, quests?.month].map((x) => PeriodicQuests.describe(x, { sportLabel: label })).filter((x): x is QuestView => !!x);
@@ -127,6 +127,19 @@ export function EventsScreen() {
           {goal.state !== "closed" ? (
             <Button small kind={goal.joined ? "ghost" : "secondary"} label={goal.joined ? "Ne plus participer" : "Participer"} loading={busy} onPress={() => act.mutate({ fn: () => api.worldGoalJoin(owner, goal.id, !goal.joined), ok: goal.joined ? "Participation retirée" : "Tu participes à l’objectif mondial" })} testID="join-goal" />
           ) : null}
+        </Card>
+      ) : null}
+      {/* AUD-45: the archive of collective adventures lived — titles that are never issued again. */}
+      {titles.length ? (
+        <Card style={{ gap: space.s2 }} testID="expedition-archive">
+          <T variant="eyebrow" tone="amber">Mes expéditions accomplies · {titles.length}</T>
+          {titles.map((t) => (
+            <View key={t.id} style={{ gap: 2 }}>
+              <T variant="bodyStrong">« {t.title} »</T>
+              <T variant="caption" tone="muted">{t.expedition} · terminée le {shortDate(t.ended_at)}</T>
+            </View>
+          ))}
+          <T variant="caption" tone="faint">Chaque titre d’expédition n’est décerné qu’une fois : il raconte que tu y étais.</T>
         </Card>
       ) : null}
     </Screen>

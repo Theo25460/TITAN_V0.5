@@ -8,6 +8,7 @@ import { EventsTeaser } from "../community/EventsScreen";
 import { periodBounds, retroMonth, retroYear } from "../../lib/retro";
 import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { CadenceNotches } from "../../components/Cadence";
+import { baselineLine, weeklyBaseline } from "../../lib/baseline";
 import { HealthDetectCard } from "../../components/HealthDetectCard";
 import { MemoryCard } from "../../components/MemoryCard";
 import { MilestoneCard } from "../../components/MilestoneCard";
@@ -177,6 +178,10 @@ export function HomeScreen() {
                 <T variant="eyebrow" tone="accent">Mes 8 dernières semaines</T>
                 <CadenceNotches cadence={cadence} />
                 <T variant="caption" tone="muted">{cadence.held}/{cadence.window} semaines tenues · {cadence.lifetimeHeld} depuis tes débuts</T>
+                {(() => {
+                  const b = weeklyBaseline(active);
+                  return b ? <T variant="small" testID="qg-baseline">{baselineLine(b, Format.duration)}</T> : null;
+                })()}
               </Card>
             ) : null}
             {draft ? null : lastSessionsToRepeat(active, 1).map((log) => <RepeatLastCard key={log.id} log={log} compact />)}
