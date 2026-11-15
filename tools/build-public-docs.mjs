@@ -207,6 +207,7 @@ doc({
   description: "Les engagements de TITAN : privé par défaut, aucune progression vendue, aucune publicité sur le site, données exportables et supprimables.",
   body: `${legalNav}
 <p>Les <a href="/legal_cgu">conditions d’utilisation</a> expliquent Google Play, le renouvellement, la résiliation, les remboursements et la différence entre un achat vérifié et un accès offert ou de test.</p>
+<h2>Nos engagements</h2>
 <div class="pub-grid cols-2"><article class="pub-card pub-feature"><svg class="t-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><h3>Privé par défaut</h3><p>Journal privé, amis sur demande acceptée, profil public désactivé, coach seulement avec ton accord.</p></article><a href="/niveaux-et-xp" class="pub-card pub-feature"><svg class="t-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6Z"/><path d="m8 12 3 3 5-6"/></svg><h3>Aucune progression vendue</h3><p>Mêmes formules et mêmes plafonds pour tous. TITAN+ n’achète ni XP, ni crédits, ni avance.</p></a><article class="pub-card pub-feature"><svg class="t-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><h3>Publicité encadrée</h3><p>Aucune publicité sur le site ni dans l’application Web. Dans l’application Android gratuite, Google AdMob, jamais avant le formulaire de consentement de Google ni pendant une séance ; aucune avec TITAN+ ou les offres Coach. Aucune revente de données.</p></article><article class="pub-card pub-feature"><svg class="t-icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><h3>Tes données, à toi</h3><p>Export JSON et CSV, suppression du compte depuis Profil.</p></article></div>
 <h2>Documents</h2><ul><li><a href="/legal_privacy">Politique de confidentialité</a> — données, finalités, durées, droits.</li><li><a href="/legal_cgu">Conditions d’utilisation</a> — règles, TITAN+, équité, communauté.</li><li><a href="/legal_mentions">Mentions légales</a> — éditeur, hébergement, crédits.</li><li><a href="/regles-communaute">Règles de la communauté</a> — ce qui est interdit, comment signaler, ce que l’équipe peut faire, comment contester.</li><li><a href="/supprimer-mon-compte">Supprimer mon compte</a> — comment, et ce qui est effacé ou conservé.</li></ul>
 <h2>Nous écrire</h2><p>Question, demande RGPD, signalement d’un contenu ou d’une faille : <a href="mailto:titanteam.app@gmail.com">titanteam.app@gmail.com</a>.</p>`,
@@ -247,6 +248,14 @@ writeFileSync(
 
 /* ---------------------------------------------------------------- Changelog */
 const releases = [
+  ["1.1", "Communauté, import d’activités et suivi", "3 novembre 2026", [
+    "Séance : import d’un fichier GPX analysé sur ton appareil (distance, temps en mouvement, pauses, dénivelé, temps par kilomètre) et connexion Garmin facultative.",
+    "Quêtes facultatives de la semaine et du mois, quête commune, saisons de 28 jours : un souvenir à la clé, jamais d’XP ni de crédits.",
+    "Communauté : clubs privés, TITAN Duo sur quatorze jours, liens d’invitation à un défi, classement entre amis facultatif.",
+    "Coaching : messages du suivi, modèles de séance et check-in hebdomadaire partagé seulement si le sportif le choisit.",
+    "Longues sorties reconnues par des souvenirs dans le profil, sans XP en plus.",
+    "Mesure de fréquentation Google Analytics, facultative et seulement après ton accord ; les conditions d’utilisation et la politique de confidentialité ont été mises à jour.",
+  ]],
   ["300", "Ascension", "5 octobre 2026", [
     "Nouvelle application : cinq espaces (QG, Progrès, Séance, Aventure, Profil), mobile d’abord, hors ligne.",
     "XP calculée à partir de l’effort (durée × ressenti), mêmes plafonds pour tous ; séances anciennes en historique.",
@@ -265,10 +274,10 @@ const releases = [
 doc({
   route: "/changelog",
   file: "changelog.html",
-  title: "Nouveautés de TITAN",
+  title: "Nouveautés de TITAN : les versions de l’application",
   h1: "Nouveautés",
   eyebrow: "Journal des versions",
-  description: "Les évolutions importantes de TITAN, expliquées simplement : version 300 Ascension et versions précédentes.",
+  description: "Les évolutions importantes de TITAN, expliquées simplement : version 1.1 de novembre 2026, version 300 Ascension et versions précédentes.",
   image: "aurora",
   body: releases.map(([v, name, date, items]) => `<h2>v${v} — ${name}</h2><p class="pub-fine">${date}</p><ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`).join(""),
 });
@@ -294,9 +303,9 @@ const FAMILY_TEXT = {
   mobilite: "Durée et ressenti, pour le yoga, les étirements et la récupération active.",
 };
 const FAMILY_GUIDES = {
-  endurance: ["/journal-course-a-pied", "Voir le journal de course à pied"],
-  force: ["/carnet-musculation", "Voir le carnet de musculation"],
-  technique: ["/suivi-escalade", "Comprendre les cotations d’escalade"],
+  endurance: [["/journal-course-a-pied", "Voir le journal de course à pied"], ["/suivi-velo", "Voir le journal vélo, gravel et VTT"]],
+  force: [["/carnet-musculation", "Voir le carnet de musculation"]],
+  technique: [["/suivi-escalade", "Comprendre les cotations d’escalade"]],
 };
 writeFileSync(
   "sports.html",
@@ -309,10 +318,10 @@ writeFileSync(
       ${[...byFamily.entries()]
         .sort((a, b) => b[1].length - a[1].length)
         .map(([fam, list]) => {
-          const guide = FAMILY_GUIDES[fam];
+          const guides = FAMILY_GUIDES[fam] || [];
           return `<section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">${icon(SP.FAMILY_ICON[fam] || "bolt")} ${list.length} sports</p><h2>${esc(SP.FAMILY_LABEL[fam] || fam)}</h2><p class="pub-lead">${FAMILY_TEXT[fam] || ""}</p></div>
             <p class="pub-prose" style="max-width:none">${list.sort((a, b) => a.localeCompare(b, "fr")).map(esc).join(" · ")}</p>
-            ${guide ? `<a class="pub-link" href="${guide[0]}" style="margin-top:16px">${guide[1]} ${icon("arrow")}</a>` : ""}</div></section>`;
+            ${guides.map(([href, label]) => `<a class="pub-link" href="${href}" style="margin-top:16px">${label} ${icon("arrow")}</a>`).join("")}</div></section>`;
         })
         .join("")}${finalCta("valley")}`,
   }),
@@ -337,7 +346,24 @@ doc({
 const SPORTS_PARENT = ["/sports", "Les sports"];
 const FEATURES_PARENT = ["/fonctionnalites", "Fonctionnalités"];
 
-function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, parent }) {
+// Guides link to their neighbours from the content itself, so none depends on the footer alone to be found.
+const GUIDES = {
+  "/journal-course-a-pied": ["run", "Course à pied", "Allure, records et import GPX."],
+  "/suivi-velo": ["bike", "Vélo, gravel et VTT", "Distance, dénivelé, GPX et longues sorties."],
+  "/carnet-musculation": ["weight", "Musculation", "Séries, charges, routines et records."],
+  "/suivi-escalade": ["mountain", "Escalade", "Cotations de bloc et carnet de séances."],
+  "/suivi-sportif": ["layers", "Suivi multisport", "Un seul journal pour tous tes sports."],
+  "/journal-entrainement": ["journal", "Journal d’entraînement", "Retrouver, corriger, exporter."],
+  "/progression-sportive": ["chart", "Progression sportive", "Des comparaisons justes, avec leurs sources."],
+  "/motivation-sport": ["calendar", "Motivation", "Une cadence choisie, des pauses sans pénalité."],
+  "/defis-sportifs": ["flag", "Défis et quêtes", "Entre amis, sans mise ni pression."],
+  "/aventures-sportives": ["compass", "L’aventure", "Quatre mondes que ton sport rallume."],
+  "/niveaux-et-xp": ["crown", "Niveaux et XP", "Les règles de la progression."],
+  "/comprendre-mes-donnees": ["target", "Comprendre mes données", "Mesures, records et limites."],
+};
+const relatedGuides = (routes) => `<section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">À lire aussi</p><h2>Guides voisins</h2></div>${cards(routes.map((r) => [...GUIDES[r], r]), 4)}</div></section>`;
+
+function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, parent, related = [] }) {
   const f = faq(faqItems, "Questions fréquentes");
   const breadcrumb = breadcrumbTrail(route, eyebrow, parent);
   writeFileSync(
@@ -350,7 +376,7 @@ function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, s
       schema: [f.schema],
       breadcrumb,
       body: `<header class="pub-page-head"><div class="pub-wrap">${breadcrumb.html}<p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="/fonctionnalites">Toutes les fonctionnalités</a></div></div></header>
-        <div class="pub-wrap"><article class="pub-article">${sections.map(([t, body]) => `<section><h2>${t}</h2><div class="pub-prose">${body}</div></section>`).join("")}</article></div>${f.html}${finalCta(image === "valley" ? "archipelago" : "valley")}`,
+        <div class="pub-wrap"><article class="pub-article">${sections.map(([t, body]) => `<section><h2>${t}</h2><div class="pub-prose">${body}</div></section>`).join("")}</article></div>${related.length ? relatedGuides(related) : ""}${f.html}${finalCta(image === "valley" ? "archipelago" : "valley")}`,
     }),
   );
 }
@@ -362,19 +388,22 @@ seoGuide({
   title: "Journal de course à pied : allure, records et progression | TITAN",
   h1: "Un journal de course<br>qui comprend tes sorties",
   eyebrow: "Course à pied",
-  description: "Note tes sorties en distance et durée à la seconde, importe un GPX, suis ton allure sur des sorties comparables et tes records sur 5, 10, 21,1 et 42,2 km.",
+  description: "Note tes sorties en distance et durée à la seconde, importe un GPX, suis ton allure sur des sorties comparables et tes records sur 1, 5, 10, 21,1 et 42,2 km.",
   image: "valley",
   lead: "Distance, durée à la seconde, allure, dénivelé : enregistre ta sortie en quelques secondes et vois si tu progresses vraiment.",
   sections: [
     ["Ce que tu enregistres", `<p>La distance et la durée (heures, minutes, secondes), ton ressenti de 1 à 10, et si tu veux une note. Un fichier GPX de ta montre remplit la distance, le temps en mouvement et le dénivelé ; le tracé du fichier importé n’est pas conservé.</p>`],
     ["Des records honnêtes", `<p>Tes meilleurs temps sur 1, 5, 10, 21,1 et 42,2 km comparent des sorties entières dont la distance est à ±1 % de la référence. Chaque record garde sa séance source et l’historique de ses améliorations.</p>`],
     ["Ton allure, sur des sorties comparables", `<p>Le récap de la semaine compare ton allure sur des sorties de longueur proche, pour ne pas mélanger un fractionné et une sortie longue : « 5:02 /km contre 5:14 il y a deux mois ».</p>`],
+    ["Importer un GPX", `<p>Le fichier est analysé sur ton appareil : distance, temps en mouvement, pauses, dénivelé positif et négatif et, quand l’enregistrement est complet, temps par kilomètre. Un GPX reste une importation, pas une preuve d’effort : tu choisis le sport et tu valides la séance avant qu’elle rejoigne ton journal.</p>`],
     ["Progresser sans se brûler", `<p>Ton XP vient de l’effort : les 90 premières minutes comptent pleinement, les 90 suivantes à moitié. Une semaine régulière vaut mieux qu’un dimanche démesuré, et la maîtrise de la course demande des heures et des semaines de pratique.</p>`],
   ],
   faqItems: [
     ["Faut-il une montre GPS ?", "Non. La distance et la durée suffisent. Le GPX est un plus si tu en as un."],
     ["Les records sont-ils des segments de ma trace ?", "Non : ils comparent des sorties entières de distance proche. C’est moins flatteur, mais plus juste."],
+    ["Le journal de course est-il gratuit ?", "Oui. Le journal, les records et le récap de la semaine sont gratuits, sans publicité sur le site."],
   ],
+  related: ["/suivi-velo", "/progression-sportive", "/journal-entrainement", "/motivation-sport"],
 });
 seoGuide({
   route: "/carnet-musculation",
@@ -390,21 +419,24 @@ seoGuide({
     ["Série par série", `<p>Ajoute tes exercices, puis chaque série : charge, répétitions et RIR si tu le suis. Duplique une série, réordonne les exercices, mémorise la séance en routine pour la recharger la prochaine fois (5 routines, 20 avec TITAN+).</p>`],
     ["Une progression lisible", `<p>Chaque exercice est suivi séparément, avec sa variante et son équipement : un squat goblet n’est pas un squat barre. Le récap répond à « ma force progresse-t-elle ? » avec ta meilleure série et son évolution.</p>`],
     ["Des records sans extrapolation", `<p>Le record de charge affiche les répétitions réellement faites. TITAN ne fabrique pas de 1RM estimé et rappelle qu’un volume plus élevé ne prouve pas, à lui seul, un gain de force.</p>`],
+    ["Des routines pour ne pas tout ressaisir", `<p>Une routine garde tes exercices, tes séries, tes charges et tes répétitions. Recharge-la, ajuste ce qui a changé, enregistre. Cinq routines sont gratuites ; au-delà, celles que tu as déjà restent utilisables, et TITAN+ permet d’en garder jusqu’à vingt.</p>`],
     ["L’effort, pas le tonnage", `<p>L’XP vient de la durée et de ton ressenti, comme pour tous les sports : soulever plus lourd ne rapporte pas plus de points qu’une séance d’endurance de même effort.</p>`],
   ],
   faqItems: [
     ["Puis-je suivre des exercices au poids du corps ?", "Oui : les répétitions sont suivies sans inventer de charge."],
     ["Que se passe-t-il si je corrige une série ?", "Les records et analyses sont recalculés ; l’XP de la séance ne change pas."],
+    ["Le carnet de musculation est-il gratuit ?", "Oui. Les séries, les records, la progression par exercice et cinq routines sont gratuits. TITAN+ porte le nombre de routines à vingt."],
   ],
+  related: ["/progression-sportive", "/journal-entrainement", "/suivi-sportif", "/comprendre-mes-donnees"],
 });
 seoGuide({
   route: "/suivi-escalade",
   parent: SPORTS_PARENT,
   file: "suivi-escalade.html",
-  title: "Cotations de bloc : Fontainebleau, V-scale et suivi | TITAN",
-  h1: "Comprendre les cotations,<br>suivre ton escalade",
+  title: "Cotations de bloc en escalade : Fontainebleau et V-scale | TITAN",
+  h1: "Cotations de bloc en escalade :<br>les lire, puis suivre tes séances",
   eyebrow: "Escalade · bloc et voie",
-  description: "Lis les cotations de bloc Fontainebleau et V-scale, distingue bloc et voie, puis garde tes essais et réussites dans un journal d’escalade gratuit.",
+  description: "L’échelle des cotations de bloc en escalade : Fontainebleau, V-scale, repères de correspondance, bloc ou voie, et un carnet gratuit pour tes séances.",
   image: "aurora",
   lead: "Que signifie 6A+ ? Peut-on comparer un bloc et une voie ? Des repères pour lire une cotation, puis noter tes séances sans perdre leur contexte.",
   sections: [
@@ -417,16 +449,34 @@ seoGuide({
       ])}
       <p>La notation habituelle distingue les majuscules du bloc (6A) et les minuscules de la voie (6a). Les couleurs dépendent de la salle ; demande sa légende. Les cotations restent des appréciations : le style et l’ouverture changent le ressenti.</p>
       <p class="pub-fine">Repères vérifiés le 2 novembre 2026 : <a href="https://thebmc.co.uk/en/indoor-climbing-grades-explained">British Mountaineering Council — comprendre les cotations en salle (en anglais)</a>.</p>`],
+    ["L’échelle Fontainebleau et ses repères en V-scale", `<p>Du plus facile au plus difficile. En dessous de 6, la cotation Fontainebleau s’écrit le plus souvent sans lettre (4, 5, 5+) ; à partir de 6, chaque chiffre se divise en A, B et C, chacun avec ou sans +.</p>
+      ${table(["Fontainebleau", "Repère en V-scale"], [
+        ["4", "V0"],
+        ["5", "V1"],
+        ["5+", "V2"],
+        ["6A · 6A+", "V3"],
+        ["6B · 6B+", "V4"],
+        ["6C · 6C+", "V5"],
+        ["7A", "V6"],
+        ["7A+", "V7"],
+        ["7B · 7B+", "V8"],
+        ["7C", "V9"],
+        ["7C+", "V10"],
+        ["8A", "V11"],
+      ])}
+      <p>Ce sont les repères que l’on retrouve le plus souvent dans les tableaux publiés. Ils restent <strong>indicatifs</strong> : d’une source à l’autre, la correspondance bouge d’un demi-degré, surtout dans les premiers niveaux, et une même cotation ne se grimpe pas pareil d’un site ou d’une salle à l’autre. Au-delà de 8A, les deux échelles continuent de la même façon.</p>`],
     ["Équivalences : garder le système d’origine", `<p>Un tableau Font/V peut aider à se repérer, mais une conversion reste approximative. Une cotation de bloc ne décrit pas la même pratique qu’une cotation de voie. TITAN conserve donc <strong>la cotation dans son système d’origine</strong> et ne transforme pas un 6A en V3 ni en 6a.</p><p>Tu changes de salle ? Garde le lieu et le style dans tes notes plutôt que d’assimiler deux couleurs identiques. Tu passes dehors ? Le niveau réussi en salle ne garantit pas la réussite sur le rocher.</p><p class="pub-fine">Pour approfondir : <a href="https://www.mammut.com/fr/fr/stories-guides/bouldering-difficulty-scales-explained-climbers-guide">Mammut — échelles de bloc et limites des conversions</a> ; <a href="https://services.thebmc.co.uk/media/files/Skills/Leaflets/New%20Rock%20Climbers.pdf">BMC — débuter sur le rocher (PDF, en anglais)</a>.</p>`],
     ["Un exemple de carnet, sans fausse progression", `<p><strong>Exemple fictif de lecture du carnet</strong> : mardi, tu notes une meilleure réussite en 6A Font, 8 essais et 3 réussites. Jeudi, tu notes 6A+ Font, 12 essais et 4 réussites. Tu as réussi une cotation supérieure dans ce système, mais ces deux séances seules ne prouvent pas une progression durable.</p><p>Ajoute dans tes notes ce que les nombres oublient : même salle ou même secteur, dalle ou dévers, nouveau bloc ou passage déjà travaillé. Un essai non réussi garde son intérêt dans le carnet ; ne le saisis pas comme meilleure réussite. Le prochain repère peut être de refaire un passage avec moins d’essais, sans viser une cotation plus haute.</p>`],
-    ["Ce que tu notes dans TITAN", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p><p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, avec les séances sources. <a href="/comprendre-mes-donnees">Comprendre les mesures et leurs limites</a> ou <a href="/journal-entrainement">découvrir le journal, les corrections et l’export</a>.</p>`],
+    ["Ce que tu notes dans TITAN", `<p>La discipline (bloc, voie), le lieu, le mode d’assurage, le système de cotation, ta meilleure réussite, et si tu veux tes essais et réussites. La durée et le ressenti alimentent l’effort. Une cotation inconnue reste dans la séance sans recevoir de valeur inventée.</p><p>À la saisie, TITAN reconnaît en Fontainebleau un chiffre, une lettre à partir de 6 et un + éventuel (5+, 6A, 6B+, 7A) ; en V-scale, VB puis V0, V1, V2 et la suite ; en voie, la cotation française en minuscules (6a+). Une cotation écrite autrement t’est signalée avant l’enregistrement, pour que tu la corriges plutôt que de la laisser deviner.</p><p>Le récap montre l’évolution de ta meilleure cotation sur la période, par système, discipline et lieu, avec les séances sources. <a href="/comprendre-mes-donnees">Comprendre les mesures et leurs limites</a> ou <a href="/journal-entrainement">découvrir le journal, les corrections et l’export</a>.</p>`],
   ],
   faqItems: [
     ["Que veut dire 6A+ en bloc ?", "Dans le système Fontainebleau, 6A+ se situe entre 6A et 6B. Garde le nom du système avec la cotation pour éviter de la confondre avec une voie."],
     ["Une couleur correspond-elle toujours à la même cotation ?", "Non. Consulte la légende de ta salle et garde le lieu dans ton carnet. TITAN ne convertit pas une couleur en cotation."],
     ["Puis-je comparer un bloc 6A et une voie 6a ?", "Pas comme deux performances équivalentes. TITAN sépare la discipline et le système de cotation pour garder le contexte."],
+    ["TITAN peut-il servir de carnet de croix ?", "En partie. TITAN garde, séance par séance, ta meilleure cotation réussie, tes essais et tes réussites, par système, discipline et lieu. Il ne tient pas une liste bloc par bloc ou voie par voie : écris le nom d’un passage dans la note de la séance si tu veux le retrouver."],
     ["Le carnet d’escalade est-il gratuit ?", "Oui. Le journal et ses exports sont gratuits et sans publicité sur le web. Tu peux essayer sans compte ; les séances restent alors sur cet appareil."],
   ],
+  related: ["/progression-sportive", "/suivi-sportif", "/carnet-musculation", "/defis-sportifs"],
 });
 seoGuide({
   route: "/suivi-sportif",
@@ -442,8 +492,15 @@ seoGuide({
     ["Chaque sport ses champs", `<p>${rows.length} sports, chacun avec sa famille et ses mesures : distance et allure, séries et charges, cotations, durée et ressenti. <a href="/sports">Voir le catalogue</a>.</p>`],
     ["Un effort comparable", `<p>Pour additionner des sports différents sans les trahir, TITAN utilise des minutes d’effort : la durée comptée multipliée par ton ressenti. Une séance typique de 45 minutes rapporte environ ${typical.xp} XP, quel que soit le sport.</p>`],
     ["Où va ton temps", `<p>Le récap montre la part de chaque famille (endurance, force, technique, jeu, mobilité) sur douze semaines, et ton sport de la semaine.</p>`],
+    ["Cinq familles, des mesures qui ont du sens", `<p><strong>Endurance</strong> : distance, durée à la seconde, allure ou vitesse, dénivelé. <strong>Force</strong> : exercices, séries, charges, répétitions. <strong>Technique</strong> : cotations, essais et réussites. <strong>Jeu et combat</strong> : durée, matchs, sets ou rounds. <strong>Mobilité</strong> : durée et ressenti. Une mesure que tu ne donnes pas reste vide : TITAN n’invente rien pour remplir un graphique.</p>`],
+    ["Une progression par sport, et une pour toi", `<p>Chaque sport a sa maîtrise : dix paliers qui demandent des heures et des semaines de pratique. Ton rang, lui, avance avec toutes tes séances, selon la même formule quel que soit le sport. Records, objectifs et récap de la semaine restent rangés sport par sport. <a href="/niveaux-et-xp">Les règles de progression</a>.</p>`],
   ],
-  faqItems: [["Mon sport n’est pas dans la liste.", "Écris-nous : le catalogue s’enrichit régulièrement. En attendant, choisis le sport le plus proche."]],
+  faqItems: [
+    ["Mon sport n’est pas dans la liste.", "Écris-nous : le catalogue s’enrichit régulièrement. En attendant, choisis le sport le plus proche."],
+    ["Puis-je enregistrer deux sports le même jour ?", "Oui. Chaque séance garde son sport et ses mesures. Pour l’aventure, plusieurs séances le même jour comptent pour un seul jour actif."],
+    ["Le suivi multisport est-il gratuit ?", "Oui. Le journal, les 260 sports, les records, les objectifs et le récap de la semaine sont gratuits, sans limite de durée."],
+  ],
+  related: ["/journal-course-a-pied", "/suivi-velo", "/carnet-musculation", "/suivi-escalade"],
 });
 seoGuide({
   route: "/journal-entrainement",
@@ -459,8 +516,16 @@ seoGuide({
     ["Retrouver", `<p>Recherche, filtres par famille et période, vue liste ou calendrier. Chaque séance ouvre son détail, sa comparaison avec la séance précédente du même sport et ses éventuels records.</p>`],
     ["Corriger sans tricher", `<p>Une erreur de saisie se corrige : les analyses et records se mettent à jour, l’XP ne bouge pas. Une séance archivée peut être restaurée.</p>`],
     ["Hors ligne et exportable", `<p>Une séance enregistrée sans réseau reste sur l’appareil et se synchronise toute seule. Tout ton journal s’exporte en CSV, toutes tes données en JSON.</p>`],
+    ["Ce que contient une séance", `<p>Un sport, une date, puis les mesures utiles : distance et durée pour une sortie, exercices et séries en musculation, cotations en escalade, durée et ressenti pour tout le reste. Ajoute une note si tu veux te souvenir du contexte. Une séance n’est comptée qu’une fois, qu’elle vienne d’une saisie ou d’un fichier importé.</p>`],
+    ["Une séance oubliée a sa place", `<p>Tu peux ajouter une séance après coup. Saisie plus de 30 jours après sa date, elle rejoint ton historique : elle compte pour le journal, les records et la maîtrise, sans XP.</p>`],
+    ["Du journal aux réponses", `<p>Le journal alimente le récap de la semaine, les records avec leur séance source, les objectifs et le bilan du mois et de l’année. <a href="/progression-sportive">Lire sa progression</a> ou <a href="/comprendre-mes-donnees">comprendre les mesures</a>.</p>`],
   ],
-  faqItems: [["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité sur le site web."]],
+  faqItems: [
+    ["Le journal est-il payant ?", "Non. Le journal complet est gratuit, sans limite de durée et sans publicité sur le site web."],
+    ["Puis-je essayer le journal sans créer de compte ?", "Oui. En mode découverte, tes séances restent sur ton appareil ; elles peuvent rejoindre un compte créé ensuite."],
+    ["Mes séances sont-elles visibles par d’autres ?", "Non. Le journal est privé par défaut ; un coach ne le voit qu’avec ton accord, sur le périmètre que tu choisis."],
+  ],
+  related: ["/suivi-sportif", "/journal-course-a-pied", "/carnet-musculation", "/progression-sportive"],
 });
 seoGuide({
   route: "/progression-sportive",
@@ -476,8 +541,15 @@ seoGuide({
     ["Comparer ce qui est comparable", `<p>L’allure se compare sur des sorties de longueur proche, la force exercice par exercice et variante par variante, l’escalade par système de cotation.</p>`],
     ["Sur la bonne durée", `<p>Le récap compare tes 4 dernières semaines aux 4 précédentes, ta semaine à tes semaines habituelles au même moment, et ta régularité à la cadence que tu as choisie.</p>`],
     ["Une progression de jeu qui respecte le sport", `<p>Le rang et la maîtrise avancent lentement, à partir de l’effort réel et avec les mêmes plafonds pour tous. <a href="/niveaux-et-xp">Les règles</a>.</p>`],
+    ["Des records qui ont une source", `<p>Chaque record renvoie à la séance qui l’a établi et garde l’historique de ses améliorations. Corriger ou archiver une séance recalcule les records : rien ne reste figé sur une erreur de saisie.</p>`],
+    ["Des objectifs datés", `<p>Fixe un objectif en séances, en jours actifs, en minutes ou en kilomètres sur une période. TITAN projette ton rythme actuel pour te dire où tu en es. Un objectif sert à s’organiser : seules les séances donnent de l’XP.</p>`],
+    ["Ce que TITAN ne prétend pas", `<p>Plus de volume ne veut pas dire meilleure performance, et un chiffre isolé ne prouve pas un progrès. TITAN indique combien de séances alimentent chaque calcul et signale les durées estimées. <a href="/comprendre-mes-donnees">Les définitions et leurs limites</a>.</p>`],
   ],
-  faqItems: [["TITAN me dit-il comment m’entraîner ?", "Il propose la prochaine action utile et dit toujours pourquoi, sans remplacer un coach ni un avis médical."]],
+  faqItems: [
+    ["TITAN me dit-il comment m’entraîner ?", "Il propose la prochaine action utile et dit toujours pourquoi, sans remplacer un coach ni un avis médical."],
+    ["Sur combien de temps juger une progression ?", "Sur plusieurs semaines : le récap compare tes 4 dernières semaines aux 4 précédentes. TITAN+ ajoute des comparaisons de 4, 12 ou 26 semaines complètes."],
+  ],
+  related: ["/journal-entrainement", "/motivation-sport", "/journal-course-a-pied", "/carnet-musculation"],
 });
 seoGuide({
   route: "/motivation-sport",
@@ -493,8 +565,66 @@ seoGuide({
     ["Une cadence à ta mesure", `<p>Tu choisis combien de jours actifs viser par semaine, de 1 à 7. Une semaine tenue s’ajoute à ton parcours ; une semaine manquée ne détruit rien.</p>`],
     ["Les pauses font partie du sport", `<p>Vacances, blessure, examens : déclare une semaine en pause, elle ne compte ni pour ni contre toi. Ton niveau, ta maîtrise et tes insignes restent.</p>`],
     ["Un monde qui réagit", `<p>Chaque jour actif allume une balise ; les gardiens récompensent la constance ; les expéditions te font avancer avec les autres. <a href="/aventures-sportives">L’aventure</a>.</p>`],
+    ["Des défis sans mise, des quêtes sans pénalité", `<p>Entre amis, un défi se joue en minutes d’effort ou en jours actifs, sans rien à perdre. Chaque semaine et chaque mois, une quête facultative propose un cap : la réussir laisse un souvenir dans ta collection, la manquer ne coûte rien. <a href="/defis-sportifs">Défis, quêtes et expéditions</a>.</p>`],
+    ["Une progression qui ne se perd pas", `<p>Un niveau, une maîtrise ou un insigne acquis le restent, même après une longue pause. L’XP vient de l’effort, avec les mêmes plafonds pour tous : inutile de vouloir rattraper une semaine en forçant un dimanche.</p>`],
   ],
-  faqItems: [["TITAN+ est-il nécessaire pour rester motivé ?", "Non. Cadence, progression, quatre campagnes et la Communauté sont gratuits."]],
+  faqItems: [
+    ["TITAN+ est-il nécessaire pour rester motivé ?", "Non. Cadence, progression, quatre campagnes et la Communauté sont gratuits."],
+    ["Que se passe-t-il si je manque une semaine ?", "Rien ne se perd. La semaine n’est simplement pas ajoutée à ton parcours ; tu peux aussi la déclarer en pause."],
+  ],
+  related: ["/defis-sportifs", "/aventures-sportives", "/progression-sportive", "/niveaux-et-xp"],
+});
+
+seoGuide({
+  route: "/suivi-velo",
+  parent: SPORTS_PARENT,
+  file: "suivi-velo.html",
+  title: "Suivi vélo, gravel et VTT : journal, GPX et dénivelé | TITAN",
+  h1: "Un journal vélo pour la route,<br>le gravel et le VTT",
+  eyebrow: "Vélo · route, gravel, VTT",
+  description: "Note tes sorties vélo, gravel ou VTT : distance, durée, dénivelé, terrain, puissance si tu la mesures. Importe un GPX et garde le souvenir de tes longues sorties.",
+  image: "archipelago",
+  lead: "Route le dimanche, gravel en semaine, vélotaf tous les jours : chaque sortie garde ses mesures, et ton effort compte de la même façon.",
+  sections: [
+    ["Un sport par pratique", `<p>Vélo, cyclisme sur route, gravel, VTT, cyclo-cross, vélotaf, vélo d’intérieur : chaque pratique est un sport du catalogue, avec sa propre maîtrise et ses propres records. Tu peux tout ranger sous « Vélo » ou distinguer tes pratiques. <a href="/sports">Voir les ${rows.length} sports</a>.</p>`],
+    ["Ce que tu enregistres", `<p>La distance et la durée, ton ressenti de 1 à 10 et, si tu les as, le dénivelé, le terrain (route, chemin roulant, sentier technique, mixte), la cadence, la fréquence cardiaque moyenne et la puissance moyenne ou maximale. Rien n’est obligatoire au-delà de l’essentiel : une mesure absente reste absente.</p>`],
+    ["Importer un GPX", `<p>Exporte la sortie depuis ton compteur ou ta montre, puis importe le fichier : TITAN en tire la distance, le temps en mouvement, les pauses, le dénivelé positif et négatif et, quand l’enregistrement est complet, le temps par kilomètre. L’analyse se fait sur ton appareil et le tracé du fichier importé n’est pas conservé. Un GPX reste une importation, pas une preuve d’effort.</p>`],
+    ["Les longues sorties ont leur place", `<p>50, 100 ou 200 km d’une traite, 4 ou 8 heures de sortie, 1 000 ou 3 000 m de dénivelé : ces efforts laissent un souvenir dans ton profil. Ils ne rapportent pas d’XP en plus : les 90 premières minutes comptent pleinement, les 90 suivantes à moitié, pour qu’une grande sortie n’écrase pas une semaine régulière.</p>`],
+    ["Ta progression à vélo", `<p>Le récap de la semaine montre où va ton temps et si ton volume évolue sur quatre semaines. Ta plus longue distance est gardée comme record, avec sa séance source, et la maîtrise de chaque pratique avance avec tes heures et tes semaines. <a href="/progression-sportive">Lire sa progression</a>.</p>`],
+  ],
+  faqItems: [
+    ["Faut-il un capteur de puissance ou un compteur GPS ?", "Non. La distance et la durée suffisent. La puissance, la cadence et le GPX sont des compléments si tu les as."],
+    ["Le vélotaf compte-t-il ?", "Oui. Vélotaf est un sport du catalogue : chaque trajet enregistré est une séance, avec les mêmes règles d’effort que les autres."],
+    ["Le vélo d’intérieur est-il suivi à part ?", "Oui. Vélo d’intérieur est un sport distinct, avec la résistance, la cadence et la puissance si tu les mesures."],
+    ["Le journal vélo est-il gratuit ?", "Oui. Le journal, les records et l’import GPX sont gratuits, sans publicité sur le site."],
+  ],
+  related: ["/journal-course-a-pied", "/suivi-sportif", "/journal-entrainement", "/defis-sportifs"],
+});
+seoGuide({
+  route: "/defis-sportifs",
+  parent: FEATURES_PARENT,
+  file: "defis-sportifs.html",
+  title: "Défis sportifs entre amis, quêtes et expéditions | TITAN",
+  h1: "Des défis sportifs<br>sans mise ni pression",
+  eyebrow: "Défis et quêtes",
+  description: "Défis entre amis en minutes d’effort ou en jours actifs, quêtes de la semaine et du mois, TITAN Duo, saisons et expéditions : avancer ensemble, sans rien à perdre.",
+  image: "aurora",
+  lead: "Se lancer un défi entre amis, suivre une quête de la semaine, avancer à deux pendant quatorze jours : tout est facultatif, et rien ne s’achète.",
+  sections: [
+    ["Les défis entre amis", `<p>Tu crées un défi et tu invites tes amis avec un lien à usage unique, qui ne contient aucune donnée personnelle. Le défi se compte en <strong>minutes d’effort</strong> ou en <strong>jours actifs</strong>, 90 minutes au plus par jour : une personne régulière peut tenir tête à quelqu’un qui s’entraîne beaucoup un seul jour. Aucun crédit n’est en jeu, et le résultat final est figé par le serveur.</p>`],
+    ["Les quêtes de la semaine et du mois", `<p>Chaque semaine et chaque mois, TITAN te propose une quête facultative. La terminer laisse un souvenir dans ta collection ; elle ne donne ni XP ni crédits, et la manquer ne retire rien. Une quête commune réunit aussi, chaque semaine, celles et ceux qui choisissent d’y participer : tu n’y vois que le total, la cible et ta propre part.</p>`],
+    ["TITAN Duo : quatorze jours à deux", `<p>Avec un ami accepté, tu t’engages pour quatorze jours. Un seul binôme à la fois, pour que l’engagement garde son sens.</p>`],
+    ["Saisons et expéditions", `<p>Une saison dure 28 jours : y participer est un choix, se reposer ne coûte rien, et aucun classement n’y est affiché. Plusieurs fois par an, une expédition rassemble toute la communauté face à un gardien de saison : chaque minute d’effort compte pareil, quel que soit le sport. <a href="/aventures-sportives">L’aventure et ses expéditions</a>.</p>`],
+    ["Guilde, clubs et classement entre amis", `<p>Une guilde partage un objectif d’effort hebdomadaire et un fil de discussion. Un club est l’espace privé d’un club réel, que l’on rejoint avec un code. Le classement entre amis est facultatif : personne n’y figure sans l’avoir choisi, et il regarde la régularité, jamais le volume.</p>`],
+    ["Ce que les défis ne font jamais", `<p>Ils ne donnent ni XP, ni crédits, ni avance : seules tes séances font progresser ton rang, avec les mêmes plafonds pour tous. Ton journal reste privé par défaut. <a href="/niveaux-et-xp">Les règles de progression</a>.</p>`],
+  ],
+  faqItems: [
+    ["Faut-il pratiquer le même sport pour se défier ?", "Non. Un défi compte des minutes d’effort ou des jours actifs : un coureur, une grimpeuse et un nageur peuvent s’y mesurer."],
+    ["Que gagne-t-on à la fin d’un défi ?", "Rien qui s’achète ou qui fasse progresser plus vite : ni XP, ni crédits. Le résultat reste affiché, et c’est tout."],
+    ["Peut-on participer sans compte ?", "Non. Les défis, les quêtes et TITAN Duo demandent un compte, parce qu’ils reposent sur des séances confirmées par le serveur."],
+    ["Les défis sont-ils gratuits ?", "Oui. La Communauté, les défis, les quêtes et les expéditions font partie de l’offre gratuite."],
+  ],
+  related: ["/motivation-sport", "/aventures-sportives", "/niveaux-et-xp", "/suivi-sportif"],
 });
 
 /* ---------------------------------------------------------------- 404 */
@@ -508,4 +638,4 @@ writeFileSync(
     body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">404</p><h1>Ce chemin<br>ne mène nulle part.</h1><p class="pub-lead">La page a peut-être changé d’adresse. Tes séances, elles, sont à leur place.</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/aujourdhui">Ouvrir mon QG</a><a class="asc-btn asc-btn-secondary" href="/">Accueil</a></div></div></header>`,
   }),
 );
-console.log("Public docs v300: confidentialité, CGU, mentions, confiance, aide, nouveautés, sports, partenariats, 7 guides, 404.");
+console.log("Public docs v300: confidentialité, CGU, mentions, confiance, aide, nouveautés, sports, partenariats, 9 guides, 404.");

@@ -102,7 +102,7 @@ test("guide breadcrumbs match the visible navigation and only use canonical publ
   const guides = [
     "/niveaux-et-xp", "/aventures-sportives", "/comprendre-mes-donnees", "/debuter-titan", "/pour-les-coachs",
     "/journal-course-a-pied", "/carnet-musculation", "/suivi-escalade", "/suivi-sportif", "/journal-entrainement",
-    "/progression-sportive", "/motivation-sport",
+    "/progression-sportive", "/motivation-sport", "/suivi-velo", "/defis-sportifs",
   ];
   for (const path of guides) {
     const html = read(path);
@@ -125,7 +125,7 @@ test("the sports catalog names each family with a section heading and links its 
   for (const name of ["Endurance", "Force", "Technique", "Jeu & combat", "Mobilité"]) {
     assert.ok(headings.includes(name), `missing heading for ${name}`);
   }
-  for (const path of ["/journal-course-a-pied", "/carnet-musculation", "/suivi-escalade"]) {
+  for (const path of ["/journal-course-a-pied", "/carnet-musculation", "/suivi-escalade", "/suivi-velo"]) {
     assert.ok(html.split("</main>")[0].includes(`href="${path}"`), `${path}: link within the catalog`);
   }
 });

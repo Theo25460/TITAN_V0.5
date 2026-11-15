@@ -74,9 +74,9 @@ const PLAY = playStoreUrl();
 const playFooter = (url) => (url ? `<p class="pub-fine"><a data-play-store hidden href="${esc(url)}" rel="noopener">Télécharger sur Google Play</a></p>` : "");
 const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
   <div><a class="pub-brand" href="/">${mark()}TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
-  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/titan-plus">TITAN+ · bientôt</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
-  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
-  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
+  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/titan-plus">TITAN+ · bientôt</a><a href="/sports">Les sports</a><a href="/journal-entrainement">Journal d’entraînement</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/partenariats">Partenariats</a><a href="/changelog">Nouveautés</a></nav></div>
+  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/defis-sportifs">Défis et quêtes</a><a href="/progression-sportive">Progression</a><a href="/motivation-sport">Motivation</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
+  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-velo">Vélo et gravel</a><a href="/suivi-sportif">Multisport</a></nav></div>
   <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/regles-communaute">Règles de la communauté</a><a href="/service">Assistance</a></nav></div>
 </div>${playFooter(PLAY)}<small>© 2026 TITAN · Site sans publicité</small></div></footer>`;
 
@@ -105,7 +105,8 @@ function page({ route, title, description, image = "valley", body, schema = [], 
   const url = `${SITE}${route}`;
   const graph = [
     { "@type": "Organization", "@id": `${SITE}/#organization`, name: "TITAN", url: `${SITE}/`, logo: `${SITE}/image/logo-192.png` },
-    { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@type": "WebSite", name: "TITAN", url: `${SITE}/` } },
+    { "@type": "WebSite", "@id": `${SITE}/#website`, name: "TITAN", url: `${SITE}/`, inLanguage: "fr-FR", publisher: { "@id": `${SITE}/#organization` } },
+    { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@id": `${SITE}/#website` }, about: { "@id": `${SITE}/#organization` } },
     ...(PLAY && route === "/" ? [{ "@type": "MobileApplication", name: "TITAN", operatingSystem: "ANDROID", applicationCategory: "HealthApplication", downloadUrl: PLAY, installUrl: PLAY, inLanguage: "fr-FR" }] : []),
     ...schema,
     ...(breadcrumb ? [breadcrumb.schema] : []),

@@ -714,6 +714,28 @@ to = "/suivi-escalade.html"
 status = 200
 
 [[redirects]]
+from = "/suivi-velo.html"
+to = "/suivi-velo"
+status = 301
+force = true
+
+[[redirects]]
+from = "/suivi-velo"
+to = "/suivi-velo.html"
+status = 200
+
+[[redirects]]
+from = "/defis-sportifs.html"
+to = "/defis-sportifs"
+status = 301
+force = true
+
+[[redirects]]
+from = "/defis-sportifs"
+to = "/defis-sportifs.html"
+status = 200
+
+[[redirects]]
 from = "/tarifs.html"
 to = "/titan-plus"
 status = 301

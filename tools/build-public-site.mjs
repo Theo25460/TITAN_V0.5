@@ -80,7 +80,7 @@ const home = page({
       ["run", "Course à pied", "Distance, durée à la seconde, allure et import GPX. Records sur 1, 5, 10, 21,1 et 42,2 km avec la séance source.", "/journal-course-a-pied"],
       ["mountain", "Escalade", "Bloc ou voie, cotations françaises, Fontainebleau et V-scale tenues séparées. Essais et réussites.", "/suivi-escalade"],
       ["wave", "Et 250 autres", "Natation, padel, yoga, sports de combat, ski… Chaque sport a sa famille, ses champs et ses repères.", "/sports"],
-    ], 4)}</div></section>
+    ], 4)}<a class="pub-link" href="/suivi-velo" style="margin-top:20px">Vélo, gravel et VTT : le journal vélo ${icon("arrow")}</a></div></section>
 
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Des statistiques qui répondent</p><h2>Pas des graphiques.<br>Des réponses.</h2><p class="pub-lead">Chaque semaine, TITAN répond aux questions que tu te poses vraiment, et dit sur quoi repose la réponse.</p></div>
     <div class="pub-grid cols-3">${[
@@ -108,7 +108,7 @@ const home = page({
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble, sans pression</p><h2>Avancer avec les autres.<br>Sans tout montrer.</h2></div>
     ${cards([
       ["send", "Moments", "Un record, une balise, une belle semaine : tu choisis ce que tes amis voient, un Moment à la fois. Ils peuvent t’encourager."],
-      ["flag", "Défis sans mise", "Entre amis, en minutes d’effort ou en jours actifs. Aucun crédit en jeu, 90 minutes comptées au plus par jour."],
+      ["flag", "Défis sans mise", "Entre amis, en minutes d’effort ou en jours actifs. Aucun crédit en jeu, 90 minutes comptées au plus par jour.", "/defis-sportifs"],
       ["mountain", "Expéditions", "Une saison, un gardien, toute la communauté. Chaque minute d’effort compte pareil, quel que soit le sport."],
       ["group", "Guilde", "Un objectif d’effort hebdomadaire commun, un fil de discussion, sans coût d’entrée."],
       ["shield", "Coaching consenti", "Le sportif choisit la période, le sport et les détails partagés. Le coach propose, il ne modifie jamais le journal.", "/pour-les-coachs"],
@@ -251,7 +251,7 @@ guide({
   title: "TITAN pour les coachs : suivi consenti et séances proposées",
   h1: "Un suivi à deux,<br>décidé par le sportif",
   eyebrow: "Coachs et sportifs",
-  description: "Invitation privée, consentement explicite, périmètre choisi par le sportif, propositions de séances acceptées ou déclinées. 3 sportifs gratuits, 20 avec TITAN+.",
+  description: "Invitation privée, accord explicite, périmètre choisi par le sportif, séances proposées. 3 sportifs sans abonnement, 20 avec TITAN+, 5 ou 15 avec une offre Coach.",
   image: "archipelago",
   lead: "Le coach voit ce que le sportif accepte de partager, propose des séances, et ne touche jamais au journal. Le sportif peut tout arrêter à tout moment.",
   sections: [
@@ -339,7 +339,7 @@ writeFileSync(
     schema: [featFaq.schema],
     body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Fonctionnalités</p><h1>Tout ce qu’il faut.<br>Rien de superflu.</h1><p class="pub-lead">Cinq espaces dans l’application : QG, Progrès, Séance, Aventure, Profil. Le reste est à un geste.</p></div></header>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">S’entraîner</p><h2>Enregistrer et préparer</h2></div>${cards([
-        ["plus", "Séance", "260 sports, champs adaptés à chacun, durée à la seconde, séries détaillées, import GPX, brouillon conservé."],
+        ["plus", "Séance", "260 sports, champs adaptés à chacun, durée à la seconde, séries détaillées, import GPX, brouillon conservé.", "/suivi-sportif"],
         ["calendar", "Prévoir", "Ta semaine type sport par sport ; le QG te rappelle ce qui est prévu aujourd’hui."],
         ["layers", "Routines", "Mémorise tes séances de musculation et recharge-les en un geste."],
         ["offline", "Hors ligne", "Une séance sans réseau reste sur l’appareil et se synchronise toute seule."],
@@ -358,7 +358,7 @@ writeFileSync(
       ], 4)}</div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble</p><h2>Communauté et coaching</h2></div>${cards([
         ["send", "Moments", "Partage un record ou une belle semaine avec tes amis, un Moment à la fois."],
-        ["flag", "Défis", "Sans mise, en minutes d’effort ou en jours actifs."],
+        ["flag", "Défis", "Sans mise, en minutes d’effort ou en jours actifs.", "/defis-sportifs"],
         ["group", "Guilde", "Objectif d’effort commun et discussion."],
         ["shield", "Coaching", "Partage consenti et propositions de séances.", "/pour-les-coachs"],
         ["qr", "Profil public", "Une carte d’athlète optionnelle, avec lien privé et QR code."],
@@ -390,8 +390,10 @@ const INDEXABLE = [
   ["/journal-course-a-pied", 0.7],
   ["/carnet-musculation", 0.7],
   ["/suivi-escalade", 0.7],
+  ["/suivi-velo", 0.7],
   ["/progression-sportive", 0.6],
   ["/motivation-sport", 0.6],
+  ["/defis-sportifs", 0.6],
   ["/changelog", 0.4],
   ["/service", 0.4],
   ["/partenariats", 0.4],
