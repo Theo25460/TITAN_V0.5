@@ -235,6 +235,7 @@
     const focusedWorld = worldTabs?.contains(active) ? active.closest('[role="tab"][data-world]')?.dataset.world : null;
     const focusedPath = root.contains(active) ? active.dataset.weekPathId : null;
     const panelFocused = active === root.querySelector("#av-region-panel");
+    const missionFocused = active?.id === "av-mission-title";
     const openDeparture = root.querySelector("[data-rpg-departure][open]")?.dataset.rpgDeparture;
     const openQuests = root.querySelector("[data-rpg-quests][open]")?.dataset.rpgQuests;
     const s = A()?.snapshot;
@@ -284,6 +285,7 @@
     root.querySelector(".av-worlds").scrollLeft = tabScroll;
     if (focusedWorld) root.querySelector(`#av-tab-${focusedWorld}`)?.focus({ preventScroll: true });
     else if (panelFocused) root.querySelector("#av-region-panel")?.focus({ preventScroll: true });
+    else if (missionFocused) root.querySelector("#av-mission-title")?.focus({ preventScroll: true });
     else if (focusedPath) root.querySelector(`[data-week-path-id="${CSS.escape(focusedPath)}"]`)?.focus({ preventScroll: true });
   }
 
@@ -301,7 +303,7 @@
       }
       render();
       // The pressed button is gone with the old panel: keyboard and screen-reader focus go to the new mission instead of the top of the page.
-      if (action === "start") root.querySelector("#av-mission-title")?.focus({ preventScroll: true });
+      if (action === "start" && [document.body, null].includes(document.activeElement)) root.querySelector("#av-mission-title")?.focus({ preventScroll: true });
     } catch (e) {
       const msg = A().message(e);
       const el = document.getElementById("av-error");

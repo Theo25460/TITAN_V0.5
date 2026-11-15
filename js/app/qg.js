@@ -258,9 +258,8 @@
   function adventureTileSub() {
     const s = window.TitanAdventure?.snapshot, C = window.TitanCodex;
     const c = s && C ? (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0 && x.chapter <= 9) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9) : null;
-    if (!c) return "Choisir un monde";
-    const world = C.worlds.find((w) => w.id === c.id);
-    return `${world?.name || "Monde"} · chapitre ${c.chapter}/9`;
+    // Short on purpose (a third of a phone's width): the world is named in « En cours », just below.
+    return c ? `Chapitre ${c.chapter}/9` : "Choisir un monde";
   }
   function destinationsHtml() {
     const tile = (href, name, label, sub) => `<a class="qg-tile" href="${href}">${icon(name)}<strong>${label}</strong><small>${esc(sub)}</small></a>`;

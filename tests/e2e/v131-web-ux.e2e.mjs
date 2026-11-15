@@ -180,3 +180,38 @@ test("a session the server has not confirmed shows no XP figure at all", async (
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+test("adventure: the mission card comes before the map, starting a campaign by keyboard lands on the mission, WCAG 2.2 target size holds", async () => {
+  for (const width of [360, 1280]) {
+    const { context, page, errors } = await guest(width);
+    try {
+      await page.goto(BASE + "/adventure");
+      await page.waitForFunction(() => window.TitanAdventure?.status === "ready");
+      await page.locator("[data-start]").waitFor();
+      assert.equal(await page.locator("main h1").innerText(), "Ton aventure");
+      assert.equal(await page.evaluate(() => { const grid = document.querySelector(".av-grid"); return grid.firstElementChild.matches(".av-panel") && grid.lastElementChild.matches(".av-map"); }), true, "mission first, map second, in the page order too");
+      await page.addScriptTag({ path: ROOT + "node_modules/axe-core/axe.min.js" });
+      const violations = () => page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] }).then(r => r.violations.map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(" ")).join(" | ")}`)));
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      assert.deepEqual(await violations(), []);
+
+      await page.locator("[data-start]").focus();
+      await page.keyboard.press("Enter");
+      await page.locator("#av-mission-title").waitFor();
+      await page.waitForFunction(() => document.activeElement?.id === "av-mission-title");
+      const mission = page.locator(".av-mission");
+      assert.match(await mission.locator(".asc-eyebrow").first().innerText(), /Ta mission · Chapitre 1 \/ 9/i);
+      assert.match(await mission.locator(".av-todo").innerText(), /À faire/i);
+      assert.match(await mission.locator("[data-rpg-remaining]").innerText(), /jour/);
+      assert.equal(await mission.locator(".asc-btn-primary").count(), 1, "one primary action in the mission");
+      assert.equal(await mission.locator(".asc-btn-primary").getAttribute("href"), "/training");
+      assert.match(await mission.innerText(), /Ce que ça apporte/);
+      const todo = await mission.locator(".av-todo").boundingBox(), cta = await mission.locator(".asc-btn-primary").boundingBox(), story = await mission.locator(".av-story").boundingBox();
+      assert.ok(todo.y < cta.y && cta.y < story.y, "what to do, then the action, then the story");
+      await page.waitForTimeout(400);
+      assert.deepEqual(await violations(), []);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      assert.deepEqual(errors, []);
+    } finally { await context.close(); }
+  }
+});
