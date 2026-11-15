@@ -7,7 +7,8 @@ import { Icon } from "../../components/Icon";
 import { Tap } from "../../components/Pressable";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
-import { COMMON_EXERCISES, COMMON_MOVES, emptyExercise, emptySet, type ExerciseDraft } from "../../core/session";
+import { Format } from "../../core";
+import { COMMON_EXERCISES, COMMON_MOVES, emptyExercise, emptySet, type ExerciseDraft, type LastPerformance } from "../../core/session";
 import { haptic } from "../../lib/haptics";
 import { adjustRest, DEFAULT_REST, REST_PRESETS, restDone, restLabel, restLeft, startRest, type RestState } from "../../lib/restTimer";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
@@ -50,7 +51,7 @@ function RestBar({ rest, onChange, preset, onPreset }: { rest: RestState; onChan
 }
 
 /** Exercises with per-set rows (charge, répétitions, RIR) or holds in seconds, like the website. */
-export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggestions = [] }: { exercises: ExerciseDraft[]; onChange: (e: ExerciseDraft[]) => void; bodyweight: boolean; error?: boolean; suggestions?: string[] }) {
+export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggestions = [], lastFor }: { exercises: ExerciseDraft[]; onChange: (e: ExerciseDraft[]) => void; bodyweight: boolean; error?: boolean; suggestions?: string[]; lastFor?: (name: string) => LastPerformance | null }) {
   const names = [...new Set([...suggestions, ...(bodyweight ? COMMON_MOVES : COMMON_EXERCISES)])].slice(0, 16);
   const [rest, setRest] = useState<RestState>(null);
   const [preset, setPreset] = useState<number>(DEFAULT_REST);
@@ -78,6 +79,20 @@ export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggest
               ))}
             </View>
           ) : null}
+          {(() => {
+            // AUD-16: what was done last time on this exercise, one tap to reuse it as the starting point.
+            const last = ex.name.trim() && lastFor ? lastFor(ex.name) : null;
+            if (!last) return null;
+            return (
+              <View style={styles.last} testID={`exercise-${i}-last`}>
+                <View style={{ flex: 1 }}>
+                  <T variant="caption" tone="faint">La dernière fois · {Format.relativeDay(last.date)}</T>
+                  <T variant="small">{last.summary}</T>
+                </View>
+                <Button small kind="ghost" label="Reprendre" accessibilityHint="Remplit les séries avec celles de la dernière fois" onPress={() => { haptic("light"); update(i, { sets: last.sets.map((x) => ({ ...x })) }); }} testID={`exercise-${i}-reuse`} />
+              </View>
+            );
+          })()}
           {bodyweight ? (
             <Segmented
               value={ex.kind === "hold" ? "hold" : "reps"}
@@ -171,4 +186,5 @@ const styles = StyleSheet.create({
   col: { flex: 1 },
   colSmall: { flex: 0.7 },
   iconBtn: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
+  last: { flexDirection: "row", alignItems: "center", gap: space.s2, paddingVertical: space.s1, paddingHorizontal: space.s2, borderRadius: radius.r2, backgroundColor: colors.bg3 },
 });

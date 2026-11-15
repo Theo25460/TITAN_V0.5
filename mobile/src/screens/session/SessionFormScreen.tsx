@@ -19,7 +19,7 @@ import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Format, Gpx, Sports } from "../../core";
-import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
+import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
 import { draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
@@ -384,7 +384,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </>
         ) : form === "strength" || form === "bodyweight" ? (
           <>
-            <ExerciseEditor exercises={draft.exercises} onChange={(exercises) => setDraft({ exercises })} bodyweight={form === "bodyweight"} error={errors?.field === "exercises"} suggestions={[...new Set(logs.filter((l) => l.sport === sport).flatMap((l) => (l.details?.exercises || []).map((e) => e.name)))].slice(0, 8)} />
+            <ExerciseEditor exercises={draft.exercises} onChange={(exercises) => setDraft({ exercises })} bodyweight={form === "bodyweight"} error={errors?.field === "exercises"} suggestions={[...new Set(logs.filter((l) => l.sport === sport).flatMap((l) => (l.details?.exercises || []).map((e) => e.name)))].slice(0, 8)} lastFor={(name) => lastPerformance(logs.filter((l) => l.sport === sport), name)} />
             {fieldError("exercises") ? <T variant="caption" tone="err">{fieldError("exercises")}</T> : null}
             {durationBlock("Durée de la séance", true)}
           </>
