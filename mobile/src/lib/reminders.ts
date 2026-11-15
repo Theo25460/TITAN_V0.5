@@ -81,7 +81,25 @@ export function nextMonday(now: Date): Date {
   return d;
 }
 
-export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date(), weekTarget = 0, week = null }: { activeDays?: ReadonlySet<string>; now?: Date; weekTarget?: number; week?: WeekStats | null } = {}) {
+/** H7: the next Sunday 18:00 after `now`, for « prépare ta semaine ». */
+export function nextSundayEvening(now: Date): Date {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0, 0, 0);
+  const add = (7 - d.getDay()) % 7;
+  d.setDate(d.getDate() + add);
+  if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 7);
+  return d;
+}
+
+export type HabitContext = {
+  /** H2: what the weekly plan says for a day, e.g. « Course · 45 min ». */
+  planned?: (day: Date) => string | null;
+  /** H4: the player's own implementation intention, e.g. « Après le travail, je cours ». */
+  intention?: string | null;
+  /** H6: gentle comeback dates (5 and 10 days after the last session). */
+  comeback?: Date[];
+};
+
+export async function applyReminders(s: ReminderSettings, { activeDays = new Set<string>(), now = new Date(), weekTarget = 0, week = null, habits = {} }: { activeDays?: ReadonlySet<string>; now?: Date; weekTarget?: number; week?: WeekStats | null; habits?: HabitContext } = {}) {
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!s.weeklyRecap && !s.training) return;
   await ensureChannels();
@@ -91,12 +109,32 @@ export async function applyReminders(s: ReminderSettings, { activeDays = new Set
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: nextMonday(now), channelId: CHANNELS.recap.id },
     });
   for (const at of planTrainingReminders(s, now, activeDays)) {
-    const text = reminderText(at, activeDays, weekTarget);
+    const base = reminderText(at, activeDays, weekTarget);
+    const planned = habits.planned?.(at);
+    const text = {
+      title: habits.intention ? `Ton créneau : ${habits.intention}` : base.title,
+      body: planned ? `Prévu aujourd’hui : ${planned}. ${base.body}` : base.body,
+    };
     await Notifications.scheduleNotificationAsync({
       content: { ...text, data: { url: "titan://seance" }, color: ACCENT, categoryIdentifier: CATEGORY_REMINDER },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: CHANNELS.reminders.id },
     });
   }
+  if (s.training)
+    for (const [i, at] of (habits.comeback ?? []).entries())
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: i === 0 ? "On reprend ensemble ?" : "Ta place t’attend",
+          body: i === 0 ? "Ta dernière séance date de 5 jours. 15 minutes suffisent pour relancer ta semaine." : "Une pause, ça arrive. Une séance courte, et ta régularité repart. Rien n’est perdu.",
+          data: { url: "titan://seance" }, color: ACCENT, categoryIdentifier: CATEGORY_REMINDER,
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: CHANNELS.reminders.id },
+      });
+  if (s.training || s.weeklyRecap)
+    await Notifications.scheduleNotificationAsync({
+      content: { title: "Prépare ta semaine en 30 secondes", body: "Choisis tes jours et tes sports : une semaine prévue est une semaine qui se tient.", data: { url: "titan://plan" }, color: ACCENT },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: nextSundayEvening(now), channelId: CHANNELS.recap.id },
+    });
 }
 
 export async function cancelReminders() {

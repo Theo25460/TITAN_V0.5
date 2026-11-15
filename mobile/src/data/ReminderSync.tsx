@@ -4,7 +4,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppState } from "react-native";
 import { applyReminders, DEFAULT_REMINDERS, localDayOf, type ReminderSettings, type WeekStats } from "../lib/reminders";
-import { Progress, Questions } from "../core";
+import { Progress, Questions, Sports } from "../core";
+import { comebackDates, plannedFor } from "../lib/habits";
+import { readIntention } from "../lib/intention";
 import { ownerKey, readJSON } from "../lib/storage";
 import { useOwner } from "./auth";
 import { useLogs, usePrefs } from "./hooks";
@@ -12,7 +14,10 @@ import { useLogs, usePrefs } from "./hooks";
 export function ReminderSync() {
   const owner = useOwner();
   const { active } = useLogs();
-  const target = usePrefs().weeklyGoalSessions;
+  const prefs = usePrefs();
+  const target = prefs.weeklyGoalSessions;
+  const scheduleKey = JSON.stringify(prefs.schedule ?? {});
+  const lastSession = useMemo(() => active.reduce((m, l) => Math.max(m, new Date(l.date).getTime() || 0), 0), [active]);
   // AUD-47: this week's figures, for the Monday recap planned now and re-planned after every session.
   const week = useMemo<WeekStats | null>(() => {
     const cur = Questions.weeklySeries(Progress.activeLogs(active), { weeks: 1 }).find((w) => w.current);
@@ -33,15 +38,19 @@ export function ReminderSync() {
   useEffect(() => {
     let alive = true;
     readJSON<ReminderSettings>(ownerKey("reminders", owner), DEFAULT_REMINDERS)
-      .then((s) => {
+      .then(async (s) => {
         if (!alive || (!s.training && !s.weeklyRecap)) return;
-        return applyReminders(s, { activeDays: new Set(key ? key.split(",") : []), weekTarget: target, week });
+        const intention = await readIntention(owner);
+        return applyReminders(s, {
+          activeDays: new Set(key ? key.split(",") : []), weekTarget: target, week,
+          habits: { planned: (day) => plannedFor(prefs.schedule ?? {}, day, Sports.label), intention, comeback: comebackDates(active) },
+        });
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [owner, key, today, target, weekKey]);
+  }, [owner, key, today, target, weekKey, scheduleKey, lastSession]);
   return null;
 }

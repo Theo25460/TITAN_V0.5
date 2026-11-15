@@ -13,6 +13,7 @@ import { useLogs, useSavePrefs } from "../../data/hooks";
 import { ask } from "../../components/Dialog";
 import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { applyReminders, DEFAULT_REMINDERS, ensurePermission, localDayOf, type ReminderSettings } from "../../lib/reminders";
+import { usualHour } from "../../lib/habits";
 import { ownerKey, readJSON, writeJSON } from "../../lib/storage";
 import { space } from "../../theme/tokens";
 
@@ -54,6 +55,16 @@ export function NotificationsScreen() {
         <ToggleRow label="Récap de la semaine" hint="Le lundi à 9 h : volume, records et prochaine étape." value={s.weeklyRecap} onChange={(v) => update({ ...s, weeklyRecap: v })} />
         <ToggleRow label="Rappel d’entraînement" hint="Les jours et à l’heure de ton choix." value={s.training} onChange={(v) => update({ ...s, training: v })} last />
       </Group>
+      {(() => {
+        // H3: the hour learned from the journal, offered as the reminder time (30 minutes before).
+        const h = usualHour(active);
+        if (h === null || !s.training) return null;
+        const at = { hour: h === 0 ? 23 : h - 1, minute: 30 };
+        if (s.hour === at.hour && s.minute === at.minute) return null;
+        return (
+          <Button small kind="secondary" icon="clock" label={`Tu t’entraînes souvent vers ${h} h : rappel à ${at.hour} h 30`} onPress={() => update({ ...s, ...at })} testID="usual-hour" />
+        );
+      })()}
       {s.training ? (
         <View style={{ gap: space.s3 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>

@@ -19,6 +19,7 @@ export const linking: LinkingOptions<RootParams> = {
       Journal: "journal",
       Sentiers: "sentiers",
       Goals: "objectifs",
+      Plan: "plan",
       Community: "communaute",
       Events: "evenements",
       Retro: "retro",

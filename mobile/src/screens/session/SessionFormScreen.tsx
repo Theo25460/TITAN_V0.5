@@ -65,7 +65,7 @@ function prefillFrom(log: TrainingLog, base: SessionDraft): SessionDraft {
 
 export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionForm">) {
   const owner = useOwner();
-  const { sport, duplicateOf } = route.params;
+  const { sport, duplicateOf, quickMinutes } = route.params;
   const drafts = useDrafts();
   const { logs } = useLogs();
   const profile = useProfile().data;
@@ -93,6 +93,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     if (stored && stored.sport === sport && !duplicateOf) return stored;
     const base = freshDraft(sport);
     const source = duplicateOf ? logs.find((l) => l.id === duplicateOf || l.client_event_id === duplicateOf) : null;
+    // H5: « Juste 10 minutes » opens the form with the duration already filled; the player only confirms.
+    if (!source && quickMinutes && quickMinutes > 0 && quickMinutes <= 60) return { ...base, durM: String(Math.round(quickMinutes)) };
     return source ? prefillFrom(source, base) : base;
   });
   const draftRef = useRef(draft);
