@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Chip } from "../../components/Chip";
@@ -10,6 +10,7 @@ import { T } from "../../components/Text";
 import { Format } from "../../core";
 import { COMMON_EXERCISES, COMMON_MOVES, emptyExercise, emptySet, type ExerciseDraft, type LastPerformance } from "../../core/session";
 import { haptic } from "../../lib/haptics";
+import { cancelRestEnd, scheduleRestEnd } from "../../lib/restNotify";
 import { adjustRest, DEFAULT_REST, REST_PRESETS, restDone, restLabel, restLeft, startRest, type RestState } from "../../lib/restTimer";
 import { colors, radius, space, TOUCH } from "../../theme/tokens";
 
@@ -53,7 +54,14 @@ function RestBar({ rest, onChange, preset, onPreset }: { rest: RestState; onChan
 /** Exercises with per-set rows (charge, répétitions, RIR) or holds in seconds, like the website. */
 export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggestions = [], lastFor }: { exercises: ExerciseDraft[]; onChange: (e: ExerciseDraft[]) => void; bodyweight: boolean; error?: boolean; suggestions?: string[]; lastFor?: (name: string) => LastPerformance | null }) {
   const names = [...new Set([...suggestions, ...(bodyweight ? COMMON_MOVES : COMMON_EXERCISES)])].slice(0, 16);
-  const [rest, setRest] = useState<RestState>(null);
+  const [rest, setRestState] = useState<RestState>(null);
+  // AUD-28: every change of the rest moves (or cancels) its end-of-rest notification.
+  const setRest = useCallback((r: RestState) => {
+    setRestState(r);
+    if (r) void scheduleRestEnd(r.endsAt);
+    else void cancelRestEnd();
+  }, []);
+  useEffect(() => () => void cancelRestEnd(), []);
   const [preset, setPreset] = useState<number>(DEFAULT_REST);
   const update = (i: number, patch: Partial<ExerciseDraft>) => onChange(exercises.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   return (

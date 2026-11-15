@@ -13,10 +13,10 @@ require("react-native").Platform.OS = "android";
 const { ACCENT, CATEGORY_REMINDER, CHANNELS, GROUP, ensureChannels } = require("../src/lib/notificationChannels");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
-test("three channels in one TITAN group, the old reminders id kept, private on the lock screen, the recording one silent and low", async () => {
+test("four channels in one TITAN group, the old reminders id kept, private on the lock screen, the recording one silent and low", async () => {
   await ensureChannels();
   expect(mockCalls.groups).toEqual([GROUP]);
-  expect(mockCalls.channels.map((c) => c.id)).toEqual(["reminders", "recap", "recording"]);
+  expect(mockCalls.channels.map((c) => c.id)).toEqual(["reminders", "recap", "recording", "rest"]);
   expect(CHANNELS.reminders.id).toBe("reminders");
   for (const c of mockCalls.channels) {
     expect(c).toMatchObject({ groupId: GROUP, lightColor: ACCENT, lockscreenVisibility: 0, showBadge: false });

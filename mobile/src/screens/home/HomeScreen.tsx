@@ -8,6 +8,7 @@ import { EventsTeaser } from "../community/EventsScreen";
 import { retroYear } from "../../lib/retro";
 import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { CadenceNotches } from "../../components/Cadence";
+import { HealthDetectCard } from "../../components/HealthDetectCard";
 import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
@@ -151,6 +152,7 @@ export function HomeScreen() {
           <ErrorState error={logsQ.error} onRetry={() => logsQ.refetch()} />
         ) : (
           <>
+            <HealthDetectCard logs={active} />
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}
