@@ -17,7 +17,7 @@
       const stories=[`Tu découvres ${place}. Le chemin se construit au rythme de tes retours.`,
         `Deux pistes mènent au même refuge. Ton choix change le récit, sans modifier les objectifs.`,
         `${w.monster} brouille le passage. Tes efforts confirmés dissipent son illusion ; aucune séance supplémentaire n’est imposée.`,
-        w.lore,`Le coffre contient un souvenir de ${place}. Sa valeur tient à ton histoire, sans XP ni coins.`,
+        w.lore,`Le coffre contient un souvenir de ${place}. Sa valeur tient à ton histoire, sans XP ni crédits.`,
         `${w.boss} protège ce lieu. Plusieurs jours de pratique préparent cette rencontre facultative, sans délai.`];
       return {ordinal:i+1,arc,arcName:arcs[arc-1],chapter:Math.ceil((i+1)/2),kind,name:names[step],story:stories[step],choices:kind==='choice'?w.choices:[],
         endings:kind==='choice'?[`Tu prends le temps de regarder. ${place} révèle une route oubliée.`,`Tu prends le temps d’écouter. Une voix te confie l’histoire de ${place}.`]:[]};
