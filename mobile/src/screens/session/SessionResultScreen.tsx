@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
+import { maybeAskForReview } from "../../lib/review";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -359,7 +360,17 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           {status === "confirmed" && !shared && !historical ? <Button small label="Partager" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
           <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
         </View>
-        <Button label="Terminer" onPress={() => { maybeAd().catch(() => {}); navigation.navigate("Tabs", { screen: "QG" }); }} testID="result-done" />
+        <Button
+          label="Terminer"
+          onPress={() => {
+            maybeAd().catch(() => {});
+            // AUD-13: a rare Play rating request at a proud moment (new record or tenth session), never for an unconfirmed or historical one.
+            if (status === "confirmed" && log)
+              void maybeAskForReview(owner, { confirmedSessions: logs.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus).length, newRecord: records.some((r) => !r.first), historical: !!log.details?.historical });
+            navigation.navigate("Tabs", { screen: "QG" });
+          }}
+          testID="result-done"
+        />
       </View>
     </View>
   );
