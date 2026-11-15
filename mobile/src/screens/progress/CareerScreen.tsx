@@ -185,6 +185,7 @@ export function CareerScreen() {
               </T>
             ) : null}
             <Button small kind="secondary" icon="share" label={`Mon année ${new Date().getFullYear()} en images`} onPress={() => navigation.navigate("Retro", { year: new Date().getFullYear() })} testID="career-retro" />
+            <Button small kind="ghost" icon="calendar" label="Mon mois en images" onPress={() => navigation.navigate("Retro", { year: new Date().getFullYear(), month: new Date().getMonth() })} testID="career-retro-month" />
           </Card>
 
           {c.distance.footKm + c.distance.bikeKm + c.distance.swimMeters + c.elevation.meters > 0 ? (

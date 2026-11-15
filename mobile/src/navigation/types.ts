@@ -35,7 +35,7 @@ export type RootParams = {
   Atelier: undefined;
   Community: { ami?: string; guilde?: string } | undefined;
   Events: undefined;
-  Retro: { year?: number } | undefined;
+  Retro: { year?: number; month?: number } | undefined;
   SaveAccount: undefined;
   Settings: undefined;
   Account: undefined;

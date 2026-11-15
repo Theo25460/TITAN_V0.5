@@ -10,31 +10,33 @@ import { useToast } from "../../components/Toast";
 import { EffortRules, Progress } from "../../core";
 import { useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
-import { buildRetro, retroYear } from "../../lib/retro";
+import { buildRetro, periodBounds, retroYear } from "../../lib/retro";
 import { shareCardImage } from "../../lib/shareImage";
 import { space } from "../../theme/tokens";
 
-export function RetroScreen({ route }: { route?: { params?: { year?: number } } } = {}) {
+export function RetroScreen({ route }: { route?: { params?: { year?: number; month?: number } } } = {}) {
   const { active } = useLogs();
   const prefs = usePrefs();
   const profile = useProfile().data;
   const toast = useToast();
   const { width } = useWindowDimensions();
   const year = route?.params?.year ?? retroYear() ?? new Date().getFullYear();
+  const month = route?.params?.month ?? null;
+  const { label } = periodBounds({ year, month });
   const [busy, setBusy] = useState<number | null>(null);
   const cards = useMemo(() => {
     const cadence = Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses });
     const level = Number(profile?.level) || 0;
     const rank = level ? { name: EffortRules.rank(level).name, level } : null;
-    return buildRetro(active, { year, cadence, rank });
-  }, [active, prefs, profile?.level, year]);
+    return buildRetro(active, { year, month, cadence, rank });
+  }, [active, prefs, profile?.level, year, month]);
   const refs = useMemo(() => cards.map(() => createRef<View>()), [cards]);
   const scale = Math.min(1, (width - space.s4 * 2) / SHARE_CARD_SIZE.width);
 
   async function share(i: number) {
     setBusy(i);
     try {
-      await shareCardImage(refs[i] as RefObject<unknown>, `TITAN Rétro ${year}`);
+      await shareCardImage(refs[i] as RefObject<unknown>, `TITAN Rétro ${label}`);
     } catch (e) {
       toast({ kind: "err", title: "Image impossible à partager", message: errorMessage(e) });
     } finally {
@@ -45,12 +47,12 @@ export function RetroScreen({ route }: { route?: { params?: { year?: number } } 
   if (!cards.length)
     return (
       <Screen>
-        <EmptyState icon="calendar" title={`Pas encore de Rétro ${year}`} text="Enregistre tes séances (ou importe-les depuis Santé Connect) : ton année se raconte dès la première." />
+        <EmptyState icon="calendar" title={`Pas encore de Rétro ${label}`} text="Enregistre tes séances (ou importe-les depuis Santé Connect) : ton année se raconte dès la première." />
       </Screen>
     );
   return (
     <Screen>
-      <T variant="h1">Mon année {year}</T>
+      <T variant="h1">{month == null ? `Mon année ${year}` : `Mon mois de ${label}`}</T>
       <T tone="muted">Ton effort réel, tous sports confondus. Chaque carte se partage en story ; rien ne quitte ton téléphone sans toi.</T>
       {cards.map((c, i) => (
         <View key={i} style={{ gap: space.s2, alignItems: "center" }} testID={`retro-card-${i}`}>

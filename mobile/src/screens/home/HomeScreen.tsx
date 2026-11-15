@@ -5,10 +5,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
 import { EventsTeaser } from "../community/EventsScreen";
-import { retroYear } from "../../lib/retro";
+import { periodBounds, retroMonth, retroYear } from "../../lib/retro";
 import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { CadenceNotches } from "../../components/Cadence";
 import { HealthDetectCard } from "../../components/HealthDetectCard";
+import { MemoryCard } from "../../components/MemoryCard";
 import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
@@ -141,6 +142,12 @@ export function HomeScreen() {
             <T variant="bodyStrong">Ton année en images est prête : à partager en story.</T>
           </Card>
         ) : null}
+        {!retroYear() && retroMonth() && active.length ? (
+          <Card tone="accent" onPress={() => navigation.navigate("Retro", retroMonth()!)} accessibilityLabel={`TITAN Rétro de ${periodBounds(retroMonth()!).label}`} testID="qg-retro-month">
+            <T variant="eyebrow" tone="accent">TITAN Rétro · {periodBounds(retroMonth()!).label}</T>
+            <T variant="bodyStrong">Ton mois en images, comparé au précédent.</T>
+          </Card>
+        ) : null}
         <EventsTeaser onPress={() => navigation.navigate("Events")} />
         <View style={styles.destinations}>
           <Button small kind="ghost" icon="flag" label="Quêtes et événements" onPress={() => navigation.navigate("Events")} testID="qg-events" />
@@ -153,6 +160,7 @@ export function HomeScreen() {
         ) : (
           <>
             <HealthDetectCard logs={active} />
+            <MemoryCard logs={active} />
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Secondary information loads asynchronously; keep it below the main action so the QG never jumps above the priority. */}

@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Progress } from "../src/core";
 import type { TrainingLog } from "../src/core/types";
-import { buildRetro, retroYear } from "../src/lib/retro";
+import { buildRetro, compareWithPrevious, periodBounds, retroMonth, retroYear } from "../src/lib/retro";
 
 const mockShare = jest.fn(async (_ref: unknown, _t?: string) => undefined);
 jest.mock("../src/lib/shareImage", () => ({ shareCardImage: (r: unknown, t?: string) => mockShare(r, t) }));
@@ -34,7 +34,7 @@ test("offered in December for this year and in January for the year before, not 
 
 test("the cards tell the real year: total effort, DNA, biggest week, regularity", () => {
   const cards = buildRetro(Progress.activeLogs(mockLogs), { year, cadence: null, rank: { name: "Sentinelle", level: 7 } });
-  expect(cards[0]).toMatchObject({ eyebrow: `TITAN Rétro ${year}`, value: "4 h" });
+  expect(cards[0]).toMatchObject({ eyebrow: `TITAN Rétro · ${year}`, value: "4 h" });
   expect(cards[0].caption).toContain("4 séances");
   expect(cards.map((c) => c.eyebrow)).toEqual(expect.arrayContaining(["Mon ADN sportif", "Ma plus grosse semaine", "Ma régularité"]));
 });
@@ -48,4 +48,20 @@ test("each card can be shared as a picture", async () => {
   expect(screen.getByText(`Mon année ${year}`)).toBeTruthy();
   fireEvent.press(screen.getByTestId("retro-share-0"));
   await waitFor(() => expect(mockShare).toHaveBeenCalledWith(expect.anything(), `TITAN Rétro ${year}`));
+});
+
+test("the monthly Rétro is offered the first week of a month, for the month before (AUD-37)", () => {
+  expect(retroMonth(new Date(2026, 11, 3))).toEqual({ year: 2026, month: 10 });
+  expect(retroMonth(new Date(2027, 0, 5))).toEqual({ year: 2026, month: 11 });
+  expect(retroMonth(new Date(2026, 11, 12))).toBeNull();
+  expect(periodBounds({ year: 2026, month: 10 }).label).toBe("novembre 2026");
+});
+
+test("a month tells its own sessions and compares itself with the month before (AUD-37)", () => {
+  const jan = buildRetro(Progress.activeLogs(mockLogs), { year, month: 0 });
+  expect(jan[0]).toMatchObject({ eyebrow: `TITAN Rétro · janvier ${year}` });
+  expect(jan[0].caption).toContain("3 séances");
+  const feb = compareWithPrevious(Progress.activeLogs(mockLogs), { year, month: 1 });
+  expect(feb).toMatch(/% d’effort qu’en janvier/);
+  expect(compareWithPrevious(Progress.activeLogs(mockLogs), { year, month: 0 })).toBeNull();
 });
