@@ -144,6 +144,12 @@ describe("with account data", () => {
       await cleanup();
     }
   });
+  test("QG montre les 8 dernières semaines et la séance à refaire (AUD-24)", () => {
+    show(<S.Home />);
+    expect(screen.getByTestId("qg-cadence")).toBeTruthy();
+    expect(screen.getByText("Mes 8 dernières semaines")).toBeTruthy();
+    expect(screen.getByTestId("repeat-last")).toBeTruthy();
+  });
   test("QG garde l’accès aux événements et à la communauté pendant le chargement (AUD-23/24)", () => {
     mockState.loading = true;
     show(<S.Home />);

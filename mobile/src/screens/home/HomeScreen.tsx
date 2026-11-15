@@ -7,6 +7,8 @@ import { JourneyPreview } from "../../components/JourneyCard";
 import { EventsTeaser } from "../community/EventsScreen";
 import { retroYear } from "../../lib/retro";
 import { DiscoveryBanner } from "../settings/SaveAccountScreen";
+import { CadenceNotches } from "../../components/Cadence";
+import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { SinceCard, useLastVisit } from "../../components/SinceCard";
@@ -155,6 +157,15 @@ export function HomeScreen() {
             <Reveal order={3}>
               <TodayStrip steps={steps} cadence={cadence} sessions={week.sessions} showWeek={active.length > 0} />
             </Reveal>
+            {/* AUD-24: the signature of TITAN on the QG — the last eight weeks in notches — and the session most likely to be repeated. */}
+            {active.length ? (
+              <Card style={{ gap: space.s2 }} testID="qg-cadence">
+                <T variant="eyebrow" tone="accent">Mes 8 dernières semaines</T>
+                <CadenceNotches cadence={cadence} />
+                <T variant="caption" tone="muted">{cadence.held}/{cadence.window} semaines tenues · {cadence.lifetimeHeld} depuis tes débuts</T>
+              </Card>
+            ) : null}
+            {draft ? null : lastSessionsToRepeat(active, 1).map((log) => <RepeatLastCard key={log.id} log={log} compact />)}
 
             <JourneyPreview owner={owner} />
             <Button label="Mes repères d’ascension" kind="ghost" onPress={() => setShowAscension(v => !v)} />
