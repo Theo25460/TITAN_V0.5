@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
-import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
+import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
@@ -31,14 +31,15 @@ export function RecordScreen() {
     return [...seen.entries()].slice(0, 6);
   }, [active]);
   const gpsSport = useMemo(() => gpsShortcutSport(prefs.favoriteSports, recent.map(([s]) => s)), [prefs.favoriteSports, recent]);
-  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
+  const repeats = useMemo(() => lastSessionsToRepeat(active, 3), [active]);
   const open = (sport: string) => {
     setChoosing(false);
     navigation.navigate("SessionForm", { sport });
   };
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
   const popular = Sports.POPULAR.filter((s) => !favorites.includes(s) && !recent.some(([r]) => r === s));
-  const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 2);
+  // Four shortcuts (AUD-15): two left most people opening the full catalogue for their third sport.
+  const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 4);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
@@ -52,6 +53,15 @@ export function RecordScreen() {
         </View>
         {draft ? (
           <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
+        ) : null}
+        {!choosing && repeats.length ? (
+          <Section title="Refaire">
+            <View style={{ gap: space.s2 }}>
+              {repeats.map((log, i) =>
+                i === 0 ? <RepeatLastCard key={log.id} log={log} compact /> : <RepeatLastCard key={log.id} log={log} compact title={`Refaire · ${Sports.label(log.sport)}`} testID={`repeat-${log.sport}`} />,
+              )}
+            </View>
+          </Section>
         ) : null}
         {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
         <Button label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} kind={draft || choosing ? "secondary" : "primary"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
@@ -99,7 +109,6 @@ export function RecordScreen() {
             <Icon name="chevron" color={colors.tx3} />
           </View>
         </Card>
-        {repeat ? <RepeatLastCard log={repeat} /> : null}
         <T variant="caption" tone="faint">
           Hors ligne aussi : la séance est gardée sur ce téléphone puis envoyée automatiquement.
         </T>

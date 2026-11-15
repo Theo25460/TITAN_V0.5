@@ -9,10 +9,10 @@ import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useToast } from "../../components/Toast";
 import { useOwner } from "../../data/auth";
-import { useSavePrefs } from "../../data/hooks";
+import { useLogs, useSavePrefs } from "../../data/hooks";
 import { ask } from "../../components/Dialog";
 import { PERMISSION_COPY } from "../../lib/permissionCopy";
-import { applyReminders, DEFAULT_REMINDERS, ensurePermission, type ReminderSettings } from "../../lib/reminders";
+import { applyReminders, DEFAULT_REMINDERS, ensurePermission, localDayOf, type ReminderSettings } from "../../lib/reminders";
 import { ownerKey, readJSON, writeJSON } from "../../lib/storage";
 import { space } from "../../theme/tokens";
 
@@ -23,6 +23,7 @@ export function NotificationsScreen() {
   const owner = useOwner();
   const toast = useToast();
   const savePrefs = useSavePrefs();
+  const { active } = useLogs();
   const [s, setS] = useState<ReminderSettings | null>(null);
   const [denied, setDenied] = useState(false);
   useEffect(() => {
@@ -39,7 +40,7 @@ export function NotificationsScreen() {
     setS(next);
     await writeJSON(ownerKey("reminders", owner), next);
     try {
-      await applyReminders(next);
+      await applyReminders(next, { activeDays: new Set(active.map((l) => localDayOf(l.date))) });
       savePrefs.mutate({ prefs: { notifications: { weeklyRecap: next.weeklyRecap, training: next.training, days: next.days, hour: next.hour, minute: next.minute } } });
     } catch {
       toast({ kind: "err", title: "Rappels non programmés", message: "Android a refusé la programmation. Vérifie les autorisations de TITAN." });

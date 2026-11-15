@@ -1,0 +1,35 @@
+/* AUD-18: training reminders are dated occurrences over two weeks, on the chosen days and time, never in the past and never on a
+   day that already has a session. */
+jest.mock("expo-notifications", () => ({ setNotificationHandler: jest.fn(), SchedulableTriggerInputTypes: { WEEKLY: "weekly", DATE: "date" } }));
+jest.mock("../src/lib/notificationChannels", () => ({ ACCENT: "#000", CATEGORY_REMINDER: "r", CHANNELS: { recap: { id: "recap" }, reminders: { id: "reminders" } }, ensureChannels: jest.fn() }));
+import { localDayOf, planTrainingReminders, type ReminderSettings } from "../src/lib/reminders";
+
+const settings: ReminderSettings = { weeklyRecap: false, training: true, days: [1, 3, 5], hour: 18, minute: 0 };
+// Monday 16 November 2026, 10:00 local time.
+const monday = new Date(2026, 10, 16, 10, 0, 0);
+
+test("planned on the chosen days only, at the chosen time, over two weeks", () => {
+  const plan = planTrainingReminders(settings, monday, new Set());
+  expect(plan).toHaveLength(6);
+  expect(plan.map((d) => [d.getDay(), d.getHours(), d.getMinutes()])).toEqual([[1, 18, 0], [3, 18, 0], [5, 18, 0], [1, 18, 0], [3, 18, 0], [5, 18, 0]]);
+});
+
+test("a day that already has a session gets no reminder", () => {
+  const plan = planTrainingReminders(settings, monday, new Set(["2026-11-16", "2026-11-20"]));
+  expect(plan.map(localDayOf)).toEqual(["2026-11-18", "2026-11-23", "2026-11-25", "2026-11-27"]);
+});
+
+test("a time already past today is not planned for today", () => {
+  const evening = new Date(2026, 10, 16, 19, 0, 0);
+  expect(planTrainingReminders(settings, evening, new Set()).map(localDayOf)[0]).toBe("2026-11-18");
+});
+
+test("nothing when training reminders are off or no day is chosen", () => {
+  expect(planTrainingReminders({ ...settings, training: false }, monday, new Set())).toEqual([]);
+  expect(planTrainingReminders({ ...settings, days: [] }, monday, new Set())).toEqual([]);
+});
+
+test("a bare session date is already a local day", () => {
+  expect(localDayOf("2026-11-16")).toBe("2026-11-16");
+  expect(localDayOf(new Date(2026, 10, 16, 23, 30))).toBe("2026-11-16");
+});

@@ -274,10 +274,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
-        {(thisWeek && !historical) || mastery ? <Tap accessibilityLabel="Mes repères sportifs" accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
-          <T variant="bodyStrong">Mes repères sportifs</T><Icon name="chevron" size={18} color={colors.tx4} />
-        </Tap> : null}
-        {detailsExpanded && thisWeek && !historical ? (
+        {/* The week is TITAN's return mechanic: it is shown at the moment of reward, never folded away (AUD-17). Mastery stays one tap away. */}
+        {thisWeek && !historical ? (
           <Reveal order={3}>
             <View style={styles.block}>
               <View style={styles.between}>
@@ -302,6 +300,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
+        {mastery ? <Tap accessibilityLabel={`Ma maîtrise ${mastery.label}`} accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
+          <T variant="bodyStrong">Ma maîtrise · {mastery.label}</T><Icon name="chevron" size={18} color={colors.tx4} />
+        </Tap> : null}
         {detailsExpanded && mastery ? (
           <Reveal order={4}>
             <View style={styles.block}>

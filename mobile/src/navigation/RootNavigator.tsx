@@ -12,6 +12,7 @@ import { WelcomeScreen } from "../screens/auth/WelcomeScreen";
 import { WorldScreen } from "../screens/adventure/WorldScreen";
 import { SentiersScreen } from "../screens/adventure/SentiersScreen";
 import { CommunityScreen } from "../screens/community/CommunityScreen";
+import { ReminderSync } from "../data/ReminderSync";
 import { GoalsScreen } from "../screens/progress/GoalsScreen";
 import { JournalScreen } from "../screens/progress/JournalScreen";
 import { PlanScreen } from "../screens/progress/PlanScreen";
@@ -84,6 +85,8 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
   // A profile without onboarding goes through the short first-run flow; offline without cache, the app opens directly.
   const needsOnboarding = profile.data ? !prefsOf(profile.data).onboardedAt : false;
   return (
+    <>
+    <ReminderSync />
     <Stack.Navigator screenOptions={options}>
       {needsOnboarding ? <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} /> : null}
       <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
@@ -123,5 +126,6 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="TitanPlus" component={TitanPlusScreen} options={{ title: "TITAN+" }} />
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} options={{ title: "Supprimer mon compte" }} />
     </Stack.Navigator>
+    </>
   );
 }

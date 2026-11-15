@@ -13,6 +13,7 @@ import { createProfile, fetchProfile } from "./api";
 import { readLogsCache } from "./logsCache";
 import { loadQueue } from "./queue";
 import { queryClient } from "./queryClient";
+import { cancelReminders } from "../lib/reminders";
 
 type Status = "loading" | "signedOut" | "signedIn";
 type AccountTransition = { owner: string | null; session: Session | null; preparing: boolean };
@@ -211,6 +212,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         queryClient.removeQueries({ predicate: (q) => q.queryKey[1] === owner });
+        // AUD-18: the reminders were planned for this account; the next person on this phone must not receive them.
+        await cancelReminders();
         // Unsent sessions stay on the device for this account unless the account itself is deleted.
         await forgetAccountCache(owner, { keepQueue: !forget });
       },
