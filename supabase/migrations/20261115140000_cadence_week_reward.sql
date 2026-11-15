@@ -1,0 +1,95 @@
+-- AUD-25 (audit top app, 15/11/2026): a held week is TITAN's best idea (regularity without guilt) and it rewarded nothing. This adds a
+-- small, cosmetic-only reward: +50 credits, claimed once per week, for the current or the previous week (Monday to Sunday, Paris time),
+-- when the number of active days reaches the player's own weekly goal (1 to 7, default 3, read from the profile preferences). Credits only
+-- buy appearance in the Atelier: nothing here changes XP, level, rank, mastery, adventure or entitlements, and TITAN+ gives no bonus.
+-- An "active day" is exactly the one the guild week, the common quest and the seasons already use: private.titan_effort_days (trusted,
+-- non-historical, non-held sessions, effort minutes > 0). Older weeks cannot be claimed, so no history is rewarded after the fact.
+-- The credit change goes through the usual profile trigger, so it is range-checked and written to the economy journal.
+-- Suspended accounts are refused. Claims are erased with the account (foreign key). TODO (lissage): add them to the data export helper.
+-- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
+-- Rollback: drop function public.titan_cadence_week_claim_v1(date), public.titan_cadence_week_status_v1(); drop table private.titan_cadence_claims;
+
+create table if not exists private.titan_cadence_claims (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  week_start date not null check (extract(isodow from week_start) = 1),
+  days integer not null check (days between 1 and 7),
+  target integer not null check (target between 1 and 7),
+  credits integer not null check (credits between 0 and 1000),
+  claimed_at timestamptz not null default now(),
+  primary key (user_id, week_start)
+);
+alter table private.titan_cadence_claims enable row level security;
+revoke all on private.titan_cadence_claims from public, anon, authenticated;
+
+create or replace function private.titan_cadence_week(p_user uuid, p_week date)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_target integer;
+  v_days integer;
+  v_from timestamptz := p_week::timestamp at time zone 'Europe/Paris';
+  v_to timestamptz := (p_week + 7)::timestamp at time zone 'Europe/Paris';
+begin
+  select least(7, greatest(1, coalesce(nullif(p.game_state -> 'user' ->> 'weeklyGoalSessions', '')::integer, 3))) into v_target
+    from public.profiles p where p.id = p_user;
+  select count(*)::integer into v_days from private.titan_effort_days(p_user, v_from, v_to, '-infinity'::timestamptz, 90) d where d.minutes > 0;
+  return jsonb_build_object('week', p_week, 'days', least(7, coalesce(v_days, 0)), 'target', coalesce(v_target, 3),
+    'held', coalesce(v_days, 0) >= coalesce(v_target, 3),
+    'claimed', exists (select 1 from private.titan_cadence_claims c where c.user_id = p_user and c.week_start = p_week),
+    'reward', 50);
+end;
+$function$;
+revoke all on function private.titan_cadence_week(uuid, date) from public, anon, authenticated;
+
+/** The current and the previous week, as the player's phone shows them. */
+create or replace function public.titan_cadence_week_status_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_monday date := (date_trunc('week', now() at time zone 'Europe/Paris'))::date;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  return jsonb_build_object('current', private.titan_cadence_week(v_uid, v_monday), 'previous', private.titan_cadence_week(v_uid, v_monday - 7));
+end;
+$function$;
+
+create or replace function public.titan_cadence_week_claim_v1(p_week date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_monday date := (date_trunc('week', now() at time zone 'Europe/Paris'))::date;
+  v_state jsonb;
+  v_credits integer;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if exists (select 1 from public.profiles p where p.id = v_uid and coalesce(p.is_suspended, false)) then raise exception 'ACCOUNT_SUSPENDED' using errcode = '42501'; end if;
+  if p_week is null or p_week not in (v_monday, v_monday - 7) then raise exception 'WEEK_NOT_CLAIMABLE' using errcode = '22023'; end if;
+  -- One claim per account and week, even under two simultaneous taps.
+  perform pg_advisory_xact_lock(hashtext('titan_cadence_claim:' || v_uid::text));
+  v_state := private.titan_cadence_week(v_uid, p_week);
+  if (v_state ->> 'claimed')::boolean then raise exception 'WEEK_ALREADY_CLAIMED' using errcode = '22023'; end if;
+  if not (v_state ->> 'held')::boolean then raise exception 'WEEK_NOT_HELD' using errcode = '22023'; end if;
+  insert into private.titan_cadence_claims (user_id, week_start, days, target, credits)
+  values (v_uid, p_week, greatest(1, (v_state ->> 'days')::integer), (v_state ->> 'target')::integer, 50);
+  update public.profiles set credits = coalesce(credits, 0) + 50 where id = v_uid returning credits into v_credits;
+  return jsonb_build_object('week', p_week, 'credits', 50, 'balance', v_credits);
+end;
+$function$;
+
+revoke all on function public.titan_cadence_week_status_v1() from public, anon;
+revoke all on function public.titan_cadence_week_claim_v1(date) from public, anon;
+grant execute on function public.titan_cadence_week_status_v1() to authenticated;
+grant execute on function public.titan_cadence_week_claim_v1(date) to authenticated;

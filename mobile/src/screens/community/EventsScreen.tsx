@@ -46,17 +46,26 @@ export function EventsScreen() {
 
   if (q.isLoading && !q.data) return <Screen><LoadingCards /></Screen>;
   if (!q.data) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
-  const { quests, common, season, goal } = q.data;
+  const { quests, common, season, goal, cadence } = q.data;
+  const heldWeeks = cadence ? [cadence.current, cadence.previous].filter((w) => w.held && !w.claimed) : [];
   const label = (s: string) => Sports.label(s);
   const views = [quests?.week, quests?.month].map((x) => PeriodicQuests.describe(x, { sportLabel: label })).filter((x): x is QuestView => !!x);
   const busy = act.isPending;
-  const nothing = !views.length && !common && !season?.current && !goal;
+  const nothing = !views.length && !common && !season?.current && !goal && !heldWeeks.length;
 
   return (
     <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
       <T tone="muted">Tout est facultatif : tes séances comptent d’elles-mêmes, en minutes d’effort, 90 au plus par jour. Le repos ne coûte rien.</T>
       {nothing ? <EmptyState icon="flag" title="Rien de prévu pour le moment" text="De nouvelles quêtes arrivent chaque semaine. Tes séances restent comptées dans ta progression." /> : null}
 
+      {heldWeeks.map((w) => (
+        <Card key={w.week} tone="amber" style={{ gap: space.s2 }} testID={`held-${w.week}`}>
+          <T variant="eyebrow" tone="amber">{w.week === cadence!.current.week ? "Semaine tenue" : "Semaine dernière tenue"}</T>
+          <T variant="h3">{w.days}/{w.target} jours actifs : bravo !</T>
+          <T variant="small">Ta régularité vaut {w.reward} crédits, à dépenser en apparence à l’Atelier.</T>
+          <Button label={`Récupérer +${w.reward} crédits`} loading={busy} onPress={() => act.mutate({ fn: () => api.cadenceClaim(owner, w.week), ok: `+${w.reward} crédits` })} testID={`claim-held-${w.week}`} />
+        </Card>
+      ))}
       {views.map((v) => (
         <Card key={v.scope} tone={v.state === "ready" ? "accent" : undefined} style={{ gap: space.s2 }} testID={`quest-${v.scope}`}>
           <T variant="eyebrow" tone="accent">{v.scopeLabel}</T>
@@ -131,8 +140,11 @@ export function EventsTeaser({ onPress }: { onPress: () => void }) {
   if (!d) return null;
   const views = [d.quests?.week, d.quests?.month].map((x) => PeriodicQuests.describe(x)).filter((x): x is QuestView => !!x);
   const ready = views.find((v) => v.state === "ready");
+  const held = d.cadence ? [d.cadence.current, d.cadence.previous].find((w) => w.held && !w.claimed) : undefined;
   const open = views.find((v) => v.state === "open");
-  const line = ready
+  const line = held
+    ? `Semaine tenue : récupère +${held.reward} crédits`
+    : ready
     ? `${ready.scopeLabel} accomplie : récupère ton souvenir`
     : open
       ? `${open.title} · ${Format.number(open.value)}/${Format.number(open.target)}`
@@ -143,7 +155,7 @@ export function EventsTeaser({ onPress }: { onPress: () => void }) {
           : null;
   if (!line) return null;
   return (
-    <Card onPress={onPress} tone={ready ? "accent" : undefined} accessibilityLabel={`Quêtes et événements. ${line}`} testID="events-teaser">
+    <Card onPress={onPress} tone={held ? "amber" : ready ? "accent" : undefined} accessibilityLabel={`Quêtes et événements. ${line}`} testID="events-teaser">
       <T variant="eyebrow" tone="accent">Quêtes et événements</T>
       <T variant="bodyStrong">{line}</T>
     </Card>

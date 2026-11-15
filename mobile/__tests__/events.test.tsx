@@ -26,6 +26,7 @@ beforeEach(() => {
     titan_periodic_quests_v1: { version: 1, week: { scope: "week", kind: "constancy", target: { days: 3 }, progress: { days: 3 }, complete: true, claimed: false, focus: ["running"] }, month: { scope: "month", kind: "multisport", target: { sports: 2 }, progress: { sports: 1 }, complete: false, claimed: false }, souvenirs: { weeks: 2, months: 0 } },
     titan_common_quest_v1: { id: "q1", title: "Le relais du dimanche", detail: "Chaque jour compte.", weekStart: today, endsAt: new Date(Date.now() + 3 * 86400000).toISOString(), target: 1500, minutes: 420, members: 7, joined: false, mine: 0, state: "open" },
     titan_season_v1: { current: { id: "s1", name: "Saison de l’Aube", rules: "Quatre semaines.", startsOn: today, endsOn: today, state: "running", participants: 12, joined: false, myMinutes: 0, myDays: 0 }, archive: [] },
+    titan_cadence_week_status_v1: { current: { week: today, days: 1, target: 3, held: false, claimed: false, reward: 50 }, previous: { week: "2026-11-09", days: 3, target: 3, held: true, claimed: false, reward: 50 } },
     titan_world_goal_v1: { id: "g1", title: "L’ascension de l’hiver", detail: null, startsOn: today, endsOn: today, levels: [5000, 15000, 40000], minutes: 6200, members: 40, joined: true, mine: 180, level: 1, state: "open" },
   };
   mockRpc.mockImplementation((name: string, args: unknown) => ({
@@ -66,10 +67,17 @@ test("a missing RPC only hides its card", async () => {
   expect(screen.queryByTestId("season")).toBeNull();
 });
 
-test("the QG teaser points at what can be claimed first", async () => {
+test("the QG teaser points at what can be claimed first: a held week, then a quest", async () => {
   const onPress = jest.fn();
   show(<EventsTeaser onPress={onPress} />);
   fireEvent.press(await screen.findByTestId("events-teaser"));
-  expect(screen.getByText(/Quête de la semaine accomplie/)).toBeTruthy();
+  expect(screen.getByText(/Semaine tenue : récupère \+50 crédits/)).toBeTruthy();
   expect(onPress).toHaveBeenCalled();
+});
+
+test("a held week is claimed once for 50 credits (AUD-25)", async () => {
+  show(<EventsScreen />);
+  expect(await screen.findByText("3/3 jours actifs : bravo !")).toBeTruthy();
+  fireEvent.press(screen.getByTestId("claim-held-2026-11-09"));
+  await waitFor(() => expect(calls.some(([n, a]) => n === "titan_cadence_week_claim_v1" && (a as { p_week: string }).p_week === "2026-11-09")).toBe(true));
 });
