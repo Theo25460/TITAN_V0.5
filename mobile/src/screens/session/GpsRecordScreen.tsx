@@ -18,11 +18,20 @@ import { PERMISSION_COPY } from "../../lib/permissionCopy";
 import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } from "../../lib/gpsNative";
 import type { Recording } from "../../lib/gpsRecorder";
 import { currentSpeed } from "../../lib/gpsTrack";
+import { IS_E2E } from "../../lib/config";
 import { haptic } from "../../lib/haptics";
+import { ensurePermission as ensureNotificationPermission } from "../../lib/reminders";
 import { colors, space } from "../../theme/tokens";
 import type { RootParams } from "../../navigation/types";
 
 const clock = (sec: number) => `${Math.floor(sec / 3600) ? `${Math.floor(sec / 3600)}:` : ""}${String(Math.floor((sec % 3600) / 60)).padStart(Math.floor(sec / 3600) ? 2 : 1, "0")}:${String(sec % 60).padStart(2, "0")}`;
+
+/** Same pattern as lib/permissionCopy (TITAN explains before Android asks), for the one notification a recording shows. */
+const NOTICE_COPY = {
+  title: "Afficher l’enregistrement en cours",
+  message: "Pendant l’enregistrement, TITAN affiche une notification pour que tu voies qu’il continue, écran verrouillé compris. Rien d’autre n’est envoyé.\n\nAndroid va te demander l’autorisation d’afficher des notifications.",
+  confirmLabel: "Continuer",
+} as const;
 
 /** Live recording: Démarrer → Pause/Reprendre → Terminer → Enregistrer. Runs as a visible foreground service so a locked
     screen does not stop it. Positions stay on this phone; only the totals go into the usual session form. */
@@ -37,6 +46,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [denied, setDenied] = useState<"denied" | "blocked" | "unavailable" | null>(null);
+  const [noNotice, setNoNotice] = useState(false);
   const mounted = useRef(false);
   const inFlight = useRef(false);
 
@@ -90,11 +100,19 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
     }
   }
 
-  async function activate(operation: () => Promise<Recording | null>) {
+  async function activate(operation: () => Promise<Recording | null>, first = false) {
     const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
     if (!mounted.current) return;
     if (perm !== "ok") return setDenied(perm);
     setDenied(null);
+    // The screen promises "a visible notification": on Android 13+ it needs its own permission, asked here, at the first start and not
+    // earlier, with TITAN's explanation first. A refusal never blocks the recording: the screen then says the notification will not show.
+    // Never in the end-to-end build: a second system dialog would sit over the buttons the flow taps.
+    if (first && !IS_E2E) {
+      const shown = await ensureNotificationPermission(() => ask(NOTICE_COPY.title, NOTICE_COPY.message, { confirmLabel: NOTICE_COPY.confirmLabel })).catch(() => true);
+      if (!mounted.current) return;
+      setNoNotice(!shown);
+    }
     const other = await getActiveOwner();
     if (other && other !== owner) {
       await recorder.reconcile(other);
@@ -114,7 +132,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
     }
   }
 
-  const start = () => run(() => activate(() => recorder.start(owner, sport)), "Démarrage impossible");
+  const start = () => run(() => activate(() => recorder.start(owner, sport), true), "Démarrage impossible");
   const toggle = () => run(async () => {
     if (live) setRec(await recorder.pause(owner));
     else await activate(() => recorder.resume(owner));
@@ -181,7 +199,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
         <T variant="h1">{Sports.label(sport)}</T>
         <Card>
           <T variant="bodyStrong">Pourquoi TITAN te demande ta position</T>
-          <T tone="muted">Pour mesurer ta distance, ton allure ou ta vitesse et dessiner ta trace. Elle n’est utilisée que pendant une séance que tu démarres, avec une notification visible. Elle reste sur ce téléphone pendant l’enregistrement, puis rejoint ta bibliothèque privée quand tu enregistres la séance.</T>
+          <T tone="muted">Pour mesurer ta distance, ton allure ou ta vitesse et dessiner ta trace. Elle n’est utilisée que pendant une séance que tu démarres, avec une notification visible (Android te demandera de l’autoriser au démarrage). Elle reste sur ce téléphone pendant l’enregistrement, puis rejoint ta bibliothèque privée quand tu enregistres la séance.</T>
           <T tone="muted">L’enregistrement continue écran verrouillé tant qu’il est en cours. Tu peux le mettre en pause ou le terminer à tout moment.</T>
         </Card>
         {permissionNotice}
@@ -207,6 +225,11 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
     >
       <T variant="eyebrow" tone="accent">{ended ? "Séance terminée" : live ? "Enregistrement en cours" : "En pause"} · {Sports.label(rec.sport)}</T>
       {ended ? null : permissionNotice}
+      {!ended && noNotice ? (
+        <T variant="caption" tone="warn" accessibilityRole="alert" testID="gps-no-notification">
+          Notifications refusées : l’enregistrement continue, mais sans notification visible dans le volet. Tu peux les autoriser dans les réglages d’Android pour TITAN.
+        </T>
+      ) : null}
       {rec.interrupted && !ended ? (
         <Card tone="amber">
           <T variant="bodyStrong">Enregistrement interrompu</T>

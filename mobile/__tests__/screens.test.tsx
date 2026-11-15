@@ -470,3 +470,32 @@ describe("V1.3.1 · grand texte et petit écran", () => {
     }
   });
 });
+
+describe("V1.3.1 · import GPX", () => {
+  test("un fichier dont la taille n’est pas donnée est mesuré avant d’être lu, et refusé s’il est trop lourd", async () => {
+    const picker = require("expo-document-picker");
+    const files = require("expo-file-system/legacy");
+    const pick = jest.spyOn(picker, "getDocumentAsync").mockResolvedValue({ canceled: false, assets: [{ uri: "file:///cache/DocumentPicker/sortie.gpx", name: "sortie.gpx" }] });
+    const info = jest.spyOn(files, "getInfoAsync").mockResolvedValue({ exists: true, size: 20 * 1024 * 1024 });
+    const read = jest.spyOn(files, "readAsStringAsync").mockResolvedValue("<gpx/>");
+    try {
+      show(<S.Form {...props({ sport: "running" })} />);
+      await act(async () => { fireEvent.press(screen.getByTestId("gpx-import")); });
+      await waitFor(() => expect(screen.getByText("Fichier trop lourd")).toBeTruthy());
+      expect(info).toHaveBeenCalledWith("file:///cache/DocumentPicker/sortie.gpx");
+      expect(read).not.toHaveBeenCalled();
+    } finally {
+      pick.mockRestore(); info.mockRestore(); read.mockRestore();
+    }
+  });
+});
+
+describe("V1.3.1 · textes sensibles", () => {
+  test("Supprimer mon compte : l’abonnement Google Play n’est pas résilié, dit avant la confirmation", () => {
+    show(<S.Delete {...props()} />);
+    const warning = within(screen.getByTestId("delete-subscription-warning"));
+    expect(warning.getByText("Supprimer ton compte ne résilie pas un abonnement.")).toBeTruthy();
+    expect(warning.getByText(/arrête-le d’abord dans tes abonnements Google Play/)).toBeTruthy();
+    expect(screen.getByText(/tes parcours GPS et tes pas/)).toBeTruthy();
+  });
+});

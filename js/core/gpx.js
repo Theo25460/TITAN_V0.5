@@ -35,7 +35,8 @@
     let offset=0;
     for(const match of xml.matchAll(/<[^<>]*>/g)) {
       const token=match[0], between=xml.slice(offset,match.index);
-      if(/[<>]/.test(between)||(!stack.length&&between.trim()))return false;
+      // Text between tags: a raw ">" is legal XML ("Sortie > 10 km" in a name); "<" and a stray "]]>" are not.
+      if(between.includes('<')||between.includes(']]>')||(!stack.length&&between.trim()))return false;
       offset=match.index+token.length;
       if (/^<\?xml\s[\s\S]*\?>$/.test(token)) continue;
       const m=/^<(\/)?([A-Za-z_][\w.:-]*)(?:\s[^<>]*?)?\s*(\/?)>$/.exec(token);

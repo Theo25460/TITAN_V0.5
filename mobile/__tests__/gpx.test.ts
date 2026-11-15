@@ -23,3 +23,14 @@ test("a file without track points is refused with an explanation", () => {
   const r = Gpx.analyse("<gpx></gpx>");
   expect(r.ok).toBe(false);
 });
+
+test("a raw > in a track name is ordinary text: the file is imported with the same figures, broken markup is still refused", () => {
+  const named = Gpx.analyse(GPX.replace("<trk>", "<trk><name>Sortie > 10 km -> col</name><desc>a >> b</desc>"));
+  const plain = Gpx.analyse(GPX);
+  expect(named.ok).toBe(true);
+  if (!named.ok || !plain.ok) return;
+  expect([named.points, named.distanceKm, named.movingMinutes, named.ascent, named.start]).toEqual([plain.points, plain.distanceKm, plain.movingMinutes, plain.ascent, plain.start]);
+  expect(Gpx.analyse(GPX.replace("<trk>", "<trk><name>a < b</name>")).ok).toBe(false);
+  expect(Gpx.analyse(GPX.replace("<trk>", "<trk><name>a ]]> b</name>")).ok).toBe(false);
+  expect(Gpx.analyse(`${GPX} > trailing`).ok).toBe(false);
+});

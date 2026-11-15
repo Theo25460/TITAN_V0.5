@@ -82,6 +82,24 @@ test('namespaced GPX and signed exponent coordinates are accepted without interp
   assert.equal(r.ok,true); assert.equal(r.kind,'route'); assert.equal(r.ascent,null);
 });
 
+test('a raw ">" in a name or description is ordinary text: the file is read, and markup that is really broken is still refused', () => {
+  const body='<trk><name>Sortie > 10 km -> col</name><trkseg><trkpt lat="48" lon="2"><ele>100</ele><time>2026-06-01T08:00:00Z</time></trkpt><trkpt lat="48.001" lon="2"><ele>104</ele><time>2026-06-01T08:01:00Z</time></trkpt></trkseg></trk>';
+  const named=G.analyse(`<?xml version="1.0"?><gpx version="1.1"><metadata><desc>a > b &amp; c >> d</desc></metadata>${body}</gpx>`);
+  const plain=G.analyse(`<?xml version="1.0"?><gpx version="1.1">${body.replace('Sortie > 10 km -> col','Sortie')}</gpx>`);
+  assert.equal(named.ok,true);
+  for(const key of ['kind','points','distanceKm','movingMinutes','ascent','start'])assert.deepEqual(named[key],plain[key],key);
+  // The text never becomes data: a ">" inside a time or an altitude leaves that value unread, never guessed.
+  const odd=G.analyse(track('<trkpt lat="48" lon="2"><ele>1>00</ele><time>2026-06-01T08:00:00Z></time></trkpt><trkpt lat="48.001" lon="2"/>'));
+  assert.equal(odd.ok,true);assert.equal(odd.ascent,null);assert.equal(odd.movingMinutes,null);assert.equal(odd.start,null);
+  for(const broken of [
+    '<gpx><trk><name>a < b</name><trkseg><trkpt lat="48" lon="2"/><trkpt lat="48.001" lon="2"/></trkseg></trk></gpx>',
+    '<gpx><trk><name>a ]]> b</name><trkseg><trkpt lat="48" lon="2"/><trkpt lat="48.001" lon="2"/></trkseg></trk></gpx>',
+    '<gpx><trk><trkseg><trkpt lat="48" lon="2" name="a>b"/><trkpt lat="48.001" lon="2"/></trkseg></trk></gpx>',
+    '<gpx><trk><trkseg><trkpt lat="48" lon="2"/><trkpt lat="48.001" lon="2"/></trkseg></trk></gpx> > trailing',
+    'before > <gpx><trk><trkseg><trkpt lat="48" lon="2"/><trkpt lat="48.001" lon="2"/></trkseg></trk></gpx>',
+  ])assert.equal(G.analyse(broken).ok,false,broken);
+});
+
 test('malformed attribute quotes are refused and nested extensions cannot impersonate point time or altitude', () => {
   const malformed=track(pt(45,0)+pt(45.001,30)).replaceAll('lat="45"',"lat='45\"");
   assert.equal(G.analyse(malformed).ok,false);

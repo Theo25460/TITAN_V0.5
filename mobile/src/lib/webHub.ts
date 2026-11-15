@@ -5,7 +5,7 @@ import { SITE_URL } from "./config";
 export type WebFeature = { id: string; icon: "chart" | "group" | "layers" | "route" | "target"; title: string; text: string; path: string };
 
 export const WEB_FEATURES: readonly WebFeature[] = [
-  { id: "stats", icon: "chart", title: "Analyses et comparaisons", text: "Charge, fraîcheur, comparaisons entre périodes et rapports détaillés, sur grand écran.", path: "/stats" },
+  { id: "stats", icon: "chart", title: "Analyses et comparaisons", text: "Comparaisons entre périodes, bilans détaillés et vues sauvegardées, sur grand écran.", path: "/stats" },
   { id: "coaching", icon: "group", title: "Espace coach", text: "Suivre plusieurs sportifs, comparer et préparer des séances.", path: "/coaching" },
   { id: "gpx", icon: "route", title: "Analyse d’un fichier GPX", text: "Importer une trace et lire terrain, pauses et dénivelé en détail.", path: "/training?mode=hub" },
   { id: "export", icon: "layers", title: "Exports et données complètes", text: "Tout ton journal en CSV ou JSON, depuis ton compte.", path: "/profile" },

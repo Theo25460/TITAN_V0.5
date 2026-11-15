@@ -6,7 +6,7 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { pedometer } from "../lib/pedometer";
 import { applyReading, emptyLedger, type Ledger, type Reading } from "../lib/stepLedger";
-import { ownerKey, readJSON, writeJSON } from "../lib/storage";
+import { onAccountErased, ownerKey, readJSON, writeJSON } from "../lib/storage";
 import { useOwner } from "./auth";
 
 export type PedometerPermissionState = "unknown" | "granted" | "denied" | "blocked";
@@ -139,6 +139,17 @@ async function clear() {
   set({ ledger: emptyLedger() });
   await writeJSON(ledgerKey(owner), emptyLedger()).catch(() => {});
 }
+
+// Account deletion: the ledger held in memory is dropped at once, so no pending or later save can write the erased steps back.
+onAccountErased((owner) => {
+  if (state.owner !== owner) return;
+  epoch++;
+  dropWatch();
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = null;
+  state = blank();
+  listeners.forEach((l) => l());
+});
 
 const subscribe = (l: () => void) => {
   listeners.add(l);

@@ -60,13 +60,13 @@ export function PrivacyScreen() {
         <Button small kind="secondary" icon="globe" label="Voir ou arrêter mon partage sur le site" testID="privacy-coaching" onPress={() => Linking.openURL(webUrl("/coaching")).catch(() => {})} />
       </Group>
       <T variant="caption" tone="faint">
-        {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob après ton consentement. Google peut alors utiliser l’identifiant publicitaire de ton téléphone (tu peux le réinitialiser ou le supprimer dans les réglages Android) ; TITAN lui-même ne le lit pas." : "L’application Android ne collecte aucune statistique d’usage et n’affiche aucune publicité dans cette version."}
+        {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob, une fois ton choix fait dans le formulaire de Google. Google peut alors utiliser l’identifiant publicitaire de ton téléphone (tu peux le réinitialiser ou le supprimer dans les réglages Android) ; TITAN lui-même ne le lit pas." : "L’application Android ne collecte aucune statistique d’usage et n’affiche aucune publicité dans cette version."}
       </T>
       {ADS_BUILD && !p.is_elite ? (
         <Group>
           <T variant="bodyStrong">Publicité</T>
           <T variant="small" tone="muted">
-            TITAN gratuit affiche peu de publicités, jamais pendant un effort. Tu peux revoir ton choix de consentement à tout moment. TITAN+ et les offres Coach n’en affichent aucune.
+            L’application gratuite affiche des publicités, jamais pendant une séance. Tu peux revoir ton choix dans le formulaire de Google à tout moment. TITAN+, Coach et Coach Ultra n’en affichent aucune.
           </T>
           <Button
             small
@@ -78,7 +78,7 @@ export function PrivacyScreen() {
               await adsManager.openPrivacyOptions();
             }}
           />
-          {ads.phase === "denied" ? <T variant="caption" tone="faint">Publicités désactivées d’après ton choix.</T> : null}
+          {ads.phase === "denied" ? <T variant="caption" tone="faint">Aucune publicité demandée : le formulaire de Google ne l’autorise pas.</T> : null}
         </Group>
       ) : null}
     </Screen>

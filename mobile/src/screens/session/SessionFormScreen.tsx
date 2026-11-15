@@ -77,6 +77,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   const [gpxOriginal, setGpxOriginal] = useState<{ owner: string; sport: string; name: string; text: string } | null>(null);
   const [exportingGpx, setExportingGpx] = useState(false);
   const gpxRead = useRef(0);
+  const [gpxBusy, setGpxBusy] = useState(false);
   const mounted = useRef(true);
   const gpxScope = useRef({ owner, sport });
   gpxScope.current = { owner, sport };
@@ -198,8 +199,15 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       let source: string;
       try {
         if (!current()) return;
-        if ((file.size ?? 0) > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+        // Some document providers give no size: the cached copy is measured instead, so a huge file is refused before it is read.
+        const size = file.size ?? (await FileSystem.getInfoAsync(file.uri).then((info) => (info.exists ? info.size : null)).catch(() => null));
+        if (!current()) return;
+        if (size == null) return toast({ kind: "warn", title: "Taille du fichier inconnue", message: "TITAN n’a pas pu vérifier la taille de ce fichier. Copie-le sur ton téléphone, puis réessaie." });
+        if (size > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+        setGpxBusy(true);
         source = await FileSystem.readAsStringAsync(file.uri);
+        // The analysis is synchronous: let « Analyse du fichier… » reach the screen before it starts.
+        await new Promise((resolve) => setTimeout(resolve, 0));
       } finally {
         // DocumentPicker makes its own cache copy. Never delete the source supplied by a document provider.
         if (FileSystem.cacheDirectory && file.uri.startsWith(`${FileSystem.cacheDirectory}DocumentPicker/`)) {
@@ -215,6 +223,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       toast({ kind: "ok", title: "Trace importée", message: `${Format.distance(result.distanceKm)} · ${result.points} points${result.ignoredPoints ? `, ${result.ignoredPoints} aberrants ignorés` : ""}.` });
     } catch {
       if (current()) toast({ kind: "warn", title: "GPX illisible", message: "Le fichier n’a pas pu être lu. Réessaie." });
+    } finally {
+      if (mounted.current) setGpxBusy(false);
     }
   }
 
@@ -345,7 +355,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
-            <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
+            <Button small kind="secondary" icon="route" label={gpxBusy ? "Analyse du fichier…" : draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} loading={gpxBusy} onPress={importGpx} testID="gpx-import" />
             {draft.gpx ? <>
               {draft.gpx.timing === "missing" ? <T tone="muted">Pas de données de temps dans ce GPX.</T> :
                 draft.gpx.movingMinutes ? <T tone="muted">Temps en mouvement du fichier : {Format.duration(draft.gpx.movingMinutes)}.</T> :

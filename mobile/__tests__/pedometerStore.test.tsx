@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { _resetPedometerStoreForTests, usePedometer } from "../src/data/pedometer";
 import { _setPedometerForTests, createPedometer, type PedometerNative } from "../src/lib/pedometer";
+import { forgetAccountCache } from "../src/lib/storage";
 
 let mockOwner = "owner-a";
 jest.mock("../src/data/auth", () => ({ useOwner: () => mockOwner }));
@@ -116,6 +117,79 @@ describe("TITAN pedometer store", () => {
     await waitFor(() => expect(b.result.current.ready).toBe(true));
     expect(b.result.current.enabled).toBe(false);
     expect(b.result.current.ledger.firstAt).toBeNull();
+  });
+
+  test("an ordinary sign-out keeps the steps counted on this phone, the counter's on/off choice and the goal; the cached copies still go", async () => {
+    const s = fakeSensor(5000);
+    _setPedometerForTests(createPedometer(s.native, perms(true)));
+    const first = renderHook(() => usePedometer());
+    await waitFor(() => expect(first.result.current.ready).toBe(true));
+    await act(async () => { await first.result.current.enable(); });
+    await waitFor(() => expect(s.listeners.size).toBe(1));
+    act(() => s.walk(120));
+    first.unmount(); // signing out leaves the screens: the ledger is written
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    await AsyncStorage.setItem("titan.steps-goal.v1:owner-a", "8000");
+    await AsyncStorage.setItem("titan.steps-sync.v1:owner-a", "1");
+    await AsyncStorage.setItem("titan.profile.v1:owner-a", "{\"cached\":true}");
+
+    await forgetAccountCache("owner-a"); // what signOut() calls
+
+    expect(Object.values(JSON.parse((await AsyncStorage.getItem("titan.pedometer.v1:owner-a"))!).days)).toEqual([120]);
+    expect(await AsyncStorage.getItem("titan.pedometer-on.v1:owner-a")).toBe("true");
+    expect(await AsyncStorage.getItem("titan.steps-goal.v1:owner-a")).toBe("8000");
+    expect(await AsyncStorage.getItem("titan.profile.v1:owner-a")).toBeNull();
+    expect(await AsyncStorage.getItem("titan.steps-sync.v1:owner-a")).toBeNull();
+
+    // Another person signs in on the same phone: none of it is theirs, and their own counter is off.
+    _resetPedometerStoreForTests();
+    mockOwner = "owner-b";
+    const other = renderHook(() => usePedometer());
+    await waitFor(() => expect(other.result.current.ready).toBe(true));
+    expect(other.result.current.enabled).toBe(false);
+    expect(other.result.current.ledger.days).toEqual({});
+    expect(other.result.current.ledger.firstAt).toBeNull();
+    expect(s.listeners.size).toBe(0);
+    other.unmount();
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    expect(await AsyncStorage.getItem("titan.pedometer-on.v1:owner-b")).toBeNull();
+
+    // The first person comes back after a restart of the app: the steps are there and the counter is still on.
+    _resetPedometerStoreForTests();
+    mockOwner = "owner-a";
+    const back = renderHook(() => usePedometer());
+    await waitFor(() => expect(back.result.current.ready).toBe(true));
+    expect(back.result.current.enabled).toBe(true);
+    expect(Object.values(back.result.current.ledger.days)).toEqual([120]);
+  });
+
+  test("deleting the account erases the steps for good: a save still pending in memory cannot write them back", async () => {
+    const s = fakeSensor(5000);
+    _setPedometerForTests(createPedometer(s.native, perms(true)));
+    const { result, unmount } = renderHook(() => usePedometer());
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    await act(async () => { await result.current.enable(); });
+    await waitFor(() => expect(s.listeners.size).toBe(1));
+    act(() => s.walk(300)); // counted in memory, its save is still waiting
+    await AsyncStorage.setItem("titan.steps-goal.v1:owner-a", "8000");
+    await AsyncStorage.setItem("titan.pedometer.v1:owner-b", "{\"v\":1,\"days\":{\"2026-11-01\":10}}");
+
+    await act(async () => { await forgetAccountCache("owner-a", { keepQueue: false }); }); // what account deletion calls
+
+    const gone = async () => {
+      expect(await AsyncStorage.getItem("titan.pedometer.v1:owner-a")).toBeNull();
+      expect(await AsyncStorage.getItem("titan.pedometer-on.v1:owner-a")).toBeNull();
+      expect(await AsyncStorage.getItem("titan.steps-goal.v1:owner-a")).toBeNull();
+    };
+    await gone();
+    expect(s.listeners.size).toBe(0); // the sensor is no longer listened to for the erased account
+    expect(result.current.ledger.days).toEqual({});
+    // The screens close, the delayed save fires, the app goes on: nothing comes back.
+    unmount();
+    await act(async () => { await new Promise((r) => setTimeout(r, 3200)); });
+    await gone();
+    // Another account's steps on the same phone are untouched.
+    expect(await AsyncStorage.getItem("titan.pedometer.v1:owner-b")).not.toBeNull();
   });
 
   test("a phone without the sensor says so and never claims a count", async () => {

@@ -102,6 +102,9 @@ function MapButton({ label, hint, onPress }: { label: string; hint: string; onPr
 }
 
 /** The athlete's private route library. Nothing here is shared with anyone. */
+/** Server-side limit of the private route library. */
+const ROUTE_LIMIT = 200;
+
 export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, "Routes">) {
   const owner = useOwner();
   const toast = useToast();
@@ -111,17 +114,20 @@ export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, 
   if (q.isLoading && !q.data && !waiting.data?.length) return <Screen><LoadingCards count={2} /></Screen>;
   if (q.error && !q.data && !waiting.data?.length) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
   const list = q.data ?? [];
+  // The server keeps at most 200 routes per account (migration 20261102120000_routes.sql): a full library is said as such, with the way out.
+  const libraryFull = list.length >= ROUTE_LIMIT;
   const refresh = () => { q.refetch(); waiting.refetch(); };
   return (
     <Screen refreshing={q.isRefetching} onRefresh={refresh}>
       <T variant="eyebrow" tone="accent">Mes parcours</T>
       <T tone="muted">Tes traces GPS, gardées pour toi seul. Elles ne sont jamais partagées ni publiées, et se suppriment une par une.</T>
       {q.error ? <T tone="warn">La bibliothèque en ligne est indisponible. Tes parcours en attente restent sur ce téléphone.</T> : null}
+      {libraryFull ? <T variant="small" tone="warn" accessibilityRole="alert" testID="routes-full">Bibliothèque pleine : {ROUTE_LIMIT} parcours. Supprime un parcours pour que le suivant puisse être enregistré.</T> : null}
       {waiting.data?.length ? <T variant="small" tone="warn">{waiting.data.length} parcours en attente d’envoi. Ils restent sur ce téléphone jusqu’à confirmation du serveur.</T> : null}
       {waiting.data?.map((r) => (
         <Card key={r.clientRouteId}>
           <T variant="bodyStrong">{Sports.label(r.sport)} · {when(r.startedAt)}</T>
-          <T variant="small" tone={r.rejected ? "warn" : "muted"}>{r.rejected ? "Envoi refusé : la trace est conservée. Garde une copie GPX avant de contacter l’assistance." : "Envoi à réessayer. Tu peux déjà garder une copie GPX."}</T>
+          <T variant="small" tone={r.rejected ? "warn" : "muted"}>{r.rejected && libraryFull ? `Ta bibliothèque est pleine (${ROUTE_LIMIT} parcours) : supprime un parcours ci-dessous, l’envoi reprendra tout seul. En attendant, garde une copie GPX.` : r.rejected ? "Envoi refusé : la trace est conservée. Garde une copie GPX avant de contacter l’assistance." : "Envoi à réessayer. Tu peux déjà garder une copie GPX."}</T>
           <Button small kind="secondary" label="Exporter le parcours en attente" testID={`pending-export-${r.clientRouteId}`} loading={exporting === r.clientRouteId} onPress={async () => {
             if (exporting) return;
             setExporting(r.clientRouteId);

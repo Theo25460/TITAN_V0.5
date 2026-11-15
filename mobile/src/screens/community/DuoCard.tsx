@@ -45,7 +45,7 @@ export function DuoCard({ owner, online }: { owner: string; online: boolean }) {
   if (!online || q.isError || (q.isFetching && !busy)) return (
     <Card style={styles.card}>
       <T variant="h3">TITAN Duo</T>
-      <T variant="small">{!online ? "Reconnecte-toi pour retrouver ton expédition." : q.isError ? "L’état de ton expédition n’a pas pu être vérifié." : "Vérification de ton expédition…"}</T>
+      <T variant="small">{!online ? "Reconnecte-toi pour retrouver ton TITAN Duo." : q.isError ? "L’état de ton TITAN Duo n’a pas pu être vérifié." : "Vérification de ton TITAN Duo…"}</T>
       {online && q.isError ? <Button small kind="secondary" label="Actualiser" onPress={() => q.refetch()} /> : null}
     </Card>
   );
@@ -55,10 +55,10 @@ export function DuoCard({ owner, online }: { owner: string; online: boolean }) {
       <T variant="h3">TITAN Duo</T>
       {data.status === "none" ? (
         <>
-          <T variant="small">{data.friends.length ? "Propose une expédition de 14 jours à un ami et avancez à votre rythme. Chacun peut arrêter quand il veut." : "Quand un ami sera disponible, tu pourras lui proposer une expédition de 14 jours."}</T>
+          <T variant="small">{data.friends.length ? "Propose un TITAN Duo de 14 jours à un ami et avancez à votre rythme. Chacun peut arrêter quand il veut." : "Quand un ami sera disponible, tu pourras lui proposer un TITAN Duo de 14 jours."}</T>
           {data.friends.length ? <Button small label="Choisir un ami" disabled={busy} onPress={() => { setFriend(null); setNotice(""); setChoosing(true); }} /> : null}
           <Sheet visible={choosing} onClose={() => setChoosing(false)} title="Choisir un ami" footer={<Button label="Envoyer l’invitation" loading={busy} disabled={!friend || !data.friends.some((item) => item.id === friend)} onPress={() => friend ? act(() => api.duoInvite(owner, friend)) : undefined} />}>
-            <T variant="small">Ton ami pourra accepter ou refuser. L’expédition de 14 jours commence seulement après son accord.</T>
+            <T variant="small">Ton ami pourra accepter ou refuser. Le TITAN Duo de 14 jours commence seulement après son accord.</T>
             {data.friends.map((item) => (
               <Tap key={item.id} style={styles.choice} accessibilityRole="radio" accessibilityLabel={item.name} accessibilityState={{ checked: friend === item.id, disabled: busy }} disabled={busy} onPress={() => setFriend(item.id)}>
                 <Icon name={friend === item.id ? "check" : "user"} color={friend === item.id ? colors.cy : colors.tx3} size={18} />
@@ -70,9 +70,9 @@ export function DuoCard({ owner, online }: { owner: string; online: boolean }) {
         </>
       ) : data.status === "pending" && data.role === "invitee" ? (
         <>
-          <T>{data.partner.name} te propose une expédition à deux pendant 14 jours. Tu peux refuser ou arrêter quand tu veux.</T>
-          <Button small label="Accepter l’expédition" disabled={busy} onPress={() => act(() => api.duoRespond(owner, data.id, true))} />
-          <Button small kind="secondary" label="Refuser l’expédition" disabled={busy} onPress={() => act(() => api.duoRespond(owner, data.id, false))} />
+          <T>{data.partner.name} te propose un TITAN Duo : 14 jours à deux. Tu peux refuser ou arrêter quand tu veux.</T>
+          <Button small label="Accepter le TITAN Duo" disabled={busy} onPress={() => act(() => api.duoRespond(owner, data.id, true))} />
+          <Button small kind="secondary" label="Refuser le TITAN Duo" disabled={busy} onPress={() => act(() => api.duoRespond(owner, data.id, false))} />
         </>
       ) : data.status === "pending" ? (
         <>
@@ -81,14 +81,14 @@ export function DuoCard({ owner, online }: { owner: string; online: boolean }) {
         </>
       ) : (
         <>
-          <T variant="bodyStrong">Expédition avec {data.partner.name}</T>
+          <T variant="bodyStrong">TITAN Duo avec {data.partner.name}</T>
           <T variant="small">{data.daysLeft} jour{data.daysLeft > 1 ? "s restants" : " restant"}</T>
           <ProgressBar value={data.together / Math.max(1, data.target)} accessibilityLabel="Jours actifs à deux" />
           <T variant="small">{data.together} / {data.target} jours actifs à deux · toi {data.myDays}, {data.partner.name} {data.partnerDays}</T>
           {data.together >= data.target ? <T variant="small" tone="ok">Objectif commun atteint.</T> : null}
           {data.nudgesReceived > 0 ? <T variant="small">{data.partner.name} t’a encouragé{data.nudgesReceived > 1 ? ` ${data.nudgesReceived} fois` : ""}.</T> : null}
           <Button small label={data.nudgedToday ? "Encouragement envoyé" : `Encourager ${data.partner.name}`} disabled={busy || data.nudgedToday} onPress={() => act(() => api.duoNudge(owner, data.id))} />
-          <Button small kind="secondary" label="Arrêter l’expédition" disabled={busy} onPress={() => Alert.alert("Arrêter l’expédition ?", "L’expédition s’arrête pour vous deux. Le partage de vos jours actifs prend fin.", [{ text: "Annuler", style: "cancel" }, { text: "Arrêter", style: "destructive", onPress: () => act(() => api.duoEnd(owner, data.id)) }])} />
+          <Button small kind="secondary" label="Arrêter le TITAN Duo" disabled={busy} onPress={() => Alert.alert("Arrêter le TITAN Duo ?", "Le TITAN Duo s’arrête pour vous deux. Le partage de vos jours actifs prend fin.", [{ text: "Annuler", style: "cancel" }, { text: "Arrêter", style: "destructive", onPress: () => act(() => api.duoEnd(owner, data.id)) }])} />
         </>
       )}
       {!choosing && notice ? <T variant="small" accessibilityLiveRegion="polite">{notice}</T> : null}

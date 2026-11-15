@@ -34,7 +34,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
         <Reveal style={{ gap: space.s3 }}>
           <T variant="display">Ton sport réel.{"\n"}Une progression qui dure.</T>
           <T variant="body" tone="muted">
-            {ADS_BUILD ? "Gratuit pour progresser. Publicités rares et discrètes, jamais pendant l’effort, retirées avec TITAN+." : "Gratuit, sans publicité, sans achat pour progresser."}
+            {ADS_BUILD ? "Gratuit. Des publicités, jamais pendant une séance ; aucune avec TITAN+." : "Gratuit, sans publicité, sans achat pour progresser."}
           </T>
         </Reveal>
         <View accessibilityRole="list">

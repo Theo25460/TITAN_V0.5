@@ -184,7 +184,7 @@ export function CommunityScreen() {
                     <>
                       <Chip label={`${m.cheers} encouragement${m.cheers > 1 ? "s" : ""}`} icon="heart" />
                       <View style={{ flex: 1 }} />
-                      <Tap onPress={() => Alert.alert("Retirer ce moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
+                      <Tap onPress={() => Alert.alert("Retirer ce Moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
                         <Icon name="trash" size={18} color={colors.tx3} />
                       </Tap>
                     </>

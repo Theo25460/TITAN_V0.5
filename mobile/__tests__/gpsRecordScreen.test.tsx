@@ -33,6 +33,9 @@ jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () =>
 jest.mock("../src/data/drafts", () => ({ saveDraft: (...a: unknown[]) => mockDraft(...a) }));
 jest.mock("../src/lib/exportFile", () => ({ shareTextFile: jest.fn(async () => undefined) }));
 jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
+// Notification permission asked at the first start (V1.3.1): granted unless a test says otherwise.
+const mockNotice = jest.fn(async (_explain?: () => Promise<boolean>) => true);
+jest.mock("../src/lib/reminders", () => ({ ensurePermission: (explain?: () => Promise<boolean>) => mockNotice(explain) }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { SafeAreaProvider } = require("react-native-safe-area-context");
@@ -148,4 +151,24 @@ test("launch waits for the initial auth identity before deciding whether to paus
   mockAuth = { status: "loading", owner: null };
   view.rerender(<GpsAccountGuard />);
   expect(mockGuard).toHaveBeenLastCalledWith(null);
+});
+
+test("the recording notification is asked for at the first start only, and a refusal never blocks the recording", async () => {
+  mockNotice.mockClear();
+  mockNotice.mockResolvedValueOnce(false);
+  show();
+  // Nothing is asked when the screen opens: only the press on « Démarrer » asks.
+  await screen.findByTestId("gps-start");
+  expect(mockNotice).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByTestId("gps-start"));
+  await screen.findByText(/Enregistrement en cours/);
+  expect(mockNotice).toHaveBeenCalledTimes(1);
+  expect(typeof mockNotice.mock.calls[0]![0]).toBe("function"); // TITAN's own explanation comes before Android's prompt
+  expect(screen.getByTestId("gps-no-notification")).toBeTruthy();
+  // Pause and resume do not ask again.
+  fireEvent.press(screen.getByTestId("gps-toggle"));
+  await screen.findByText(/En pause/);
+  fireEvent.press(screen.getByTestId("gps-toggle"));
+  await screen.findByText(/Enregistrement en cours/);
+  expect(mockNotice).toHaveBeenCalledTimes(1);
 });

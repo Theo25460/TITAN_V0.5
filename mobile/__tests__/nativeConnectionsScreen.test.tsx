@@ -117,3 +117,19 @@ test("a Garmin handoff completes once under the current account and an account c
     subscription.mockRestore();
   }
 });
+
+test.each([
+  ["withdrawn", /TITAN a été retiré de ton compte Garmin/],
+  ["unconfirmed", /Garmin n’a pas confirmé le retrait de son côté.*Garmin Connect/],
+])("after a Garmin disconnect the athlete is told whether Garmin confirmed it (%s)", async (result, text) => {
+  const initial = jest.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
+  const subscription = jest.spyOn(Linking, "addEventListener").mockReturnValue({ remove: jest.fn() } as unknown as ReturnType<typeof Linking.addEventListener>);
+  mockRead.mockResolvedValue({ enabled: true, linked: true, authorized: true });
+  mockDisconnect.mockResolvedValue(result);
+  show(<GarminScreen />);
+  fireEvent.press(await screen.findByTestId("garmin-disconnect"));
+  expect(await screen.findByText(text)).toBeTruthy();
+  expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  initial.mockRestore();
+  subscription.mockRestore();
+});

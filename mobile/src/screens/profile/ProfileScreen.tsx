@@ -190,7 +190,7 @@ export function ProfileScreen() {
           </View> : null}
           <View style={[styles.actions, stacked && styles.stacked]}>
             <ProfileRow compact title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
-            {code ? <ProfileRow compact fill={!stacked} title={`Code ami ${code}`} icon="share"
+            {code ? <ProfileRow compact fill={!stacked} title="Code ami" subtitle={`${code} · partager`} icon="share"
               onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
           </View>
         </Card>
