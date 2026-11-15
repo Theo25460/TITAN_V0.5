@@ -2,6 +2,7 @@
 
 Complète [le dossier de livraison V1.3.1](V131_RELEASE_DOSSIER.md). Branche : `claude/titan-v131-finalization-9g6jjo`, partie de `main` (`67e17c7`).
 Ce document dit ce qui a été fait, ce qui a été vérifié et comment, ce qui reste bloqué, et ce qui attend une décision humaine.
+**Suite du chantier (Opération Renaissance finale, 14–15 novembre)** : registre central, matrices par lot, notes de version et rapport final avec verdict dans [`v131/`](v131/REGISTRE.md) ; verdict et preuves : [`v131/RAPPORT_FINAL.md`](v131/RAPPORT_FINAL.md).
 Rien n'a été déployé : ni Netlify, ni Google Play, ni migration sur la base de production.
 
 ## 1. État trouvé au départ

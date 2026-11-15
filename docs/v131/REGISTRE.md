@@ -7,16 +7,16 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 
 | Lot | Objet | Détail | État au dernier point | Commits |
 |---|---|---|---|---|
-| 0 | Reprise, inventaire, sources de vérité | ce fichier, [`cahier-reference.md`](cahier-reference.md) | En cours | `2950f1d` |
+| 0 | Reprise, inventaire, sources de vérité | ce fichier, [`cahier-reference.md`](cahier-reference.md), [`NOTES_DE_VERSION.md`](NOTES_DE_VERSION.md), [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) | Clos | `2950f1d`, `8597828` |
 | 1 | Sécurité Supabase | [`lot1-securite.md`](lot1-securite.md), [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 3 | Clos sur réplique locale : couche sociale durcie, export de compte réparé et complété, 209 fonctions exposées attaquées sans lecture ni écriture inter-comptes. Rien n'est appliqué en production | `29c2479`, `204aa46` |
 | 2 | Paiements | [`lot2-paiements.md`](lot2-paiements.md) | Corrigé ; chaîne réelle non testée (aucun achat) | `c232576`, `36067e6` |
 | 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | [`lot2-integrations.md`](lot2-integrations.md) | Clos : 10 correctifs testés (simulés ou rejoués localement), dont la déduplication des imports ; rien testé sur compte ou appareil réel | `4760215`, `13071c3`, `9b790a2`, `9a13a08`, `ce5bc1e` |
 | 3–4 | UX Android | [`lot3-4-ux-android.md`](lot3-4-ux-android.md), [`cahier-reference.md`](cahier-reference.md), 16 paires avant/après dans `mobile/docs/avant-apres/v131/` | Clos : 22 routes modifiées sur 45 (QG, Aventure, résultat de séance, onglet Séance, Profil et écrans liés), 21 contrôlées sans changement, 2 non terminées. 808 tests, aucun débordement à 320, 360 et 412 dp sur l'aperçu. Aucune note de simplicité validée par des utilisateurs ; rien vérifié sur téléphone ni avec TalkBack | `717e076`, `08fadb4`, `9a13a08`, `48d2cd4`, `5f3e6b3` |
-| 3, 8 | UX Web, performance, accessibilité | `lot3-8-web-ux-performance.md` | À reprendre | — |
+| 3, 8 | UX Web, performance, accessibilité | [`lot3-8-web-ux-performance.md`](lot3-8-web-ux-performance.md), 11 paires avant/après dans `captures-web/`, [`../ACCESSIBILITY_ASSESSMENT.md`](../ACCESSIBILITY_ASSESSMENT.md) | Clos : QG, résultat de séance, Aventure et Profil refaits ; re-contrôles de stabilité avec verdict chacun ; mesures avant/après (seule l'Aventure progresse nettement) ; axe sans violation sur les pages privées contrôlées. Chromium uniquement, réseau simulé ; aucun test avec des utilisateurs ni technologie d'assistance | `39fc696`, `8d9ec3f`, `253a65b`, `414533b` |
 | 5 | Direction artistique | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 5 | 4 blasons approuvés intégrés ; production des visuels manquants bloquée (crédits et réseau du générateur) | `88b0ad4`, design `3ff33c4` |
 | 6 | Textes, juridique, cohérence commerciale | [`lot6-textes-juridique.md`](lot6-textes-juridique.md), [`vocabulaire.md`](vocabulaire.md) | Clos côté Web public : publicité, disponibilité, capacités Coach, données déclarées unifiées ; 582 tests verts. Points pour un juriste listés. Ce n'est pas une certification juridique | `1066c66` |
 | 7 | SEO | [`lot7-seo.md`](lot7-seo.md) ; section du 14 novembre ajoutée à l'Observatoire | Clos dans le candidat (rien n'est en ligne) : audit par URL de la production et du candidat, `/service`, `/suivi-escalade`, maillage, données structurées, journal des nouveautés, deux pages (`/suivi-velo`, `/defis-sportifs`), sitemap 25 → 27. Aucun connecteur Search Console, Windsor ou Analytics : chiffres issus de l'Observatoire | `a0a5e1a` |
-| 9 | Recette, CI, AAB, GO/NO-GO | § 3 ci-dessous | CI verte sur `2950f1d` | — |
+| 9 | Recette, CI, AAB, GO/NO-GO | § 3 ci-dessous, [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) | Clos : CI verte et build signé sur `414533b`. Verdict : NO-GO grand public tant que les décisions P0 hors dépôt ne sont pas prises ; GO pour un candidat de recette | `414533b` |
 
 ## 2. Faits établis sur la production (lecture seule, 14 novembre 2026)
 
@@ -32,19 +32,22 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 
 ## 3. Vérifications automatiques
 
+Candidat recetté : `414533b`. Tableau complet : [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) § 9.
+
 | Vérification | SHA | Résultat |
 |---|---|---|
-| CI « Tests et build public » | `2950f1d` | Succès |
-| CI « Parcours navigateur (Playwright) », suite complète | `2950f1d` | Succès |
-| CI « Migrations sur une réplique vide (Postgres 17.6) », deux chaînes | `2950f1d` | Succès |
-| CI Android « Types et tests unitaires » | `2950f1d` | Succès |
-| CI Android « Parcours réel sur émulateur (réplique locale du backend) » | `2950f1d` | Succès |
-| CI Android « APK et AAB release » (clé d'essai) | `2950f1d` | Succès |
+| CI « Tests et build public » | `414533b` | Succès |
+| CI « Parcours navigateur (Playwright) », suite complète | `414533b` | Succès |
+| CI « Migrations sur une réplique vide (Postgres 17.6) », deux chaînes | `414533b` | Succès |
+| CI Android « Types et tests unitaires » | `414533b` | Succès |
+| CI Android « Parcours réel sur émulateur (réplique locale du backend) » | `414533b` | Succès |
+| CI Android « APK et AAB release » (clé d'essai) | `414533b` | Succès |
 | Contrôle `render` de la bibliothèque graphique (PR #147) | design `3ff33c4` | Succès après correctif |
-| Local : `pnpm test` 581/581, Android 773/773, rejeu des migrations (PostgreSQL 16) | `ed97864` | Succès |
+| Local : Web 588/588, Android 808/808, deux chaînes de migrations (PostgreSQL 16), bundle Android, suite navigateur 1 033/1 034 (A34) | `414533b` | Succès, une instabilité préexistante |
 
-Non exécuté : build signé avec la clé d'envoi (`1.3.1 (1303)`), achat Google Play réel ou de licence, appareil Android physique,
-Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
+| Build Android signé `1.3.1 (1303)` (clé d'envoi) et parcours sur émulateur avec le schéma après migrations | `414533b` | Succès, [exécution n° 206](https://github.com/Theo25460/TITAN_V0.5/actions/runs/43705392551), artefact `titan-android-1303-upload` ; non envoyé à Google Play |
+
+Non exécuté : achat Google Play réel ou de licence, appareil Android physique, Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 
 ## 4. Anomalies P0 / P1 ouvertes ou soumises à décision
 
@@ -83,7 +86,17 @@ Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 | A26 | Mesure d'acquisition : GA4 efface le référent, un clic de recherche ne peut donc pas être relié à une inscription | P2 | En attente d'approbation (décision vie privée / mesure) | `lot7-seo.md` |
 | A27 | AdSense : dernier événement officiel connu le 31 octobre (demande de correction) ; approbation non confirmée | — | Bloqué par un accès externe (console AdSense) | `lot7-seo.md` |
 
-Les anomalies des lots en cours sont ajoutées ici à la clôture de chaque lot.
+| A28 | Web : une fenêtre héritée « Bienvenue dans TITAN OS » (vocabulaire retiré, lien mort, écriture du profil à la fermeture) couvrait le QG à la première connexion de tout compte | P0 | Corrigé et vérifié (fenêtre retirée, test « a signed-in new account lands on a readable QG ») | `lot3-8-web-ux-performance.md` § 3, `39fc696` |
+| A29 | Web : après un déploiement, une feuille de style dont la clé `?v=` n'avait pas changé restait périmée un affichage, et la nouvelle version restait « en attente » indéfiniment | P1 | Corrigé et vérifié sur Chromium (`js/pwa.js`, `tests/pwa-update.test.mjs`). Reste recommandé : empreinte `rev=` sur les feuilles de style dans `tools/build-public.mjs` et cache long sur `/js`, `/css`, polices (`netlify.toml`) | `lot3-8-web-ux-performance.md` § 3 et § 5 |
+| A30 | Web : sur la page Séance, Retour quittait la page au lieu de revenir à la liste des sports | P1 | Corrigé et vérifié (2 tests) | `lot3-8-web-ux-performance.md` § 3 |
+| A31 | Web : au profil, le focus clavier retombait en haut de page quand un enregistrement se terminait en arrière-plan (course présente aussi sur `main`, cause d'échecs intermittents de la CI) | P2 | Corrigé et vérifié (0 échec sur 15 exécutions contre 4 sur 8 avant) | `253a65b` |
+| A32 | Web : les voies « GPX / Garmin » de la page Séance dépendent des réglages serveur `screens.activityhub` et `screens.garmin`, éteints par défaut | P1 | En attente d'approbation (activer un réglage serveur est une décision de publication) | `lot3-8-web-ux-performance.md` § 4 |
+| A33 | Web : le temps d'affichage mobile de première visite (LCP 2,6 à 3,1 s mesurés, 4,1 à 5,0 s selon le modèle Lighthouse) reste fixé par environ 275 Ko de scripts ; QG, Séance et Profil n'ont pas progressé | P2 | Non terminé (allègement des scripts hérités : chantier à part) | `lot3-8-web-ux-performance.md` § 5 |
+| Stabilité re-contrôlée | Boucle d'enregistrement du profil (PR #133), conflits `40001`, réessais sur 503, changement de compte pendant une écriture, double clic, hors ligne | — | Vérifié conforme sur Chromium avec un serveur simulé | `lot3-8-web-ux-performance.md` § 3 |
+
+| A34 | Web : le parcours clavier des onglets de mondes de l'Aventure (« region tabs use one keyboard stop… ») échoue par intermittence sous forte charge : 2 fois sur 10 sur le candidat, 1 fois sur 10 sur `main` ; jamais en CI ce jour | P2 | Non terminé (course de focus préexistante, de même nature que A31) | recette locale du 15 novembre |
+
+Toutes les anomalies connues à la clôture du chantier figurent ci-dessus.
 
 ## 5. Décisions et opérations réservées au propriétaire
 
