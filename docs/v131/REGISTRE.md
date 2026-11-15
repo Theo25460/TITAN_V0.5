@@ -8,9 +8,9 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 | Lot | Objet | Détail | État au dernier point | Commits |
 |---|---|---|---|---|
 | 0 | Reprise, inventaire, sources de vérité | ce fichier, [`cahier-reference.md`](cahier-reference.md) | En cours | `2950f1d` |
-| 1 | Sécurité Supabase | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 3, `lot1-securite.md` | Social : corrigé et vérifié sur réplique. Revue approfondie des fonctions exposées : en cours | `29c2479` |
+| 1 | Sécurité Supabase | [`lot1-securite.md`](lot1-securite.md), [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 3 | Clos sur réplique locale : couche sociale durcie, export de compte réparé et complété, 209 fonctions exposées attaquées sans lecture ni écriture inter-comptes. Rien n'est appliqué en production | `29c2479`, `204aa46` |
 | 2 | Paiements | [`lot2-paiements.md`](lot2-paiements.md) | Corrigé ; chaîne réelle non testée (aucun achat) | `c232576`, `36067e6` |
-| 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | [`lot2-integrations.md`](lot2-integrations.md) | 7 correctifs testés (simulés ou rejoués localement) ; 3 défauts en cours de correction (A7, A8, GPX) ; rien testé sur compte ou appareil réel | `4760215`, `13071c3`, `9b790a2` |
+| 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | [`lot2-integrations.md`](lot2-integrations.md) | Clos : 10 correctifs testés (simulés ou rejoués localement), dont la déduplication des imports ; rien testé sur compte ou appareil réel | `4760215`, `13071c3`, `9b790a2`, `9a13a08`, `ce5bc1e` |
 | 3–4 | UX Android | [`lot3-4-ux-android.md`](lot3-4-ux-android.md), captures `mobile/docs/avant-apres/v131/` | En cours : QG, Aventure, résultat de séance, profil, progression refondus (points d'étape) | `717e076`, `08fadb4` |
 | 3, 8 | UX Web, performance, accessibilité | `lot3-8-web-ux-performance.md` | À reprendre | — |
 | 5 | Direction artistique | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 5 | 4 blasons approuvés intégrés ; production des visuels manquants bloquée (crédits et réseau du générateur) | `88b0ad4`, design `3ff33c4` |
@@ -23,7 +23,7 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 | Élément | Constat | Conséquence |
 |---|---|---|
 | Site `titan-app.fr` | Sert le cache `titan-os-v301-profile-sync-20261104-r1` : build du 4 novembre | Ni la V1.3 ni la V1.3.1 ne sont en ligne ; toute comparaison « production » porte sur cette version |
-| Registre des migrations | S'arrête à `20261102150000` | Les 7 migrations V1.3 / V1.3.1 et les 2 du 14 novembre restent à appliquer |
+| Registre des migrations | S'arrête à `20261102150000` | 10 migrations à appliquer dans l'ordre du runbook (`lot1-securite.md`) : `20261104085851` (déjà présente hors registre, rejouée sans effet pour entrer au registre), `20261105213712`, `20261110130137`, `20261110140000`, `20261110142656`, `20261110152700`, `20261110152800`, `20261110152900`, `20261114160000`, `20261114170000`, puis `20261114180000` |
 | `public.friendships` | `authenticated` a encore `INSERT` ; 0 ligne | Faille d'amitié forcée ouverte, aucune ligne forgée à nettoyer |
 | Achats Play | `titan_apply_play_entitlement_v1` et `titan_play_checkout_ready_v1` absentes ; 0 accès `google_play`, 2 accès `manual` | Aucun achat ne peut ouvrir d'accès en production |
 | Offres | `titan01` → `titan_plus`, `titan02` → `coach`, `titan03` → `coach_pro` | Conforme |
@@ -57,8 +57,8 @@ Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 | A5 | TITAN+ payant : 20 sportifs suivis, contre 5 pour Coach | P1 | En attente d'approbation (décision produit) | `lot2-paiements.md` ligne 19 |
 | A6 | Tests avec 5 à 10 nouveaux utilisateurs | P1 | Non terminé (validation humaine) | `lot3-4-ux-android.md` |
 
-| A7 | Une séance saisie à la main et le même effort poussé par Garmin ou Santé Connect donnent deux séances et deux récompenses | P1 | Non terminé : migration `20261114180000` en cours | `lot2-integrations.md` |
-| A8 | Une déconnexion ordinaire efface l'historique local des pas, son réglage et l'objectif | P1 | Non terminé : correctif en cours | `lot2-integrations.md` |
+| A7 | Une séance saisie à la main et le même effort poussé par Garmin ou Santé Connect donnaient deux séances et deux récompenses | P1 | Corrigé, non testé en conditions réelles (migration `20261114180000`, rejouée localement). Limite assumée : une séance saisie après l'arrivée de la montre reste distincte | `lot2-integrations.md`, `ce5bc1e` |
+| A8 | Une déconnexion ordinaire effaçait l'historique local des pas, son réglage et l'objectif | P1 | Corrigé et vérifié (tests Jest ; la suppression de compte les efface toujours) | `lot2-integrations.md`, `9a13a08` |
 | A9 | Le site en ligne (build du 4 novembre) affiche encore 19,99 € et 39,99 € par mois pour Coach et Coach Ultra sans mention TTC, des CGU en version 6 sans clauses de renouvellement, remboursement ni restauration, et « pas de publicité » | P1 | En attente d'approbation : déployer le candidat avant d'activer les produits Play | `lot6-textes-juridique.md` |
 | A10 | Identité de l'éditeur, vendeur des abonnements, rétractation, médiateur | P1 | En attente d'approbation (validation juridique humaine ; rien n'a été inventé) | `lot6-textes-juridique.md` § juriste |
 | A11 | Âge minimal : 13 ans annoncés, 15 ans pour consentir seul en France, aucune question d'âge, publicité non marquée pour mineurs | P1 | En attente d'approbation | `lot6-textes-juridique.md` J-03 |
@@ -68,6 +68,11 @@ Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 | A15 | Espaces insécables absentes de toutes les pages (typographie française) | P2 | Non terminé | `lot6-textes-juridique.md` |
 
 « Paddle » : aucune des 11 pages en ligne contrôlées le 14 novembre ne le mentionne ; le résultat de recherche est un cache périmé. Statut : Vérifié conforme.
+
+| A16 | En production, le corps d'une fonction d'export a été retapé au déploiement et a perdu deux clés : « Exporter toutes mes données » échoue pour un compte lié à Garmin ou en binôme (latent : 0 lien, 0 binôme aujourd'hui). L'export omettait aussi 26 familles de données | P1 | Corrigé, non testé en conditions réelles (migration `20261114170000`) ; requête d'empreintes au runbook pour détecter tout autre écart après déploiement | `lot1-securite.md`, `204aa46` |
+| A17 | Stockage : le compartiment `avatars` est public, sans limite de taille et inscriptible par tout compte connecté, sans appelant côté client ; le fichier d'avatar d'un compte supprimé y est encore public | P1 | En attente d'approbation (modification de production) | `lot1-securite.md` |
+| A18 | Le compte administrateur n'a pas de double authentification ; la protection « mots de passe compromis » est désactivée | P1 | En attente d'approbation (console Supabase) | `lot1-securite.md` |
+| A19 | `contact_messages` et `analytics_events` acceptent des insertions anonymes sans limite ; `titan_submit_cache_reconciliation` sans limite de débit ; table `private.titan_rpc_backup_20261104` présente seulement en production ; identifiant en dur dans la policy `coupons` | P2 | En attente d'approbation | `lot1-securite.md` |
 
 Les anomalies des lots en cours sont ajoutées ici à la clôture de chaque lot.
 
