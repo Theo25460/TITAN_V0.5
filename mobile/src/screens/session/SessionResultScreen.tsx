@@ -21,6 +21,9 @@ import { worldImages } from "../../core/images";
 import { recordText, sessionMetrics, sessionRecords } from "../../core/moment";
 import type { TrainingLog } from "../../core/types";
 import { momentShare } from "../../data/api";
+import { useSocial } from "../../data/hooks";
+import { contributions, readAutoShare } from "../../lib/community";
+import { useEvents } from "../community/EventsScreen";
 import { useAdventure, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { useReceipt } from "../../data/receipts";
@@ -35,6 +38,7 @@ import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
 /** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
 /** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
 const revealed = new Set<string>();
+const autoShared = new Set<string>();
 
 export function SessionResultScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionResult">) {
   const { eventId, stored } = route.params;
@@ -53,6 +57,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const [shared, setShared] = useState(false);
   const [revealing, setRevealing] = useState(() => !revealed.has(eventId));
   const [sharing, setSharing] = useState(false);
+  const social = useSocial().data;
+  const events = useEvents().data;
   const queued = queue.owner === owner ? queue.items.find((i) => i.payload.details.client_event_id === eventId) : undefined;
   const payload = queued?.payload ?? (stored?.owner === owner && stored.payload.details.client_event_id === eventId ? stored.payload : undefined);
   const localLog = useMemo<TrainingLog | null>(() => payload ? { ...payload, id: eventId, client_event_id: eventId, cat: payload.category, xp: 0 } : null, [payload, eventId]);
@@ -83,6 +89,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const campaign = adventure?.campaigns.find((c) => c.id === impact.campaignId) ?? adventure?.campaigns.find((c) => c.id === adventure.selected_world && c.chapter > 0 && c.chapter <= 9) ?? adventure?.campaigns.find((c) => c.chapter > 0 && c.chapter <= 9);
   const world = campaign ? Codex.worlds.find((w) => w.id === campaign.id) : undefined;
   const chapterDays = campaign ? Math.min(Number(campaign.evidence?.days ?? 0), campaign.target) : 0;
+
+  // C3: with « Partager mes séances automatiquement » on, a confirmed session reaches friends' moments once, without a tap.
+  const shareRef = useRef<(() => Promise<void>) | null>(null);
+  const autoTried = useRef(false);
+  const canAutoShare = status === "confirmed" && !!log && !log.details?.historical && online && !shared && !autoShared.has(eventId);
+  useEffect(() => {
+    if (!canAutoShare || autoTried.current) return;
+    autoTried.current = true;
+    readAutoShare(owner).then((on) => {
+      if (!on || autoShared.has(eventId)) return;
+      autoShared.add(eventId);
+      return shareRef.current?.();
+    }).catch(() => {});
+  }, [canAutoShare, owner, eventId]);
 
   if (!log)
     return (
@@ -130,6 +150,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
       setSharing(false);
     }
   }
+
+  shareRef.current = share;
+  const counts = status === "confirmed" && !historical ? contributions(social, events) : [];
 
   // AUD-21: the story card mirrors this screen — a record first, otherwise the session's main measure, and the week in notches.
   const cardRecord = records.find((r) => !r.first);
@@ -372,6 +395,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
             </Tap>
           </Reveal>
         ) : !historical ? <Reveal order={5}><Card style={{ gap: space.s3 }}><T variant="eyebrow">Dans ton aventure</T><T accessibilityLiveRegion="polite">{impact.text}</T><Button label="Découvrir les mondes" kind="secondary" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} /></Card></Reveal> : null}
+        {counts.length ? (
+          <Reveal order={6}>
+            <Card style={{ gap: 4 }} testID="result-contributions">
+              <T variant="eyebrow" tone="accent">Ta séance compte aussi pour</T>
+              {counts.map((c) => <T key={c} variant="small">· {c}</T>)}
+            </Card>
+          </Reveal>
+        ) : null}
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
       {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (

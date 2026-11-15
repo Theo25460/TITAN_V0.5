@@ -28,6 +28,8 @@ import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
+import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
+import { CHALLENGE_TEMPLATES, readAutoShare, writeAutoShare } from "../../lib/community";
 
 type Tab = "friends" | "moments" | "challenges" | "guild";
 const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: "minutes d’effort", active_days: "jours actifs", distance_km: "km", sessions: "séances" };
@@ -47,6 +49,10 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
+  const [autoShare, setAutoShare] = useState(false);
+  useEffect(() => {
+    readAutoShare(owner).then(setAutoShare).catch(() => {});
+  }, [owner]);
   const s = q.data;
 
   /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
@@ -116,6 +122,13 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
         {tab === "friends" ? (
           <>
             <DuoCard key={owner} owner={owner} online={online} />
+            <Card style={{ gap: space.s2 }} testID="auto-share">
+              <View style={styles.row}>
+                <T variant="bodyStrong" style={{ flex: 1 }}>Partager mes séances automatiquement</T>
+                <Chip label={autoShare ? "Activé" : "Désactivé"} selected={autoShare} onPress={() => { const v = !autoShare; setAutoShare(v); void writeAutoShare(owner, v); }} testID="auto-share-toggle" />
+              </View>
+              <T variant="caption" tone="faint">Chaque séance confirmée apparaît dans les moments de tes amis, sans que tu aies à y penser. Jamais en public.</T>
+            </Card>
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
               <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
@@ -229,6 +242,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
         ) : tab === "challenges" ? (
           <>
             <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
+            <RankingPanel />
             {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}
             {exp ? (
               <Card tone="accent" style={{ gap: space.s2 }}>
@@ -296,7 +310,10 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
             )}
           </>
         ) : (
+          <>
+          <ClubsPanel />
           <GuildPanel overview={s} onAct={act} busy={busy} owner={owner} initialCode={invite.guild ?? ""} />
+          </>
         )}
       </Screen>
       <ChallengeSheet
@@ -418,6 +435,12 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
   }
   return (
     <Sheet visible={visible} onClose={onClose} title="Nouveau défi" footer={<View style={{ gap: 6 }}>{error ? <T variant="small" tone="err">{error}</T> : null}<Button label={invitees.length ? "Lancer le défi" : "Créer et partager le lien"} loading={busy} onPress={submit} testID="challenge-submit" /></View>}>
+      <T variant="caption" tone="muted">Idées toutes prêtes</T>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+        {CHALLENGE_TEMPLATES.map((t) => (
+          <Chip key={t.id} label={t.title} selected={title === t.title} onPress={() => { setTitle(t.title); setMetric(t.metric); setTarget(String(t.target)); setDays(String(t.days)); }} testID={`challenge-template-${t.id}`} />
+        ))}
+      </View>
       <Field label="Nom" value={title} onChangeText={setTitle} maxLength={60} placeholder="Une semaine qui bouge" />
       <Segmented value={metric === "distance_km" ? "active_days" : metric} onChange={setMetric} options={[{ value: "active_days", label: "Jours" }, { value: "sessions", label: "Séances" }, { value: "effort_minutes", label: "Minutes" }]} accessibilityLabel="Mesure du défi" />
       <View style={styles.row}>

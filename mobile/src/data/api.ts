@@ -340,6 +340,19 @@ export type HistoryImportResult = { imported: number; linked: number; duplicate:
 export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
   ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
 
+/* ---------- Community lot 8 (C4 ranking, C5 intents, C7 clubs) ---------- */
+export type Ranking = { optedIn: boolean; entries?: { rank: number; name: string; score: number; activeDays: number; progressPct: number | null; me: boolean }[]; me?: { score: number; activeDays: number; progressPct: number | null } | null };
+export const fetchRanking = (owner: string) => ownerRpc<Ranking>(owner, "titan_ranking_v1", { p_sport: null });
+export const rankingSet = (owner: string, on: boolean) => ownerRpc<boolean>(owner, "titan_ranking_set_v1", { p_on: on });
+export type Intents = { mine: { intent: string; visibility: string; done: boolean; cheers: number } | null; friends: { userId: string; name: string; intent: string; done: boolean; cheered: boolean }[] };
+export const fetchIntents = (owner: string, day: string) => ownerRpc<Intents>(owner, "titan_intents_v1", { p_day: day });
+export const intentSet = (owner: string, day: string, text: string, friends: boolean) => ownerRpc(owner, "titan_intent_set_v1", { p_day: day, p_text: text, p_visibility: friends ? "friends" : "private" });
+export const intentDone = (owner: string, day: string, done: boolean) => ownerRpc(owner, "titan_intent_done_v1", { p_day: day, p_done: done });
+export const intentCheer = (owner: string, friend: string, day: string, on: boolean) => ownerRpc(owner, "titan_intent_cheer_v1", { p_owner: friend, p_day: day, p_on: on });
+export type Club = { id: string; name: string; description: string | null; role: string; members: number; code: string | null; trophies?: { id: string; title: string; note: string | null; on: string }[]; announcements?: { id: string; body: string; at: string }[] };
+export const fetchClubs = (owner: string) => ownerRpc<Club[] | null>(owner, "titan_club_my_v1", {});
+export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner, "titan_club_join_v1", { p_code: code, p_club: null });
+
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };
 export const fetchChapters = (owner: string) => ownerRpc<LifeChapter[]>(owner, "titan_chapters_v1", {});

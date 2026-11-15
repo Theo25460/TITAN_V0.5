@@ -13,6 +13,7 @@ import { HealthDetectCard } from "../../components/HealthDetectCard";
 import { MemoryCard } from "../../components/MemoryCard";
 import { MilestoneCard } from "../../components/MilestoneCard";
 import { EnergyCheckIn, HabitStrip, SundayRitualCard } from "../../components/HabitCards";
+import { CircleCard, FriendsFeedCard, IntentCard } from "../../components/CommunityCards";
 import { CapsuleArrivedCard } from "../profile/CapsuleScreen";
 import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
@@ -168,6 +169,9 @@ export function HomeScreen() {
             <SundayRitualCard />
             <HabitStrip logs={active} cadence={cadence} favorite={prefs.favoriteSports.find((x) => Sports.conf(x)) ?? null} />
             <EnergyCheckIn />
+            <IntentCard />
+            <CircleCard />
+            <FriendsFeedCard />
             <MilestoneCard logs={active} cadence={cadence} />
             <MemoryCard logs={active} />
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
