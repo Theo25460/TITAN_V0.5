@@ -21,6 +21,20 @@
     { id: "guilde", title: "Guilde", icon: "shield", description: "Une équipe, un objectif et une discussion." },
   ];
 
+  /* AUD-11: an invitation link /social?ami=TN-…|guilde=G-… pre-fills the matching field once, and survives sign-up through ?next=.
+     Only well-formed codes are read; the server still checks the code, the consent and the blocks. */
+  const INVITE = (() => {
+    try {
+      const q = new URLSearchParams(location.search);
+      const ami = String(q.get("ami") || "").trim().toUpperCase();
+      const guilde = String(q.get("guilde") || "").trim().toUpperCase();
+      return { ami: /^TN-[A-Z0-9]{4,10}$/.test(ami) ? ami : "", guilde: /^G-[A-Z0-9]{4,10}$/.test(guilde) ? guilde : "" };
+    } catch { return { ami: "", guilde: "" }; }
+  })();
+  let inviteApplied = false;
+  const inviteNext = () => (INVITE.ami || INVITE.guilde ? `next=${encodeURIComponent(location.pathname + location.search)}` : "");
+  const friendLink = (code) => `${location.origin}/social?ami=${encodeURIComponent(code)}`;
+
   let root = null;
   let data = null;
   let guild = null;
@@ -354,7 +368,8 @@
     if (status === "guest") {
       root.innerHTML = `<section class="asc-hero cm-guest"><p class="asc-eyebrow cy">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
         <p class="asc-lead">Retrouve tes amis, partage tes progrès et participe aux expéditions.</p>
-        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login">Se connecter</a></div>
+        ${INVITE.ami || INVITE.guilde ? `<p class="asc-note">${icon("userPlus")}<span>On t’a invité ${INVITE.guilde ? "dans une guilde" : "à devenir ami"} sur TITAN. Crée ton compte ou connecte-toi : le code ${esc(INVITE.ami || INVITE.guilde)} sera prêt.</span></p>` : ""}
+        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup${inviteNext() ? `&${inviteNext()}` : ""}">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login${inviteNext() ? `?${inviteNext()}` : ""}">Se connecter</a></div>
         <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p>
         <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`;
       return;
@@ -385,6 +400,20 @@
     }
     const chat = root.querySelector(".cm-chat-list");
     if (chat) chat.scrollTop = chat.scrollHeight;
+    if (!inviteApplied && (INVITE.ami || INVITE.guilde)) {
+      inviteApplied = true;
+      const field = INVITE.ami ? root.querySelector("#cm-code") : root.querySelector("#cm-guild-code");
+      if (field) {
+        field.value = INVITE.ami || INVITE.guilde;
+        const job = viewContext;
+        requestAnimationFrame(() => {
+          if (!current(job) || !field.isConnected) return;
+          field.scrollIntoView({ block: "center", behavior: "instant" });
+          field.focus({ preventScroll: true });
+        });
+        initialSection = false;
+      }
+    }
     if (initialSection) {
       initialSection = false;
       const id = location.hash.slice(1);
@@ -529,8 +558,9 @@
     }
     if (b.dataset.deleteMoment) return confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: job => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }, job).catch(failed) });
     if (b.dataset.copyCode) {
-      (navigator.clipboard?.writeText(b.dataset.copyCode) || Promise.reject())
-        .then(() => current(job) && window.titanShell.toast({ type: "ok", title: "Code copié", message: b.dataset.copyCode }))
+      const invite = `Rejoins-moi sur TITAN : ${friendLink(b.dataset.copyCode)} (mon code ami : ${b.dataset.copyCode})`;
+      (navigator.clipboard?.writeText(invite) || Promise.reject())
+        .then(() => current(job) && window.titanShell.toast({ type: "ok", title: "Invitation copiée (lien et code)", message: b.dataset.copyCode }))
         .catch(() => current(job) && window.titanShell.toast({ type: "warn", title: "Copie impossible", message: `Ton code : ${b.dataset.copyCode}` }));
       return;
     }

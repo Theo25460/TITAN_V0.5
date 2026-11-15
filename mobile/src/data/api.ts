@@ -276,6 +276,13 @@ export const duoNudge = (owner: string, id: string) => ownerRpc(owner, "titan_bu
 export const duoEnd = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_buddy_end_v1", { p_id: id });
 
 export const fetchGuild = () => rpc<Record<string, unknown> | null>("titan_get_my_guild");
+/** The guild's join code and name, read from the member-only RPC the website already uses (AUD-05): the weekly payload has no code. */
+export type GuildIdentity = { id: string; code: string; name: string };
+export async function fetchGuildIdentity(owner: string): Promise<GuildIdentity | null> {
+  const g = await ownerRpc<Record<string, unknown> | null>(owner, "titan_get_my_guild", {});
+  if (!g || typeof g.id !== "string") return null;
+  return { id: g.id, code: typeof g.code === "string" ? g.code : "", name: typeof g.name === "string" ? g.name : "" };
+}
 export const guildCreate = (name: string, motto: string) => rpc("titan_create_guild", { p_name: name, p_motto: motto });
 export const guildJoin = (code: string) => rpc("titan_join_guild", { p_code: code });
 export const guildLeave = () => rpc("titan_leave_guild");

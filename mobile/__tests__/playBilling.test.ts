@@ -301,7 +301,7 @@ test("server provenance survives the client adapter without guessing payment fro
 
 
 test("every displayed perk exists, and a build without ads never mentions ads (AUD-03)", () => {
-  const all = PLANS.flatMap((p) => [p.tagline, ...p.perks]).concat(FREE_PLAN.perks);
+  const all: string[] = [...PLANS.flatMap((p): string[] => [p.tagline, ...p.perks]), ...FREE_PLAN.perks];
   expect(all.join(" ")).not.toMatch(/Analyses plus poussées/);
   for (const plan of [...PLANS, FREE_PLAN]) {
     const shown = visiblePerks(plan.perks, false);

@@ -29,6 +29,17 @@ const config: ExpoConfig = {
     },
     // Session tokens and the pending-session queue must not be restored onto another device by Android backups.
     allowBackup: false,
+    // AUD-12: invitation links (https://titan-app.fr/social?ami=… / ?guilde=…) open the app's Community screen once
+    // https://titan-app.fr/.well-known/assetlinks.json lists the Play signing fingerprint (TWA_SHA256_FINGERPRINTS on Netlify).
+    // Until then Android simply opens the website, which pre-fills the same code: nothing breaks. Only /social is claimed.
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [{ scheme: "https", host: "titan-app.fr", pathPrefix: "/social" }],
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
     softwareKeyboardLayoutMode: "resize",
     permissions: ["android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "com.android.vending.BILLING", "android.permission.POST_NOTIFICATIONS", "android.permission.VIBRATE", "android.permission.health.READ_STEPS", "android.permission.health.READ_EXERCISE", "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.ACCESS_FINE_LOCATION", "android.permission.FOREGROUND_SERVICE", "android.permission.FOREGROUND_SERVICE_LOCATION"],
     blockedPermissions: [

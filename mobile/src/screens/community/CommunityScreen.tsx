@@ -1,7 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
-import { Alert } from "../../components/Dialog";
+import { Alert, ask } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
 import { GuildChat } from "../../components/GuildChat";
 import { Button } from "../../components/Button";
@@ -21,7 +21,9 @@ import { useToast } from "../../components/Toast";
 import { Format, Sports } from "../../core";
 import * as api from "../../data/api";
 import { useOwner } from "../../data/auth";
-import { keys, useSocial } from "../../data/hooks";
+import { keys, useSavePrefs, useSocial } from "../../data/hooks";
+import { friendInviteMessage, guildInviteMessage, parseInvite } from "../../lib/invite";
+import type { RootParams } from "../../navigation/types";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
@@ -33,17 +35,49 @@ const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: 
 type Expedition = { id: string; title: string; story: string; guardian: string; starts_at: string; ends_at: string; status: "upcoming" | "active" | "ended"; collective_goal: number; collective_minutes: number; participants: number; daily_cap: number; personal_days: number; personal_minutes: number; reward_title: string; me: { joined: boolean; minutes?: number; days?: number; personal_done?: boolean } } | null;
 
 /** Community stays secondary: friends by consent, moments, friendly challenges without stakes, effort-based guild. */
-export function CommunityScreen() {
+export function CommunityScreen({ route }: { route?: { params?: RootParams["Community"] } } = {}) {
   const owner = useOwner();
   const qc = useQueryClient();
   const q = useSocial();
   const toast = useToast();
   const online = useOnline();
-  const [tab, setTab] = useState<Tab>("friends");
-  const [code, setCode] = useState("");
+  const savePrefs = useSavePrefs();
+  const invite = parseInvite(route?.params);
+  const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : "friends");
+  const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
   const s = q.data;
+
+  /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
+  useEffect(() => {
+    if (invite.friend) {
+      setTab("friends");
+      setCode(invite.friend);
+    } else if (invite.guild) setTab("guild");
+  }, [invite.friend, invite.guild]);
+
+  /* Sharing a code nobody can use was a silent dead end (AUD-06): the server only finds a "findable" profile. Before sharing,
+     an unfindable profile is offered the switch, with what it reveals; refusing cancels the share instead of sending a dead code. */
+  async function shareFriendCode(me: api.SocialOverview["me"]) {
+    if (!me.findable) {
+      const ok = await ask(
+        "Rendre ton profil trouvable ?",
+        "Pour que ton ami puisse t’ajouter, ton profil doit être trouvable : la personne qui a ton code voit ton pseudo et peut t’envoyer une demande, que tu acceptes ou non. Rien d’autre n’est visible. Tu peux le désactiver dans Confidentialité.",
+        { confirmLabel: "Rendre trouvable et partager", cancelLabel: "Annuler" },
+      );
+      if (!ok) return;
+      if (!online) return toast({ kind: "warn", title: "Connexion requise", message: "Rendre ton profil trouvable demande Internet." });
+      const privacy = { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false, ...(qc.getQueryData<{ privacy?: Record<string, boolean> } | null>(keys.profile(owner))?.privacy || {}) };
+      try {
+        await savePrefs.mutateAsync({ prefs: {}, privacy: { ...privacy, publicProfile: true } });
+        await qc.invalidateQueries({ queryKey: keys.social(owner) });
+      } catch (e) {
+        return toast({ kind: "err", title: "Réglage non enregistré", message: errorMessage(e) });
+      }
+    }
+    Share.share({ message: friendInviteMessage(me.friend_code) }).catch(() => {});
+  }
 
   async function act(id: string, fn: () => Promise<unknown>, ok?: string) {
     if (!online) return toast({ kind: "warn", title: "Connexion requise", message: "Les actions de communauté demandent Internet." });
@@ -85,7 +119,7 @@ export function CommunityScreen() {
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
               <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
-              <Button small kind="secondary" icon="share" label="Partager mon code" onPress={() => Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${s.me.friend_code}` }).catch(() => {})} />
+              <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
             </Card>
             <Card style={{ gap: space.s3 }}>
               <Field label="Ajouter un ami" value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder="TN-XXXX" autoCapitalize="characters" autoCorrect={false} />
@@ -257,7 +291,7 @@ export function CommunityScreen() {
             )}
           </>
         ) : (
-          <GuildPanel overview={s} onAct={act} busy={busy} />
+          <GuildPanel overview={s} onAct={act} busy={busy} owner={owner} initialCode={invite.guild ?? ""} />
         )}
       </Screen>
       <ChallengeSheet visible={newChallenge} onClose={() => setNewChallenge(false)} friends={s.friends} onCreate={(p) => act("create", () => api.challengeCreate(p), "Défi lancé").then(() => setNewChallenge(false))} />
@@ -265,10 +299,16 @@ export function CommunityScreen() {
   );
 }
 
-function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; onAct: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<void>; busy: string | null }) {
-  const [code, setCode] = useState("");
+function GuildPanel({ overview, onAct, busy, owner, initialCode }: { overview: api.SocialOverview; onAct: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<void>; busy: string | null; owner: string; initialCode: string }) {
+  const [code, setCode] = useState(initialCode);
   const [name, setName] = useState("");
   const g = overview.guild;
+  useEffect(() => {
+    if (initialCode) setCode(initialCode);
+  }, [initialCode]);
+  /* The weekly payload has no join code; the member-only guild RPC has it (AUD-05). Without it nobody could ever be invited. */
+  const identity = useQuery({ queryKey: ["guild-identity", owner, g?.guild_id ?? null], queryFn: () => api.fetchGuildIdentity(owner), enabled: !!g, staleTime: 10 * 60_000 });
+  const team = identity.data && identity.data.id === g?.guild_id ? identity.data : null;
   if (!g)
     return (
       <>
@@ -297,6 +337,13 @@ function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; o
           </T>
         </T>
         <ProgressBar value={g.minutes / Math.max(1, g.target)} accessibilityLabel="Objectif de la guilde" />
+      </Card>
+      <Card style={{ gap: space.s3 }} testID="guild-invite">
+        <T variant="bodyStrong">{team?.code ? `Code de guilde : ${team.code}` : identity.isError ? "Code de guilde indisponible pour le moment" : "Code de guilde…"}</T>
+        <T variant="small" tone="muted">Invite tes proches : chaque minute d’effort de chacun fait avancer l’objectif de la semaine.</T>
+        <Button small kind="secondary" icon="share" label="Inviter dans la guilde" disabled={!team?.code} onPress={() => {
+            if (team?.code) Share.share({ message: guildInviteMessage(team.name, team.code) }).catch(() => {});
+          }} />
       </Card>
       <Section title="Membres">
         {g.members.map((m) => (

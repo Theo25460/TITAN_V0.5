@@ -9,9 +9,10 @@ const urlOf = (r: Notifications.NotificationResponse | null) => {
   return typeof url === "string" && url.startsWith("titan://") ? url : null;
 };
 
-/** titan:// links (local reminders, shortcuts). Website links stay on the website. */
+/** titan:// links (local reminders, shortcuts) and verified invitation links https://titan-app.fr/social?ami=…|guilde=… (AUD-12).
+    Only /social is claimed by the Android intent filter: every other website link stays on the website. */
 export const linking: LinkingOptions<RootParams> = {
-  prefixes: ["titan://"],
+  prefixes: ["titan://", "https://titan-app.fr"],
   config: {
     screens: {
       Tabs: { screens: { QG: "qg", Progress: "progres", Record: "seance", Adventure: "aventure", Profile: "profil" } },
@@ -26,7 +27,11 @@ export const linking: LinkingOptions<RootParams> = {
   },
   getStateFromPath(path, options) {
     const isSentiers = /^\/?aventure\/?(?:\?[^#]*)?#sentiers$/.test(path);
-    return getStateFromPath(isSentiers ? "/sentiers" : path, options);
+    if (isSentiers) return getStateFromPath("/sentiers", options);
+    // The website's community page is the invitation landing: same query, native Community screen.
+    const social = /^\/?social(?:\.html)?\/?(\?[^#]*)?(?:#.*)?$/.exec(path);
+    if (social) return getStateFromPath(`/communaute${social[1] || ""}`, options);
+    return getStateFromPath(path, options);
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
