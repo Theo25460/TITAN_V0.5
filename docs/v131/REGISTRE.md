@@ -11,11 +11,11 @@ Règles et format : [`README.md`](README.md). Rien n'est déployé : ni Netlify,
 | 1 | Sécurité Supabase | [`lot1-securite.md`](lot1-securite.md), [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 3 | Clos sur réplique locale : couche sociale durcie, export de compte réparé et complété, 209 fonctions exposées attaquées sans lecture ni écriture inter-comptes. Rien n'est appliqué en production | `29c2479`, `204aa46` |
 | 2 | Paiements | [`lot2-paiements.md`](lot2-paiements.md) | Corrigé ; chaîne réelle non testée (aucun achat) | `c232576`, `36067e6` |
 | 2 | Intégrations (Garmin, GPX, Health Connect, GPS, OAuth) | [`lot2-integrations.md`](lot2-integrations.md) | Clos : 10 correctifs testés (simulés ou rejoués localement), dont la déduplication des imports ; rien testé sur compte ou appareil réel | `4760215`, `13071c3`, `9b790a2`, `9a13a08`, `ce5bc1e` |
-| 3–4 | UX Android | [`lot3-4-ux-android.md`](lot3-4-ux-android.md), captures `mobile/docs/avant-apres/v131/` | En cours : QG, Aventure, résultat de séance, profil, progression refondus (points d'étape) | `717e076`, `08fadb4` |
+| 3–4 | UX Android | [`lot3-4-ux-android.md`](lot3-4-ux-android.md), [`cahier-reference.md`](cahier-reference.md), 16 paires avant/après dans `mobile/docs/avant-apres/v131/` | Clos : 22 routes modifiées sur 45 (QG, Aventure, résultat de séance, onglet Séance, Profil et écrans liés), 21 contrôlées sans changement, 2 non terminées. 808 tests, aucun débordement à 320, 360 et 412 dp sur l'aperçu. Aucune note de simplicité validée par des utilisateurs ; rien vérifié sur téléphone ni avec TalkBack | `717e076`, `08fadb4`, `9a13a08`, `48d2cd4`, `5f3e6b3` |
 | 3, 8 | UX Web, performance, accessibilité | `lot3-8-web-ux-performance.md` | À reprendre | — |
 | 5 | Direction artistique | [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md) § 5 | 4 blasons approuvés intégrés ; production des visuels manquants bloquée (crédits et réseau du générateur) | `88b0ad4`, design `3ff33c4` |
 | 6 | Textes, juridique, cohérence commerciale | [`lot6-textes-juridique.md`](lot6-textes-juridique.md), [`vocabulaire.md`](vocabulaire.md) | Clos côté Web public : publicité, disponibilité, capacités Coach, données déclarées unifiées ; 582 tests verts. Points pour un juriste listés. Ce n'est pas une certification juridique | `1066c66` |
-| 7 | SEO | `lot7-seo.md` | En cours (audit par URL, puis corrections dans les générateurs de pages) | — |
+| 7 | SEO | [`lot7-seo.md`](lot7-seo.md) ; section du 14 novembre ajoutée à l'Observatoire | Clos dans le candidat (rien n'est en ligne) : audit par URL de la production et du candidat, `/service`, `/suivi-escalade`, maillage, données structurées, journal des nouveautés, deux pages (`/suivi-velo`, `/defis-sportifs`), sitemap 25 → 27. Aucun connecteur Search Console, Windsor ou Analytics : chiffres issus de l'Observatoire | `a0a5e1a` |
 | 9 | Recette, CI, AAB, GO/NO-GO | § 3 ci-dessous | CI verte sur `2950f1d` | — |
 
 ## 2. Faits établis sur la production (lecture seule, 14 novembre 2026)
@@ -73,6 +73,15 @@ Garmin et Health Connect réels, tests avec de nouveaux utilisateurs.
 | A17 | Stockage : le compartiment `avatars` est public, sans limite de taille et inscriptible par tout compte connecté, sans appelant côté client ; le fichier d'avatar d'un compte supprimé y est encore public | P1 | En attente d'approbation (modification de production) | `lot1-securite.md` |
 | A18 | Le compte administrateur n'a pas de double authentification ; la protection « mots de passe compromis » est désactivée | P1 | En attente d'approbation (console Supabase) | `lot1-securite.md` |
 | A19 | `contact_messages` et `analytics_events` acceptent des insertions anonymes sans limite ; `titan_submit_cache_reconciliation` sans limite de débit ; table `private.titan_rpc_backup_20261104` présente seulement en production ; identifiant en dur dans la policy `coupons` | P2 | En attente d'approbation | `lot1-securite.md` |
+
+| A20 | Le cahier ne nomme pas 46 écrans : il compte des fichiers. Le dépôt compte 45 routes (44 fichiers d'écran) | — | Vérifié conforme (inventaire réconcilié) | `lot3-4-ux-android.md`, `cahier-reference.md` |
+| A21 | Captures de la fiche Play : elles montrent l'ancien QG et l'ancienne Aventure | P2 | Non terminé (à régénérer depuis l'aperçu, puis sur appareil) | `lot3-4-ux-android.md` |
+| A22 | Le bouton à deux lignes tronque le libellé le plus long à 200 % de taille de texte sur 360 dp ; les libellés de la barre d'onglets se touchent à 200 % | P2 | Non terminé (limite épinglée par deux tests existants) | `lot3-4-ux-android.md` |
+| A23 | Forges et Aurores restent « Disponibilité à confirmer » tant que la migration serveur ne les ouvre pas | P2 | Bloqué par la mise en production des migrations (A1) | `lot3-4-ux-android.md` |
+| A24 | `service.html` n'est plus reproductible par son générateur : lancer `tools/build-public-docs.mjs` à la racine l'écraserait par une version plus ancienne | P2 | Non terminé (page éditée à la main ; générateur à réparer) | `lot6-textes-juridique.md` G-02, `lot7-seo.md` |
+| A25 | Référencement : 25 URL au fichier, 18 « soumises », 20 « indexées ». Les 18 décrivent le fichier lu par Google le 24 mai 2026 et les 20 le rapport Pages global ; les 7 URL d'écart ne sont pas nommables sans Search Console | P2 | Bloqué par un accès externe (Search Console) ; hypothèses étiquetées au § 2 du lot | `lot7-seo.md` |
+| A26 | Mesure d'acquisition : GA4 efface le référent, un clic de recherche ne peut donc pas être relié à une inscription | P2 | En attente d'approbation (décision vie privée / mesure) | `lot7-seo.md` |
+| A27 | AdSense : dernier événement officiel connu le 31 octobre (demande de correction) ; approbation non confirmée | — | Bloqué par un accès externe (console AdSense) | `lot7-seo.md` |
 
 Les anomalies des lots en cours sont ajoutées ici à la clôture de chaque lot.
 
