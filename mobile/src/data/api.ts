@@ -330,6 +330,16 @@ export const commonQuestJoin = (owner: string, id: string, join: boolean) => own
 export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_season_join_v1", { p_season: id, p_join: join });
 export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
 
+/* ---------- Time capsules (AUD-40) ---------- */
+export type Practice = { minutes: number; days: number };
+export type Capsules = {
+  delivered: { id: string; message: string; months: number; writtenOn: string; deliverOn: string; opened: boolean; then: Practice; now: Practice }[];
+  waiting: { id: string; months: number; deliverOn: string }[];
+};
+export const fetchCapsules = (owner: string) => ownerRpc<Capsules>(owner, "titan_capsules_v1", {});
+export const capsuleCreate = (owner: string, message: string, months: 3 | 6 | 12) => ownerRpc<{ id: string; deliverOn: string }>(owner, "titan_capsule_create_v1", { p_message: message, p_months: months });
+export const capsuleOpen = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_capsule_open_v1", { p_id: id });
+
 /* ---------- Public card ---------- */
 export type CardSettings = { enabled: boolean; slug: string | null; show: Record<string, boolean> } & Record<string, unknown>;
 export const fetchCardSettings = (owner: string) => ownerRpc<CardSettings>(owner, "titan_public_card_settings", {});

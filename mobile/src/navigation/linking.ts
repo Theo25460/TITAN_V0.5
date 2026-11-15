@@ -22,6 +22,7 @@ export const linking: LinkingOptions<RootParams> = {
       Community: "communaute",
       Events: "evenements",
       Retro: "retro",
+      Capsules: "capsules",
       Atelier: "atelier",
       Settings: "reglages",
       Garmin: "garmin",

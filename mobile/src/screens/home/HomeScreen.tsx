@@ -10,6 +10,7 @@ import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { CadenceNotches } from "../../components/Cadence";
 import { HealthDetectCard } from "../../components/HealthDetectCard";
 import { MemoryCard } from "../../components/MemoryCard";
+import { CapsuleArrivedCard } from "../profile/CapsuleScreen";
 import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
@@ -160,6 +161,7 @@ export function HomeScreen() {
         ) : (
           <>
             <HealthDetectCard logs={active} />
+            <CapsuleArrivedCard onPress={() => navigation.navigate("Capsules")} />
             <MemoryCard logs={active} />
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 

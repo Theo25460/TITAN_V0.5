@@ -216,6 +216,7 @@ export function ProfileScreen() {
           <ProfileRow icon="target" title="Mes objectifs" onPress={() => navigation.navigate("Tabs", { screen: "Progress", params: { tab: "goals" } })} />
           <ProfileRow icon="journal" title="Mon historique" onPress={() => navigation.navigate("Tabs", { screen: "Progress", params: { tab: "journal" } })} />
           <ProfileRow icon="group" title="Ma communauté" onPress={() => navigation.navigate("Community")} />
+          <ProfileRow icon="send" title="Lettres à moi-même" onPress={() => navigation.navigate("Capsules")} />
         </PassportGroup>
         <PassportGroup title="Connexions & compte" subtitle="Sources, confidentialité et abonnement">
           <ProfileRow icon="cloud" title="Sources et capteurs" subtitle="Pas, Santé Connect, Garmin, GPS" onPress={() => navigation.navigate("Sources")} testID="profile-sources" />

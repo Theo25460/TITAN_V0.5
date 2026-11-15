@@ -15,6 +15,7 @@ import { CommunityScreen } from "../screens/community/CommunityScreen";
 import { EventsScreen } from "../screens/community/EventsScreen";
 import { RetroScreen } from "../screens/progress/RetroScreen";
 import { SaveAccountScreen } from "../screens/settings/SaveAccountScreen";
+import { CapsuleScreen } from "../screens/profile/CapsuleScreen";
 import { ReminderSync } from "../data/ReminderSync";
 import { GoalsScreen } from "../screens/progress/GoalsScreen";
 import { JournalScreen } from "../screens/progress/JournalScreen";
@@ -113,6 +114,7 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="Events" component={EventsScreen} options={{ title: "Quêtes et événements" }} />
       <Stack.Screen name="Retro" component={RetroScreen} options={{ title: "TITAN Rétro" }} />
       <Stack.Screen name="SaveAccount" component={SaveAccountScreen} options={{ title: "Sauvegarder mon compte" }} />
+      <Stack.Screen name="Capsules" component={CapsuleScreen} options={{ title: "Lettres à moi-même" }} />
       <Stack.Screen name="PublicCard" component={PublicCardScreen} options={{ title: "Carte publique" }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Réglages" }} />
       <Stack.Screen name="Account" component={AccountScreen} options={{ title: "Compte" }} />
