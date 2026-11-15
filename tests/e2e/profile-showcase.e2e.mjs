@@ -173,13 +173,13 @@ test("sources: an allowed source can be stopped, and what it brought can be arch
     const block = page.locator("[data-sources-block]");
     await block.waitFor();
     const text = await block.innerText();
-    assert.match(text, /Health Connect · autorisée/);
+    assert.match(text, /Santé Connect · autorisée/);
     assert.match(text, /4 séances reçues/);
     assert.match(text, /1 rattachée à une séance déjà saisie/);
     await block.locator("[data-source-revoke]").click();
     await page.waitForFunction(() => window.sourceCalls.length === 1);
     assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "health_connect", p_granted: false }]);
-    await block.locator("text=Health Connect · retirée").waitFor();
+    await block.locator("text=Santé Connect · retirée").waitFor();
     assert.equal(await block.locator("[data-source-revoke]").count(), 0, "already stopped");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.deepEqual(errors, []);
@@ -312,9 +312,36 @@ test("garmin connect: once linked, the button gives way to the source line, and 
     await page.waitForFunction(() => window.sourceCalls.length === 1);
     assert.deepEqual(calls, ["action=disconnect|Bearer synthetic-showcase-token"]);
     assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }]);
+    const notice = page.locator('[data-garmin-withdrawal="withdrawn"]');
+    await notice.waitFor();
+    assert.match(await notice.innerText(), /TITAN a été retiré de ton compte Garmin/);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+// The link and the tokens are removed on TITAN's side whatever Garmin answers: when Garmin did not confirm, TITAN cannot retry, so the
+// player is told to finish the withdrawal in Garmin Connect (lot 2, « Garmin · déconnexion depuis TITAN »).
+for (const [label, answer] of [["refused", { status: 200, body: JSON.stringify({ linked: false, provider: "refused" }) }], ["unavailable", { status: 200, body: JSON.stringify({ linked: false, provider: "unavailable" }) }], ["no answer", { status: 503, body: "" }]]) {
+  test(`garmin disconnect: Garmin did not confirm (${label}), the profile says what is left to do`, async () => {
+    const row = { source: "garmin", granted: true, granted_at: "2026-10-20T10:00:00Z", revoked_at: null, imported: 2, linked: 0 };
+    const { page, context, errors } = await withFlag(true, [row]);
+    try {
+      await page.route("**/.netlify/functions/garmin*", route => route.fulfill({ status: answer.status, contentType: "application/json", body: answer.body }));
+      const block = page.locator("[data-sources-block]");
+      await block.waitFor();
+      await block.locator("[data-source-revoke=garmin]").click();
+      await page.waitForFunction(() => window.sourceCalls.length === 1);
+      assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }], "the consent is withdrawn in TITAN in any case");
+      const notice = page.locator("[data-garmin-withdrawal]");
+      await notice.waitFor();
+      assert.notEqual(await notice.getAttribute("data-garmin-withdrawal"), "withdrawn");
+      assert.equal(await notice.getAttribute("role"), "status");
+      assert.match(await notice.innerText(), /Garmin n’a pas confirmé le retrait/);
+      assert.match(await notice.innerText(), /Garmin Connect/);
+      assert.deepEqual(errors, []);
+    } finally { await context.close(); }
+  });
+}
 
 
 test("garmin connect: authorised but never linked (the player left the Garmin screen), the button stays offered and the source line says so", async () => {

@@ -1,4 +1,4 @@
-/* TITAN 300 — QG: what matters now. One dominant action, then the week, the ascent and the context. */
+/* TITAN 301 — QG: what matters now. The rank strip, one dominant action, three ways in, then the week, what is in progress and the last sessions. */
 (function () {
   "use strict";
   const esc = (s) => window.titanEsc(s);
@@ -21,6 +21,7 @@
     const el = root();
     if (el) { el.innerHTML = '<p class="asc-small asc-muted">Synchronisation du compte…</p>'; el.setAttribute("aria-busy", "true"); }
     const title = document.getElementById("qg-title"); if (title) title.textContent = "Ton QG";
+    const lead = document.getElementById("qg-lead"); if (lead) lead.hidden = true;
     const dialog = cadenceDialog; cadenceDialog = null; if (dialog?.open) dialog.close();
   }
   function adopt() {
@@ -72,7 +73,7 @@
     return `${Math.floor(m / 60)}<small>h</small>${String(m % 60).padStart(2, "0")}`;
   }
 
-  function weekHtml(cad, recapNow) {
+  function weekHtml(cad, recapNow, hasSessions) {
     const f = F();
     const w = recapNow.week;
     const notches = cad.weeks
@@ -90,67 +91,90 @@
       .join("");
     const status = cad.currentPaused ? "<strong>Cadence en pause</strong>" : cad.remaining === 0
       ? `<strong class="qg-held">${icon("check")} Semaine tenue</strong>`
-      : `<strong>${cad.currentDays}/${cad.target}</strong> jours actifs`;
+      : `<strong>${cad.currentDays}/${cad.target}</strong> jour${cad.target > 1 ? "s" : ""} actif${cad.target > 1 ? "s" : ""} cette semaine`;
     const delta = recapNow.deltaMinutes;
-    return `<section class="asc-section asc-appear" aria-labelledby="qg-week">
-      <div class="asc-section-head"><h2 id="qg-week">Cette semaine</h2><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-action="cadence">Semaine type : ${cad.target} jour${cad.target > 1 ? "s" : ""} ${icon("edit")}</button></div>
-      <div class="qg-week">
-        <div class="qg-cadence">
-          <div class="asc-notches" aria-label="Cadence des 8 dernières semaines">${notches}</div>
-          <div class="asc-between asc-small" style="flex-wrap:wrap;gap:var(--s1) var(--s3)"><span class="asc-muted">${status}</span><span class="asc-faint">Cadence ${cad.held}/${cad.window} · ${f.plural(cad.lifetimeHeld, "semaine tenue", "semaines tenues")} au total</span></div>
-        </div>
-        <div class="asc-stats">
+    // A new account reads its week target only: three zeros and « pas encore d’historique » said nothing (V13-40, ANTI-IA-06).
+    const stats = hasSessions ? `<div class="asc-stats">
           <div class="asc-stat"><span class="asc-stat-value">${w.sessions}</span><span class="asc-stat-label">séance${w.sessions > 1 ? "s" : ""}</span></div>
           <div class="asc-stat"><span class="asc-stat-value">${statDur(w.minutes)}</span><span class="asc-stat-label">de pratique${w.estimatedMinutes ? " (en partie estimée)" : ""}</span></div>
           ${w.distance ? `<div class="asc-stat"><span class="asc-stat-value">${f.number(w.distance, 1)}<small>km</small></span><span class="asc-stat-label">parcourus</span></div>` : ""}
-          <div class="asc-stat"><span class="asc-stat-value ${delta > 0 ? "is-up" : ""}">${delta === null ? "—" : Math.round(delta) === 0 ? "=" : `${delta > 0 ? "+" : "−"}${statDur(delta)}`}</span><span class="asc-stat-label">${delta === null ? "pas encore d’historique" : Math.round(delta) === 0 ? "comme tes semaines habituelles à ce stade" : "vs tes 4 dernières semaines à ce stade"}</span></div>
+          ${delta === null ? "" : `<div class="asc-stat" title="Comparé à la moyenne de tes 4 dernières semaines, au même jour de la semaine"><span class="asc-stat-value ${delta > 0 ? "is-up" : ""}">${Math.round(delta) === 0 ? "=" : statDur(delta)}</span><span class="asc-stat-label">${Math.round(delta) === 0 ? "comme d’habitude à ce stade" : delta > 0 ? "de plus que d’habitude à ce stade" : "de moins que d’habitude à ce stade"}</span></div>`}
+        </div>` : "";
+    const held = hasSessions ? `<span class="asc-faint">${cad.held} semaine${cad.held > 1 ? "s" : ""} tenue${cad.held > 1 ? "s" : ""} sur les ${cad.window} dernières · ${f.number(cad.lifetimeHeld)} au total</span>`
+      : `<span class="asc-faint">Une semaine est tenue quand tu atteins ta semaine type. Le repos ne coûte rien.</span>`;
+    return `<section class="asc-section asc-appear" aria-labelledby="qg-week">
+      <div class="asc-section-head"><h2 id="qg-week">Cette semaine</h2><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-action="cadence">Semaine type : ${cad.target} jour${cad.target > 1 ? "s" : ""} ${icon("edit")}</button></div>
+      <div class="qg-week${hasSessions ? "" : " is-new"}">
+        <div class="qg-cadence">
+          <div class="asc-notches" aria-label="Cadence des 8 dernières semaines">${notches}</div>
+          <div class="asc-between asc-small" style="flex-wrap:wrap;gap:var(--s1) var(--s3)"><span class="asc-muted">${status}</span>${held}</div>
         </div>
+        ${stats}
       </div>
     </section>`;
   }
 
+  /* The rank, the level and the XP towards the next one, in one strip at the top of the QG (same order as the Android header).
+     The bar is drawn only from a server-confirmed progression, or from the local estimate of the discovery mode, named as such. */
   function ascentHtml(p) {
     const f = F();
     const pct = Math.max(0, Math.min(100, Math.round((p.xp / Math.max(1, p.next)) * 100)));
-    const left = Math.max(0, p.next - p.xp);
     const nextRank = p.nextRank ? `Prochain rang : <strong>${esc(p.nextRank.name)}</strong> au niveau ${p.nextRank.level}.` : "Tu as atteint le dernier rang. La progression continue.";
     const u = window.titanShell?.user?.();
-    const ring = p.guest || p.confirmed ? pct : 0;
-    const portrait = u ? `<span class="qg-portrait" style="--p:${ring}%" aria-hidden="true"><img src="/assets/renaissance/${esc(u.avatar)}-s.webp" alt="" width="64" height="64" decoding="async"></span>` : "";
-    return `<section class="asc-section qg-ascent asc-appear" aria-labelledby="qg-ascent">
-      <div class="asc-section-head"><h2 id="qg-ascent">Ascension</h2><a class="asc-link asc-small" href="/profile">Profil ${icon("chevron")}</a></div>
+    const known = p.guest || p.confirmed;
+    const portrait = u ? `<span class="qg-portrait" style="--p:${known ? pct : 0}%" aria-hidden="true"><img src="/assets/renaissance/${esc(u.avatar)}-s.webp" alt="" width="64" height="64" decoding="async"></span>` : "";
+    return `<section class="qg-ascent asc-appear" aria-labelledby="qg-ascent">
       <div class="qg-rank">
-        ${portrait}<div class="qg-rank-main"><p class="asc-eyebrow">${p.guest ? "Rang estimé · découverte" : "Rang TITAN"}</p><p class="qg-rank-name">${esc(p.rank.name)}</p></div>
-        <div class="qg-rank-reward">
-          ${window.TitanCrest ? `<span class="qg-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(p.level), 76)}</span>` : ""}
-          <p class="qg-level"><span class="asc-num">${p.level}</span><small>niveau</small></p>
+        ${portrait}
+        <div class="qg-rank-main">
+          <h2 id="qg-ascent" class="qg-rank-name">Niveau ${p.level} · ${esc(p.rank.name)}</h2>
+          ${known ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
+          <p class="asc-small asc-muted qg-ascent-line"><span class="qg-xp">${p.guest ? "≈ " : ""}${f.number(p.xp)} / ${f.number(p.next)} XP</span> ${p.guest ? "· estimation" : `vers le niveau ${p.level + 1}`}</p>`
+          : `<p class="asc-small asc-muted qg-ascent-line">La barre du niveau s’affiche dès que le serveur répond.</p>`}
         </div>
+        ${window.TitanCrest ? `<div class="qg-rank-reward"><span class="qg-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(p.level), 64)}</span></div>` : ""}
       </div>
-      ${p.guest || p.confirmed ? `<div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="${p.next}" aria-valuenow="${p.xp}" aria-label="Progression vers le niveau ${p.level + 1}"><span style="--p:${pct}%"></span></div>
-      <p class="asc-small asc-muted">${f.number(left)} XP avant le niveau ${p.level + 1}. ${nextRank}</p>` : `<p class="asc-small asc-muted">${nextRank} La barre du niveau s’affiche dès que le serveur répond.</p>`}
-      <p class="asc-small asc-faint">${D().rulesV300() ? "1 minute d’effort modéré ≈ 10 XP, quel que soit ton sport." : "L’XP est calculée par le serveur à chaque séance."}${p.guest ? " En découverte, le calcul est local et indicatif." : ""}</p>
-      <details class="qg-why"><summary>Pourquoi mon niveau monte ?</summary><p>Il monte avec l’effort réel (durée × ressenti), pas avec le nombre de séances. Les mêmes plafonds par jour et par semaine s’appliquent à tout le monde, et un jour de repos ne te retire rien.</p></details>
+      <div class="qg-ascent-foot">
+        <details class="qg-why"><summary>Pourquoi mon niveau monte ?</summary><p>${nextRank} Ton niveau monte avec l’effort réel (durée × ressenti), pas avec le nombre de séances. ${D().rulesV300() ? "1 minute d’effort modéré ≈ 10 XP, quel que soit ton sport." : "L’XP est calculée par le serveur à chaque séance."} Les mêmes plafonds par jour et par semaine s’appliquent à tout le monde, et un jour de repos ne te retire rien.${p.guest ? " En mode découverte, le calcul est fait sur cet appareil et reste indicatif." : ""}</p></details>
+        <a class="asc-link asc-small" href="/profile">Profil ${icon("chevron")}</a>
+      </div>
     </section>`;
   }
 
-  function lastHtml(list) {
+  /* What a session brought, said only as far as it is known: official XP once the server confirmed, an estimate in discovery mode,
+     an explicit wait otherwise. Nothing is shown as earned before the confirmation (V13-43, ANTI-IA-03). */
+  function gainHtml(l, guest) {
     const f = F();
-    const last = list.slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-    if (!last) return "";
-    const meta = P().sportMeta(last.sport);
-    const m = P().minutesOf(last);
-    const main = last.unit === "km" ? f.distance(last.val) : last.unit === "kg" && Number(last.val) > 0 ? f.weight(last.val) : f.duration(m.minutes);
-    const sub = [f.relativeDay(last.date), m.minutes && last.unit === "km" ? f.duration(m.minutes) : "", last.unit === "km" && m.minutes && !m.estimated ? f.pace(last.val, m.minutes) : ""]
-      .filter(Boolean)
-      .join(" · ");
-    const sync = last.syncStatus === "pending" ? '<span class="asc-chip warn">En attente</span>' : last.syncStatus === "error" ? '<span class="asc-chip err">À corriger</span>' : last.details?.historical ? '<span class="asc-chip">Historique</span>' : "";
-    return `<section class="asc-section asc-appear" aria-labelledby="qg-last">
-      <div class="asc-section-head"><h2 id="qg-last">Dernière séance</h2><a class="asc-link asc-small" href="/journal">Journal ${icon("chevron")}</a></div>
-      <a class="asc-row" href="/journal?log=${encodeURIComponent(last.client_event_id || last.id)}">
+    if (l.syncStatus === "error") return '<span class="asc-chip err">À corriger</span>';
+    if (l.details?.historical) return '<span class="asc-chip">Historique · sans XP</span>';
+    if (guest) { const xp = P().effortOf(l).xp || 0; return xp ? `<span class="qg-gain is-estimate">≈ ${f.number(xp)} XP estimés</span>` : ""; }
+    if (l.syncStatus === "pending") return '<span class="asc-chip warn">XP en attente</span>';
+    const r = l.details?.serverReward;
+    if (l.syncStatus === "confirmed" && r && typeof r === "object" && r.reward_held) return '<span class="asc-chip warn">XP en vérification</span>';
+    const xp = Number(r?.xp ?? l.xp) || 0;
+    return l.syncStatus === "confirmed" && xp > 0 ? `<span class="qg-gain">+${f.number(xp)} XP</span>` : "";
+  }
+
+  function lastHtml(list, guest) {
+    const f = F();
+    const recent = list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
+    if (!recent.length) return "";
+    const row = (last) => {
+      const meta = P().sportMeta(last.sport);
+      const m = P().minutesOf(last);
+      const main = last.unit === "km" ? f.distance(last.val) : last.unit === "kg" && Number(last.val) > 0 ? f.weight(last.val) : f.duration(m.minutes);
+      const sub = [f.relativeDay(last.date), m.minutes && last.unit === "km" ? f.duration(m.minutes) : "", last.unit === "km" && m.minutes && !m.estimated ? f.pace(last.val, m.minutes) : ""]
+        .filter(Boolean)
+        .join(" · ");
+      return `<a class="asc-row" href="/journal?log=${encodeURIComponent(last.client_event_id || last.id)}">
         <span class="asc-row-icon">${icon(window.TitanSports?.iconOf ? window.TitanSports.iconOf(last.sport) : familyIcon(meta.family))}</span>
         <span class="asc-row-main"><span class="asc-row-title">${esc(meta.label)}</span><span class="asc-row-sub">${esc(sub)}</span></span>
-        <span class="asc-row-end"><strong>${esc(main)}</strong>${sync}</span>
-      </a>
+        <span class="asc-row-end"><strong>${esc(main)}</strong>${gainHtml(last, guest)}</span>
+      </a>`;
+    };
+    return `<section class="asc-section asc-appear" aria-labelledby="qg-last">
+      <div class="asc-section-head"><h2 id="qg-last">${recent.length > 1 ? "Dernières séances" : "Dernière séance"}</h2><a class="asc-link asc-small" href="/journal">Journal ${icon("chevron")}</a></div>
+      <div class="asc-list">${recent.map(row).join("")}</div>
     </section>`;
   }
 
@@ -231,12 +255,33 @@
     return `<div class="asc-note qg-guest">${icon("phone")}<div><strong>Mode découverte</strong> · tes séances restent sur cet appareil. <a class="asc-link" href="/login?mode=signup">Créer un compte</a> pour les sauvegarder et les reprendre partout.</div></div>`;
   }
 
+  /* Three ways in, each one saying where it leads (the tab bar keeps the same three on a phone). */
+  function adventureTileSub() {
+    const s = window.TitanAdventure?.snapshot, C = window.TitanCodex;
+    const c = s && C ? (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0 && x.chapter <= 9) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9) : null;
+    if (!c) return "Choisir un monde";
+    const world = C.worlds.find((w) => w.id === c.id);
+    return `${world?.name || "Monde"} · chapitre ${c.chapter}/9`;
+  }
   function destinationsHtml() {
-    return `<nav class="asc-actions qg-destinations" aria-label="Raccourcis du QG">
-      <a class="asc-btn asc-btn-ghost" href="/training">${icon("plus")} Sport</a>
-      <a class="asc-btn asc-btn-ghost" href="/adventure">${icon("compass")} Aventure</a>
-      <a class="asc-btn asc-btn-ghost" href="/stats">${icon("chart")} Progrès</a>
+    const tile = (href, name, label, sub) => `<a class="qg-tile" href="${href}">${icon(name)}<strong>${label}</strong><small>${esc(sub)}</small></a>`;
+    return `<nav class="qg-destinations" aria-label="Raccourcis du QG">
+      ${tile("/training", "plus", "Sport", "Enregistrer une séance")}
+      ${tile("/adventure", "compass", "Aventure", adventureTileSub())}
+      ${tile("/stats", "chart", "Progrès", "Semaine, journal, records")}
     </nav>`;
+  }
+
+  /* A new account: what TITAN does, in three lines, under the single action. Shown until the first session exists. */
+  function howHtml() {
+    return `<section class="asc-section qg-how asc-appear" aria-labelledby="qg-how">
+      <div class="asc-section-head"><h2 id="qg-how">Comment ça marche</h2></div>
+      <ol class="qg-how-list">
+        <li><span class="qg-how-n" aria-hidden="true">1</span><p><strong>Tu fais du sport.</strong> Tu notes ta séance : le sport, la durée, ton ressenti. Une minute suffit.</p></li>
+        <li><span class="qg-how-n" aria-hidden="true">2</span><p><strong>Ton effort compte.</strong> Chaque minute d’effort devient de l’XP et fait monter ton niveau, quel que soit ton sport.</p></li>
+        <li><span class="qg-how-n" aria-hidden="true">3</span><p><strong>Ton aventure avance.</strong> Tes jours actifs allument les balises du monde que tu as choisi.</p></li>
+      </ol>
+    </section>`;
   }
 
   // Keep live sections and their controls in place when background reads finish.
@@ -328,14 +373,23 @@
     const name = (window.state.user.name || "").trim();
     document.getElementById("qg-date").textContent = f.longDate(now);
     document.getElementById("qg-title").textContent = guest || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
+    const lead = document.getElementById("qg-lead"); if (lead) lead.hidden = list.length > 0;
     paint(el, `
+      ${ascentHtml(D().progression())}
       ${heroHtml(action)}
       ${destinationsHtml()}
       ${!online ? `<div class="asc-note qg-offline">${icon("offline")}<span><strong>Hors ligne.</strong> Tes séances saisies ici restent sur cet appareil.</span></div>` : ""}
       ${guest ? guestHtml() : ""}
-      ${weekHtml(cad, recapNow)}
-      ${monthPromptHtml(now)}
       ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
+      ${list.length ? "" : howHtml()}
+      ${weekHtml(cad, recapNow, list.length > 0)}
+      ${monthPromptHtml(now)}
+      <div class="asc-grid-2 qg-grid">
+        <div><section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
+            <div class="asc-list">${goalHtml(goalsCache, D().logs())}${adventureHtml(online || guest)}</div>
+          </section></div>
+        <div>${lastHtml(list, guest)}</div>
+      </div>
       ${shortcutsHtml(list)}
       ${window.TitanStepsCard?.html?.() || ""}
       ${window.TitanIntents?.html?.() || ""}
@@ -344,14 +398,6 @@
       ${window.TitanBuddy?.html?.() || ""}
       ${window.TitanSeason?.html?.() || ""}
       ${window.TitanRanking?.html?.() || ""}
-      <div class="asc-grid-2 qg-grid">
-        <div>${ascentHtml(D().progression())}</div>
-        <div>${lastHtml(list)}
-          <section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
-            <div class="asc-list">${goalHtml(goalsCache, D().logs())}${adventureHtml(online || guest)}</div>
-          </section>
-        </div>
-      </div>
       ${insightsHtml(others)}`);
     el.setAttribute("aria-busy", "false");
   }

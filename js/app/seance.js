@@ -677,7 +677,9 @@
   }
 
   /* ---------- Actions ---------- */
-  function choose(sport, prefill) {
+  /* Picker → form is one step of browser history: the Back button (or gesture) returns to the list of sports instead of leaving
+     the page. `step: false` is for a form opened by a link or at start-up, where the address is only corrected. */
+  function choose(sport, prefill, { step = true } = {}) {
     if (!window.SPORTS_CONFIG?.[sport]) return;
     invalidateGpx();
     localGpxOriginal = null;
@@ -686,10 +688,38 @@
     if (S_().formOf(sport) === "strength" && !S.exercises.length) S.exercises = [{ name: "", variant: "", kind: "weighted", sets: [{ weight: "", reps: "", rir: "" }] }];
     if (S_().formOf(sport) === "bodyweight" && !S.exercises.length) S.exercises = [{ name: "", variant: "", kind: "bodyweight", sets: [{ weight: "", reps: "", rir: "" }] }];
     if (S_().formOf(sport) === "climbing") S.climbing.system = S.climbing.discipline === "Voie" ? "Français voie" : S.climbing.system || "Fontainebleau bloc";
-    history.replaceState(null, "", `/training?sport=${encodeURIComponent(sport)}`);
+    const url = `/training?sport=${encodeURIComponent(sport)}`;
+    if (step && history.state?.seance !== "form") history.pushState({ seance: "form" }, "", url);
+    else history.replaceState(history.state?.seance === "form" ? history.state : null, "", url);
     render();
     persist();
     window.scrollTo({ top: 0 });
+  }
+
+  /* Back / Forward inside the page. Back from the form shows the picker and keeps the draft on the device (the QG and the next
+     visit offer to resume it); Forward reopens the form with that draft. Nothing moves while a session is being saved. */
+  function onHistory() {
+    if (!booted || !S || saving || window.titanAccountTransition?.active) return;
+    const sport = new URLSearchParams(location.search).get("sport");
+    if (!sport) {
+      if (S.step !== "form") return;
+      invalidateGpx();
+      localGpxOriginal = null;
+      S = fresh();
+      hubOpen = hubOn() && !manualRequested;
+      render();
+      (root.querySelector("#sport-q") || root.querySelector("[data-hub-title]"))?.focus({ preventScroll: true });
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    if (!window.SPORTS_CONFIG?.[sport] || (S.step === "form" && S.sport === sport)) return;
+    const draft = window.TitanData.sessionDraft();
+    if (draft && draft.sport === sport) {
+      hubOpen = false;
+      S = { ...fresh(sport), ...draft, step: "form" };
+      render();
+      status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
+    } else choose(sport, null, { step: false });
   }
 
   function prefillFromLog(l) {
@@ -772,9 +802,12 @@
       const count = P().activeLogs(window.state?.history || []).length;
       if (count <= 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: S_().familyOf(sport) });
       localGpxOriginal = null;
+      const fromPicker = history.state?.seance === "form";
       S = fresh();
       hubOpen = hubOn();
-      history.replaceState(null, "", "/training");
+      // The form was one history step after the picker: step back onto it, so Back after the result leaves the page in one press.
+      if (fromPicker) history.back();
+      else history.replaceState(null, "", "/training");
       render();
       window.TitanMoment?.open(log);
     } catch (error) {
@@ -1080,8 +1113,10 @@
     }
     if (act === "back") {
       localGpxOriginal = null;
-      S = { ...fresh(), query: "" };
       clearDraft();
+      // Opened from the picker: undo that history step, so Back does not need a second press on the same list.
+      if (history.state?.seance === "form") { S = { ...S, step: "form" }; return history.back(); }
+      S = { ...fresh(), query: "" };
       history.replaceState(null, "", "/training");
       return render();
     }
@@ -1154,10 +1189,10 @@
     const draft = window.TitanData.sessionDraft();
     if (duplicate?.ownerId === owner() && duplicate.log?.sport && window.SPORTS_CONFIG?.[duplicate.log.sport]) {
       S = fresh();
-      choose(duplicate.log.sport, prefillFromLog(duplicate.log));
+      choose(duplicate.log.sport, prefillFromLog(duplicate.log), { step: false });
     } else if (params.get("sport") && window.SPORTS_CONFIG?.[params.get("sport")] && (!draft || draft.sport !== params.get("sport"))) {
       S = fresh();
-      choose(params.get("sport"));
+      choose(params.get("sport"), null, { step: false });
     } else if (draft && window.SPORTS_CONFIG?.[draft.sport]) {
       S = { ...fresh(draft.sport), ...draft, step: "form" };
       render();
@@ -1171,6 +1206,8 @@
     root.addEventListener("change", onChange);
     root.addEventListener("click", onClick);
     root.addEventListener("keydown", onKey);
+    window.removeEventListener("popstate", onHistory);
+    window.addEventListener("popstate", onHistory);
     clearInterval(timerTick);
     timerTick = setInterval(tick, 1000);
   }

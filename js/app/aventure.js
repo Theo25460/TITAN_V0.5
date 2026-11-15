@@ -95,7 +95,7 @@
         <ol><li>Commence la campagne avant ta prochaine séance. Tes séances précédentes restent dans ton journal ; elles ne sont pas reprises pour cette balise.</li>
         <li>Pratique le sport de ton choix et enregistre ta séance. Les séances admissibles font avancer les jours de l’étape ; le chemin Observation demande aussi une note de 10 caractères minimum.</li>
         <li>Quand tous les objectifs sont atteints, reviens allumer la balise. Le gardien demande aussi l’effort indiqué ; plusieurs séances le même jour ne créent pas plusieurs jours actifs.</li>
-        <li>La balise débloque un insigne cosmétique, ni XP ni coins supplémentaires. Les XP et coins d’une séance suivent leurs propres règles. Une pause n’efface pas tes insignes.</li></ol>
+        <li>La balise débloque un insigne cosmétique, sans XP ni crédits supplémentaires. Les XP et les crédits d’une séance suivent leurs propres règles. Une pause n’efface pas tes insignes.</li></ol>
         <p class="asc-small">${isGuest() ? "En découverte, la progression est calculée sur cet appareil." : "Avec un compte, le serveur confirme la progression et les récompenses."}</p></details>
         <button type="button" class="asc-btn asc-btn-primary" data-start>${icon("compass")} Commencer la campagne</button>
         <p class="asc-small asc-faint">Les séances comptent à partir du départ, une seule fois par jour. Aucune échéance, aucune pénalité.</p></section>`;
@@ -107,18 +107,19 @@
     const effort = effortObjective?.value || 0;
     const ready = progress.ready;
     const remaining = ready ? "Étape prête à valider." : progress.objectives.filter(o => o.remaining > 0).map(o => o.id === "days" ? `${F().number(o.remaining)} jour${o.remaining > 1 ? "s" : ""} ${p.route === "journal" ? "avec une séance annotée" : "actif" + (o.remaining > 1 ? "s" : "")} à accomplir` : `${F().number(o.remaining)} min d’effort à accomplir`).join(" · ");
-    return `<section class="av-panel${ready ? " is-ready" : ""}">
-      <div class="av-mission-head">${badge(world, ch.index, ready)}<div><p class="asc-eyebrow${ready ? " cy" : ""}">Chapitre ${ch.index} / 9${ch.boss ? " · le gardien" : ""}</p><h2 class="asc-h2">${esc(ch.name)}</h2></div></div>
-      <p>${esc(ch.story)}</p>
+    // One dominant card (RPG-131-01): where you are, what is left to do, how far you are, one action, what it brings. The story follows.
+    return `<section class="av-panel av-mission${ready ? " is-ready" : ""}" aria-labelledby="av-mission-title">
+      <div class="av-mission-head">${badge(world, ch.index, ready)}<div><p class="asc-eyebrow${ready ? " cy" : ""}">Ta mission · Chapitre ${ch.index} / 9${ch.boss ? " · le gardien" : ""}</p><h2 class="asc-h2" id="av-mission-title" tabindex="-1">${esc(ch.name)}</h2></div></div>
+      <p class="av-todo"><span class="av-todo-label">${ready ? "C’est prêt" : "À faire"}</span><span data-rpg-remaining>${esc(remaining)}</span></p>
       <div class="av-track"><div class="asc-between"><span>${p.route === "journal" ? "Jours avec une séance annotée" : "Jours actifs"}</span><strong class="asc-num">${days} / ${p.target}</strong></div><span class="asc-ascent"><span style="--p:${Math.round((days / Math.max(1, p.target)) * 100)}%"></span></span></div>
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
-      ${personalTargetHtml(p)}
-      <p class="asc-small" data-rpg-remaining>${esc(remaining)}</p>
-      <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
+      <p class="asc-small asc-muted">Ce que ça apporte : l’insigne <strong>${esc(ch.title)}</strong>, cosmétique, sans XP ni crédits. Tes XP viennent de l’effort de chaque séance.</p>
+      ${personalTargetHtml(p)}
+      <p class="av-story">${esc(ch.story)}</p>
+      <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
-      <p class="asc-small asc-muted">Insigne : <strong>${esc(ch.title)}</strong>. Cosmétique : il ne donne ni XP ni crédits.</p>
     </section>`;
   }
 
@@ -247,11 +248,11 @@
     const p = campaign(world);
     root.setAttribute("aria-busy", "false");
     root.innerHTML = `
-      ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world, focusedWorld)}
       <div id="av-region-panel" role="tabpanel" aria-labelledby="av-tab-${world.id}" tabindex="0">
-        <div class="av-grid">${mapHtml(world, p)}${missionHtml(world, p, s)}</div>
+        <div class="av-grid">${missionHtml(world, p, s)}${mapHtml(world, p)}</div>
+        ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
         ${window.titanAccountTransition?.active ? "" : window.TitanJourneyPanel?.worldStoryHtml?.(s, world, window.state?.user?.id) || ""}
         ${guardianHtml(world, p, s)}
         ${valleyHtml(world, p, s)}
@@ -299,6 +300,8 @@
         celebrate(C().worlds.find((w) => w.id === params.world), before.chapter);
       }
       render();
+      // The pressed button is gone with the old panel: keyboard and screen-reader focus go to the new mission instead of the top of the page.
+      if (action === "start") root.querySelector("#av-mission-title")?.focus({ preventScroll: true });
     } catch (e) {
       const msg = A().message(e);
       const el = document.getElementById("av-error");

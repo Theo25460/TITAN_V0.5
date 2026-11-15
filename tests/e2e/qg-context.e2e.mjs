@@ -238,12 +238,57 @@ test('background QG refresh retains hero nodes, expanded details and focus',asyn
  }finally{await context.close();}
 });
 
-test('the mobile rank illustration and level form one centred group',async()=>{
- const {page,context}=await fixture({width:360});try{
-  const group=await page.locator('.qg-rank-reward').boundingBox();
-  assert.ok(group,'rank crest and level share one responsive group');
-  const crest=await page.locator('.qg-crest').boundingBox(),level=await page.locator('.qg-level').boundingBox();
-  assert(Math.abs((crest.x+level.x+level.width)/2-(group.x+group.width/2))<2);
+test('the rank strip keeps character, level and crest on one row at 320 and 360 px, above the action of the day',async()=>{
+ for(const width of [320,360]){
+  const {page,context}=await fixture({width});try{
+   const box=sel=>page.locator(sel).first().boundingBox();
+   const portrait=await box('.qg-portrait'),name=await box('.qg-rank-name'),crest=await box('.qg-crest'),hero=await box('.qg-hero');
+   assert.ok(portrait&&name&&crest&&hero,'the strip shows the character, the level with its rank and the crest');
+   assert.match(await page.locator('.qg-rank-name').textContent(),/^Niveau \d+ · \S+/);
+   assert(portrait.x+portrait.width<=name.x+1&&name.x+name.width<=crest.x+1,'nothing overlaps on the row');
+   assert(crest.x+crest.width<=width,'the crest stays inside the screen');
+   assert(Math.abs((portrait.y+portrait.height/2)-(crest.y+crest.height/2))<24,'character and crest share the row');
+   assert(name.y+name.height<=hero.y,'the strip sits above the action of the day');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  }finally{await context.close();}
+ }
+});
+
+test('a new account reads what TITAN does and its week target, without empty figures',async()=>{
+ const {page,context,errors}=await fixture();try{
+  const how=page.getByRole('heading',{name:'Comment ça marche'});await how.waitFor();
+  assert.equal(await page.locator('.qg-how-list li').count(),3);
+  assert.equal(await page.locator('#qg-lead').isVisible(),true);
+  assert.equal(await page.locator('[aria-labelledby="qg-week"] .asc-stat').count(),0,'no row of zeros before the first session');
+  assert.equal(await page.locator('[data-action="cadence"]').isVisible(),true,'the week target stays reachable');
+  assert.equal(await page.locator('.qg-hero .asc-btn-primary').count(),1);
+  assert.equal(await page.locator('#qg .asc-btn-primary').count(),1,'one primary action on the QG');
+  await page.evaluate(()=>{window.state.history=[{id:'s1',sport:'yoga',date:new Date().toISOString(),val:30,unit:'min',details:{duration:30}}];window.dispatchEvent(new Event('titan:history-updated'));});
+  await page.getByRole('heading',{name:'Dernière séance'}).waitFor();
+  assert.equal(await how.count(),0,'the explanation leaves once a session exists');
+  assert.equal(await page.locator('#qg-lead').isVisible(),false);
+  assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+});
+
+test('recent sessions show official XP only once the server confirmed them',async()=>{
+ const {page,context,errors}=await fixture();try{
+  await page.evaluate(()=>{
+   const at=d=>new Date(Date.now()-d*86400000).toISOString();
+   window.state.history=[
+    {id:'c1',client_event_id:'c1',sport:'yoga',date:at(0.1),val:30,unit:'min',xp:300,syncStatus:'confirmed',details:{duration:30,serverReward:{xp:280}}},
+    {id:'p1',client_event_id:'p1',sport:'yoga',date:at(1),val:40,unit:'min',xp:400,syncStatus:'pending',details:{duration:40}},
+    {id:'h1',client_event_id:'h1',sport:'yoga',date:at(2),val:50,unit:'min',xp:500,syncStatus:'confirmed',details:{duration:50,serverReward:{reward_held:true,held_xp:500}}},
+    {id:'o1',client_event_id:'o1',sport:'yoga',date:at(3),val:20,unit:'min',xp:200,syncStatus:'confirmed',details:{duration:20}}];
+   window.dispatchEvent(new Event('titan:history-updated'));
+  });
+  const rows=page.locator('[aria-labelledby="qg-last"] a.asc-row');await rows.first().waitFor();
+  assert.equal(await rows.count(),3,'three sessions at most');
+  assert.match(await rows.nth(0).textContent(),/\+280 XP/);
+  assert.match(await rows.nth(1).textContent(),/XP en attente/);assert.doesNotMatch(await rows.nth(1).textContent(),/\+\s?\d+ XP/);
+  assert.match(await rows.nth(2).textContent(),/XP en vérification/);assert.doesNotMatch(await rows.nth(2).textContent(),/\+\s?\d+ XP/);
+  assert.equal(await rows.nth(0).getAttribute('href'),'/journal?log=c1');
+  assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
 

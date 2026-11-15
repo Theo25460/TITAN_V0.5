@@ -8,8 +8,11 @@
 #profil .pf-id { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 1rem; }
 #profil .pf-id-main { min-width: 0; }
 #profil .pf-name { font-size: clamp(1.625rem, 6vw, 2.375rem); white-space: normal; overflow-wrap: anywhere; }
-#profil .pf-crest { display: flex; justify-content: flex-start; margin: 0; grid-column: 1 / -1; }
-#profil .pf-crest .crest { width: 64px; height: auto; }
+/* Character sheet: identity first, then the rank crest beside the level and its XP bar. */
+#profil .pf-level { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem; }
+#profil .pf-level-main { min-width: 0; display: grid; gap: var(--s2); }
+#profil .pf-crest { display: flex; margin: 0; flex: none; }
+#profil .pf-crest .crest { width: 72px; height: auto; }
 #profil [data-profile-personalize], #profil .pf-signout { justify-self: start; }
 #profil .pf-level .asc-between { flex-wrap: wrap; gap: .5rem 1rem; }
 #profil .pf-level-n { font-size: 1rem; }
@@ -83,9 +86,11 @@
 #profil .pf-metric-choices { margin: 1rem 0 0; padding: 0; border: 0; display: grid; gap: 1rem; min-width: 0; }
 
 @media (min-width: 760px) {
-  #profil .pf-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #profil .pf-id { grid-column: 1 / -1; }
-  #profil .pf-crest .crest { width: 88px; }
+  #profil .pf-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; column-gap: 2.5rem; }
+  #profil .pf-id { grid-column: 1; }
+  #profil .pf-level { grid-column: 2; grid-row: 1 / span 2; }
+  #profil [data-profile-personalize] { grid-column: 1; }
+  #profil .pf-crest .crest { width: 104px; }
 }
 @media (max-width: 540px) {
   #profil .pf-group-body { padding-right: 1rem; padding-left: 1rem; }
@@ -95,6 +100,9 @@
   #profil .pf-avatars { grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); }
 }
 @media (max-width: 360px) {
-  #profil .pf-id { grid-template-columns: minmax(0, 1fr); }
-  #profil .pf-crest .crest { width: 48px; }
+  #profil .pf-id { grid-template-columns: 64px minmax(0, 1fr); }
+  #profil .pf-crest .crest { width: 56px; }
+}
+@media (max-width: 300px) {
+  #profil .pf-id, #profil .pf-level { grid-template-columns: minmax(0, 1fr); }
 }
