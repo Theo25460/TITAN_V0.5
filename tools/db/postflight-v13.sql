@@ -93,11 +93,16 @@ with expected_versions(version) as (values
     (select count(*) = 1 from private.titan_journey_configs where active),
     'une version active du catalogue est disponible'
   union all
-  select 'export:journey and predecessor', true, coalesce(
-    pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
-    and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%''journey''%'
-    and pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%''journeyVerifiedDailyActivity''%'
-    and to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)') is not null, false),
+  -- AUD-35 may wrap the V1.3 layer once more (cadence claims): the journey layer is then the function the outer one calls.
+  select 'export:journey and predecessor', true, coalesce((
+    select layer like '%private.titan_export_extras_before_journey_v1(p_uid)%'
+      and layer like '%''journey''%'
+      and layer like '%''journeyVerifiedDailyActivity''%'
+      and to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)') is not null
+    from (select case
+      when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
+      then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)'))
+      else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end layer) l), false),
     'journal ajouté à la chaîne d’export conservée'
 )
 select check_name as "check", blocking, ok, detail from checks order by blocking desc, ok, check_name;

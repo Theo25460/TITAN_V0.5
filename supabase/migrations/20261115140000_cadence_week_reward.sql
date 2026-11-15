@@ -5,9 +5,10 @@
 -- An "active day" is exactly the one the guild week, the common quest and the seasons already use: private.titan_effort_days (trusted,
 -- non-historical, non-held sessions, effort minutes > 0). Older weeks cannot be claimed, so no history is rewarded after the fact.
 -- The credit change goes through the usual profile trigger, so it is range-checked and written to the economy journal.
--- Suspended accounts are refused. Claims are erased with the account (foreign key). TODO (lissage): add them to the data export helper.
+-- Suspended accounts are refused. Claims are exported with the account (extras helper, key cadenceWeekClaims) and erased with it.
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: drop function public.titan_cadence_week_claim_v1(date), public.titan_cadence_week_status_v1(); drop table private.titan_cadence_claims;
+-- Rollback: drop function public.titan_cadence_week_claim_v1(date), public.titan_cadence_week_status_v1(); drop function private.titan_export_extras_v1(uuid);
+-- alter function private.titan_export_extras_before_cadence_v1(uuid) rename to titan_export_extras_v1; drop table private.titan_cadence_claims;
 
 create table if not exists private.titan_cadence_claims (
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -93,3 +94,18 @@ revoke all on function public.titan_cadence_week_status_v1() from public, anon;
 revoke all on function public.titan_cadence_week_claim_v1(date) from public, anon;
 grant execute on function public.titan_cadence_week_status_v1() to authenticated;
 grant execute on function public.titan_cadence_week_claim_v1(date) to authenticated;
+
+-- AUD-35: the claims travel with the data export (same wrapping pattern as the journey migration).
+do $$
+begin
+  if to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)') is null then
+    alter function private.titan_export_extras_v1(uuid) rename to titan_export_extras_before_cadence_v1;
+  end if;
+end $$;
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_cadence_v1(p_uid) || jsonb_build_object('cadenceWeekClaims', coalesce((
+    select jsonb_agg(jsonb_build_object('week', c.week_start, 'days', c.days, 'target', c.target, 'credits', c.credits, 'claimed_at', c.claimed_at) order by c.week_start)
+    from private.titan_cadence_claims c where c.user_id = p_uid), '[]'::jsonb));
+$$;
+revoke all on function private.titan_export_extras_before_cadence_v1(uuid), private.titan_export_extras_v1(uuid) from public, anon, authenticated;

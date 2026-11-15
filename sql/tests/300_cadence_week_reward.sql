@@ -42,6 +42,8 @@ declare a uuid := current_setting('titan.cw_a')::uuid;
 begin
   assert (select credits from public.profiles where id = a) = 150, 'balance persisted';
   assert exists (select 1 from private.titan_economy_journal j where j.user_id = a), 'the credit change is journaled';
+  assert jsonb_array_length(private.titan_export_extras_v1(a) -> 'cadenceWeekClaims') = 1, 'the claim is in the data export';
+  assert private.titan_export_extras_v1(a) ? 'journey', 'earlier export parts are kept';
   delete from auth.users where id = a;
   assert not exists (select 1 from private.titan_cadence_claims where user_id = a), 'erased with the account';
 end $$;
