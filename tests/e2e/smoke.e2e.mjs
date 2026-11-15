@@ -1050,6 +1050,28 @@ test("community pending actions: accepting and declining the same request cannot
   await context.close();
 });
 
+test("community: without a ticked friend a challenge is open to anyone and its link is copied (AUD-34)", async () => {
+  const { page, context, errors } = await communityPage({ overview: { friends: [] } });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t) => { window.copied = t; } }, configurable: true });
+    const original = window.titanClient.rpc;
+    window.titanClient.rpc = (name, params) => {
+      if (name !== "titan_challenge_open_create_v1") return original(name, params);
+      window.openCreate = params;
+      const result = Promise.resolve({ data: { id: "c-open", token: "f".repeat(64), expiresAt: new Date(Date.now() + 86400000).toISOString() } });
+      const query = { setHeader: () => query, then: (yes, no) => result.then(yes, no) };
+      return query;
+    };
+  });
+  await page.locator("[data-new-challenge]").click();
+  await page.locator("dialog[open] form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => typeof window.copied === "string");
+  assert.match(await page.evaluate(() => window.copied), /\/defi\?t=f{64}$/);
+  assert.equal(await page.evaluate(() => "p_invitees" in window.openCreate), false);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
 test("community pending actions: a challenge form handler cannot create the same draft repeatedly", async () => {
   const { page, context, errors } = await communityPage({ hold: ["titan_challenge_create"] });
   await page.locator("[data-new-challenge]").click();

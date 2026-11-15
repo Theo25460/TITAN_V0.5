@@ -306,7 +306,7 @@
   function challengesHtml() {
     const list = data?.challenges || [];
     const friends = data?.friends || [];
-    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2>${friends.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
+    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button></div>
       <p class="cm-section-intro">Avancez vers le même objectif. La progression de chacun se voit dans son défi.</p>
       ${list.length ? `<div class="cm-challenges">${list
         .map((c) => {
@@ -478,7 +478,7 @@
       <label class="asc-field" data-sport-field hidden><span>Sport</span><select name="sport">${["running", "cycling", "walking", "hiking", "trail", "swimming"].filter((s) => window.SPORTS_CONFIG?.[s]).map((s) => `<option value="${s}">${esc(SP().label(s))}</option>`).join("")}</select></label>
       <div class="asc-form-grid"><label class="asc-field"><span>Objectif</span><input class="asc-input" type="number" name="target" min="1" max="100000" value="300" required></label>
       <label class="asc-field"><span>Durée</span><select name="days">${[3, 7, 14, 21, 28].map((d) => `<option value="${d}" ${d === 7 ? "selected" : ""}>${d} jours</option>`).join("")}</select></label></div>
-      <fieldset class="pf-privacy"><legend class="seance-label">Inviter</legend>${friends.map((f) => `<label class="auth-check"><input type="checkbox" name="invite" value="${esc(f.id)}" ${preselect.includes(f.id) ? "checked" : ""}><span>${esc(f.name)}</span></label>`).join("")}</fieldset>
+      <fieldset class="pf-privacy"><legend class="seance-label">Inviter</legend><p class="asc-small asc-muted">${friends.length ? "Coche des amis, ou personne pour obtenir un lien que n’importe qui peut rejoindre." : "Tu obtiendras un lien à envoyer : n’importe qui peut rejoindre, même sans être ton ami."}</p>${friends.map((f) => `<label class="auth-check"><input type="checkbox" name="invite" value="${esc(f.id)}" ${preselect.includes(f.id) ? "checked" : ""}><span>${esc(f.name)}</span></label>`).join("")}</fieldset>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Lancer</button></div>`;
     let metric = "effort_minutes";
@@ -507,17 +507,23 @@
       if (!d.open || !current(job) || sending()) return;
       const err = form.querySelector(".jr-edit-error");
       const invitees = [...form.querySelectorAll("[name=invite]:checked")].map((i) => i.value);
-      if (!invitees.length) return (err.textContent = "Invite au moins un ami.");
       err.textContent = "";
       const task = beginMutation(job, form);
       if (!task) return;
       operation = task;
       try {
-        await rpc("titan_challenge_create", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value), p_invitees: invitees }, job);
+        // AUD-34: without a ticked friend, the challenge is open to whoever receives its one-use link (titan_challenge_open_create_v1).
+        let link = null;
+        if (invitees.length) await rpc("titan_challenge_create", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value), p_invitees: invitees }, job);
+        else {
+          const answer = await rpc("titan_challenge_open_create_v1", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value) }, job);
+          link = answer?.token ? `${location.origin}/defi?t=${answer.token}` : null;
+          if (link) { try { await navigator.clipboard.writeText(link); } catch {} }
+        }
         endMutation(task);
         if (!current(job)) return;
         d.close();
-        window.titanShell.toast({ type: "ok", title: "Défi lancé", message: "Tes amis le trouvent dans leur Communauté." });
+        window.titanShell.toast(link ? { type: "ok", title: "Défi lancé · lien copié", message: link } : { type: "ok", title: "Défi lancé", message: "Tes amis le trouvent dans leur Communauté." });
         load();
       } catch (error) {
         endMutation(task);
