@@ -132,7 +132,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         <Reveal order={0} style={{ gap: space.s4 }}>
           <View style={styles.head}>
             <View style={[styles.sportDisc, { backgroundColor: `${tint}26`, borderColor: `${tint}66` }]}>
-              <Icon name={Sports.FAMILY_ICON[fam]} size={26} color={tint} />
+              <Icon name={Sports.iconOf(log.sport)} size={26} color={tint} />
             </View>
             <View style={{ flex: 1 }}>
               <T variant="eyebrow" tone="accent">

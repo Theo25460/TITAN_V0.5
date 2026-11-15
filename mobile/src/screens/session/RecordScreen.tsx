@@ -79,7 +79,7 @@ export function RecordScreen() {
                   {recent.map(([sport, date]) => (
                     <Tap key={sport} onPress={() => open(sport)} accessibilityLabel={`${Sports.label(sport)}, dernière séance ${Format.relativeDay(date)}`} style={{ borderRadius: 14 }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line }}>
-                        <Icon name={Sports.FAMILY_ICON[Sports.familyOf(sport)]} size={22} color={colors.cy} />
+                        <Icon name={Sports.iconOf(sport)} size={22} color={colors.cy} />
                         <View style={{ flex: 1 }}>
                           <T variant="bodyStrong">{Sports.label(sport)}</T>
                           <T variant="caption" tone="faint">

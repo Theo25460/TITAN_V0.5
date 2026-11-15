@@ -92,6 +92,8 @@ export const Sports = g.TitanSports as {
   FORMS: Record<SportForm, { label: string; measures: string[] }>;
   FAMILY_LABEL: Record<Family, string>;
   FAMILY_ICON: Record<Family, "run" | "weight" | "mountain" | "target" | "leaf">;
+  /** One drawing per kind of practice (racket, glove, ball, bike, wave…), the family icon otherwise. */
+  iconOf(id: string): import("./icons.generated").IconName;
   POPULAR: string[];
   ensure(): number;
   label(id: string): string;

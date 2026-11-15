@@ -12,7 +12,7 @@ export function SportChip({ id, selected, onPress, testID }: { id: string; selec
   const fam = Sports.familyOf(id);
   return (
     <Tap onPress={onPress} testID={testID} accessibilityRole="button" accessibilityState={{ selected: !!selected }} accessibilityLabel={Sports.label(id)} style={[styles.chip, selected && styles.chipOn]}>
-      <Icon name={Sports.FAMILY_ICON[fam] ?? "run"} size={18} color={selected ? colors.cyInk : familyColors[fam]} />
+      <Icon name={Sports.iconOf(id)} size={18} color={selected ? colors.cyInk : familyColors[fam]} />
       <T variant="caption" color={selected ? colors.cyInk : colors.tx} style={styles.chipLabel}>
         {Sports.label(id)}
       </T>
