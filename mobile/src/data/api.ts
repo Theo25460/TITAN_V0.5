@@ -290,6 +290,9 @@ export const duoNudge = (owner: string, id: string) => ownerRpc(owner, "titan_bu
 export const duoEnd = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_buddy_end_v1", { p_id: id });
 
 export const fetchGuild = () => rpc<Record<string, unknown> | null>("titan_get_my_guild");
+/** AUD-44: the guild's chronicle — last weeks against the target, weeks held together, best streak (members only). */
+export type GuildHistory = { target: number; weeks: { week: string; minutes: number; held: boolean }[]; held: number; bestStreak: number } | null;
+export const fetchGuildHistory = (owner: string) => ownerRpc<GuildHistory>(owner, "titan_guild_history_v1", { p_weeks: 12 });
 /** The guild's join code and name, read from the member-only RPC the website already uses (AUD-05): the weekly payload has no code. */
 export type GuildIdentity = { id: string; code: string; name: string };
 export async function fetchGuildIdentity(owner: string): Promise<GuildIdentity | null> {

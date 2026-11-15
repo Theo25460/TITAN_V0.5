@@ -327,6 +327,7 @@ function GuildPanel({ overview, onAct, busy, owner, initialCode }: { overview: a
   /* The weekly payload has no join code; the member-only guild RPC has it (AUD-05). Without it nobody could ever be invited. */
   const identity = useQuery({ queryKey: ["guild-identity", owner, g?.guild_id ?? null], queryFn: () => api.fetchGuildIdentity(owner), enabled: !!g, staleTime: 10 * 60_000 });
   const team = identity.data && identity.data.id === g?.guild_id ? identity.data : null;
+  const chronicle = useQuery({ queryKey: ["guild-history", owner, g?.guild_id ?? null], queryFn: () => api.fetchGuildHistory(owner).catch(() => null), enabled: !!g, staleTime: 30 * 60_000 });
   if (!g)
     return (
       <>
@@ -363,6 +364,19 @@ function GuildPanel({ overview, onAct, busy, owner, initialCode }: { overview: a
             if (team?.code) Share.share({ message: guildInviteMessage(team.name, team.code) }).catch(() => {});
           }} />
       </Card>
+      {chronicle.data && chronicle.data.weeks.length ? (
+        <Card style={{ gap: space.s2 }} testID="guild-chronicle">
+          <T variant="eyebrow" tone="accent">Notre chronique · 12 semaines</T>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 48 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            {chronicle.data.weeks.map((w) => (
+              <View key={w.week} style={{ flex: 1, height: Math.max(3, Math.min(48, (w.minutes / Math.max(1, chronicle.data!.target)) * 40)), borderRadius: 3, backgroundColor: w.held ? colors.cy : colors.bg4 }} />
+            ))}
+          </View>
+          <T variant="small">
+            {chronicle.data.held} semaine{chronicle.data.held > 1 ? "s" : ""} réussie{chronicle.data.held > 1 ? "s" : ""} ensemble · meilleure série : {chronicle.data.bestStreak}
+          </T>
+        </Card>
+      ) : null}
       <Section title="Membres">
         {g.members.map((m) => (
           <Card key={m.id} style={styles.row}>

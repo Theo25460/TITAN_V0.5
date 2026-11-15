@@ -46,7 +46,7 @@ beforeEach(() => {
   mockSocial.mockReturnValue(social);
   share = jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
   mockRpc.mockImplementation((name: string) => ({
-    setHeader: () => Promise.resolve({ data: name === "titan_get_my_guild" ? { id: "g", code: "G-K7P2Q", name: "Les Aubes" } : name === "titan_feature_flags_v1" ? { flags: {} } : null, error: null }),
+    setHeader: () => Promise.resolve({ data: name === "titan_get_my_guild" ? { id: "g", code: "G-K7P2Q", name: "Les Aubes" } : name === "titan_feature_flags_v1" ? { flags: {} } : name === "titan_guild_history_v1" ? { target: 600, held: 5, bestStreak: 3, weeks: [{ week: "2026-11-02", minutes: 640, held: true }, { week: "2026-11-09", minutes: 300, held: false }] } : null, error: null }),
   }));
 });
 
@@ -115,4 +115,9 @@ test("a challenge without any friend selected becomes an open challenge shared b
   fireEvent.changeText(screen.getByPlaceholderText("Une semaine qui bouge"), "Je te défie");
   fireEvent.press(screen.getByTestId("challenge-submit"));
   await waitFor(() => expect(share).toHaveBeenCalledWith({ message: expect.stringContaining("https://titan-app.fr/defi?t=" + "a".repeat(64)) }), slow);
+});
+
+test("the guild panel tells the chronicle: weeks held together and the best streak (AUD-44)", async () => {
+  show({ guilde: "G-K7P2Q" });
+  expect(await screen.findByText("5 semaines réussies ensemble · meilleure série : 3", undefined, slow)).toBeTruthy();
 });
