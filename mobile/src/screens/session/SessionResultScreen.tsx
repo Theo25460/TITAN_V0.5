@@ -4,6 +4,8 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
 import { maybeAskForReview } from "../../lib/review";
+import { shareCardImage } from "../../lib/shareImage";
+import { ShareCard, type ShareCardData } from "../../components/ShareCard";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -58,6 +60,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
   // One tactile "done" when the server confirms, not on every re-render.
   const confirmedOnce = useRef(false);
+  const cardRef = useRef<View>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   useEffect(() => {
     if (status === "confirmed" && !confirmedOnce.current) {
       confirmedOnce.current = true;
@@ -123,6 +127,30 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
       toast({ kind: "err", title: "Partage impossible", message: errorMessage(e) });
     } finally {
       setSharing(false);
+    }
+  }
+
+  // AUD-21: the story card mirrors this screen — a record first, otherwise the session's main measure, and the week in notches.
+  const cardRecord = records.find((r) => !r.first);
+  const cardData: ShareCardData = {
+    eyebrow: cardRecord ? "Nouveau record" : "Séance du jour",
+    title: Sports.label(log.sport),
+    value: cardRecord ? recordText(cardRecord) : headline?.[1] ?? Sports.label(log.sport),
+    caption: cardRecord ? `${cardRecord.label}${cardRecord.previous ? ` · avant : ${recordText(cardRecord, cardRecord.previous.value)}` : ""}` : headline?.[0] ?? null,
+    facts: facts.filter(([k]) => k !== "Ressenti").slice(0, 3),
+    icon: Sports.iconOf(log.sport),
+    week: thisWeek && !historical && !cadence.currentPaused ? { done: cadence.currentDays, target: cadence.target } : null,
+    record: !!cardRecord,
+  };
+  async function shareImage() {
+    if (imageBusy) return;
+    setImageBusy(true);
+    try {
+      await shareCardImage(cardRef, "Partager ma séance");
+    } catch (e) {
+      toast({ kind: "err", title: "Image impossible à partager", message: errorMessage(e) });
+    } finally {
+      setImageBusy(false);
     }
   }
 
@@ -354,10 +382,16 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           }}
         />
       ) : null}
+      {status === "confirmed" && !historical ? (
+        <View style={styles.offscreen} pointerEvents="none">
+          <ShareCard ref={cardRef} data={cardData} />
+        </View>
+      ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
         <View style={{ flexDirection: "row", gap: space.s3 }}>
-          {status === "confirmed" && !shared && !historical ? <Button small label="Partager" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
+          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={{ flex: 1 }} testID="share-image" /> : null}
+          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
           <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
         </View>
         <Button
@@ -377,6 +411,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 }
 
 const styles = StyleSheet.create({
+  offscreen: { position: "absolute", left: -10000, top: 0 },
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: space.s4, paddingTop: space.s5, gap: space.s5 },
   head: { flexDirection: "row", alignItems: "center", gap: space.s3 },
