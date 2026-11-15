@@ -3586,7 +3586,9 @@ test("assistance: a refund request is explicit and email delivery is never claim
   await page.goto(BASE + "/service", { waitUntil: "load" });
   const topic = page.locator('section[aria-labelledby="help-titanplus"]');
   assert.equal(await topic.count(), 1);
-  assert.match(await topic.innerText(), /pas automatiquement accordé/);
+  // A refund is never promised: Google Play's procedure first, then each request is examined.
+  assert.match(await topic.innerText(), /Un remboursement n’est pas automatique/);
+  assert.match(await topic.innerText(), /procédure de Google Play/);
   assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /application de messagerie/);
   assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /Rien n’est envoyé/);
   assert.equal(await page.getByText('titanteam.app@gmail.com', { exact: true }).count(), 1, "address can be copied when no mail app opens");
