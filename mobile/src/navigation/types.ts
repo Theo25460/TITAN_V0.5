@@ -38,6 +38,7 @@ export type RootParams = {
   Retro: { year?: number; month?: number } | undefined;
   SaveAccount: undefined;
   Capsules: undefined;
+  HistoryImport: undefined;
   Settings: undefined;
   Account: undefined;
   Privacy: undefined;

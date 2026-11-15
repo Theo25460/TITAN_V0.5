@@ -9,6 +9,7 @@ import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Progress } from "../../core";
 import { useLogs, usePrefs, useProfile } from "../../data/hooks";
+import { useNavigation } from "@react-navigation/native";
 import { errorMessage } from "../../lib/errors";
 import { buildRetro, periodBounds, retroYear } from "../../lib/retro";
 import { shareCardImage } from "../../lib/shareImage";
@@ -16,6 +17,7 @@ import { space } from "../../theme/tokens";
 
 export function RetroScreen({ route }: { route?: { params?: { year?: number; month?: number } } } = {}) {
   const { active } = useLogs();
+  const navigation = useNavigation();
   const prefs = usePrefs();
   const profile = useProfile().data;
   const toast = useToast();
@@ -47,7 +49,7 @@ export function RetroScreen({ route }: { route?: { params?: { year?: number; mon
   if (!cards.length)
     return (
       <Screen>
-        <EmptyState icon="calendar" title={`Pas encore de Rétro ${label}`} text="Enregistre tes séances (ou importe-les depuis Santé Connect) : ton année se raconte dès la première." />
+        <EmptyState icon="calendar" title={`Pas encore de Rétro ${label}`} text="Enregistre tes séances, ou importe ton historique Strava : ton année se raconte dès la première." action="Importer mon historique" onAction={() => navigation.navigate("HistoryImport")} />
       </Screen>
     );
   return (

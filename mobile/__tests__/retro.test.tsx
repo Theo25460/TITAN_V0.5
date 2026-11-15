@@ -23,6 +23,7 @@ jest.mock("../src/data/hooks", () => ({
   useProfile: () => ({ data: { level: 7 } }),
 }));
 jest.mock("../src/components/Toast", () => ({ useToast: () => jest.fn() }));
+jest.mock("@react-navigation/native", () => ({ ...jest.requireActual("@react-navigation/native"), useNavigation: () => ({ navigate: jest.fn() }) }));
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { RetroScreen } = require("../src/screens/progress/RetroScreen");
 

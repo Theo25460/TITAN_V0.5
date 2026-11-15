@@ -330,6 +330,11 @@ export const commonQuestJoin = (owner: string, id: string, join: boolean) => own
 export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_season_join_v1", { p_season: id, p_join: join });
 export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
 
+/* ---------- History import (AUD-43) ---------- */
+export type HistoryImportResult = { imported: number; linked: number; duplicate: number; skipped: number; done: number; remaining: number; limited: boolean };
+export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
+  ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
+
 /* ---------- Time capsules (AUD-40) ---------- */
 export type Practice = { minutes: number; days: number };
 export type Capsules = {

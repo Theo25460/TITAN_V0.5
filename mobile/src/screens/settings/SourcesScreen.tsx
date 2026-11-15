@@ -55,7 +55,8 @@ export function SourcesScreen() {
       </Group>
       <Group title="Activités">
         <SourceRow icon="cloud" title="Garmin" status={gm} onPress={() => navigation.navigate("Garmin")} testID="source-garmin" />
-        <SourceRow icon="route" title="Parcours GPS" status={{ label: "Sur ton téléphone", tone: "default", detail: "Tes sorties enregistrées avec le GPS restent sur ton téléphone." }} onPress={() => navigation.navigate("Routes")} testID="source-gps" last />
+        <SourceRow icon="route" title="Parcours GPS" status={{ label: "Sur ton compte, en privé", tone: "default", detail: "Tes sorties enregistrées avec le GPS sont gardées sur ton compte, visibles de toi seul." }} onPress={() => navigation.navigate("Routes")} testID="source-gps" />
+        <SourceRow icon="upload" title="Importer mon historique" status={{ label: "Archive Strava", tone: "default", detail: "Toutes tes anciennes séances dans ton journal, en historique." }} onPress={() => navigation.navigate("HistoryImport")} testID="source-history" last />
       </Group>
       <Card tone="flat" style={styles.note}>
         <T variant="bodyStrong">Autorisé, reçu, intégré</T>
