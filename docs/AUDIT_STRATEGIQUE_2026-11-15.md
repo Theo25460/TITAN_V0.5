@@ -1,425 +1,646 @@
-# TITAN — Audit stratégique : ce qu'il manque pour jouer dans la cour de Strava
+# TITAN — Audit stratégique « Top App » (v2)
 
-*15 novembre 2026. Rédigé avec le regard d'un directeur de la stratégie qui n'a rien à perdre à dire les choses franchement.*
+*15 novembre 2026. Ce document remplace la v1 du même jour.*
 
----
+**Les contraintes que j'ai respectées**
+- **Pas d'iOS pour l'instant** (prévu plus tard).
+- **Pas d'IA** tant que la base d'utilisateurs n'existe pas.
+- **Uniquement des leviers à coût d'infrastructure nul ou quasi nul** : du travail produit, du code client, des lignes de données, des fonctions serverless déjà dans votre stack.
 
-## 0. Le verdict en une page
-
-**TITAN est une forteresse construite au milieu d'un désert.**
-
-Le dépôt contient 116 migrations Supabase, 115 suites de tests SQL, 75 suites de tests mobiles, un anti-triche serveur, des retenues de récompenses, une file de modération, des recours, des limites de débit, une rotation de secrets, une politique publicitaire testée sous concurrence et environ 200 documents de passation dans `docs/`. C'est le niveau de rigueur d'une entreprise de 40 ingénieurs avec des millions d'utilisateurs.
-
-En face, d'après le code et `V11_STATUT_REEL_2026-11-03.md` :
-
-- TITAN+ et les offres Coach **ne sont pas en vente** ;
-- **aucun compte Garmin n'a jamais été relié** ;
-- l'application existe **uniquement sur Android** ;
-- je n'ai trouvé **aucune donnée de traction** (utilisateurs actifs, rétention) dans le dépôt, et rien n'indique qu'on la mesure.
-
-Le problème de TITAN n'est pas qu'il manque des fonctionnalités face à Strava. Le problème, c'est que **TITAN n'a pas encore fait de pari**. Il est en même temps un journal de 260 sports, un RPG avec quatre mondes et des gardiens, un outil de coaching, un réseau social avec guildes, clubs, factions et panthéon, un podomètre, un GPS et une boutique cosmétique. Strava a gagné en étant d'abord une seule chose : le segment de vélo.
-
-**Ma recommandation tient en une phrase :**
-
-> **Strava est l'app de ceux qui performent. TITAN doit devenir l'app de ceux qui reviennent, et la maison des sportifs hybrides.**
-
-Concrètement :
-1. **Ne pas combattre Strava sur le GPS.** C'est perdu d'avance. Il faut se placer *au-dessus* : TITAN agrège tout (Strava, Garmin, Health Connect, Apple Santé, Hevy…) et donne un sens multisport à l'ensemble.
-2. **Viser un premier marché précis : l'athlète hybride** (Hyrox, CrossFit, course plus musculation, escalade plus trail). Strava est faible en musculation, Hevy et Strong sont aveugles à l'endurance. TITAN est le seul à avoir une monnaie d'effort commune à tous les sports.
-3. **Faire du coach le canal de distribution.** Chaque coach ou salle apporte 5 à 200 sportifs. C'est le seul effet de réseau atteignable sans budget marketing.
-4. **Sortir iOS dans les 90 jours.** Sans iOS, on ne joue dans aucune cour.
-5. **Arrêter de construire de l'infrastructure et commencer à mesurer la rétention.** Cet audit devrait être le dernier avant 1 000 utilisateurs actifs.
+**Comment cet audit a été fait.** J'ai lu le code écran par écran (`mobile/src`), les règles serveur (`supabase/migrations`), le web (`js/`, pages HTML), la fiche Play Store et les captures. Les nombres de gestes sont estimés à la lecture du code, pas mesurés sur un téléphone. Je n'ai eu accès ni à la production ni aux chiffres d'audience. Chaque constat important cite son fichier.
 
 ---
 
-## 1. Ce que j'ai regardé (et ce que je n'ai pas pu voir)
+## Sommaire
 
-**Lu :** README, `docs/ASCENSION_300.md` (conception produit), `V12_CHANTIERS_RESTANTS`, `V11_STATUT_REEL`, `V11_MONETIZATION_REVIEW`, `PLAY_CONSOLE_SUBSCRIPTIONS`, `GARMIN.md`, `V13_WORLD_BIBLE.md`, `ANALYTICS_EVENTS_V300.md`, la page `titan-plus.html`, l'arborescence et les dépendances de l'app Expo (`mobile/`), les écrans Communauté, les migrations routes et imports, l'historique Git récent.
-
-**Pas vu :** la base de production, les chiffres d'audience, les retours d'utilisateurs, la Play Console, les revenus. **Toute affirmation sur la traction est donc une déduction tirée du dépôt, pas une mesure.** Si vous avez des chiffres qui me contredisent, ce sont eux qui priment.
+1. Le verdict
+2. La barre : ce qui fait une « top app », et la note de TITAN sur chaque critère
+3. Les urgences de la semaine (avant toute nouveauté)
+4. Audit par parcours
+   - 4.1 Premier lancement
+   - 4.2 Le QG
+   - 4.3 Saisir une séance
+   - 4.4 L'écran de résultat
+   - 4.5 Les notifications
+   - 4.6 Le système de progression
+   - 4.7 L'aventure
+   - 4.8 L'économie et l'Atelier
+   - 4.9 Le social
+   - 4.10 Le coach
+   - 4.11 La présence sur Android
+   - 4.12 La fiche Play Store
+   - 4.13 La qualité technique
+   - 4.14 Le ton et les textes
+5. Le moteur de croissance à zéro euro
+6. Monétisation sans IA ni coût marginal
+7. Le plan : 6 sprints de 2 semaines
+8. Ce qu'il faut arrêter
+9. Les indicateurs, et les cibles d'une top app
 
 ---
 
-## 2. Diagnostic sans filtre
+## 1. Le verdict
 
-### 2.1 Ce que TITAN a de réellement précieux
+TITAN a les **fondations** d'une top app :
+- un moteur d'effort multisport unique ;
+- une synchronisation hors ligne exemplaire (file durable, cache persistant 30 jours, resynchronisation automatique) ;
+- une sécurité serveur de niveau bancaire ;
+- un design sombre et typé qui tient la route.
 
-| Atout | Pourquoi c'est rare | Qui peut le copier ? |
+Il n'a pas encore le **comportement** d'une top app. Une top app se reconnaît à trois choses : on en tire de la valeur en moins d'une minute, on y revient sans y penser, et on la montre aux autres. Sur ces trois points, TITAN est aujourd'hui en dessous de la moyenne :
+
+- **Valeur en une minute : non.** Il faut 6 à 7 écrans, une confirmation par e-mail et une deuxième saisie du mot de passe avant la première séance, et il n'existe aucun mode sans compte sur Android.
+- **Revenir sans y penser : non.** Les rappels sont désactivés par défaut et cachés à trois niveaux de profondeur. Il n'y a ni widget ni raccourci. Au bout d'environ 8 semaines, l'aventure n'a plus rien à proposer. Et le seul événement collectif programmé **se termine demain, le 16 novembre**.
+- **Le montrer aux autres : presque impossible.** Le partage envoie un code `TN-XXXX` sans lien. L'ami qui le saisit échoue silencieusement, car le profil n'est pas « trouvable » par défaut. Et une guilde créée sur Android ne peut inviter personne : son code n'est jamais affiché.
+
+**La bonne nouvelle**, et c'est le cœur de ce rapport : **la majorité de ce qui manque existe déjà côté serveur.** Les quêtes périodiques, les saisons, la quête commune, l'objectif mondial, le classement équitable, les intentions du jour, les liens de duel, les cartes image, les titres affichés et la vitrine sont codés, testés et en production… mais **Android n'en appelle aucun** (zéro appel dans `mobile/src`).
+
+TITAN n'a pas besoin de construire beaucoup plus. Il a besoin de **brancher, relier et mettre en scène** ce qu'il a déjà. C'est un chantier de quelques semaines, sans un euro d'infrastructure.
+
+---
+
+## 2. La barre : les 10 critères d'une top app
+
+| # | Critère | Ce que fait une top app | TITAN aujourd'hui | Note |
+|---|---|---|---|---|
+| 1 | **Valeur en moins de 60 secondes** | Duolingo : la première leçon avant le compte. Hevy : la première séance avant le compte. | 6 à 7 écrans, une boîte mail, le mot de passe à ressaisir, aucun mode invité sur mobile | **3/10** |
+| 2 | **Saisie en moins de 10 secondes** | Hevy : on rejoue une routine et les valeurs de la dernière fois sont préremplies. Strava : la séance arrive toute seule. | Course : environ 7 gestes. Musculation 4×3 : **28 à 45 gestes**, sans routine ni « la dernière fois ». Import Health Connect caché. | **4/10** |
+| 3 | **Une raison de revenir chaque jour, chaque semaine, chaque mois, chaque année** | Duolingo : quête du jour, ligue de la semaine, défi du mois, bilan de l'année | La séance seulement. La semaine n'a pas de récompense. Le mois n'a rien (les événements dépendent d'un administrateur). L'année n'a rien. | **3/10** |
+| 4 | **Une progression qui dure des années** | Paliers fréquents au début, puis des « prestiges » | Excellent le premier mois. Fin de l'aventure vers la semaine 8. Un niveau toutes les 7 à 17 semaines ensuite. Plus rien à acheter au bout de 17 mois. | **4/10** |
+| 5 | **Contagieuse** | Chaque usage produit un objet partageable avec un lien | Code en texte sans lien, pas d'image sur Android, pas de lien universel | **2/10** |
+| 6 | **Présente hors de l'app** | Widget, raccourcis, notifications riches, tuile | Aucun widget, aucun raccourci natif, deux notifications statiques | **2/10** |
+| 7 | **Fiche store qui convertit** | Captures avec accroches, mots-clés dans le titre, demande d'avis au bon moment | Captures issues du web, sans texte. Titre sans mot-clé. Pas de demande d'avis. Deux versions contradictoires de la fiche. | **3/10** |
+| 8 | **Cohérente et digne de confiance** | Ce qui est promis est ce qui est livré | « Sans publicité » alors que la pub est active ; « ta trace reste sur ton téléphone » alors que la trace est envoyée ; « Analyses plus poussées » sans rien derrière | **3/10** |
+| 9 | **Robuste et observée** | Crash reporting, tableaux de bord de funnel | Robustesse 9/10 ; observabilité 2/10 (pas de crash reporting, pas d'analytics sur mobile) | **5/10** |
+| 10 | **Belle et identifiable** | Une identité qu'on reconnaît sur une capture | Bonne direction (sombre, cyan et ambre, typographie étroite). L'illustration fantasy générée peut diviser. | **7/10** |
+
+**Moyenne : environ 3,6/10.** Une top app de la catégorie (Strava, Hevy, Duolingo) se situe entre 8 et 9. **L'écart est surtout dans les critères 1, 3, 5, 6 et 7, et ce sont les moins chers à corriger.**
+
+---
+
+## 3. 🔴 Les urgences de la semaine
+
+Ce sont des risques (store, confiance, rétention), pas des envies. À traiter avant toute nouveauté.
+
+| # | Problème | Preuve | Correctif | Effort |
+|---|---|---|---|---|
+| U1 | **La déclaration de localisation est fausse** (risque de rejet ou de retrait par Google Play). La fiche « Sécurité des données » déclare « Localisation : Non — aucune permission de localisation ». | `mobile/docs/PUBLIER_PLAY_CONSOLE.md:85`, alors que `app.config.ts` demande `ACCESS_FINE_LOCATION` et `FOREGROUND_SERVICE_LOCATION`, et que les traces sont envoyées au serveur (`lib/routeSync.ts` vers `titan_route_save_v1`) | Corriger la déclaration Data Safety : localisation précise, collectée, liée au compte, finalité « fonctionnalité de l'app ». Corriger aussi la politique de confidentialité. | 1 h |
+| U2 | **Le texte de permission ment** : « Ta trace reste sur ton téléphone ». | `mobile/src/lib/permissionCopy.ts:5` | « Ta trace est enregistrée sur ton compte, privée, visible de toi seul. » | 5 min |
+| U3 | **La publicité contredit trois textes publics** : la FAQ web « ni dans l'offre gratuite ni dans TITAN+ », la description courte Play « Gratuit, sans publicité », et le texte d'accueil. | `titan-plus.html`, `PUBLIER_PLAY_CONSOLE.md` §3, `lib/playBilling.ts` (« Publicités rares et discrètes ») | Décider (voir §6.1), puis aligner **tous** les textes le même jour | 2 h |
+| U4 | **Le calendrier d'événements est vide à partir de demain.** L'expédition `automne-2026` se termine le 16/11/2026 et aucune autre n'est programmée. | `supabase/migrations/20261005200000_ascension_social.sql:519-522` | Insérer l'expédition d'hiver et les saisons dès maintenant (voir §4.6, « calendrier en données ») | 2 h |
+| U5 | **Une guilde créée sur Android ne peut inviter personne** : le code n'est jamais affiché. | Le type `GuildWeek` n'a pas de champ `code` (`data/api.ts:230`) | Renvoyer le code dans l'aperçu social, l'afficher, ajouter « Inviter » | ½ jour |
+| U6 | **L'ajout d'ami échoue silencieusement.** `publicProfile:false` est imposé à l'inscription, et le serveur renvoie `FRIEND_CODE_NOT_FOUND` pour tout profil non trouvable. Partager son code sans être trouvable produit un échec garanti chez l'ami. | `data/api.ts:55`, `ascension_social.sql:111-114` | Quand on appuie sur « Partager mon code », proposer « Rendre mon profil trouvable » en un geste. Ou bien : un code partagé par son propriétaire fonctionne 7 jours. | ½ jour |
+| U7 | **Une sortie GPS entière peut être perdue en un geste** : « Abandonner cette séance » n'a pas de confirmation. | `screens/session/GpsRecordScreen.tsx:237` | Une boîte de confirmation | 15 min |
+| U8 | **Le correctif de la tempête de conflits de profil** (85 428 erreurs en 24 h) était noté « à autoriser ». | `docs/SUPABASE_PROFILE_STORM_AUDIT_2026-11-02.md` | Vérifier qu'il est en production, puis mesurer les erreurs `40001` par heure | 1 h |
+| U9 | **La clé Garmin est « à considérer comme exposée ».** | `docs/GARMIN.md` §1 | La régénérer | 30 min |
+| U10 | **TITAN+ promet « Analyses plus poussées » et rien n'est réservé dans l'onglet Progrès mobile.** | `lib/playBilling.ts:17` | Retirer la promesse tant qu'elle n'est pas livrée (voir §6.2) | 5 min |
+
+---
+
+## 4. Audit par parcours
+
+### 4.1 Premier lancement — objectif : une séance enregistrée en moins de 60 secondes
+
+**Constat**
+- Le chemin par e-mail : Accueil → Inscription (4 champs, dont une case CGU) → « Vérifie ta boîte mail » → l'app de messagerie → retour → Connexion (**mot de passe à ressaisir**, seul l'e-mail est prérempli : `SignupScreen.tsx:57-62`) → Onboarding en 2 ou 3 écrans → formulaire.
+- **Le mode découverte n'existe pas sur Android.** Le navigateur déconnecté ne propose que Welcome, Login, Signup et Forgot (`navigation/RootNavigator.tsx:70-77`). Pourtant le noyau partagé le gère déjà (`core/web/progress.js:627,653`), et du code `guest_` existe dans l'app sans être jamais atteint (`AdventureEncounters.tsx:32`, `data/journey.ts:22`).
+- L'onboarding montre un aperçu conditionné à « si tu as déjà lancé une campagne » à quelqu'un qui n'en a forcément aucune (`OnboardingScreen.tsx:138`).
+- La visite guidée annonce « 2 minutes », mais elle compte 12 étapes, dont une publicité pour TITAN+ et Coach (`lib/tour.ts:57-70`).
+
+**Ce que font les meilleures**
+- Duolingo : on choisit sa langue, on fait la leçon 1, et **ensuite** « Crée ton profil pour sauvegarder ta progression ».
+- Hevy : on peut démarrer une séance sans compte.
+
+**Prescription**
+1. **Activer le mode découverte natif** : « Commencer sans compte ». Les données restent sur l'appareil, en réutilisant les branches `guest` existantes. L'app demande un compte au moment le plus fort, sur l'écran de résultat : « Tu viens de gagner 594 XP. Crée ton compte pour ne pas les perdre. » Le transfert local vers le compte existe sur le web ; il faut le reproduire.
+2. **Google en premier, en grand.** L'e-mail en second.
+3. **Ne pas bloquer sur la confirmation d'e-mail.** On laisse utiliser l'app, on rappelle la confirmation dans un bandeau, et on ne bloque qu'à la synchronisation sociale. Après confirmation, l'utilisateur revient connecté (lien magique), sans ressaisir son mot de passe.
+4. **Un onboarding en 3 questions, centré sur l'utilisateur :**
+   - Tes sports (avec les pictogrammes 3D du lot qui vient d'être livré : ils sont superbes, montrez-les).
+   - Ta semaine idéale (de 1 à 7 jours).
+   - « Qu'est-ce qui te ferait revenir ? » : progresser / garder le rythme / jouer / suivre mon coach. La réponse règle le QG (aventure mise en avant ou non, coach en premier ou non).
+5. **Supprimer la visite guidée de 12 étapes.** La remplacer par des bulles d'aide contextuelles qui n'apparaissent qu'une fois, au premier passage sur chaque écran.
+
+**Cible :** 70 % des installations atteignent une première séance enregistrée le jour même.
+
+### 4.2 Le QG — objectif : une seule chose à faire, évidente
+
+**Constat** (`screens/home/HomeScreen.tsx`)
+- Onze blocs se succèdent :
+  - bannière ;
+  - « À faire maintenant » ;
+  - trois boutons qui **dupliquent la barre d'onglets** (dont « Sport », alors que l'onglet s'appelle « Séance ») ;
+  - SinceCard, TodayStrip, Sentiers ;
+  - les repères d'ascension (repliés) ;
+  - la visite ;
+  - un repère, les 3 dernières séances ;
+  - la pub.
+- **Sept systèmes de progression se disputent l'attention** : XP et niveau, rang, crédits, maîtrise, cadence, chapitres de campagne et Sentiers (les pas). La carte des Sentiers le dit elle-même : « Trois chemins, le même effort réel » (`JourneyCard.tsx:34`).
+- **L'XP et le niveau sont repliés, alors que les Sentiers (les pas) restent toujours visibles.** La hiérarchie est inversée.
+- **« Refaire ma dernière séance » n'est pas sur le QG**, seulement dans l'onglet Séance, sous la carte GPS.
+- Un utilisateur de 3 mois voit presque le même écran qu'un nouveau : pas de tendance, pas de « par rapport à la semaine dernière », pas de visuel des semaines tenues.
+
+**Prescription : un QG en 4 blocs, dans cet ordre**
+1. **La semaine** (le cœur) : les 7 jours, les jours faits, l'objectif (« 2/3 »), et en dessous les **8 dernières semaines en encoches**. C'est le visuel signature de TITAN : l'équivalent de la flamme de Duolingo, mais sans culpabilité.
+2. **L'action du jour**, contextuelle, avec un seul gros bouton :
+   - s'il y a un brouillon : « Reprendre » ;
+   - si une séance de Health Connect a été détectée : « Ajouter ta sortie de 8,2 km de ce matin » ;
+   - si c'est le jour habituel d'un sport : « Refaire *Jambes* (comme mardi dernier) » ;
+   - sinon : « Une séance courte suffit pour tenir ta semaine ».
+3. **Ce qui avance** : une seule carte « Progression » qui fusionne niveau, maîtrise, chapitre en cours et prochaine récompense, du type « Plus que 2 jours actifs pour la balise 4 ».
+4. **Ton cercle** : les encouragements reçus, les demandes d'ami, la guilde, le défi en cours.
+
+**À sortir du QG :** les boutons qui dupliquent les onglets, la visite, les Sentiers (à déplacer dans Profil ou Aventure) et la pub.
+
+### 4.3 Saisir une séance — objectif : moins de 10 secondes
+
+**Constat**
+- **Course de 10 km :** environ 7 gestes et 2 valeurs saisies. Correct. Mais la durée se saisit en trois champs (heures, minutes, secondes : `SessionFormScreen.tsx:274-276`).
+- **Musculation 4 exercices × 3 séries : 28 gestes à charge constante, environ 45 si la charge varie.**
+  - Aucune routine ni modèle (le seul usage de « routine » dans le code concerne les objectifs).
+  - **Aucune valeur de la dernière fois** : les suggestions ne donnent que des noms d'exercices (`SessionFormScreen.tsx:387`).
+  - La coche « Fait » ne fait que lancer le minuteur de repos (`ExerciseEditor.tsx:137`). Ce minuteur s'arrête quand l'écran se verrouille : pas de notification de fin de repos.
+- **Escalade :** 9 à 10 gestes. La cotation se tape en texte libre (« 6a+ »). **La durée est obligatoire** (`:430`), contrairement aux autres sports. On ne peut pas noter voie par voie.
+- **Seulement 2 sports en accès rapide** (`RecordScreen.tsx:41`, `slice(0,2)`).
+- **« Refaire »** propose la séance la plus récente, tous sports confondus. Après une course, impossible de rejouer sa séance de jambes en un geste.
+- **Import Health Connect :** Profil → Sources → Santé Connect → « Chercher mes séances (7 jours) » → Importer, ligne par ligne. Aucune détection automatique.
+- **GPS :** pas de carte, pas de découpage par kilomètre, pas d'annonces vocales, pas de compte à rebours. Après l'arrêt, il faut **enregistrer une deuxième fois** dans le formulaire (`GpsRecordScreen.tsx:140`).
+
+**Ce que font les meilleures**
+- Hevy et Strong : routines, valeurs fantômes de la séance précédente, minuteur de repos en notification, série cochée = série validée.
+- Nike Run Club : compte à rebours de 3 secondes, annonce vocale à chaque kilomètre.
+- Strava : la séance arrive toute seule depuis la montre.
+
+**Prescription, par ordre d'impact**
+1. **Routines.** « Enregistrer comme routine » depuis n'importe quelle séance passée. « Mes routines » en tête de l'onglet Séance (gratuit jusqu'à 5, comme sur le web). C'est **la** fonctionnalité qui retient les pratiquants de musculation.
+2. **Valeurs fantômes.** Chaque série affiche en gris « la dernière fois : 80 kg × 8 ». Un geste pour l'accepter, un geste pour faire +2,5 kg. C'est une simple lecture du journal local, sans aucun coût.
+3. **La coche « Fait » valide la série** et lance le repos, avec une notification de fin de repos (canal local, écran verrouillé).
+4. **« Refaire » par sport** et accès rapide aux 4 à 6 sports les plus pratiqués.
+5. **Détection Health Connect au premier plan.** À l'ouverture, l'app lit les séances des 48 dernières heures (en lecture locale) et affiche sur le QG : « 2 séances détectées, les ajouter ? ». Elles s'ajoutent en un geste ; il ne reste qu'à indiquer le ressenti.
+6. **Escalade :** cotations en puces, durée facultative, mode « pyramide » (une ligne par voie : cotation, réussie ou essai).
+7. **Durée en un seul champ** au format `mm:ss` ou `h:mm`, avec un clavier numérique.
+8. **GPS :** compte à rebours, annonces vocales par kilomètre (synthèse vocale native, gratuite), allure par kilomètre, et « Enregistrer » qui enregistre directement (le formulaire n'est plus qu'une option « Ajouter des détails »).
+9. **Appui long sur le « + »** (l'événement `tabLongPress` est émis mais ignoré : `Tabs.tsx:52`) : un menu rapide avec Routines, Refaire, GPS et Chrono.
+
+**Cible :** une séance de musculation rejouée depuis une routine en moins de 15 gestes. Une séance importée en 2 gestes.
+
+### 4.4 L'écran de résultat — le moment le plus précieux de l'app
+
+C'est **le seul moment** où l'utilisateur est fier, disponible et émotionnellement chargé. Tout ce qui compte doit se jouer ici.
+
+**Constat** (`SessionResultScreen.tsx`)
+- Le compteur d'XP, la barre de niveau, la révélation de progression (3,2 s) et les records sont bien faits.
+- **La cadence et la maîtrise, les mécaniques de rétention, sont repliées par défaut** derrière « Mes repères sportifs » (`:277-322`).
+- **« Partager » ne publie que vers le fil d'amis interne** (`:111-118`) : pas de feuille de partage du système, pas d'image, désactivé hors ligne.
+- Aucune comparaison avec la séance précédente du même sport.
+- **Un interstitiel publicitaire peut s'afficher sur « Terminer »** (`:361`), au moment le plus émotionnel.
+
+**Prescription : l'écran de résultat en 4 temps**
+1. **La récompense** : l'XP et la jauge (existant), plus **la comparaison** (« 32 s plus rapide qu'il y a 2 semaines », « +5 % de volume sur le développé couché »).
+2. **La semaine** : l'encoche de la semaine qui se remplit, en animation (« Semaine tenue ! 3/3 »). C'est **le** moment de célébrer la cadence.
+3. **Ce qui avance** : « Balise 4 : plus qu'un jour », « Maîtrise Course : 62 % vers le niveau 5 ».
+4. **Le partage** : une **carte image générée sur l'appareil** (`react-native-view-shot` et `expo-sharing`, ce dernier déjà installé), au format story 9:16 et au format carré, avec un lien. Le partage vers le cercle d'amis devient une option à côté.
+
+Et, au bon moment :
+- **la demande de notifications** après la première séance (« Je te rappelle tes créneaux ? ») ;
+- **la demande d'avis Play Store** après un record ou à la 10e séance (API In-App Review, voir §4.11) ;
+- **la création de compte** pour les utilisateurs du mode découverte.
+
+### 4.5 Les notifications — de 2 rappels statiques à un coach silencieux
+
+**Constat** (`lib/reminders.ts`, `lib/notificationChannels.ts`)
+- Deux programmations locales, **désactivées par défaut** et accessibles par Profil → Aide et préférences → Rappels :
+  - le récap du lundi à 9 h, au texte fixe, même s'il ne s'est rien passé ;
+  - des rappels hebdomadaires au texte fixe (« Un créneau pour bouger ? »).
+- **Les rappels sonnent même un jour où l'on s'est déjà entraîné** : ils ne sont recalculés que depuis l'écran des réglages.
+- Ils ne sont pas reliés à « Ma semaine type ». Ils ne se restaurent pas sur un nouvel appareil (enregistrés côté serveur mais jamais relus). Ils ne s'annulent pas à la déconnexion.
+- Aucune notification pour : chapitre prêt à valider, récompense retenue puis libérée, échec de synchronisation, fin de repos.
+
+**Prescription : tout en local, sans serveur de push**
+1. **Après chaque séance, recalculer la programmation** :
+   - pas de rappel les jours déjà actifs ;
+   - les rappels suivent les jours prévus dans « Ma semaine type ».
+2. **Des textes dynamiques, calculés au moment de programmer** :
+   - « Il te reste 1 jour pour tenir ta semaine » (le vendredi) ;
+   - « Ta balise 4 t'attend : une séance suffit » ;
+   - « Cela fait 9 jours. Une séance de 20 min compte autant qu'une autre. »
+3. **Un récap du lundi qui raconte la semaine passée** : « 3/3 tenue, 2 h 40, record au 5 km ». S'il n'y a rien eu, on n'envoie rien.
+4. **Les notifications d'événements de jeu** :
+   - chapitre prêt ;
+   - « Il reste 3 jours d'expédition, l'objectif collectif est à 84 % ».
+   Tout est calculable à partir des données déjà synchronisées, au retour au premier plan (programmation locale différée).
+5. **Une règle d'or : jamais plus d'une notification par jour, jamais après 21 h**, et toujours un geste pour couper chaque catégorie.
+
+*Le vrai push serveur (« Marie t'a encouragé ») viendra plus tard. Expo Push est gratuit, mais il faut une table de jetons et un déclencheur. Ce n'est pas indispensable au premier mois.*
+
+### 4.6 Le système de progression — combler les zones mortes
+
+**La courbe actuelle**, simulée pour un pratiquant régulier (3 × 45 min par semaine, RPE 6, environ 1 458 XP par semaine) :
+
+| Période | Ce qui se passe | Diagnostic |
 |---|---|---|
-| **L'effort normalisé** (`minutes comptées × intensité RPE × 10`), identique pour 260 sports | C'est la seule appli où 45 min de muscu, 1 h d'escalade et un 10 km valent dans la même monnaie. Strava mesure des km, Hevy des kilos. | Facile à copier techniquement. Difficile à copier *culturellement* pour Strava, dont l'identité est la performance mesurée. |
-| **La cadence au lieu de la série (streak)** : semaines tenues, pause déclarée, retour valorisé | C'est psychologiquement beaucoup plus juste que la série de Duolingo, qui culpabilise. C'est exactement ce dont ont besoin les 80 % de gens qui abandonnent le sport. | Copiable, mais personne ne l'a fait proprement. |
-| **Des familles de saisie sérieuses** : force (séries, charge, RIR), escalade (cotations, essais), endurance, poids du corps | Strava est mauvais en musculation et en escalade. | Strava finira par s'y mettre ; il faut prendre de l'avance. |
-| **Zéro pay-to-win, vie privée par défaut, anti-triche serveur** | C'est un vrai argument de confiance… à condition de ne pas le contredire (voir §2.3). | Peu d'acteurs s'en soucient. |
-| **Un vrai espace coach** (espace à deux, périmètre, propositions, places) | C'est le germe d'un modèle B2B2C. | TrainingPeaks et Hexfit l'ont fait, mais pas en multisport grand public. |
-| **Une culture de qualité extrême** | Le jour où il y aura du trafic, la base tiendra. | — |
+| Semaines 1 à 5 | Un niveau par semaine, insignes, premiers achats à l'Atelier | ✅ Dense, gratifiant |
+| Semaines 5 à 8 | Fin possible des 4 mondes **en parallèle** (voir §4.7) | ⚠️ Le contenu brûle trop vite |
+| Semaines 8 à 30 | Un niveau toutes les 4 à 7 semaines, plus d'aventure, pas d'événement programmé | 🔴 **Zone morte n°1** |
+| Mois 7 à 17 | Un niveau toutes les 7 à 12 semaines, dernier avatar au niveau 15 (vers 16 mois), Atelier épuisé vers 17 mois | 🔴 **Zone morte n°2** |
+| Au-delà | Rang suivant (Titan, niveau 25) vers 4,5 ans, jalons de carrière à 10 ans et plus, Sentiers en 12 ans | 🔴 Des objectifs inatteignables qui découragent |
 
-### 2.2 Ce qui manque pour jouer dans la cour des géants
+**Les couches de récompense d'une top app, et ce qui manque :**
 
-| Domaine | Strava, Garmin, Apple | TITAN aujourd'hui | Gravité |
+| Rythme | Duolingo | TITAN aujourd'hui | À ajouter (coût nul) |
 |---|---|---|---|
-| **Plateformes** | iOS, Android, Web, Apple Watch, Wear OS, Garmin Connect IQ | Android (Expo), web en HTML/JS sans framework. **Pas d'iOS, pas de montre.** | 🔴 Bloquant |
-| **Cartes** | Carte de chaque activité, heatmaps, itinéraires | **Aucune bibliothèque de carte** dans `mobile/package.json`. Le GPS enregistre une trace qu'on ne voit pas sur une carte. | 🔴 |
-| **Sources de données** | Synchronisation automatique avec plus de 100 appareils | Health Connect (prouvé une fois en production), Garmin (code prêt, **jamais relié en réel**, accès programme incertain), import GPX | 🔴 |
-| **Graphe social** | Abonnement en un clic, fil d'activités, kudos, commentaires, photos | Ajout d'amis par **code `TN-XXXX` à recopier à la main**, « Moments » partagés volontairement, encouragements | 🔴 C'est le cœur du moat de Strava |
-| **Découverte et compétition** | Segments, classements, Local Legends, défis de marques | Défis entre amis sans mise, expéditions, guildes. **Pas de compétition locale ni de classement public.** | 🟠 |
-| **Sécurité** | Beacon (partage de position en direct), masquage du point de départ | Itinéraires strictement privés, aucun partage | 🟠 Très fort argument auprès des coureuses |
-| **Analyse d'entraînement** | Fitness et fraîcheur (CTL/ATL), zones cardio, puissance, prédictions | Repères déterministes, records, récap, comparaisons de périodes réservées à TITAN+ | 🟠 |
-| **Plans et coaching IA** | Plans d'entraînement (Strava a racheté Runna en 2025), Athlete Intelligence | Routines, objectifs. **Aucun plan adaptatif, aucune IA.** | 🟠 C'est la bataille de 2026-2027 |
-| **Langues** | Plus de 15 langues | **Français uniquement** (`lang="fr"`, textes en dur) | 🟠 Plafond de verre |
-| **Bilan annuel partageable** | Year in Sport, l'équivalent du Spotify Wrapped | Récap hebdo et carte publique avec QR | 🟡 Opportunité immédiate (voir §8) |
-| **API ouverte** | Écosystème de milliers d'apps tierces | Aucune API publique | 🟡 Plus tard |
+| **Séance** | XP, son, animation | ✅ Très bien | Comparaison avec la séance précédente |
+| **Jour** | Quêtes du jour, coffre | ❌ Rien sur Android | **Intention du jour** (la RPC `rendez-vous` existe sur le web), une petite quête du jour |
+| **Semaine** | Ligue, quêtes hebdo | Encoche de cadence **sans récompense**, quêtes « suggérées » sans rien à réclamer | **Semaine tenue = coffre de crédits** (+50), **quêtes hebdo réclamables** (le serveur les a déjà : `periodic_quests`), **ligue hebdo** |
+| **Mois** | Défi du mois, badge | Rien de régulier | **Défi du mois** avec insigne de collection, tiré d'un calendrier de données |
+| **Saison (28 j)** | — | Saisons codées côté serveur, **absentes d'Android** | Saisons visibles, avec classement de saison et récompense cosmétique |
+| **Année** | Bilan de l'année | Rien | **TITAN Rétro** (voir §5) |
+| **Long terme** | Paliers de prestige | Niveaux trop espacés après 10 | Étoiles entre les niveaux, rangs intermédiaires, prestige d'aventure |
 
-### 2.3 Les incohérences qui détruisent la confiance
+**Prescription**
 
-1. **La publicité.** La FAQ de `titan-plus.html` affirme : *« Y a-t-il de la publicité ? Non, ni dans l'offre gratuite ni dans TITAN+. »* Or l'app Android embarque AdMob (`react-native-google-mobile-ads`), trois bannières (QG, Journal, Stats) et des interstitiels après séance, et le build `1200` est compilé avec `ads=live`. **Le jour où un utilisateur s'en aperçoit, tout le discours « confiance et vie privée » s'effondre.** Avec quelques centaines d'utilisateurs, la publicité rapporterait quelques euros par mois. **Il faut la supprimer.** (Détail en §7.)
-2. **« Vie privée par défaut » contre croissance.** Le privé par défaut est un bon principe, mais aujourd'hui *rien* n'est conçu pour circuler : pas de lien d'invitation en un clic, pas de fil, pas de découverte. On peut protéger les données ET rendre le produit contagieux (voir §6).
-3. **Le RPG sert-il le sport, ou l'inverse ?** Le document Ascension dit que « le sport réel est le produit », mais la bible du monde (passeurs, balises, gardiens, quatre régions, 18 rencontres) est développée en profondeur. Un trentenaire qui prépare un Hyrox voit « La vallée de l'Aube, Le Veilleur de pierre » et se demande s'il est dans un jeu pour enfants. Un joueur, lui, trouvera le jeu trop mince (des textes et des jauges, sans vrai *gameplay*). **Aujourd'hui, l'aventure risque de ne satisfaire ni l'un ni l'autre.**
+1. **Brancher le serveur existant sur Android** (c'est la recommandation n°1 du rapport) :
+   - quêtes périodiques réclamables ;
+   - saisons ;
+   - quête commune ;
+   - objectif mondial ;
+   - classement équitable entre amis ;
+   - intentions du jour ;
+   - titre affiché et vitrine.
+   Les RPC existent, sont testées et en production. C'est uniquement du travail d'écran.
+2. **Un calendrier de contenu sous forme de données.** Écrire maintenant **12 mois d'événements** en SQL : 4 expéditions saisonnières, 13 saisons, 12 défis mensuels, 52 quêtes communes. Ou mieux, un **générateur déterministe** qui fait tourner des modèles (thème du monde, gardien, sport mis en avant). Personne ne doit avoir à se souvenir de créer l'événement suivant. **C'est l'équivalent du live ops d'un jeu mobile, sans équipe live ops.**
+3. **Donner des crédits aux cycles courts.** Les crédits n'achètent que du cosmétique, donc **aucun risque de pay-to-win** :
+   - semaine tenue : +50 ;
+   - quête hebdo : +30 ;
+   - quête du mois : +100 ;
+   - palier d'expédition : +X.
+   Aujourd'hui, la cadence (la meilleure idée de TITAN) **ne rapporte rien**. C'est une erreur de conception.
+4. **Réparer la courbe longue.**
+   - Ajouter **des étoiles** (★ à ★★★★★) tous les 3 000 XP environ après le niveau 10, pour avoir un palier toutes les 2 semaines.
+   - Ajouter **un rang à 20** entre Champion (15) et Titan (25).
+   - Mettre **les jalons de carrière** à 5, 10, 15, 20, 25, 30 et 40 (au lieu de 35, 50, 75, 100, inatteignables).
+   - Ajouter **des avatars à 20 et 25**.
+5. **Des trophées de collection côté serveur, comme le promettait Ascension §3.6** : semaines tenues (4, 12, 26, 52, 104), heures par sport, niveaux de maîtrise, « Grands moments ». Aujourd'hui ils sont calculés sur l'appareil et ne se collectionnent pas.
+6. **Des records à la Strava :**
+   - **les meilleurs efforts à l'intérieur d'une sortie** (le meilleur 1 km, 5 km et 10 km dans un 12 km), calculés sur l'appareil depuis la trace GPS ;
+   - la meilleure semaine, la plus longue sortie de l'année ;
+   - le record de volume et le record de répétitions par exercice.
+   Aujourd'hui, un 5 km n'est un record que si la séance entière fait 5 km à 1 % près (`js/sport-insights.js:172`).
+7. **Des surprises, sans hasard payant.** Des **succès cachés** dérivés du journal :
+   - séance avant 7 h ;
+   - 3 familles de sport dans la même semaine ;
+   - retour après une pause ;
+   - séance le jour de son anniversaire ;
+   - 100e séance ;
+   - même sport 10 semaines de suite.
+   La politique « Rien n'est tiré au sort » est respectée, puisque c'est déterministe. Mais c'est **imprévisible pour le joueur**, et c'est ça qui crée la surprise.
 
-### 2.4 Le problème organisationnel (le plus important)
+### 4.7 L'aventure — d'un livre d'images à un jeu
 
-L'historique montre un fondateur seul, épaulé par plusieurs agents IA, qui produisent **des passations, des audits « finaux » et des revues** : `AUDIT_FINAL_TITAN.md`, `FINAL_RELEASE_AUDIT_V87.md`, `V88`, `FIN_AUDITS_2026-11-02.md`, `FINAL_WEB_REPORT`, `V11_FINALIZATION_REPORT`, `V12_FINALISATION`, `V131_RELEASE_DOSSIER`…
+**Constat**
+- 4 mondes de 9 chapitres, soit 21 jours actifs par monde, plus 150 minutes d'effort pour le gardien. L'action du joueur : choisir une route, s'entraîner, appuyer sur « Allumer la balise ».
+- **Les 4 mondes peuvent être lancés en parallèle, et la même séance compte pour tous.** La RPC `start` insère sans limite (`20261019062757_adventure_personal_targets_v4.sql:107`). Un joueur qui démarre tout le premier jour termine les 36 insignes en 7 à 8 semaines.
+- **Les jours faits pendant qu'un chapitre attend d'être validé sont perdus** : à la validation, `started_at = clock_timestamp()`, et seules les séances postérieures comptent ensuite.
+- Les « pratiques » de chapitre (« Compare deux séances ») ne sont jamais vérifiées : elles se lisent comme des devoirs.
+- Les choix des rencontres ne modifient qu'une phrase de fin. Le bestiaire tient en 6 lignes de texte.
+- **Il n'y a pas de fin de jeu** : « Monde terminé », une carte statique.
+- L'interface dit « coins » à un endroit et « crédits » partout ailleurs (`AdventureEncounters.tsx`).
 
-C'est un symptôme classique : **la rigueur remplace le risque.** On polit le système de recours avant d'avoir quelqu'un qui fait appel. On teste la concurrence de deux résultats publicitaires simultanés avant d'avoir un seul annonceur. On écrit une bible du monde avant de savoir si les gens reviennent la deuxième semaine.
+**Prescription**
+1. **Un monde actif à la fois**, ou bien une séance qui ne compte que pour un monde. Le contenu dure alors **4 fois plus longtemps**, sans une ligne de texte en plus.
+2. **Reporter les jours en surplus** sur le chapitre suivant.
+3. **Une fin de jeu « Ascension »** : rejouer un monde terminé avec des objectifs plus hauts, des insignes en version dorée ou « renouvelée », et un monde mis en vedette à chaque saison.
+4. **Des choix qui comptent** : la variante cosmétique de l'insigne, la créature qui entre au bestiaire. Un bestiaire illustré, avec la date de la rencontre et la séance qui l'a permise.
+5. **Donner au joueur une décision par semaine** :
+   - quel monde, quelle route ;
+   - « cette semaine, je mise sur l'endurance ou sur la force » (un bonus narratif selon la famille de sport pratiquée).
+   C'est ce qui sépare un livre d'images d'un jeu.
+6. **Le choix « je veux jouer » ou « je veux juste suivre mon sport » à l'onboarding**, et deux cohortes mesurées séparément. L'aventure ne doit jamais gêner un sportif qui s'en moque.
 
-Pendant ce temps, le signal le plus important de la production est un incident : **environ 1 conflit `PROFILE_VERSION_CONFLICT` par seconde, jour et nuit**, causé par des onglets restés ouverts. Une poignée de clients suffit à générer 3 560 erreurs par heure. Ça veut dire que l'architecture de synchronisation (état dans `localStorage` poussé vers `profiles.game_state`) est fragile, et que le trafic réel est probablement faible.
+### 4.8 L'économie et l'Atelier
 
-**Le prochain mois doit être consacré aux utilisateurs, pas au code.**
+**Constat** : 12 objets à acheter, pour un total de 10 850 crédits. Un pratiquant régulier gagne environ 146 crédits par semaine : premier achat au bout d'environ 3 semaines, **catalogue épuisé au bout d'environ 74 semaines**. Il y a 3 types de cosmétiques (cadre, calque de carte, style de carte) et 6 avatars.
 
----
+**Prescription**
+- **Passer de 12 à 40 objets** : cadres de gardien, styles de carte par monde, cadres de saison, variantes d'avatar, ambiances de carte débloquées par la maîtrise. **Ce ne sont que des lignes de données**, plus des visuels (le pipeline d'import visuel vient d'être livré, PR #146).
+- **Étaler les prix de 400 à 4 000 crédits**, avec certains objets réservés à un rang ou à une maîtrise (prestige non achetable).
+- **Une rotation hebdomadaire de 3 objets en vitrine** à l'Atelier, pour donner une raison de passer.
+- **Des objets de saison** qui ne reviennent pas avant un an. La rareté crée le désir, sans coûter un centime.
 
-## 3. Comment Strava a gagné, et où il est vulnérable
+### 4.9 Le social — de « vestiaire fermé » à « petit cercle contagieux »
 
-### 3.1 Les douves de Strava
+**Constat**
+- **La Communauté n'est pas un onglet** : on y accède seulement par Profil → « Ma communauté » (`ProfileScreen.tsx:205`).
+- **Le parcours « faire venir un ami » compte 8 étapes, avec 4 points durs :**
+  1. pas de lien dans le message ;
+  2. code à recopier à la main ;
+  3. profil non trouvable par défaut, d'où un **échec silencieux** ;
+  4. aucune notification de la demande.
+- **Partage :** du texte uniquement. Les cartes image existent… sur le web seulement (`js/app/card.js`, en 1080×1350, pas au format story).
+- **Liens de duel :** sur le web uniquement. Ils exigent d'avoir déjà au moins un ami invité. Celui qui rejoint devient participant, pas ami.
+- **Clubs :** sur le web uniquement. Les membres ne voient que des annonces, sans noms, sans activité, sans défi de groupe.
+- **Le chat de guilde coûte des crédits par message** (`GuildChat.tsx:38`). C'est un frein à la seule conversation du produit.
+- **La carte publique `/u/<slug>`** se termine par « Découvrir TITAN », qui renvoie à l'accueil du site. Il n'y a pas de lien vers le Play Store ni de bouton « M'ajouter ».
+- Pas d'**App Links** Android : l'app n'ouvre que les liens `titan://`, qu'un message WhatsApp ne rend pas cliquables.
 
-1. **Le graphe social de l'effort** : « si ce n'est pas sur Strava, ça n'a pas eu lieu ». Les kudos sont une drogue douce.
-2. **Les segments** : une compétition asynchrone et locale, avec des millions de classements créés par les utilisateurs. C'est le véritable coup de génie de Strava.
-3. **La neutralité des appareils** : il marche avec toutes les montres, ce qui en fait le hub par défaut.
-4. **Les données agrégées** : la heatmap mondiale, les itinéraires populaires, Metro (données vendues aux villes).
-5. **L'identité** : le profil Strava est un CV sportif.
+**Prescription, par ordre d'impact**
+1. **Des liens partout.** `https://titan-app.fr/ami/TN-AB12`, `/guilde/XXXX`, `/defi/…`, `/coach/…` :
+   - si l'app est installée, l'App Link ouvre l'écran avec le code prérempli ;
+   - sinon, la page web propose « Installer » vers le Play Store avec un paramètre `referrer` (le *Play Install Referrer*, gratuit), et l'app lit le code au premier lancement.
+   Le coût : un `intentFilter` avec `autoVerify` et un fichier `assetlinks.json` sur Netlify (l'outillage existe déjà : `tools/build-public.mjs:171`).
+2. **Corriger les deux bloquants** U5 et U6 (§3).
+3. **Faire de la Communauté un onglet**, ou mettre une bande sociale sur le QG.
+4. **Les cartes image sur Android**, au format story 9:16 et au format 4:5, avec un QR code et un lien : record, semaine tenue, insigne, maîtrise, Rétro.
+5. **Les liens de duel sur Android, sans ami préalable.** « Défie n'importe qui avec un lien. » C'est le levier viral le plus naturel du produit.
+6. **Le chat de guilde gratuit**, avec un plafond quotidien anti-abus (il existe déjà).
+7. **Les clubs vivants** : défi de club (en réutilisant `titan_challenges` restreint à un club), contributions des membres sur consentement, classement interne à l'effort normalisé.
+8. **La ligue hebdomadaire** : 20 à 30 personnes de cadence comparable, classées à l'effort normalisé, avec montée et descente le dimanche. Elle peut d'abord se limiter aux amis et à la guilde, avec la RPC `fair_ranking` existante, puis s'ouvrir au public avec consentement.
+9. **Le parrainage récompensé en cosmétique** : « Invite 1 ami actif = cadre *Passeur* ; 3 amis = titre *Bâtisseur de cordée* ». Ça ne coûte rien et c'est désirable. Le badge Pionnier existe déjà (`sql/tests/300_pioneer_badge.sql`) : prolongez la logique.
 
-### 3.2 Ses failles (c'est là qu'il faut attaquer)
+### 4.10 Le coach — le canal de distribution, aujourd'hui inutilisable sur mobile
 
-| Faille | Opportunité TITAN |
-|---|---|
-| **Il est centré sur le GPS.** La musculation, le yoga, l'escalade, les sports collectifs y sont des citoyens de seconde zone. | Le multisport réel, avec l'effort normalisé comme monnaie unique. |
-| **Il est centré sur la performance.** Les débutants et les sportifs irréguliers s'y sentent jugés ; on y compare des allures. | La cadence, la maîtrise par la pratique (pas par la performance), le retour après pause valorisé. |
-| **Son abonnement est cher** (autour de 12 €/mois) et sa valeur est floue pour un pratiquant moyen. | Un TITAN+ moins cher avec une promesse claire. |
-| **Sa vie privée a connu des scandales** (la heatmap qui révélait des bases militaires en 2018, le harcèlement de coureuses). | La confiance comme argument marketing, à condition d'être irréprochable. |
-| **Il n'a pas de vraie couche de jeu** (badges de défi seulement). | La progression longue (rang, maîtrise, collection) qui donne une raison de revenir *sans* devoir battre un record. |
-| **Son coaching est mono-sport** (Runna, c'est la course). | Le coaching hybride : un plan qui combine course, musculation et récupération. |
+**Constat**
+- Le coach existe **uniquement sur le web** : propositions de séances, modèles (100), messages, bilan hebdo, calendrier, analyse.
+- **Le sportif sur Android ne voit pas les propositions de son coach** et ne peut pas y répondre.
+- Le rattachement se fait par **un code privé de 48 caractères** à copier et coller (`coaching.js:273,302`).
+- Pas de séances structurées (intervalles, séries prescrites).
+- Les offres Coach (19,99 € et 39,99 €) ne sont pas en vente.
 
----
+**Prescription**
+1. **Une invitation par lien** : `titan-app.fr/coach/<jeton>`. Elle ouvre l'app, l'utilisateur accepte en un geste et choisit ce qu'il partage.
+2. **« Mon coach » sur Android** : les séances proposées apparaissent dans le QG à leur date (« Proposé par Julie : 6 × 400 m »), avec un geste pour accepter ou décliner, et « Fait » relie la vraie séance. **Les RPC `assignments` existent déjà.**
+3. **La séance prescrite devient une routine** : quand le coach propose une séance de musculation, le sportif la rejoue avec le formulaire prérempli. Les modèles de coach et les routines (§4.3) fusionnent naturellement.
+4. **Le gratuit coach à 3 sportifs reste la porte d'entrée.** Le coach est le meilleur commercial de TITAN : chaque coach convaincu fait installer l'app à tous ses sportifs.
 
-## 4. Le positionnement recommandé
+### 4.11 La présence sur Android — tout ce que la plateforme offre gratuitement
 
-### 4.1 La phrase
-
-> **TITAN — Tous tes sports. Une seule progression.**
-> L'app qui transforme *chaque* effort, de la salle à la montagne, en une progression qui ne te juge jamais.
-
-### 4.2 Le premier marché : l'athlète hybride francophone
-
-Pourquoi ce segment en premier :
-- **Hyrox** est le phénomène de croissance du sport amateur depuis 2024 : courses complètes en quelques minutes, salles affiliées partout en France. Ces gens courent ET soulèvent, et **aucune app ne gère bien les deux.**
-- Les box de **CrossFit**, les salles de **fonctionnel**, les **salles d'escalade** (forte croissance en France) sont des communautés physiques avec des coachs. Ce sont des canaux de distribution tout faits.
-- C'est un public qui paye (abonnement en salle de 50 à 150 €/mois), qui partage (Instagram), qui suit des plans.
-- Le moteur de TITAN est déjà adapté : familles force, endurance, poids du corps et escalade.
-
-**Le second cercle**, une fois ce premier marché gagné : « ceux qui reviennent ». Les sportifs irréguliers, les reprises après blessure, les parents, les plus de 40 ans. C'est le marché le plus vaste, le plus mal servi, et c'est celui où la cadence fait la différence.
-
-### 4.3 Ce que TITAN n'est PAS (aussi important)
-
-- **Pas un concurrent GPS de Strava.** On importe les données de Strava, on ne les remplace pas.
-- **Pas un jeu vidéo.** La couche d'aventure est un amplificateur, pas un produit.
-- **Pas un réseau social généraliste.** Le social passe par de petits cercles : duo, guilde, club, coach.
-
----
-
-## 5. Les sept douves pour rendre TITAN irremplaçable
-
-Un produit est *indispensable* quand on l'ouvre tous les jours. Il est *irremplaçable* quand le quitter coûte trop cher. Voici comment obtenir les deux.
-
-### Douve 1 — Devenir la source unique de vérité de la vie sportive (coût de changement)
-
-**Idée :** si *tout* l'historique sportif d'une personne (Strava, Garmin, Apple Santé, Hevy, ses carnets) se retrouve dans TITAN, consolidé, dédoublonné et normalisé, elle ne partira plus. Personne d'autre ne détiendra ce tableau complet.
-
-**Actions :**
-- **Import de l'archive Strava** (le fichier ZIP que chaque utilisateur peut télécharger dans ses réglages Strava : GPX, FIT et CSV). C'est légal (portabilité RGPD), sans dépendance à l'API Strava, et c'est **le hack d'acquisition n°1** : « Importe tes 5 ans de Strava, découvre ton ADN sportif complet en 30 secondes ».
-- **Import CSV de Hevy et Strong** pour la musculation.
-- **Apple Santé (HealthKit)** dès la sortie iOS.
-- **Un agrégateur payant** (Terra, Rook, Spike ou équivalent) plutôt que de négocier une par une avec Garmin, Polar, Suunto, Coros, Wahoo et Oura. On paie par utilisateur connecté, on obtient plus de 30 sources en quelques semaines. Pour une équipe d'une personne, **acheter vaut mieux que construire.**
-- Le dédoublonnage multi-source existe déjà côté serveur : c'est un actif à valoriser.
-
-### Douve 2 — L'effort normalisé comme standard (effet de référentiel)
-
-**Idée :** faire de l'« effort TITAN » (le nombre de minutes pondérées) une unité que les gens citent, comme on cite son Elo aux échecs ou ses km sur Strava. « J'ai fait 1 200 points d'effort cette semaine. »
-
-**Actions :**
-- Lui donner un nom court et une identité visuelle (par exemple les « Ti » ou une « Charge TITAN »).
-- **Des ligues hebdomadaires à la Duolingo**, par groupes de 30 personnes de niveau de cadence comparable, classées à l'effort normalisé. C'est équitable entre sports, donc inédit. La migration `fair_ranking` existe déjà.
-- Publier chaque trimestre un **« Baromètre de l'effort en France »** (données agrégées et anonymisées : sports qui montent, horaires, régions). C'est du contenu presse gratuit, et ça positionne TITAN comme l'institut de référence du multisport.
-
-### Douve 3 — Le système d'exploitation du coach (verrouillage B2B2C)
-
-**Idée :** un coach qui gère ses 15 sportifs dans TITAN ne change pas d'outil. Ses sportifs non plus, puisque leur coach y est. **Chaque coach acquis apporte 5 à 200 utilisateurs.** C'est le seul effet de réseau réaliste pour TITAN.
-
-**Actions :**
-- Un **tableau de bord coach sur le web** (la place naturelle du web, voir §9) : vue d'ensemble de l'équipe, alertes de charge, sportifs qui décrochent (la cadence chute), programmation de séances qui apparaissent dans l'app du sportif.
-- **La programmation hybride** : le coach écrit une semaine « mardi fractionné, jeudi force, samedi Hyrox simulé » et le sportif la voit dans son QG.
-- **Une offre Club / Salle** (voir §7) avec sa page de club, son classement interne et ses défis.
-- Démarcher **10 box CrossFit et Hyrox et 10 salles d'escalade** à la main, d'abord dans votre ville, puis à Lyon et Paris. Pas de publicité : du porte-à-porte. Leur offrir 6 mois.
-
-### Douve 4 — L'identité accumulée (coût affectif)
-
-**Idée :** le rang, la maîtrise par discipline, la collection, l'ADN, les semaines tenues à vie. Plus on les accumule, plus partir revient à abandonner une partie de soi. C'est la logique du profil Steam ou du niveau Duolingo.
-
-**Actions :**
-- **Le passeport TITAN** : une page publique élégante (elle existe : la carte publique avec QR), pensée comme un CV sportif à mettre en lien dans sa bio Instagram.
-- **Des jalons de vie** (« 100 semaines tenues », « 5 sports en maîtrise 3 ») qui deviennent des cartes à partager.
-- Ne **jamais** remettre à zéro. C'est déjà la règle : c'est un actif.
-
-### Douve 5 — Les petits cercles (effet de réseau local)
-
-**Idée :** Strava, c'est la place publique. TITAN, ce sont les vestiaires. Le duo, la guilde, le club, le coach.
-
-**Actions :**
-- **Remplacer le code `TN-XXXX` par un lien d'invitation** (« Théo t'invite à rejoindre sa guilde »), qui ouvre l'app ou le Play Store / l'App Store avec un lien différé. C'est le changement le plus rentable de tout ce rapport.
-- **Un fil d'activité privé** limité aux cercles, avec encouragements et commentaires courts.
-- **Le duo** existe déjà (`DuoCard`) : en faire la porte d'entrée. « Fais ton sport à deux, même à distance. » Un couple, deux amis, un parent et son ado.
-
-### Douve 6 — Le coach IA multisport (valeur premium quotidienne)
-
-**Idée :** c'est la bataille de 2026-2027. Strava a Athlete Intelligence et Runna, Garmin a ses suggestions quotidiennes, Whoop a son coach. **Aucun d'eux ne raisonne en multisport.** TITAN détient exactement les données qu'il faut : toutes les familles de sport, le RPE, la cadence, les pauses.
-
-**Actions :**
-- **Un débrief après chaque séance** en deux phrases, contextualisé (« Ta 3e séance de force cette semaine : ta course de jeudi sera plus lourde, garde-la facile »).
-- **Un plan de semaine adaptatif** qui se recompose si on rate une séance, sans culpabiliser (c'est l'ADN de la cadence).
-- **Une question libre** : « Je prépare un Hyrox dans 8 semaines, je fais 2 séances de force par semaine, que dois-je changer ? »
-- Garder la philosophie actuelle des repères : chaque conseil cite sa source et son pourquoi. C'est un excellent garde-fou contre les hallucinations, et un vrai différenciateur de confiance.
-- C'est **le** produit qui justifie TITAN+ (voir §7).
-
-### Douve 7 — La confiance comme marque
-
-**Idée :** dans un marché où les apps de fitness revendent des données ou bombardent de publicités, être l'app « propre » est une position défendable.
-
-**Actions :**
-- Supprimer la publicité (sans négociation possible).
-- Une page « Ce que nous faisons de tes données » d'une page, lisible, avec un engagement public.
-- Héberger les données en Europe et le dire. Vérifier la région Supabase.
-- Masquer automatiquement les zones de départ et d'arrivée le jour où les itinéraires deviennent partageables.
-
----
-
-## 6. La boucle produit : rendre TITAN indispensable au quotidien
-
-La boucle d'Ascension est juste (« je prévois → je bouge → j'enregistre → je comprends → je progresse → le monde réagit → je reviens »). Ce qui manque, ce sont **les déclencheurs** et **la récompense sociale**.
-
-| Moment | Aujourd'hui | Ce qu'il faut |
-|---|---|---|
-| **Le matin** | Rien, sauf si l'utilisateur ouvre l'app | Une notification intelligente et rare : « Ta semaine : 2/3. Une séance courte aujourd'hui suffit. » Pas plus d'une par jour. |
-| **Pendant l'effort** | Chrono, GPS natif | Le mode séance de musculation avec minuteur de repos (le `restTimer` existe), suggestion de charge basée sur la dernière fois |
-| **Après l'effort** | Moment de résultat, récompenses | **L'enregistrement sans effort** : la séance arrive toute seule depuis la montre ou Health Connect, et l'utilisateur n'a qu'à ajouter son ressenti (RPE) en un geste. Plus le débrief IA. |
-| **Le soir** | — | Le cercle réagit (encouragements de la guilde ou du duo) |
-| **Le dimanche** | Récap hebdo | **Le récap devient un rituel** : une carte au format story Instagram, générée automatiquement, avec la semaine en un coup d'œil. C'est le moteur de viralité gratuit. |
-| **Le 1er du mois** | — | Le bilan mensuel (pour TITAN+), et la ligue qui se termine (promotion ou maintien) |
-| **En décembre** | — | **TITAN Rétro**, le bilan de l'année (voir §8) |
-
-**La règle d'or :** saisir une séance doit prendre moins de 10 secondes, ou zéro seconde quand elle vient d'un appareil. Chaque champ en trop fait perdre des utilisateurs.
-
----
-
-## 7. Monétisation : tout revoir
-
-### 7.1 Supprimer la publicité
-
-- **Revenus attendus :** avec 1 000 utilisateurs actifs et les plafonds actuels (première annonce après cinq séances, deux par jour au maximum), on parle de **quelques euros par mois**.
-- **Coût :** la contradiction avec la promesse publique, la dégradation de l'expérience juste après l'effort, qui est le moment émotionnel le plus fort, une charge de conformité (UMP, consentement, politiques Play) et un argument de vente de TITAN+ (« sans pub ») qui pousse à rendre le gratuit pénible.
-- **Décision recommandée :** retirer AdMob complètement. Le travail de la revue de monétisation n'est pas perdu : il a montré une vraie maturité. Mais c'est un coût irrécupérable.
-
-### 7.2 Repenser TITAN+
-
-**Aujourd'hui :** TITAN+ à 4,99 €/mois débloque des comparaisons de périodes, des bilans mensuels et annuels, des vues sauvegardées, plus de 5 routines, la capacité coach et des cosmétiques. **C'est une offre de tableur.** Personne ne paie pour comparer 12 semaines à 12 autres.
-
-**Proposition :**
-
-| Offre | Prix | Contenu | Rôle |
+| Fonction | État | Valeur | Effort |
 |---|---|---|---|
-| **Gratuit** | 0 € | Journal illimité, tous les sports, imports, rang, maîtrise, cadence, aventure, duo, guilde, récap hebdo | Le produit doit être *excellent* gratuitement. C'est le moteur d'acquisition. |
-| **TITAN+** | **5,99 €/mois ou 44,99 €/an** | **Coach IA multisport** (débriefs, plan adaptatif, questions), analyse de charge et de fraîcheur, bilans, TITAN Rétro enrichi, toutes les sources d'appareils | Payer pour être *accompagné*, pas pour lire des graphiques |
-| **TITAN+ Duo** | **8,99 €/mois** | TITAN+ pour deux comptes | Le duo existe déjà ; c'est le plan famille. |
-| **Coach** | **Gratuit jusqu'à 3 sportifs**, puis environ **2 €/sportif/mois** | Tableau de bord web, programmation, alertes, TITAN+ offert aux sportifs suivis | La facturation par sportif s'aligne sur le revenu du coach (qui facture 50 à 150 € par sportif). Les paliers fixes à 5 ou 15 sportifs bloquent la croissance. |
-| **Club / Salle** | **49 à 149 €/mois** | Page de club, classement et ligues internes, défis de salle, statistiques de fréquentation, marque blanche légère | Les box et salles d'escalade paient déjà des logiciels de réservation (Resamania, Wodify…). TITAN s'y ajoute comme couche d'engagement des adhérents. |
+| **Widget d'écran d'accueil** (la semaine en encoches et un bouton « + ») | Absent | ⭐⭐⭐⭐⭐ C'est le rappel le plus puissant qui soit, et il est sans notification | M (Glance, avec un plugin de configuration Expo) |
+| **Raccourcis d'app** (appui long sur l'icône : Séance, GPS, Refaire, Journal) | Absent en natif (seul le manifeste PWA en a) | ⭐⭐⭐⭐ | S (les liens `titan://` existent) |
+| **Demande d'avis dans l'app** (In-App Review) | Absent | ⭐⭐⭐⭐⭐ La note Play Store est le premier facteur de conversion | S |
+| **Actions dans la notification GPS** (Pause, Stop) | Partiel | ⭐⭐⭐ | S |
+| **Notification de fin de repos** | Absent | ⭐⭐⭐⭐ pour la musculation | S |
+| **App Links vérifiés** | Absent côté natif | ⭐⭐⭐⭐⭐ Prérequis de toute viralité | S |
+| **Recevoir des fichiers GPX ou FIT partagés** depuis une autre app (filtre d'intention) | Absent | ⭐⭐⭐ Permet « Partager vers TITAN » depuis Garmin Connect, Komoot ou Coros | M (le format FIT demande un analyseur) |
+| **Écrire dans Health Connect** (les séances TITAN visibles dans Samsung Health et Google Fit) | Absent | ⭐⭐⭐ Rend TITAN « source de vérité » de l'écosystème | M |
+| **Mises à jour dans l'app** (In-App Updates) | Absent | ⭐⭐ | S |
+| **Tuile de réglages rapides** « Démarrer le GPS » | Absent | ⭐⭐ Ça fait pro | M |
+| **Retour prédictif, contrôle bord à bord** | Non configuré | ⭐⭐ Qualité perçue | S |
+| **Captures tablette et pliable** | Absentes | ⭐⭐ Mise en avant possible sur ces appareils | S |
 
-**Le levier caché :** les sportifs d'un coach ou d'un club reçoivent TITAN+. Le coach devient ainsi le vendeur de TITAN+. C'est déjà prévu dans les offres Coach actuelles ; il faut en faire le cœur du modèle.
+**Le cas Strava (coût quasi nul, impact viral majeur).** L'API d'upload de Strava est gratuite. Proposer « **Publier aussi sur Strava** » (une option, désactivée par défaut) transforme chaque séance de musculation ou d'escalade, que Strava gère mal, en vitrine. La description porte une signature facultative, par exemple : « Séance enregistrée avec TITAN · 5 exercices · 12 séries · titan-app.fr ». **C'est exactement ce que fait Hevy, et c'est l'un de ses principaux canaux d'acquisition.** Le coût : une fonction Netlify pour l'OAuth, sur le modèle de `garmin.mjs`, avec le chiffrement des jetons déjà écrit. Les quotas par défaut de l'API suffisent pour les premiers milliers d'utilisateurs.
 
-### 7.3 Les revenus que Strava n'a pas
+### 4.12 La fiche Play Store — le premier écran de TITAN, pas le dernier
 
-- **Les défis de marque** (une marque d'équipement ou de nutrition sponsorise une expédition, avec récompense cosmétique et code promo) : c'est compatible avec le « zéro pay-to-win » et ça monétise sans publicité intrusive.
-- **Le baromètre de l'effort** vendu aux fédérations, aux collectivités ou aux mutuelles, sous forme agrégée et anonymisée, en B2B. À manier avec beaucoup de précaution et seulement après avoir établi la confiance. Je le place ici parce que c'est le modèle Strava Metro.
-- **Les mutuelles et la prévention santé** : en France, des mutuelles financent déjà des programmes d'activité physique. Une offre « TITAN pour les adhérents » est un canal B2B2C massif. C'est à moyen terme.
+**Constat**
+- **Deux textes de fiche contradictoires** : `docs/PLAY_CONSOLE.md` (de l'époque TWA, description courte de 87 caractères alors que la limite est 80, « sans pub ») et `mobile/docs/PUBLIER_PLAY_CONSOLE.md`.
+- **Le titre** `TITAN — Ton sport réel` ne contient aucun mot-clé recherché.
+- **Les captures** de `docs/play-store/` viennent **de l'app web**, sans texte d'accroche. La première montre « Bonjour, Athlète. » et la quatrième un bandeau « Mode découverte » : ce sont des messages techniques, pas des promesses.
+- **L'image de présentation** dit « Ton sport réel. Une progression qui dure. » sans dire *ce que fait* l'app.
+- Pas de fiche en anglais, pas de vidéo, pas de stratégie de mots-clés.
 
----
+**Prescription : la fiche d'une top app**
+- **Titre (30 caractères maximum)** : « TITAN : Sport, Muscu & Course » ou « TITAN – Journal sport & muscu ». Les mots-clés réels sont « suivi sport », « carnet muscu », « journal entraînement », « course à pied », « escalade ». Vos pages SEO ciblent déjà exactement ces mots : alignez-les.
+- **Description courte (80 caractères maximum)** : « Muscu, course, escalade… Tous tes sports, une seule progression. »
+- **8 captures de 1080×1920, issues de l'app native, chacune avec une accroche en 4 à 6 mots en haut :**
+  1. « Tous tes sports. Un seul journal. » (les 260 sports, les pictogrammes 3D)
+  2. « Ta séance muscu en 15 secondes. » (routine et valeurs fantômes)
+  3. « Chaque effort compte pareil. » (l'effort normalisé : muscu = course = escalade)
+  4. « Tes records, enfin comparables. »
+  5. « Tiens ta semaine, sans culpabiliser. » (la cadence)
+  6. « Ton effort fait avancer un monde. » (l'aventure, en 4e position et pas avant)
+  7. « Progresse avec tes amis. » (guilde, défi)
+  8. « Ton coach, dans ta poche. »
+- **Une vidéo de 30 secondes** (une capture d'écran du téléphone suffit) : une séance enregistrée → la récompense → la semaine tenue → le monde qui s'illumine.
+- **Une fiche personnalisée « Coachs »** (*custom store listing*, gratuit) pour les liens envoyés aux coachs.
+- **Une fiche anglaise** dès que les textes sont extraits (§4.13).
+- **La demande d'avis au bon moment** (§4.11) : visez **4,6 ou plus** dès le départ.
 
-## 8. Acquisition : le playbook sans budget
+### 4.13 La qualité technique — passer de « robuste » à « observée »
 
-### 8.1 L'opération immédiate : TITAN Rétro 2026 (début décembre)
-
-Nous sommes le 15 novembre. **Le bilan de l'année est le moment le plus viral du calendrier sportif** (Strava Year in Sport, Spotify Wrapped). C'est le cas d'usage parfait pour l'import d'archive Strava.
-
-> « Importe ton année Strava (ou ton Health Connect). TITAN te révèle ton ADN sportif 2026 : tes sports, tes heures d'effort réelles, ton rang, ta semaine la plus folle. Partage-le. »
-
-- Une série de 5 à 7 cartes verticales au format story, très belles, avec la direction artistique « lignes de niveau ».
-- L'unité d'effort normalisé révèle ce que Strava ne montre pas : « Tu as fait autant d'effort en salle qu'en course, Strava n'en a vu que la moitié. » **C'est le message qui fait mouche.**
-- Gratuit, sans compte pour la version de base (le mode découverte existe), avec création de compte pour sauvegarder.
-- C'est faisable en trois semaines si on y met toute l'équipe.
-
-### 8.2 Les canaux, par ordre de rentabilité
-
-1. **Les coachs et les salles** (démarchage direct) : le meilleur coût d'acquisition, car chaque signature apporte des dizaines d'utilisateurs.
-2. **Les cartes partageables** (récap, jalons, Rétro, passeport) : chaque partage est une publicité gratuite et crédible.
-3. **Les liens d'invitation** (duo, guilde, défi) : le parrainage naturel.
-4. **Le contenu SEO**, qui existe déjà (journal de musculation, suivi escalade…) : à orienter vers « programme Hyrox », « allier course et musculation », « reprendre le sport après 40 ans ».
-5. **Les créateurs de contenu de la scène hybride** francophone : TikTok et Instagram, micro-influenceurs (10 000 à 50 000 abonnés), payés en visibilité et en accès anticipé.
-6. **Les événements** : un stand ou un partenariat avec un Hyrox ou une compétition d'escalade locale, avec un QR code vers une expédition dédiée.
-
-### 8.3 Le nom
-
-« TITAN » est générique : il existe des dizaines d'apps « Titan » sur les stores, et c'est difficile à référencer. Je ne recommande pas de changer maintenant (le coût est trop élevé), mais il faut **posséder une expression** : « TITAN Effort », « TITAN Hybrid », ou simplement un mot pour l'unité d'effort qui devienne la marque. À trancher avant l'internationalisation.
-
----
-
-## 9. Technique et organisation
-
-### 9.1 Plateformes : la décision structurante
-
-- **Sortir iOS en 90 jours.** L'app est en Expo et React Native : le portage est un chantier de semaines, pas de mois. Les modules spécifiques à Android (podomètre Kotlin, Health Connect) ont leurs équivalents (CoreMotion, HealthKit). En France, les possesseurs d'iPhone représentent une part importante des utilisateurs qui paient pour des abonnements sportifs. **Sans iOS, la moitié des clients potentiels n'existent pas pour TITAN**, et un sportif sur iPhone ne peut pas rejoindre la guilde de son ami sur Android. Le moindre effet de réseau est coupé en deux.
-- **Le mobile est le produit. Le web devient le compagnon** : le tableau de bord du coach et du club, les pages publiques et SEO, le passeport public, l'import d'archive. Geler les nouvelles fonctionnalités du web applicatif en vanilla JS. Maintenir deux interfaces complètes (vanilla et React Native) avec un fondateur seul est intenable.
-- **Ajouter une carte** (MapLibre, qui est open source, ou Mapbox) : une sortie GPS sans carte n'est pas crédible face à n'importe quelle app de course.
-- **Les montres :** Wear OS et Apple Watch viendront après les imports. Pour un premier temps, l'agrégateur et Health Connect / HealthKit couvrent l'essentiel.
-
-### 9.2 La dette qui compte vraiment
-
-| Sujet | Pourquoi c'est important | Action |
+| Sujet | Constat | Prescription (coût nul) |
 |---|---|---|
-| Conflits de profil (environ 1 par seconde) | Le symptôme d'une synchronisation où le client est la source de l'état de jeu | Sortir `game_state` du blob de profil, passer par des RPC atomiques (le chemin est entamé avec la progression côté serveur) |
-| La clé Garmin « à considérer comme exposée » (`GARMIN.md`) | Un risque de sécurité **et** de relation partenaire | La régénérer maintenant. Et décider franchement si Garmin direct vaut l'effort, face à un agrégateur. |
-| Le déploiement Netlify par CLI, découplé de Git | Personne ne sait exactement ce qui tourne en production | Déploiement depuis `main` uniquement, avec étiquette de version |
-| `titan_features.js` (220 Ko), le noyau hérité | Le web applicatif charge environ 205 Ko compressés | Non prioritaire si le web applicatif est gelé |
-| Le français codé en dur | L'internationalisation sera dix fois plus chère dans un an | Extraire les chaînes de l'app mobile **maintenant** (i18n), même sans traduire tout de suite |
+| **Crashs** | Aucun outil. `ErrorBoundary` fait seulement un `console.error`. On compte sur les « vitals » de la Play Console, avec un échantillon insuffisant. | **Sentry**, offre gratuite (5 000 erreurs par mois), avec consentement et nettoyage des données personnelles. Ou au minimum, un compteur d'erreurs envoyé par une RPC existante. |
+| **Funnel mobile** | **Aucune mesure sur Android** (« aucune mesure d'audience »). On pilote à l'aveugle. | Réutiliser `analytics_events` et le contrat d'événements du web, avec consentement : `signup`, `onboarding_completed`, `first_session`, `second_session`, `week_held`, `share`, `invite_sent`, `invite_accepted`. C'est une table qui existe déjà, pour zéro coût supplémentaire. |
+| **Tableau de bord** | Aucun | Une vue SQL de cohortes (J1, J7, J30, semaine 4) consultée chaque lundi. **C'est le tableau de bord le plus important de l'entreprise.** |
+| **Internationalisation** | Aucune bibliothèque. Les chaînes sont en dur et `"fr-FR"` est codé en dur environ 10 fois. `expo-localization` est chargé mais jamais utilisé. | **Extraire les chaînes maintenant** (i18n-js ou i18next), même sans traduire. Dans un an, ce sera dix fois plus cher. |
+| **Thème** | Sombre uniquement | Acceptable : c'est une identité. Ne pas prioriser. |
+| **Coût Supabase** | Pas de temps réel, peu de sondages réguliers. `DuoCard` relit à chaque affichage (`staleTime: 0`). `analytics_events` n'a pas de rétention. | Mettre un `staleTime` sur DuoCard, et une purge ou une agrégation des événements au-delà de 13 mois |
+| **Performance** | Build minifié, images WebP légères. Le LCP de la page de connexion web atteint 3,75 s sur mobile. | Mesurer le démarrage à froid sur un téléphone d'entrée de gamme ; viser moins de 2 s |
 
-### 9.3 L'organisation
+### 4.14 Le ton et les textes — parler au joueur, pas à l'auditeur
 
-- **Arrêter les documents de passation par lot.** Un seul document vivant par sujet (produit, architecture, release) ; les décisions dans `docs/adr/`. Tout le reste est du bruit.
-- **Une règle de livraison :** une version en production par semaine, sur le Play Store (puis l'App Store), avec un changement visible pour l'utilisateur.
-- **Une règle de priorité :** aucune nouvelle fonctionnalité « de protection » (modération, recours, anti-abus) tant qu'il n'y a pas d'abus réel observé. La base actuelle est déjà au-dessus du nécessaire pour 100 000 utilisateurs.
-- **Parler à 5 utilisateurs par semaine.** Je n'ai vu dans le dépôt aucune synthèse d'entretien utilisateur. Les « passes persona » (`V11_PERSONA_PASSES`) sont simulées, pas réelles.
-- **Recruter, ou s'associer** avec un profil croissance et communauté, idéalement issu de la scène CrossFit, Hyrox ou escalade. Le fondateur produit et technique a prouvé qu'il savait construire ; ce qui manque, c'est quelqu'un qui *vend*.
+Le ton de base est excellent (`lib/voice.ts` : chaleureux, sans culpabilisation). Mais **le vocabulaire de l'infrastructure fuit dans l'interface** :
 
----
+| Texte actuel | Problème | Proposition |
+|---|---|---|
+| « Estimation : le serveur confirme l'XP réelle (plafonds 1 800/jour, 9 600/semaine) » (`SessionFormScreen.tsx:483`) | Ça parle de serveur et de plafonds au moment de l'effort | « ≈ 520 XP » (avec un « ? » qui ouvre « Comment ça marche ») |
+| « TITAN a confirmé » / « XP confirmés par le serveur » (`SessionResultScreen.tsx:171,207`) | Méfiance implicite | « Bien joué. » |
+| « retenus par précaution… si rien n'est trouvé » (`:180-181`) | Sonne comme une accusation de triche | « Tes récompenses arrivent bientôt » (et l'explication dans l'aide) |
+| « Pas de 1RM estimé. » (`ExerciseEditor.tsx:157`) | Un choix d'ingénieur montré au joueur | À supprimer |
+| « Rien n'est inventé. » (`GpsRecordScreen.tsx:216`) | Défensif | À supprimer |
+| « Les sentiers attendent une connexion au serveur compatible » (`JourneyCard.tsx:36`) | Technique | « Connecte Santé Connect pour que tes pas fassent avancer les sentiers » |
+| « coins » (`AdventureEncounters.tsx`) | Incohérent | « crédits » |
 
-## 10. Le plan
-
-### Les 30 prochains jours — « Ouvrir les portes »
-
-- [ ] **Retirer AdMob** de l'app Android.
-- [ ] **Publier l'app sur le Play Store** en test ouvert, puis en production.
-- [ ] **Instrumenter la rétention** : J1, J7, J30, semaine 4, nombre de sports par utilisateur, temps de saisie d'une séance. Un tableau de bord simple (Supabase plus une vue SQL suffit).
-- [ ] **Remplacer le code ami par des liens d'invitation** (duo, guilde, défi).
-- [ ] **Lancer TITAN Rétro 2026** avec import d'archive Strava et de Health Connect (cible : 1er décembre).
-- [ ] **Régénérer la clé Garmin.**
-- [ ] **Démarcher 10 salles et coachs à la main.**
-- [ ] **Interroger 20 utilisateurs réels.**
-
-### 90 jours — « Le pari hybride »
-
-- [ ] **App iOS** avec HealthKit.
-- [ ] **Agrégateur d'appareils** (Garmin, Polar, Suunto, Coros, Wahoo).
-- [ ] **Carte** (MapLibre) sur les séances GPS.
-- [ ] **Coach IA v1** : débrief après séance et plan de semaine adaptatif, dans TITAN+.
-- [ ] **Ouvrir la vente de TITAN+** avec la nouvelle proposition de valeur.
-- [ ] **Tableau de bord coach web v1** et facturation par sportif.
-- [ ] **Ligues hebdomadaires** à l'effort normalisé.
-- [ ] **Import Hevy et Strong.**
-- [ ] **Objectif :** 1 000 utilisateurs actifs par semaine, 30 coachs ou salles, 40 % de rétention à la semaine 4.
-
-### 12 mois — « Le standard de l'effort »
-
-- [ ] **Offre Club / Salle**, intégrée à au moins un logiciel de réservation de salles.
-- [ ] **Anglais et espagnol** (le marché Hyrox est mondial, l'Espagne et le Royaume-Uni sont très actifs).
-- [ ] **Wear OS et Apple Watch** (saisie du RPE et chrono de séance de force au poignet).
-- [ ] **Le premier Baromètre de l'effort** et sa campagne presse.
-- [ ] **Les défis de marque.**
-- [ ] **Le partage d'itinéraires** avec masquage du départ, et un « Beacon » de sécurité.
-- [ ] **Objectif :** 50 000 utilisateurs actifs mensuels, 5 % d'abonnés payants, 300 coachs et clubs.
+**La règle :** l'honnêteté de TITAN doit se voir dans les **règles**, pas dans les **disclaimers**. Tout ce qui explique une mécanique va dans une fiche « Comment ça marche », à un geste de distance.
 
 ---
 
-## 11. La kill list : ce qu'il faut arrêter ou geler
+## 5. Le moteur de croissance à zéro euro
+
+### 5.1 Les boucles virales à installer
+
+```
+Séance ──▶ carte image (record / semaine tenue / insigne) ──▶ story Instagram avec lien
+   ▲                                                            │
+   │                                                            ▼
+ Install ◀── Play Store (referrer) ◀── page /u/ ou /defi/ ◀── un ami clique
+```
+
+| Boucle | Mécanique | Coût |
+|---|---|---|
+| **Cartes image** | Générées sur l'appareil, format 9:16 et 4:5, lien et QR code | 0 € |
+| **Duel par lien** | « Je te défie : 5 séances en 14 jours », envoyé par WhatsApp | 0 € (la RPC existe) |
+| **Duo** | « Fais ton sport avec moi pendant 14 jours » : un pacte à deux | 0 € (il existe derrière un drapeau) |
+| **Guilde** | Invitation par lien, objectif collectif | 0 € |
+| **Coach vers ses sportifs** | Un coach fait installer 5 à 20 personnes | 0 € |
+| **Strava « via TITAN »** | Signature dans la description des séances publiées sur Strava | Quasi 0 € |
+| **Parrainage cosmétique** | Cadre ou titre exclusif pour 1 et 3 amis actifs | 0 € |
+
+### 5.2 L'opération à lancer maintenant : TITAN Rétro 2026
+
+Nous sommes le 15 novembre. **Le bilan de l'année est le moment le plus viral du calendrier sportif.**
+- **Pour qui :** tous les utilisateurs, plus l'import des 12 derniers mois de Health Connect (lecture locale, déjà codée) et l'import GPX (déjà codé).
+- **Le contenu, en 6 cartes au format story :**
+  1. ton total d'effort de l'année ;
+  2. ton ADN (la répartition par famille de sport) ;
+  3. ta meilleure semaine ;
+  4. ton record préféré ;
+  5. tes semaines tenues ;
+  6. ton monde et ton rang.
+- **La phrase qui fait mouche** : « Ton effort réel en 2026 : 142 h, dont 61 h que ta montre n'a jamais comptées. »
+- **Le coût :** zéro. Tout est calculé sur l'appareil avec le noyau partagé (`career.js`, `progress.js`). Les modèles de carte existent sur le web.
+- **La date :** 1er décembre. Puis chaque année, ça devient un rendez-vous.
+
+### 5.3 Les canaux gratuits, par ordre de rendement
+
+1. **L'ASO** (§4.12). C'est le canal dominant pour une app sans budget.
+2. **Les coachs et les salles**, en démarchage direct dans votre ville. Les box de CrossFit et de Hyrox, les salles d'escalade, les clubs d'athlétisme. On leur offre l'offre Coach pendant 6 mois.
+3. **Le sport universitaire** : les BDS et associations sportives étudiantes. Un public jeune, multisport, très connecté, qui vit en groupe. **Une guilde par BDS, un défi inter-écoles à l'effort normalisé** : c'est équitable entre le rugby, l'escalade et la natation, ce qu'aucune autre app ne permet.
+4. **Le SEO.** Les pages existent (journal d'entraînement, carnet de musculation, suivi escalade…). Ajouter :
+   - « programme Hyrox débutant » ;
+   - « combiner course et musculation » ;
+   - « reprendre le sport après une pause » ;
+   - des comparatifs honnêtes du type « TITAN ou Strava pour la muscu ? ».
+5. **Les communautés** : Reddit (les communautés francophones de course, de musculation et d'escalade), Discord, forums. **Une présence de fondateur, pas de la publicité.**
+6. **Un serveur Discord TITAN** : les premiers 500 utilisateurs deviennent cofondateurs du produit (sondages, accès anticipé, badge Pionnier). Ce sont vos ambassadeurs.
+7. **La presse locale et spécialisée** : « Un étudiant de [ville] crée l'app qui met la muscu et la course sur un pied d'égalité. » Les journaux régionaux adorent ça.
+8. **Le Baromètre de l'effort** (dès quelques milliers d'utilisateurs) : des données agrégées et anonymes, publiées une fois par trimestre. Du contenu de presse gratuit.
+
+---
+
+## 6. Monétisation sans IA ni coût marginal
+
+### 6.1 La publicité : décider, puis être cohérent
+
+**Ma recommandation reste de la retirer.** Elle s'affiche sur le QG, le Journal, les Stats et en interstitiel après la séance, donc au moment émotionnel le plus fort. À votre échelle, elle rapporte quelques euros par mois. Et elle contredit la promesse de marque.
+
+**Si vous tenez à la garder** comme argument d'achat de TITAN+, alors :
+- (a) alignez **tous** les textes le même jour (FAQ web, fiche Play, Data Safety, accueil) ;
+- (b) **supprimez l'interstitiel après séance**, ne gardez qu'une bannière dans le Journal et les Stats, jamais sur le QG ni sur le résultat ;
+- (c) ne l'activez qu'au-delà de 30 jours d'usage. Un nouvel utilisateur ne doit jamais voir de pub.
+
+### 6.2 Un TITAN+ qui vaut 4,99 €, sans IA
+
+Aujourd'hui, l'app promet « Analyses plus poussées, davantage de confort de personnalisation, aucune publicité ». Les analyses n'existent pas sur mobile. Voici ce qui peut être réservé, **calculé sur l'appareil, donc avec un coût marginal nul** :
+
+| Avantage TITAN+ | Pourquoi les gens paient | Coût |
+|---|---|---|
+| **Charge et fraîcheur** (charge aiguë et chronique à partir de l'effort normalisé, équivalent multisport du CTL/ATL de TrainingPeaks) | C'est le graphique que tous les sportifs sérieux veulent, et **il n'existe en multisport nulle part** | 0 € (formule déterministe) |
+| **Meilleurs efforts détaillés** (toutes distances, courbe de progression par distance) | L'équivalent de Strava Premium | 0 € |
+| **Progression par exercice** (graphique de charge, volume, estimation de série) | L'équivalent de Hevy Pro | 0 € |
+| **Comparaisons de périodes et bilans** (ils existent sur le web) | Pour les data-lovers | 0 € |
+| **Routines illimitées** (5 en gratuit) | Pour les pratiquants de musculation | 0 € |
+| **Thèmes de carte et d'app exclusifs** et une rotation de cosmétiques TITAN+ | La personnalisation | 0 € |
+| **Rétro premium** (des cartes supplémentaires, l'export en haute définition) | Le moment de l'année | 0 € |
+| **Sans publicité** (si vous la gardez) | — | — |
+
+**Le pass de saison cosmétique (à considérer)** : à 2,99 € par saison de 28 jours, une piste cosmétique supplémentaire débloquée par l'effort. Aucune puissance, que de l'apparence. C'est compatible avec le « zéro pay-to-win ». Fortnite et Duolingo ont prouvé que ça marche. Ce sont des lignes de données et des visuels.
+
+**Les prix** : 4,99 €/mois ou **34,99 €/an** (un mois et demi offert). L'annuel est essentiel : c'est lui qui crée la rétention payante.
+
+### 6.3 Coach
+
+- Garder **le gratuit jusqu'à 3 sportifs** comme porte d'entrée.
+- **19,99 € pour 5 et 39,99 € pour 15**, c'est correct pour démarrer. Préparez une offre **Club** (au-delà de 15, sur devis) pour les salles.
+- Le sportif rattaché reçoit TITAN+ : c'est **votre meilleur argument**. Mettez-le en tête des pages coach.
+
+---
+
+## 7. Le plan : 6 sprints de 2 semaines (environ 3 mois)
+
+Tout est réalisable par l'équipe actuelle, sans coût d'infrastructure.
+
+### Sprint 0 — Cette semaine : les urgences
+- [ ] U1 à U10 (§3)
+- [ ] Insérer l'expédition d'hiver et les saisons jusqu'à mars
+
+### Sprint 1 — « Ouvrir les portes » (du 17 au 30 novembre)
+- [ ] App Links, `assetlinks.json`, liens `/ami`, `/guilde`, `/defi`, `/coach`, Play Install Referrer
+- [ ] Afficher le code de guilde, rendre le profil trouvable en un geste
+- [ ] Mode découverte natif, et la création de compte proposée sur l'écran de résultat
+- [ ] Ne plus bloquer sur la confirmation d'e-mail
+- [ ] Funnel mobile (`analytics_events`), Sentry en offre gratuite, vue SQL des cohortes
+- [ ] Demande d'avis In-App Review
+
+### Sprint 2 — « TITAN Rétro et partage » (du 1er au 14 décembre)
+- [ ] **TITAN Rétro 2026** (lancement le 1er décembre)
+- [ ] Cartes image sur Android (story et 4:5) depuis le résultat, les records et la semaine
+- [ ] Liens de duel sur Android, sans ami préalable
+- [ ] La nouvelle fiche Play Store : titre, captures natives avec accroches, vidéo
+
+### Sprint 3 — « La saisie parfaite » (du 15 décembre au 4 janvier)
+- [ ] Routines et « Enregistrer comme routine »
+- [ ] Valeurs fantômes de la dernière fois, série cochée, notification de repos
+- [ ] Refaire par sport, 4 à 6 accès rapides, appui long sur le « + »
+- [ ] Détection Health Connect sur le QG
+- [ ] Escalade : puces de cotation, durée facultative
+- [ ] *Bon timing : début janvier, c'est le pic annuel des installations d'apps de sport (bonnes résolutions).*
+
+### Sprint 4 — « Revenir » (du 5 au 18 janvier)
+- [ ] Le nouveau QG en 4 blocs
+- [ ] Les notifications dynamiques et recalculées
+- [ ] Le widget d'écran d'accueil (la semaine et le « + »), les raccourcis d'app
+- [ ] La cadence récompensée (crédits), et la cadence visible sur l'écran de résultat
+
+### Sprint 5 — « Le jeu qui dure » (du 19 janvier au 1er février)
+- [ ] Brancher sur Android les quêtes périodiques, saisons, quête commune, objectif mondial, classement, intentions, titre et vitrine
+- [ ] Un monde à la fois, report des jours, prestige « Ascension »
+- [ ] Les étoiles après le niveau 10, le rang à 20, les jalons atteignables
+- [ ] 28 nouveaux objets à l'Atelier, la vitrine hebdomadaire
+- [ ] Les succès cachés, les trophées de collection côté serveur
+
+### Sprint 6 — « Le cercle et le coach » (du 2 au 15 février)
+- [ ] La Communauté en onglet, le chat de guilde gratuit, les clubs vivants (défi de club)
+- [ ] Le parrainage cosmétique
+- [ ] « Mon coach » sur Android (propositions, accepter, fait), l'invitation coach par lien
+- [ ] La publication vers Strava, en option
+- [ ] Ouvrir la vente de TITAN+ avec les avantages du §6.2
+
+### Ensuite (le prochain trimestre)
+- Écrire dans Health Connect, recevoir des fichiers GPX et FIT partagés
+- Le meilleur effort à l'intérieur d'une sortie, la charge et la fraîcheur
+- L'extraction i18n et la fiche anglaise
+- La ligue hebdomadaire publique
+- **iOS** (comme prévu), puis **l'IA** quand la base sera là
+
+---
+
+## 8. Ce qu'il faut arrêter ou geler
 
 | Arrêter / geler | Pourquoi |
 |---|---|
-| **La publicité AdMob** | Voir §7.1 |
-| **Les factions, le panthéon, les saisons de club, les trophées de saison de club** | Des systèmes sociaux de deuxième niveau sans masse critique d'utilisateurs. Un club de 3 personnes n'a pas besoin d'un panthéon. À réactiver à 10 000 utilisateurs. |
-| **L'enrichissement de la bible du monde** (nouvelles régions, nouvelles rencontres) | Le monde actuel suffit pour tester si l'aventure fait revenir. Mesurer d'abord. |
-| **Le podomètre maison** | Health Connect et HealthKit font déjà ce travail. Le module natif Kotlin est un coût de maintenance pour une donnée qui ne rapporte rien (pas d'XP pour les pas, décision volontaire). |
-| **Les nouvelles fonctionnalités web en vanilla JS** | Le web devient compagnon et coach |
-| **Les audits « finaux » et passations par lot** | Voir §9.3 |
-| **L'intégration Garmin directe** (à trancher) | Si le programme Garmin n'est pas confirmé sous 30 jours, basculer sur un agrégateur et arrêter d'y investir. |
+| **Les nouvelles fonctionnalités web-only** | Les quêtes, saisons, clubs, duels, cartes, classement et coach ont été construits sur le web, alors que l'app Android est le produit. **Chaque nouveauté doit d'abord exister sur Android.** |
+| **Les nouveaux systèmes de progression** | Il y en a déjà 7. Il faut les relier et les mettre en scène, pas en ajouter un 8e. |
+| **Les factions et le panthéon** | Sans masse critique, ils sont vides. À réactiver vers 5 000 utilisateurs actifs. |
+| **Le podomètre maison** | Health Connect fait déjà ce travail. C'est un module natif à maintenir pour une donnée qui ne donne pas d'XP. |
+| **Les audits « finaux » et les passations par lot** | Un seul document vivant par sujet. La v1 de ce rapport le disait, et la v2 aussi : **ce doit être le dernier audit avant 1 000 utilisateurs actifs.** |
+| **Les textes juridiques ou techniques dans l'interface** | §4.14 |
 
 ---
 
-## 12. Les indicateurs qui comptent
+## 9. Les indicateurs, et les cibles d'une top app
 
-**L'étoile polaire :** **les semaines tenues par utilisateur actif.** Elle mesure exactement la promesse (revenir, régulièrement, sans culpabilité), elle est déjà calculée, et elle est immunisée contre les vanity metrics.
+**L'étoile polaire : les semaines tenues par utilisateur actif.**
 
-| Niveau | Indicateur | Cible à 90 jours |
-|---|---|---|
-| Activation | Pourcentage d'inscrits qui enregistrent une 2e séance sous 7 jours | ≥ 50 % |
-| Activation | Pourcentage d'inscrits qui connectent une source (Health Connect, HealthKit, appareil, archive) | ≥ 40 % |
-| Rétention | Rétention à la semaine 4 | ≥ 40 % |
-| Rétention | Rétention à la semaine 12 | ≥ 25 % |
-| Différenciation | Pourcentage d'actifs avec au moins 2 familles de sport par mois | ≥ 35 % (c'est la preuve que le multisport est la vraie raison de rester) |
-| Viralité | Invitations envoyées par actif et par mois ; facteur k | k ≥ 0,3 |
-| Viralité | Cartes partagées par actif et par mois | ≥ 1 |
-| Monétisation | Conversion vers TITAN+ à 30 jours | ≥ 4 % |
-| B2B | Sportifs actifs par coach | ≥ 6 |
-| Santé | Temps médian de saisie d'une séance manuelle | ≤ 15 s |
+| Indicateur | Repères des apps de sport (ordre de grandeur) | Cible TITAN à 90 jours | Cible à 12 mois |
+|---|---|---|---|
+| Installation → 1re séance le jour même | Les meilleures dépassent 60 % | 60 % | 70 % |
+| 2e séance dans les 7 jours | — | 50 % | 60 % |
+| Rétention J30 | Moyenne des apps de fitness d'environ 8 à 12 % ; les meilleures entre 25 et 30 % | 20 % | 30 % |
+| Rétention à la semaine 12 | — | 15 % | 25 % |
+| Actifs pratiquant 2 familles de sport ou plus par mois | (C'est votre preuve de différenciation) | 35 % | 45 % |
+| Semaines tenues sur 8, en moyenne chez les actifs | — | 4/8 | 5/8 |
+| Partages par actif et par mois | — | 0,5 | 1,5 |
+| Invitations acceptées par actif et par mois (facteur k) | — | 0,15 | 0,35 |
+| Note Play Store | Les top apps dépassent 4,6 | ≥ 4,5 | ≥ 4,7 |
+| Taux de sessions sans crash | Les top apps dépassent 99,5 % | 99,5 % | 99,8 % |
+| Saisie de musculation (gestes) | Hevy : environ 10 avec une routine | ≤ 15 | ≤ 10 |
+| Conversion TITAN+ à 60 jours | Une app freemium saine se situe entre 2 et 5 % | 2 % | 4 % |
 
----
-
-## 13. Les risques
-
-| Risque | Probabilité | Parade |
-|---|---|---|
-| **Strava lance un vrai mode musculation et multisport** | Élevée sur 2 à 3 ans (Runna montre qu'il achète des briques) | Aller vite sur le coach, le club et l'identité accumulée ; Strava ne fera jamais de la « non-performance » son identité. |
-| **Hevy ou Ladder ajoutent l'endurance** | Moyenne | L'effort normalisé et la cadence ; l'import de leurs données |
-| **Les API tierces se ferment** (Strava a restreint son API en 2024 ; Garmin a un programme incertain) | Élevée | L'import d'archive (portabilité RGPD, non bloquable), Health Connect et HealthKit, plusieurs agrégateurs |
-| **Le fondateur s'épuise** | Élevée pour un projet de cette ampleur | Réduire le périmètre (kill list), trouver un associé, livrer chaque semaine pour avoir des retours positifs réels |
-| **L'aventure fait fuir les adultes sportifs** | Moyenne | Mettre le monde en option à l'onboarding (« Je veux juste suivre mon sport » / « Je veux que mon effort fasse avancer un monde ») et mesurer les deux cohortes |
-| **Les données de santé** (RPE, fréquence cardiaque, pas) | Moyenne | Faire valider le statut juridique (données de santé au sens du RGPD ? hébergement HDS ?) avant de lancer le coach IA |
+*Les repères sont des ordres de grandeur du secteur, pas des chiffres audités. Ce qui compte, c'est de mesurer TITAN chaque lundi et de suivre la pente.*
 
 ---
 
-## 14. Les idées folles (puisque j'ai carte blanche)
+## Conclusion
 
-1. **« Strava compte tes kilomètres. TITAN compte ton effort. »** Une campagne frontale, avec un comparatif visuel : la même semaine vue par Strava (2 sorties de course) et vue par TITAN (2 courses, 3 séances de force, 1 séance d'escalade, avec 2,5 fois plus d'effort réel). Chaque athlète hybride s'y reconnaîtra.
-2. **Le « Hyrox Ghost »** : lors d'une simulation de Hyrox, on court contre le fantôme de sa propre dernière performance, station par station.
-3. **Le TITAN Score de la salle** : une salle affiche sur un écran TV le classement de ses adhérents, en effort normalisé de la semaine. C'est la meilleure publicité physique possible, et c'est équitable entre le crossfitteur et le grimpeur.
-4. **L'expédition nationale** : une fois par an, tous les utilisateurs de TITAN cumulent leur effort pour « gravir » symboliquement un sommet (le Mont-Blanc, puis l'Everest), avec un compteur public en direct sur le site. Ça crée de la communauté sans compétition, et c'est un sujet de presse.
-5. **Le contrat de retour** : quelqu'un déclare une pause (blessure, naissance, burn-out). TITAN lui envoie, à la date choisie, un message de retour bienveillant et un programme de reprise de deux semaines. **Aucune app ne s'occupe des gens au moment où ils décrochent.** C'est là que TITAN peut devenir *aimé*, et pas seulement utile.
-6. **Le CV sportif certifié** : les séances venues d'un appareil sont marquées « vérifiées ». À terme, le passeport TITAN pourrait servir de preuve de pratique pour une fédération, un employeur (programmes de bien-être en entreprise) ou une mutuelle. C'est une piste B2B forte.
-7. **Ouvrir le moteur d'effort** : publier la formule de l'effort normalisé en open source, sous le nom de « standard TITAN », et inviter d'autres apps à l'utiliser. Si l'unité devient un standard, TITAN en devient la référence.
+TITAN n'a pas un problème de puissance, il a un problème de **mise en scène et de connexion** :
+- le serveur sait faire des quêtes, des saisons, des ligues, des duels et des cartes, mais le téléphone n'en montre presque rien ;
+- la meilleure idée du produit (la cadence) ne rapporte rien et se cache derrière un bouton replié ;
+- le partage ne contient pas de lien ;
+- la fiche du store ne dit pas ce que fait l'app.
 
----
+Rien de tout cela ne demande de l'argent, de l'IA ou iOS. Il faut **environ trois mois de travail produit concentré**, dans le bon ordre : d'abord les urgences, puis les portes (liens, invité, mesures), puis la Rétro de décembre, puis la saisie, puis le retour quotidien, puis le jeu qui dure, puis le cercle et le coach.
 
-## 15. Conclusion
-
-TITAN a déjà résolu les problèmes difficiles que la plupart des startups découvrent trop tard : l'intégrité des données, l'anti-triche, la vie privée, les paiements, la synchronisation hors ligne. **C'est un avantage énorme, mais il est invisible pour l'utilisateur.**
-
-Ce qui manque n'est pas une liste de fonctionnalités. Ce sont trois choses :
-
-1. **Un pari** : l'athlète hybride et ceux qui reviennent, avec l'effort normalisé comme monnaie.
-2. **Des portes ouvertes** : iOS, les imports, les liens d'invitation, les coachs et les salles.
-3. **Un retour du réel** : des utilisateurs, des chiffres de rétention, et des conversations.
-
-On ne devient pas Strava en copiant Strava. On le devient en étant, pour un groupe précis de gens, la seule app qu'ils ne peuvent pas désinstaller. TITAN a la technologie pour y arriver. Il lui faut maintenant le courage de choisir, et de sortir dans le monde.
+À la fin de ces trois mois, TITAN aura la **carrure** d'une top app : on l'adopte en une minute, on y revient chaque jour sans y penser, et on la montre à ses amis. Le reste (iOS, l'IA, l'international) se construira sur une base qui marche.
