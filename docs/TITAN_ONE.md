@@ -3,6 +3,49 @@
 Branche de référence : `claude/youthful-knuth-pgg96r` (PR #149). Ce document remplace `docs/v131/RELAIS_FABLE.md` comme point
 d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub : [`CONSOLIDATION_GITHUB.md`](CONSOLIDATION_GITHUB.md).
 
+## 0. Opération Masterpiece (16 novembre 2026, après-midi et soir) — état réel
+
+Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système, quand la refonte Web est intégrée). Captures :
+`docs/design/captures/android/` (simulation navigateur de l'application à 412 dp, **pas un téléphone**).
+
+### Ce qui est fait et poussé
+
+| Lot | Contenu | Commit | Preuve |
+|---|---|---|---|
+| 1. Migrations v14 | Fichiers 01 à 07 **appliqués en production** (TITAN LIVE, calendrier des événements, défi par lien, semaine tenue, lettres à soi-même, import d'historique, chronique de guilde) | — | Registre de production : 128 migrations, dernière `20261117150000` |
+| 2. Système « Programme » | Une couleur franche par espace (citron Séance, azur Progrès, mousse Aventure, craie Profil, corail Communauté ; cyan = progression, ambre = records), Archivo seul en trois largeurs, cartes sans contour, sections sous filet, figure signature « le programme » (sports × jours) partagée Web/Android | `425047f` | `tests/program-grid.test.mjs` (8), Jest |
+| 3. Android | QG, Séance, Progrès, Aventure, Profil (raccourci), fin de séance recomposés ; visite guidée avant inscription (4 étapes, facultative, reprise, sans aucune écriture) | `425047f`, `a139220`, `a921cec`, `9d2c6b4` | Jest 941 tests / 105 suites ; 12 tests de la visite |
+| 6. Cohérence | 9 contradictions corrigées entre textes et code (confidentialité v13, CGU v9, suppression v3, crédits de la semaine tenue, sièges coach, Garmin, publicité) ; test automatique | `c4cee5a` … `f0c62d0` | `tests/coherence-offers.test.mjs` (13, 17 mutations détectées) |
+
+### Ce qui n'est pas fait
+
+- **Migrations 08 (chapitres de vie) et 09 (monde live dans l'export)** : la confirmation demandée par l'outil est restée sans
+  réponse. Rien d'incohérent en attendant : les écrans concernés disent « pas encore disponible ». Contrôles finaux
+  (`99-check-after.sql`, trois postflights, empreinte des données) à faire après elles. Empreinte des 146 tables relevée avant
+  l'application : `dc39bfdfaf319fcd6d50ee0a7b4fd98c` (2 186 lignes).
+- **Aucune sauvegarde restaurable** : l'organisation Supabase est sur l'offre gratuite. Les neuf fichiers sont additifs et
+  transactionnels ; cela ne remplace pas une sauvegarde.
+- **Illustrations** : le générateur d'images a refusé une troisième fois (« insufficient credit »). Aucun blason Champion, Titan
+  ou Légende, aucune illustration nouvelle. Rien n'a été remplacé par une icône générique.
+- **Publication** : rien n'est publié. La PR #149 n'est pas fusionnée, Netlify sert l'ancienne version, aucun envoi à Google Play.
+- **Appareil réel** : aucun écran n'a été vu sur un téléphone ; TalkBack non testé.
+
+### Les trois objectifs
+
+| Objectif | Statut | Pourquoi |
+|---|---|---|
+| A. Refonte visuelle et UX | ORANGE | Android refondu et testé ; Web : voir § Web ci-dessous ; aucune vérification sur appareil |
+| B. Illustrations et immersion | ROUGE | Trois blasons manquants, aucune illustration nouvelle faute de générateur |
+| C. Finalisation et publication | ORANGE | 7 migrations sur 9 appliquées ; CI « Qualite » verte sur `a139220` ; rien de publié |
+
+### Décisions du propriétaire relevées par le contrôle de cohérence
+
+1. `private.titan_plan_products` est vide dans les migrations : si les produits Google Play ne sont pas associés en production,
+   un coach payant n'obtient ni ses sièges ni le TITAN+ inclus. À vérifier avant toute vente.
+2. Âge : les textes disent 13 ans, aucun âge n'est demandé à l'inscription et la publicité n'est pas marquée « mineur ».
+3. Mentions légales : identité de l'éditeur « à publier » alors que des abonnements sont décrits. Rien n'a été inventé.
+4. La FAQ dit « application web installable » alors que les offres se vendent dans l'application Android ; lien Play vide.
+
 ## 1. La promesse et les trois piliers
 
 **Tu fais du sport. TITAN transforme tes efforts en progression et en aventure.**
