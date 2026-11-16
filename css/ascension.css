@@ -631,7 +631,8 @@ body.asc {
 
 /* ---------- Header field ----------
    A page opens on a flat field of its space colour, edge to edge, with its title set large in the field's own ink. Text on the
-   field is the ink at two strengths, never grey. The QG and the Aventure open on the world's painting instead (.asc-art-head). */
+   field is the ink at two strengths, never grey. The QG opens on the world's painting instead (.asc-art-head); Aventure keeps its
+   title on the ground because the map under it is that painting. */
 .asc-page-head {
   display: flex;
   flex-wrap: wrap;
@@ -1852,7 +1853,7 @@ html[data-motion="reduced"] *::after {
   }
 }
 
-/* ---------- Painting header (QG, Aventure) ----------
+/* ---------- Painting header (QG) ----------
    The world's painting runs edge to edge and dissolves into the ground: the picture is the header, not a card inside it. */
 .asc-art-head {
   position: relative;
