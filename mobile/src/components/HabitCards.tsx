@@ -34,10 +34,10 @@ export function HabitStrip({ logs, cadence, favorite }: { logs: TrainingLog[]; c
   const sport = favorite ?? logs.find((l) => l.sport && Sports.conf(l.sport))?.sport ?? "walking";
   const streak = heldStreak(cadence);
   return (
-    <Card style={{ gap: space.s2 }} testID="qg-habits">
+    <Card tone="ruled" style={{ gap: space.s2 }} testID="qg-habits">
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.s2 }}>
         <View style={{ flex: 1 }}>
-          <T variant="eyebrow" tone="accent">Mon créneau</T>
+          <T variant="title">Mon créneau</T>
           <T variant="bodyStrong">{intention ?? "Quand est-ce que tu bouges ?"}</T>
         </View>
         <Button small kind="ghost" label={intention ? "Modifier" : "Le choisir"} onPress={() => { setText(intention ?? ""); setEditing(!editing); }} testID="habit-intention-edit" />
@@ -85,8 +85,8 @@ export function EnergyCheckIn({ now = new Date() }: { now?: Date }) {
     readJSON<{ day: string; level: number } | null>(key, null).then((v) => setLevel(v?.day === today ? v.level : null));
   }, [key, today]);
   return (
-    <Card style={{ gap: space.s2 }} testID="qg-energy">
-      <T variant="eyebrow" tone="accent">Ton énergie aujourd’hui</T>
+    <Card tone="ruled" style={{ gap: space.s2 }} testID="qg-energy">
+      <T variant="title">Ton énergie aujourd’hui</T>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
         {LEVELS.map((l) => (
           <Chip key={l.v} label={l.label} selected={level === l.v} onPress={() => { setLevel(l.v); void writeJSON(key, { day: today, level: l.v }); }} />
@@ -103,8 +103,8 @@ export function YearSquares({ logs, now = new Date() }: { logs: TrainingLog[]; n
   const proj = useMemo(() => yearProjection(logs, now), [logs, now]);
   const shade = (m: number) => (m <= 0 ? colors.bg4 : m < 30 ? "#1F5E66" : m < 60 ? "#2A8F99" : m < 90 ? "#33B8C4" : colors.cy);
   return (
-    <Card style={{ gap: space.s2 }} testID="year-squares">
-      <T variant="eyebrow" tone="accent">Mon année en carrés</T>
+    <Card tone="ruled" style={{ gap: space.s2 }} testID="year-squares">
+      <T variant="title">Mon année en carrés</T>
       <View style={styles.grid} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {grid.weeks.map((w, i) => (
           <View key={i} style={styles.col}>

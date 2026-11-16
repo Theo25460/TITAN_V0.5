@@ -21,8 +21,8 @@ export const Field = forwardRef<TextInput, Props>(function Field({ label, hint, 
         <TextInput
           ref={ref}
           placeholderTextColor={colors.tx3}
-          selectionColor={colors.cy}
-          cursorColor={colors.cy}
+          selectionColor={colors.tx}
+          cursorColor={colors.tx}
           accessibilityLabel={rest.accessibilityLabel ?? label}
           accessibilityHint={error ?? hint}
           secureTextEntry={secure ? hidden : undefined}
@@ -63,7 +63,7 @@ export const Field = forwardRef<TextInput, Props>(function Field({ label, hint, 
 
 const styles = StyleSheet.create({
   box: { flexDirection: "row", alignItems: "center", minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, backgroundColor: colors.bg1 },
-  focused: { borderColor: colors.cy },
+  focused: { borderColor: colors.tx },
   error: { borderColor: colors.err },
   input: { flex: 1, minWidth: 0, color: colors.tx, fontFamily: fonts.textSemi, fontSize: 16, paddingHorizontal: 14, paddingVertical: 12 },
   inputCompact: { paddingHorizontal: 10 },

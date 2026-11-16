@@ -1,11 +1,13 @@
 import { useRef } from "react";
 import { ActivityIndicator, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from "react-native";
+import { useSpace } from "../theme/space";
 import { colors, fonts, radius, TOUCH } from "../theme/tokens";
 import { Icon, type IconName } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
 
-type Kind = "primary" | "secondary" | "ghost" | "danger" | "amber";
+/** « ink »: the button that sits on a slab of the space colour (dark ground, coloured label). */
+type Kind = "primary" | "secondary" | "ghost" | "danger" | "amber" | "ink";
 
 export function Button({ label, onPress, kind = "primary", icon, loading = false, disabled = false, small = false, style, accessibilityHint, testID }: {
   label: string;
@@ -19,12 +21,15 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
   accessibilityHint?: string;
   testID?: string;
 }) {
+  // The primary button takes the colour of the space it is in: the same shape everywhere, and a colour that says where you are.
+  const theme = useSpace();
   const palette = {
-    primary: { bg: colors.cy, fg: colors.cyInk, border: colors.cy },
-    secondary: { bg: colors.bg3, fg: colors.tx, border: colors.line2 },
-    ghost: { bg: "transparent", fg: colors.cy, border: "transparent" },
+    primary: { bg: theme.accent, fg: theme.ink, border: theme.accent },
+    secondary: { bg: colors.bg3, fg: colors.tx, border: colors.bg3 },
+    ghost: { bg: "transparent", fg: theme.accent, border: "transparent" },
     danger: { bg: colors.errSoft, fg: colors.err, border: "rgba(242,102,95,0.4)" },
-    amber: { bg: colors.am, fg: "#1D1302", border: colors.am },
+    amber: { bg: colors.am, fg: colors.amInk, border: colors.am },
+    ink: { bg: theme.ink, fg: theme.accent, border: theme.ink },
   }[kind];
   const busy = loading || disabled;
   // While an asynchronous action started by this button is still running, a second press is a double tap, not a second intention
@@ -71,5 +76,5 @@ const styles = StyleSheet.create({
   base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, justifyContent: "center", overflow: "hidden" },
   small: { minHeight: TOUCH, paddingHorizontal: 14 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  label: { fontFamily: fonts.textHeavy, flexShrink: 1, textAlign: "center" },
+  label: { fontFamily: fonts.textBold, flexShrink: 1, textAlign: "center" },
 });

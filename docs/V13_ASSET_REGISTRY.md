@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 215 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 153 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 216 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 163 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -17,7 +17,7 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | ranks | 16 | 423852 | 423852 |
 | store-listing | 15 | 6257727 | 0 |
 | subscription | 4 | 154842 | 154842 |
-| typography | 12 | 506691 | 506691 |
+| typography | 13 | 603555 | 603555 |
 | world-map-decoration | 1 | 28400 | 28400 |
 | worlds | 18 | 2480758 | 2480758 |
 
@@ -250,14 +250,15 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `mobile/assets/brand/mark.png` | brand | 4363 | 256×256 | retain |
 | `mobile/assets/brand/notification.png` | notifications | 1382 | 96×96 | retain |
 | `mobile/assets/brand/splash-mark.png` | brand | 18018 | 1024×1024 | retain |
-| `mobile/assets/fonts/Manrope-Bold.ttf` | typography | 35560 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-ExtraBold.ttf` | typography | 35764 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-Regular.ttf` | typography | 35652 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-SemiBold.ttf` | typography | 35632 | sans dimension raster | retain |
 | `mobile/assets/fonts/TitanDisplay-Bold.ttf` | typography | 40768 | sans dimension raster | retain |
 | `mobile/assets/fonts/TitanDisplay-Heavy.ttf` | typography | 40648 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanFigure-Bold.ttf` | typography | 40456 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanFigure-Light.ttf` | typography | 40448 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-Bold.ttf` | typography | 40696 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-ExtraBold.ttf` | typography | 40740 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-Regular.ttf` | typography | 40796 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-SemiBold.ttf` | typography | 40720 | sans dimension raster | retain |
 | `mobile/assets/fonts/archivo-OFL.txt` | typography | 4503 | sans dimension raster | fix |
-| `mobile/assets/fonts/manrope-OFL.txt` | typography | 4384 | sans dimension raster | fix |
 | `mobile/assets/rank/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
 | `mobile/assets/rank/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
 | `mobile/assets/rank/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |

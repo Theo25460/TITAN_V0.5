@@ -115,7 +115,7 @@ export function DateSheet({ req, onDone }: { req: PickerRequest; onDone: (d?: Da
                 style={[styles.cell, on && styles.cellOn, !on && isToday && styles.cellToday, !ok && { opacity: 0.3 }]}
                 testID={`picker-day-${day.getDate()}`}
               >
-                <T variant="bodyStrong" color={on ? colors.cyInk : colors.tx} center>
+                <T variant="bodyStrong" color={on ? colors.bg : colors.tx} center>
                   {day.getDate()}
                 </T>
               </Tap>
@@ -211,10 +211,10 @@ const styles = StyleSheet.create({
   arrow: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center" },
   week: { flexDirection: "row", gap: 4 },
   cell: { flex: 1, height: CELL, borderRadius: radius.r2, alignItems: "center", justifyContent: "center" },
-  cellOn: { backgroundColor: colors.cy },
-  cellToday: { borderWidth: 1, borderColor: colors.cyLine },
+  cellOn: { backgroundColor: colors.tx },
+  cellToday: { borderWidth: 1, borderColor: colors.line3 },
   wheels: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.s4, paddingVertical: space.s2 },
   wheelBox: { width: 112, height: ITEM * VISIBLE, borderRadius: radius.r3, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
-  band: { position: "absolute", left: 6, right: 6, top: ITEM * Math.floor(VISIBLE / 2), height: ITEM, borderRadius: radius.r2, backgroundColor: colors.cySoft, borderWidth: 1, borderColor: colors.cyLine },
+  band: { position: "absolute", left: 6, right: 6, top: ITEM * Math.floor(VISIBLE / 2), height: ITEM, borderRadius: radius.r2, backgroundColor: colors.bg4, borderWidth: 1, borderColor: colors.line3 },
   wheelItem: { height: ITEM, alignItems: "center", justifyContent: "center" },
 });

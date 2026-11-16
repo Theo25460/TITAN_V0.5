@@ -91,10 +91,13 @@ test("shows the confirmed rank and three metrics, with two actions to sources an
   expect(view.getByText(NAME).props.numberOfLines).toBeUndefined();
   expect(view.getByTestId("rank-crest")).toBeTruthy();
   expect(view.getByTestId("profile-metrics").children).toHaveLength(3);
-  expect(view.getByTestId("career-milestones").props.accessibilityLabel).toBe("owner-a");
   for (const title of ["Mon identité", "Mon sport", "Connexions & compte", "Aide & préférences"]) {
     expect(view.getByLabelText(title).props.accessibilityState.expanded).toBe(false);
   }
+  // The career milestones are part of « Mon identité » since the profile was shortened (16 November 2026): one tap away, not a panel.
+  expect(view.queryByTestId("career-milestones")).toBeNull();
+  fireEvent.press(view.getByLabelText("Mon identité"));
+  expect(view.getByTestId("career-milestones").props.accessibilityLabel).toBe("owner-a");
   fireEvent.press(view.getByTestId("profile-sports"));
   expect(mockNavigate).toHaveBeenLastCalledWith("Tabs", { screen: "Progress" });
   expect(view.queryByTestId("profile-sources")).toBeNull();
@@ -159,7 +162,7 @@ test("a narrow screen at 200% text keeps the full name and rank crest", async ()
   }
 });
 
-test("the sheet reads like a character sheet: sports practised, records, distinctions and the journal, without opening a group", async () => {
+test("the profile says who I am without opening a group: my sports, my best record, my distinctions; the journal is one tap away", async () => {
   mockActive = [{ id: "l1" }];
   mockRecords = [{ id: "r1", label: "Plus longue distance", sportLabel: "Natation", unit: "m", value: 2000 }];
   const view = render(<ProfileScreen />);
@@ -176,6 +179,9 @@ test("the sheet reads like a character sheet: sports practised, records, distinc
   expect(mockNavigate).toHaveBeenLastCalledWith("Tabs", { screen: "Adventure" });
   fireEvent.press(view.getByLabelText(/Crédits : /));
   expect(mockNavigate).toHaveBeenLastCalledWith("Atelier");
+  // The journal belongs to Progrès; from the profile it sits in « Mon sport ».
+  expect(view.queryByTestId("profile-journal")).toBeNull();
+  fireEvent.press(view.getByLabelText("Mon sport"));
   fireEvent.press(view.getByTestId("profile-journal"));
   expect(mockNavigate).toHaveBeenLastCalledWith("Journal");
 });

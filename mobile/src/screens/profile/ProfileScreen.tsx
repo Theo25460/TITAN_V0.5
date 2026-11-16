@@ -4,7 +4,6 @@ import { Share, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Alert } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
-import { Card } from "../../components/Card";
 import { RankCrest, rankIdOf } from "../../components/Crest";
 import { Icon, type IconName } from "../../components/Icon";
 import { CareerMilestones } from "../../components/JourneyCard";
@@ -21,7 +20,11 @@ import { useQueue } from "../../data/queue";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { ownerKey, readJSON, writeJSON } from "../../lib/storage";
-import { colors, space } from "../../theme/tokens";
+import { Program } from "../../core/program";
+import { ProgramGrid } from "../../components/ProgramGrid";
+import { colors, space, spaces } from "../../theme/tokens";
+
+const INK = spaces.profil.ink;
 
 const METRICS = { sessions: "Séances", time: "De pratique", weeks: "Semaines tenues", favorite: "Sport le plus pratiqué" };
 type Metric = keyof typeof METRICS;
@@ -37,12 +40,12 @@ function ProfileRow({ title, subtitle, icon, onPress, testID, disabled, compact 
   return (
     <Tap testID={testID} onPress={onPress} disabled={disabled} accessibilityState={{ disabled: !!disabled }}
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title} style={[compact ? styles.action : styles.row, fill && styles.fill]}>
-      {icon ? <Icon name={icon} color={colors.cy} size={20} /> : null}
+      {icon ? <Icon name={icon} color={compact && fill ? INK : colors.tx2} size={20} /> : null}
       <View style={styles.rowText}>
-        <T variant="bodyStrong">{title}</T>
-        {subtitle ? <T variant="small">{subtitle}</T> : null}
+        <T variant="bodyStrong" color={compact && fill ? INK : undefined}>{title}</T>
+        {subtitle ? <T variant="small" color={compact && fill ? INK : undefined} style={compact && fill ? { opacity: 0.76 } : undefined}>{subtitle}</T> : null}
       </View>
-      {compact ? null : <Icon name="chevron" size={18} />}
+      {compact ? null : <Icon name="chevron" size={18} color={colors.tx3} />}
     </Tap>
   );
 }
@@ -53,7 +56,7 @@ function PassportGroup({ title, subtitle, children }: { title: string; subtitle:
     <View style={styles.group}>
       <Tap onPress={() => setOpen(!open)} accessibilityLabel={title} accessibilityState={{ expanded: open }} style={styles.groupHead}>
         <View style={styles.rowText}><T variant="title">{title}</T><T variant="small">{subtitle}</T></View>
-        <Icon name={open ? "minus" : "plus"} size={20} color={colors.cy} />
+        <Icon name={open ? "minus" : "plus"} size={20} color={colors.tx} />
       </Tap>
       {open ? children : null}
     </View>
@@ -94,6 +97,7 @@ export function ProfileScreen() {
       return [];
     }
   }, [active]);
+  const span = useMemo(() => Program.span(active, { weeks: 8, maxRows: 4 }), [active]);
   const insignia = adventure?.rewards?.length ?? null;
   const values: Record<Metric, string> = {
     sessions: Format.number(dna.sessions),
@@ -180,96 +184,85 @@ export function ProfileScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
-      <Screen tab refreshing={profile.isRefetching || adventureQuery.isRefetching || logs.isRefetching || social.isRefetching || atelier.isRefetching}
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Screen tab padded={false} refreshing={profile.isRefetching || adventureQuery.isRefetching || logs.isRefetching || social.isRefetching || atelier.isRefetching}
         onRefresh={() => { profile.refetch(); adventureQuery.refetch(); logs.refetch(); social.refetch(); atelier.refetch(); }}>
-        <T variant="eyebrow" tone="accent">Mon passeport TITAN</T>
-        {/* The character: who I am, my rank and its crest, and the XP towards the next level, read as one block. */}
-        <Card style={{ gap: space.s4 }}>
+        {/* Who I am, on the chalk field of this space: the face, the name, the rank and its crest, and the XP towards the next level. */}
+        <View style={[styles.field, { paddingTop: insets.top + space.s5 }]} testID="profile-identity">
           <View style={[styles.head, stacked && styles.stacked]}>
-            <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={72} />
+            <Avatar id={adventure?.avatar} frame={String((p?.appearance as Record<string, unknown> | undefined)?.frame ?? "")} size={76} />
             <View style={[styles.rowText, stacked && styles.intrinsic]}>
-              <T variant="h2">{p?.username || "Athlète"}</T>
-              <T variant="small" tone="accent" accessibilityLiveRegion="polite">{level !== undefined ? `Niveau ${level} · ${EffortRules.rank(level).name}` : profile.isLoading || adventureQuery.isLoading ? "Chargement de ta progression…" : "Progression en attente de synchronisation"}</T>
+              <T variant="h1" color={INK}>{p?.username || "Athlète"}</T>
+              <T variant="title" color={INK} style={{ opacity: 0.78 }} accessibilityLiveRegion="polite">{level !== undefined ? `Niveau ${level} · ${EffortRules.rank(level).name}` : profile.isLoading || adventureQuery.isLoading ? "Chargement de ta progression…" : "Progression en attente de synchronisation"}</T>
             </View>
-            {level !== undefined ? <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 64} /> : null}
+            {level !== undefined ? <RankCrest rank={rankIdOf(level)} size={width < 360 ? 48 : 76} /> : null}
           </View>
           {level !== undefined ? <View style={{ gap: 6 }}>
+            <ProgressBar value={xp / Math.max(1, need)} height={4} color={INK} track="rgba(14,18,22,0.16)" accessibilityLabel="Progression vers le niveau suivant" />
             <View style={styles.between}>
-              <T variant="small">Vers le niveau {level + 1}</T>
-              <T variant="caption">{Format.number(xp)} / {Format.number(need)} XP</T>
+              <T variant="caption" color={INK} style={{ opacity: 0.78 }}>Vers le niveau {level + 1}</T>
+              <T variant="caption" color={INK}>{Format.number(xp)} / {Format.number(need)} XP</T>
             </View>
-            <ProgressBar value={xp / Math.max(1, need)} accessibilityLabel="Progression vers le niveau suivant" />
           </View> : null}
           <View style={[styles.actions, stacked && styles.stacked]}>
             <ProfileRow compact fill={!stacked} title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
             {code ? <ProfileRow compact fill={!stacked} title="Code ami" subtitle={`${code} · partager`} icon="share"
               onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
           </View>
-        </Card>
+        </View>
+
+        <View style={styles.body}>
         {logs.data !== undefined ? <View testID="profile-metrics" style={[styles.metrics, stacked && styles.stacked]}>
           {choices.map(metric => (
             <View key={metric} style={[styles.metric, stacked && styles.intrinsic]} accessible accessibilityLabel={`${METRICS[metric]} : ${values[metric]}`}>
-              <T variant="num">{values[metric]}</T><T variant="caption">{METRICS[metric]}</T>
+              <T variant={metric === "favorite" ? "h2" : "figure"} numberOfLines={metric === "favorite" ? 2 : 1} adjustsFontSizeToFit={metric !== "favorite"}>{values[metric]}</T><T variant="caption">{METRICS[metric]}</T>
             </View>
           ))}
-        </View> : <Card tone="flat"><T variant="small" accessibilityLiveRegion="polite">{logs.isLoading ? "Chargement de tes indicateurs…" : "Tes indicateurs sont en attente de synchronisation."}</T></Card>}
+        </View> : <T variant="small" accessibilityLiveRegion="polite">{logs.isLoading ? "Chargement de tes indicateurs…" : "Tes indicateurs sont en attente de synchronisation."}</T>}
 
-        {/* Sports practised: the journal's own figures, most practised first. */}
-        <Card onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel={`Mes sports. ${sports.length ? sports.map(sp => `${sp.label}${sp.sessions ? `, ${Format.plural(sp.sessions, "séance", "séances")}` : ""}`).join(". ") : "Aucune séance pour l’instant"}. Voir ma progression.`} style={{ gap: space.s3 }} testID="profile-sports">
+        {/* My sports, as my programme of the last eight weeks: which ones, how often. The figures themselves live in Progrès. */}
+        <Tap onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} accessibilityLabel={`Mes sports. ${sports.length ? sports.map(sp => `${sp.label}${sp.sessions ? `, ${Format.plural(sp.sessions, "séance", "séances")}` : ""}`).join(". ") : "Aucune séance pour l’instant"}. Voir ma progression.`} style={styles.block} testID="profile-sports">
           <View style={styles.between}>
-            <T variant="eyebrow">Mes sports</T>
+            <T variant="h3">Mes sports</T>
             <T variant="caption" tone="accent">Voir ma progression</T>
           </View>
-          {sports.length ? sports.map(sp => (
-            <View key={sp.sport ?? sp.label} style={styles.line}>
-              <Icon name={sp.sport ? Sports.FAMILY_ICON[Sports.familyOf(sp.sport)] : "run"} size={20} color={colors.cy} />
-              <T variant="bodyStrong" style={styles.rowText}>{sp.label}</T>
-              <T variant="caption">{[sp.sessions ? Format.plural(sp.sessions, "séance", "séances") : null, sp.minutes ? Format.hours(sp.minutes) : null].filter(Boolean).join(" · ")}</T>
-            </View>
-          )) : <T variant="small">Enregistre une séance : tes sports, tes records et ta maîtrise apparaîtront ici.</T>}
-        </Card>
+          {sports.length ? <ProgramGrid grid={span} /> : <T variant="small">Enregistre une séance : tes sports, tes records et ta maîtrise apparaîtront ici.</T>}
+        </Tap>
 
-        {/* Records: only when the journal holds some. Amber is the colour of records, used here and nowhere else on the sheet. */}
-        {records.length ? (
-          <Card onPress={() => navigation.navigate("Records")} accessibilityLabel={`Mes records. ${records.map(r => `${r.label}, ${r.sportLabel}`).join(". ")}. Voir tous les records.`} style={{ gap: space.s3 }} testID="profile-records">
-            <View style={styles.between}>
-              <T variant="eyebrow" tone="amber">Mes records</T>
-              <T variant="caption" tone="accent">Tous les records</T>
-            </View>
-            {records.map(r => (
-              <View key={r.id} style={styles.line}>
-                <Icon name="trophy" size={18} color={colors.am} />
-                <T variant="small" tone="default" style={styles.rowText}>{r.label} · {r.sportLabel}</T>
-                <T variant="bodyStrong">{typeof r.value === "number" ? Format.recordValue(r.unit, r.value) : r.value}</T>
+        {/* What the effort earned, one line each: the best record (amber is the colour of records), the insignia, the credits. */}
+        <View style={styles.earned}>
+          {records.length ? (
+            <Tap onPress={() => navigation.navigate("Records")} accessibilityLabel={`Mes records. ${records.map(r => `${r.label}, ${r.sportLabel}`).join(". ")}. Voir tous les records.`} style={styles.earnedRow} testID="profile-records">
+              <Icon name="trophy" size={20} color={colors.am} />
+              <View style={styles.rowText}>
+                <T variant="title">{records[0]!.label} · {records[0]!.sportLabel}</T>
+                <T variant="caption">{records.length > 1 ? `et ${records.length - 1} autre${records.length > 2 ? "s" : ""} record${records.length > 2 ? "s" : ""} en tête de ton livre` : "Ton record le plus récent"}</T>
               </View>
-            ))}
-          </Card>
-        ) : null}
+              <T variant="num" tone="amber">{typeof records[0]!.value === "number" ? Format.recordValue(records[0]!.unit, records[0]!.value) : records[0]!.value}</T>
+            </Tap>
+          ) : null}
+          {adventure ? (
+            <View style={styles.distinctions} testID="profile-distinctions">
+              <Tap onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} style={styles.distinction} accessibilityLabel={`Insignes d’aventure : ${insignia ?? 0} sur ${Codex.worlds?.length ? Codex.worlds.length * 9 : 36}. Ouvrir l’aventure.`}>
+                <T variant="num">{insignia ?? 0}<T variant="small" tone="faint"> / {Codex.worlds?.length ? Codex.worlds.length * 9 : 36}</T></T>
+                <T variant="caption">Insignes d’aventure</T>
+              </Tap>
+              <Tap onPress={() => navigation.navigate("Atelier")} style={styles.distinction} accessibilityLabel={`Crédits : ${Format.number(adventure.credits ?? 0)}. Ouvrir l’Atelier.`}>
+                <T variant="num">{Format.number(adventure.credits ?? 0)}</T>
+                <T variant="caption">Crédits à dépenser à l’Atelier</T>
+              </Tap>
+            </View>
+          ) : null}
+        </View>
 
-        {/* Distinctions and what the effort earned: insignia, credits, then the career milestones. */}
-        {adventure ? (
-          <View style={[styles.metrics, stacked && styles.stacked]} testID="profile-distinctions">
-            <Tap onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} style={[styles.metric, stacked && styles.intrinsic]} accessibilityLabel={`Insignes d’aventure : ${insignia ?? 0} sur ${Codex.worlds?.length ? Codex.worlds.length * 9 : 36}. Ouvrir l’aventure.`}>
-              <Icon name="medal" size={20} color={colors.am} />
-              <T variant="num">{insignia ?? 0}<T variant="small" tone="faint"> / {Codex.worlds?.length ? Codex.worlds.length * 9 : 36}</T></T>
-              <T variant="caption">Insignes d’aventure</T>
-            </Tap>
-            <Tap onPress={() => navigation.navigate("Atelier")} style={[styles.metric, stacked && styles.intrinsic]} accessibilityLabel={`Crédits : ${Format.number(adventure.credits ?? 0)}. Ouvrir l’Atelier.`}>
-              <Icon name="star" size={20} color={colors.am} />
-              <T variant="num">{Format.number(adventure.credits ?? 0)}</T>
-              <T variant="caption">Crédits à dépenser à l’Atelier</T>
-            </Tap>
-          </View>
-        ) : null}
-        <CareerMilestones owner={owner ?? ""} />
-        <ProfileRow compact icon="journal" title="Mon journal" subtitle={logs.data !== undefined ? `${Format.plural(dna.sessions, "séance enregistrée", "séances enregistrées")}` : undefined} onPress={() => navigation.navigate("Journal")} testID="profile-journal" />
-        <PassportGroup title="Mon identité" subtitle="Personnage, titres et collection">
+        <PassportGroup title="Mon identité" subtitle="Personnage, collection et jalons de carrière">
           <ProfileRow icon="user" title="Mon personnage" onPress={() => setPersonalise(true)} />
           <ProfileRow icon="star" title="Collection et titres" subtitle="Les souvenirs gagnés par mon effort" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
           <ProfileRow icon="qr" title="Ma carte publique" subtitle="Choisir ce que je partage" onPress={() => navigation.navigate("PublicCard")} />
+          <View style={styles.inGroup}><CareerMilestones owner={owner ?? ""} /></View>
         </PassportGroup>
-        <PassportGroup title="Mon sport" subtitle="Favoris, objectifs et historique">
+        <PassportGroup title="Mon sport" subtitle="Journal, favoris, objectifs et records">
+          <ProfileRow icon="journal" title="Mon journal" subtitle={logs.data !== undefined ? `${Format.plural(dna.sessions, "séance enregistrée", "séances enregistrées")}` : undefined} onPress={() => navigation.navigate("Journal")} testID="profile-journal" />
           <ProfileRow icon="run" title="Mes sports favoris" subtitle={prefs.favoriteSports.length ? prefs.favoriteSports.map(sport => Sports.label(sport)).join(", ") : "Choisir mes disciplines"} onPress={() => navigation.navigate("Sports")} />
           <ProfileRow icon="target" title="Mes objectifs" onPress={() => navigation.navigate("Tabs", { screen: "Progress", params: { tab: "goals" } })} />
           <ProfileRow icon="trophy" title="Mes records" onPress={() => navigation.navigate("Records")} />
@@ -291,6 +284,7 @@ export function ProfileScreen() {
           <ProfileRow icon="info" title="À propos de TITAN" onPress={() => navigation.navigate("About")} />
         </PassportGroup>
         <ProfileRow compact title="Se déconnecter" icon="logout" onPress={logout} testID="logout" />
+        </View>
       </Screen>
       <Sheet visible={personalise} onClose={() => setPersonalise(false)} title="Personnaliser mon passeport">
         <T variant="h3">Mes trois indicateurs</T>
@@ -323,20 +317,27 @@ export function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  field: { backgroundColor: spaces.profil.accent, paddingHorizontal: space.s5, paddingBottom: space.s5, gap: space.s4 },
+  body: { paddingHorizontal: space.s5, paddingTop: space.s5, gap: space.s5 },
   head: { flexDirection: "row", alignItems: "center", gap: space.s4 },
   stacked: { flexDirection: "column", alignItems: "stretch", flexWrap: "nowrap" },
   // Explicit (not `flex: 0`): the stacked cells keep their content height on every platform.
   intrinsic: { flexGrow: 0, flexShrink: 0, flexBasis: "auto" },
-  action: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s3, borderRadius: 12, borderWidth: 1, borderColor: colors.line2 },
+  action: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.s2, paddingVertical: space.s2, paddingHorizontal: space.s3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(14,18,22,0.26)" },
   // The two actions share a row when both fit and wrap otherwise (long name of an action at a large text size): never squeezed letter by letter.
   actions: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
   fill: { flexGrow: 1, flexShrink: 0, flexBasis: "auto" },
   between: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
-  line: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 28 },
-  row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s4, borderTopWidth: 1, borderTopColor: colors.line },
+  row: { minHeight: 60, flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3, borderTopWidth: 1, borderTopColor: colors.line },
   rowText: { flex: 1, minWidth: 0, gap: 4 },
-  metrics: { flexDirection: "row", flexWrap: "wrap", gap: space.s3 },
-  metric: { flex: 1, minWidth: 80, gap: 4, padding: space.s3, backgroundColor: colors.bg2, borderRadius: 14, borderWidth: 1, borderColor: colors.line },
-  group: { backgroundColor: colors.bg2, borderRadius: 18, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
-  groupHead: { minHeight: 72, flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s4 },
+  metrics: { flexDirection: "row", flexWrap: "wrap", gap: space.s5 },
+  metric: { flex: 1, minWidth: 80, gap: 2 },
+  block: { gap: space.s3, borderTopWidth: 2, borderTopColor: colors.tx, paddingTop: space.s3 },
+  earned: { borderTopWidth: 2, borderTopColor: colors.tx },
+  earnedRow: { minHeight: 68, flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3, borderBottomWidth: 1, borderBottomColor: colors.line },
+  distinctions: { flexDirection: "row", gap: space.s5 },
+  distinction: { flex: 1, minHeight: 68, justifyContent: "center", gap: 2, paddingVertical: space.s3 },
+  group: { borderTopWidth: 1, borderTopColor: colors.line2 },
+  groupHead: { minHeight: 68, flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3 },
+  inGroup: { paddingVertical: space.s3, borderTopWidth: 1, borderTopColor: colors.line },
 });

@@ -35,6 +35,7 @@ export const MODULES = [
   "js/core/live-engine.js",
   "js/core/live-world.js",
   "js/core/live-scene.js",
+  "js/core/program-grid.js",
   "js/core/periodic-quests.js",
 ];
 

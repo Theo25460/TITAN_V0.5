@@ -29,8 +29,8 @@ export function SelfComparisonCard({ logs }: { logs: TrainingLog[] }) {
   const pct = Math.round(c.ratio * 100);
   const line = Math.abs(pct) < 3 ? "Aussi régulier que l’an dernier." : pct > 0 ? `+${pct} % d’effort par rapport à l’an dernier.` : `${pct} % d’effort par rapport à l’an dernier : chaque saison a son rythme.`;
   return (
-    <Card style={{ gap: 6 }} testID="self-vs-last-year">
-      <T variant="eyebrow" tone="accent">Toi contre toi · 30 derniers jours</T>
+    <Card tone="ruled" style={{ gap: 6 }} testID="self-vs-last-year">
+      <T variant="title">Toi contre toi · 30 derniers jours</T>
       <T variant="bodyStrong">{line}</T>
       <T variant="small">
         {c.sessions[0]} séance{c.sessions[0] > 1 ? "s" : ""} contre {c.sessions[1]} · {c.activeDays[0]} jour{c.activeDays[0] > 1 ? "s" : ""} actif{c.activeDays[0] > 1 ? "s" : ""} contre {c.activeDays[1]} · {Math.round(c.minutes[0] / 60)} h contre {Math.round(c.minutes[1] / 60)} h

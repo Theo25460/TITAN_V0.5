@@ -12,7 +12,8 @@ import { HomeScreen } from "../screens/home/HomeScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
 import { ProgressScreen } from "../screens/progress/ProgressScreen";
 import { RecordScreen } from "../screens/session/RecordScreen";
-import { colors, fonts } from "../theme/tokens";
+import { spaceOfRoute } from "../theme/space";
+import { colors, fonts, spaces } from "../theme/tokens";
 import type { TabParams } from "./types";
 
 const Tab = createBottomTabNavigator<TabParams>();
@@ -42,7 +43,7 @@ export function AccessibleTabBar({ state, descriptors, navigation, insets, width
     {state.routes.map((route, index) => {
       const { options } = descriptors[route.key]!;
       const focused = state.index === index;
-      const color = focused ? colors.cy : colors.tx3;
+      const color = focused ? spaceOfRoute(route.name).accent : colors.tx3;
       const label = typeof options.tabBarLabel === "string" ? options.tabBarLabel : options.title ?? route.name;
       const badge = options.tabBarBadge;
       const accessibilityLabel = `${options.tabBarAccessibilityLabel ?? label}${badge != null ? `, ${badge} séance${badge === 1 ? "" : "s"} en attente` : ""}`;
@@ -69,18 +70,19 @@ export function Tabs() {
       tabBar={props => layout.columns < 5 ? <AccessibleTabBar {...props} width={width} fontScale={fontScale} /> : <BottomTabBar {...props} />}
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.cy,
+        // Each destination lights up in the colour of its space.
+        tabBarActiveTintColor: spaceOfRoute(route.name).accent,
         tabBarInactiveTintColor: colors.tx3,
         tabBarHideOnKeyboard: true,
         // From 600 dp the library puts the label beside the icon, and the raised "+" then covers "Séance" (unfolded phone, tablet, split window).
         tabBarLabelPosition: "below-icon",
         animation: reduced ? "none" : "shift",
-        tabBarStyle: { backgroundColor: colors.bg1, borderTopColor: colors.line, height: layout.height, paddingTop: 6, paddingBottom: insets.bottom + 8 },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.line2, height: layout.height, paddingTop: 6, paddingBottom: insets.bottom + 8 },
         tabBarLabel: ({ children, color }) => <TabLabel color={color}>{children}</TabLabel>,
         tabBarIcon: ({ color, focused }) =>
           route.name === "Record" ? (
             <View style={[styles.record, focused && styles.recordOn]}>
-              <Icon name="plus" size={26} color={colors.cyInk} strokeWidth={2.4} />
+              <Icon name="plus" size={26} color={spaces.seance.ink} strokeWidth={2.6} />
             </View>
           ) : (
             <Icon name={ICONS[route.name]} size={24} color={color} strokeWidth={focused ? 2.1 : 1.65} />
@@ -98,10 +100,10 @@ export function Tabs() {
 }
 
 const styles = StyleSheet.create({
-  adaptiveBar: { flexDirection: "row", flexWrap: "wrap", paddingTop: 6, backgroundColor: colors.bg1, borderTopWidth: 1, borderTopColor: colors.line },
+  adaptiveBar: { flexDirection: "row", flexWrap: "wrap", paddingTop: 6, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.line2 },
   adaptiveTab: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 10, paddingVertical: 8 },
   pendingBadge: { alignSelf: "center", fontFamily: fonts.textBold, fontSize: 11, color: colors.warn },
   label: { fontFamily: fonts.textBold, fontSize: 11, textAlign: "center" },
-  record: { width: 46, height: 34, borderRadius: 12, backgroundColor: colors.cy, alignItems: "center", justifyContent: "center", marginTop: -2 },
-  recordOn: { backgroundColor: colors.cy2 },
+  record: { width: 52, height: 36, borderRadius: 8, backgroundColor: colors.signal, alignItems: "center", justifyContent: "center", marginTop: -2 },
+  recordOn: { backgroundColor: "#E6FA8C" },
 });

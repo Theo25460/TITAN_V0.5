@@ -2,7 +2,9 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { forwardRef, useEffect, useState, type ReactNode } from "react";
 import { Keyboard, KeyboardAvoidingView, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View, type ScrollViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, space } from "../theme/tokens";
+import { useRoute } from "@react-navigation/native";
+import { SpaceProvider, spaceOfRoute } from "../theme/space";
+import { colors, space, type SpaceId } from "../theme/tokens";
 import { OfflineBanner } from "./OfflineBanner";
 
 /** Window height (dp) under which the footer stops being fixed. */
@@ -17,10 +19,12 @@ type Props = ScrollViewProps & {
   footer?: ReactNode;
   padded?: boolean;
   keyboard?: boolean;
+  /** The space this screen belongs to. By default it follows the route (theme/space.tsx). */
+  space?: SpaceId;
 };
 
 /** Standard scrolling screen: safe areas, pull-to-refresh, offline banner and keyboard handling. */
-export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, refreshing = false, onRefresh, tab = false, footer, padded = true, keyboard = false, contentContainerStyle, ...rest }, ref) {
+export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, refreshing = false, onRefresh, tab = false, footer, padded = true, keyboard = false, space: spaceId, contentContainerStyle, ...rest }, ref) {
   const insets = useSafeAreaInsets();
   // With the keyboard open the footer joins the layout instead of floating over it: it never hides the field being typed in.
   const [typing, setTyping] = useState(false);
@@ -38,6 +42,14 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
   const short = height < SHORT_WINDOW;
   const scrollsWithContent = !!footer && short;
   const floating = !!footer && !typing && !short;
+  let routeName: string | undefined;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    routeName = useRoute().name;
+  } catch {
+    routeName = undefined;
+  }
+  const theme = spaceId ? spaceId : spaceOfRoute(routeName);
   let headerHeight = 0;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -52,7 +64,7 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
         ref={ref}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.cy} colors={[colors.cy]} progressBackgroundColor={colors.bg3} /> : undefined}
+        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.tx2} colors={[colors.bg]} progressBackgroundColor={colors.tx} /> : undefined}
         contentContainerStyle={[styles.readableWidth, padded && styles.padded, { paddingBottom: (tab ? space.s7 : insets.bottom + space.s7) + (floating ? 84 : 0) }, contentContainerStyle]}
         {...rest}
       >
@@ -62,11 +74,13 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
       {footer && !scrollsWithContent ? <View style={[floating ? styles.footer : styles.footerInline, { paddingBottom: typing ? space.s3 : insets.bottom + space.s3 }]}><View style={styles.readableWidth}>{footer}</View></View> : null}
     </View>
   );
-  if (!keyboard) return body;
+  if (!keyboard) return <SpaceProvider space={theme}>{body}</SpaceProvider>;
   return (
-    <KeyboardAvoidingView style={styles.root} behavior="height" keyboardVerticalOffset={headerHeight}>
-      {body}
-    </KeyboardAvoidingView>
+    <SpaceProvider space={theme}>
+      <KeyboardAvoidingView style={styles.root} behavior="height" keyboardVerticalOffset={headerHeight}>
+        {body}
+      </KeyboardAvoidingView>
+    </SpaceProvider>
   );
 });
 
@@ -75,7 +89,7 @@ const styles = StyleSheet.create({
   // A readable maximum width prevents giant forms and cards on tablets and unfolded phones.
   // It remains 100% on compact devices and in Android split-screen mode.
   readableWidth: { width: "100%", maxWidth: 720, alignSelf: "center" },
-  padded: { paddingHorizontal: space.s4, paddingTop: space.s4, gap: space.s4 },
-  footer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: space.s4, paddingTop: space.s3, backgroundColor: "rgba(5,7,10,0.96)", borderTopWidth: 1, borderTopColor: colors.line },
-  footerInline: { paddingHorizontal: space.s4, paddingTop: space.s3, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.line },
+  padded: { paddingHorizontal: space.s5, paddingTop: space.s4, gap: space.s5 },
+  footer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: space.s5, paddingTop: space.s3, backgroundColor: "rgba(9,12,16,0.97)", borderTopWidth: 1, borderTopColor: colors.line },
+  footerInline: { paddingHorizontal: space.s5, paddingTop: space.s3, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.line },
 });

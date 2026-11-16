@@ -1,10 +1,10 @@
 import { Image, StyleSheet, View } from "react-native";
 import { Format } from "../core";
+import type { ProgramWeek } from "../core/program";
 import { colors, radius, space, TOUCH } from "../theme/tokens";
-import { Card } from "./Card";
 import { Icon } from "./Icon";
 import { Tap } from "./Pressable";
-import { Ring } from "./Progress";
+import { ProgramGrid } from "./ProgramGrid";
 import { T } from "./Text";
 
 type Cadence = { currentDays: number; target: number; currentPaused?: boolean };
@@ -22,22 +22,25 @@ export type QgChapter = {
   objectives: string;
 };
 
-/** The QG's second block, always visible: what the week gave (confirmed XP only) and the chapter in progress, with what it still asks.
-    Two rows in one card instead of a ring tile, a hidden "ascension" panel and a separate world line: one place to read "where am I". */
-export function QgProgress({ cadence, sessions, weekXp, showWeek, chapter, online, onWeek, onChapter }: {
+/** « Where am I »: the week, read as three figures and the programme of its days (confirmed sessions only), then the chapter in
+    progress with what it still asks. Set on the ground, under a rule: the figures are the block, they need no box. */
+export function QgProgress({ cadence, sessions, weekXp, weekMinutes, showWeek, chapter, online, grid, previous, onWeek, onChapter }: {
   cadence: Cadence;
   sessions: number;
   /** XP of this week's confirmed sessions (the journal's own figures), never an estimate. */
   weekXp: number;
-  /** False for an account without any session yet: an empty ring is not a figure. */
+  weekMinutes?: number;
+  /** False for an account without any session yet: an empty week is not a figure. */
   showWeek: boolean;
   chapter: QgChapter | null;
   online: boolean;
+  grid?: ProgramWeek | null;
+  /** Last week, drawn under an empty current week (a Monday morning): the figure never starts blank for someone who trains. */
+  previous?: ProgramWeek | null;
   onWeek: () => void;
   onChapter: () => void;
 }) {
   const reached = !cadence.currentPaused && cadence.target > 0 && cadence.currentDays >= cadence.target;
-  const tint = reached ? colors.ok : colors.cy;
   const days = `${cadence.currentDays} jour${cadence.currentDays > 1 ? "s" : ""} actif${cadence.currentDays > 1 ? "s" : ""}`;
   const weekLine = cadence.currentPaused ? `${days} · cadence en pause` : `${days} sur ${cadence.target}`;
   const sessionsText = `${sessions} séance${sessions > 1 ? "s" : ""}`;
@@ -49,49 +52,67 @@ export function QgProgress({ cadence, sessions, weekXp, showWeek, chapter, onlin
         ? online ? "Balise prête : tu peux l’allumer." : "Balise prête. Connexion nécessaire pour l’allumer."
         : `Pour allumer la balise : ${chapter.objectives}`;
   return (
-    <Card style={styles.card} testID="qg-progress">
+    <View style={{ gap: space.s4 }} testID="qg-progress">
       {showWeek ? (
-        <Tap onPress={onWeek} testID="week-tile" style={styles.row} accessibilityLabel={`Ma semaine : ${weekLine}, ${sessionsText}${weekXp > 0 ? `, ${Format.number(weekXp)} XP confirmés` : ""}. Ouvrir Progrès.`}>
-          {cadence.currentPaused ? (
-            <View style={styles.disc}><Icon name="calendar" size={22} color={colors.tx3} /></View>
-          ) : (
-            <Ring value={cadence.target ? cadence.currentDays / cadence.target : 0} size={TOUCH} stroke={5} color={tint}>
-              <Icon name={reached ? "check" : "calendar"} size={18} color={tint} />
-            </Ring>
-          )}
-          <View style={styles.text}>
-            <T variant="caption" tone="faint">Cette semaine</T>
-            <T variant="bodyStrong">{weekLine}</T>
-            <T variant="caption" tone="muted">
-              {sessionsText}
-              {weekXp > 0 ? <T variant="caption" tone="accent"> · +{Format.number(weekXp)} XP</T> : null}
-            </T>
+        <Tap onPress={onWeek} testID="week-tile" style={styles.week} accessibilityLabel={`Ma semaine : ${weekLine}, ${sessionsText}${weekXp > 0 ? `, ${Format.number(weekXp)} XP confirmés` : ""}. Ouvrir Progrès.`}>
+          <View style={styles.head}>
+            <T variant="h3" style={{ flex: 1 }}>Ma semaine</T>
+            <Icon name="chevron" size={18} color={colors.tx3} />
           </View>
-          <Icon name="chevron" size={18} color={colors.tx3} />
+          <View style={styles.figures}>
+            <View style={styles.figure}>
+              <T variant="figure" color={reached ? colors.ok : colors.tx}>
+                {cadence.currentDays}
+                {cadence.currentPaused ? null : <T variant="num" tone="faint"> /{cadence.target}</T>}
+              </T>
+              <T variant="caption" tone="muted">{cadence.currentPaused ? "jours actifs · en pause" : reached ? "jours actifs · semaine tenue" : "jours actifs"}</T>
+            </View>
+            <View style={styles.figure}>
+              <T variant="figure">{sessions}</T>
+              <T variant="caption" tone="muted">{sessions > 1 ? "séances" : "séance"}{weekMinutes ? ` · ${Format.duration(weekMinutes)}` : ""}</T>
+            </View>
+            {weekXp > 0 ? (
+              <View style={styles.figure}>
+                <T variant="figure" color={colors.cy} numberOfLines={1} adjustsFontSizeToFit>+{Format.number(weekXp)}</T>
+                <T variant="caption" tone="muted">XP confirmés</T>
+              </View>
+            ) : null}
+          </View>
+          {grid ? <ProgramGrid grid={grid} testID="qg-program" /> : null}
+          {grid && previous && grid.totals.sessions === 0 && previous.totals.sessions > 0 ? (
+            <View style={styles.previous}>
+              <T variant="caption" tone="faint">La semaine dernière</T>
+              <ProgramGrid grid={previous} testID="qg-program-previous" />
+            </View>
+          ) : null}
         </Tap>
       ) : null}
-      <Tap onPress={onChapter} testID="qg-chapter" style={[styles.row, showWeek && styles.line]} accessibilityLabel={chapter ? `${chapter.worldName}, chapitre ${chapter.chapter} sur 9${chapter.chapterName ? `, ${chapter.chapterName}` : ""}. ${chapterLine} Ouvrir ce monde.` : `Aventure. ${chapterLine}`}>
-        {chapter ? <Image source={chapter.image} style={styles.thumb} accessibilityIgnoresInvertColors /> : <View style={styles.disc}><Icon name="compass" size={22} color={colors.cy} /></View>}
+      <Tap onPress={onChapter} testID="qg-chapter" style={[styles.chapter, showWeek && styles.line]} accessibilityLabel={chapter ? `${chapter.worldName}, chapitre ${chapter.chapter} sur 9${chapter.chapterName ? `, ${chapter.chapterName}` : ""}. ${chapterLine} Ouvrir le monde.` : `Aventure. ${chapterLine}`}>
+        {chapter ? <Image source={chapter.image} style={styles.thumb} accessibilityIgnoresInvertColors /> : <View style={styles.disc}><Icon name="compass" size={24} color={colors.mousse} /></View>}
         <View style={styles.text}>
           <T variant="caption" color={chapter?.color ?? colors.tx3}>
             {chapter ? `${chapter.worldName} · chapitre ${chapter.chapter}/9` : "Aventure"}
           </T>
-          {chapter?.chapterName ? <T variant="bodyStrong">{chapter.chapterName}</T> : null}
-          <T variant={chapter ? "caption" : "small"} tone={chapter?.status === "ready" && online ? "accent" : "muted"}>
+          {chapter?.chapterName ? <T variant="title">{chapter.chapterName}</T> : null}
+          <T variant={chapter ? "caption" : "small"} color={chapter?.status === "ready" && online ? colors.mousse : colors.tx2}>
             {chapterLine}
           </T>
         </View>
         <Icon name="chevron" size={18} color={colors.tx3} />
       </Tap>
-    </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 0 },
-  row: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingHorizontal: space.s4, paddingVertical: space.s3, minHeight: TOUCH + space.s4 },
-  line: { borderTopWidth: 1, borderTopColor: colors.line },
-  text: { flex: 1, minWidth: 0, gap: 2 },
-  disc: { width: TOUCH, height: TOUCH, borderRadius: TOUCH / 2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg3 },
-  thumb: { width: TOUCH, height: TOUCH, borderRadius: radius.r2 },
+  week: { gap: space.s3, borderTopWidth: 2, borderTopColor: colors.tx, paddingTop: space.s2 },
+  head: { flexDirection: "row", alignItems: "center", minHeight: 36 },
+  figures: { flexDirection: "row", gap: space.s5, alignItems: "flex-end", paddingBottom: space.s2 },
+  figure: { flexShrink: 1, minWidth: 0, gap: 2 },
+  previous: { gap: space.s1, paddingTop: space.s3, borderTopWidth: 1, borderTopColor: colors.line, opacity: 0.72 },
+  chapter: { flexDirection: "row", alignItems: "center", gap: space.s4, minHeight: TOUCH + space.s5, paddingVertical: space.s2 },
+  line: { borderTopWidth: 1, borderTopColor: colors.line2, paddingTop: space.s4 },
+  text: { flex: 1, minWidth: 0, gap: 3 },
+  disc: { width: 64, height: 64, borderRadius: radius.r1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
+  thumb: { width: 64, height: 64, borderRadius: radius.r1 },
 });

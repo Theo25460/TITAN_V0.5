@@ -1,15 +1,17 @@
 import { StyleSheet, View } from "react-native";
+import { useSpace } from "../theme/space";
 import { colors, space, TOUCH } from "../theme/tokens";
 import { Icon, type IconName } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
 
 export function ListRow({ icon, title, subtitle, value, onPress, danger, right, testID, last }: { icon?: IconName; title: string; subtitle?: string; value?: string; onPress?: () => void; danger?: boolean; right?: React.ReactNode; testID?: string; last?: boolean }) {
+  const theme = useSpace();
   const content = (
     <View style={[styles.row, !last && styles.border]}>
       {icon ? (
-        <View style={[styles.icon, danger && { backgroundColor: colors.errSoft }]}>
-          <Icon name={icon} size={20} color={danger ? colors.err : colors.cy} />
+        <View style={styles.icon}>
+          <Icon name={icon} size={20} color={danger ? colors.err : theme.accent} />
         </View>
       ) : null}
       <View style={{ flex: 1, gap: 2 }}>
@@ -38,7 +40,7 @@ export function ListRow({ icon, title, subtitle, value, onPress, danger, right, 
 export function Group({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
     <View style={{ gap: space.s2 }}>
-      {title ? <T variant="eyebrow" style={{ paddingHorizontal: 4 }}>{title}</T> : null}
+      {title ? <T variant="h3" style={{ paddingTop: space.s2 }}>{title}</T> : null}
       <View style={styles.group}>{children}</View>
     </View>
   );
@@ -47,6 +49,6 @@ export function Group({ children, title }: { children: React.ReactNode; title?: 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: TOUCH + 12, paddingHorizontal: space.s4, paddingVertical: space.s3 },
   border: { borderBottomWidth: 1, borderBottomColor: colors.line },
-  icon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.cySoft, alignItems: "center", justifyContent: "center" },
-  group: { backgroundColor: colors.bg2, borderRadius: 18, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
+  icon: { width: 28, height: 36, alignItems: "flex-start", justifyContent: "center" },
+  group: { backgroundColor: colors.bg2, borderRadius: 12, overflow: "hidden" },
 });

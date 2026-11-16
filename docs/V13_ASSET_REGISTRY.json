@@ -2925,8 +2925,8 @@
         {
           "source": "css/ascension-app.css",
           "lines": [
-            62,
-            1922
+            69,
+            1929
           ],
           "evidence": "literal"
         },
@@ -3533,6 +3533,13 @@
           "evidence": "literal"
         },
         {
+          "source": "seance-live.html",
+          "lines": [
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "service.html",
           "lines": [
             15
@@ -3663,6 +3670,7 @@
           "records.html",
           "recours.html",
           "regles-communaute.html",
+          "seance-live.html",
           "service.html",
           "social.html",
           "sports.html",
@@ -4018,6 +4026,13 @@
           "evidence": "literal"
         },
         {
+          "source": "seance-live.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "service.html",
           "lines": [
             16
@@ -4149,6 +4164,7 @@
           "records.html",
           "recours.html",
           "regles-communaute.html",
+          "seance-live.html",
           "service.html",
           "social.html",
           "sports.html",
@@ -4799,6 +4815,13 @@
           "evidence": "literal"
         },
         {
+          "source": "seance-live.html",
+          "lines": [
+            11
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "service.html",
           "lines": [
             14
@@ -4938,6 +4961,7 @@
           "records.html",
           "recours.html",
           "regles-communaute.html",
+          "seance-live.html",
           "service.html",
           "social.html",
           "sports.html",
@@ -10598,7 +10622,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            104
+            115
           ],
           "evidence": "literal"
         },
@@ -10661,8 +10685,8 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            96,
-            125
+            107,
+            138
           ],
           "evidence": "literal"
         }
@@ -10709,7 +10733,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            104
+            115
           ],
           "evidence": "literal"
         }
@@ -10741,194 +10765,6 @@
       "capture": null
     },
     {
-      "path": "mobile/assets/fonts/Manrope-Bold.ttf",
-      "family": "typography",
-      "bytes": 35560,
-      "sha256": "84158bdb6313f55d8aedaa6f4cd3774c6603aebb6f0c54966dec09b37f888b3d",
-      "version": "sha256:84158bdb6313f55d8aedaa6f4cd3774c6603aebb6f0c54966dec09b37f888b3d",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            117
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35560,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-ExtraBold.ttf",
-      "family": "typography",
-      "bytes": 35764,
-      "sha256": "0fbef851e2c4d69ff316ee68a9aff97209d82bcd518ce4e2501d8be08853b3c8",
-      "version": "sha256:0fbef851e2c4d69ff316ee68a9aff97209d82bcd518ce4e2501d8be08853b3c8",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            118
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35764,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-Regular.ttf",
-      "family": "typography",
-      "bytes": 35652,
-      "sha256": "5217d3a49ceb738b8a8e909e3ebe65e2c6ca26ec44f4b9d22c723aafb90bbfa5",
-      "version": "sha256:5217d3a49ceb738b8a8e909e3ebe65e2c6ca26ec44f4b9d22c723aafb90bbfa5",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            115
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35652,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-SemiBold.ttf",
-      "family": "typography",
-      "bytes": 35632,
-      "sha256": "a4e093913c82d1ee776c470710631bbed649cae12e99cf539782f8592a92a342",
-      "version": "sha256:a4e093913c82d1ee776c470710631bbed649cae12e99cf539782f8592a92a342",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            116
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35632,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
       "path": "mobile/assets/fonts/TitanDisplay-Bold.ttf",
       "family": "typography",
       "bytes": 40768,
@@ -10944,7 +10780,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            114
+            125
           ],
           "evidence": "literal"
         }
@@ -10991,7 +10827,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            113
+            124
           ],
           "evidence": "literal"
         }
@@ -10999,6 +10835,288 @@
       "platform": "native",
       "distribution": "native-bundle-candidate",
       "expectedDeliveredBytes": 40648,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanFigure-Bold.ttf",
+      "family": "typography",
+      "bytes": 40456,
+      "sha256": "47ab0062481e6614291f11fffa82a8045301c8ec78515298cc14c46695be0518",
+      "version": "sha256:47ab0062481e6614291f11fffa82a8045301c8ec78515298cc14c46695be0518",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            131
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40456,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanFigure-Light.ttf",
+      "family": "typography",
+      "bytes": 40448,
+      "sha256": "f0557ea79724315b00448e802a5db820cd2a6028769dfdb983fc1de0cf19e55b",
+      "version": "sha256:f0557ea79724315b00448e802a5db820cd2a6028769dfdb983fc1de0cf19e55b",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            130
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40448,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-Bold.ttf",
+      "family": "typography",
+      "bytes": 40696,
+      "sha256": "656e9200615e758eabee2fa72d7900c26c3ed0a95958d3147e15cbff5dd8c0f2",
+      "version": "sha256:656e9200615e758eabee2fa72d7900c26c3ed0a95958d3147e15cbff5dd8c0f2",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            128
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40696,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-ExtraBold.ttf",
+      "family": "typography",
+      "bytes": 40740,
+      "sha256": "124ba80b26d619b7e753b5ac95059ab6118fd29a0bb0c9bec791971a6e288e86",
+      "version": "sha256:124ba80b26d619b7e753b5ac95059ab6118fd29a0bb0c9bec791971a6e288e86",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            129
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40740,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-Regular.ttf",
+      "family": "typography",
+      "bytes": 40796,
+      "sha256": "2dc8d9d7a5c62b853c38d5dd1873cfa2b348d7ed52e52dcf2b16a76654e5b146",
+      "version": "sha256:2dc8d9d7a5c62b853c38d5dd1873cfa2b348d7ed52e52dcf2b16a76654e5b146",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            126
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40796,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-SemiBold.ttf",
+      "family": "typography",
+      "bytes": 40720,
+      "sha256": "7aac7f164e2b33746d28444ef66fc20df3537e6b20c7be98dfabf0042981b4a2",
+      "version": "sha256:7aac7f164e2b33746d28444ef66fc20df3537e6b20c7be98dfabf0042981b4a2",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            127
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40720,
       "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
       "crop": "contain, preserve glyph and proportions",
       "safeArea": "focal bounds to measure on rendered surfaces",
@@ -11038,43 +11156,6 @@
       "platform": "native",
       "distribution": "native-bundle-candidate",
       "expectedDeliveredBytes": 4503,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
-      },
-      "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/manrope-OFL.txt",
-      "family": "typography",
-      "bytes": 4384,
-      "sha256": "e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c",
-      "version": "sha256:e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c",
-      "format": "txt",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 4384,
       "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
       "crop": "contain, preserve glyph and proportions",
       "safeArea": "focal bounds to measure on rendered surfaces",
@@ -12215,8 +12296,8 @@
         {
           "source": "css/ascension-app.css",
           "lines": [
-            62,
-            1922
+            69,
+            1929
           ],
           "evidence": "literal"
         },
@@ -12678,8 +12759,8 @@
       ],
       "source": "mobile/src/core/icons.generated.ts",
       "description": "Native vector icon catalogue",
-      "bytes": 7961,
-      "version": "sha256:f5371999ed3da4be981bfc0591c9052f93985f208b35cd8adf899c7fb9423b38",
+      "bytes": 8535,
+      "version": "sha256:bbf25f70ffed1a4d4e68e2cf1e90766c038598d946dbc6e4880b061b4009785e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12785,8 +12866,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 84991,
-      "version": "sha256:514b61e1354ab6c33409a36faf6009d5c8039e0b14909e22d3fc166a70caebc5",
+      "bytes": 88733,
+      "version": "sha256:8c39a5314a1f2458a840f2b58a23235def2369ea62f58ae2a05a981668a343a9",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12823,8 +12904,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 35537,
-      "version": "sha256:ccf84dd557ad6e6df0841bcaf7879124554aaca4d92b553edb62529939495002",
+      "bytes": 36451,
+      "version": "sha256:9bd8bd03fc6904da3132ebcda4335873413cc9a1e9dfda47d24b5be6ea59d2d9",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12861,8 +12942,8 @@
       ],
       "source": "mobile/src/components/JourneyCard.tsx",
       "description": "Trail and discovery views",
-      "bytes": 10233,
-      "version": "sha256:25a1f783d4d529ad38c62160d2bf64699ce3bfd9d3ea44fdcae985c581ad61e1",
+      "bytes": 10242,
+      "version": "sha256:d607499d506ed937625bd5770fad2b0b94346ecda6b718ae95698521fb443559",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12878,8 +12959,8 @@
       ],
       "source": "mobile/src/lib/notificationChannels.ts",
       "description": "System channels and monochrome mark",
-      "bytes": 2745,
-      "version": "sha256:a69d3588d0dfef8b815063b390aa8abd906599e55797fc8ddcb487102f28913e",
+      "bytes": 2924,
+      "version": "sha256:22edf1f1fd83480820e94ef230e118565a94f41f6909af134a98f0b58e817edc",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12932,8 +13013,8 @@
       ],
       "source": "js/app/atelier.js",
       "description": "Cosmetic frames, map and card styles",
-      "bytes": 42369,
-      "version": "sha256:5fe9d1b3cd5a21e4e38edf15634693a0c0e2cfe7b1eefb3991c99b00a4518e04",
+      "bytes": 42373,
+      "version": "sha256:54faa00c024c431fde63e701162c73162be6e64267e4d901681803d800e4e60e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12949,8 +13030,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 14348,
-      "version": "sha256:7499041ecc33d684c18e99a9b07c4358738b6fb54226fd2fe56e636b48d2d560",
+      "bytes": 15796,
+      "version": "sha256:1af9b90dc8f7885131d44b78429b5d22ac3353e06374c3be48d47807c7cfbee8",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -15544,6 +15625,11 @@
       "capture": null
     },
     {
+      "source": "js/app/live.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "js/app/moment.js",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15749,12 +15835,37 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/community/EventsScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/home/HomeScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
     {
+      "source": "mobile/src/screens/live/CampScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/live/LivePanels.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/live/LiveSessionScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/profile/AtelierScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/profile/CapsuleScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -15800,6 +15911,11 @@
     },
     {
       "source": "mobile/src/screens/progress/RecordsScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/progress/RetroScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -15894,6 +16010,11 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/settings/HistoryImportScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/settings/LegalScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15905,6 +16026,11 @@
     },
     {
       "source": "mobile/src/screens/settings/PrivacyScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/settings/SaveAccountScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -16000,6 +16126,11 @@
     },
     {
       "source": "regles-communaute.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "seance-live.html",
       "visualValidation": "pending-human-review",
       "capture": null
     },

@@ -33,8 +33,8 @@ export function TitanSwitch({ value, onValueChange, disabled, label, hint, testI
       testID={testID}
       style={styles.hit}
     >
-      <Animated.View style={[styles.track, { backgroundColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.bg4, colors.cySoft] }), borderColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.line3, colors.cy] }) }]}>
-        <Animated.View style={[styles.knob, { backgroundColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.tx3, colors.cy] }), transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [3, W - KNOB - 3 - 2] }) }] }]} />
+      <Animated.View style={[styles.track, { backgroundColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.bg4, colors.bg4] }), borderColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.line3, colors.tx] }) }]}>
+        <Animated.View style={[styles.knob, { backgroundColor: x.interpolate({ inputRange: [0, 1], outputRange: [colors.tx3, colors.tx] }), transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [3, W - KNOB - 3 - 2] }) }] }]} />
       </Animated.View>
     </Tap>
   );

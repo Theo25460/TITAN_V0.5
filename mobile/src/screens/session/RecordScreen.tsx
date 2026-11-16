@@ -8,6 +8,7 @@ import { Icon, type IconName } from "../../components/Icon";
 import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
+import { SpaceField } from "../../components/SpaceField";
 import { Section } from "../../components/Section";
 import { SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
@@ -37,7 +38,6 @@ function Way({ icon, title, text, onPress, testID, line }: { icon: IconName; tit
 
 /** Séance tab: what waits on this phone first, then the ways to record: by hand (the default), with the GPS, from a file or a watch. */
 export function RecordScreen() {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const prefs = usePrefs();
   const { active } = useLogs();
@@ -68,15 +68,18 @@ export function RecordScreen() {
   const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 4);
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
-      <Screen tab>
-        <View style={{ gap: 4 }}>
-          <T variant="eyebrow" tone="accent">
-            Séance
-          </T>
-          <T variant="h1">Qu’as-tu fait ?</T>
-          <T tone="muted">Choisis ton sport et note l’essentiel : une minute suffit.</T>
-        </View>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Screen tab padded={false}>
+        {/* The lime field: one question and the way to answer it. Recording starts here, whatever else the page offers below. */}
+        <SpaceField id="seance" title="Qu’as-tu fait ?" lead="Choisis ton sport et note l’essentiel : une minute suffit." testID="record-field">
+          <View style={{ gap: space.s2 }}>
+            {draft ? (
+              <Button kind="ink" label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
+            ) : null}
+            <Button kind="ink" label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
+          </View>
+        </SpaceField>
+        <View style={styles.body}>
         {/* What is still on this phone is said first, in one line, with its way out. */}
         {waiting.length ? (
           <Card tone="flat" onPress={() => navigation.navigate("Pending")} testID="record-pending" style={styles.pending}
@@ -96,9 +99,6 @@ export function RecordScreen() {
           <Button label="Reprendre la séance live" icon="play" onPress={() => navigation.navigate("LiveSession", { sport: liveSaved.sport })} accessibilityHint={`${Sports.label(liveSaved.sport)} · gardée sur ce téléphone`} testID="live-resume" />
         ) : null}
         {liveEnabled && mode === "live" ? <T variant="small" tone="muted">Choisis ton sport : TITAN prépare ta Voie, tes missions et ton accompagnement.</T> : null}
-        {draft ? (
-          <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
-        ) : null}
         {!choosing && repeats.length ? (
           <Section title="Refaire">
             <View style={{ gap: space.s2 }}>
@@ -109,7 +109,6 @@ export function RecordScreen() {
           </Section>
         ) : null}
         {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
-        <Button label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} kind={draft || choosing ? "secondary" : "primary"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
         {choosing ? (
           <>
             <SportSearch onPick={open} />
@@ -147,7 +146,7 @@ export function RecordScreen() {
             this screen: the three other ways now sit together, each with what it does. */}
         {!choosing ? (
           <Section title="Autres façons d’enregistrer">
-            <Card style={{ padding: 0 }}>
+            <Card tone="plain">
               <Way icon="route" title="Suivre ma sortie en GPS" text={`${Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé`} onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} testID="gps-shortcut" />
               <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est en haut des mesures.`} onPress={() => open(gpsSport)} testID="record-gpx" />
               <Way line icon="cloud" title="Depuis une montre ou un capteur" text="Garmin, Santé Connect : voir ce qui est connecté et ce qui arrive dans ton journal." onPress={() => navigation.navigate("Sources")} testID="record-sources" />
@@ -157,13 +156,15 @@ export function RecordScreen() {
         <T variant="caption" tone="faint">
           Hors ligne aussi : la séance est gardée sur ce téléphone puis envoyée automatiquement.
         </T>
+        </View>
       </Screen>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  way: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingHorizontal: space.s4, paddingVertical: space.s3, minHeight: TOUCH + space.s4 },
+  body: { paddingHorizontal: space.s5, paddingTop: space.s4, gap: space.s5 },
+  way: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3, minHeight: TOUCH + space.s4 },
   wayLine: { borderTopWidth: 1, borderTopColor: colors.line },
   pending: { flexDirection: "row", alignItems: "center", gap: space.s3 },
 });

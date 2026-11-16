@@ -78,10 +78,12 @@ export default function PreviewApp() {
   const [loaded] = useFonts({
     [fonts.display]: require("../assets/fonts/TitanDisplay-Heavy.ttf"),
     [fonts.displayBold]: require("../assets/fonts/TitanDisplay-Bold.ttf"),
-    [fonts.text]: require("../assets/fonts/Manrope-Regular.ttf"),
-    [fonts.textSemi]: require("../assets/fonts/Manrope-SemiBold.ttf"),
-    [fonts.textBold]: require("../assets/fonts/Manrope-Bold.ttf"),
-    [fonts.textHeavy]: require("../assets/fonts/Manrope-ExtraBold.ttf"),
+    [fonts.text]: require("../assets/fonts/TitanText-Regular.ttf"),
+    [fonts.textSemi]: require("../assets/fonts/TitanText-SemiBold.ttf"),
+    [fonts.textBold]: require("../assets/fonts/TitanText-Bold.ttf"),
+    [fonts.textHeavy]: require("../assets/fonts/TitanText-ExtraBold.ttf"),
+    [fonts.figure]: require("../assets/fonts/TitanFigure-Light.ttf"),
+    [fonts.figureBold]: require("../assets/fonts/TitanFigure-Bold.ttf"),
   });
   if (!loaded) return null;
   if (previewState.route === "Crests") return <Gallery />;

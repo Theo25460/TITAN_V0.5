@@ -43,8 +43,8 @@ export function CircleCard() {
   ].filter(Boolean) as string[];
   if (!lines.length && !g) return null;
   return (
-    <Card onPress={() => navigation.navigate("Community")} tone={guildDone ? "amber" : undefined} style={{ gap: 6 }} accessibilityLabel={`Ton cercle. ${lines.join(". ")}`} testID="qg-circle">
-      <T variant="eyebrow" tone={guildDone ? "amber" : "accent"}>Ton cercle</T>
+    <Card onPress={() => navigation.navigate("Community")} tone={guildDone ? "amber" : "ruled"} style={{ gap: 6 }} accessibilityLabel={`Ton cercle. ${lines.join(". ")}`} testID="qg-circle">
+      <T variant="title" tone={guildDone ? "amber" : "default"}>Ton cercle</T>
       {lines.map((l) => <T key={l} variant="small">{l}</T>)}
       {g ? (
         <View style={{ gap: 4 }}>
@@ -73,8 +73,8 @@ export function FriendsFeedCard() {
   const items = (s?.moments ?? []).filter((m) => !m.mine).slice(0, 3);
   if (!items.length) return null;
   return (
-    <Card style={{ gap: space.s2 }} testID="qg-feed">
-      <T variant="eyebrow" tone="accent">Tes amis bougent</T>
+    <Card tone="ruled" style={{ gap: space.s2 }} testID="qg-feed">
+      <T variant="title">Tes amis bougent</T>
       {items.map((m) => (
         <View key={m.id} style={{ flexDirection: "row", alignItems: "center", gap: space.s2 }}>
           <View style={{ flex: 1 }}>
@@ -110,8 +110,8 @@ export function IntentCard({ now = new Date() }: { now?: Date }) {
   const mine = q.data?.mine;
   const friends = q.data?.friends ?? [];
   return (
-    <Card style={{ gap: space.s2 }} testID="qg-intent">
-      <T variant="eyebrow" tone="accent">Mon intention du jour</T>
+    <Card tone="ruled" style={{ gap: space.s2 }} testID="qg-intent">
+      <T variant="title">Mon intention du jour</T>
       {mine ? (
         <View style={{ gap: 4 }}>
           <T variant="bodyStrong">{mine.done ? "✓ " : ""}{mine.intent}</T>

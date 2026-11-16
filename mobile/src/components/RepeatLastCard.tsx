@@ -35,12 +35,13 @@ export function RepeatLastCard({ log, compact = false, title = "Refaire ma derni
   const summary = [sessionHeadline(log), minutes ? Format.duration(minutes) : null].filter(Boolean).join(" · ");
   return (
     <Card
+      tone="ruled"
       onPress={() => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: log.id })}
       accessibilityLabel={`${title} : ${Sports.label(log.sport)}, ${summary}. Les valeurs sont préremplies, tu les vérifies avant d’enregistrer.`}
       testID={testID}
     >
       <View style={styles.row}>
-        <View style={[styles.icon, { backgroundColor: `${familyColors[fam]}22` }]}>
+        <View style={styles.icon}>
           <Icon name="restore" size={22} color={familyColors[fam]} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -62,5 +63,5 @@ export function RepeatLastCard({ log, compact = false, title = "Refaire ma derni
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: space.s3 },
-  icon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  icon: { width: 30, height: 44, alignItems: "flex-start", justifyContent: "center" },
 });

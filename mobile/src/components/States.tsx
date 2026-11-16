@@ -18,7 +18,7 @@ export function EmptyState({ icon = "compass", title, text, action, onAction, br
         <Image source={mark} style={styles.mark} accessibilityIgnoresInvertColors testID="empty-brand" />
       ) : (
         <View style={styles.badge}>
-          <Icon name={icon} size={26} color={colors.cy} />
+          <Icon name={icon} size={26} color={colors.tx} />
         </View>
       )}
       <T variant="h3" center>
@@ -80,6 +80,6 @@ export function LoadingCards({ count = 3, label = "Chargement" }: { count?: numb
 const styles = StyleSheet.create({
   mark: { width: 56, height: 56, borderRadius: 16, marginBottom: 2 },
   box: { alignItems: "center", gap: space.s3, padding: space.s6, borderRadius: radius.r3, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
-  badge: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.cySoft, alignItems: "center", justifyContent: "center" },
+  badge: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.bg4, alignItems: "center", justifyContent: "center" },
   card: { gap: 10, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
 });
