@@ -28,6 +28,8 @@
   --line: rgba(226, 234, 236, 0.09);
   --line-2: rgba(226, 234, 236, 0.17);
   --line-3: rgba(226, 234, 236, 0.3);
+  /* The edge of a field one types in: 3:1 against the ground (WCAG 1.4.11). */
+  --line-4: rgba(226, 234, 236, 0.42);
   /* Text. --tx-4 is for marks and disabled states, never for a sentence. */
   --tx: #f1f3ef;
   --tx-2: #aeb7bd;
@@ -1217,7 +1219,7 @@ button.asc-row:hover .asc-row-title {
   min-height: 48px;
   padding: 0 var(--s4);
   border-radius: var(--r2);
-  border: 1.5px solid var(--line-3);
+  border: 1.5px solid var(--line-4);
   background: var(--bg-1);
   color: var(--tx);
   font-size: 16px;

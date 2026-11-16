@@ -43,7 +43,7 @@
 #profil .pf-level-n strong { font-size: 1.25em; margin-left: 2px; color: var(--space-ink); }
 #profil .pf-title { color: var(--space-ink); font-size: 13.5px; }
 #profil .pf-since, #profil .pf-hero .asc-small { color: color-mix(in srgb, var(--space-ink) 84%, transparent); }
-#profil .pf-xp { color: var(--space-ink); font-size: 16px; white-space: nowrap; }
+#profil .pf-hero .pf-xp { color: var(--space-ink); font-size: 1.125rem; white-space: nowrap; }
 #profil .pf-crest { display: flex; margin: 0; flex: none; }
 #profil .pf-crest .crest { width: 76px; height: auto; }
 /* On the chalk the XP line is drawn in ink: cyan would not be read there. */

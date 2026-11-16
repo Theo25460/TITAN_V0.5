@@ -1,40 +1,42 @@
+/* Les Sentiers du Titan and the career milestones (Aventure, Profil). « Programme » tokens only: blocks under hairlines, no
+   outlined card, the world's own colour for what it restored. */
 [data-journey-host] { margin-block: 24px; display: grid; gap: 16px; min-width: 0; }
 [data-journey-host]:empty { display: none; }
 [data-journey-host] p, [data-journey-host] h3 { margin: 0; }
-.journey-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #24353b; border-radius: var(--r3); overflow: hidden; }
-.journey-region { position: relative; isolation: isolate; min-height: 190px; padding: 16px; background: #05070a; display: flex; align-items: flex-end; overflow: hidden; }
+.journey-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; border-radius: var(--r3); overflow: hidden; }
+.journey-region { position: relative; isolation: isolate; min-height: 190px; padding: 16px; background: var(--bg); display: flex; align-items: flex-end; overflow: hidden; }
 .journey-region img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .25; z-index: -2; }
 .journey-region.is-revealed img { opacity: 1; }
-.journey-region::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,7,10,.15), rgba(5,7,10,.95)); z-index: -1; }
+.journey-region::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9,12,16,.15), rgba(9,12,16,.95)); z-index: -1; }
 .journey-region > div { display: grid; gap: 6px; min-width: 0; }
 .journey-region svg { color: var(--world); width: 24px; height: 24px; }
-.journey-region h3 { font-size: 1rem; overflow-wrap: anywhere; }
-.journey-region p { font-size: .8rem; color: #aebcc5; }
-.world-story ol { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
-.world-story li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; border-left: 3px solid #24353b; padding: 8px 12px; }
-.world-story li.is-restored { border-color: var(--world); background: #101c23; }
-.world-story li svg { width: 20px; height: 20px; }
+.journey-region h3 { font-size: 1.1rem; overflow-wrap: anywhere; }
+.journey-region p { font-size: .8125rem; color: var(--tx-2); }
+.world-story ol { display: grid; gap: 0; list-style: none; padding: 0; margin: 0; }
+.world-story li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; border-top: 1px solid var(--line-2); padding: 12px 0; }
+.world-story li.is-restored { border-top-color: var(--world); }
+.world-story li svg { width: 20px; height: 20px; color: var(--tx-3); }
 .world-story li.is-restored svg { color: var(--world); }
 .world-story p { margin: 0; }
-.journey-total { font-size: .9rem; color: #b2c1ca; }
-.journey-total strong { font: 800 clamp(1.4rem, 6vw, 2.25rem)/1.2 Archivo, sans-serif; color: #edf4f8; }
-.journey-next, .journey-career { padding: 18px; border: 1px solid #24353b; background: #0b1219; border-radius: var(--r3); display: grid; gap: 10px; min-width: 0; }
+.journey-total { font-size: .9rem; color: var(--tx-2); }
+.journey-total strong { font: 300 clamp(3rem, 12vw, 4.5rem)/.92 Archivo, sans-serif; font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; color: var(--tx); }
+.journey-next, .journey-career { padding: var(--s4) 0 0; border-top: 1px solid var(--line-2); display: grid; gap: 10px; min-width: 0; }
 .journey-saga { display: grid; gap: 7px; }
-.journey-album summary, .journey-career summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; color: #3dd9e8; font-weight: 700; gap: 8px; }
+.journey-album summary, .journey-career summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; color: var(--space); font-weight: 700; gap: 8px; }
 .journey-album summary::before, .journey-career summary::before { content: "+"; font-size: 20px; }
 .journey-album[open] > summary::before, .journey-career details[open] > summary::before { content: "−"; }
-.journey-album ol, .journey-career ol { padding-left: 0; list-style: none; display: grid; gap: 12px; max-height: 440px; overflow: auto; overscroll-behavior: contain; }
-.journey-album li, .journey-career li { display: grid; gap: 7px; border-left: 2px solid #254c54; padding: 8px 12px; }
-.journey-album small, .journey-career small { color: #95a8b5; }
-.journey-career li > svg { width: 22px; height: 22px; color: #f4bb54; }
+.journey-album ol, .journey-career ol { padding-left: 0; list-style: none; display: grid; gap: 0; max-height: 440px; overflow: auto; overscroll-behavior: contain; }
+.journey-album li, .journey-career li { display: grid; gap: 7px; border-top: 1px solid var(--line-2); padding: 12px 0; }
+.journey-album small, .journey-career small { color: var(--tx-2); }
+.journey-career li > svg { width: 22px; height: 22px; color: var(--am); }
 .journey-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 [data-journey-host] .asc-btn { min-height: 44px; white-space: normal; }
-.journey-reveal { color: #edf4f8; background: #0b1219; border: 1px solid #3dd9e8; border-radius: var(--r3); padding: 28px; width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 40px); overflow: auto; text-align: center; }
+.journey-reveal { color: var(--tx); background: var(--bg-2); border: 0; border-radius: var(--r3); padding: 28px; width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 40px); overflow: auto; text-align: center; }
 .journey-reveal::backdrop { background: rgba(2,4,6,.88); }
 .journey-reveal p { margin-block: 16px; }
 .journey-reveal .asc-btn { margin-top: 16px; width: 100%; }
-.journey-seal { margin: 24px auto; width: 92px; height: 92px; border-radius: 50%; border: 1px solid #3dd9e8; display: grid; place-items: center; background: #102b30; }
-.journey-seal svg { color: #3dd9e8; width: 52px; height: 52px; }
+.journey-seal { margin: 24px auto; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; background: var(--space); }
+.journey-seal svg { color: var(--space-ink); width: 52px; height: 52px; }
 @media (max-width: 760px) {
   .journey-map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .journey-region { min-height: 160px; padding: 12px; }
