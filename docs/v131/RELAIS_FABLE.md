@@ -1,5 +1,8 @@
 # TITAN · Relais pour la session Fable (16 novembre 2026, phases 1 et 2)
 
+> **Suite :** la session Fable du même jour (consolidation GitHub, TITAN LIVE, fonctions Android, l'Expédition) est décrite dans
+> [`../TITAN_ONE.md`](../TITAN_ONE.md), qui est désormais le point d'entrée.
+
 Branche `claude/youthful-knuth-pgg96r`, PR #149 (brouillon), partie de la tête de la PR #148 (`6295e49`, au-dessus de `main` `67e17c7`).
 Ce document complète [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) et [`REGISTRE.md`](REGISTRE.md) sans les répéter : ce qui a changé, ce
 qui est prouvé, par quoi reprendre. Aucun nouvel audit général n'est nécessaire.
