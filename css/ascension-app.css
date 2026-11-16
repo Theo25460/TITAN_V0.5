@@ -383,6 +383,10 @@
 .qg-insight .asc-row-sub {
   white-space: normal;
 }
+/* « En cours »: the line under a path is a sentence, it wraps instead of being cut on a phone. */
+.qg-paths .asc-row-sub {
+  white-space: normal;
+}
 .qg-insight[data-tone="am"] .asc-row-icon {
   color: var(--am);
 }
@@ -472,11 +476,18 @@
 .seance-field .seance-search-icon {
   color: var(--space);
 }
-@media (min-width: 960px) {
+/* The search sits beside the question only where the question keeps its one line (from 1100 px, like the other two-column
+   pages); under that it goes below, as on a phone. */
+@media (min-width: 1100px) {
   .seance-field {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 560px);
+    grid-template-columns: minmax(max-content, 1fr) minmax(320px, 560px);
     column-gap: var(--s8);
   }
+}
+/* A measure whose label takes two lines keeps its input on the line of its neighbours. */
+[data-primary-measures] .asc-form-grid,
+.seance-more .asc-form-grid {
+  align-items: end;
 }
 .seance-results:empty {
   display: none;
@@ -1044,8 +1055,11 @@
 }
 /* What the filters select, in figures set large on the ground. */
 .jr-summary {
+  /* A column is never narrower than a figure such as « 124 h 52 » at the size it is set in: figures wrap to a second row
+     instead of running into each other. */
+  --jr-fig: clamp(48px, 12vw, 68px);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--jr-fig) * 2.75)), 1fr));
   gap: var(--s4) var(--s5);
   margin: 0 0 var(--s6);
   padding: var(--s4) 0 0;
@@ -1068,9 +1082,15 @@
   font-family: var(--font-display);
   font-stretch: var(--w-figure); font-variant-numeric: tabular-nums;
   font-weight: 300;
-  font-size: clamp(48px, 12vw, 68px);
+  font-size: var(--jr-fig);
   line-height: 0.92;
   white-space: nowrap;
+}
+/* Between a phone and a wide screen the four figures keep one row by being set one size smaller. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  .jr-summary {
+    --jr-fig: 48px;
+  }
 }
 .jr-month + .jr-month {
   margin-top: var(--s6);

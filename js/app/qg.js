@@ -421,7 +421,7 @@
         </div>
         <div class="qg-col qg-col-side">
           <section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
-            <div class="asc-list">${adventureHtml(online || guest)}${goalHtml(goalsCache, D().logs())}</div>
+            <div class="asc-list qg-paths">${adventureHtml(online || guest)}${goalHtml(goalsCache, D().logs())}</div>
           </section>
           ${doorsHtml()}
           ${lastHtml(list, guest)}

@@ -1785,16 +1785,17 @@ html[data-motion="reduced"] *::after {
   display: grid;
   min-width: 0;
 }
-.prg-text strong,
 .prg-text small {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The name of a sport is never cut (« Musculation en salle » on a phone): it takes a second line. */
 .prg-text strong {
   font-weight: 650;
   font-size: 15px;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 .prg-text small {
   font-size: 12.5px;
@@ -1822,10 +1823,12 @@ html[data-motion="reduced"] *::after {
   justify-content: center;
   min-width: 0;
 }
-.prg-col:first-child {
+/* Only a period has labels wider than a column: there the first and the last align to their edge. The letter of a day stays
+   centred over its column. */
+.prg[data-kind="span"] .prg-col:first-child {
   justify-content: flex-start;
 }
-.prg-col:last-child {
+.prg[data-kind="span"] .prg-col:last-child {
   justify-content: flex-end;
 }
 .prg-col.is-mark {
