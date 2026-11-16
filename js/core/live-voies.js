@@ -596,6 +596,191 @@
   };
 
   /* ------------------------------------------------------------------------------------------- */
+  /* Report missions: built from the sport's own statistics (catalogue fields). They are checked    */
+  /* after the session against details.extras, by the engine and again by the server.               */
+  /* Fields that would reward risk (height, depth, speed, apnoea hold, wave height) never appear.   */
+  /* ------------------------------------------------------------------------------------------- */
+  const R = (field, label, text, intents, cond, extra = {}) => ({ field, label, text, intents, cond, ...extra });
+  const FIELD_MISSIONS = [
+    R("controls_missed", "Aucun poste oublié", "Trouve tous tes postes : zéro poste manqué au rapport.", ["atteindre", "depasser"], { lte: 0, requires: "controls" }),
+    R("navigation_errors", "La carte lue juste", "Une erreur de navigation au plus.", ["depasser"], { lte: 1, requires: "controls" }),
+    R("elevation", "Le relief apprivoisé", "Cherche un parcours avec au moins 100 m de relief.", ["explorer"], { gte: 100 }),
+    R("intervals", "Les fractions", "Quatre fractions ou plus, récupérations complètes.", ["depasser"], { gte: 4 }),
+    R("max_altitude_m", "Le point culminant", "Note l’altitude la plus haute atteinte.", ["explorer"], { gte: 1 }),
+    R("tricks", "Une figure posée", "Pose au moins une figure maîtrisée, à ton niveau.", ["depasser", "explorer"], { gte: 1 }),
+    R("landings", "Les réceptions propres", "Trois réceptions propres ou plus.", ["atteindre"], { gte: 3 }),
+    R("aces", "Le service qui parle", "Un ace ou un service gagnant.", ["depasser"], { gte: 1 }),
+    R("double_faults", "Le service sûr", "Deux doubles fautes au plus sur la séance.", ["atteindre"], { lte: 2, requires: "sets_won" }),
+    R("first_serve_pct", "La première balle", "60 % de premières balles ou plus.", ["atteindre", "depasser"], { gte: 60 }),
+    R("unforced_errors", "Le jeu propre", "Dix fautes directes au plus.", ["depasser"], { lte: 10, requires: "sets_won" }),
+    R("net_points", "Prendre le filet", "Gagne trois points au filet.", ["depasser", "explorer"], { gte: 3 }),
+    R("rally_quality_score", "Les longs échanges", "Note la qualité de tes échanges : 7 sur 10 ou plus.", ["explorer"], { gte: 7 }),
+    R("saves", "Le dernier rempart", "Au moins un arrêt décisif.", ["atteindre"], { gte: 1 }),
+    R("assists", "Faire briller les autres", "Une passe décisive ou plus.", ["atteindre", "explorer"], { gte: 1 }),
+    R("key_passes", "La passe qui ouvre", "Deux passes qui créent une occasion.", ["depasser"], { gte: 2 }),
+    R("tackles", "Le rempart de l’équipe", "Trois plaquages ou interventions défensives.", ["atteindre"], { gte: 3 }),
+    R("successful_tackles", "Le tacle juste", "Trois tacles réussis.", ["depasser"], { gte: 3 }),
+    R("defensive_stops", "La défense tient", "Trois arrêts défensifs.", ["atteindre"], { gte: 3 }),
+    R("successful_defences", "L’esquive", "Trois défenses réussies.", ["atteindre"], { gte: 3 }),
+    R("blocks", "Le contre", "Deux contres ou plus.", ["depasser"], { gte: 2 }),
+    R("digs", "La défense basse", "Trois défenses relevées.", ["atteindre"], { gte: 3 }),
+    R("rebounds", "Le rebond", "Trois rebonds ou plus.", ["atteindre"], { gte: 3 }),
+    R("steals", "L’interception", "Une interception ou plus.", ["depasser"], { gte: 1 }),
+    R("turnovers", "Le ballon précieux", "Trois pertes de balle au plus.", ["depasser"], { lte: 3, requires: "minutes_played" }),
+    R("minutes_played", "Présent sur le terrain", "Note ton temps de jeu réel, remplacements compris.", ["atteindre"], { gte: 10 }),
+    R("hits", "Le coup sûr", "Au moins un coup sûr.", ["depasser"], { gte: 1 }),
+    R("balls_faced", "La manche tenue", "Fais face à douze balles ou plus.", ["atteindre"], { gte: 12 }),
+    R("putts", "Le green apaisé", "Deux putts par trou au plus.", ["depasser"], { per: { field: "holes", max: 2 } }),
+    R("holes", "Le parcours complet", "Joue tous les trous prévus.", ["atteindre"], { gte: 9 }),
+    R("spares", "La frame complète", "Deux spares ou plus.", ["atteindre"], { gte: 2 }),
+    R("checkout_pct", "La finition", "30 % de finitions ou plus.", ["depasser"], { gte: 30 }),
+    R("best_break", "Une série construite", "Une série de 20 points ou plus.", ["depasser"], { gte: 20 }),
+    R("safety_shots", "Le jeu de sécurité", "Trois coups de sécurité choisis.", ["explorer", "atteindre"], { gte: 3 }),
+    R("successful_shots", "Le coup placé", "Trois coups réussis.", ["atteindre"], { gte: 3 }),
+    R("pointing_success", "Pointer juste", "Note tes points réussis.", ["atteindre"], { gte: 1 }),
+    R("targets_hit", "Le tir posé", "Cinq cibles touchées, respiration calée.", ["atteindre", "depasser"], { gte: 5 }),
+    R("penalties", "Le parcours propre", "Deux pénalités au plus.", ["depasser"], { lte: 2, requires: "gates" }),
+    R("rapids", "Lire les rapides", "Note les rapides franchis.", ["explorer"], { gte: 1 }),
+    R("rides", "La vague jusqu’au bout", "Une glisse menée jusqu’au bout.", ["atteindre", "explorer"], { gte: 1 }),
+    R("maneuvers", "Les manœuvres", "Cinq virements ou empannages.", ["atteindre", "depasser"], { gte: 5 }),
+    R("planing_minutes", "Planer", "Cinq minutes au planing.", ["explorer"], { gte: 5 }),
+    R("distance_nm", "Le bord tiré", "Deux milles nautiques ou plus.", ["explorer"], { gte: 2 }),
+    R("flights", "Le vol posé", "Un vol terminé par un atterrissage contrôlé.", ["atteindre"], { gte: 1 }),
+    R("figures", "La figure travaillée", "Travaille au moins une figure.", ["atteindre"], { gte: 1 }),
+    R("faults", "Le sans-faute", "Un parcours sans faute.", ["depasser"], { lte: 0, requires: "jumps" }),
+    R("gaits_minutes", "Toutes les allures", "Dix minutes réparties sur les trois allures.", ["explorer"], { gte: 10 }),
+    R("laps", "Les tours réguliers", "Cinq tours ou plus.", ["atteindre"], { gte: 5 }),
+    R("runs", "Les manches", "Trois manches ou descentes.", ["atteindre"], { gte: 3 }),
+    R("vertical_m", "Le dénivelé descendu", "500 m de dénivelé descendu, à ton rythme.", ["explorer"], { gte: 500 }),
+    R("spins", "Les pirouettes", "Trois pirouettes travaillées.", ["atteindre"], { gte: 3 }),
+    R("apparatus", "Plusieurs agrès", "Travaille sur au moins un agrès.", ["explorer"], { gte: 1 }),
+    R("poses", "La séquence", "Dix postures ou plus, enchaînées en conscience.", ["atteindre"], { gte: 10 }),
+    R("breath_minutes", "Le temps du souffle", "Cinq minutes de respiration guidée.", ["atteindre", "explorer"], { gte: 5 }),
+    R("hold_seconds", "La tenue", "Trente secondes de maintien confortable.", ["atteindre"], { gte: 30 }),
+    R("pain_after", "L’apaisement mesuré", "Note ta gêne avant et après la séance.", ["atteindre"], { gte: 0, requires: "pain_before" }),
+    R("drills", "Les éducatifs", "Un bloc d’éducatifs.", ["explorer"], { gte: 1 }),
+    R("sprints", "Les relances", "Trois relances courtes sur home trainer.", ["depasser"], { gte: 3, indoorOnly: true }),
+    R("bouts", "Les assauts", "Trois assauts ou plus.", ["atteindre"], { gte: 3 }),
+    R("touches", "La touche propre", "Cinq touches données.", ["depasser"], { gte: 5 }),
+    R("escapes", "Les sorties", "Deux sorties de position.", ["atteindre"], { gte: 2 }),
+    R("takedowns", "L’amenée au sol", "Une amenée au sol contrôlée.", ["depasser"], { gte: 1 }),
+    R("clean_strikes", "Les touches nettes", "Dix touches propres et contrôlées.", ["depasser"], { gte: 10 }),
+    R("defensive_actions", "La garde", "Dix actions défensives.", ["atteindre"], { gte: 10 }),
+    R("techniques", "Le répertoire technique", "Cinq techniques travaillées.", ["explorer"], { gte: 5 }),
+    R("combinations", "Les enchaînements", "Cinq enchaînements travaillés.", ["atteindre"], { gte: 5 }),
+    R("stations", "Toutes les stations", "Huit stations terminées.", ["atteindre"], { gte: 8 }),
+    R("obstacles", "Les obstacles franchis", "Dix obstacles franchis.", ["atteindre"], { gte: 10 }),
+    R("obstacles_failed", "Le parcours fluide", "Deux obstacles manqués au plus.", ["depasser"], { lte: 2, requires: "obstacles" }),
+    R("transitions_s", "Les transitions notées", "Note la durée de tes transitions.", ["depasser"], { gte: 1 }),
+    R("pitches", "Les longueurs", "Trois longueurs ou plus.", ["atteindre"], { gte: 3 }),
+    R("jams", "Les jams", "Cinq jams joués.", ["atteindre"], { gte: 5 }),
+    R("games", "Les parties", "Trois parties ou plus.", ["atteindre"], { gte: 3 }),
+    R("movements", "La séquence complète", "Dix mouvements enchaînés.", ["atteindre"], { gte: 10 }),
+    R("warmup_sets", "Les séries d’approche", "Deux séries d’approche avant la charge de travail.", ["atteindre", "depasser"], { gte: 2 }),
+    R("meters_carried", "Le portage", "Cent mètres portés.", ["atteindre"], { gte: 100 }),
+    R("pulls", "La traction d’équipe", "Trois tirages d’équipe.", ["atteindre"], { gte: 3 }),
+    R("routines", "Les enchaînements notés", "Note les enchaînements passés.", ["atteindre"], { gte: 1 }),
+  ];
+  const FIELD_MISSION_BY_FIELD = new Map(FIELD_MISSIONS.map((f) => [f.field, f]));
+
+  /** Report missions of one sport, prefixed by its Voie: `<voie>.r_<field>`. */
+  function reportMissions(sport, voie, indoor) {
+    const fields = new Set((sport.fields || []).filter((f) => f && !f.legacy).map((f) => f.id));
+    const out = [];
+    for (const id of fields) {
+      const def = FIELD_MISSION_BY_FIELD.get(id);
+      if (!def) continue;
+      if (def.cond.requires && !fields.has(def.cond.requires)) continue;
+      if (def.cond.per && !fields.has(def.cond.per.field)) continue;
+      if (def.indoorOnly && !indoor) continue;
+      out.push({ id: `${voie.id}.r_${id}`, intents: def.intents, label: def.label, text: def.text, when: { phase: "late" },
+        check: { metric: "report", field: id, ...def.cond }, verify: "report" });
+      if (out.length >= 4) break;
+    }
+    return out;
+  }
+
+  /** One line that says what makes this sport itself inside its Voie. Hand-written for the most practised sports. */
+  const SIGNATURES = {
+    running: "Ton Écho court à tes côtés ; les rues jamais prises lèvent le brouillard de ta carte.",
+    trail: "Chaque montée devient un col sur la carte d’aventure ; la descente se fait en contrôle.",
+    walking: "Le pas tranquille compte autant que le pas rapide : chaque borne tient au temps passé à marcher.",
+    nordic_walk: "Les bâtons rythment les bornes ; la régularité du pas est saluée.",
+    treadmill: "La carte d’aventure avance sans GPS ; ton tapis devient un sentier imaginaire.",
+    orienteering: "Les postes deviennent des sceaux : zéro poste oublié vaut une page de chronique.",
+    hiking: "Une heure de demi-tour, des refuges au dénivelé, un carnet de cimes.",
+    cycling: "Des régions à relier, des cols nommés ; rien à toucher en roulant.",
+    cycling_road: "Écran géant, voix rare : les relais et les cols seulement, jamais de chrono à battre sur route.",
+    velotaf: "La Route du messager : chaque trajet compte dans la semaine, sans série à tenir.",
+    mountain_bike: "Les montées deviennent des cols ; la descente reste ta lecture du terrain, sans défi.",
+    spinning: "Une route imaginaire : relances et cadence dessinent les virages.",
+    cycling_indoor: "Le home trainer relie les mêmes régions que la route, au temps d’effort.",
+    rowing_machine: "La cadence de coulisse dessine la houle ; trois blocs réguliers dressent les amers.",
+    kayak: "D’amer en amer le long de la côte ; garder des forces pour le retour fait partie du jeu.",
+    swimming: "Le téléphone reste au bord : un toucher par bloc éclaire un îlot, les nages colorent les fonds.",
+    open_water_swimming: "Silence total dans l’eau ; l’Archipel se révèle au retour, accompagné ou balisé.",
+    muscu_gym: "Une plaque du Colosse par série, la braise du repos, des lames trempées par la régularité.",
+    muscu_home: "Même Forge qu’en salle : la lame se trempe avec la régularité, pas avec la charge.",
+    powerlifting: "Séries d’approche, réserve gardée, un seul seuil proposé : la Forge des barres lourdes.",
+    weightlifting: "Le geste avant la charge : les frappes nettes valent les barres lourdes.",
+    kettlebell: "Des frappes courtes, des repos courts : la braise retombe vite.",
+    pompes: "Une constellation qui part des genoux et monte jusqu’aux variantes rares.",
+    tractions: "L’étoile suivante s’allume quand la précédente est stable : assistée, stricte, lestée.",
+    plank: "Le gainage se compte en souffles tenus, pas en douleur.",
+    bouldering: "Chaque chute révèle une prise ; ton projet garde la mémoire de tous ses essais.",
+    climbing_route: "Des voies longues, des repos longs : la Sentinelle salue la patience.",
+    tennis: "Tableau de score à deux zones, Élan du duel, remontées gravées au tableau d’honneur.",
+    badminton: "Des sets à 21 points : les longs échanges et les remontées font monter l’Élan.",
+    padel: "Prendre le filet, tenir le service : la Joute se joue à quatre.",
+    table_tennis: "Des manches à 11 points, rapides : l’Élan se lit point par point.",
+    squash: "Des jeux à 11 points, des échanges qui usent : les repos entre jeux comptent.",
+    football: "Un serment avant le coup d’envoi, deux mi-temps, un rapport de 20 secondes.",
+    basketball: "Quatre quarts-temps ; rebonds, passes et défense comptent autant que les paniers.",
+    rugby: "Deux mi-temps, un serment de rôle ; plaquages et soutiens dans le rapport.",
+    handball: "Deux mi-temps de trente minutes ; le dernier rempart et la passe qui ouvre.",
+    volleyball: "Des sets réels ; la défense basse et le contre sont des serments à part entière.",
+    boxing: "La cloche sonne les rounds ; le contrôle et la garde remplissent les parchemins.",
+    judo: "Randoris à la cloche ; sorties et amenées au sol contrôlées.",
+    bjj: "Des rolls de six minutes ; les sorties de position valent autant que les finitions.",
+    karate: "Katas et kumite contrôlé : chaque technique a son parchemin.",
+    fencing: "Assauts à la cloche, touches propres : la lame juste plutôt que forte.",
+    yoga: "Silence par défaut, souffle guidé facultatif, gêne avant et après : le jardin pousse avec le calme.",
+    pilates: "La séquence complète et la respiration : des terrasses restaurées, jamais une performance.",
+    stretching: "Des tenues confortables, une zone apaisée : la gêne qui baisse ouvre une fleur rare.",
+    archery: "Douze volées, une étoile chacune ; la régularité dessine des constellations.",
+    golf: "Neuf ou dix-huit trous, le green apaisé : la constance plutôt que le coup parfait.",
+    petanque: "Treize mènes, pointer juste : la constellation de la régularité.",
+    darts: "Des legs et des finitions ; TITAN se tait pendant le lancer.",
+    dance: "Un répertoire d’enchaînements qui grandissent de l’esquisse à la signature.",
+    zumba: "Les chorégraphies deviennent des tableaux ; la musique a toujours la priorité.",
+    hiit: "Huit vagues de 40 secondes, des remparts de 20 : la cloche compte pour toi.",
+    crossfit: "Rounds à la cloche ; un round de plus seulement si la qualité reste la même.",
+    hyrox: "Huit stations comme huit vagues ; les transitions sont des remparts.",
+    triathlon: "Trois segments, deux portails : chaque segment nourrit l’essence de sa propre Voie.",
+    surfing: "Lire la houle avant, glisser en silence, ouvrir une page de l’Atlas après.",
+    alpine_skiing: "Aucun défi de vitesse : les conditions de neige rencontrées remplissent l’Atlas.",
+    equestrian: "Une monture nommée, un lien qui grandit avec les séances calmes comme avec les concours.",
+    karting: "Constance des tours, briefing d’abord, aucun signal en piste.",
+    freediving: "Aucun défi de profondeur ni de durée d’apnée : la lecture des conditions, le binôme de sécurité et l’Atlas, rien d’autre.",
+    diving: "Un carnet de plongée sans record : conditions, palanquée et paliers.",
+    kitesurf: "Vent et plan d’eau lus avant de gréer ; manœuvres et bords tirés notés au retour.",
+    show_jumping: "Le sans-faute est une fierté partagée avec ta monture ; la hauteur n’est jamais un défi.",
+    climbing: "Les mètres grimpés se lisent en essais et en relais, jamais en vitesse.",
+    paragliding: "Les conditions aérologiques d’abord ; chaque vol posé ouvre une page de l’Atlas.",
+    skateboarding: "Des figures posées à ton niveau, des spots nouveaux : aucune prise de risque récompensée.",
+  };
+
+  function signatureOf(sport, voie, tuning) {
+    if (SIGNATURES[sport.id]) return SIGNATURES[sport.id];
+    if (tuning.periods) return `${voie.name} au rythme du ${sport.label.toLowerCase()} : ${tuning.periods.count} ${tuning.periods.label}${tuning.periods.count > 1 && !/s$/.test(tuning.periods.label) ? "s" : ""} de ${tuning.periods.minutes} min, un serment, un rapport.`;
+    if (tuning.bell) return `${voie.name} à la cloche : ${tuning.bell.rounds} rounds de ${Math.round(tuning.bell.workS / 6) / 10} min, repos ${tuning.bell.restS} s.`;
+    if (tuning.end) return `${voie.name} par ${tuning.end.many} : ${tuning.end.plan} prévues, chacune allume une étoile.`;
+    if (tuning.score) return `${voie.name} en ${tuning.score.game}s et ${tuning.score.set}s${tuning.score.points ? ` à ${tuning.score.points} points` : ""}.`;
+    if (tuning.interval) return `${voie.name} : ${tuning.interval.rounds} ${tuning.interval.label || "vague"}s à la cloche.`;
+    return `${sport.label} dans ${voie.name.charAt(0).toLowerCase()}${voie.name.slice(1)} : ${voie.tagline.charAt(0).toLowerCase()}${voie.tagline.slice(1)}`;
+  }
+
+  /* ------------------------------------------------------------------------------------------- */
   /* Resolution: profile → voie, then explicit sport overrides. Every catalogue sport resolves.   */
   /* ------------------------------------------------------------------------------------------- */
   const PROFILE_VOIE = {
@@ -840,6 +1025,7 @@
       if (mi.when?.needs === "gps" && !data.gps) return false;
       return true;
     });
+    missions.push(...reportMissions(sport, voie, !!tuning.indoor || NO_GPS.has(sport.id)));
     // When the screen may not ask for a tap during the effort, missions are chosen before the start (see live-engine).
     const offerMode = SAFETY[safety].tapsWhileActive ? "live" : "before";
     return {
@@ -850,7 +1036,7 @@
       road: ROAD.has(sport.id) || !!tuning.road,
       beat, plan, data, tuning,
       offerMode, missions, events: voie.events, artefact: voie.artefact, guardian: voie.guardian,
-      fallback: voie.fallback,
+      fallback: voie.fallback, signature: signatureOf(sport, voie, tuning),
     };
   }
 
@@ -871,11 +1057,22 @@
     }
   }
 
+  /** How a mission is verified, from its id alone (the server reads the same rule from its seeded table). */
+  function missionKind(id) {
+    const [voieId, rest] = String(id || "").split(".");
+    if (!VOIES[voieId] || !rest) return null;
+    if (rest.startsWith("r_")) return FIELD_MISSION_BY_FIELD.has(rest.slice(2)) ? "report" : null;
+    const m = VOIES[voieId].missions.find((x) => x.id === id);
+    if (!m) return null;
+    if (m.check.metric === "declared") return "declared";
+    return m.verify === "log" ? "log" : "engine";
+  }
+
   function all() {
     return [...index().keys()].map(resolve);
   }
 
-  const api = { INTENTS, IMMERSION, SAFETY, ESSENCES, VOIES, PROFILE_VOIE, SPORT_VOIE, SPORT_TUNING, STRICT_SILENCE, ROAD, resolve, all, voieIdOf };
+  const api = { INTENTS, IMMERSION, SAFETY, ESSENCES, VOIES, FIELD_MISSIONS, SIGNATURES, PROFILE_VOIE, SPORT_VOIE, SPORT_TUNING, STRICT_SILENCE, ROAD, resolve, all, voieIdOf, missionKind };
   root.TitanLiveVoies = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

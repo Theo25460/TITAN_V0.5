@@ -181,12 +181,24 @@
       case "restsRespected": return state.beats.filter((b) => b.restOk).length;
       case "distinct": return new Set(state.beats.map((b) => b.data?.[check.key]).filter(Boolean)).size;
       case "field": return num(state.fields[check.field], 0);
+      case "report": return reportOk(state, check) ? 1 : 0;
       default: return 0;
     }
   }
 
+  /** A report mission holds when the after-session statistic meets its condition (same test as the server). */
+  function reportOk(state, c) {
+    const v = state.fields[`r_${c.field}`];
+    if (typeof v !== "number") return false;
+    if (c.requires && typeof state.fields[`r_${c.requires}`] !== "number") return false;
+    if (c.per) { const d = state.fields[`r_${c.per.field}`]; return typeof d === "number" && d > 0 && v <= d * c.per.max; }
+    if (c.gte != null && !(v >= c.gte)) return false;
+    if (c.lte != null && !(v <= c.lte)) return false;
+    return true;
+  }
+
   function missionTarget(state, mission) {
-    if (mission.check.metric === "declared") return 1;
+    if (mission.check.metric === "declared" || mission.check.metric === "report") return 1;
     return target(state, mission.check.gte, mission.check.metric);
   }
 
@@ -398,7 +410,8 @@
     const state = clone(prev);
     const out = [];
     const prevBeats = beatCount(prev, now);
-    if (state.status === "ended" && input.type !== "tick") return { state: prev, out };
+    // After the end, only the report (statistics and declared missions) may still change the session.
+    if (state.status === "ended" && !["tick", "field", "declare"].includes(input.type)) return { state: prev, out };
     switch (input.type) {
       case "start":
         if (state.status !== "ready") break;
@@ -459,7 +472,8 @@
     }
     state.lastSeenAt = now;
     if (state.status === "active" || input.type === "end") autoRounds(state, now);
-    if (state.status === "active" || input.type === "end") {
+    if (state.status === "ended" && input.type !== "end") runMissions(state, now, out);
+    else if (state.status === "active" || input.type === "end") {
       runMissions(state, now, out);
       runEvents(state, now, out, prevBeats);
       if (state.status !== "ended") runCompanion(state, now, out);

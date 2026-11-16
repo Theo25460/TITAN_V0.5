@@ -35,7 +35,7 @@
     const essence = voie.essence;
     const effort = Math.max(0, Math.floor(Number(ctx.effortMinutes) || 0));
     const essenceAmount = Math.max(0, Math.min(effort, RULE.dailyEssenceCap - Math.max(0, Number(ctx.essenceToday) || 0)));
-    const missions = verifiedMissions(journal);
+    const missions = verifiedMissions(journal, ctx.extras);
     let eclats = 0;
     const lines = [];
     if ((ctx.sessionsToday || 0) < RULE.baseSessionsPerDay) { eclats += RULE.baseEclats; lines.push({ id: "base", eclats: RULE.baseEclats }); }
@@ -49,21 +49,39 @@
     return { ok: true, essence, essenceAmount, eclats, missions: missions.map((x) => x.id), find, lines };
   }
 
-  /** Same filter as the server: prefix matches the Voie, ids unique, at most one declared, needs ≥5 active minutes. */
-  function verifiedMissions(journal) {
+  /** Same filter as the server: known mission of the journal's Voie, ids unique, at most one declared (by the mission's
+   *  own rule, never by a flag of the journal), report missions checked against the session extras, ≥5 active minutes. */
+  function verifiedMissions(journal, extras) {
     if (!(Number(journal.activeMin) >= RULE.minActiveMinForMissions)) return [];
     const seen = new Set();
     let declared = 0;
     const out = [];
-    for (const m of Array.isArray(journal.missions) ? journal.missions : []) {
+    for (const m of (Array.isArray(journal.missions) ? journal.missions : []).slice(0, 6)) {
+      if (out.length >= RULE.maxMissions) break;
       const id = String(m?.id || "");
       if (!/^[a-z]+\.[a-z_]{2,32}$/.test(id) || id.split(".")[0] !== journal.voie || seen.has(id)) continue;
-      if (m.declared) { if (declared >= RULE.maxDeclared) continue; declared++; }
+      const kind = V().missionKind(id);
+      if (!kind) continue;
+      if (kind === "declared") { if (declared >= RULE.maxDeclared) continue; declared++; }
+      if (kind === "report" && extras && !reportHolds(id, extras)) continue;
       seen.add(id);
-      out.push({ id, declared: !!m.declared });
-      if (out.length >= RULE.maxMissions) break;
+      out.push({ id, declared: kind === "declared", kind });
     }
     return out;
+  }
+
+  function reportHolds(id, extras) {
+    const field = id.split(".r_")[1];
+    const def = V().FIELD_MISSIONS.find((f) => f.field === field);
+    const n = (k) => (extras[k] === undefined || extras[k] === null || extras[k] === "" ? null : Number(extras[k]));
+    const v = n(field);
+    if (!def || v === null || !Number.isFinite(v)) return false;
+    const c = def.cond;
+    if (c.requires && n(c.requires) === null) return false;
+    if (c.per) { const d = n(c.per.field); return d !== null && d > 0 && v <= d * c.per.max; }
+    if (c.gte != null && !(v >= c.gte)) return false;
+    if (c.lte != null && !(v <= c.lte)) return false;
+    return true;
   }
 
   /** Deterministic find: the seed is the session's client_event_id, so the server draws the same one. */

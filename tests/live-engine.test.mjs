@@ -244,8 +244,10 @@ test("fairness: the three intents are worth the same, and a session's éclats ar
 });
 
 test("forged or foreign missions are not counted by the settlement rule", () => {
-  const j = { voie: "forge", intent: "atteindre", seed: "s", activeMin: 30, missions: [{ id: "sentier.echo" }, { id: "forge.plan" }, { id: "forge.plan" }, { id: "DROP TABLE" }, { id: "forge.braise", declared: true }, { id: "forge.lame_neuve", declared: true }] };
-  assert.deepEqual(World.verifiedMissions(j).map((m) => m.id), ["forge.plan", "forge.braise"]);
+  const j = { voie: "sentier", intent: "atteindre", seed: "s", activeMin: 30, missions: [{ id: "forge.plan" }, { id: "sentier.echo" }, { id: "sentier.echo" }, { id: "DROP TABLE" }, { id: "sentier.nope" }, { id: "sentier.regulier" }, { id: "sentier.halte", declared: false }] };
+  assert.deepEqual(World.verifiedMissions(j).map((m) => m.id), ["sentier.echo", "sentier.regulier"]);
+  const forged = { voie: "forge", activeMin: 30, missions: [{ id: "forge.lame_neuve", declared: true }, { id: "forge.r_warmup_sets" }] };
+  assert.deepEqual(World.verifiedMissions(forged, { warmup_sets: 1 }).map((m) => [m.id, m.declared]), [["forge.lame_neuve", false]], "the journal cannot relabel a mission as declared; a failed report is dropped");
   assert.deepEqual(World.verifiedMissions({ ...j, activeMin: 3 }), []);
 });
 
