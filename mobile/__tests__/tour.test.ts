@@ -1,4 +1,4 @@
-import { dismiss, finish, freshTour, goTo, loadTour, progressLabel, restart, saveTour, shouldOffer, TOUR_STEPS } from "../src/lib/tour";
+import { dismiss, finish, freshTour, goTo, loadTour, plansText, progressLabel, restart, saveTour, shouldOffer, TOUR_STEPS } from "../src/lib/tour";
 
 test("twelve steps covering the whole app, each with a title and text, the sensitive ones optional, ends on a concrete first action", () => {
   expect(TOUR_STEPS).toHaveLength(12);
@@ -55,4 +55,11 @@ test("the last known tour state is remembered so the QG card never appears a fra
   await saveTour("owner-peek", goTo(freshTour(), 3));
   expect(peekTour("owner-peek").step).toBe(3);
   expect(peekTour("someone-else")).toBeNull();
+});
+
+test("the offers step never sells « no ads » in a build without ads, and keeps the server's coach capacities (AUD-03)", () => {
+  expect(plansText(false)).not.toMatch(/publicit/i);
+  expect(plansText(true)).toMatch(/retire les publicités/);
+  for (const text of [plansText(false), plansText(true)]) expect(text).toMatch(/5 ou 15 sportifs/);
+  expect([plansText(false), plansText(true)]).toContain(TOUR_STEPS.find((s) => s.id === "plans")!.text);
 });

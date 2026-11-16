@@ -19,7 +19,7 @@ export const visiblePerks = (perks: readonly string[], adsBuild: boolean) => per
     coach workspace open on the website, and the card says so before the purchase. The PRICE is never written here: it comes from Google Play. */
 export const PLUS_SKU = process.env.EXPO_PUBLIC_TITAN_PLUS_SKU || "titan01";
 export const PLANS = [
-  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Comparaisons sur 4, 12 ou 26 semaines et bilans détaillés, à consulter sur titan-app.fr", "20 routines nommées au lieu de 5", "Aucune publicité"] },
+  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Comparaisons sur 4, 12 ou 26 semaines et bilans détaillés, à consulter sur titan-app.fr", "20 routines nommées au lieu de 5, sur titan-app.fr", "Aucune publicité"] },
   { id: "titan02", plan: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Aucune publicité", "Espace coach sur titan-app.fr : calendrier, séances, messages, check-ins"] },
   { id: "titan03", plan: "coach_pro", kind: "coach", name: "Coach Ultra", tagline: "Pour accompagner 15 sportifs", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Aucune publicité", "Exactement la même suite Coach : tu paies la capacité, pas des fonctions"] },
 ] as const;
