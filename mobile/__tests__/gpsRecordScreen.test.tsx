@@ -125,8 +125,13 @@ test("abandoning a finished outing asks first: « Garder » keeps the trace, onl
   await waitFor(() => expect(screen.queryByText("Abandonner cette séance ?")).toBeNull());
   expect(mockStore.get("titan.gps.v1:owner-a")).toBeTruthy();
   expect(nav.goBack).not.toHaveBeenCalled();
-  fireEvent.press(screen.getByText("Abandonner cette séance"));
-  fireEvent.press(await screen.findByText("Supprimer la trace"));
+  // The button stays locked until the question it opened is answered (V12-41), and « Garder » answers one timer turn after the
+  // dialog left: a second press sent in that gap is swallowed as a double tap. Press like a person does, until the question shows.
+  await waitFor(() => {
+    if (!screen.queryByText("Abandonner cette séance ?")) fireEvent.press(screen.getByText("Abandonner cette séance"));
+    expect(screen.getByText("Supprimer la trace")).toBeTruthy();
+  });
+  fireEvent.press(screen.getByText("Supprimer la trace"));
   await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
   expect(mockStore.get("titan.gps.v1:owner-a") ?? null).toBeNull();
 });
