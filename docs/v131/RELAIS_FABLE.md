@@ -83,7 +83,8 @@ Mesure du 16 novembre (Chromium, téléphone 390 px, processeur ralenti ×4) :
 | Suite | Résultat |
 |---|---|
 | `pnpm run verify` (typage, 593 tests, build, audit, garde de release) | Vert |
-| E2E Playwright complet, tête finale | En cours au moment de ce commit (32 passés, 0 échec à mi-parcours) ; résultat final dans la PR #149. Sur `6295e49` : 1 033 / 1 034, puis les deux tests intermittents corrigés |
+| E2E Playwright complet, tête finale (local) | 1 033 / 1 034 : un échec intermittent `public card actions… SDK rollover` (6/6 en isolé, code non modifié) |
+| CI sur `60ca46b` | Android vert (tests, bundle, APK/AAB, émulateur) ; Web : migrations 17.6, tests et build verts, parcours navigateur 1 033 / 1 034 (`profile-title`, bouton injecté par le test effacé par un redessin ; test renforcé dans le commit suivant, 2 échecs sur 50 passes locales sous charge ensuite) |
 | Contrôles ciblés sous charge CPU | `journey-v13` 40/40, reçus d'achat 25/25, onglets de l'Aventure (A34) 12/12 sans reproduire l'échec |
 | `tools/db/test-migrations.sh` et variante `RELEASE_SQL` | Verts |
 | Android `tsc --noEmit`, Jest | Vert, 79 suites, 815 tests |
@@ -110,6 +111,8 @@ Mesure du 16 novembre (Chromium, téléphone 390 px, processeur ralenti ×4) :
 6. Rebaser les deux branches parallèles sur cette branche.
 
 ## 8. Risques résiduels
+
+- **Tests navigateur intermittents (environ 1 sur 1 034 par exécution, jamais le même)** : `adventure-rpg` (A34), `public card actions`, `profile-title`. Mécanisme commun : la page redessine ses boutons (`innerHTML`) quand un chargement tardif arrive ; un clic qui tombe pendant ce redessin vise un élément détaché. Correctif durable pour Fable : mettre à jour les listes au lieu de les reconstruire, ou rendre la délégation de clic indépendante des nœuds remplacés.
 
 - Les insertions anonymes de `contact_messages` et `analytics_events` restent sans limite par appelant (décision produit, D9).
 - La mesure d'audience d'une activation TITAN+ peut se perdre si un autre onglet remplace le reçu au même instant (propagation
