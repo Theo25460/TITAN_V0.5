@@ -2459,7 +2459,7 @@
   align-content: end;
   min-height: 116px;
   padding: var(--s3);
-  border-radius: var(--r2);
+  border-radius: 0;
   border: 0;
   border-bottom: 3px solid transparent;
   overflow: hidden;
@@ -3925,7 +3925,6 @@
   height: 9px;
   border-radius: 50%;
   background: var(--cy);
-  box-shadow: 0 0 8px var(--cy);
 }
 .at-map i:nth-of-type(1) { left: 18%; top: 62%; }
 .at-map i:nth-of-type(2) { left: 46%; top: 40%; }
@@ -4304,7 +4303,7 @@
 .moment-ring-center small { color: var(--cy); font-weight: 800; }
 .moment-hero[data-level-up="1"].struck .moment-ring-center { opacity: 0; }
 .moment-crest { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transform: scale(0.3) rotate(-12deg); }
-.moment-hero[data-level-up="1"].struck .moment-crest { animation: crestStrike 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; }
+.moment-hero[data-level-up="1"].struck .moment-crest { animation: crestStrike 0.5s var(--ease) forwards; }
 .moment-hero[data-level-up="1"][data-play="0"] .moment-crest { opacity: 1; transform: none; animation: none; }
 .moment-ring::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 3px solid var(--accent, var(--am)); opacity: 0; pointer-events: none; }
 .moment-hero[data-level-up="1"].struck[data-play="1"] .moment-ring::after { animation: crestShock 0.9s ease-out; }

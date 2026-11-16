@@ -57,7 +57,8 @@
     const heads = wk
       ? wk.days.map((d) => `<span class="prg-col${d.today ? " is-mark" : ""}">${d.letter}</span>`)
       : grid.columns.map((c, i, all) => {
-          const text = c.current ? "Sem." : i === 0 || c.date <= 7 ? SHORT[c.month] : all.length > 10 ? "" : String(c.date);
+          // The current week is named; the week just before it stays unlabelled so the two never run into each other on a phone.
+          const text = c.current ? "Sem." : i === all.length - 2 || (i === 0 && all[1]?.date <= 7) ? "" : i === 0 || c.date <= 7 ? SHORT[c.month] : all.length > 10 ? "" : String(c.date);
           return `<span class="prg-col${c.current ? " is-mark" : ""}">${text}</span>`;
         });
     const at = (i) => (wk ? { future: wk.days[i].future, mark: wk.days[i].today } : { future: false, mark: grid.columns[i].current });
