@@ -35,13 +35,53 @@
 .live-mission > span:first-child { color: var(--cy); }
 .live-controls { position: sticky; bottom: calc(var(--tabbar) + var(--s2)); padding-top: var(--s2); background: var(--bg); }
 .live-controls .asc-btn { flex: 1; }
-.live-trail { width: 100%; height: auto; display: block; }
-.live-contour { fill: none; stroke: var(--line); stroke-width: 1; }
-.live-path { fill: none; stroke: var(--line-3); stroke-width: 2; stroke-dasharray: 4 6; }
-.live-path-done { fill: none; stroke: var(--cy); stroke-width: 3; stroke-linecap: round; }
+/* « L'Expédition »: sky, three ridgelines, the ascent. The accent follows the family of the sport; amber is kept for the summit. */
+.live-scene { --fam: var(--fam-endurance); width: 100%; height: auto; display: block; border-radius: var(--r3); }
+.live-scene[data-family="force"] { --fam: var(--fam-force); }
+.live-scene[data-family="technique"] { --fam: var(--fam-technique); }
+.live-scene[data-family="jeu"] { --fam: var(--fam-jeu); }
+.live-scene[data-family="mobilite"] { --fam: var(--fam-mobilite); }
+.live-sky { fill: url(#live-sky); }
+.live-sky-top { stop-color: var(--bg); }
+.live-sky-low { stop-color: color-mix(in srgb, var(--fam) 16%, var(--bg-2)); }
+.live-star { fill: var(--tx-3); opacity: .55; }
+.live-disc { fill: color-mix(in srgb, var(--fam) 70%, var(--tx)); transition: cy var(--t-slow, .6s) var(--ease); }
+.live-disc-halo { fill: var(--fam); opacity: .12; transition: cy var(--t-slow, .6s) var(--ease); }
+.live-ridge.r1 { fill: color-mix(in srgb, var(--fam) 9%, var(--bg-3)); }
+.live-ridge.r2 { fill: color-mix(in srgb, var(--fam) 5%, var(--bg-2)); }
+.live-ridge.r3 { fill: var(--bg-1, var(--bg)); stroke: var(--line); stroke-width: 1; }
+.live-path { fill: none; stroke: var(--line-3); stroke-width: 2; stroke-dasharray: 3 7; stroke-linecap: round; }
+.live-path-done { fill: none; stroke: var(--cy); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
 .live-node { fill: var(--bg-3); stroke: var(--line-3); stroke-width: 1.5; }
 .live-node.on { fill: var(--cy); stroke: var(--cy-2); }
+.live-node.next { fill: var(--bg); stroke: var(--cy); stroke-width: 2; animation: live-next 2.4s var(--ease) infinite; }
 .live-echo { fill: none; stroke: var(--cy-2); stroke-width: 1.5; stroke-dasharray: 2 3; }
+.live-summit path { fill: none; stroke: var(--tx-3); stroke-width: 1.5; stroke-linecap: round; }
+.live-summit .live-flag { fill: var(--tx-3); stroke: none; }
+.live-summit.reached path { stroke: var(--am); }
+.live-summit.reached .live-flag { fill: var(--am); }
+.live-camp { fill: var(--bg-3); stroke: var(--tx-3); stroke-width: 1.5; stroke-linejoin: round; }
+.live-traveller circle { fill: none; stroke: var(--tx); stroke-width: 1.5; opacity: .9; }
+.live-traveller path { fill: none; stroke: var(--tx); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.live-traveller path.second { opacity: .5; }
+@keyframes live-next { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .live-node.next { animation: none; } .live-disc, .live-disc-halo { transition: none; } }
+.live-scene-line { margin: var(--s2) 0 0; text-align: center; }
+.live-scene-line strong { font-size: 22px; }
+.live-recap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); margin: 0; }
+.live-recap > div { display: grid; gap: 2px; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border: 1px solid var(--line); }
+.live-recap dt { color: var(--tx-3); font-size: 13px; line-height: 1.25; }
+.live-recap dd { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+/* One pane at a time on a phone; side by side on a wide screen, where the switch is no longer needed. */
+.live-pane { display: grid; gap: var(--s3); align-content: start; }
+.live-run[data-view="sport"] .live-pane-aventure, .live-run[data-view="aventure"] .live-pane-sport { display: none; }
+@media (min-width: 960px) {
+  .live-main { max-width: 1040px; }
+  .live-run .live-viewseg { display: none; }
+  .live-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--s6, 32px); align-items: start; }
+  .live-run[data-view] .live-pane { display: grid; }
+  .live-pane-aventure { position: sticky; top: var(--s5, 24px); }
+}
 .live-res { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--s2); }
 .live-res-item { display: grid; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border-top: 2px solid var(--cy); }
 .live-res-item[data-family="endurance"] { border-top-color: var(--fam-endurance); }
@@ -53,3 +93,4 @@
 .live-chapter { padding-block: var(--s2); border-bottom: 1px solid var(--line); }
 .live-amber { color: var(--am); }
 @media (max-width: 420px) { .live-form { grid-template-columns: 1fr; } .live-row { flex-direction: column; } }
+@media (max-width: 340px) { .live-recap { grid-template-columns: 1fr; } }

@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "faae97370b9d551720871926cc1109281f66a208",
+  "sha": "0858e02bc2ba8ee38009f7430eb3ec6d187f42f6",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "60544074e7e8f3e6c6d95689a4d8b2f12c8bfdcc5274d276e5a7454ee4c098f7",
@@ -23,6 +23,7 @@
     "live-voies.js": "368336ff1ff1e919e52219569304ed002de27147ace4ea898bc28e8e4be90187",
     "live-engine.js": "2a6ec82247291f03e53c44f49282edbbb8b64ec07fd47df4ed8972aaa81625b4",
     "live-world.js": "fe9691135928dc584c5853973f07662c74ff0b62fcd4d48dbb0bb0714a73c565",
+    "live-scene.js": "fbc87b2ffc4bc243e2dc4b90e30046e1685d4e361091484118c38f3a23e6ee10",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51"
   }
 }

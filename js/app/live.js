@@ -50,18 +50,32 @@
       if (o.type === "mission_done") window.showNotification?.("success", "Mission accomplie", o.mission.label);
     }
     persist(input.type !== "tick");
-    // While a field is being edited, a tick only refreshes the clocks: a full render would steal the focus and the caret.
-    const editing = root?.contains(document.activeElement) && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
-    if (input.type === "tick" && editing && !r.out.length) return softUpdate();
+    // A tick redraws the page only when something other than the clocks changed. Rebuilding the whole view every second stole
+    // the focus and the caret of a field being edited, and lost a tap that landed while the buttons were being replaced.
+    if (input.type === "tick" && !r.out.length) {
+      const editing = root?.contains(document.activeElement) && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+      if (editing || shape(L().view(state, Date.now())) === drawnShape) return softUpdate();
+    }
     render();
   }
+
+  /** Everything the live view shows except the running clocks and the goal bar: when it is unchanged, a tick is a soft update. */
+  function shape(v) {
+    return JSON.stringify([state.status, viewMode, v.panel, v.beats, v.planCount, v.tapsAllowed, Math.round(v.elan.value),
+      v.restLeftS === null ? -1 : v.restLeftS > 0 ? 1 : 0, v.bell ? [v.bell.phase, v.bell.round] : 0, v.panel === "flow" ? v.activeS % 10 < 4 : 0,
+      v.echo ? v.echo.beats : -1, v.goal ? v.goal.ratio >= 1 : 0, v.missions.active.map((m) => [m.id, m.value ?? 0]), state.missions.done.length,
+      v.lastEvent?.text || "", cue?.text || "", offer?.id || "", state.feel, !!interrupted, v.fields.pointsWon, v.fields.pointsLost]);
+  }
+  let drawnShape = "";
 
   function softUpdate() {
     const v = L().view(state, Date.now());
     const main = root.querySelector(".live-clock");
-    if (main) main.textContent = clock(v.activeS);
+    if (main) { main.textContent = clock(v.activeS); main.setAttribute("aria-label", `Temps actif ${clock(v.activeS)}`); }
     const small = root.querySelector(".live-clock-sm");
     if (small) small.textContent = clock(v.restLeftS ?? v.bell?.leftS ?? 0);
+    const bar = root.querySelector(".live-bar");
+    if (bar && v.goal) { bar.setAttribute("aria-valuenow", String(Math.round(v.goal.ratio * 100))); bar.firstElementChild.style.width = `${Math.round(v.goal.ratio * 100)}%`; }
   }
 
   function deliver(text, channels) {
@@ -214,17 +228,25 @@
     </section>`;
   }
 
-  function trailSvg(v) {
-    const total = Math.max(6, Math.min(24, v.planCount || Math.ceil((v.beats + 1) / 6) * 6));
-    const pts = Array.from({ length: total }, (_, i) => { const t = total <= 1 ? 0.5 : i / (total - 1); return [18 + t * 284, 75 + Math.sin(t * Math.PI * 2.2) * 42 - t * 18]; });
-    const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-    const done = pts.slice(0, Math.min(v.beats, total)).map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-    const echo = v.echo ? pts[Math.max(0, Math.min(total - 1, v.echo.beats - 1))] : null;
-    return `<svg class="live-trail" viewBox="0 0 320 150" role="img" aria-label="${esc(`${v.beats} ${v.beatLabel}${v.planCount ? ` sur ${v.planCount}` : ""}`)}">
-      <path class="live-contour" d="M0 37 C 96 15, 192 59, 320 29"/><path class="live-contour" d="M0 75 C 96 53, 192 97, 320 67"/><path class="live-contour" d="M0 112 C 96 90, 192 134, 320 104"/>
-      <path class="live-path" d="${d}"/>${done ? `<path class="live-path-done" d="${done}"/>` : ""}
-      ${pts.map(([x, y], i) => `<circle class="${i < v.beats ? "live-node on" : "live-node"}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i < v.beats ? 6 : 4}"/>`).join("")}
-      ${echo ? `<circle class="live-echo" cx="${echo[0].toFixed(1)}" cy="${echo[1].toFixed(1)}" r="10"/>` : ""}</svg>`;
+  /** « L'Expédition »: the adventure view. Geometry from the shared core (js/core/live-scene.js), colours from Ascension tokens. */
+  function sceneSvg(v, c, ended = false) {
+    const s = window.TitanLiveScene.scene({ beats: v.beats, planCount: v.planCount, echoBeats: v.echo ? v.echo.beats : null,
+      goalRatio: v.goal ? v.goal.ratio : null, elan: v.elan, seed: c.sport, ended });
+    const label = `${cap(c.voieName)} : ${v.beats} ${v.beatLabel}${v.planCount ? ` sur ${v.planCount}` : ""}, élan du jour ${Math.round(v.elan.value)} sur ${v.elan.max}${v.echo ? `, Écho à ${v.echo.beats}` : ""}${s.summit.reached ? ", sommet atteint" : ""}`;
+    const t = s.traveller;
+    return `<svg class="live-scene" data-family="${esc(c.family)}" viewBox="0 0 ${s.width} ${s.height}" role="img" aria-label="${esc(label)}">
+      <defs><linearGradient id="live-sky" x1="0" y1="0" x2="0" y2="1"><stop class="live-sky-top" offset="0"/><stop class="live-sky-low" offset="1"/></linearGradient></defs>
+      <rect class="live-sky" width="${s.width}" height="${s.height}" rx="14"/>
+      ${s.stars.map((p) => `<circle class="live-star" cx="${p.x}" cy="${p.y}" r="${p.r}"/>`).join("")}
+      <circle class="live-disc-halo" cx="${s.sky.x}" cy="${s.sky.y}" r="${s.sky.r + 7}"/><circle class="live-disc" cx="${s.sky.x}" cy="${s.sky.y}" r="${s.sky.r}"/>
+      ${s.ridges.map((d, i) => `<path class="live-ridge r${i + 1}" d="${d}"/>`).join("")}
+      <path class="live-path" d="${s.trail}"/>${s.done ? `<path class="live-path-done" d="${s.done}"/>` : ""}
+      <g class="live-summit${s.summit.reached ? " reached" : ""}"><path d="M${s.summit.x} ${s.summit.y} v-22"/><path class="live-flag" d="M${s.summit.x} ${s.summit.y - 22} l13 5 l-13 5 z"/></g>
+      ${s.nodes.map((n) => `<circle class="live-node${n.lit ? " on" : ""}${n.next ? " next" : ""}" cx="${n.x}" cy="${n.y}" r="${n.lit ? 5 : n.next ? 4.5 : 3.2}"/>`).join("")}
+      ${s.echo ? `<circle class="live-echo" cx="${s.echo.x}" cy="${s.echo.y}" r="10"/>` : ""}
+      <path class="live-camp" d="M${s.camp.x - 7} ${s.camp.y + 4} l7 -11 l7 11 z"/>
+      <g class="live-traveller"><circle cx="${t.x}" cy="${t.y}" r="9"/>${t.x === s.summit.x && t.y === s.summit.y ? "" : `<path d="M${t.x - 6} ${t.y - 13} l6 -6 l6 6"/><path class="second" d="M${t.x - 6} ${t.y - 20} l6 -6 l6 6"/>`}</g>
+    </svg>`;
   }
 
   function panelHtml(v, c) {
@@ -254,12 +276,18 @@
   function liveHtml() {
     const c = V().resolve(state.sport);
     const v = L().view(state, Date.now());
-    return `<section class="asc-stack live-run">
-      ${seg("view", [["sport", "Vue sportive"], ["aventure", "Vue aventure"]], viewMode)}
+    drawnShape = shape(v);
+    return `<section class="asc-stack live-run" data-view="${viewMode}">
+      <div class="live-viewseg">${seg("view", [["sport", "Vue sportive"], ["aventure", "Vue aventure"]], viewMode)}</div>
       ${interrupted ? `<div class="asc-panel live-warn"><strong>Séance retrouvée</strong><p class="asc-small asc-muted">La page a été fermée pendant ${Math.round(interrupted.gapS / 60)} min. Le chrono a continué.</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="trim">J’étais à l’arrêt</button><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="keepgap">Je continuais</button></div></div>` : ""}
       <div class="live-head"><p class="asc-eyebrow ${state.status === "active" ? "cy" : ""}">${state.status === "active" ? esc(c.label) : "En pause"}</p><p class="live-clock" aria-label="Temps actif ${clock(v.activeS)}">${clock(v.activeS)}</p>
         ${v.goal ? `<div class="live-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v.goal.ratio * 100)}" aria-label="Progression de l’objectif"><i style="width:${Math.round(v.goal.ratio * 100)}%"></i></div>` : ""}</div>
-      ${viewMode === "sport" ? panelHtml(v, c) : `${trailSvg(v)}<p class="asc-small asc-muted">${v.beats} ${esc(v.beatLabel)}${v.planCount ? ` sur ${v.planCount}` : ""} · Élan du jour ${Math.round(v.elan.value)} / ${v.elan.max}</p>${v.lastEvent && v.lastEvent.text === cue?.text ? "" : `<p class="asc-small asc-muted">${esc(v.lastEvent?.text || c.tagline)}</p>`}`}
+      <div class="live-cols">
+        <div class="live-pane live-pane-sport">${panelHtml(v, c)}</div>
+        <div class="live-pane live-pane-aventure">${sceneSvg(v, c)}
+          <p class="live-scene-line"><strong class="asc-num">${v.beats}</strong> ${esc(v.beatLabel)}${v.planCount ? ` sur ${v.planCount}` : ""} <span class="asc-muted">· Élan du jour ${Math.round(v.elan.value)} / ${v.elan.max}</span></p>
+          ${v.lastEvent && v.lastEvent.text === cue?.text ? "" : `<p class="asc-small asc-muted">${esc(v.lastEvent?.text || c.tagline)}</p>`}</div>
+      </div>
       ${cue && state.level >= 1 ? `<div class="live-cue" role="status"><strong>${esc(cue.text)}</strong>${cue.why ? `<span class="asc-small asc-muted">Pourquoi : ${esc(cue.why)}</span>` : ""}</div>` : ""}
       ${offer && v.tapsAllowed ? `<div class="asc-panel live-offer"><p class="asc-eyebrow cy">Mission proposée</p><strong>${esc(offer.label)}</strong><p class="asc-small asc-muted">${esc(offer.text)}</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-act="accept">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-act="decline">Pas aujourd’hui</button></div></div>` : ""}
       ${v.missions.active.map((m) => `<div class="live-mission"><span class="asc-small">Mission en cours</span><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${m.metric === "declared" ? "À confirmer à la fin." : m.metric === "report" ? "Se vérifie au rapport." : m.target != null ? `${m.value ?? 0} / ${Math.ceil(m.target)}` : esc(m.text)}</span></div>`).join("")}
@@ -276,7 +304,13 @@
     const label = (id) => (window.TitanSports.conf(c.sport)?.extraFields || []).find((f) => f.id === id)?.label || id;
     const declared = c.missions.filter((m) => m.check.metric === "declared" && state.missions.active.includes(m.id));
     return `<section class="asc-stack">
-      <div><p class="asc-eyebrow cy">${esc(c.voieName)} · séance terminée</p><h1 class="asc-h1">${clock(v.activeS)}</h1><p class="asc-muted">${v.beats} ${esc(v.beatLabel)} · ${state.missions.done.length} mission(s) accomplie(s)</p></div>
+      <div><p class="asc-eyebrow cy">${esc(c.voieName)} · séance terminée</p><h1 class="asc-h1">${clock(v.activeS)}</h1></div>
+      ${sceneSvg(v, c, true)}
+      <dl class="live-recap" aria-label="Ce que ton effort a tracé">
+        <div><dt>${esc(cap(v.beatLabel))}</dt><dd class="asc-num">${v.beats}${v.planCount ? ` / ${v.planCount}` : ""}</dd></div>
+        <div><dt>Missions accomplies</dt><dd class="asc-num">${state.missions.done.length}</dd></div>
+        <div><dt>Élan du jour</dt><dd class="asc-num">${Math.round(v.elan.value)} / ${v.elan.max}</dd></div>
+      </dl>
       <div class="asc-section"><h2 class="asc-h3">Effort ressenti</h2><div class="asc-row-flex">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => `<button type="button" class="asc-chip${rpe === x ? " cy" : ""}" data-act="rpe" data-v="${x}">${x}</button>`).join("")}</div></div>
       ${fields.length ? `<div class="asc-section"><h2 class="asc-h3">Rapport</h2>${fields.map((f) => `<label class="asc-field"><span>${esc(label(f))}</span><input class="asc-input" data-k="report:${esc(f)}" inputmode="decimal" value="${esc(report[f] ?? "")}"></label>`).join("")}</div>` : ""}
       ${declared.length ? `<div class="asc-section"><h2 class="asc-h3">Missions à confirmer</h2>${declared.map((m) => `<button type="button" class="live-choice" data-act="declare" data-v="${esc(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span><span class="asc-small">Je l’ai fait</span></button>`).join("")}</div>` : ""}

@@ -47,8 +47,25 @@ les ajouts live se réappliquent : ils sont additifs.
       maillon. En attendant, `public.titan_live_export_v1()` donne l'export complet du monde live au joueur.
 - [ ] Tests physiques (section 5) sur au moins trois téléphones Android (dont un d'entrée de gamme).
 - [ ] Validation graphique des emplacements d'illustration ([ASSETS.md](ASSETS.md)) par le chantier visuel.
-- [ ] Lien « Séance live » dans la navigation Web (aujourd'hui accès direct `/seance-live` et depuis le QG Android).
+- [x] Entrée Web : « Vivre la séance en direct » en tête de la page Séance, visible seulement quand `screens.live` est ouvert pour le compte, ajoutée ou retirée sans redessiner la page (`js/app/seance.js`, parcours `tests/e2e/live-web.e2e.mjs`).
 - [ ] Expériences collectives (section 8 du game design) : à brancher sur les expéditions et binômes existants.
+
+## 4 bis. « L'Expédition » (16 novembre 2026)
+
+La vue aventure n'est plus une ligne de points : c'est une ascension du camp de base vers un sommet, à travers trois lignes de crête
+dont le relief dépend du sport. Chaque temps fort de la Voie allume une balise, le voyageur (le chevron TITAN) se tient sur la
+dernière, un disque monte dans le ciel avec l'élan du jour, et le drapeau du sommet passe à l'ambre quand le plan ou l'objectif est
+atteint. La géométrie est partagée (`js/core/live-scene.js`, copiée à l'identique dans `mobile/src/core/web/`) : la même séance
+dessine la même scène sur le site et sur le téléphone. Elle ne fait que montrer ce que le moteur a décidé.
+
+- Web : deux volets côte à côte à partir de 960 px (saisie sportive et expédition), un volet à la fois sur téléphone ; le bilan de
+  fin s'ouvre sur l'expédition et trois chiffres. Captures avant/après : `docs/live/captures/`.
+- Android : `components/LiveTrail.tsx` dessine la même scène avec `react-native-svg`.
+- Correctif d'usage : la page ne se reconstruit plus à chaque seconde, seulement quand quelque chose change. Un appui tombant
+  pendant une reconstruction pouvait être perdu.
+- Tests : `tests/live-scene.test.mjs` (déterminisme, cadre, plan court, sommet), `tests/e2e/live-web.e2e.mjs` (4 parcours),
+  `mobile/__tests__/liveExpedition.test.tsx`.
+- Reste à faire : illustration de fond par Voie (emplacements dans `ASSETS.md`), rendu sur téléphone réel.
 
 ## 5. Tests physiques (documentés, non bloquants pour un déploiement de test)
 

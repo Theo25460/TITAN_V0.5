@@ -7,6 +7,7 @@ import type { LiveJournal } from "./liveJournal";
 require("./web/live-voies.js");
 require("./web/live-engine.js");
 require("./web/live-world.js");
+require("./web/live-scene.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export type Intent = "atteindre" | "depasser" | "explorer";
@@ -95,6 +96,19 @@ export const LiveWorld = g.TitanLiveWorld as {
 };
 
 /** Baseline of comparable sessions (same sport) for "Se dépasser": median minutes and median beats, never across sports. */
+export type LiveSceneShape = {
+  width: number; height: number; ridges: string[]; stars: { x: number; y: number; r: number }[];
+  camp: { x: number; y: number }; trail: string; done: string;
+  nodes: { x: number; y: number; index: number; lit: boolean; next: boolean }[];
+  traveller: { x: number; y: number; atCamp: boolean }; echo: { x: number; y: number } | null;
+  sky: { x: number; y: number; r: number; ratio: number }; summit: { x: number; y: number; reached: boolean };
+  window: { first: number; total: number; lit: number; planned: number | null };
+};
+/** « L'Expédition »: the shared geometry of the adventure view (js/core/live-scene.js on the website). */
+export const LiveScene = g.TitanLiveScene as {
+  scene(input: { beats: number; planCount?: number | null; echoBeats?: number | null; goalRatio?: number | null; elan?: { value: number; max: number }; seed: string; ended?: boolean }): LiveSceneShape;
+};
+
 export function baselineFrom(logs: { sport: string; details?: { duration?: number; val2?: number; live?: { beats?: number } } }[], sport: string) {
   const same = logs.filter((l) => l.sport === sport).slice(0, 12);
   const median = (xs: number[]) => { const s = xs.filter((x) => x > 0).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : 0; };

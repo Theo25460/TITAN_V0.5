@@ -365,7 +365,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
         <Panel view={v} config={config} send={send} known={knownExercises} />
       ) : (
         <View style={{ gap: space.s3 }}>
-          <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.artefact.name} />
+          <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elan={v.elan} />
           <View style={{ gap: 4 }}>
             <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
             <ProgressBar value={v.elan.value / v.elan.max} color={colors.cy2} />

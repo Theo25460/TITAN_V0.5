@@ -316,6 +316,14 @@
       : '<div class="seance-search-empty"><p class="asc-small asc-muted" role="status">Aucun sport ne correspond à ta recherche.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="clear-import-search">Effacer la recherche</button></div>';
   }
 
+  /* TITAN LIVE: when the server opens it for this account, the session page offers it before the sport list. Nothing is shown
+     otherwise (the live page itself answers « Bientôt disponible » when reached directly). */
+  const liveOn = () => window.titanFlags?.enabled?.("screens.live", false) === true;
+  function liveEntryHtml() {
+    if (!liveOn()) return "";
+    return `<a class="seance-live-entry" href="/seance-live" data-live-entry><span class="seance-mode-icon">${icon("play")}</span><span><strong>Vivre la séance en direct</strong><small>Chrono, missions et expédition propres à ton sport. Tu vérifies et enregistres à la fin.</small></span>${icon("chevron")}</a>`;
+  }
+
   function modeHtml() {
     if (!hubOn()) return "";
     return `<div class="seance-modes" role="group" aria-label="Méthode d’enregistrement">
@@ -389,6 +397,7 @@
     return `
       <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1></div></header>
       <nav class="asc-subnav" data-subnav></nav>
+      ${liveEntryHtml()}
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
@@ -1259,6 +1268,10 @@
     if (hubOpen) { if (!hubOn()) { invalidateGpx(); hubOpen = false; } render(); }
     else if (S.step === "pick" && !S.query && !manualRequested && hubOn()) { hubOpen = true; render(); }
     // A late rollout response must never replace an edited form or search.
+    // The live entry follows its own flag without redrawing the page: it is added or removed in place.
+    const entry = root.querySelector("[data-live-entry]");
+    if (!liveOn()) entry?.remove();
+    else if (!entry && S.step === "pick" && !hubOpen) root.querySelector("[data-subnav]")?.insertAdjacentHTML("afterend", liveEntryHtml());
   });
   function start() {
     if (booted || !window.state?.user || window.titanAccountTransition?.active) return;
