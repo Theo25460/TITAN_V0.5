@@ -5,7 +5,7 @@ import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Brand } from "../../components/Brand";
 import { Button } from "../../components/Button";
-import { Icon, type IconName } from "../../components/Icon";
+import type { IconName } from "../../components/Icon";
 import { Reveal } from "../../components/Motion";
 import { Shade } from "../../components/Shade";
 import { T } from "../../components/Text";
@@ -17,9 +17,9 @@ import { colors, radius, space } from "../../theme/tokens";
 
 /** TITAN's loop, shown rather than told: a real session becomes progress, and progress moves an adventure. */
 const LOOP: { icon?: IconName; image?: number; color: string; title: string; text: string }[] = [
-  { icon: "run", color: colors.cy, title: "Ta séance", text: "Course, muscu, escalade… 260 sports, saisis en moins d’une minute, même hors ligne." },
-  { icon: "ascent", color: colors.am, title: "Ta progression", text: "XP calculée sur ton effort réel, records et maîtrise de chaque sport." },
-  { image: worldImages.valley, color: "#9EE6C8", title: "Ton aventure", text: "Tes jours actifs allument les balises de quatre mondes illustrés." },
+  { icon: "run", color: colors.signal, title: "Ta séance", text: "Course, muscu, escalade… 260 sports, saisis en moins d’une minute, même hors ligne." },
+  { icon: "ascent", color: colors.azur, title: "Ta progression", text: "XP calculée sur ton effort réel, records et maîtrise de chaque sport." },
+  { image: worldImages.valley, color: colors.mousse, title: "Ton aventure", text: "Tes jours actifs allument les balises de quatre mondes illustrés." },
 ];
 
 export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams, "Welcome">) {
@@ -40,7 +40,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
     <View style={[styles.root, { paddingTop: insets.top + space.s4, paddingBottom: insets.bottom + space.s4 }]}>
       <View style={styles.heroWrap}>
         <Image source={heroImage} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
-        <Shade from={0.3} start={0.05} to={1} />
+        <Shade from={0.35} start={0.1} to={1} />
       </View>
       <View style={styles.content}>
         <Brand size={40} />
@@ -50,25 +50,14 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
             {ADS_BUILD ? "Gratuit. Des publicités, jamais pendant une séance ; aucune avec TITAN+." : "Gratuit, sans publicité, sans achat pour progresser."}
           </T>
         </Reveal>
-        <View accessibilityRole="list">
+        {/* The loop in three ruled lines, each in the colour of the space it leads to: record, measure, adventure. */}
+        <View accessibilityRole="list" style={styles.loop}>
           {LOOP.map((step, i) => (
             <Reveal key={step.title} order={1 + i} style={styles.step}>
-              <View style={styles.rail}>
-                <View style={[styles.segment, { opacity: i === 0 ? 0 : 1 }]} />
-                {step.image ? (
-                  <Image source={step.image} style={[styles.disc, { borderColor: step.color }]} />
-                ) : (
-                  <View style={[styles.disc, { borderColor: step.color, backgroundColor: `${step.color}1F` }]}>
-                    <Icon name={step.icon!} size={22} color={step.color} />
-                  </View>
-                )}
-                <View style={[styles.segment, { opacity: i === LOOP.length - 1 ? 0 : 1 }]} />
-              </View>
+              <View style={[styles.swatch, { backgroundColor: step.color }]} />
               <View style={styles.stepText} accessible accessibilityLabel={`${i + 1}. ${step.title}. ${step.text}`}>
-                <T variant="bodyStrong" color={step.color}>
-                  {step.title}
-                </T>
-                <T variant="small" tone="default">
+                <T variant="title">{step.title}</T>
+                <T variant="small" tone="default" style={{ opacity: 0.86 }}>
                   {step.text}
                 </T>
               </View>
@@ -120,10 +109,9 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   heroWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" },
   content: { flex: 1, justifyContent: "space-between", paddingHorizontal: space.s5, gap: space.s4 },
-  step: { flexDirection: "row", gap: space.s3, minHeight: 74 },
-  rail: { width: 48, alignItems: "center" },
-  segment: { flex: 1, width: 2, backgroundColor: colors.line3 },
-  disc: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  stepText: { flex: 1, justifyContent: "center", gap: 2, paddingVertical: space.s2 },
+  loop: { borderTopWidth: 2, borderTopColor: colors.tx },
+  step: { flexDirection: "row", gap: space.s3, alignItems: "flex-start", paddingVertical: space.s3, borderBottomWidth: 1, borderBottomColor: colors.line2 },
+  swatch: { width: 10, height: 10, marginTop: 6 },
+  stepText: { flex: 1, gap: 2 },
   notice: { padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.warnSoft },
 });
