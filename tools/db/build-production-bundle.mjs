@@ -20,6 +20,9 @@ const opt = (name, fallback) => {
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
 const AFTER = opt("--after", "20261110130137");
+// The V1.3.1 bundle was applied to production on 16 November 2026: it is frozen at its last migration. Later migrations belong to
+// the next bundle (--after 20261116110000 --until <last> --out supabase/release-<name>).
+const UNTIL = opt("--until", "20261116110000");
 const OUT = join(ROOT, opt("--out", "supabase/release-v131"));
 if (!/^\d{14}$/.test(AFTER)) throw new Error("--after must be a 14-digit migration version");
 
@@ -40,9 +43,9 @@ export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonction
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 where n.nspname in ('public', 'private') group by 1 order by 1`;
 
-export function pendingMigrations(after = AFTER) {
+export function pendingMigrations(after = AFTER, until = UNTIL) {
   return readdirSync(join(ROOT, "supabase/migrations"))
-    .filter((f) => /^\d{14}_[a-z0-9_]+\.sql$/.test(f) && f.slice(0, 14) > after)
+    .filter((f) => /^\d{14}_[a-z0-9_]+\.sql$/.test(f) && f.slice(0, 14) > after && f.slice(0, 14) <= until)
     .sort()
     .map((file) => ({ file, version: file.slice(0, 14), name: file.slice(15, -4), sql: readFileSync(join(ROOT, "supabase/migrations", file), "utf8") }));
 }

@@ -4,6 +4,7 @@
 import { Sports, type GpxResult, type SportForm } from "./index";
 import type { Exercise, SessionDetails, TrainingPayload } from "./types";
 import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
+import { sanitizeLiveJournal, type LiveJournal } from "./liveJournal";
 
 export type SetDraft = { weight: string; reps: string; rir: string; seconds: string };
 export type ExerciseDraft = { name: string; variant: string; kind: "weighted" | "bodyweight" | "hold"; sets: SetDraft[] };
@@ -33,6 +34,8 @@ export type SessionDraft = {
   gpx?: DraftGpx | null;
   gpxDurationEdited?: boolean;
   gpsRouteId?: string;
+  /** TITAN LIVE journal of the session, settled by the server after saving (cosmetic world progression only). */
+  live?: LiveJournal | null;
 };
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
@@ -276,6 +279,8 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     }
   }
   data.extras = { ...(d.extras || {}), ...data.extras };
+  const live = sanitizeLiveJournal(d.live);
+  if (live) data.live = live;
   unit = data.unitOverride || unit;
   let val = Number(data.val1) || 0;
   if (!val && data.exercises?.length) {
@@ -369,6 +374,11 @@ export function sanitizeDetails(details: SessionDetails, sport: string, now = Da
   out.note = String(details.note || "").replace(/\s+/g, " ").trim().slice(0, noteLimit(plus));
   out.tags = [];
   out.extras = sanitizeExtras(details.extras, sport, plus);
+  if ("live" in details) {
+    const live = sanitizeLiveJournal(details.live);
+    if (live && live.sport === sport) out.live = live;
+    else delete out.live;
+  }
   if (details.gpxStats) {
     const clamp = (v: unknown, max: number) => {
       const value = num(v);

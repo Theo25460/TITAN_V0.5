@@ -1,0 +1,6234 @@
+[
+ {
+  "sport": "alpinism",
+  "label": "Alpinisme",
+  "signature": "Alpinisme dans les Hautes Routes : la montagne se mesure en refuges, pas en vitesse.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.panorama",
+   "altitude.r_max_altitude_m"
+  ]
+ },
+ {
+  "sport": "hiking",
+  "label": "Randonnée",
+  "signature": "Une heure de demi-tour, des refuges au dénivelé, un carnet de cimes.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.denivele",
+   "altitude.panorama",
+   "altitude.r_max_altitude_m"
+  ]
+ },
+ {
+  "sport": "snowshoeing",
+  "label": "Raquettes",
+  "signature": "Raquettes dans les Hautes Routes : la montagne se mesure en refuges, pas en vitesse.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.denivele",
+   "altitude.panorama",
+   "altitude.r_max_altitude_m"
+  ]
+ },
+ {
+  "sport": "ski_mountaineering",
+  "label": "Ski alpinisme",
+  "signature": "Ski alpinisme dans les Hautes Routes : la montagne se mesure en refuges, pas en vitesse.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.denivele",
+   "altitude.panorama",
+   "altitude.r_elevation",
+   "altitude.r_runs"
+  ]
+ },
+ {
+  "sport": "ski_touring",
+  "label": "Ski de randonnée",
+  "signature": "Ski de randonnée dans les Hautes Routes : la montagne se mesure en refuges, pas en vitesse.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.denivele",
+   "altitude.panorama",
+   "altitude.r_elevation"
+  ]
+ },
+ {
+  "sport": "trekking",
+  "label": "Trek",
+  "signature": "Trek dans les Hautes Routes : la montagne se mesure en refuges, pas en vitesse.",
+  "voie": "altitude",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "altitude.demi_tour",
+   "altitude.refuges",
+   "altitude.denivele",
+   "altitude.panorama",
+   "altitude.r_max_altitude_m",
+   "altitude.r_elevation"
+  ]
+ },
+ {
+  "sport": "aquagym",
+  "label": "Aquagym",
+  "signature": "Le Brasier : 6 vagues à la cloche.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 300,
+   "restS": 60
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format",
+   "brasier.r_drills"
+  ]
+ },
+ {
+  "sport": "rope_jump",
+  "label": "Corde à sauter",
+  "signature": "Le Brasier : 10 vagues à la cloche.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 10,
+   "workS": 60,
+   "restS": 30
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format"
+  ]
+ },
+ {
+  "sport": "fitness_class",
+  "label": "Cours collectif",
+  "signature": "Le Brasier : 8 vagues à la cloche.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 180,
+   "restS": 45
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format"
+  ]
+ },
+ {
+  "sport": "crossfit",
+  "label": "CrossFit",
+  "signature": "Rounds à la cloche ; un round de plus seulement si la qualité reste la même.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 5,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format"
+  ]
+ },
+ {
+  "sport": "hiit",
+  "label": "HIIT",
+  "signature": "Huit vagues de 40 secondes, des remparts de 20 : la cloche compte pour toi.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 40,
+   "restS": 20
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format"
+  ]
+ },
+ {
+  "sport": "hyrox",
+  "label": "Hyrox",
+  "signature": "Huit stations comme huit vagues ; les transitions sont des remparts.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 240,
+   "restS": 30
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format",
+   "brasier.r_stations"
+  ]
+ },
+ {
+  "sport": "stair_climbing",
+  "label": "Montée d’escaliers",
+  "signature": "Le Brasier : 6 vagues à la cloche.",
+  "voie": "brasier",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 120,
+   "restS": 60
+  },
+  "missions": [
+   "brasier.vagues",
+   "brasier.remparts",
+   "brasier.vague_plus",
+   "brasier.format",
+   "brasier.r_elevation"
+  ]
+ },
+ {
+  "sport": "billiards_pool",
+  "label": "Billard pool",
+  "signature": "La Cible par frames : 8 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 8
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_best_break",
+   "cible.r_safety_shots"
+  ]
+ },
+ {
+  "sport": "bocce",
+  "label": "Bocce",
+  "signature": "La Cible par mènes : 12 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 12
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_pointing_success"
+  ]
+ },
+ {
+  "sport": "boccia",
+  "label": "Boccia",
+  "signature": "La Cible par manches : 6 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 6
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_pointing_success"
+  ]
+ },
+ {
+  "sport": "bowling",
+  "label": "Bowling",
+  "signature": "La Cible par parties : 3 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 3
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_games",
+   "cible.r_spares"
+  ]
+ },
+ {
+  "sport": "croquet",
+  "label": "Croquet",
+  "signature": "La Cible par arceaux : 12 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 12
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_successful_shots"
+  ]
+ },
+ {
+  "sport": "curling",
+  "label": "Curling",
+  "signature": "La Cible par manches : 8 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 8
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_successful_shots"
+  ]
+ },
+ {
+  "sport": "disc_golf",
+  "label": "Disc golf",
+  "signature": "La Cible par trous : 9 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 9
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_holes",
+   "cible.r_putts"
+  ]
+ },
+ {
+  "sport": "darts",
+  "label": "Fléchettes",
+  "signature": "Des legs et des finitions ; TITAN se tait pendant le lancer.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 10
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_checkout_pct"
+  ]
+ },
+ {
+  "sport": "golf",
+  "label": "Golf",
+  "signature": "Neuf ou dix-huit trous, le green apaisé : la constance plutôt que le coup parfait.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 9
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_holes",
+   "cible.r_putts"
+  ]
+ },
+ {
+  "sport": "petanque",
+  "label": "Pétanque",
+  "signature": "Treize mènes, pointer juste : la constellation de la régularité.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 13
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_pointing_success"
+  ]
+ },
+ {
+  "sport": "snooker",
+  "label": "Snooker",
+  "signature": "La Cible par frames : 5 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 5
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance",
+   "cible.r_best_break",
+   "cible.r_safety_shots"
+  ]
+ },
+ {
+  "sport": "archery",
+  "label": "Tir à l’arc",
+  "signature": "Douze volées, une étoile chacune ; la régularité dessine des constellations.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 12
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance"
+  ]
+ },
+ {
+  "sport": "shooting",
+  "label": "Tir sportif",
+  "signature": "La Cible par séries : 6 prévues, chacune allume une étoile.",
+  "voie": "cible",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "end",
+   "count": 6
+  },
+  "missions": [
+   "cible.volees",
+   "cible.constellation",
+   "cible.routine",
+   "cible.distance"
+  ]
+ },
+ {
+  "sport": "abs_session",
+  "label": "Abdos",
+  "signature": "Abdos dans l’Ascension du corps : ton propre poids, une constellation de mouvements à allumer.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "dips",
+  "label": "Dips",
+  "signature": "Dips dans l’Ascension du corps : ton propre poids, une constellation de mouvements à allumer.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "plank",
+  "label": "Gainage",
+  "signature": "Le gainage se compte en souffles tenus, pas en douleur.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "bodyweight",
+  "label": "Poids du corps",
+  "signature": "Poids du corps dans l’Ascension du corps : ton propre poids, une constellation de mouvements à allumer.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "pompes",
+  "label": "Pompes",
+  "signature": "Une constellation qui part des genoux et monte jusqu’aux variantes rares.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "squat",
+  "label": "Squats au poids du corps",
+  "signature": "Squats au poids du corps dans l’Ascension du corps : ton propre poids, une constellation de mouvements à allumer.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "street_workout",
+  "label": "Street workout",
+  "signature": "Street workout dans l’Ascension du corps : ton propre poids, une constellation de mouvements à allumer.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "tractions",
+  "label": "Tractions",
+  "signature": "L’étoile suivante s’allume quand la précédente est stable : assistée, stricte, lestée.",
+  "voie": "corps",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 8,
+   "restS": 60
+  },
+  "missions": [
+   "corps.paliers",
+   "corps.propre",
+   "corps.variante",
+   "corps.respiration",
+   "corps.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "aikido",
+  "label": "Aïkido",
+  "signature": "Aïkido dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "arnis_eskrima",
+  "label": "Arnis / Eskrima",
+  "signature": "Arnis / Eskrima dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_touches"
+  ]
+ },
+ {
+  "sport": "boxing",
+  "label": "Boxe anglaise",
+  "signature": "La cloche sonne les rounds ; le contrôle et la garde remplissent les parchemins.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_combinations",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "thaiboxing",
+  "label": "Boxe thaï",
+  "signature": "Le Dojo à la cloche : 5 rounds de 3 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 5,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_combinations",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "capoeira",
+  "label": "Capoeira",
+  "signature": "Capoeira dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "fencing",
+  "label": "Escrime",
+  "signature": "Assauts à la cloche, touches propres : la lame juste plutôt que forte.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_touches"
+  ]
+ },
+ {
+  "sport": "grappling",
+  "label": "Grappling",
+  "signature": "Le Dojo à la cloche : 6 rounds de 5 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 300,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "hapkido",
+  "label": "Hapkido",
+  "signature": "Hapkido dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines"
+  ]
+ },
+ {
+  "sport": "bjj",
+  "label": "Jiu-jitsu brésilien",
+  "signature": "Des rolls de six minutes ; les sorties de position valent autant que les finitions.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 360,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "judo",
+  "label": "Judo",
+  "signature": "Randoris à la cloche ; sorties et amenées au sol contrôlées.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 240,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "karate",
+  "label": "Karaté",
+  "signature": "Katas et kumite contrôlé : chaque technique a son parchemin.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "kendo",
+  "label": "Kendo",
+  "signature": "Le Dojo à la cloche : 8 rounds de 3 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_touches"
+  ]
+ },
+ {
+  "sport": "kickboxing",
+  "label": "Kickboxing",
+  "signature": "Le Dojo à la cloche : 6 rounds de 2 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 120,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_combinations",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "krav_maga",
+  "label": "Krav-maga",
+  "signature": "Krav-maga dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "kung_fu",
+  "label": "Kung-fu",
+  "signature": "Kung-fu dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "wrestling",
+  "label": "Lutte",
+  "signature": "Le Dojo à la cloche : 6 rounds de 3 min, repos 30 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 30
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "greco_roman_wrestling",
+  "label": "Lutte gréco-romaine",
+  "signature": "Le Dojo à la cloche : 6 rounds de 3 min, repos 30 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 30
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "freestyle_wrestling",
+  "label": "Lutte libre",
+  "signature": "Le Dojo à la cloche : 6 rounds de 3 min, repos 30 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 30
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "mma",
+  "label": "MMA",
+  "signature": "Le Dojo à la cloche : 5 rounds de 5 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 5,
+   "workS": 300,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "sambo",
+  "label": "Sambo",
+  "signature": "Le Dojo à la cloche : 6 rounds de 5 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 300,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "savate",
+  "label": "Savate boxe française",
+  "signature": "Le Dojo à la cloche : 5 rounds de 2 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 5,
+   "workS": 120,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_combinations",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "sumo",
+  "label": "Sumo",
+  "signature": "Le Dojo à la cloche : 10 rounds de 0.5 min, repos 60 s.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 10,
+   "workS": 30,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_bouts",
+   "dojo.r_takedowns",
+   "dojo.r_escapes"
+  ]
+ },
+ {
+  "sport": "taekwondo",
+  "label": "Taekwondo",
+  "signature": "Taekwondo dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines",
+   "dojo.r_clean_strikes",
+   "dojo.r_defensive_actions"
+  ]
+ },
+ {
+  "sport": "wushu",
+  "label": "Wushu",
+  "signature": "Wushu dans le Dojo : rounds sonnés, techniques notées sur des parchemins de maîtrise.",
+  "voie": "dojo",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 6,
+   "workS": 180,
+   "restS": 60
+  },
+  "missions": [
+   "dojo.rounds",
+   "dojo.technique",
+   "dojo.controle",
+   "dojo.repos",
+   "dojo.nouvelle",
+   "dojo.r_techniques",
+   "dojo.r_routines"
+  ]
+ },
+ {
+  "sport": "freediving",
+  "label": "Apnée",
+  "signature": "Aucun défi de profondeur ni de durée d’apnée : la lecture des conditions, le binôme de sécurité et l’Atlas, rien d’autre.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique"
+  ]
+ },
+ {
+  "sport": "bmx",
+  "label": "BMX dirt",
+  "signature": "BMX dirt dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_tricks",
+   "elements.r_routines"
+  ]
+ },
+ {
+  "sport": "bmx_freestyle",
+  "label": "BMX freestyle",
+  "signature": "BMX freestyle dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_tricks",
+   "elements.r_routines",
+   "elements.r_runs",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "bodyboarding",
+  "label": "Bodyboard",
+  "signature": "Bodyboard dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rides",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "canoe_slalom",
+  "label": "Canoë slalom",
+  "signature": "Canoë slalom dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rapids",
+   "elements.r_penalties"
+  ]
+ },
+ {
+  "sport": "canyoning",
+  "label": "Canyoning",
+  "signature": "Canyoning dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rapids",
+   "elements.r_penalties"
+  ]
+ },
+ {
+  "sport": "kitesurf",
+  "label": "Kitesurf",
+  "signature": "Vent et plan d’eau lus avant de gréer ; manœuvres et bords tirés notés au retour.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_distance_nm",
+   "elements.r_maneuvers",
+   "elements.r_planing_minutes"
+  ]
+ },
+ {
+  "sport": "skydiving",
+  "label": "Parachutisme",
+  "signature": "Parachutisme dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_flights",
+   "elements.r_max_altitude_m",
+   "elements.r_landings"
+  ]
+ },
+ {
+  "sport": "paragliding",
+  "label": "Parapente",
+  "signature": "Les conditions aérologiques d’abord ; chaque vol posé ouvre une page de l’Atlas.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_flights",
+   "elements.r_max_altitude_m",
+   "elements.r_landings"
+  ]
+ },
+ {
+  "sport": "parkour",
+  "label": "Parkour",
+  "signature": "Parkour dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_tricks",
+   "elements.r_landings"
+  ]
+ },
+ {
+  "sport": "windsurf",
+  "label": "Planche à voile",
+  "signature": "Planche à voile dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_distance_nm",
+   "elements.r_maneuvers",
+   "elements.r_planing_minutes"
+  ]
+ },
+ {
+  "sport": "diving",
+  "label": "Plongée",
+  "signature": "Un carnet de plongée sans record : conditions, palanquée et paliers.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique"
+  ]
+ },
+ {
+  "sport": "rafting",
+  "label": "Rafting",
+  "signature": "Rafting dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rapids",
+   "elements.r_penalties"
+  ]
+ },
+ {
+  "sport": "ski_jumping",
+  "label": "Saut à ski",
+  "signature": "Saut à ski dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_runs",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "skateboarding",
+  "label": "Skateboard",
+  "signature": "Des figures posées à ton niveau, des spots nouveaux : aucune prise de risque récompensée.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_tricks",
+   "elements.r_landings",
+   "elements.r_runs",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "alpine_skiing",
+  "label": "Ski alpin",
+  "signature": "Aucun défi de vitesse : les conditions de neige rencontrées remplissent l’Atlas.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_runs",
+   "elements.r_vertical_m",
+   "elements.r_tricks",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "freestyle_skiing",
+  "label": "Ski freestyle",
+  "signature": "Ski freestyle dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_runs",
+   "elements.r_vertical_m",
+   "elements.r_tricks",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "water_skiing",
+  "label": "Ski nautique",
+  "signature": "Ski nautique dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_laps",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "telemark_skiing",
+  "label": "Ski télémark",
+  "signature": "Ski télémark dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_runs",
+   "elements.r_vertical_m",
+   "elements.r_tricks",
+   "elements.r_elevation"
+  ]
+ },
+ {
+  "sport": "skimboarding",
+  "label": "Skimboard",
+  "signature": "Skimboard dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rides",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "snorkeling",
+  "label": "Snorkeling",
+  "signature": "Snorkeling dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique"
+  ]
+ },
+ {
+  "sport": "snowboard",
+  "label": "Snowboard",
+  "signature": "Snowboard dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_runs",
+   "elements.r_vertical_m",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "surfing",
+  "label": "Surf",
+  "signature": "Lire la houle avant, glisser en silence, ouvrir une page de l’Atlas après.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_rides",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "sailing",
+  "label": "Voile",
+  "signature": "Voile dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_distance_nm",
+   "elements.r_maneuvers",
+   "elements.r_planing_minutes"
+  ]
+ },
+ {
+  "sport": "wakeboard",
+  "label": "Wakeboard",
+  "signature": "Wakeboard dans les Éléments : vagues, vent, neige, air : un atlas des conditions rencontrées.",
+  "voie": "elements",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "elements.lecture",
+   "elements.securite",
+   "elements.page",
+   "elements.technique",
+   "elements.r_laps",
+   "elements.r_tricks"
+  ]
+ },
+ {
+  "sport": "bandy",
+  "label": "Bandy",
+  "signature": "L’Escouade au rythme du bandy : 2 mi-temps de 45 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 45
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "baseball",
+  "label": "Baseball",
+  "signature": "L’Escouade au rythme du baseball : 9 manches de 18 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 9,
+   "minutes": 18
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_hits",
+   "escouade.r_runs"
+  ]
+ },
+ {
+  "sport": "wheelchair_basketball",
+  "label": "Basket fauteuil",
+  "signature": "L’Escouade au rythme du basket fauteuil : 4 quart-temps de 10 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 10
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_rebounds",
+   "escouade.r_assists",
+   "escouade.r_steals"
+  ]
+ },
+ {
+  "sport": "basketball",
+  "label": "Basketball",
+  "signature": "Quatre quarts-temps ; rebonds, passes et défense comptent autant que les paniers.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 10
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_rebounds",
+   "escouade.r_assists",
+   "escouade.r_steals"
+  ]
+ },
+ {
+  "sport": "basketball_3x3",
+  "label": "Basketball 3x3",
+  "signature": "L’Escouade au rythme du basketball 3x3 : 1 match de 10 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 1,
+   "minutes": 10
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_rebounds",
+   "escouade.r_assists",
+   "escouade.r_steals"
+  ]
+ },
+ {
+  "sport": "beach_handball",
+  "label": "Beach handball",
+  "signature": "L’Escouade au rythme du beach handball : 2 périodes de 10 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 10
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_saves",
+   "escouade.r_assists"
+  ]
+ },
+ {
+  "sport": "beach_soccer",
+  "label": "Beach soccer",
+  "signature": "L’Escouade au rythme du beach soccer : 3 tiers-temps de 12 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 12
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "beach_volleyball",
+  "label": "Beach volley",
+  "signature": "L’Escouade au rythme du beach volley : 3 sets de 18 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 18
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_aces",
+   "escouade.r_blocks",
+   "escouade.r_minutes_played"
+  ]
+ },
+ {
+  "sport": "camogie",
+  "label": "Camogie",
+  "signature": "L’Escouade au rythme du camogie : 2 mi-temps de 30 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "canoe_polo",
+  "label": "Canoë-polo",
+  "signature": "L’Escouade au rythme du canoë-polo : 2 mi-temps de 10 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 10
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "blind_football",
+  "label": "Cécifoot",
+  "signature": "L’Escouade au rythme du cécifoot : 2 mi-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "cricket",
+  "label": "Cricket",
+  "signature": "L’Escouade au rythme du cricket : 2 innings de 75 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 75
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_balls_faced"
+  ]
+ },
+ {
+  "sport": "cycle_polo",
+  "label": "Cycle polo",
+  "signature": "Cycle polo dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_elevation"
+  ]
+ },
+ {
+  "sport": "cycle_ball",
+  "label": "Cycle-ball",
+  "signature": "Cycle-ball dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_elevation"
+  ]
+ },
+ {
+  "sport": "dodgeball",
+  "label": "Dodgeball",
+  "signature": "Dodgeball dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_successful_defences"
+  ]
+ },
+ {
+  "sport": "flag_football",
+  "label": "Flag football",
+  "signature": "L’Escouade au rythme du flag football : 2 mi-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "floorball",
+  "label": "Floorball",
+  "signature": "L’Escouade au rythme du floorball : 3 tiers-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "football",
+  "label": "Football",
+  "signature": "Un serment avant le coup d’envoi, deux mi-temps, un rapport de 20 secondes.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 45
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "american_football",
+  "label": "Football américain",
+  "signature": "L’Escouade au rythme du football américain : 4 quart-temps de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "australian_rules_football",
+  "label": "Football australien",
+  "signature": "L’Escouade au rythme du football australien : 4 quart-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "gaelic_football",
+  "label": "Football gaélique",
+  "signature": "L’Escouade au rythme du football gaélique : 2 mi-temps de 35 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 35
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "futnet",
+  "label": "Futnet",
+  "signature": "L’Escouade au rythme du futnet : 3 sets de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_aces",
+   "escouade.r_blocks",
+   "escouade.r_minutes_played"
+  ]
+ },
+ {
+  "sport": "futsal",
+  "label": "Futsal",
+  "signature": "L’Escouade au rythme du futsal : 2 mi-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves",
+   "escouade.r_key_passes"
+  ]
+ },
+ {
+  "sport": "goalball",
+  "label": "Goalball",
+  "signature": "Goalball dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_successful_defences"
+  ]
+ },
+ {
+  "sport": "handball",
+  "label": "Handball",
+  "signature": "Deux mi-temps de trente minutes ; le dernier rempart et la passe qui ouvre.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_saves",
+   "escouade.r_assists",
+   "escouade.r_defensive_stops"
+  ]
+ },
+ {
+  "sport": "underwater_hockey",
+  "label": "Hockey subaquatique",
+  "signature": "Hockey subaquatique dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "field_hockey",
+  "label": "Hockey sur gazon",
+  "signature": "L’Escouade au rythme du hockey sur gazon : 4 quart-temps de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "ice_hockey",
+  "label": "Hockey sur glace",
+  "signature": "L’Escouade au rythme du hockey sur glace : 3 tiers-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "hurling",
+  "label": "Hurling",
+  "signature": "L’Escouade au rythme du hurling : 2 mi-temps de 35 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 35
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "kabaddi",
+  "label": "Kabaddi",
+  "signature": "L’Escouade au rythme du kabaddi : 2 mi-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_successful_defences"
+  ]
+ },
+ {
+  "sport": "kho_kho",
+  "label": "Kho kho",
+  "signature": "L’Escouade au rythme du kho kho : 4 tours de 9 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 9
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_successful_defences"
+  ]
+ },
+ {
+  "sport": "korfball",
+  "label": "Korfball",
+  "signature": "L’Escouade au rythme du korfball : 2 mi-temps de 30 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_rebounds",
+   "escouade.r_assists",
+   "escouade.r_steals"
+  ]
+ },
+ {
+  "sport": "lacrosse",
+  "label": "Lacrosse",
+  "signature": "L’Escouade au rythme du lacrosse : 4 quart-temps de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "lacrosse_sixes",
+  "label": "Lacrosse sixes",
+  "signature": "L’Escouade au rythme du lacrosse sixes : 4 quart-temps de 8 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 8
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "netball",
+  "label": "Netball",
+  "signature": "L’Escouade au rythme du netball : 4 quart-temps de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_rebounds",
+   "escouade.r_assists",
+   "escouade.r_steals"
+  ]
+ },
+ {
+  "sport": "polo",
+  "label": "Polo",
+  "signature": "L’Escouade au rythme du polo : 4 chukkas de 7 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 7
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists"
+  ]
+ },
+ {
+  "sport": "ringette",
+  "label": "Ringette",
+  "signature": "L’Escouade au rythme du ringette : 4 périodes de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "roller_derby",
+  "label": "Roller derby",
+  "signature": "L’Escouade au rythme du roller derby : 2 périodes de 30 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_jams",
+   "escouade.r_minutes_played"
+  ]
+ },
+ {
+  "sport": "inline_hockey",
+  "label": "Roller hockey",
+  "signature": "L’Escouade au rythme du roller hockey : 2 mi-temps de 20 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "rugby",
+  "label": "Rugby",
+  "signature": "Deux mi-temps, un serment de rôle ; plaquages et soutiens dans le rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 40
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles",
+   "escouade.r_meters_carried"
+  ]
+ },
+ {
+  "sport": "rugby_sevens",
+  "label": "Rugby à 7",
+  "signature": "L’Escouade au rythme du rugby à 7 : 2 mi-temps de 7 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 7
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "wheelchair_rugby",
+  "label": "Rugby fauteuil",
+  "signature": "L’Escouade au rythme du rugby fauteuil : 4 quart-temps de 8 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 8
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_tackles"
+  ]
+ },
+ {
+  "sport": "underwater_rugby",
+  "label": "Rugby subaquatique",
+  "signature": "Rugby subaquatique dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "sepak_takraw",
+  "label": "Sepak takraw",
+  "signature": "L’Escouade au rythme du sepak takraw : 3 sets de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 3,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_aces",
+   "escouade.r_blocks",
+   "escouade.r_minutes_played"
+  ]
+ },
+ {
+  "sport": "softball",
+  "label": "Softball",
+  "signature": "L’Escouade au rythme du softball : 7 manches de 15 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 7,
+   "minutes": 15
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_hits",
+   "escouade.r_runs"
+  ]
+ },
+ {
+  "sport": "tchoukball",
+  "label": "Tchoukball",
+  "signature": "Tchoukball dans l’Escouade : un serment avant le coup d’envoi, un rapport de campagne après.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 30
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_saves",
+   "escouade.r_assists"
+  ]
+ },
+ {
+  "sport": "ultimate",
+  "label": "Ultimate",
+  "signature": "L’Escouade au rythme du ultimate : 2 mi-temps de 40 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 2,
+   "minutes": 40
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_turnovers"
+  ]
+ },
+ {
+  "sport": "sitting_volleyball",
+  "label": "Volley assis",
+  "signature": "L’Escouade au rythme du volley assis : 5 sets de 18 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 5,
+   "minutes": 18
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_aces",
+   "escouade.r_blocks",
+   "escouade.r_minutes_played"
+  ]
+ },
+ {
+  "sport": "volleyball",
+  "label": "Volleyball",
+  "signature": "Des sets réels ; la défense basse et le contre sont des serments à part entière.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 5,
+   "minutes": 20
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_aces",
+   "escouade.r_blocks",
+   "escouade.r_digs"
+  ]
+ },
+ {
+  "sport": "water_polo",
+  "label": "Water-polo",
+  "signature": "L’Escouade au rythme du water-polo : 4 périodes de 8 min, un serment, un rapport.",
+  "voie": "escouade",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "period",
+   "count": 4,
+   "minutes": 8
+  },
+  "missions": [
+   "escouade.serment",
+   "escouade.match",
+   "escouade.rapport",
+   "escouade.poste",
+   "escouade.r_minutes_played",
+   "escouade.r_assists",
+   "escouade.r_saves"
+  ]
+ },
+ {
+  "sport": "rowing",
+  "label": "Aviron",
+  "signature": "Aviron dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "coastal_rowing",
+  "label": "Aviron de mer",
+  "signature": "Aviron de mer dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "dragon_boat",
+  "label": "Bateau-dragon",
+  "signature": "Bateau-dragon dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "canoe_sprint",
+  "label": "Canoë sprint",
+  "signature": "Canoë sprint dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "kayak",
+  "label": "Kayak",
+  "signature": "D’amer en amer le long de la côte ; garder des forces pour le retour fait partie du jeu.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "paddle",
+  "label": "Paddle",
+  "signature": "Paddle dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "outrigger_canoe",
+  "label": "Pirogue va’a",
+  "signature": "Pirogue va’a dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "rowing_machine",
+  "label": "Rameur",
+  "signature": "La cadence de coulisse dessine la houle ; trois blocs réguliers dressent les amers.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.cadence",
+   "flots.amers",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "surfski",
+  "label": "Surfski",
+  "signature": "Surfski dans le Cabotage : d’amer en amer, au rythme de la pagaie ou de la coulisse.",
+  "voie": "flots",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "flots.cote",
+   "flots.amers",
+   "flots.baie",
+   "flots.retour",
+   "flots.r_intervals"
+  ]
+ },
+ {
+  "sport": "arm_wrestling",
+  "label": "Bras de fer sportif",
+  "signature": "La Forge à la cloche : 8 rounds de 1 min, repos 120 s.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "round",
+   "count": 8,
+   "workS": 60,
+   "restS": 120
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_bouts"
+  ]
+ },
+ {
+  "sport": "powerlifting",
+  "label": "Force athlétique",
+  "signature": "Séries d’approche, réserve gardée, un seul seuil proposé : la Forge des barres lourdes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 180
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "grip_sport",
+  "label": "Grip sport",
+  "signature": "Grip sport dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "weightlifting",
+  "label": "Haltérophilie",
+  "signature": "Le geste avant la charge : les frappes nettes valent les barres lourdes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 150
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "highland_games",
+  "label": "Highland games",
+  "signature": "Highland games dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "kettlebell",
+  "label": "Kettlebell",
+  "signature": "Des frappes courtes, des repos courts : la braise retombe vite.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 75
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "farmers_walk",
+  "label": "Marche du fermier",
+  "signature": "Marche du fermier dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve"
+  ]
+ },
+ {
+  "sport": "muscu_builder",
+  "label": "Musculation",
+  "signature": "Musculation dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 120
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "muscu_home",
+  "label": "Musculation à la maison",
+  "signature": "Même Forge qu’en salle : la lame se trempe avec la régularité, pas avec la charge.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "muscu_gym",
+  "label": "Musculation en salle",
+  "signature": "Une plaque du Colosse par série, la braise du repos, des lames trempées par la régularité.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 120
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "para_powerlifting",
+  "label": "Para powerlifting",
+  "signature": "Para powerlifting dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 180
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "sandbag",
+  "label": "Sac de sable",
+  "signature": "Sac de sable dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "strongman",
+  "label": "Strongman",
+  "signature": "Strongman dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 180
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "tug_of_war",
+  "label": "Tir à la corde",
+  "signature": "Tir à la corde dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 90
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_pulls"
+  ]
+ },
+ {
+  "sport": "trx",
+  "label": "TRX",
+  "signature": "TRX dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
+  "voie": "forge",
+  "essence": "acier",
+  "family": "force",
+  "panel": "sets",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "set",
+   "count": 12,
+   "restS": 60
+  },
+  "missions": [
+   "forge.plan",
+   "forge.nettes",
+   "forge.seuil",
+   "forge.braise",
+   "forge.lame_neuve",
+   "forge.r_warmup_sets"
+  ]
+ },
+ {
+  "sport": "badminton",
+  "label": "Badminton",
+  "signature": "Des sets à 21 points : les longs échanges et les remontées font monter l’Élan.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "beach_tennis",
+  "label": "Beach tennis",
+  "signature": "La Joute en jeus et sets.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "real_tennis",
+  "label": "Jeu de paume",
+  "signature": "La Joute en jeus et sets.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "padel",
+  "label": "Padel",
+  "signature": "Prendre le filet, tenir le service : la Joute se joue à quatre.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "pickleball",
+  "label": "Pickleball",
+  "signature": "La Joute en jeus et jeus à 11 points.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "platform_tennis",
+  "label": "Platform tennis",
+  "signature": "La Joute en jeus et sets.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "racketlon",
+  "label": "Racketlon",
+  "signature": "La Joute en sets et sets à 21 points.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 4
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "racquetball",
+  "label": "Racquetball",
+  "signature": "La Joute en jeus et jeus à 15 points.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "squash",
+  "label": "Squash",
+  "signature": "Des jeux à 11 points, des échanges qui usent : les repos entre jeux comptent.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 5
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "tennis",
+  "label": "Tennis",
+  "signature": "Tableau de score à deux zones, Élan du duel, remontées gravées au tableau d’honneur.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "table_tennis",
+  "label": "Tennis de table",
+  "signature": "Des manches à 11 points, rapides : l’Élan se lit point par point.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 5
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_unforced_errors",
+   "joute.r_rally_quality_score"
+  ]
+ },
+ {
+  "sport": "wheelchair_tennis",
+  "label": "Tennis fauteuil",
+  "signature": "La Joute en jeus et sets.",
+  "voie": "joute",
+  "essence": "ardeur",
+  "family": "jeu",
+  "panel": "score",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "game",
+   "count": 3
+  },
+  "missions": [
+   "joute.manches",
+   "joute.service",
+   "joute.remontee",
+   "joute.sequence",
+   "joute.partenaire",
+   "joute.r_aces",
+   "joute.r_double_faults",
+   "joute.r_unforced_errors",
+   "joute.r_first_serve_pct"
+  ]
+ },
+ {
+  "sport": "eventing",
+  "label": "Concours complet",
+  "signature": "Concours complet dans le Lien : une progression à deux : toi et ton cheval.",
+  "voie": "lien",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "lien.reprises",
+   "lien.calme",
+   "lien.figure",
+   "lien.dehors",
+   "lien.r_faults"
+  ]
+ },
+ {
+  "sport": "horse_racing",
+  "label": "Course hippique",
+  "signature": "Course hippique dans le Lien : une progression à deux : toi et ton cheval.",
+  "voie": "lien",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "lien.reprises",
+   "lien.calme",
+   "lien.figure",
+   "lien.dehors"
+  ]
+ },
+ {
+  "sport": "dressage",
+  "label": "Dressage",
+  "signature": "Dressage dans le Lien : une progression à deux : toi et ton cheval.",
+  "voie": "lien",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "lien.reprises",
+   "lien.calme",
+   "lien.figure",
+   "lien.dehors",
+   "lien.r_figures"
+  ]
+ },
+ {
+  "sport": "equestrian",
+  "label": "Équitation",
+  "signature": "Une monture nommée, un lien qui grandit avec les séances calmes comme avec les concours.",
+  "voie": "lien",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "lien.reprises",
+   "lien.calme",
+   "lien.figure",
+   "lien.dehors",
+   "lien.r_faults",
+   "lien.r_gaits_minutes"
+  ]
+ },
+ {
+  "sport": "show_jumping",
+  "label": "Saut d’obstacles",
+  "signature": "Le sans-faute est une fierté partagée avec ta monture ; la hauteur n’est jamais un défi.",
+  "voie": "lien",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "lien.reprises",
+   "lien.calme",
+   "lien.figure",
+   "lien.dehors",
+   "lien.r_faults"
+  ]
+ },
+ {
+  "sport": "finswimming",
+  "label": "Nage avec palmes",
+  "signature": "Nage avec palmes dans les Profondeurs : chaque longueur éclaire un îlot de l’archipel englouti.",
+  "voie": "nage",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 40
+  },
+  "missions": [
+   "nage.plan",
+   "nage.ilots",
+   "nage.technique",
+   "nage.nages",
+   "nage.r_intervals"
+  ]
+ },
+ {
+  "sport": "open_water_swimming",
+  "label": "Nage en eau libre",
+  "signature": "Silence total dans l’eau ; l’Archipel se révèle au retour, accompagné ou balisé.",
+  "voie": "nage",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 40
+  },
+  "missions": [
+   "nage.plan",
+   "nage.ilots",
+   "nage.technique",
+   "nage.nages",
+   "nage.eau_libre",
+   "nage.r_intervals"
+  ]
+ },
+ {
+  "sport": "swimming",
+  "label": "Natation",
+  "signature": "Le téléphone reste au bord : un toucher par bloc éclaire un îlot, les nages colorent les fonds.",
+  "voie": "nage",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 40
+  },
+  "missions": [
+   "nage.plan",
+   "nage.ilots",
+   "nage.technique",
+   "nage.nages",
+   "nage.r_intervals",
+   "nage.r_drills"
+  ]
+ },
+ {
+  "sport": "para_swimming",
+  "label": "Para-natation",
+  "signature": "Para-natation dans les Profondeurs : chaque longueur éclaire un îlot de l’archipel englouti.",
+  "voie": "nage",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 40
+  },
+  "missions": [
+   "nage.plan",
+   "nage.ilots",
+   "nage.technique",
+   "nage.nages",
+   "nage.r_intervals"
+  ]
+ },
+ {
+  "sport": "aquathlon",
+  "label": "Aquathlon",
+  "signature": "Aquathlon dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_transitions_s",
+   "odyssee.r_obstacles",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "biathlon",
+  "label": "Biathlon",
+  "signature": "Biathlon dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_targets_hit",
+   "odyssee.r_runs",
+   "odyssee.r_elevation"
+  ]
+ },
+ {
+  "sport": "nordic_combined",
+  "label": "Combiné nordique",
+  "signature": "Combiné nordique dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_runs",
+   "odyssee.r_elevation"
+  ]
+ },
+ {
+  "sport": "obstacle_course",
+  "label": "Course à obstacles",
+  "signature": "Course à obstacles dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_obstacles",
+   "odyssee.r_obstacles_failed",
+   "odyssee.r_elevation",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "duathlon",
+  "label": "Duathlon",
+  "signature": "Duathlon dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_transitions_s",
+   "odyssee.r_obstacles",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "modern_pentathlon",
+  "label": "Pentathlon moderne",
+  "signature": "Pentathlon moderne dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_targets_hit",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "adventure_racing",
+  "label": "Raid aventure",
+  "signature": "Raid aventure dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_transitions_s",
+   "odyssee.r_obstacles",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "swimrun",
+  "label": "Swimrun",
+  "signature": "Swimrun dans l’Odyssée : des segments enchaînés, chaque transition est un portail.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_transitions_s",
+   "odyssee.r_obstacles",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "triathlon",
+  "label": "Triathlon",
+  "signature": "Trois segments, deux portails : chaque segment nourrit l’essence de sa propre Voie.",
+  "voie": "odyssee",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "legs",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "leg",
+   "count": 3
+  },
+  "missions": [
+   "odyssee.segments",
+   "odyssee.transitions",
+   "odyssee.ordre",
+   "odyssee.r_transitions_s",
+   "odyssee.r_obstacles",
+   "odyssee.r_stations"
+  ]
+ },
+ {
+  "sport": "ice_climbing",
+  "label": "Cascade de glace",
+  "signature": "Cascade de glace dans la Paroi : chaque essai lit la paroi. Chaque chute aussi.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 180
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "climbing",
+  "label": "Escalade (mètres grimpés)",
+  "signature": "Les mètres grimpés se lisent en essais et en relais, jamais en vitesse.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 180
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "bouldering",
+  "label": "Escalade bloc",
+  "signature": "Chaque chute révèle une prise ; ton projet garde la mémoire de tous ses essais.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 180
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "sport_climbing",
+  "label": "Escalade sportive",
+  "signature": "Escalade sportive dans la Paroi : chaque essai lit la paroi. Chaque chute aussi.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 300
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "climbing_route",
+  "label": "Escalade voie",
+  "signature": "Des voies longues, des repos longs : la Sentinelle salue la patience.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 300
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "via_ferrata",
+  "label": "Via ferrata",
+  "signature": "Via ferrata dans la Paroi : chaque essai lit la paroi. Chaque chute aussi.",
+  "voie": "paroi",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "wall",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 8,
+   "restS": 180
+  },
+  "missions": [
+   "paroi.lecture",
+   "paroi.projet",
+   "paroi.flash",
+   "paroi.repos",
+   "paroi.secteur",
+   "paroi.r_pitches"
+  ]
+ },
+ {
+  "sport": "bobsleigh",
+  "label": "Bobsleigh",
+  "signature": "Bobsleigh dans la Trajectoire : la constance des tours, jamais la prise de risque.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_runs",
+   "pilotage.r_elevation"
+  ]
+ },
+ {
+  "sport": "karting",
+  "label": "Karting",
+  "signature": "Constance des tours, briefing d’abord, aucun signal en piste.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_laps"
+  ]
+ },
+ {
+  "sport": "speed_skiing",
+  "label": "Kilomètre lancé",
+  "signature": "Kilomètre lancé dans la Trajectoire : la constance des tours, jamais la prise de risque.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_runs",
+   "pilotage.r_elevation"
+  ]
+ },
+ {
+  "sport": "luge",
+  "label": "Luge",
+  "signature": "Luge dans la Trajectoire : la constance des tours, jamais la prise de risque.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_runs",
+   "pilotage.r_elevation"
+  ]
+ },
+ {
+  "sport": "motocross",
+  "label": "Motocross",
+  "signature": "Motocross dans la Trajectoire : la constance des tours, jamais la prise de risque.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_laps"
+  ]
+ },
+ {
+  "sport": "skeleton",
+  "label": "Skeleton",
+  "signature": "Skeleton dans la Trajectoire : la constance des tours, jamais la prise de risque.",
+  "voie": "pilotage",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "log",
+  "safety": "aucune",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "pilotage.sessions",
+   "pilotage.constance",
+   "pilotage.briefing",
+   "pilotage.nouveau",
+   "pilotage.r_runs",
+   "pilotage.r_elevation"
+  ]
+ },
+ {
+  "sport": "cycling_track",
+  "label": "Cyclisme sur piste",
+  "signature": "Cyclisme sur piste dans l’Expédition : des régions entières à relier, col après col.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.endurance",
+   "roue.cadence",
+   "roue.relais",
+   "roue.variations",
+   "roue.r_laps",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "cycling_road",
+  "label": "Cyclisme sur route",
+  "signature": "Écran géant, voix rare : les relais et les cols seulement, jamais de chrono à battre sur route.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "cyclocross",
+  "label": "Cyclo-cross",
+  "signature": "Cyclo-cross dans l’Expédition : des régions entières à relier, col après col.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "gravel",
+  "label": "Gravel",
+  "signature": "Gravel dans l’Expédition : des régions entières à relier, col après col.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_sprints"
+  ]
+ },
+ {
+  "sport": "handbike",
+  "label": "Handbike",
+  "signature": "Handbike dans l’Expédition : des régions entières à relier, col après col.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "para_cycling",
+  "label": "Para-cyclisme",
+  "signature": "Para-cyclisme dans l’Expédition : des régions entières à relier, col après col.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "spinning",
+  "label": "Spinning",
+  "signature": "Une route imaginaire : relances et cadence dessinent les virages.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.endurance",
+   "roue.cadence",
+   "roue.relais",
+   "roue.variations",
+   "roue.r_sprints"
+  ]
+ },
+ {
+  "sport": "cycling",
+  "label": "Vélo",
+  "signature": "Des régions à relier, des cols nommés ; rien à toucher en roulant.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_sprints"
+  ]
+ },
+ {
+  "sport": "cycling_indoor",
+  "label": "Vélo d’intérieur",
+  "signature": "Le home trainer relie les mêmes régions que la route, au temps d’effort.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.endurance",
+   "roue.cadence",
+   "roue.relais",
+   "roue.variations",
+   "roue.r_sprints"
+  ]
+ },
+ {
+  "sport": "velotaf",
+  "label": "Vélotaf",
+  "signature": "La Route du messager : chaque trajet compte dans la semaine, sans série à tenir.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_sprints"
+  ]
+ },
+ {
+  "sport": "mountain_bike",
+  "label": "VTT",
+  "signature": "Les montées deviennent des cols ; la descente reste ta lecture du terrain, sans défi.",
+  "voie": "roue",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "roue.relier",
+   "roue.col",
+   "roue.endurance",
+   "roue.relais",
+   "roue.inconnu",
+   "roue.r_elevation"
+  ]
+ },
+ {
+  "sport": "yoga_mobility",
+  "label": "Mobilité",
+  "signature": "Mobilité dans le Sanctuaire : chaque souffle restaure une terrasse du jardin.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_movements",
+   "sanctuaire.r_hold_seconds"
+  ]
+ },
+ {
+  "sport": "pilates",
+  "label": "Pilates",
+  "signature": "La séquence complète et la respiration : des terrasses restaurées, jamais une performance.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_movements",
+   "sanctuaire.r_hold_seconds",
+   "sanctuaire.r_pain_after"
+  ]
+ },
+ {
+  "sport": "qigong",
+  "label": "Qi Gong",
+  "signature": "Qi Gong dans le Sanctuaire : chaque souffle restaure une terrasse du jardin.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_movements",
+   "sanctuaire.r_hold_seconds",
+   "sanctuaire.r_pain_after"
+  ]
+ },
+ {
+  "sport": "stretching",
+  "label": "Stretching",
+  "signature": "Des tenues confortables, une zone apaisée : la gêne qui baisse ouvre une fleur rare.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_movements",
+   "sanctuaire.r_hold_seconds",
+   "sanctuaire.r_pain_after"
+  ]
+ },
+ {
+  "sport": "taichi",
+  "label": "Tai Chi",
+  "signature": "Tai Chi dans le Sanctuaire : chaque souffle restaure une terrasse du jardin.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_movements",
+   "sanctuaire.r_hold_seconds",
+   "sanctuaire.r_pain_after"
+  ]
+ },
+ {
+  "sport": "yoga",
+  "label": "Yoga",
+  "signature": "Silence par défaut, souffle guidé facultatif, gêne avant et après : le jardin pousse avec le calme.",
+  "voie": "sanctuaire",
+  "essence": "seve",
+  "family": "mobilite",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 20
+  },
+  "missions": [
+   "sanctuaire.terrasses",
+   "sanctuaire.souffle",
+   "sanctuaire.tenue",
+   "sanctuaire.nouvelle",
+   "sanctuaire.r_poses",
+   "sanctuaire.r_breath_minutes",
+   "sanctuaire.r_hold_seconds",
+   "sanctuaire.r_pain_after"
+  ]
+ },
+ {
+  "sport": "circus",
+  "label": "Arts du cirque",
+  "signature": "Arts du cirque dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "breakdance",
+  "label": "Breaking",
+  "signature": "Breaking dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "cheerleading",
+  "label": "Cheerleading",
+  "signature": "Cheerleading dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "artistic_cycling",
+  "label": "Cyclisme artistique",
+  "signature": "Cyclisme artistique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_tricks",
+   "scene.r_routines",
+   "scene.r_elevation"
+  ]
+ },
+ {
+  "sport": "dance",
+  "label": "Danse",
+  "signature": "Un répertoire d’enchaînements qui grandissent de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "ballet",
+  "label": "Danse classique",
+  "signature": "Danse classique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "salsa",
+  "label": "Danses latines",
+  "signature": "Danses latines dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "acrobatic_gymnastics",
+  "label": "Gym acrobatique",
+  "signature": "Gym acrobatique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "aerobic_gymnastics",
+  "label": "Gym aérobic",
+  "signature": "Gym aérobic dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "artistic_gymnastics",
+  "label": "Gym artistique",
+  "signature": "Gym artistique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "rhythmic_gymnastics",
+  "label": "Gym rythmique",
+  "signature": "Gym rythmique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "gymnastics",
+  "label": "Gymnastique",
+  "signature": "Gymnastique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "hiphop",
+  "label": "Hip-hop",
+  "signature": "Hip-hop dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "artistic_swimming",
+  "label": "Natation artistique",
+  "signature": "Natation artistique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines",
+   "scene.r_figures"
+  ]
+ },
+ {
+  "sport": "figure_skating",
+  "label": "Patinage artistique",
+  "signature": "Patinage artistique dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines",
+   "scene.r_spins",
+   "scene.r_runs",
+   "scene.r_elevation"
+  ]
+ },
+ {
+  "sport": "springboard_diving",
+  "label": "Plongeon",
+  "signature": "Plongeon dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement"
+  ]
+ },
+ {
+  "sport": "pole_dance",
+  "label": "Pole dance",
+  "signature": "Pole dance dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "trampoline_gymnastics",
+  "label": "Trampoline",
+  "signature": "Trampoline dans la Scène : tes enchaînements forment un répertoire, de l’esquisse à la signature.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_apparatus",
+   "scene.r_routines",
+   "scene.r_landings"
+  ]
+ },
+ {
+  "sport": "zumba",
+  "label": "Zumba",
+  "signature": "Les chorégraphies deviennent des tableaux ; la musique a toujours la priorité.",
+  "voie": "scene",
+  "essence": "prisme",
+  "family": "technique",
+  "panel": "flow",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "routine",
+   "count": 4
+  },
+  "missions": [
+   "scene.repetitions",
+   "scene.representation",
+   "scene.improvisation",
+   "scene.echauffement",
+   "scene.r_routines"
+  ]
+ },
+ {
+  "sport": "running",
+  "label": "Course à pied",
+  "signature": "Ton Écho court à tes côtés ; les rues jamais prises lèvent le brouillard de ta carte.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "orienteering",
+  "label": "Course d’orientation",
+  "signature": "Les postes deviennent des sceaux : zéro poste oublié vaut une page de chronique.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_controls_missed",
+   "sentier.r_navigation_errors",
+   "sentier.r_elevation",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "fell_running",
+  "label": "Course en montagne",
+  "signature": "Course en montagne dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_max_altitude_m",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "walking",
+  "label": "Marche",
+  "signature": "Le pas tranquille compte autant que le pas rapide : chaque borne tient au temps passé à marcher.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "race_walking",
+  "label": "Marche athlétique",
+  "signature": "Marche athlétique dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_intervals",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "nordic_walk",
+  "label": "Marche nordique",
+  "signature": "Les bâtons rythment les bornes ; la régularité du pas est saluée.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "ski_orienteering",
+  "label": "Orientation à ski",
+  "signature": "Orientation à ski dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_controls_missed",
+   "sentier.r_navigation_errors",
+   "sentier.r_elevation",
+   "sentier.r_runs"
+  ]
+ },
+ {
+  "sport": "speed_skating",
+  "label": "Patinage de vitesse",
+  "signature": "Patinage de vitesse dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.halte",
+   "sentier.r_laps",
+   "sentier.r_intervals",
+   "sentier.r_runs",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "ice_skating",
+  "label": "Patinage sur glace",
+  "signature": "Patinage sur glace dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.halte",
+   "sentier.r_laps",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "rogaining",
+  "label": "Rogaining",
+  "signature": "Rogaining dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_controls_missed",
+   "sentier.r_navigation_errors",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "roller",
+  "label": "Roller",
+  "signature": "Roller dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_laps",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "inline_speed_skating",
+  "label": "Roller de vitesse",
+  "signature": "Roller de vitesse dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_laps",
+   "sentier.r_intervals",
+   "sentier.r_runs",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "rucking",
+  "label": "Rucking",
+  "signature": "Rucking dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_max_altitude_m",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "short_track_speed_skating",
+  "label": "Short track",
+  "signature": "Short track dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.halte",
+   "sentier.r_laps",
+   "sentier.r_intervals",
+   "sentier.r_runs",
+   "sentier.r_elevation"
+  ]
+ },
+ {
+  "sport": "cross_country_skiing",
+  "label": "Ski de fond",
+  "signature": "Ski de fond dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_elevation",
+   "sentier.r_runs"
+  ]
+ },
+ {
+  "sport": "roller_ski",
+  "label": "Ski-roues",
+  "signature": "Ski-roues dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "mains_libres",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_elevation",
+   "sentier.r_runs"
+  ]
+ },
+ {
+  "sport": "treadmill",
+  "label": "Tapis de course",
+  "signature": "La carte d’aventure avance sans GPS ; ton tapis devient un sentier imaginaire.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.halte",
+   "sentier.r_intervals"
+  ]
+ },
+ {
+  "sport": "trail",
+  "label": "Trail",
+  "signature": "Chaque montée devient un col sur la carte d’aventure ; la descente se fait en contrôle.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": true,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.brouillard",
+   "sentier.halte",
+   "sentier.r_max_altitude_m"
+  ]
+ },
+ {
+  "sport": "elliptical",
+  "label": "Vélo elliptique",
+  "signature": "Vélo elliptique dans la Traversée : chaque effort pose une borne sur la carte d’aventure.",
+  "voie": "sentier",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "route",
+  "safety": "regard",
+  "gps": false,
+  "plan": {
+   "kind": "time",
+   "minutes": 45
+  },
+  "missions": [
+   "sentier.cap_moitie",
+   "sentier.regulier",
+   "sentier.echo",
+   "sentier.final_souple",
+   "sentier.halte"
+  ]
+ },
+ {
+  "sport": "athletics",
+  "label": "Athlétisme",
+  "signature": "Athlétisme dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve",
+   "stade.r_elevation"
+  ]
+ },
+ {
+  "sport": "bmx_racing",
+  "label": "BMX racing",
+  "signature": "BMX racing dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve",
+   "stade.r_runs",
+   "stade.r_elevation"
+  ]
+ },
+ {
+  "sport": "hurdles",
+  "label": "Course de haies",
+  "signature": "Course de haies dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve"
+  ]
+ },
+ {
+  "sport": "sprint",
+  "label": "Fractionné",
+  "signature": "Fractionné dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve"
+  ]
+ },
+ {
+  "sport": "para_athletics",
+  "label": "Para-athlétisme",
+  "signature": "Para-athlétisme dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve",
+   "stade.r_elevation"
+  ]
+ },
+ {
+  "sport": "lifesaving_sport",
+  "label": "Sauvetage sportif",
+  "signature": "Sauvetage sportif dans le Stade : des tentatives, des marques, la récupération comme rituel.",
+  "voie": "stade",
+  "essence": "souffle",
+  "family": "endurance",
+  "panel": "rounds",
+  "safety": "libre",
+  "gps": false,
+  "plan": {
+   "kind": "attempt",
+   "count": 6,
+   "restS": 240
+  },
+  "missions": [
+   "stade.tentatives",
+   "stade.recuperation",
+   "stade.marque",
+   "stade.epreuve"
+  ]
+ }
+]

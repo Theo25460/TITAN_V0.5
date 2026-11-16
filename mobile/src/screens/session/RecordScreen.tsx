@@ -16,6 +16,8 @@ import { useLogs, usePrefs } from "../../data/hooks";
 import { useOwner } from "../../data/auth";
 import { useDraftSport } from "../../data/drafts";
 import { useQueue } from "../../data/queue";
+import { useLiveFlag, useSavedLive } from "../../data/live";
+import { Segmented } from "../../components/Segmented";
 import { gpsShortcutSport } from "../../lib/gpsTrack";
 import { colors, space, TOUCH } from "../../theme/tokens";
 
@@ -45,6 +47,9 @@ export function RecordScreen() {
   const waiting = queue.owner === owner ? queue.items : [];
   const refused = waiting.filter((i) => i.status === "error").length;
   const [choosing, setChoosing] = useState(false);
+  const liveEnabled = useLiveFlag();
+  const liveSaved = useSavedLive();
+  const [mode, setMode] = useState<"log" | "live">("log");
   const recent = useMemo(() => {
     const seen = new Map<string, string>();
     for (const l of active) if (!seen.has(l.sport) && Sports.conf(l.sport)) seen.set(l.sport, l.date);
@@ -54,7 +59,8 @@ export function RecordScreen() {
   const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
   const open = (sport: string) => {
     setChoosing(false);
-    navigation.navigate("SessionForm", { sport });
+    if (liveEnabled && mode === "live") navigation.navigate("LiveSession", { sport });
+    else navigation.navigate("SessionForm", { sport });
   };
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
   const popular = Sports.POPULAR.filter((s) => !favorites.includes(s) && !recent.some(([r]) => r === s));
@@ -82,6 +88,13 @@ export function RecordScreen() {
             <Icon name="chevron" size={18} color={colors.tx3} />
           </Card>
         ) : null}
+        {liveEnabled ? (
+          <Segmented options={[{ value: "log", label: "Saisir après" }, { value: "live", label: "Vivre en direct" }]} value={mode} onChange={setMode} accessibilityLabel="Mode de séance" />
+        ) : null}
+        {liveEnabled && liveSaved && liveSaved.status !== "ended" ? (
+          <Button label="Reprendre la séance live" icon="play" onPress={() => navigation.navigate("LiveSession", { sport: liveSaved.sport })} accessibilityHint={`${Sports.label(liveSaved.sport)} · gardée sur ce téléphone`} testID="live-resume" />
+        ) : null}
+        {liveEnabled && mode === "live" ? <T variant="small" tone="muted">Choisis ton sport : TITAN prépare ta Voie, tes missions et ton accompagnement.</T> : null}
         {draft ? (
           <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
         ) : null}

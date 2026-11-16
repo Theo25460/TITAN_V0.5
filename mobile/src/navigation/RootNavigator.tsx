@@ -44,6 +44,8 @@ import { SettingsScreen } from "../screens/settings/SettingsScreen";
 import { SportsScreen } from "../screens/settings/SportsScreen";
 import { TitanPlusScreen } from "../screens/settings/TitanPlusScreen";
 import { Tabs } from "./Tabs";
+import { LiveSessionScreen } from "../screens/live/LiveSessionScreen";
+import { CampScreen } from "../screens/live/CampScreen";
 import { useReducedMotion } from "../lib/motion";
 import type { RootParams } from "./types";
 
@@ -90,6 +92,8 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="Routes" component={RoutesScreen} options={{ title: "Mes parcours" }} />
       <Stack.Screen name="Route" component={RouteDetailScreen} options={{ title: "Parcours" }} />
       <Stack.Screen name="GpsRecord" component={GpsRecordScreen} options={{ title: "Enregistrement GPS" }} />
+      <Stack.Screen name="LiveSession" component={LiveSessionScreen} options={{ title: "Séance live" }} />
+      <Stack.Screen name="Camp" component={CampScreen} options={{ title: "Camp de base" }} />
       <Stack.Screen name="SessionForm" component={SessionFormScreen} options={{ title: "Séance" }} />
       <Stack.Screen name="SessionResult" component={SessionResultScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade_from_bottom", gestureEnabled: false }} />
       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: "Séance" }} />

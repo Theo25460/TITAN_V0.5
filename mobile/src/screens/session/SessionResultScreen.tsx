@@ -27,6 +27,7 @@ import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
+import { LiveSettleCard } from "../../components/LiveSettleCard";
 
 type Objective = { id: string; remaining: number };
 
@@ -207,6 +208,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         </Reveal>
 
         <Reveal order={1}>
+          <LiveSettleCard owner={owner} eventId={eventId} payload={payload} confirmed={status === "confirmed"} />
           {/* The accent tone and "TITAN a confirmé" are reserved for what the server really granted: a held reward, a refusal or a
               pending send never borrow them. */}
           <Card tone={status === "confirmed" && !held ? "accent" : "flat"} style={{ gap: space.s3 }} testID="result-reward">

@@ -189,6 +189,8 @@
     const dur = duration();
     const at = performedAt();
     const data = { note: S.note.trim(), tags: [], extras: {}, bio: S.rpe ? { rpe: S.rpe } : {} };
+    // TITAN LIVE (seance-live): the bounded journal of a live session travels with its own sport only; the server settles it.
+    if (S.live && S.live.v === 1 && S.live.sport === sport) data.live = S.live;
     if (!at) fail("Choisis une date valide.", "date");
     else if (at.getTime() > Date.now() + 60000) fail("La date ne peut pas être dans le futur.", S.when === "other" ? "date" : "time");
     else data.performedAt = at.toISOString();
@@ -725,6 +727,16 @@
     } else choose(sport, null, { step: false });
   }
 
+  /** TITAN LIVE: remember a saved live session so the live page settles it once the server has confirmed it. */
+  function queueLiveSettlement(ownerId, eventId) {
+    try {
+      const key = `titan_live_settle_v1:${ownerId}`;
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!list.some((p) => p.eventId === eventId)) list.push({ eventId, addedAt: Date.now() });
+      localStorage.setItem(key, JSON.stringify(list.slice(-30)));
+    } catch { /* storage full: the session is saved, only the world reaction is skipped */ }
+  }
+
   function prefillFromLog(l) {
     const m = window.TitanTraining.duration(l);
     const p = { note: "" };
@@ -799,6 +811,7 @@
       if (log) clearSubmittedDraft(submittedKey, submissionId);
       if (!current()) return;
       if (!log) throw new Error("Séance non enregistrée.");
+      if (b.data.live) queueLiveSettlement(submitOwner, log.client_event_id);
       if (elapsedMs(t)) setTimer({ elapsed: 0, started: null });
       window.dispatchEvent(new CustomEvent("titan:session-stored", { detail: { ownerId: submitOwner, logId: log.client_event_id } }));
       if (!current()) return;
