@@ -41,10 +41,9 @@ les ajouts live se réappliquent : ils sont additifs.
 
 ## 4. Étapes restantes avant ouverture
 
-- [ ] **Export RGPD global** : la chaîne `private.titan_export_extras_v1` n'a pas été modifiée, car les gardes postflight
-      V1.1/V1.3 figent sa forme. À la fusion : chaîner `titan_live_export_v1` dans l'export global (renommage
-      `..._before_live_v1`), puis mettre à jour `tools/db/postflight-v11.sql` et `postflight-v13.sql` pour accepter ce
-      maillon. En attendant, `public.titan_live_export_v1()` donne l'export complet du monde live au joueur.
+- [x] **Export RGPD global** : `20261117170000_live_in_account_export` ajoute le monde live à « Exporter toutes mes données »
+      sans renommer la chaîne d'export (même méthode que la V1.3.1) ; test `sql/tests/300_v14_live_account_export.sql`
+      (rouge avant, vert après ; rien d'un autre compte ; effacement avec le compte). Non appliquée en production.
 - [ ] Tests physiques (section 5) sur au moins trois téléphones Android (dont un d'entrée de gamme).
 - [ ] Validation graphique des emplacements d'illustration ([ASSETS.md](ASSETS.md)) par le chantier visuel.
 - [x] Entrée Web : « Vivre la séance en direct » en tête de la page Séance, visible seulement quand `screens.live` est ouvert pour le compte, ajoutée ou retirée sans redessiner la page (`js/app/seance.js`, parcours `tests/e2e/live-web.e2e.mjs`).

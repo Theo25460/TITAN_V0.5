@@ -62,7 +62,7 @@ propriétaire (action visible sur GitHub).
 | Plage | État |
 |---|---|
 | Jusqu'à `20261116110000` | Appliquées en production le 16 novembre 2026, empreinte identique au dépôt (`supabase/release-v131/README.md`) |
-| `20261117090000` (TITAN LIVE) et `20261117100000` à `20261117160000` (7 migrations des fonctions Android) | **Non appliquées.** Additives, vertes sur réplique. Renumérotées après la dernière migration de production pour que l'ordre de rejeu soit le même partout. Paquet prêt et répété : `supabase/release-v14/` (son `README.md` dit ce qui devient visible à l'application). D'ici là, les écrans concernés affichent « pas encore disponible » |
+| `20261117090000` (TITAN LIVE), `20261117100000` à `20261117160000` (7 migrations des fonctions Android), `20261117170000` (monde live dans l'export de compte) | **Non appliquées.** Additives, vertes sur réplique. Renumérotées après la dernière migration de production pour que l'ordre de rejeu soit le même partout. Paquet prêt et répété : `supabase/release-v14/` (son `README.md` dit ce qui devient visible à l'application). D'ici là, les écrans concernés affichent « pas encore disponible » |
 
 ## 6. Règles pour les prochaines sessions
 

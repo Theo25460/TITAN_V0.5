@@ -35,9 +35,9 @@ export const BUNDLES = {
   },
   // TITAN LIVE and the Android features of 15 and 16 November. NOT applied: additive, rehearsed on a replica.
   v14: {
-    out: "supabase/release-v14", after: "20261116110000", until: "20261117160000",
+    out: "supabase/release-v14", after: "20261116110000", until: "20261117170000",
     before: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
-    expected: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "b22346e0e254"] },
+    expected: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "95c0de5e6ce0"] },
     beforeNote: "This is the state production reached on 16 November 2026 (end of the V1.3.1 bundle).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
