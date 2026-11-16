@@ -2892,6 +2892,13 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aujourdhui.html",
           "lines": [
             21
@@ -2922,7 +2929,7 @@
         {
           "source": "css/ascension-app.css",
           "lines": [
-            1964
+            2174
           ],
           "evidence": "literal"
         },
@@ -3052,6 +3059,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
           "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
@@ -3196,6 +3204,13 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aujourdhui.html",
           "lines": [
             21
@@ -3249,6 +3264,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
           "aujourdhui.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
@@ -11792,6 +11808,13 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aujourdhui.html",
           "lines": [
             21
@@ -11822,7 +11845,7 @@
         {
           "source": "css/ascension-app.css",
           "lines": [
-            1964
+            2174
           ],
           "evidence": "literal"
         },
@@ -11927,6 +11950,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
           "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
@@ -12224,8 +12248,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 39333,
-      "version": "sha256:f58ac3299788ef46178a87075751ea076f1b3d916d5d34cd8967c66aabdd6502",
+      "bytes": 39334,
+      "version": "sha256:d919c638e15842170e6a4fe5cf740590986fccd842098307e2ab08e83d246c2e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12392,8 +12416,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 88733,
-      "version": "sha256:8c39a5314a1f2458a840f2b58a23235def2369ea62f58ae2a05a981668a343a9",
+      "bytes": 91664,
+      "version": "sha256:0f81719f74f6d11264998d957e8c74905f7e6e0f91ecd56259f72ba7b518d3cd",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12430,8 +12454,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 36451,
-      "version": "sha256:9bd8bd03fc6904da3132ebcda4335873413cc9a1e9dfda47d24b5be6ea59d2d9",
+      "bytes": 36890,
+      "version": "sha256:c7b784fe1caed4e8ddafee01a4c4a445ea57b22b45d04a66bb87924d2456d2de",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",

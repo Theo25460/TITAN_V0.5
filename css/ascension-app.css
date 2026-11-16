@@ -1012,33 +1012,42 @@
     flex-wrap: wrap;
   }
 }
+/* What the filters select, in figures set large on the ground. */
 .jr-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s4) var(--s5);
   margin: 0 0 var(--s6);
-  padding: var(--s4);
-  border-radius: 0;
-  border: 0; border-top: 1px solid var(--line-2);
-  background: transparent; padding-left: 0; padding-right: 0; }
+  padding: var(--s4) 0 0;
+  border-top: 2px solid var(--tx);
+}
+.jr-summary > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
 .jr-summary dt {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--tx-3);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-2);
 }
 .jr-summary dd {
-  margin: 2px 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-stretch: var(--w-figure); font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: 24px;
+  font-weight: 300;
+  font-size: clamp(48px, 12vw, 68px);
+  line-height: 0.92;
+  white-space: nowrap;
 }
 .jr-month + .jr-month {
   margin-top: var(--s6);
 }
 .jr-month-head {
   position: sticky;
-  top: calc(var(--topbar) + var(--safe-t));
+  top: 0;
   z-index: 5;
   display: flex;
   justify-content: space-between;
@@ -1047,30 +1056,25 @@
   padding: var(--s3) 0 var(--s2);
   background: var(--bg);
 }
-@media (min-width: 960px) {
-  .jr-month-head {
-    top: 0;
-  }
-}
 .jr-month-head h2 {
-  font-size: 20px;
+  font-size: 26px;
   font-stretch: var(--w-title);
   text-transform: capitalize;
 }
 .jr-rows {
   display: grid;
-  border-top: 1px solid var(--line);
+  border-top: 2px solid var(--tx);
 }
 .jr-row {
   display: grid;
-  grid-template-columns: 40px 36px minmax(0, 1fr) auto;
+  grid-template-columns: 40px 28px minmax(0, 1fr) auto;
   gap: var(--s3);
   align-items: center;
   width: 100%;
   min-height: 64px;
-  padding: var(--s2) var(--s1);
+  padding: var(--s2) 0;
   border: 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
   background: transparent;
   color: var(--tx);
   text-align: left;
@@ -1078,6 +1082,61 @@
 }
 .jr-row:hover {
   background: var(--bg-1);
+}
+.jr-row:hover .jr-title {
+  color: var(--space);
+}
+/* The table of a wide screen: aligned columns of figures, a head line naming them. */
+.jr-fig,
+.jr-cols,
+.jr-sub-wide {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .jr-row,
+  .jr-cols {
+    grid-template-columns: 48px 28px minmax(0, 1fr) 120px 120px 96px minmax(96px, auto);
+    column-gap: var(--s5);
+  }
+  .jr-cols {
+    display: grid;
+    padding: 0 0 var(--s2);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--tx-3);
+  }
+  .jr-cols span:nth-child(n + 4):nth-child(-n + 6) {
+    text-align: right;
+  }
+  .jr-fig {
+    display: block;
+    text-align: right;
+    font-family: var(--font-display);
+    font-stretch: var(--w-figure);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .jr-fig small {
+    font-size: 0.6em;
+    color: var(--tx-3);
+    margin-left: 1px;
+  }
+  .jr-sub-wide {
+    display: block;
+  }
+  .jr-sub-wide:empty,
+  .jr-sub-narrow {
+    display: none;
+  }
+  .jr-row {
+    min-height: 56px;
+  }
+  .jr-month-head {
+    padding-bottom: var(--s3);
+  }
 }
 .jr-date {
   display: grid;
@@ -1092,23 +1151,20 @@
 }
 .jr-date small {
   margin-top: 3px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--tx-3);
+  color: var(--tx-2);
 }
 .jr-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  background: var(--bg-3);
-  border: 0;
   color: var(--fam-color, var(--tx-2));
 }
 .jr-icon .t-icon {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 [data-family="endurance"] {
   --fam-color: var(--fam-endurance);
@@ -1136,8 +1192,8 @@
   text-overflow: ellipsis;
 }
 .jr-sub {
-  font-size: 13px;
-  color: var(--tx-3);
+  font-size: 13.5px;
+  color: var(--tx-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3932,9 +3988,9 @@
   display: grid;
   gap: var(--s3);
   padding: var(--s5);
-  border-radius: var(--r4);
-  border: 1px solid var(--am-line);
-  background: radial-gradient(120% 80% at 100% 0%, rgba(244, 187, 84, 0.1), transparent 60%), var(--bg-1);
+  border-radius: 0;
+  padding: var(--s4) 0 0;
+  border-top: 2px solid var(--am);
 }
 .at-includes,
 .at-never {

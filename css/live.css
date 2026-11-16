@@ -1,6 +1,6 @@
 /* TITAN LIVE (web) — built only on Ascension tokens (css/ascension.css). Readable during effort: large numbers, large
    targets, one dominant element. The trail uses TITAN's contour-line motif; amber is kept for rare finds and guardians. */
-.live-main { max-width: 640px; margin-inline: auto; }
+.live-main { --content: 640px; }
 .live-skeleton { height: 320px; border-radius: var(--r3); }
 .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
 .live-choice {
@@ -8,7 +8,9 @@
   padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-3); color: var(--tx);
   border: 0; font: inherit; cursor: pointer; transition: border-color var(--t-fast) var(--ease);
 }
-.live-choice[aria-pressed="true"] { border-color: var(--space-line); background: var(--space-soft); }
+.live-choice > span, .live-choice > small { color: var(--tx-2); }
+.live-choice[aria-pressed="true"] { background: var(--space); color: var(--space-ink); }
+.live-choice[aria-pressed="true"] > * { color: var(--space-ink); }
 .live-choice:focus-visible, .live-big:focus-visible { outline: 2px solid var(--space); outline-offset: 2px; }
 .live-toggle { display: flex; align-items: center; gap: var(--s2); color: var(--tx-2); }
 .live-head { text-align: center; display: grid; gap: var(--s1); }
@@ -23,14 +25,15 @@
   padding: var(--s3); border-radius: var(--r3); background: var(--bg-3); color: var(--tx); border: 0;
   font: inherit; font-size: 17px; cursor: pointer; touch-action: manipulation;
 }
-.live-big:first-child { background: var(--space-soft); border-color: var(--space-line); }
-.live-big span { color: var(--tx-3); font-size: 13px; }
+.live-big:first-child { background: var(--space); color: var(--space-ink); font-weight: 800; }
+.live-big span { color: var(--tx-2); font-size: 13px; }
+.live-big:first-child span { color: var(--space-ink); }
 .live-big[disabled] { opacity: .45; cursor: default; }
 .live-form { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
 .live-form .asc-field:first-child { grid-column: 1 / -1; }
-.live-cue { display: grid; gap: 4px; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border-left: 3px solid var(--space); }
-.live-offer { border-color: var(--space-line); }
-.live-warn { border-color: var(--am-line); }
+.live-cue { display: grid; gap: 4px; padding: var(--s3) 0; border-top: 2px solid var(--space); }
+.live-offer { box-shadow: inset 0 2px 0 var(--space); }
+.live-warn { box-shadow: inset 0 2px 0 var(--am); }
 .live-mission { display: grid; gap: 2px; padding: var(--s3); border-radius: var(--r2); border: 0; background: var(--bg-2); }
 .live-mission > span:first-child { color: var(--space); }
 .live-controls { position: sticky; bottom: calc(var(--tabbar) + var(--s2)); padding-top: var(--s2); background: var(--bg); }
@@ -70,13 +73,13 @@
 .live-scene-line strong { font-size: 22px; }
 .live-recap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); margin: 0; }
 .live-recap > div { display: grid; gap: 2px; padding: var(--s3); border-radius: var(--r2); background: var(--bg-3); border: 0; }
-.live-recap dt { color: var(--tx-3); font-size: 13px; line-height: 1.25; }
+.live-recap dt { color: var(--tx-2); font-size: 13px; line-height: 1.25; }
 .live-recap dd { margin: 0; font-family: var(--font-display); font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 22px; }
 /* One pane at a time on a phone; side by side on a wide screen, where the switch is no longer needed. */
 .live-pane { display: grid; gap: var(--s3); align-content: start; }
 .live-run[data-view="sport"] .live-pane-aventure, .live-run[data-view="aventure"] .live-pane-sport { display: none; }
 @media (min-width: 960px) {
-  .live-main { max-width: 1040px; }
+  .live-main { --content: 1040px; }
   .live-run .live-viewseg { display: none; }
   .live-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--s6, 32px); align-items: start; }
   .live-run[data-view] .live-pane { display: grid; }

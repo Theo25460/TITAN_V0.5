@@ -730,17 +730,16 @@ body.asc {
     font-size: 38px;
   }
 }
-/* The top row of a phone takes the ink of what it sits on. */
+/* The top row of a phone takes the ink of what it sits on: light on the ground or on a painting, the field's ink on a field. */
 body.asc {
-  --head-ink: var(--space-ink);
-  --head-line: color-mix(in srgb, var(--space-ink) 30%, transparent);
-  --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
-}
-body.asc[data-head="art"],
-body.asc[data-head="ground"] {
   --head-ink: var(--tx);
   --head-line: rgba(241, 243, 239, 0.34);
   --head-wash: rgba(9, 12, 16, 0.4);
+}
+body.asc:has(.asc-page-head) {
+  --head-ink: var(--space-ink);
+  --head-line: color-mix(in srgb, var(--space-ink) 30%, transparent);
+  --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
 }
 @media (min-width: 960px) {
   .asc-page-head {

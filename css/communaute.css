@@ -1,29 +1,31 @@
 /* TITAN — presentation scoped to the community page. Shared Ascension tokens and icons. */
+/* The four places of the community, as four ruled doors: where each leads and what waits there. No card. */
 .cm-shortcuts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s3);
+  gap: 0 var(--s5);
   margin-bottom: var(--s7);
 }
 .cm-entry {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: var(--s2);
-  padding: var(--s4);
-  border: 0;
-  border-radius: var(--r3);
-  background: var(--bg-2);
+  gap: var(--s1);
+  padding: var(--s3) 0 var(--s4);
+  border-top: 2px solid var(--tx);
   min-width: 0;
 }
-.cm-entry:hover {
-  border-color: var(--space-line);
-  background: var(--bg-2);
+.cm-entry:hover .cm-entry-title {
+  color: var(--space);
 }
 .cm-entry-title {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-weight: 800;
+  font-size: 21px;
+  line-height: 1.15;
 }
 .cm-entry-title > .t-icon:first-child {
   color: var(--space);
@@ -45,12 +47,12 @@
   color: var(--tx-2);
 }
 .cm-entry-status {
-  padding-top: var(--s2);
-  border-top: 1px solid var(--line);
+  padding-top: var(--s1);
   font-weight: 700;
+  color: var(--tx);
 }
 .cm-attention {
-  color: var(--space-hi);
+  color: var(--space);
 }
 .cm-layout {
   display: grid;
@@ -62,11 +64,16 @@
 .cm-teams {
   min-width: 0;
 }
+/* The labels that sat above each column's heading were kickers: the headings under them say the same. They stay for screen
+   readers as the names of the columns. */
 .cm-column-label {
-  margin-bottom: var(--s4);
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--tx-2);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 .cm-section {
   scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4));
@@ -86,13 +93,6 @@
   line-height: 1.6;
   color: var(--tx-2);
 }
-.cm-circle > .cm-section,
-.cm-teams > .cm-section {
-  padding: var(--s4);
-  border: 0;
-  border-radius: var(--r3);
-  background: var(--bg-2);
-}
 .cm-team-label {
   margin-top: var(--s7);
 }
@@ -110,16 +110,15 @@
 .cm-teams .cm-challenge,
 .cm-teams .cm-guild,
 .cm-circle .cm-code {
-  padding: var(--s3);
-  background: var(--bg-2);
+  padding: var(--s3) 0;
 }
 .cm-requests {
   margin-bottom: var(--s5);
 }
 .cm-requests h3 {
   margin-bottom: var(--s2);
-  font-size: 15px;
-  color: var(--space-hi);
+  font-size: 17px;
+  color: var(--space);
 }
 .cm-request {
   flex-wrap: wrap;
@@ -179,13 +178,11 @@
 @media (min-width: 1100px) {
   .cm-layout {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    column-gap: var(--s9);
   }
   .cm-teams {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .cm-circle {
-    padding-left: var(--s6);
-    border-left: 1px solid var(--line);
+    column-gap: var(--s9);
   }
 }
 
