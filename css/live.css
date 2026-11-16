@@ -1,0 +1,55 @@
+/* TITAN LIVE (web) — built only on Ascension tokens (css/ascension.css). Readable during effort: large numbers, large
+   targets, one dominant element. The trail uses TITAN's contour-line motif; amber is kept for rare finds and guardians. */
+.live-main { max-width: 640px; margin-inline: auto; }
+.live-skeleton { height: 320px; border-radius: var(--r3); }
+.live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
+.live-choice {
+  display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; margin-top: var(--s2);
+  padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-2); color: var(--tx);
+  border: 1px solid var(--line); font: inherit; cursor: pointer; transition: border-color var(--t-fast) var(--ease);
+}
+.live-choice[aria-pressed="true"] { border-color: var(--cy-line); background: var(--cy-soft); }
+.live-choice:focus-visible, .live-big:focus-visible { outline: 2px solid var(--cy); outline-offset: 2px; }
+.live-toggle { display: flex; align-items: center; gap: var(--s2); color: var(--tx-2); }
+.live-head { text-align: center; display: grid; gap: var(--s1); }
+.live-clock { font-family: var(--font-display); font-weight: 800; font-size: clamp(56px, 16vw, 96px); line-height: 1; font-variant-numeric: tabular-nums; margin: 0; }
+.live-clock-sm { font-family: var(--font-display); font-weight: 800; font-size: 44px; text-align: center; font-variant-numeric: tabular-nums; margin: 0; }
+.live-breath { font-family: var(--font-display); font-size: 36px; color: var(--cy); text-align: center; margin: var(--s5) 0 0; }
+.live-bar { height: 8px; border-radius: 999px; background: var(--bg-4); overflow: hidden; }
+.live-bar i { display: block; height: 100%; background: var(--cy); border-radius: inherit; }
+.live-row { display: flex; gap: var(--s2); }
+.live-big {
+  flex: 1; min-height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: var(--s3); border-radius: var(--r3); background: var(--bg-2); color: var(--tx); border: 1px solid var(--line-2);
+  font: inherit; font-size: 17px; cursor: pointer; touch-action: manipulation;
+}
+.live-big:first-child { background: var(--cy-soft); border-color: var(--cy-line); }
+.live-big span { color: var(--tx-3); font-size: 13px; }
+.live-big[disabled] { opacity: .45; cursor: default; }
+.live-form { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+.live-form .asc-field:first-child { grid-column: 1 / -1; }
+.live-cue { display: grid; gap: 4px; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border-left: 3px solid var(--cy); }
+.live-offer { border-color: var(--cy-line); }
+.live-warn { border-color: var(--am-line); }
+.live-mission { display: grid; gap: 2px; padding: var(--s3); border-radius: var(--r2); border: 1px solid var(--line-2); }
+.live-mission > span:first-child { color: var(--cy); }
+.live-controls { position: sticky; bottom: calc(var(--tabbar) + var(--s2)); padding-top: var(--s2); background: var(--bg); }
+.live-controls .asc-btn { flex: 1; }
+.live-trail { width: 100%; height: auto; display: block; }
+.live-contour { fill: none; stroke: var(--line); stroke-width: 1; }
+.live-path { fill: none; stroke: var(--line-3); stroke-width: 2; stroke-dasharray: 4 6; }
+.live-path-done { fill: none; stroke: var(--cy); stroke-width: 3; stroke-linecap: round; }
+.live-node { fill: var(--bg-3); stroke: var(--line-3); stroke-width: 1.5; }
+.live-node.on { fill: var(--cy); stroke: var(--cy-2); }
+.live-echo { fill: none; stroke: var(--cy-2); stroke-width: 1.5; stroke-dasharray: 2 3; }
+.live-res { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--s2); }
+.live-res-item { display: grid; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border-top: 2px solid var(--cy); }
+.live-res-item[data-family="endurance"] { border-top-color: var(--fam-endurance); }
+.live-res-item[data-family="force"] { border-top-color: var(--fam-force); }
+.live-res-item[data-family="technique"] { border-top-color: var(--fam-technique); }
+.live-res-item[data-family="jeu"] { border-top-color: var(--fam-jeu); }
+.live-res-item[data-family="mobilite"] { border-top-color: var(--fam-mobilite); }
+.live-building { display: grid; gap: var(--s2); margin-top: var(--s2); }
+.live-chapter { padding-block: var(--s2); border-bottom: 1px solid var(--line); }
+.live-amber { color: var(--am); }
+@media (max-width: 420px) { .live-form { grid-template-columns: 1fr; } .live-row { flex-direction: column; } }

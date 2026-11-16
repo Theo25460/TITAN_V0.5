@@ -259,7 +259,7 @@
     },
 
     paroi: {
-      id: "paroi", name: "La Paroi", essence: "prisme", panel: "wall", safety: "regard",
+      id: "paroi", name: "La Paroi", essence: "prisme", panel: "wall", safety: "libre",
       tagline: "Chaque essai lit la paroi. Chaque chute aussi.",
       beat: { id: "essai", one: "essai", many: "essais", every: { beat: "attempt" } },
       loop: [
@@ -287,7 +287,7 @@
     },
 
     joute: {
-      id: "joute", name: "La Joute", essence: "ardeur", panel: "score", safety: "regard",
+      id: "joute", name: "La Joute", essence: "ardeur", panel: "score", safety: "libre",
       tagline: "Les échanges deviennent des passes d’armes ; les manches, des chapitres.",
       beat: { id: "manche", one: "manche", many: "manches", every: { beat: "game", effortMin: 10 } },
       loop: [
@@ -472,7 +472,7 @@
     },
 
     stade: {
-      id: "stade", name: "Le Stade", essence: "souffle", panel: "rounds", safety: "regard",
+      id: "stade", name: "Le Stade", essence: "souffle", panel: "rounds", safety: "libre",
       tagline: "Des tentatives, des marques, la récupération comme rituel.",
       beat: { id: "tentative", one: "tentative", many: "tentatives", every: { beat: "attempt" } },
       loop: [

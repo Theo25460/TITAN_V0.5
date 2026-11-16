@@ -671,7 +671,11 @@
     put("rounds", k("round")); put("attempts", k("attempt")); put("successful_routes", num(state.fields.sends));
     put("flashes", state.beats.filter((b) => b.kind === "attempt" && b.data.result === "flash").length);
     put("fall_count", num(state.fields.falls)); put("falls", num(state.fields.falls));
-    put("sets_won", state.beats.filter((b) => b.kind === "game" && b.data.won && b.data.set).length);
+    const score = conf.tuning && conf.tuning.score;
+    const gamesWon = state.beats.filter((b) => b.kind === "game" && b.data.won).length;
+    const gamesLost = state.beats.filter((b) => b.kind === "game" && !b.data.won).length;
+    if (score && score.game === score.set) { put("sets_won", gamesWon); put("sets_lost", gamesLost); }
+    else if (score) put("games_won", gamesWon);
     put("ends", k("end")); put("routines", k("routine")); put("laps", k("lap")); put("runs", k("run"));
     if (fieldIds.has("pain_before") && state.fields.pain_before != null) draft.extras.pain_before = state.fields.pain_before;
     if (fieldIds.has("pain_after") && state.fields.pain_after != null) draft.extras.pain_after = state.fields.pain_after;

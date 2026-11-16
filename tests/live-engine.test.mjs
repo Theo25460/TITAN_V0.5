@@ -295,3 +295,12 @@ test("report missions are confirmed from the after-session statistics, like the 
   for (const [id, value] of [["r_putts", 25], ["r_holes", 9]]) fail = Live.step(fail, { type: "field", id, value }, T0 + 61 * MIN).state;
   assert.equal(fail.missions.done.length, 0);
 });
+
+test("racket scoreboards fill the sport's own form fields: sets for badminton, games for tennis", () => {
+  const g = (won) => ({ type: "beat", kind: "game", data: { won } });
+  const bad = run("badminton", {}, [[10, g(true)], [20, g(false)], [30, g(true)], [31, { type: "end" }]]).state;
+  assert.deepEqual([Live.toDraft(bad).extras.sets_won, Live.toDraft(bad).extras.sets_lost], [2, 1]);
+  const ten = run("tennis", {}, [[10, g(true)], [20, g(true)], [31, { type: "end" }]]).state;
+  assert.equal(Live.toDraft(ten).extras.games_won, 2);
+  assert.equal(Live.toDraft(ten).extras.sets_won, undefined);
+});
