@@ -74,15 +74,17 @@ export function RootNavigator() {
   const reduced = useReducedMotion();
   const options: NativeStackNavigationOptions = reduced ? { ...stackOptions, animation: "none" } : stackOptions;
   // First opening on this phone: the guided visit comes before the welcome screen. The splash stays until both answers are known.
-  const visit = useFirstVisit(status === "signedIn" && !!owner);
-  const ready = status !== "loading" && visit !== undefined;
+  // A signed-in phone does not wait for that answer: the visit only matters on the signed-out side.
+  const signedIn = status === "signedIn" && !!owner;
+  const visit = useFirstVisit(signedIn);
+  const ready = status !== "loading" && (signedIn || visit !== undefined);
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
   if (!ready) return null;
   if (status === "signedOut" || !owner)
     return (
-      <Stack.Navigator screenOptions={options} initialRouteName={visit.seen ? "Welcome" : "Tour"}>
+      <Stack.Navigator screenOptions={options} initialRouteName={visit?.seen ? "Welcome" : "Tour"}>
         <Stack.Screen name="Tour" component={TourScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade" }} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: "Connexion" }} />
