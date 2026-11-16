@@ -16,10 +16,13 @@
       <link rel="stylesheet" href="/css/adventure-rpg.css?v=302.0" />
     <link rel="stylesheet" href="/css/journey-v13.css?v=302.0" />
   </head>
-  <body class="asc" data-territory="aventure" data-title="Aventure">
+  <body class="asc" data-territory="aventure" data-title="Aventure" data-head="art">
     <a class="asc-skip" href="#contenu">Aller au contenu</a>
     <main class="asc-main av-main" id="contenu">
-      <header class="asc-page-head"><div><h1>Ton aventure</h1><p class="asc-lead">Choisis un monde : chaque jour actif y allume une balise, quel que soit ton sport.</p></div></header>
+      <header class="asc-art-head av-head">
+        <img class="asc-art-img" id="av-art" src="/assets/renaissance/valley-small.webp" srcset="/assets/renaissance/valley-small.webp 800w, /assets/renaissance/valley.webp 1600w" sizes="100vw" alt="" width="800" height="450" decoding="async" fetchpriority="high" />
+        <div class="asc-art-copy"><h1>Ton aventure</h1><p class="asc-art-line">Choisis un monde : chaque jour actif y allume une balise, quel que soit ton sport.</p></div>
+      </header>
       <div id="aventure" aria-busy="true">
         <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
         <div class="asc-skeleton" style="height: 320px; margin-top: 24px"></div>
@@ -55,7 +58,7 @@
     <script src="/js/core/journey.js?v=301.13.2"></script>
     <script src="/js/core/adventure-access.js?v=301.13.1"></script>
     <script src="/js/app/journey.js?v=301.13.2"></script>
-    <script src="/js/app/aventure.js?v=301.31.3"></script>
+    <script src="/js/app/aventure.js?v=302.0"></script>
     <script src="/js/pwa.js?v=300.1" defer></script>
   </body>
 </html>

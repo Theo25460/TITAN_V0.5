@@ -248,6 +248,13 @@
     selected = world.id;
     const p = campaign(world);
     root.setAttribute("aria-busy", "false");
+    // The page opens on the painting of the world being looked at.
+    const art = document.getElementById("av-art");
+    if (art && /^[a-z]+$/.test(world.image || "") && art.dataset.world !== world.image) {
+      art.dataset.world = world.image;
+      art.srcset = `/assets/renaissance/${world.image}-small.webp 800w, /assets/renaissance/${world.image}.webp 1600w`;
+      art.src = `/assets/renaissance/${world.image}-small.webp`;
+    }
     root.innerHTML = `
       ${A().status === "cached" ? `<p class="asc-note">${icon("cloud")}<span>Dernière progression connue ; elle se met à jour dès que le serveur répond.</span></p>` : ""}
       ${worldsHtml(s, world, focusedWorld)}

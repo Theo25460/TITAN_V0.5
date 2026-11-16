@@ -337,7 +337,7 @@
     hubSport = sports.some(s => s.id === hubSport) ? hubSport : sports.some(s => s.id === S.sport) ? S.sport : "running";
     const garmin = !window.state?.user?.guest && window.titanFlags?.enabled?.("screens.garmin", false) === true;
     return `<div data-activity-hub>
-      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Ton entraînement</p><h1 tabindex="-1" data-hub-title>Ajouter une activité</h1><p class="asc-lead">Importe une sortie ou saisis ce que tu as fait. Aucune montre ni formule payante nécessaire.</p></div></header>
+      <header class="asc-page-head"><div><h1 tabindex="-1" data-hub-title>Ajouter une activité</h1><p class="asc-lead">Importe une sortie ou saisis ce que tu as fait. Aucune montre ni formule payante nécessaire.</p></div></header>
       <nav class="asc-subnav" data-subnav></nav>
       ${S.step === "form" ? `<section class="asc-note"><span>Brouillon conservé : ${esc(S_().label(S.sport))}.</span><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="resume">Reprendre le brouillon</button></section>` : ""}
       <section class="seance-block" aria-labelledby="hub-import-title"><p class="asc-eyebrow cy">Depuis un fichier</p><h2 id="hub-import-title">Importer un GPX</h2>
@@ -394,16 +394,18 @@
       // Unfolded: every sport of the family, alphabetical, the popular ones no longer first.
       byFam[f] = S_().all().filter((s) => s.family === f).map((s) => s.id).sort((a, b) => S_().label(a).localeCompare(S_().label(b), "fr"));
     }
+    // The lime field asks one question and holds the one action: the search. On a wide screen « mine » and « every sport » sit side by side.
     return `
-      <header class="asc-page-head"><div><p class="asc-eyebrow cy">Nouvelle séance</p><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1></div></header>
-      <nav class="asc-subnav" data-subnav></nav>
-      ${liveEntryHtml()}
+      <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1></div>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
         <input id="sport-q" class="asc-input" type="search" autocomplete="off" placeholder="Chercher un sport…" value="${esc(S.query)}" aria-controls="sport-results">
-      </div>
+      </div></header>
+      <nav class="asc-subnav" data-subnav></nav>
       <div id="sport-results" class="seance-results" role="listbox" aria-label="Sports"></div>
+      ${liveEntryHtml()}
+      <div class="seance-pick${mine.length || last3.length || routines.length ? " has-mine" : ""}"><div class="seance-pick-mine">
       ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${mine.map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${icon(S_().iconOf(id))}${esc(S_().label(id))}</button>`).join("")}</div></section>` : ""}
       ${last3.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Refaire</h2><span class="asc-small asc-faint">Reprend les mesures, à la date d’aujourd’hui</span></div><div class="asc-list">${last3.map((l) => {
         const m = P().minutesOf(l);
@@ -411,9 +413,10 @@
         return `<button type="button" class="asc-row" data-repeat="${esc(l.client_event_id || l.id)}"><span class="asc-row-icon">${icon("copy")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(S_().label(l.sport))}</span><span class="asc-row-sub">${esc(F().relativeDay(l.date))} · ${esc(main)}${m.minutes && l.unit === "km" ? " · " + esc(F().duration(m.minutes)) : ""}</span></span>${icon("chevron")}</button>`;
       }).join("")}</div></section>` : ""}
       ${routines.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes routines</h2></div><div class="asc-list">${routines.map((r) => `<button type="button" class="asc-row" data-routine="${esc(r.id)}"><span class="asc-row-icon">${icon("layers")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${r.exercises.length} exercice${r.exercises.length > 1 ? "s" : ""}</span></span>${icon("chevron")}</button>`).join("")}</div></section>` : ""}
+      </div><div class="seance-pick-all">
       <section class="asc-section"><div class="asc-section-head"><h2>Par famille</h2></div>
         <div class="seance-families">${fams.map((f) => `<div class="seance-family"><p class="asc-eyebrow">${icon(S_().FAMILY_ICON[f])} ${esc(S_().FAMILY_LABEL[f])}</p><div class="seance-chips" id="family-${esc(f)}">${byFam[f].map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`).join("")}${totals[f] > 8 ? `<button type="button" class="seance-chip seance-chip-more" data-family-more="${esc(f)}" aria-expanded="${openFamilies.has(f)}" aria-controls="family-${esc(f)}">${openFamilies.has(f) ? "Réduire" : `Voir les ${totals[f]} sports`}</button>` : ""}</div></div>`).join("")}</div>
-      </section>`;
+      </section></div></div>`;
   }
 
   function resultsHtml() {
@@ -593,9 +596,9 @@
   function formHtml() {
     const t = timer();
     return `
-      <header class="seance-head">
+      <header class="asc-page-head seance-head">
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-act="back" aria-label="Changer de sport">${icon("chevronLeft")}</button>
-        <div class="seance-head-main"><p class="asc-eyebrow cy">Nouvelle séance</p><h1 class="seance-title" tabindex="-1" data-form-title>${esc(S_().label(S.sport))}</h1></div>
+        <div class="seance-head-main"><h1 class="seance-title" tabindex="-1" data-form-title>${esc(S_().label(S.sport))}</h1></div>
         ${familyChip(S.sport)}
       </header>
       <div class="seance-chrono" data-running="${!!t.started}">
