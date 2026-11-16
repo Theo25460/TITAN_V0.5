@@ -2,6 +2,7 @@
 
 Branche : `claude/titan-v131-finalization-9g6jjo` (PR #148, brouillon). Point de départ et premiers lots : [`../V131_FINALISATION_2026-11-14.md`](../V131_FINALISATION_2026-11-14.md).
 
+- [`RELAIS_FABLE.md`](RELAIS_FABLE.md) : **point de reprise au 16 novembre 2026** (production observée, tableau de contrôle, paquet de migrations, ordre de reprise).
 - [`REGISTRE.md`](REGISTRE.md) : registre central (anomalies, corrections, preuves, statut, SHA).
 - `lot*.md` : matrices détaillées par lot, une ligne par élément contrôlé.
 
