@@ -98,12 +98,12 @@ do $$declare r jsonb; r2 jsonb; w jsonb;begin
  -- Another player's session does not exist for this caller.
  begin perform public.titan_live_settle_v1(current_setting('titan.live_e7')::uuid); raise exception 'foreign session'; exception when no_data_found then null; end;
 
- -- Building: Halle d'acier level 1 costs 60, paid with acier first (90 available).
+ -- Building: Halle d'acier level 1 costs 80, paid with acier first (90 available), nothing taken from éclats.
  w:=public.titan_live_build_v1('halle');
- assert (w->'buildings'->>'halle')::int=1 and (w->'wallet'->'essences'->>'acier')::int=30, w::text;
- -- Level 2 costs 120: 30 acier + 90 éclats.
- w:=public.titan_live_build_v1('halle');
- assert (w->'buildings'->>'halle')::int=2 and (w->'wallet'->'essences'->>'acier')::int=0, w::text;
+ assert (w->'buildings'->>'halle')::int=1 and (w->'wallet'->'essences'->>'acier')::int=10, w::text;
+ -- Level 2 costs 220: 10 acier + 210 éclats, more than this player has: refused, nothing spent.
+ begin perform public.titan_live_build_v1('halle'); raise exception 'halle 2 without éclats'; exception when invalid_parameter_value then null; end;
+ assert (public.titan_live_world_v1()->'wallet'->'essences'->>'acier')::int=10;
  begin perform public.titan_live_build_v1('phare'); perform public.titan_live_build_v1('phare'); perform public.titan_live_build_v1('phare');
   raise exception 'phare without éclats'; exception when invalid_parameter_value then null; end;
  begin perform public.titan_live_build_v1('casino'); raise exception 'unknown building'; exception when invalid_parameter_value then null; end;

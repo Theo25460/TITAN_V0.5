@@ -127,19 +127,20 @@ Un moteur **à règles**, pas une IA générative : instantané, hors ligne, gra
 ### Le Camp de base (QG interactif)
 
 Six bâtiments, cinq niveaux (En ruine → Rayonnant → Légendaire) : Observatoire des souffles, Halle d'acier, Atelier du
-prisme, Arène d'ardeur, Jardin de sève, Phare du camp. Coût 60 / 120 / 200 / 300 / 420, payé **d'abord avec l'essence
+prisme, Arène d'ardeur, Jardin de sève, Phare du camp. Coût 80 / 220 / 480 / 900 / 1 500, payé **d'abord avec l'essence
 du bâtiment, puis avec les éclats** : la variété accélère, la spécialisation n'est jamais bloquée. Le camp d'un
 haltérophile devient une citadelle d'acier, celui d'une yogi un jardin : **le QG reflète la pratique**.
 
 ### Les Marches et leurs gardiens
 
-Une région par Voie, cinq terres révélées à 1, 3, 6, 10 et 15 séances live (deux comptées au plus par jour) ; son
-gardien se présente à 21 séances **et** 12 jours actifs : la régularité, pas le volume.
+Une région par Voie, cinq terres révélées à 1, 4, 10, 20 et 35 séances live (deux comptées au plus par jour) ; son
+gardien se présente à 40 séances **et** 24 jours actifs : la régularité, pas le volume.
 
 ### Les Chroniques de la Cordée
 
 Un arc commun de dix chapitres (le camp sous la neige → le nœud du Titan) débloqué par un score = jours actifs + 2 ×
-(Voies distinctes − 1) : **atteignable par la seule régularité**, accéléré par la variété. Chaque Voie a son propre arc de
+(Voies distinctes − 1), paliers 1, 4, 10, 18, 28, 40, 55, 75, 100, 130 (environ un an à trois jours actifs par semaine) :
+**atteignable par la seule régularité**, accéléré par la variété. Chaque Voie a son propre arc de
 cinq fragments, révélé avec ses terres. Le récit relie TITAN LIVE aux quatre mondes existants (Aube, Marées, Forges
 d'Obsidienne, Aurores) sans les modifier.
 
@@ -182,6 +183,23 @@ trouvailles rares et aux gardiens), Archivo/Manrope, lignes de niveau, aucune il
 réservés pour les futurs assets : [ASSETS.md](ASSETS.md).
 
 ## 10. Équilibrage et équité
+
+Simulation reproductible : `node tools/simulate-live.mjs [semaines]` (règle de règlement exacte, courbe d'effort
+serveur), figée par `tests/live-balance.test.mjs`. Sur 12 semaines :
+
+| Profil | Minutes | Ressources | Par heure | Niveaux du Camp | Cordée |
+|---|---:|---:|---:|---:|---:|
+| Coureuse 3 × 50 min | 1 800 | 2 916 | 97 | 11 | 5/10 |
+| Musculation 3 × 60 min | 2 040 | 3 432 | 101 | 12 | 5/10 |
+| Yogi 4 × 40 min | 1 800 | 2 916 | 97 | 12 | 6/10 |
+| Footballeur 2 × 90 min | 2 160 | 2 880 | 80 | 10 | 4/10 |
+| Polyvalente 4 sports | 2 160 | 3 948 | 110 | 15 | 6/10 |
+| Ultra-traileur 300 + 2 × 45 min | 4 680 | 3 180 | 41 | 10 | 5/10 |
+| Débutante 2 × 25 min | 600 | 1 092 | 109 | 7 | 4/10 |
+
+Après un an, chaque profil a encore des niveaux à bâtir (20 à 26 sur 30) ; la Cordée se termine vers un an de
+régularité.
+
 
 - Même effort, même essence dans **les 260 sports** (test sur tout le catalogue).
 - Les sports longs ne gagnent rien au-delà de 90 minutes comptées par jour ; les sports faciles à saisir ne gagnent rien

@@ -107,7 +107,7 @@
     jardin: { id: "jardin", essence: "seve", name: "Le Jardin de sève", text: "Terrasses du Sanctuaire et écurie du Lien ; il change avec les saisons." },
     phare: { id: "phare", essence: null, name: "Le Phare du camp", text: "Il s’élève avec les éclats de toutes tes Voies et éclaire la Cordée." },
   };
-  const LEVEL_COST = [60, 120, 200, 300, 420]; // level 1..5
+  const LEVEL_COST = [80, 220, 480, 900, 1500]; // level 1..5: the first level within a session or two, the camp in 12-18 months
   const MAX_LEVEL = LEVEL_COST.length;
   const LEVEL_NAMES = ["En ruine", "Déblayé", "Rebâti", "Habité", "Rayonnant", "Légendaire"];
 
@@ -122,8 +122,8 @@
   }
 
   /* ------------------------------------------------------------------ Les Marches */
-  const REGION_STEPS = [1, 3, 6, 10, 15];       // settled sessions in the Voie to reveal each land
-  const GUARDIAN = { sessions: 21, days: 12 };  // the guardian answers to regularity, not volume
+  const REGION_STEPS = [1, 4, 10, 20, 35];      // settled sessions in the Voie to reveal each land (about 3 months at 3 a week)
+  const GUARDIAN = { sessions: 40, days: 24 };  // the guardian answers to regularity, not volume
   function region(voieId, stats) {
     const voie = V().VOIES[voieId];
     const sessions = stats?.sessions || 0, days = stats?.days || 0;
@@ -135,7 +135,7 @@
 
   /* ------------------------------------------------------------------ Chronicles of the Cordée */
   /** Global arc: unlocked by regularity (settled days) and accelerated, never required, by variety. */
-  const CORDEE_STEPS = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
+  const CORDEE_STEPS = [1, 4, 10, 18, 28, 40, 55, 75, 100, 130]; // about a year at 3 active days a week
   const CORDEE = [
     ["Le camp sous la neige", "Au pied des quatre mondes, un camp de base dort sous la neige. Une corde usée pend à l’entrée, ses brins défaits. Ta première séance déblaie le seuil."],
     ["Les brins", "La corde n’en était pas une : vingt brins tressés, un par façon de bouger. On l’appelait la Cordée. Chaque brin a son gardien, et chaque gardien s’est endormi."],

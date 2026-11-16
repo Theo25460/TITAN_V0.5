@@ -209,7 +209,7 @@ begin
  if p_building is null or p_building not in('observatoire','halle','atelier','arene','jardin','phare') then raise exception 'LIVE_BUILDING_UNKNOWN' using errcode='22023'; end if;
  select coalesce((select level from private.titan_live_buildings where user_id=v_uid and building=p_building),0) into v_level;
  if v_level>=5 then raise exception 'LIVE_BUILDING_MAX' using errcode='22023'; end if;
- v_cost:=(array[60,120,200,300,420])[v_level+1];
+ v_cost:=(array[80,220,480,900,1500])[v_level+1];
  v_ess:=case p_building when 'observatoire' then 'souffle' when 'halle' then 'acier' when 'atelier' then 'prisme' when 'arene' then 'ardeur' when 'jardin' then 'seve' end;
  insert into private.titan_live_wallets(user_id) values(v_uid) on conflict(user_id) do nothing;
  select * into w from private.titan_live_wallets where user_id=v_uid for update;

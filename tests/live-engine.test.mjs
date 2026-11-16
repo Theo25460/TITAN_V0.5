@@ -260,15 +260,15 @@ test("finds are deterministic from the session id, a bit likelier when exploring
 });
 
 test("the Cordée is reachable by regularity alone; variety only accelerates it", () => {
-  assert.equal(World.cordee({ days: 55, voies: 1 }).unlocked, 10);
-  assert.ok(World.cordee({ days: 10, voies: 4 }).unlocked > World.cordee({ days: 10, voies: 1 }).unlocked);
+  assert.equal(World.cordee({ days: 130, voies: 1 }).unlocked, 10);
+  assert.ok(World.cordee({ days: 8, voies: 4 }).unlocked > World.cordee({ days: 8, voies: 1 }).unlocked);
   for (const v of Object.keys(Voies.VOIES)) assert.equal(World.ARCS[v].length, World.REGION_STEPS.length, v);
 });
 
 test("the camp is built with the building's essence first, then universal éclats, so a specialist is never blocked", () => {
-  const p = World.buildPlan("halle", 0, { essences: { acier: 20 }, eclats: 50 });
-  assert.deepEqual([p.useEssence, p.useEclats, p.affordable], [20, 40, true]);
-  const yogi = World.buildPlan("halle", 0, { essences: { seve: 500 }, eclats: 60 });
+  const p = World.buildPlan("halle", 0, { essences: { acier: 20 }, eclats: 60 });
+  assert.deepEqual([p.useEssence, p.useEclats, p.affordable], [20, 60, true]);
+  const yogi = World.buildPlan("halle", 0, { essences: { seve: 500 }, eclats: 80 });
   assert.equal(yogi.affordable, true);
   assert.equal(World.buildPlan("phare", 5, { eclats: 1e6 }), null);
 });
@@ -303,4 +303,16 @@ test("racket scoreboards fill the sport's own form fields: sets for badminton, g
   const ten = run("tennis", {}, [[10, g(true)], [20, g(true)], [31, { type: "end" }]]).state;
   assert.equal(Live.toDraft(ten).extras.games_won, 2);
   assert.equal(Live.toDraft(ten).extras.sets_won, undefined);
+});
+
+test("performance: one step stays cheap on a loaded session and the saved state is bounded", () => {
+  let s = Live.create({ sportId: "muscu_gym", seed: "perf", intent: "atteindre", immersion: "aventure" });
+  s = Live.step(s, { type: "start" }, T0).state;
+  for (let i = 0; i < 600; i++) s = Live.step(s, { type: "beat", kind: "set", data: { exercise: `Ex ${i % 12}`, reps: 8, load: 60, rir: 2 } }, T0 + i * 1000).state;
+  assert.equal(s.beats.length, 400, "beats are capped");
+  const t = performance.now();
+  for (let i = 0; i < 300; i++) s = Live.step(s, { type: "tick" }, T0 + (601 + i) * 1000).state;
+  const perStep = (performance.now() - t) / 300;
+  assert.ok(perStep < 5, `${perStep.toFixed(2)} ms per step`);
+  assert.ok(JSON.stringify(s).length < 120000, `${JSON.stringify(s).length} bytes saved`);
 });
