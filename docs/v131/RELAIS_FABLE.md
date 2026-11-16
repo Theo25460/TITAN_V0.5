@@ -1,37 +1,42 @@
-# TITAN · Relais pour la session Fable (16 novembre 2026)
+# TITAN · Relais pour la session Fable (16 novembre 2026, phases 1 et 2)
 
-Branche `claude/youthful-knuth-pgg96r`, partie de la tête de la PR #148 (`6295e49`, elle-même au-dessus de `main` `67e17c7`).
-Ce document complète [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) et [`REGISTRE.md`](REGISTRE.md) sans les répéter : il dit ce qui a
-changé depuis, ce qui a été prouvé aujourd'hui et par quoi reprendre. Aucun nouvel audit général n'est nécessaire.
+Branche `claude/youthful-knuth-pgg96r`, PR #149 (brouillon), partie de la tête de la PR #148 (`6295e49`, au-dessus de `main` `67e17c7`).
+Ce document complète [`RAPPORT_FINAL.md`](RAPPORT_FINAL.md) et [`REGISTRE.md`](REGISTRE.md) sans les répéter : ce qui a changé, ce
+qui est prouvé, par quoi reprendre. Aucun nouvel audit général n'est nécessaire.
 
-## 1. Ce qui a été fait dans cette session
+Travaux parallèles repérés (ne pas écraser) : `claude/titan-rpg-multisport-larhou` (TITAN LIVE derrière `screens.live`, 48 fichiers,
+basé sur `main`) et `ccr-dfa5e93f-je1kju` (fonctions Android, 131 fichiers, basé sur `main`, touche `mobile/src/lib`, `components`,
+`supabase/migrations`). Les deux devront être rebasés sur cette branche une fois fusionnée ; leurs migrations doivent passer après
+`20261116110000`.
+
+## 1. Production Supabase : état exact
+
+**Les 10 migrations V1.3.1 sont appliquées en production depuis le 16 novembre** (`20261110140000` → `20261116110000`), fichier par
+fichier depuis `supabase/release-v131/`, chacun confirmé par le propriétaire.
+
+| Contrôle après application | Résultat |
+|---|---|
+| Empreinte des fonctions (corps et droits) | Identique à la réplique : `private 91 bae05c10ca57 d52d12beba17`, `public 293 db4eeb91a3d2 8f112d92ff21` |
+| `tools/db/postflight-v131.sql` | 54 / 54 vrais |
+| `tools/db/postflight-v13.sql` | 42 / 42 vrais |
+| Données | Empreintes inchangées pour comptes, profils, journal, aventure, consentements ; `titan_entitlements` change seulement par ses 2 colonnes ajoutées |
+| Faille d'amitié forcée | Fermée (`authenticated` n'a plus `INSERT`, politique fautive supprimée, aides Coach fermées) |
+| Dérive D1 (export de compte cassé) | Réparée |
+| Conseiller de sécurité | Reste `auth_leaked_password_protection` (tableau de bord) et les avertissements génériques sur les RPC `SECURITY DEFINER` |
+
+## 2. Corrections réalisées (commits de cette branche)
 
 | Commit | Changement | Preuve |
 |---|---|---|
-| `057664c` | Paquet de production `supabase/release-v131/` généré **depuis les fichiers** (jamais ressaisi), garde d'ordre, registre, contrôles d'empreinte avant/après ; générateur `tools/db/build-production-bundle.mjs` | Répétition sur une réplique dans l'état de la production : empreinte finale exacte, second passage refusé ; test `tests/production-bundle.test.mjs` (le paquet doit rester identique au générateur) |
-| `a2547d9` | D11 : rapports de démarrage `titan_submit_cache_reconciliation` plafonnés à 20 par compte et 24 h (déclencheur, RPC et réponse inchangés), conservés 90 jours (règle de rétention publiée dans la matrice et la politique de confidentialité). D8 : seau `avatars` borné à 2 Mo, PNG/JPEG/WebP | `sql/tests/300_v131_abuse_bounds.sql`, rouge sans le déclencheur (30 rapports au lieu de 20), vert avec ; lignes postflight |
-| `8096885` | D11 : `titan_find_profile_by_friend_code` limité à 30 recherches par heure (même corps, limiteur commun) | `sql/tests/300_v131_friend_code_rate_limit.sql`, rouge avec l'ancien corps, vert avec le nouveau ; test hérité de confidentialité intact |
-| `2ebe2dc` | Test E2E `journey-v13` stabilisé : le reçu injecté passe par la copie locale que l'application relit (course sous charge, 1 033/1 034) | 40 exécutions du fichier sous charge CPU, 0 échec ; assertions inchangées |
-| `c465054` | Android : 6 modules natifs Expo alignés sur la table d'Expo 57.0.32 (dont `expo-location` et `expo-task-manager`, utilisés par le GPS) | Contrôle hors ligne contre `expo/bundledNativeModules.json` : 31 modules, 0 écart ; typage et 808 tests Jest |
-
-**Mise à jour, phase 2** : les 10 fichiers du paquet ont été appliqués en production le 16 novembre (voir `supabase/release-v131/README.md` pour les preuves : empreinte identique à la réplique, postflights 54/54 et 42/42, données inchangées). La faille d'amitié forcée est fermée en production.
-
-## 2. Production observée aujourd'hui (lecture seule)
-
-- Supabase `oubmftfufwwzwpgvrcag`, PostgreSQL 17.6 : registre terminé à `20261110130137`. Les 74 versions depuis `20261005150000`
-  correspondent exactement au dépôt. `journey_v13` et `entitlement_profile_consistency` y sont désormais (le rapport final les
-  disait absentes).
-- **Faille ouverte confirmée** : `authenticated` a `INSERT` sur `public.friendships` et la politique `friendships_insert_own` ne
-  contrôle pas le statut (amitié pré-acceptée forgeable) ; `authenticated` exécute `private.titan_coach_seats_sweep()`.
-  Impact mesuré : 0 amitié, 24 comptes, 2 droits d'accès, 0 lien Garmin.
-- **Dérive D1 confirmée** : seul corps différent du dépôt, `private.titan_export_extras_before_rpg_v1` (export de compte cassé
-  pour un compte lié à Garmin ou à un binôme). Réparée par le fichier `07` du paquet.
-- Conseiller Supabase : `auth_leaked_password_protection` désactivé (réglage du tableau de bord) ; `function_search_path_mutable`
-  (corrigé par `07`).
-- Site `titan-app.fr` : sert encore les **CGU version 6** (le candidat est en version 8). Netlify n'est pas consultable d'ici.
-
-L'application des migrations a été tentée : l'outil Supabase exige une confirmation humaine pour chaque écriture, elle a expiré,
-rien n'a été écrit (vérifié ensuite). Instantané du schéma de production (sans données) pris avant la tentative.
+| `057664c` | Paquet de production généré depuis les fichiers, garde d'ordre, contrôles d'empreinte | Test `production-bundle.test.mjs` ; répétition sur réplique |
+| `a2547d9`, `8096885` | Sécurité : rapports de démarrage plafonnés (20/24 h) et conservés 90 jours ; seau `avatars` borné (2 Mo, images) ; recherche par code ami limitée (30/h) | Tests SQL rouge puis vert ; appliqués en production |
+| `3ba65ec`, `d155043` | Registres : A1, A17, A19, A23, A24 actualisés avec preuves | Requêtes de production en lecture seule |
+| `2ebe2dc` | E2E `journey-v13` stabilisé (le reçu injecté passait par la mémoire seule) | 40 exécutions sous charge, 0 échec |
+| `6d36b67` | E2E du reçu d'achat inter-onglets stabilisé. Cause : la propagation `localStorage` entre onglets est asynchrone, le verrou Web ne la garantit pas | 25 exécutions sous charge, 0 échec (4 sur 20 avant) |
+| `5f958ea` | Le générateur des pages publiques ne réécrit plus `/service` (centre d'assistance) par une ancienne version | Test `public-generators.test.mjs` : 28 pages régénérées à l'identique ; rouge sur l'ancien générateur |
+| `c465054` | Android : 6 modules natifs Expo alignés sur Expo 57.0.32 (GPS inclus) | 31 modules, 0 écart |
+| `137e5f0` | Android : l'Atelier dit si une pièce échangée est équipée ou non (l'échec était avalé) ; une trace GPS en attente peut être retirée (la file de 20 pouvait rester bloquée) | Premiers tests de l'Atelier (rouges sur l'ancien écran) ; tests de retrait |
+| `1faedaa` | Android : les libellés de bouton ne sont plus coupés en texte agrandi (A22) | `buttonResponsive.test.tsx` à 1,5× et 2× |
 
 ## 3. Tableau de contrôle
 
@@ -40,52 +45,73 @@ bloquant ou risque confirmé.
 
 | Domaine | Statut | Justification |
 |---|---|---|
-| Fonctionnalités Web (candidat) | VERT | 591 tests unitaires ; suite navigateur complète 1 033/1 034 puis le seul échec corrigé (voir § 4 pour la dernière exécution) |
-| Fonctionnalités Android (candidat) | ORANGE | Typage et 808 tests Jest verts ; parcours émulateur et build natif dans la CI ; aucun téléphone réel, aucun TalkBack |
-| Cohérence Web/Android | ORANGE | Moteur commun testé (`ascension-parity`, `sport-navigation`) ; captures Android issues de l'aperçu navigateur, pas d'appareil |
-| UX/UI | ORANGE | Refonte des écrans clés faite par la session précédente ; aucun test avec de nouveaux utilisateurs (protocole prêt dans `lot3-4-ux-android.md`) |
-| Illustrations | ROUGE | Blasons Champion, Titan, Légende absents (le code retombe sur le dessin vectoriel). Génération tentée : refusée pour **crédits insuffisants** ; l'hôte de téléchargement `res-prod.buzzy.now` est désormais autorisé dans l'environnement |
-| Sécurité (code) | VERT | 3 résidus fermés aujourd'hui avec tests rouge/vert ; audit npm Web 0, Android 0 critique/élevée (3 modérées, 9 faibles) |
-| Sécurité (production) | ROUGE | Amitié forcée et fonctions Coach internes encore exposées tant que le paquet n'est pas appliqué |
-| Base de données (dépôt) | VERT | Deux chaînes de migrations et tous les tests SQL et contrats concurrents verts sur PostgreSQL 16 local |
-| Migrations production | ROUGE | 10 en attente ; paquet prêt et répété ; application bloquée sur la confirmation du propriétaire |
-| Paiements | ORANGE | Chaîne jamais prouvée de bout en bout (aucun achat de licence) ; produits Play à garder inactifs |
-| Tests | VERT | Web, SQL, Android verts ; un test intermittent corrigé sans toucher aux assertions |
-| Builds | ORANGE | Build public Web vert ; build Android natif à relire dans la CI de la PR |
-| CI GitHub | ORANGE | Verte sur `6295e49` (#148) ; à relire sur la tête de cette branche |
-| Déploiements | ROUGE | Site en ligne ancien (CGU v6) ; fusion et autorisation `TITAN_APPROVED_RELEASE_SHA` requises côté propriétaire |
-| SEO | ORANGE | Audit statique sans erreur ; avertissements restants = pages privées `noindex` dont le `h1` existe au rendu (vérifié dans Chromium) ; rien de mesurable avant déploiement |
-| Textes légaux | ORANGE | Version 8/12 dans le candidat ; validation juridique humaine en attente ; politique de confidentialité complétée (rapports techniques 90 jours) |
+| Fonctionnalités Web (candidat) | VERT | 593 tests unitaires ; suite navigateur complète (voir § 5) |
+| Fonctionnalités Android (candidat) | ORANGE | Typage, 79 suites et 815 tests Jest verts ; build natif et parcours émulateur dans la CI ; aucun téléphone réel, aucun TalkBack |
+| Cohérence Web/Android | ORANGE | Moteur commun testé ; niveau Carrière/QG de même source (vérifié) ; captures Android issues de l'aperçu |
+| UX/UI | ORANGE | Défauts corrigés aujourd'hui (Atelier, traces GPS, texte agrandi) ; aucun test avec de nouveaux utilisateurs |
+| Illustrations | ROUGE | Blasons Champion, Titan, Légende absents. Génération tentée : refusée pour **crédits insuffisants** ; réseau désormais ouvert vers l'hôte de téléchargement |
+| Sécurité (code) | VERT | Résidus D8 et D11 fermés avec tests rouge/vert ; audit npm Web 0, Android 0 critique/élevée |
+| Sécurité (production) | VERT | Faille d'amitié fermée, postflights 54/54 et 42/42 ; reste un réglage du tableau de bord (mots de passe compromis, second facteur administrateur, politiques `INSERT` du seau `avatars`) |
+| Base de données (dépôt) | VERT | Deux chaînes de migrations et contrats concurrents verts (PostgreSQL 16 local, 17.6 en CI) |
+| Migrations production | VERT | 10 appliquées, empreinte identique au dépôt |
+| Paiements | ORANGE | Côté serveur prêt en production ; chaîne d'achat jamais prouvée de bout en bout (aucun achat de licence) ; produits Play à garder inactifs jusque-là |
+| Tests | VERT | Web, SQL, Android verts ; deux tests intermittents corrigés sans toucher aux assertions |
+| Builds | ORANGE | Build public Web vert localement ; build Android natif : voir la CI de la PR #149 sur le dernier commit |
+| CI GitHub | ORANGE | À lire sur le dernier commit de #149 (les exécutions intermédiaires ont été annulées par les poussées suivantes) |
+| Déploiements | ROUGE | `titan-app.fr` sert encore les CGU version 6 ; fusion et autorisation `TITAN_APPROVED_RELEASE_SHA` côté propriétaire |
+| SEO | ORANGE | Audit statique sans erreur ; pages régénérées identiques ; rien de mesurable avant déploiement |
+| Textes légaux | ORANGE | Version 8/12 dans le candidat ; rétention de 90 jours des rapports techniques ajoutée ; validation juridique humaine en attente |
 
-## 4. Tests exécutés dans cette session
+## 4. Performance Web : mesures et décision
+
+Mesure du 16 novembre (Chromium, téléphone 390 px, processeur ralenti ×4) :
+
+- Chaque page de l'application charge environ 1,4 Mo de JavaScript, soit 300 Ko compressés en gzip (33 scripts sur le QG,
+  27 sur la Séance, 31 sur le Profil). Les plus lourds : `js/core/sports-catalog.js` (416 Ko bruts, 32 Ko gzip),
+  `js/titan_features.js` (223 Ko, 49 Ko gzip), `js/vendor/supabase-2.111.0.js` (211 Ko, 54 Ko gzip).
+- Temps d'exécution par script : moins de 60 ms chacun. Le coût est le **téléchargement** : l'élément LCP du QG (`p.asc-lead`), de
+  la Séance (`h1`) et du Profil est rendu par JavaScript, donc après tous les scripts différés.
+- Minification esbuild essayée hors dépôt : −14 % seulement en Brotli (246 → 212 Ko sur le QG). **Non intégrée** : les tests et
+  la clé `?rev=` comparent les octets servis à ceux des sources ; le gain ne justifie pas de toucher au système de révision.
+- Piste réelle, transversale (pour Fable) : `titan_features.js` expose plus de 50 fonctions globales héritées de la V42, dont seules
+  trois servent au démarrage (`titanEnhanceSportsConfig` dans `state.js`, `titanGetActiveTitle` dans `ui.js`,
+  `titanSanitizeSessionDetails` dans `main.js`) ; isoler ces trois fonctions et charger le reste à la demande, et servir
+  le premier écran du QG en HTML statique, sont les deux leviers mesurables.
+
+## 5. Tests exécutés
 
 | Suite | Résultat |
 |---|---|
-| `pnpm run verify` (typage, 591 tests, build, audit, garde de release) | Vert |
-| E2E Playwright complet (Chromium) sur `6295e49` | 1 033 / 1 034 ; l'échec (`journey-v13`, course) corrigé et rejoué 40 fois sous charge |
-| E2E complet sur la tête finale | Voir le message de fin de session (relancé après le dernier commit) |
-| `tools/db/test-migrations.sh` et variante `RELEASE_SQL=supabase/release-300.sql` | Verts (PostgreSQL 16) |
-| Paquet de production, 10 fichiers, réplique neuve | Empreinte finale `private 91 bae05c10ca57 d52d12beba17`, `public 293 db4eeb91a3d2 8f112d92ff21`, rejeu refusé |
-| Android `tsc --noEmit`, Jest | Vert, 78 suites, 808 tests |
-| Audits de dépendances | Web 0 ; Android 0 critique/élevée |
+| `pnpm run verify` (typage, 593 tests, build, audit, garde de release) | Vert |
+| E2E Playwright complet, tête finale | En cours au moment de ce commit (32 passés, 0 échec à mi-parcours) ; résultat final dans la PR #149. Sur `6295e49` : 1 033 / 1 034, puis les deux tests intermittents corrigés |
+| Contrôles ciblés sous charge CPU | `journey-v13` 40/40, reçus d'achat 25/25, onglets de l'Aventure (A34) 12/12 sans reproduire l'échec |
+| `tools/db/test-migrations.sh` et variante `RELEASE_SQL` | Verts |
+| Android `tsc --noEmit`, Jest | Vert, 79 suites, 815 tests |
+| Production (lecture seule) | Empreinte, postflights 54/54 et 42/42, données inchangées |
 
-## 5. Par quoi reprendre (ordre recommandé)
+## 6. Illustrations
 
-1. **Appliquer le paquet** `supabase/release-v131/` (procédure dans son `README.md`) dans une session où le propriétaire confirme
-   les écritures, puis `99-check-after.sql` et les deux postflights. C'est ce qui ferme la faille de production.
-2. **Fusionner** cette branche (elle contient #148), déployer le site avec l'autorisation du SHA, vérifier que les CGU en ligne
-   passent en version 8.
-3. **Blasons manquants** : recharger des crédits du générateur, puis produire Champion, Titan, Légende avec le blason Gardien comme
-   référence (fond magenta uni pour le détourage, 256 et 512 px WebP dans `assets/ranks/`, ajout à `BADGES` dans `js/app/crest.js`
-   et au composant `mobile/src/components/Crest.tsx`). Approbation humaine avant intégration (voir #147).
-4. Tableau de bord Supabase : retirer les deux politiques `INSERT` du seau `avatars` et supprimer l'objet orphelin (D7/D8),
-   activer la protection des mots de passe compromis et le second facteur du compte administrateur (D10).
-5. Chaîne d'achat Google Play sur banc isolé (`lot2-paiements.md`), puis activation des produits en dernier.
-6. Chantiers longs : allègement des ~275 Ko de scripts Web (LCP du QG, de la Séance et du Profil inchangé), générateur de
-   `service.html` (le régénérer réécrit la page : non fait ici), tests avec 5 à 10 nouveaux utilisateurs, téléphone réel.
+| Catégorie | État |
+|---|---|
+| Intégrées | 4 blasons approuvés (Éclaireur, Explorateur, Sentinelle, Gardien), Web et Android |
+| À produire | Blasons Champion (accent `#F4BB54`), Titan (`#F7C96B`), Légende (`#FFE7A8`), 3 chevrons chacun (`js/app/crest.js`) ; récompenses, balises, paliers, états vides, onboarding (`REGISTRE.md` A4) |
+| PR #147 | 153 propositions vectorielles, non intégrées (hors direction photoréaliste) |
+| Contraintes techniques | Référence de style : `assets/ranks/gardien-512.webp` ; fond magenta uni pour le détourage ; sorties `assets/ranks/<rang>-256.webp` et `-512.webp` en RGBA ; ajouter le rang à `BADGES` (`js/app/crest.js`) et au composant `mobile/src/components/Crest.tsx` ; approbation humaine avant intégration |
+| Blocage | Générateur Buzzy : crédits insuffisants (tâche refusée le 16/11). L'hôte `res-prod.buzzy.now` est autorisé dans l'environnement `titan-v0-5` |
 
-## 6. Risques résiduels
+## 7. Par quoi reprendre (ordre recommandé)
 
-- Tant que le paquet n'est pas appliqué : amitié forgeable, aides Coach exécutables, export de compte en échec pour certains comptes.
+1. **Fusionner** #149 (contient #148), puis déployer le site avec l'autorisation du SHA ; vérifier que les CGU en ligne passent en version 8.
+2. Tableau de bord Supabase : protection des mots de passe compromis, second facteur administrateur, politiques `INSERT` et objet
+   orphelin du seau `avatars` (A17, A18).
+3. Chaîne d'achat Google Play sur banc isolé (`lot2-paiements.md`), puis activation des produits en dernier ; retirer le build 1301.
+4. Blasons manquants dès que des crédits sont disponibles (§ 6).
+5. Performance (§ 4), tests avec 5 à 10 nouveaux utilisateurs, recette sur téléphone réel (texte 200 %, TalkBack, GPS).
+6. Rebaser les deux branches parallèles sur cette branche.
+
+## 8. Risques résiduels
+
 - Les insertions anonymes de `contact_messages` et `analytics_events` restent sans limite par appelant (décision produit, D9).
+- La mesure d'audience d'une activation TITAN+ peut se perdre si un autre onglet remplace le reçu au même instant (propagation
+  `localStorage` asynchrone) ; la confirmation fonctionnelle reste affichée.
 - Aucune garantie d'absence totale de faille : les contrôles ci-dessus couvrent les scénarios testés et les dérives mesurées.
