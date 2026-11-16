@@ -27,10 +27,12 @@ appId: fr.titanapp.app
 - back
 - tapOn:
     id: "tab-adventure"
-- extendedWaitUntil:
-    visible:
+# The space opens on the world in progress; the four worlds sit under it and may start below the fold.
+- scrollUntilVisible:
+    element:
       id: "world-aube"
-    timeout: 20000
+    direction: DOWN
+    timeout: 45000
 - takeScreenshot: 12-aventure
 - tapOn:
     id: "world-aube"
@@ -64,12 +66,17 @@ appId: fr.titanapp.app
 - tapOn:
     id: "session-save"
 - extendedWaitUntil:
-    visible: ".*(XP confirmés|Récompense en vérification).*"
+    visible: ".*(TITAN a confirmé|Récompense en vérification).*"
     timeout: 30000
 - tapOn:
     id: "result-done"
 - tapOn:
     id: "tab-adventure"
+- scrollUntilVisible:
+    element:
+      id: "world-aube"
+    direction: DOWN
+    timeout: 30000
 - tapOn:
     id: "world-aube"
 # On smaller viewports the chapter action sits below its objectives.
