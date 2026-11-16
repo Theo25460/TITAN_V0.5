@@ -8,10 +8,28 @@ appId: fr.titanapp.app
         visible: ".*isn't responding.*"
     commands:
       - tapOn: "Wait"
+# Première ouverture : la visite guidée précède l'écran d'accueil. On la parcourt jusqu'au bout (quatre étapes) ; elle ne crée rien.
+- extendedWaitUntil:
+    visible:
+      id: "tour"
+    timeout: 60000
+- takeScreenshot: 00-visite-qg
+- tapOn:
+    id: "tour-next"
+- assertVisible: "Une séance, une minute."
+- tapOn:
+    id: "tour-next"
+- assertVisible: "Chaque effort fait avancer ton monde."
+- takeScreenshot: 00-visite-aventure
+- tapOn:
+    id: "tour-next"
+- assertVisible: "Ton parcours t’appartient."
+- tapOn:
+    id: "tour-next"
 - extendedWaitUntil:
     visible:
       id: "welcome-login"
-    timeout: 60000
+    timeout: 20000
 - takeScreenshot: 01-accueil
 - tapOn:
     id: "welcome-login"
