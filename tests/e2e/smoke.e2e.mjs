@@ -4354,11 +4354,18 @@ test("checkout receipt: a real cross-tab lock protects confirmation from concurr
   await writer.waitForFunction(() => window.writerLocked);
   await page.evaluate(() => { window.atelierFixture.plus.active = true; dispatchEvent(new Event("online")); });
   await page.waitForFunction(async () => (await navigator.locks.query()).pending.some(l => l.name === "titan_checkout_receipt:" + window.state.user.id), null, { timeout: 2000 });
-  await writer.evaluate(() => {
-    const owner = "00000000-0000-4000-8000-000000000123";
-    localStorage.setItem("titan_checkout_started_v3:" + owner, JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: localStorage.getItem("titan_privacy_v1") }));
-    window.releaseWriter();
+  // localStorage reaches another tab asynchronously: the writer must copy the preference the page holds after its consent change,
+  // otherwise it stamps the receipt with the previous one and the page rightly refuses to measure it.
+  const preference = await page.evaluate(() => window.TitanAnalytics.consentSnapshot());
+  await writer.waitForFunction(p => localStorage.getItem("titan_privacy_v1") === p, preference);
+  const replacement = await writer.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000123", raw = JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: localStorage.getItem("titan_privacy_v1") });
+    localStorage.setItem("titan_checkout_started_v3:" + owner, raw);
+    return raw;
   });
+  // The lock serializes the two tabs, not the delivery of a localStorage write to the other one: release once the page sees it.
+  await page.waitForFunction(raw => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id) === raw, replacement);
+  await writer.evaluate(() => window.releaseWriter());
   await settleCheckout(page);
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1, "the current replacement is measured after the writer releases its lock");
   assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
