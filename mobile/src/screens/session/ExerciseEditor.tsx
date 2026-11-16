@@ -184,12 +184,12 @@ export function ExerciseEditor({ exercises, onChange, bodyweight, error, suggest
 }
 
 const styles = StyleSheet.create({
-  card: { gap: space.s3, padding: space.s3, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  card: { gap: space.s3, padding: space.s3, borderRadius: radius.r3, backgroundColor: colors.bg2 },
   head: { flexDirection: "row", alignItems: "center" },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   setsHead: { flexDirection: "row", gap: 6, alignItems: "center" },
   setRow: { flexDirection: "row", gap: 6, alignItems: "center" },
-  rest: { flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s2, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  rest: { flexDirection: "row", alignItems: "center", gap: space.s2, padding: space.s2, borderRadius: radius.r3, backgroundColor: colors.bg2 },
   colN: { width: 34, textAlign: "center" },
   col: { flex: 1 },
   colSmall: { flex: 0.7 },

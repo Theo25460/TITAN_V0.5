@@ -170,5 +170,5 @@ const styles = StyleSheet.create({
   targets: { flexDirection: "row", gap: 6 },
   target: { flex: 1, aspectRatio: 0.8, minHeight: 48, borderRadius: radius.r2, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center" },
   targetOn: { backgroundColor: colors.cy, borderColor: colors.cy },
-  promise: { flexDirection: "row", gap: space.s3, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  promise: { flexDirection: "row", gap: space.s3, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2 },
 });

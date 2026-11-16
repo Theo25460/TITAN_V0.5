@@ -51,7 +51,7 @@ export function RoutePanel({ view, config }: PanelProps) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <View style={{ flex: 1, padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line }}>
+    <View style={{ flex: 1, padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2 }}>
       <T variant="caption" tone="muted">{label}</T>
       <T variant="num">{value}</T>
     </View>

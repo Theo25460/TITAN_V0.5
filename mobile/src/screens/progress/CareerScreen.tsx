@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   rowLine: { flexDirection: "row", alignItems: "center", gap: space.s2, minHeight: 28 },
   more: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-end", minHeight: 48, paddingHorizontal: space.s2 },
   ranges: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
-  range: { flexGrow: 1, flexBasis: "22%", minWidth: 84, minHeight: 44, paddingHorizontal: space.s3, borderRadius: radius.r2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  range: { flexGrow: 1, flexBasis: "22%", minWidth: 84, minHeight: 44, paddingHorizontal: space.s3, borderRadius: radius.r2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
   rangeOn: { backgroundColor: colors.cy, borderColor: colors.cy },
   moment: { flexDirection: "row", alignItems: "flex-start", gap: space.s3 },
   dot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },

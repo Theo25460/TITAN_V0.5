@@ -78,8 +78,8 @@ export function LoadingCards({ count = 3, label = "Chargement" }: { count?: numb
 }
 
 const styles = StyleSheet.create({
-  mark: { width: 56, height: 56, borderRadius: 16, marginBottom: 2 },
-  box: { alignItems: "center", gap: space.s3, padding: space.s6, borderRadius: radius.r3, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
+  mark: { width: 56, height: 56, borderRadius: 10, marginBottom: 2 },
+  box: { alignItems: "center", gap: space.s3, padding: space.s6, borderRadius: radius.r3, backgroundColor: colors.bg1 },
   badge: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.bg4, alignItems: "center", justifyContent: "center" },
-  card: { gap: 10, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  card: { gap: 10, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2 },
 });

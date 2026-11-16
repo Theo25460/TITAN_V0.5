@@ -196,7 +196,7 @@ export function SportQuestions({ logs, cadenceTarget, pauses }: { logs: Training
 const styles = StyleSheet.create({
   line: { flexDirection: "row", alignItems: "center", gap: space.s2 },
   grades: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
-  grade: { minWidth: 64, gap: 2, padding: space.s2, borderRadius: radius.r1, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
+  grade: { minWidth: 64, gap: 2, padding: space.s2, borderRadius: radius.r1, backgroundColor: colors.bg1 },
   gradeLast: { borderColor: "rgba(244,187,84,0.5)" },
   gauge: { height: 12, borderRadius: 6, backgroundColor: colors.bg4, overflow: "hidden", justifyContent: "center" },
   gaugeFill: { height: 12, borderRadius: 6 },

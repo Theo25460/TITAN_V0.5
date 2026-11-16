@@ -32,7 +32,7 @@ export const AdBanner = memo(function AdBanner({ placement }: { placement: Place
       accessible
       accessibilityLabel="Publicité"
       importantForAccessibility="yes"
-      style={{ minHeight: state === "loading" ? 60 : h + 22, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, paddingHorizontal: space.s2, paddingBottom: space.s2, overflow: "hidden", alignItems: "center" }}
+      style={{ minHeight: state === "loading" ? 60 : h + 22, borderRadius: radius.r3, backgroundColor: colors.bg2, paddingHorizontal: space.s2, paddingBottom: space.s2, overflow: "hidden", alignItems: "center" }}
       testID={`ad-${placement}`}
     >
       <T variant="caption" tone="faint" style={{ alignSelf: "flex-start", paddingVertical: 2 }}>

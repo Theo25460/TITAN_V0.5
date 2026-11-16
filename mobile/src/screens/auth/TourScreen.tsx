@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   fakeButton: { minHeight: TOUCH + 4, borderRadius: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.s2, paddingHorizontal: space.s4 },
   row: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 60, paddingVertical: space.s2, borderTopWidth: 1, borderTopColor: colors.line },
   target: { borderRadius: 12 },
-  ring: { position: "absolute", left: -5, right: -5, top: -5, bottom: -5, borderRadius: 14, borderWidth: 2 },
+  ring: { position: "absolute", left: -5, right: -5, top: -5, bottom: -5, borderRadius: 8, borderWidth: 2 },
   tabs: { flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.line2, backgroundColor: colors.bg, paddingTop: 6, paddingBottom: 4 },
   tab: { flex: 1, alignItems: "center", gap: 3, minHeight: 50 },
   tabLabel: { fontFamily: fonts.textBold, fontSize: 11, lineHeight: 14 },

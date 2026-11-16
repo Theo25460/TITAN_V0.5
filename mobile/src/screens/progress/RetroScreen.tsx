@@ -58,7 +58,7 @@ export function RetroScreen({ route }: { route?: { params?: { year?: number; mon
       <T tone="muted">Ton effort réel, tous sports confondus. Chaque carte se partage en story ; rien ne quitte ton téléphone sans toi.</T>
       {cards.map((c, i) => (
         <View key={i} style={{ gap: space.s2, alignItems: "center" }} testID={`retro-card-${i}`}>
-          <View style={{ width: SHARE_CARD_SIZE.width * scale, height: SHARE_CARD_SIZE.height * scale, overflow: "hidden", borderRadius: 18 }}>
+          <View style={{ width: SHARE_CARD_SIZE.width * scale, height: SHARE_CARD_SIZE.height * scale, overflow: "hidden", borderRadius: 12 }}>
             <View style={{ transform: [{ scale }], transformOrigin: "top left" as never, width: SHARE_CARD_SIZE.width, height: SHARE_CARD_SIZE.height }}>
               <ShareCard data={c} />
             </View>

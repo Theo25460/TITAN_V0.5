@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   cellOn: { backgroundColor: colors.tx },
   cellToday: { borderWidth: 1, borderColor: colors.line3 },
   wheels: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.s4, paddingVertical: space.s2 },
-  wheelBox: { width: 112, height: ITEM * VISIBLE, borderRadius: radius.r3, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
+  wheelBox: { width: 112, height: ITEM * VISIBLE, borderRadius: radius.r3, backgroundColor: colors.bg1, overflow: "hidden" },
   band: { position: "absolute", left: 6, right: 6, top: ITEM * Math.floor(VISIBLE / 2), height: ITEM, borderRadius: radius.r2, backgroundColor: colors.bg4, borderWidth: 1, borderColor: colors.line3 },
   wheelItem: { height: ITEM, alignItems: "center", justifyContent: "center" },
 });

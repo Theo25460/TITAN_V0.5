@@ -58,7 +58,7 @@ export function RouteMap({ track, height = 240, basemap = false, accessibilityLa
   const line = (s: { lat: number; lon: number }[]) => s.map((q) => { const o = project(q)!; return `${o.x.toFixed(1)},${o.y.toFixed(1)}`; }).join(" ");
   const first = pts[0], last = pts[pts.length - 1];
   return (
-    <View style={{ borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bg2 }}>
+    <View style={{ borderRadius: radius.r3, overflow: "hidden", backgroundColor: colors.bg2 }}>
       <View onLayout={(e) => setW(Math.max(120, Math.round(e.nativeEvent.layout.width)))} style={{ height }} accessible accessibilityLabel={accessibilityLabel} accessibilityRole="image" {...(useTiles ? pan.panHandlers : {})}>
         {useTiles && v ? tilesFor(v, w, height).map((t) => <Image key={t.key} source={{ uri: tileUrl(t) }} style={{ position: "absolute", left: t.left, top: t.top, width: TILE, height: TILE }} />) : null}
         <Svg width={w} height={height} style={{ position: "absolute", left: 0, top: 0 }}>

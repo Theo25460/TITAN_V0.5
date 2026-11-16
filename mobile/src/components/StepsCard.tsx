@@ -154,5 +154,5 @@ const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
   live: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 20 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cy },
-  badge: { width: TOUCH, height: TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: colors.cySoft },
+  badge: { width: TOUCH, height: TOUCH, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: colors.cySoft },
 });

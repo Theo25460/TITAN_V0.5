@@ -49,6 +49,6 @@ export function RpeSelector({ value, onChange }: { value: number | null; onChang
 const styles = StyleSheet.create({
   grid: { gap: GAP },
   row: { flexDirection: "row", gap: GAP },
-  option: { flex: 1, minWidth: TOUCH, minHeight: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
+  option: { flex: 1, minWidth: TOUCH, minHeight: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, alignItems: "center", justifyContent: "center" },
   selected: { backgroundColor: colors.tx, borderColor: colors.tx },
 });
