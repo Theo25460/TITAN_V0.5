@@ -4,6 +4,10 @@
 import { writeFileSync } from "node:fs";
 import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, breadcrumbTrail, faq, finalCta, cards } from "./lib/public-template.mjs";
 
+/* Server figures quoted by the pages below. They are written once here and tests/coherence-offers.test.mjs compares them with the SQL
+   that enforces them (supabase/migrations/20261102090000_coach_seats.sql and 20261117120000_cadence_week_reward.sql). */
+const CADENCE_WEEK_CREDITS = 50;
+
 /* ---------- Offers (single source for landing and /titan-plus) ---------- */
 const FREE = [
   "Journal multisport complet : 260 sports, liste, calendrier, édition, export CSV et JSON",
@@ -157,7 +161,7 @@ guide({
       <p>Le sport ne change pas la formule : 45 minutes de yoga intense et 45 minutes de course au même ressenti pèsent pareil. C’est ton effort qui compte, pas la discipline.</p>`],
     ["plafonds", "Des plafonds identiques pour tous", `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Règle</th><th>Valeur</th></tr></thead><tbody>
       <tr><td>XP maximale par jour</td><td class="num">${E.DAILY_XP_CAP.toLocaleString("fr-FR")}</td></tr><tr><td>XP maximale par semaine</td><td class="num">${E.WEEKLY_XP_CAP.toLocaleString("fr-FR")}</td></tr>
-      <tr><td>Crédits</td><td>10 % de l’XP de la séance, plafonnés de la même façon</td></tr><tr><td>Séance saisie plus de ${E.HISTORY_DAYS} jours après sa date</td><td>Historique : journal, records et maîtrise, sans XP</td></tr><tr><td>Abonnés TITAN+</td><td>Exactement les mêmes plafonds</td></tr></tbody></table></div>
+      <tr><td>Crédits</td><td>10 % de l’XP de la séance, plafonnés de la même façon</td></tr><tr><td>Semaine tenue</td><td>${CADENCE_WEEK_CREDITS} crédits, une fois par semaine, à réclamer dans l’application Android lorsqu’elle le propose ; aucune XP</td></tr><tr><td>Séance saisie plus de ${E.HISTORY_DAYS} jours après sa date</td><td>Historique : journal, records et maîtrise, sans XP</td></tr><tr><td>Abonnés TITAN+</td><td>Exactement les mêmes plafonds</td></tr></tbody></table></div>
       <p>Les récompenses sont calculées par le serveur. Le même envoi répété ne crée pas une seconde récompense. Une séance corrigée met à jour tes analyses ; elle ne redonne pas d’XP.</p>`],
     ["niveaux", "Niveaux et rangs", `<p>Le niveau suivant demande <strong>500 × niveau<sup>1,3</sup></strong> XP. Les premiers niveaux arrivent vite pour te mettre en route, les suivants demandent des mois. C’est voulu : un rang doit raconter une histoire.</p>
       <div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Rang</th><th>Niveau</th><th>À 3 séances de 45 min par semaine</th></tr></thead><tbody>${C.ranks.map((r) => `<tr><td>${r.name}</td><td class="num">${r.level}</td><td>${r.level === 1 ? "Dès le départ" : monthsTo(r.level) < 1.5 ? "Quelques semaines" : `Environ ${fmtMonths(monthsTo(r.level))}`}</td></tr>`).join("")}</tbody></table></div>

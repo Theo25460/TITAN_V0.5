@@ -49,7 +49,7 @@
         )
         .join("")}</div></section>` : ""}
       ${c.titles ? `<section class="asc-section"><div class="asc-section-head"><h2>Distinctions</h2></div><ul class="pf-chips">${c.titles.map((t) => `<li>${icon("mountain")} ${esc(t.title)} <small class="asc-faint">· ${esc(t.expedition)}</small></li>`).join("")}${c.insignia ? `<li>${icon("compass")} ${F().number(c.insignia)} insigne${c.insignia > 1 ? "s" : ""} d’aventure</li>` : ""}</ul>${!c.titles.length && !c.insignia ? `<p class="asc-small asc-muted">Les premières distinctions arrivent avec l’aventure et les expéditions.</p>` : ""}</section>` : ""}
-      <section class="ap-cta"><p class="asc-eyebrow">TITAN</p><h2 class="asc-h2">Ton sport réel, une progression longue.</h2><p class="asc-small asc-muted">Journal multisport, records, maîtrise et une aventure qui avance avec tes séances. Gratuit, sans publicité.</p><a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></section>
+      <section class="ap-cta"><p class="asc-eyebrow">TITAN</p><h2 class="asc-h2">Ton sport réel, une progression longue.</h2><p class="asc-small asc-muted">Journal multisport, records, maîtrise et une aventure qui avance avec tes séances. Gratuit, site sans publicité.</p><a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></section>
       <p class="asc-small asc-faint ap-foot">Carte publiée par son auteur, qui choisit ce qu’elle montre. Données déclarées dans TITAN ; maîtrise = heures et semaines de pratique. Un problème ? <a href="mailto:${esc(window.TITAN_EXTERNAL_URLS?.supportEmail || "titanteam.app@gmail.com")}">Signaler cette carte</a>.</p>`;
     root.setAttribute("aria-busy", "false");
   }
