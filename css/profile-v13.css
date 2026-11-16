@@ -36,20 +36,24 @@
 }
 #profil .pf-id { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: var(--s4); }
 #profil .pf-id-main { min-width: 0; display: grid; gap: 2px; }
-#profil .pf-avatar img { width: 76px; height: 76px; border-radius: 50%; background: color-mix(in srgb, var(--space-ink) 12%, transparent); }
+#profil .pf-avatar img { width: 76px; height: 76px; border-radius: 50%; background: rgba(0, 0, 0, 0.12); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { #profil .pf-avatar img { background: color-mix(in srgb, var(--space-ink) 12%, transparent); } }
 #profil .pf-name { font-size: clamp(30px, 8.4vw, 44px); line-height: 1; color: var(--space-ink); white-space: normal; overflow-wrap: anywhere; }
-#profil .pf-rank { font-size: 16px; font-weight: 700; color: color-mix(in srgb, var(--space-ink) 84%, transparent); }
+#profil .pf-rank { font-size: 16px; font-weight: 700; color: var(--space-ink); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { #profil .pf-rank { color: color-mix(in srgb, var(--space-ink) 84%, transparent); } }
 #profil .pf-level-n { font-size: inherit; font-weight: inherit; color: inherit; }
 #profil .pf-level-n strong { font-size: 1.25em; margin-left: 2px; color: var(--space-ink); }
 #profil .pf-title { color: var(--space-ink); font-size: 13.5px; }
-#profil .pf-since, #profil .pf-hero .asc-small { color: color-mix(in srgb, var(--space-ink) 84%, transparent); }
+#profil .pf-since, #profil .pf-hero .asc-small { color: var(--space-ink); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { #profil .pf-since, #profil .pf-hero .asc-small { color: color-mix(in srgb, var(--space-ink) 84%, transparent); } }
 #profil .pf-hero .pf-xp { color: var(--space-ink); font-size: 1.125rem; white-space: nowrap; }
 #profil .pf-crest { display: flex; margin: 0; flex: none; }
 #profil .pf-crest .crest { width: 76px; height: auto; }
 /* On the chalk the XP line is drawn in ink: cyan would not be read there. */
 #profil .pf-level { display: grid; gap: var(--s2); }
 #profil .pf-level-main { min-width: 0; display: grid; gap: 6px; }
-#profil .pf-level .asc-ascent { height: 4px; background: color-mix(in srgb, var(--space-ink) 16%, transparent); }
+#profil .pf-level .asc-ascent { height: 4px; background: rgba(0, 0, 0, 0.16); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { #profil .pf-level .asc-ascent { background: color-mix(in srgb, var(--space-ink) 16%, transparent); } }
 #profil .pf-level .asc-ascent > span { background: var(--space-ink); }
 #profil .pf-level .asc-between { flex-wrap: wrap; gap: 2px var(--s4); align-items: baseline; }
 #profil [data-profile-personalize], #profil .pf-signout { justify-self: start; }

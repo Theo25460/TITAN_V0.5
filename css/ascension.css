@@ -361,6 +361,7 @@ body.asc {
   display: flex;
   align-items: center;
   gap: var(--s3);
+  background: var(--bg);
   color: var(--head-ink, var(--tx));
 }
 .asc-brand {
@@ -652,8 +653,16 @@ body.asc {
 .asc-page-head :where(h1, h2, h3) {
   color: var(--space-ink);
 }
+/* A tint made with color-mix() is always written after a solid value, in its own @supports block. A fallback declaration in the
+   same rule would not do: a declaration that contains var() is never dropped at parse time, so a browser without color-mix() would
+   end with no border, no background, or the grey of the ground rules on a bright field. */
 .asc-page-head :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
-  color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+    color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  }
 }
 .asc-page-head .asc-lead {
   max-width: 52ch;
@@ -666,22 +675,44 @@ body.asc {
 }
 .asc-page-head .asc-btn-primary:hover,
 .asc-on-field .asc-btn-primary:hover {
-  background: color-mix(in srgb, var(--space-ink) 86%, var(--space));
+  background: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-primary:hover,
+  .asc-on-field .asc-btn-primary:hover {
+    background: color-mix(in srgb, var(--space-ink) 86%, var(--space));
+  }
 }
 .asc-page-head .asc-btn-secondary,
 .asc-page-head .asc-btn-ghost,
 .asc-on-field .asc-btn-secondary,
 .asc-on-field .asc-btn-ghost {
   background: transparent;
-  border: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  border: 1.5px solid var(--space-ink);
   color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-secondary,
+  .asc-page-head .asc-btn-ghost,
+  .asc-on-field .asc-btn-secondary,
+  .asc-on-field .asc-btn-ghost {
+    border: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  }
 }
 .asc-page-head .asc-btn-secondary:hover,
 .asc-page-head .asc-btn-ghost:hover,
 .asc-on-field .asc-btn-secondary:hover,
 .asc-on-field .asc-btn-ghost:hover {
-  background: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  background: rgba(0, 0, 0, 0.1);
   border-color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-secondary:hover,
+  .asc-page-head .asc-btn-ghost:hover,
+  .asc-on-field .asc-btn-secondary:hover,
+  .asc-on-field .asc-btn-ghost:hover {
+    background: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  }
 }
 .asc-page-head :focus-visible,
 .asc-on-field :focus-visible {
@@ -721,7 +752,12 @@ body.asc {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.3;
-  color: color-mix(in srgb, var(--space-ink) 82%, transparent);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-field-figures dt {
+    color: color-mix(in srgb, var(--space-ink) 82%, transparent);
+  }
 }
 @media (max-width: 719px) {
   .asc-field-figures {
@@ -733,16 +769,29 @@ body.asc {
     font-size: 38px;
   }
 }
-/* The top row of a phone takes the ink of what it sits on: light on the ground or on a painting, the field's ink on a field. */
+/* The top row of a phone takes the ink of what it sits on: light on the ground or on a painting, the field's ink on a field.
+   Knowing that the page opens on a field needs :has(). The default is therefore the safe one — light ink on a band of the ground,
+   whatever is under it — and the row only sits on the field, in the field's ink, in a browser that can tell (see .asc-topbar). */
 body.asc {
   --head-ink: var(--tx);
   --head-line: rgba(241, 243, 239, 0.34);
   --head-wash: rgba(9, 12, 16, 0.4);
 }
-body.asc:has(.asc-page-head) {
-  --head-ink: var(--space-ink);
-  --head-line: color-mix(in srgb, var(--space-ink) 30%, transparent);
-  --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
+@supports selector(:has(*)) {
+  .asc-topbar {
+    background: transparent;
+  }
+  body.asc:has(.asc-page-head) {
+    --head-ink: var(--space-ink);
+    --head-line: var(--space-ink);
+    --head-wash: rgba(0, 0, 0, 0.1);
+  }
+}
+@supports selector(:has(*)) and (color: color-mix(in srgb, red 50%, blue)) {
+  body.asc:has(.asc-page-head) {
+    --head-line: color-mix(in srgb, var(--space-ink) 30%, transparent);
+    --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  }
 }
 @media (min-width: 960px) {
   .asc-page-head {
@@ -920,7 +969,12 @@ body.asc:has(.asc-page-head) {
   color: var(--space-ink);
 }
 .asc-slab :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
-  color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-slab :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+    color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  }
 }
 .asc-section {
   margin-top: var(--s8);

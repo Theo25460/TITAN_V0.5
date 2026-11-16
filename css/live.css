@@ -46,12 +46,16 @@
 .live-scene[data-family="mobilite"] { --fam: var(--fam-mobilite); }
 .live-sky { fill: url(#live-sky); }
 .live-sky-top { stop-color: var(--bg); }
-.live-sky-low { stop-color: color-mix(in srgb, var(--fam) 16%, var(--bg-2)); }
+.live-sky-low { stop-color: var(--bg-2); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { .live-sky-low { stop-color: color-mix(in srgb, var(--fam) 16%, var(--bg-2)); } }
 .live-star { fill: var(--tx-3); opacity: .55; }
-.live-disc { fill: color-mix(in srgb, var(--fam) 70%, var(--tx)); transition: cy var(--t-slow, .6s) var(--ease); }
+.live-disc { fill: var(--fam); transition: cy var(--t-slow, .6s) var(--ease); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { .live-disc { fill: color-mix(in srgb, var(--fam) 70%, var(--tx)); } }
 .live-disc-halo { fill: var(--fam); opacity: .12; transition: cy var(--t-slow, .6s) var(--ease); }
-.live-ridge.r1 { fill: color-mix(in srgb, var(--fam) 9%, var(--bg-3)); }
-.live-ridge.r2 { fill: color-mix(in srgb, var(--fam) 5%, var(--bg-2)); }
+.live-ridge.r1 { fill: var(--bg-3); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { .live-ridge.r1 { fill: color-mix(in srgb, var(--fam) 9%, var(--bg-3)); } }
+.live-ridge.r2 { fill: var(--bg-2); }
+@supports (color: color-mix(in srgb, red 50%, blue)) { .live-ridge.r2 { fill: color-mix(in srgb, var(--fam) 5%, var(--bg-2)); } }
 .live-ridge.r3 { fill: var(--bg-1, var(--bg)); stroke: var(--line); stroke-width: 1; }
 .live-path { fill: none; stroke: var(--line-3); stroke-width: 2; stroke-dasharray: 3 7; stroke-linecap: round; }
 .live-path-done { fill: none; stroke: var(--space); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }

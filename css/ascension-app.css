@@ -119,7 +119,12 @@
   --slab-ink: var(--tx);
 }
 .qg-hero-label {
-  color: color-mix(in srgb, var(--slab-ink) 82%, transparent);
+  color: var(--slab-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .qg-hero-label {
+    color: color-mix(in srgb, var(--slab-ink) 82%, transparent);
+  }
 }
 .qg-hero.is-error .qg-hero-label {
   color: #ff8d87;
@@ -132,7 +137,12 @@
 }
 .qg-hero .asc-lead {
   max-width: 46ch;
-  color: color-mix(in srgb, var(--slab-ink) 86%, transparent);
+  color: var(--slab-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .qg-hero .asc-lead {
+    color: color-mix(in srgb, var(--slab-ink) 86%, transparent);
+  }
 }
 .qg-hero-figure {
   font-size: clamp(64px, 17vw, 104px);
@@ -149,7 +159,12 @@
   color: var(--slab);
 }
 .qg-hero:not(.is-error) .asc-btn-primary:hover {
-  background: color-mix(in srgb, var(--slab-ink) 86%, var(--slab));
+  background: var(--slab-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .qg-hero:not(.is-error) .asc-btn-primary:hover {
+    background: color-mix(in srgb, var(--slab-ink) 86%, var(--slab));
+  }
 }
 .qg-hero:not(.is-error) :focus-visible {
   outline-color: var(--slab-ink);
@@ -161,7 +176,14 @@
 .qg-hero:not(.is-error) .qg-why,
 .qg-hero:not(.is-error) .qg-why summary,
 .qg-hero:not(.is-error) .qg-why p {
-  color: color-mix(in srgb, var(--slab-ink) 86%, transparent);
+  color: var(--slab-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .qg-hero:not(.is-error) .qg-why,
+  .qg-hero:not(.is-error) .qg-why summary,
+  .qg-hero:not(.is-error) .qg-why p {
+    color: color-mix(in srgb, var(--slab-ink) 86%, transparent);
+  }
 }
 @media (min-width: 860px) {
   .qg-hero.has-figure {
@@ -520,8 +542,13 @@
   gap: var(--s3);
 }
 .seance-head .asc-chip {
-  background: color-mix(in srgb, var(--space-ink) 12%, transparent);
+  background: rgba(0, 0, 0, 0.12);
   color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .seance-head .asc-chip {
+    background: color-mix(in srgb, var(--space-ink) 12%, transparent);
+  }
 }
 .seance-head .asc-chip .t-icon {
   color: var(--space-ink);
@@ -1291,16 +1318,31 @@
   cursor: default;
 }
 .jr-cal-cell[data-level="1"] {
-  background: color-mix(in srgb, var(--space) 12%, var(--bg-2));
+  background: var(--space-soft);
   color: var(--tx);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .jr-cal-cell[data-level="1"] {
+    background: color-mix(in srgb, var(--space) 12%, var(--bg-2));
+  }
 }
 .jr-cal-cell[data-level="2"] {
-  background: color-mix(in srgb, var(--space) 22%, var(--bg-2));
+  background: var(--space-soft);
   color: var(--tx);
 }
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .jr-cal-cell[data-level="2"] {
+    background: color-mix(in srgb, var(--space) 22%, var(--bg-2));
+  }
+}
 .jr-cal-cell[data-level="3"] {
-  background: color-mix(in srgb, var(--space) 34%, var(--bg-2));
+  background: var(--space-line);
   color: var(--tx);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .jr-cal-cell[data-level="3"] {
+    background: color-mix(in srgb, var(--space) 34%, var(--bg-2));
+  }
 }
 .jr-cal-cell[data-today="true"] {
   border-color: var(--space-line);
@@ -2701,11 +2743,22 @@
 }
 .av-mission :where(p, span, .asc-eyebrow, .asc-small, .asc-muted, .asc-faint, .av-story),
 .av-mission > p {
-  color: color-mix(in srgb, var(--space-ink) 88%, transparent);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission :where(p, span, .asc-eyebrow, .asc-small, .asc-muted, .asc-faint, .av-story),
+  .av-mission > p {
+    color: color-mix(in srgb, var(--space-ink) 88%, transparent);
+  }
 }
 .av-mission .asc-ascent {
   height: 6px;
-  background: color-mix(in srgb, var(--space-ink) 18%, transparent);
+  background: rgba(0, 0, 0, 0.18);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .asc-ascent {
+    background: color-mix(in srgb, var(--space-ink) 18%, transparent);
+  }
 }
 .av-mission .asc-ascent > span {
   background: var(--space-ink);
@@ -2715,17 +2768,34 @@
   color: var(--space);
 }
 .av-mission .asc-btn-primary:hover {
-  background: color-mix(in srgb, var(--space-ink) 86%, var(--space));
+  background: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .asc-btn-primary:hover {
+    background: color-mix(in srgb, var(--space-ink) 86%, var(--space));
+  }
 }
 .av-mission .asc-btn-ghost,
 .av-mission .asc-btn-secondary {
-  border: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  border: 1.5px solid var(--space-ink);
   background: transparent;
   color: var(--space-ink);
 }
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .asc-btn-ghost,
+  .av-mission .asc-btn-secondary {
+    border: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  }
+}
 .av-mission .asc-btn-ghost:hover,
 .av-mission .asc-btn-secondary:hover {
-  background: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  background: rgba(0, 0, 0, 0.1);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .asc-btn-ghost:hover,
+  .av-mission .asc-btn-secondary:hover {
+    background: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  }
 }
 .av-mission :focus-visible {
   outline-color: var(--space-ink);
@@ -2735,20 +2805,37 @@
   color: var(--space);
 }
 .av-mission .av-badge {
-  background: color-mix(in srgb, var(--space-ink) 12%, transparent);
+  background: rgba(0, 0, 0, 0.12);
   color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .av-badge {
+    background: color-mix(in srgb, var(--space-ink) 12%, transparent);
+  }
 }
 .av-mission .av-badge small {
   background: var(--space-ink);
   color: var(--space);
 }
 .av-mission .av-practice {
-  border-top: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  border-top: 1.5px solid var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .av-practice {
+    border-top: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  }
 }
 .av-mission .av-practice p,
 .av-mission .av-practice p:last-child,
 .av-mission .av-todo-label {
-  color: color-mix(in srgb, var(--space-ink) 88%, transparent);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-mission .av-practice p,
+  .av-mission .av-practice p:last-child,
+  .av-mission .av-todo-label {
+    color: color-mix(in srgb, var(--space-ink) 88%, transparent);
+  }
 }
 .av-mission .asc-input,
 .av-mission select {
@@ -2834,8 +2921,13 @@
 }
 .av-badge.is-earned {
   border-color: var(--world);
-  background: color-mix(in srgb, var(--world) 18%, var(--bg-2));
+  background: var(--bg-2);
   color: var(--world);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-badge.is-earned {
+    background: color-mix(in srgb, var(--world) 18%, var(--bg-2));
+  }
 }
 .av-guardian {
   display: grid;
