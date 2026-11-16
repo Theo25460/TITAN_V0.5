@@ -11,6 +11,8 @@ export type TabParams = {
 
 export type RootParams = {
   // Signed out
+  /** The guided visit before sign-up. `replay`: opened again on purpose, from Help or the welcome screen. */
+  Tour: { replay?: boolean } | undefined;
   Welcome: undefined;
   Login: { email?: string } | undefined;
   Signup: undefined;

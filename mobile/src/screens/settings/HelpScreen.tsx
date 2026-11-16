@@ -24,6 +24,7 @@ export function HelpScreen({ navigation }: NativeStackScreenProps<RootParams, "H
   return (
     <Screen>
       <Group title="Premiers pas">
+        <ListRow icon="compass" title="Revoir la visite guidée" subtitle="Les quatre espaces de TITAN en moins d’une minute" onPress={() => navigation.navigate("Tour", { replay: true })} testID="help-tour" />
         <ListRow icon="play" title="Visite guidée de TITAN" subtitle="12 étapes courtes, facultatif, reprise possible" onPress={() => navigation.navigate("Guide")} />
         <ListRow icon="edit" title="Envoyer un retour" subtitle="Un problème ou une idée" onPress={() => navigation.navigate("Feedback")} last />
       </Group>

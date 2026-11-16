@@ -53,6 +53,8 @@ import { Tabs } from "./Tabs";
 import { LiveSessionScreen } from "../screens/live/LiveSessionScreen";
 import { CampScreen } from "../screens/live/CampScreen";
 import { useReducedMotion } from "../lib/motion";
+import { TourScreen } from "../screens/auth/TourScreen";
+import { useFirstVisit } from "../lib/firstVisit";
 import type { RootParams } from "./types";
 
 const Stack = createNativeStackNavigator<RootParams>();
@@ -71,13 +73,17 @@ export function RootNavigator() {
   const { status, owner } = useAuth();
   const reduced = useReducedMotion();
   const options: NativeStackNavigationOptions = reduced ? { ...stackOptions, animation: "none" } : stackOptions;
+  // First opening on this phone: the guided visit comes before the welcome screen. The splash stays until both answers are known.
+  const visit = useFirstVisit(status === "signedIn" && !!owner);
+  const ready = status !== "loading" && visit !== undefined;
   useEffect(() => {
-    if (status !== "loading") SplashScreen.hideAsync().catch(() => {});
-  }, [status]);
-  if (status === "loading") return null;
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+  if (!ready) return null;
   if (status === "signedOut" || !owner)
     return (
-      <Stack.Navigator screenOptions={options}>
+      <Stack.Navigator screenOptions={options} initialRouteName={visit.seen ? "Welcome" : "Tour"}>
+        <Stack.Screen name="Tour" component={TourScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade" }} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: "Connexion" }} />
         <Stack.Screen name="Signup" component={SignupScreen} options={{ title: "Créer un compte" }} />
@@ -134,6 +140,7 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="HealthConnect" component={HealthConnectScreen} options={{ title: "Santé Connect" }} />
       <Stack.Screen name="Garmin" component={GarminScreen} options={{ title: "Garmin" }} />
       <Stack.Screen name="Guide" component={GuideScreen} options={{ title: "Bien démarrer" }} />
+      <Stack.Screen name="Tour" component={TourScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade" }} />
       <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ title: "Un retour" }} />
       <Stack.Screen name="Legal" component={LegalScreen} options={{ title: "Informations légales" }} />
       <Stack.Screen name="About" component={AboutScreen} options={{ title: "À propos" }} />

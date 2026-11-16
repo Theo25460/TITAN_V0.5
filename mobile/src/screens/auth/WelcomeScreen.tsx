@@ -45,7 +45,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
       <View style={styles.content}>
         <Brand size={40} />
         <Reveal style={{ gap: space.s3 }}>
-          <T variant="display">Ton sport réel.{"\n"}Une progression qui dure.</T>
+          <T variant="display">Tes efforts deviennent une aventure.</T>
           <T variant="body" tone="muted">
             {ADS_BUILD ? "Gratuit. Des publicités, jamais pendant une séance ; aucune avec TITAN+." : "Gratuit, sans publicité, sans achat pour progresser."}
           </T>
@@ -83,7 +83,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
           </View>
         ) : null}
         <View style={{ gap: space.s3 }}>
-          <Button label="Créer mon compte" testID="welcome-signup" onPress={() => { clearNotice(); navigation.navigate("Signup"); }} />
+          <Button label="Créer mon compte et commencer" testID="welcome-signup" onPress={() => { clearNotice(); navigation.navigate("Signup"); }} />
           <Button label="J’ai déjà un compte" kind="secondary" testID="welcome-login" onPress={() => { clearNotice(); navigation.navigate("Login"); }} />
           {discovery ? (
             <Button
@@ -106,6 +106,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
             />
           ) : null}
           {discoveryError ? <T variant="small" tone="warn" accessibilityRole="alert">{discoveryError}</T> : null}
+          <Button label="Revoir la visite guidée" kind="ghost" small testID="welcome-tour" onPress={() => navigation.navigate("Tour", { replay: true })} />
           <T variant="caption" tone="faint" center>
             Le même compte que sur titan-app.fr : tes séances et ta progression te suivent.
           </T>

@@ -369,7 +369,7 @@ describe("with account data", () => {
   });
   test("Accès : accueil, connexion, inscription, onboarding", () => {
     show(<S.Welcome {...props()} />);
-    expect(screen.getByText("Créer mon compte")).toBeTruthy();
+    expect(screen.getByText("Créer mon compte et commencer")).toBeTruthy();
     show(<S.Login {...props()} />);
     fireEvent.press(screen.getByTestId("login-submit"));
     expect(screen.getByText("Indique une adresse e-mail valide.")).toBeTruthy();

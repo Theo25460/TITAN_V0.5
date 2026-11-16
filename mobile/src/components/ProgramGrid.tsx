@@ -13,7 +13,6 @@ import { T } from "./Text";
    never drawn as a fault. The figure is one accessible element with a sentence, not forty unlabeled squares. */
 
 const INK = [0, 0.34, 0.56, 0.78, 1];
-const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
 function Cell({ cell, color, planned, future, mark }: { cell: ProgramCell; color: string; planned?: boolean; future?: boolean; mark?: boolean }) {
   if (cell)
@@ -68,7 +67,7 @@ export function ProgramGrid({ grid, testID }: { grid: ProgramWeek | ProgramSpan;
               ))
             : (grid as ProgramSpan).columns.map((c, i, all) => (
                 <View key={c.key} style={styles.head}>
-                  <T variant="caption" style={styles.letter} color={c.current ? theme.accent : colors.tx3} numberOfLines={1}>{c.current ? "Sem." : i === 0 || c.date <= 7 ? MONTHS[c.month]!.slice(0, 3) : all.length > 10 ? "" : String(c.date)}</T>
+                  <T variant="caption" style={styles.letter} color={c.current ? theme.accent : colors.tx3} numberOfLines={1}>{c.current ? "S." : all.length > 10 && i % 2 ? "" : String(c.date)}</T>
                   <View style={[styles.today, c.current && { backgroundColor: theme.accent }]} />
                 </View>
               ))}

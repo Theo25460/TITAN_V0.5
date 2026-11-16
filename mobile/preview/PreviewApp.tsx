@@ -68,7 +68,7 @@ function open() {
   const { route, params } = previewState;
   const nav = ref as unknown as { navigate: (name: string, params?: object) => void };
   if (previewState.signedOut) {
-    if (route !== "Welcome") nav.navigate(route, params);
+    nav.navigate(route, params);
   } else if (TABS.includes(route)) nav.navigate("Tabs", { screen: route, params });
   else nav.navigate(route, params);
   setTimeout(() => document.body.setAttribute("data-preview-ready", "1"), 600);

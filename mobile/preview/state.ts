@@ -4,7 +4,7 @@ const [route, query = ""] = hash.split("?");
 const params = Object.fromEntries(new URLSearchParams(query.replace(/&state=[^&]*/, "")));
 const state = (hash.match(/[?&]state=([a-z]+)/) || [])[1] || "full";
 
-export const AUTH_SCREENS = ["Welcome", "Login", "Signup", "Forgot"];
+export const AUTH_SCREENS = ["Tour", "Welcome", "Login", "Signup", "Forgot"];
 export const previewState = {
   route: (route.split("&")[0] || "QG") as string,
   params: params as Record<string, string>,
