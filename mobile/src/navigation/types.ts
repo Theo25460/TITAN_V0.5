@@ -20,6 +20,8 @@ export type RootParams = {
   Tabs: NavigatorScreenParams<TabParams> | undefined;
   SessionForm: { sport: string; duplicateOf?: string } ;
   GpsRecord: { sport: string };
+  LiveSession: { sport: string };
+  Camp: undefined;
   Routes: undefined;
   Route: { id: string };
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };

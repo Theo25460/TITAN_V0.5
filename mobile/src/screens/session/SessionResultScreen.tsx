@@ -27,6 +27,7 @@ import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
+import { LiveSettleCard } from "../../components/LiveSettleCard";
 
 /** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
 /** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
@@ -167,6 +168,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         </Reveal>
 
         <Reveal order={1}>
+          <LiveSettleCard owner={owner} eventId={eventId} payload={payload} confirmed={status === "confirmed"} />
           <Card tone={status === "confirmed" ? "accent" : "flat"} style={{ gap: space.s3 }}>
             <T variant="eyebrow">{status === "confirmed" ? "TITAN a confirmé" : "Confirmation en attente"}</T>
             {status === "confirmed" && receipt?.reward_held ? (

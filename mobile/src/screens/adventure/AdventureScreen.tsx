@@ -4,6 +4,7 @@ import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { JourneyCard, CareerMilestones } from "../../components/JourneyCard";
 import { useOwner } from "../../data/auth";
+import { useLiveFlag } from "../../data/live";
 import { worldAccess } from "../../lib/adventureAccess";
 import { AdventureHelp } from "../../components/AdventureHelp";
 import { Card } from "../../components/Card";
@@ -38,6 +39,7 @@ export function AdventureScreen() {
   const prefs = usePrefs();
   const { active } = useLogs();
   const [pickAvatar, setPickAvatar] = useState(false);
+  const liveEnabled = useLiveFlag();
   // The crest only appears where the text keeps its room: on a narrow phone it squeezed the name and broke words in the middle.
   const { width } = useWindowDimensions();
   const s = q.data;
@@ -51,6 +53,18 @@ export function AdventureScreen() {
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
       <Screen tab refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
         <T variant="h1">Aventure</T>
+        {liveEnabled ? (
+          <Card onPress={() => navigation.navigate("Camp")} accessibilityLabel="Le Camp de base : bâtiments, Marches et Cordée" testID="camp-entry">
+            <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3 }}>
+              <Icon name="home" size={22} color={colors.cy} />
+              <View style={{ flex: 1 }}>
+                <T variant="bodyStrong">Le Camp de base</T>
+                <T variant="small">Bâtiments, Marches et chroniques nourris par tes séances live</T>
+              </View>
+              <Icon name="chevron" color={colors.tx3} />
+            </View>
+          </Card>
+        ) : null}
         {q.isLoading && !s ? (
           <LoadingCards />
         ) : !s ? (

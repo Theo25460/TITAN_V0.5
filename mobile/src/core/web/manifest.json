@@ -19,6 +19,9 @@
     "adventure-rpg.js": "7086d64a88d975db44fe2b03bc06f52aafc633beb44eb6e1c1595e58870f7f05",
     "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
     "journey.js": "7496b2b2ba1cad6e695d8e580ea5a5583b4d079c3b89f38b19a0552e2514b921",
-    "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265"
+    "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265",
+    "live-voies.js": "c855575b9410708ad32e45dd4aaf2302cc275be77f91ee81580339b060c073e5",
+    "live-engine.js": "49be9ee0b47d7bb78edf9f8a1c7cb27f76290957ec0957d1191a6428ffe37ace",
+    "live-world.js": "f90dcbf119cb44f61afa77b63e62c6e7570c7c62c13095c3e609fc4f5f9e51fa"
   }
 }

@@ -179,7 +179,7 @@
       case "distanceM": return state.gps.distanceM;
       case "elevationM": return state.gps.elevationM;
       case "restsRespected": return state.beats.filter((b) => b.restOk).length;
-      case "distinct": return new Set(state.beats.map((b) => b.data?.[check.key]).filter(Boolean)).size;
+      case "distinct": return new Set([...state.beats.map((b) => b.data?.[check.key]), ...((state.notes && state.notes[check.key]) || [])].filter(Boolean)).size;
       case "field": return num(state.fields[check.field], 0);
       case "report": return reportOk(state, check) ? 1 : 0;
       default: return 0;
@@ -447,6 +447,7 @@
       case "field":
         if (/^[a-z_]{2,32}$/.test(String(input.id || ""))) state.fields[input.id] = typeof input.value === "number" ? clamp(input.value, -1e6, 1e6) : String(input.value).slice(0, 40);
         if (input.id === "conditions") deriveConditions(state, input.value);
+        if (input.id === "technique_note") noteTechnique(state, String(input.value || "").trim().slice(0, 40));
         break;
       case "feel":
         state.feel = clamp(num(input.value, 5), 1, 10);
@@ -553,6 +554,14 @@
     if (kind === "period") f.period = loggedBeats(state, "period");
     if (kind === "leg") f.leg = loggedBeats(state, "leg");
     if (kind === "lap") f.laps = loggedBeats(state, "lap");
+  }
+
+  /** A technique noted between rounds (the bell logs the rounds itself). */
+  function noteTechnique(state, name) {
+    if (!name) return;
+    state.notes = state.notes || { technique: [] };
+    if (!state.notes.technique.includes(name) && state.notes.technique.length < 20) state.notes.technique.push(name);
+    if (!state.known.techniques.includes(name)) { state.known.techniques.push(name); state.fields.newTechniques = num(state.fields.newTechniques, 0) + 1; }
   }
 
   function deriveConditions(state, value) {

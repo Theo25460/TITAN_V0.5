@@ -278,3 +278,20 @@ test("the FNV hash matches the reference vectors used by the SQL mirror", () => 
   assert.equal(Live.hash("a"), 0xe40c292c);
   assert.equal(Live.hash("foobar"), 0xbf9cf968);
 });
+
+test("dojo: techniques noted between bell rounds fill the scrolls", () => {
+  const { state } = run("judo", { intent: "atteindre", missions: ["dojo.technique"], knownTechniques: ["O-soto-gari"] }, [
+    [3, { type: "field", id: "technique_note", value: "O-soto-gari" }], [8, { type: "field", id: "technique_note", value: "Uchi-mata" }], [9, { type: "tick" }],
+  ]);
+  assert.equal(state.fields.newTechniques, 1);
+  assert.ok(state.missions.done.some((d) => d.id === "dojo.technique"));
+});
+
+test("report missions are confirmed from the after-session statistics, like the server", () => {
+  let { state } = run("golf", { intent: "depasser", missions: ["cible.r_putts"] }, [[60, { type: "end" }]]);
+  for (const [id, value] of [["r_putts", 15], ["r_holes", 9]]) state = Live.step(state, { type: "field", id, value }, T0 + 61 * MIN).state;
+  assert.ok(state.missions.done.some((d) => d.id === "cible.r_putts"), "15 putts on 9 holes ≤ 2 per hole");
+  let fail = run("golf", { intent: "depasser", missions: ["cible.r_putts"] }, [[60, { type: "end" }]]).state;
+  for (const [id, value] of [["r_putts", 25], ["r_holes", 9]]) fail = Live.step(fail, { type: "field", id, value }, T0 + 61 * MIN).state;
+  assert.equal(fail.missions.done.length, 0);
+});

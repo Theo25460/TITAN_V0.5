@@ -18,6 +18,7 @@ import "./lib/prefsLocal";
 import { linking } from "./navigation/linking";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { colors, fonts } from "./theme/tokens";
+import { LiveSync } from "./data/live";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -46,6 +47,7 @@ export default function App() {
                 <StatusBar style="light" />
                 <SyncManager />
                 <GpsAccountGuard />
+                <LiveSync />
                 <ErrorBoundary>
                   <RootNavigator />
                 </ErrorBoundary>
