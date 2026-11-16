@@ -1,6 +1,6 @@
 /* Route library: outbox that never duplicates and never blocks, list and detail screens (tile-less map, GPX export, deletion), private by design. */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { buildPending, flushRoutes, newRouteId, pendingLinks, pendingRoutes, queueRoute, queueRouteLink, _resetForTests } from "../src/lib/routeSync";
+import { buildPending, discardPendingRoute, flushRoutes, newRouteId, pendingLinks, pendingRoutes, queueRoute, queueRouteLink, _resetForTests } from "../src/lib/routeSync";
 import { addFix, emptyTrack, type Fix, type Track } from "../src/lib/gpsTrack";
 
 const T0 = Date.UTC(2026, 10, 2, 8, 0, 0);
@@ -90,6 +90,7 @@ const { SafeAreaProvider } = require("react-native-safe-area-context");
 const { ToastProvider } = require("../src/components/Toast");
 const { QueryClient, QueryClientProvider } = require("@tanstack/react-query");
 const { RoutesScreen, RouteDetailScreen } = require("../src/screens/session/RoutesScreen");
+const { DialogHost } = require("../src/components/Dialog");
 const { encodeTrack } = require("../src/lib/gpsTrack");
 /* eslint-enable @typescript-eslint/no-require-imports */
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
@@ -119,6 +120,35 @@ test("library: an unsent trace remains exportable while the server is unavailabl
   wrap(<RoutesScreen navigation={nav} />);
   fireEvent.press(await screen.findByTestId("pending-export-route-offline-0001"));
   await waitFor(() => expect(mockShare).toHaveBeenCalledWith(expect.stringMatching(/\.gpx$/), expect.stringContaining("<trkpt"), "application/gpx+xml"));
+});
+
+test("the athlete can remove a route waiting on the phone; its session link goes with it, the others stay", async () => {
+  await queueRoute("o-discard", mk("route-keep-0001"));
+  await queueRoute("o-discard", mk("route-drop-0001"));
+  await queueRouteLink("o-discard", "route-drop-0001", "evt-drop");
+  await queueRouteLink("o-discard", "route-keep-0001", "evt-keep");
+  expect(await discardPendingRoute("o-discard", "route-drop-0001")).toBe(true);
+  expect((await pendingRoutes("o-discard")).map((r) => r.clientRouteId)).toEqual(["route-keep-0001"]);
+  expect((await pendingLinks("o-discard")).map((l) => l.clientRouteId)).toEqual(["route-keep-0001"]);
+  expect(await discardPendingRoute("o-discard", "route-drop-0001")).toBe(false);
+  // Another account's outbox is untouched.
+  await queueRoute("o-other", mk("route-drop-0001"));
+  expect(await discardPendingRoute("o-discard", "route-drop-0001")).toBe(false);
+  expect(await pendingRoutes("o-other")).toHaveLength(1);
+});
+
+test("library: a refused route can be removed from the phone after a confirmation, which frees the outbox", async () => {
+  mockApi.routesList.mockResolvedValue([]);
+  for (const r of await pendingRoutes("o1")) await discardPendingRoute("o1", r.clientRouteId);
+  await queueRoute("o1", mk("route-refused-0001"));
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}><SafeAreaProvider initialMetrics={metrics}><ToastProvider><RoutesScreen navigation={nav} /><DialogHost /></ToastProvider></SafeAreaProvider></QueryClientProvider>);
+  fireEvent.press(await screen.findByTestId("pending-discard-route-refused-0001"));
+  expect(await screen.findByText("Retirer ce parcours en attente ?")).toBeTruthy();
+  expect(await pendingRoutes("o1")).toHaveLength(1);
+  fireEvent.press(screen.getByText("Retirer"));
+  await waitFor(async () => expect(await pendingRoutes("o1")).toHaveLength(0));
+  expect(await screen.findByText("Parcours retiré de ce téléphone")).toBeTruthy();
+  await waitFor(() => expect(screen.queryByTestId("pending-discard-route-refused-0001")).toBeNull());
 });
 
 test("detail: map, figures, GPX export and deletion; no map server is contacted", async () => {

@@ -64,9 +64,13 @@ export function AtelierScreen() {
           setBusy(item.id);
           try {
             await api.purchaseItem(owner, item.id);
-            await api.setAppearance(owner, item.slot, item.id).catch(() => {});
+            // The exchange is done once the server accepted it. Putting the piece on is a second request: if it fails, the
+            // player keeps the piece and is told it is not worn yet, instead of believing it is (it was swallowed before).
+            const worn = await api.setAppearance(owner, item.slot, item.id).then(() => true, () => false);
             await refresh();
-            toast({ kind: "ok", title: `${item.name} ajouté à ta collection` });
+            toast(worn
+              ? { kind: "ok", title: `${item.name} ajouté et équipé` }
+              : { kind: "ok", title: `${item.name} ajouté à ta collection`, message: "Il n’a pas pu être équipé : touche « Équiper » sur sa carte." });
           } catch (e) {
             toast({ kind: "err", title: "Échange impossible", message: errorMessage(e) });
             await refresh();

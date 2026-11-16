@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Image, PanResponder, View } from "react-native";
 import Svg, { Circle, Polyline, Rect } from "react-native-svg";
 import { Button } from "../../components/Button";
+import { Alert } from "../../components/Dialog";
 import { Tap } from "../../components/Pressable";
 import { ToggleRow } from "../../components/Toggle";
 import { Card } from "../../components/Card";
@@ -19,7 +20,7 @@ import { shareTextFile } from "../../lib/exportFile";
 import { decodeTrack, projectTrack, toGpx, trimEnds } from "../../lib/gpsTrack";
 import { fitView, panBy, TILE, TILES_ATTRIBUTION, tilesConfigured, tilesFor, tileUrl, toScreen, zoomBy, type View as MapViewState } from "../../lib/tiles";
 import { readJSON, writeJSON } from "../../lib/storage";
-import { pendingRoutes } from "../../lib/routeSync";
+import { discardPendingRoute, pendingRoutes } from "../../lib/routeSync";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, radius, space } from "../../theme/tokens";
 
@@ -137,6 +138,22 @@ export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, 
               toast({ kind: "err", title: "Export impossible", message: "Ta trace reste conservée. Réessaie dans un instant." });
             } finally { setExporting(null); }
           }} />
+          <Button small kind="ghost" label="Retirer de ce téléphone" testID={`pending-discard-${r.clientRouteId}`} disabled={!!exporting} onPress={() => Alert.alert(
+            "Retirer ce parcours en attente ?",
+            "La trace est effacée de ce téléphone et ne sera jamais envoyée. La séance reste dans ton journal. Exporte une copie GPX avant si tu veux la garder.",
+            [
+              { text: "Annuler", style: "cancel" },
+              { text: "Retirer", style: "destructive", onPress: async () => {
+                try {
+                  await discardPendingRoute(owner, r.clientRouteId);
+                  await waiting.refetch();
+                  toast({ kind: "ok", title: "Parcours retiré de ce téléphone" });
+                } catch {
+                  toast({ kind: "err", title: "Retrait impossible", message: "La trace reste conservée. Réessaie dans un instant." });
+                }
+              } },
+            ],
+          )} />
         </Card>
       ))}
       {list.length === 0 && !waiting.data?.length ? (
