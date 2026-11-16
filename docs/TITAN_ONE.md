@@ -53,7 +53,7 @@ VERT = terminé et vérifié ; ORANGE = partiel ou validation insuffisante ; ROU
 | CI GitHub | ORANGE | Dernier passage complet lu : un test Android intermittent, corrigé (`dbd5b7b`) ; le passage sur la tête de branche est à lire dans la PR #149 |
 | Déploiement Web | ROUGE | `titan-app.fr` sert l'ancienne version (CGU version 6) tant que #149 n'est pas fusionnée et le SHA autorisé |
 | Publication Android | ROUGE | Dernier bundle distribué : 1.2.1 (1301) ; le candidat n'a pas été envoyé à Google Play |
-| Textes légaux et commerciaux | ORANGE | Cohérents dans le candidat ; validation juridique humaine en attente |
+| Textes légaux et commerciaux | ORANGE | Cohérents dans le candidat et tenus par `tests/coherence-offers.test.mjs` (offres, places, prix, publicité, TITAN LIVE, Garmin, données) ; conditions version 9, confidentialité version 13, suppression de compte version 3 (16 novembre) ; validation juridique humaine en attente |
 
 ## 4. Critères d'excellence et valeurs de référence
 
