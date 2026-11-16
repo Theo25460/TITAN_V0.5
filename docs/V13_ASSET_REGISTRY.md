@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 216 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 163 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 214 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 165 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -17,7 +17,7 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | ranks | 16 | 423852 | 423852 |
 | store-listing | 15 | 6257727 | 0 |
 | subscription | 4 | 154842 | 154842 |
-| typography | 13 | 603555 | 603555 |
+| typography | 11 | 563599 | 563599 |
 | world-map-decoration | 1 | 28400 | 28400 |
 | worlds | 18 | 2480758 | 2480758 |
 
@@ -73,7 +73,7 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 
 | Fichier | Famille | Octets | Dimensions | Décision |
 |---|---|---:|---|---|
-| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | retain |
+| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | fix |
 | `assets/ranks/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
 | `assets/ranks/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
 | `assets/ranks/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
@@ -115,8 +115,6 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `assets/renaissance/valley-xs.webp` | worlds | 32900 | 480×270 | retain |
 | `assets/renaissance/valley.webp` | worlds | 277988 | 1600×900 | retain |
 | `css/fonts/archivo-latin-variable.woff2` | typography | 90104 | sans dimension raster | retain |
-| `css/fonts/manrope-latin-0.woff2` | typography | 15120 | sans dimension raster | retain |
-| `css/fonts/manrope-latin-1.woff2` | typography | 24836 | sans dimension raster | retain |
 | `css/fonts/remixicon.woff2` | typography | 143720 | sans dimension raster | retain |
 | `docs/play-store/README.md` | store-listing | 4879 | sans dimension raster | fix |
 | `docs/play-store/feature-graphic-1024x500.png` | store-listing | 353883 | 1024×500 | fix |

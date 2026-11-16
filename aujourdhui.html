@@ -7,26 +7,26 @@
     <meta name="description" content="Ce qui compte aujourd’hui : ta prochaine action, ta semaine, ton ascension et tes repères." />
     <meta name="robots" content="noindex,nofollow" />
     <link rel="canonical" href="https://titan-app.fr/aujourdhui" />
-    <meta name="theme-color" content="#05070a" />
+    <meta name="theme-color" content="#090c10" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/css/fonts/manrope-latin-1.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="/css/ascension.css?v=300.10" />
-    <link rel="stylesheet" href="/css/ascension-app.css?v=301.31.4" />
+    <link rel="stylesheet" href="/css/ascension.css?v=300.11" />
+    <link rel="stylesheet" href="/css/ascension-app.css?v=302.0" />
   </head>
-  <body class="asc" data-territory="qg" data-title="QG">
+  <body class="asc" data-territory="qg" data-title="QG" data-head="art">
     <a class="asc-skip" href="#contenu">Aller au contenu</a>
-    <main class="asc-main" id="contenu">
-      <header class="asc-page-head qg-head">
-        <div>
-          <p class="asc-eyebrow" id="qg-date">Aujourd’hui</p>
+    <main class="asc-main qg-main" id="contenu">
+      <header class="asc-art-head qg-head">
+        <img class="asc-art-img" id="qg-art" src="/assets/renaissance/valley-small.webp" srcset="/assets/renaissance/valley-small.webp 800w, /assets/renaissance/valley.webp 1600w" sizes="100vw" alt="" width="800" height="450" decoding="async" fetchpriority="high" />
+        <div class="asc-art-copy">
           <h1 id="qg-title">Ton QG</h1>
+          <p class="asc-art-line" id="qg-date">Aujourd’hui</p>
         </div>
       </header>
       <div id="qg" aria-live="polite" aria-busy="true">
-        <div class="asc-skeleton" style="height: 112px; border-radius: 18px"></div>
-        <div class="asc-skeleton" style="height: 260px; margin-top: 20px; border-radius: 26px"></div>
+        <div class="asc-skeleton" style="height: 72px"></div>
+        <div class="asc-skeleton" style="height: 220px; margin-top: 20px"></div>
         <div class="asc-skeleton" style="height: 88px; margin-top: 16px"></div>
       </div>
     </main>
@@ -61,7 +61,9 @@
     <script src="/js/app/saison.js?v=300.1"></script>
     <script src="/js/app/classement.js?v=300.1"></script>
     <script src="/js/app/crest.js?v=301.31.1"></script>
-    <script src="/js/app/qg.js?v=301.31.3"></script>
+    <script src="/js/core/program-grid.js?v=1"></script>
+    <script src="/js/app/program.js?v=1"></script>
+    <script src="/js/app/qg.js?v=302.0"></script>
     <script src="/js/pwa.js?v=300.1" defer></script>
   </body>
 </html>

@@ -22,15 +22,7 @@
       "ratio": 1.3333,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            698
-          ],
-          "evidence": "literal"
-        }
-      ],
+      "usage": [],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 28400,
@@ -46,13 +38,11 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "css/ascension.css"
-        ]
+        "sourceEvidence": []
       },
       "rpgUsage": true,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
+      "decision": "fix",
+      "reason": "no literal usage found, verify dynamic consumers before archiving",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -497,21 +487,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
@@ -604,14 +594,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -648,7 +638,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -973,7 +963,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            50
+            49
           ],
           "evidence": "literal"
         }
@@ -1027,14 +1017,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -1071,7 +1061,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -1201,7 +1191,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
@@ -1292,14 +1282,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -1336,7 +1326,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -2256,7 +2246,7 @@
         {
           "source": "index.html",
           "lines": [
-            33
+            32
           ],
           "evidence": "literal"
         },
@@ -2902,45 +2892,51 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aventures-sportives.html",
           "lines": [
-            31
+            30
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            69,
-            1929
+            1964
           ],
           "evidence": "literal"
         },
         {
           "source": "defis-sportifs.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            69
+            68
           ],
           "evidence": "literal"
         },
@@ -2986,56 +2982,56 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            38
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            37
+            36
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         }
@@ -3056,6 +3052,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
@@ -3102,14 +3099,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -3146,7 +3143,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -3199,6 +3196,13 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "js/app/atelier.js",
           "lines": [],
           "evidence": "dynamic-family"
@@ -3245,6 +3249,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "aujourdhui.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
@@ -3353,7 +3358,14 @@
         {
           "source": "css/ascension.css",
           "lines": [
-            13
+            16
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/fonts.css",
+          "lines": [
+            9
           ],
           "evidence": "literal"
         },
@@ -3620,499 +3632,6 @@
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 90104,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "404.html",
-          "adventure.html",
-          "athlete.html",
-          "aujourdhui.html",
-          "aventures-sportives.html",
-          "boutique.html",
-          "carnet-musculation.html",
-          "carriere.html",
-          "changelog.html",
-          "coaching.html",
-          "comprendre-mes-donnees.html",
-          "css/ascension.css",
-          "debuter-titan.html",
-          "defi.html",
-          "defis-sportifs.html",
-          "fonctionnalites.html",
-          "index.html",
-          "journal-course-a-pied.html",
-          "journal-entrainement.html",
-          "journal.html",
-          "legal_cgu.html",
-          "legal_hub.html",
-          "legal_mentions.html",
-          "legal_privacy.html",
-          "login.html",
-          "motivation-sport.html",
-          "niveaux-et-xp.html",
-          "objectifs.html",
-          "onboarding.html",
-          "partenariats.html",
-          "pour-les-coachs.html",
-          "prevoir.html",
-          "profile.html",
-          "progression-sportive.html",
-          "records.html",
-          "recours.html",
-          "regles-communaute.html",
-          "seance-live.html",
-          "service.html",
-          "social.html",
-          "sports.html",
-          "stats.html",
-          "suivi-escalade.html",
-          "suivi-sportif.html",
-          "suivi-velo.html",
-          "supprimer-mon-compte.html",
-          "titan-plus.html",
-          "training.html",
-          "update-password.html"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "css/fonts/manrope-latin-0.woff2",
-      "family": "typography",
-      "bytes": 15120,
-      "sha256": "3911b66d9f2e005a4b989223405d0e5032619c668597ba467cc76a23c8fffcfb",
-      "version": "sha256:3911b66d9f2e005a4b989223405d0e5032619c668597ba467cc76a23c8fffcfb",
-      "format": "woff2",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            29
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/fonts.css",
-          "lines": [
-            7
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "web",
-      "distribution": "web-public-build-candidate",
-      "expectedDeliveredBytes": 15120,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "css/ascension.css",
-          "css/fonts.css"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "css/fonts/manrope-latin-1.woff2",
-      "family": "typography",
-      "bytes": 24836,
-      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
-      "version": "sha256:a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
-      "format": "woff2",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "404.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "adventure.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "athlete.html",
-          "lines": [
-            18
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "aujourdhui.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "aventures-sportives.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "boutique.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "carnet-musculation.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "carriere.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "changelog.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "coaching.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "comprendre-mes-donnees.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            21
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/fonts.css",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "debuter-titan.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "defi.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "defis-sportifs.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "fonctionnalites.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "index.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal-course-a-pied.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal-entrainement.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_cgu.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_hub.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_mentions.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_privacy.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "login.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "motivation-sport.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "niveaux-et-xp.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "objectifs.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "onboarding.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "partenariats.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "pour-les-coachs.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "prevoir.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "profile.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "progression-sportive.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "records.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "recours.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "regles-communaute.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "seance-live.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "service.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "social.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "sports.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "stats.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "suivi-escalade.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "suivi-sportif.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "suivi-velo.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "supprimer-mon-compte.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "titan-plus.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "training.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "update-password.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "web",
-      "distribution": "web-public-build-candidate",
-      "expectedDeliveredBytes": 24836,
       "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
       "crop": "contain, preserve glyph and proportions",
       "safeArea": "focal bounds to measure on rendered surfaces",
@@ -7952,7 +7471,7 @@
         {
           "source": "index.html",
           "lines": [
-            26
+            25
           ],
           "evidence": "literal"
         }
@@ -7999,7 +7518,7 @@
         {
           "source": "index.html",
           "lines": [
-            26
+            25
           ],
           "evidence": "literal"
         }
@@ -8046,7 +7565,7 @@
         {
           "source": "404.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -8061,42 +7580,42 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "changelog.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "debuter-titan.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "defis-sportifs.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -8111,56 +7630,56 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_cgu.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_hub.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_mentions.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_privacy.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -8177,84 +7696,84 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "partenariats.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "regles-communaute.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "service.html",
           "lines": [
-            21
+            20
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "supprimer-mon-compte.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -8270,7 +7789,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         }
@@ -11569,21 +11088,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
@@ -11694,7 +11213,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            50
+            49
           ],
           "evidence": "literal"
         }
@@ -11742,7 +11261,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
@@ -12079,7 +11598,7 @@
         {
           "source": "index.html",
           "lines": [
-            33
+            32
           ],
           "evidence": "literal"
         },
@@ -12273,45 +11792,51 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aventures-sportives.html",
           "lines": [
-            31
+            30
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            69,
-            1929
+            1964
           ],
           "evidence": "literal"
         },
         {
           "source": "defis-sportifs.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            69
+            68
           ],
           "evidence": "literal"
         },
@@ -12332,56 +11857,56 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            38
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            37
+            36
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         }
@@ -12402,6 +11927,7 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
@@ -12698,8 +12224,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 39435,
-      "version": "sha256:cf7231e9d8fb8195f83f0928dbe056ea9137466361e06f616e07d71ca39a8ddd",
+      "bytes": 39333,
+      "version": "sha256:f58ac3299788ef46178a87075751ea076f1b3d916d5d34cd8967c66aabdd6502",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -15675,6 +15201,11 @@
       "capture": null
     },
     {
+      "source": "js/app/program.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "js/app/qg.js",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15816,6 +15347,11 @@
     },
     {
       "source": "mobile/src/screens/auth/SignupScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/auth/TourScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },

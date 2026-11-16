@@ -47,7 +47,7 @@ and must use wide screens.
 - Existing approved art: four sculpted steel rank crests (Éclaireur, Explorateur, Sentinelle, Gardien), four painted worlds,
   four guardians, class portraits. Crests for Champion, Titan and Légende do not exist yet; the image generator available to
   the agent has no credit.
-- Fonts shipped: Archivo (as « TitanDisplay », heavy and bold) and Manrope. Licences: OFL.
+- Font shipped: Archivo only, in three widths (text, condensed titles, extra-condensed figures). Licence: OFL.
 - Android back gesture, 48 dp targets, text scaling to 200 %, reduced motion are respected today and must stay so.
 
 ## Brand Commitments

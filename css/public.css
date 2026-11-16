@@ -486,7 +486,7 @@ a.pub-card:hover {
   line-height: 1;
 }
 .pub-price small {
-  font-family: var(--font-text);
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 600;
   color: var(--tx-3);
@@ -897,7 +897,7 @@ a.pub-card:hover {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .pub-footer .pub-foot-title {
-  font-family: var(--font-text);
+  font-family: var(--font);
   font-weight: 800;
   line-height: 1.3;
   margin: 0 0 var(--s3);

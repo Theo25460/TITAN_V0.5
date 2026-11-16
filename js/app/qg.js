@@ -1,4 +1,6 @@
-/* TITAN 301 — QG: what matters now. The rank strip, one dominant action, three ways in, then the week, what is in progress and the last sessions. */
+/* TITAN — QG: what matters now. The page opens on the painting of the world in progress; under it the rank and the XP as one line,
+   then the one action of the day (the only slab of colour), the week as a programme, and on a wide screen a second column with the
+   chapter, the two doors the navigation does not show, and the last sessions. */
 (function () {
   "use strict";
   const esc = (s) => window.titanEsc(s);
@@ -53,8 +55,10 @@
 
   function heroHtml(a) {
     const tone = TONE[a.tone] || TONE.cy;
+    // The slab says what to do; a label above its title is kept only when it carries something the title does not (a draft, a record, an alert).
+    const label = a.eyebrow || (a.tone === "err" || a.tone === "am" ? tone.eyebrow : "");
     return `<section class="asc-hero qg-hero ${tone.cls} ${a.value ? "has-figure" : ""} asc-appear" aria-labelledby="qg-hero-title">
-      <p class="asc-eyebrow ${a.tone === "am" ? "am" : "cy"}">${esc(a.eyebrow || tone.eyebrow)}</p>
+      ${label ? `<p class="asc-eyebrow qg-hero-label">${esc(label)}</p>` : ""}
       <h2 id="qg-hero-title" class="qg-hero-title">${esc(a.title)}</h2>
       ${a.value ? `<p class="qg-hero-figure asc-num" aria-label="${esc(a.value)}">${esc(a.value)}</p>` : ""}
       <p class="asc-lead">${esc(a.text)}</p>
@@ -104,13 +108,29 @@
     return `<section class="asc-section asc-appear" aria-labelledby="qg-week">
       <div class="asc-section-head"><h2 id="qg-week">Cette semaine</h2><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-action="cadence">Semaine type : ${cad.target} jour${cad.target > 1 ? "s" : ""} ${icon("edit")}</button></div>
       <div class="qg-week${hasSessions ? "" : " is-new"}">
+        ${stats}
+        ${programHtml(hasSessions)}
         <div class="qg-cadence">
           <div class="asc-notches" aria-label="Cadence des 8 dernières semaines">${notches}</div>
           <div class="asc-between asc-small" style="flex-wrap:wrap;gap:var(--s1) var(--s3)"><span class="asc-muted">${status}</span>${held}</div>
         </div>
-        ${stats}
       </div>
     </section>`;
+  }
+
+  /* The week as a programme: one line per sport, one column per day, the usual week as dashed frames. On a Monday morning the week
+     is still empty: last week is drawn under it, so the figure never opens on a blank grid. */
+  function programHtml(hasSessions) {
+    const V = window.TitanProgramView;
+    if (!V || !window.TitanProgram || !hasSessions) return "";
+    const now = new Date();
+    const list = P().activeLogs(D().logs());
+    const plan = D().plan ? D().plan().map((p) => p.sport) : null;
+    const grid = V.week(list, { now, plan });
+    const before = new Date(now); before.setDate(before.getDate() - 7);
+    const previous = grid.totals.sessions === 0 ? V.week(list, { now, start: before }) : null;
+    return `<div class="qg-program"><a class="qg-program-link" href="/stats" aria-label="Voir ma semaine dans Progrès">${V.html(grid)}</a>
+      ${previous && previous.totals.sessions ? `<p class="asc-small asc-muted qg-program-label">La semaine dernière</p>${V.html(previous, { label: "Programme de la semaine dernière" })}` : ""}</div>`;
   }
 
   /* The rank, the level and the XP towards the next one, in one strip at the top of the QG (same order as the Android header).
@@ -254,20 +274,28 @@
     return `<div class="asc-note qg-guest">${icon("phone")}<div><strong>Mode découverte</strong> · tes séances restent sur cet appareil. <a class="asc-link" href="/login?mode=signup">Créer un compte</a> pour les sauvegarder et les reprendre partout.</div></div>`;
   }
 
-  /* Three ways in, each one saying where it leads (the tab bar keeps the same three on a phone). */
-  function adventureTileSub() {
-    const s = window.TitanAdventure?.snapshot, C = window.TitanCodex;
-    const c = s && C ? (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0 && x.chapter <= 9) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9) : null;
-    // Short on purpose (a third of a phone's width): the world is named in « En cours », just below.
-    return c ? `Chapitre ${c.chapter}/9` : "Choisir un monde";
-  }
-  function destinationsHtml() {
-    const tile = (href, name, label, sub) => `<a class="qg-tile" href="${href}">${icon(name)}<strong>${label}</strong><small>${esc(sub)}</small></a>`;
-    return `<nav class="qg-destinations" aria-label="Raccourcis du QG">
-      ${tile("/training", "plus", "Sport", "Enregistrer une séance")}
-      ${tile("/adventure", "compass", "Aventure", adventureTileSub())}
-      ${tile("/stats", "chart", "Progrès", "Semaine, journal, records")}
+  /* The navigation already reaches Séance, Aventure and Progrès from every page. The QG shows the two places it does not: the
+     circle and the planned week. Two ruled doors, not tiles. */
+  function doorsHtml() {
+    const door = (href, name, label, sub) => `<a class="qg-door" href="${href}">${icon(name)}<span class="qg-door-text"><strong>${label}</strong><small>${esc(sub)}</small></span>${icon("chevron")}</a>`;
+    return `<nav class="qg-doors" aria-label="Raccourcis du QG">
+      ${door("/social", "group", "Ma communauté", "Amis, défis, clubs")}
+      ${door("/prevoir", "calendar", "Prévoir ma semaine", "Tes jours de sport, à l’avance")}
     </nav>`;
+  }
+
+  /* The painting at the top of the page is the world in progress (the valley until one is chosen). */
+  function paintBanner() {
+    const img = document.getElementById("qg-art");
+    const s = window.TitanAdventure?.snapshot, C = window.TitanCodex;
+    if (!img || !s || !C?.worlds) return;
+    const campaign = (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9);
+    const world = C.worlds.find((w) => w.id === (campaign?.id || s.selected_world));
+    const image = /^[a-z]+$/.test(world?.image || "") ? world.image : "valley";
+    if (img.dataset.world === image) return;
+    img.dataset.world = image;
+    img.srcset = `/assets/renaissance/${image}-small.webp 800w, /assets/renaissance/${image}.webp 1600w`;
+    img.src = `/assets/renaissance/${image}-small.webp`;
   }
 
   /* A new account: what TITAN does, in three lines, under the single action. Shown until the first session exists. */
@@ -371,34 +399,36 @@
     const name = (window.state.user.name || "").trim();
     document.getElementById("qg-date").textContent = f.longDate(now);
     document.getElementById("qg-title").textContent = guest || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
+    paintBanner();
+    const more = [window.TitanStepsCard, window.TitanIntents, window.TitanCommonQuest, window.TitanWorldGoal, window.TitanBuddy, window.TitanSeason, window.TitanRanking]
+      .map((m) => m?.html?.() || "").join("");
     // A new account reads one line about TITAN first. It is drawn with the rest of the QG (not kept hidden in the page head), so
     // nothing already on screen moves when it appears.
+    // Two columns on a wide screen: what I do (the action, my week) on the left; where I stand and where to go on the right.
     paint(el, `
       ${list.length ? "" : `<p class="asc-lead" id="qg-lead">Ton journal de sport : chaque séance fait monter ton niveau et avancer ton aventure.</p>`}
       ${ascentHtml(D().progression())}
-      ${heroHtml(action)}
-      ${destinationsHtml()}
-      ${!online ? `<div class="asc-note qg-offline">${icon("offline")}<span><strong>Hors ligne.</strong> Tes séances saisies ici restent sur cet appareil.</span></div>` : ""}
-      ${guest ? guestHtml() : ""}
-      ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
-      ${list.length ? "" : howHtml()}
-      ${weekHtml(cad, recapNow, list.length > 0)}
-      ${monthPromptHtml(now)}
-      <div class="asc-grid-2 qg-grid">
-        <div><section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
-            <div class="asc-list">${goalHtml(goalsCache, D().logs())}${adventureHtml(online || guest)}</div>
-          </section></div>
-        <div>${lastHtml(list, guest)}</div>
+      <div class="qg-cols">
+        <div class="qg-col qg-col-main">
+          ${heroHtml(action)}
+          ${!online ? `<div class="asc-note qg-offline">${icon("offline")}<span><strong>Hors ligne.</strong> Tes séances saisies ici restent sur cet appareil.</span></div>` : ""}
+          ${guest ? guestHtml() : ""}
+          ${!D().isGuest() && guestToImport ? `<div class="asc-note qg-guest">${icon("upload")}<div><strong>${guestToImport} séance${guestToImport > 1 ? "s" : ""} de découverte</strong> sur cet appareil. <button type="button" class="asc-link" data-action="import-guest" ${importJob ? 'disabled aria-busy="true"' : ''} style="background:none;border:0;padding:0">${importJob ? "Import en cours…" : "Les ajouter à mon compte"}</button>${D().rulesV300() ? `<p class="asc-small asc-faint">Celles de plus de 30 jours entrent dans ton historique, sans XP.</p>` : ""}</div></div>` : ""}
+          ${list.length ? "" : howHtml()}
+          ${weekHtml(cad, recapNow, list.length > 0)}
+          ${monthPromptHtml(now)}
+          ${shortcutsHtml(list)}
+        </div>
+        <div class="qg-col qg-col-side">
+          <section class="asc-section asc-appear" aria-labelledby="qg-paths"><div class="asc-section-head"><h2 id="qg-paths">En cours</h2></div>
+            <div class="asc-list">${adventureHtml(online || guest)}${goalHtml(goalsCache, D().logs())}</div>
+          </section>
+          ${doorsHtml()}
+          ${lastHtml(list, guest)}
+          ${insightsHtml(others)}
+        </div>
       </div>
-      ${shortcutsHtml(list)}
-      ${window.TitanStepsCard?.html?.() || ""}
-      ${window.TitanIntents?.html?.() || ""}
-      ${window.TitanCommonQuest?.html?.() || ""}
-      ${window.TitanWorldGoal?.html?.() || ""}
-      ${window.TitanBuddy?.html?.() || ""}
-      ${window.TitanSeason?.html?.() || ""}
-      ${window.TitanRanking?.html?.() || ""}
-      ${insightsHtml(others)}`);
+      ${more ? `<div class="qg-more">${more}</div>` : ""}`);
     el.setAttribute("aria-busy", "false");
   }
 

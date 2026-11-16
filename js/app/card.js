@@ -74,11 +74,11 @@
 
   async function fonts() {
     try {
-      await Promise.all([document.fonts.load('800 200px "Archivo"'), document.fonts.load('600 40px "Manrope"'), document.fonts.load('700 40px "Manrope"')]);
+      await Promise.all([document.fonts.load('800 200px "Archivo"'), document.fonts.load('600 40px "Archivo"'), document.fonts.load('700 40px "Archivo"')]);
     } catch {}
   }
 
-  const font = (weight, size, family = "Manrope") => `${weight} ${size}px "${family}", system-ui, sans-serif`;
+  const font = (weight, size, family = "Archivo") => `${weight} ${size}px "${family}", system-ui, sans-serif`;
   const display = (size) => `800 ${size}px "Archivo", "Arial Narrow", system-ui, sans-serif`;
 
   function rr(ctx, x, y, w, h, r) {

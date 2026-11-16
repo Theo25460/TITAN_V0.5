@@ -185,7 +185,7 @@ test('public build excludes hidden image editor files and directories while pres
     'tools/build-public.mjs':readFileSync(new URL('../tools/build-public.mjs',import.meta.url),'utf8'),
     'index.html':'<h1>TITAN</h1>','sw.js':'const PRECACHE = [/* PRECACHE */];',
     'network-error.html':'offline','manifest.json':'{}','favicon.ico':'icon','image/logo-192.png':'logo',
-    'css/fonts/archivo-latin-variable.woff2':'font','css/fonts/manrope-latin-0.woff2':'font','css/fonts/manrope-latin-1.woff2':'font',
+    'css/fonts/archivo-latin-variable.woff2':'font',
     'js/vendor/qrcode-generator-1.4.4.js':'/* vendor fixture */',
     'js/core/gpx-worker.js':'/* worker fixture */',
     'image/boss/guardian.webp':'real-image', 'image/boss/plain.png':'real-png',

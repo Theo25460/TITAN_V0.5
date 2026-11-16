@@ -126,8 +126,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${SITE}/image/og-titan.jpg">
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/css/fonts/manrope-latin-1.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=300.10"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.8" : "300.7"}">${styles.map(h => `<link rel="stylesheet" href="${h}">`).join("")}
+<link rel="stylesheet" href="/css/ascension.css?v=300.11"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.10" : "300.9"}">${styles.map(h => `<link rel="stylesheet" href="${h}">`).join("")}
 <script src="/js/pwa.js?v=${V}" defer></script>${scripts.map(h => `\n<script src="${h}" defer></script>`).join("")}${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>

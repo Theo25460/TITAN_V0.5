@@ -33,8 +33,8 @@
   --accent-glow: rgba(126, 220, 255, 0.2);
   --text-main: var(--titan-text);
   --text-muted: var(--titan-muted);
-  --font-ui: "Manrope", "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-display: "Manrope", "Segoe UI", sans-serif;
+  --font-ui: "Archivo", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-display: "Archivo", "Segoe UI", sans-serif;
 }
 
 html {

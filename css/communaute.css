@@ -10,13 +10,13 @@
   grid-template-rows: auto 1fr auto;
   gap: var(--s2);
   padding: var(--s4);
-  border: 1px solid var(--line-2);
+  border: 0;
   border-radius: var(--r3);
-  background: var(--bg-1);
+  background: var(--bg-2);
   min-width: 0;
 }
 .cm-entry:hover {
-  border-color: var(--cy-line);
+  border-color: var(--space-line);
   background: var(--bg-2);
 }
 .cm-entry-title {
@@ -26,7 +26,7 @@
   font-size: 16px;
 }
 .cm-entry-title > .t-icon:first-child {
-  color: var(--cy);
+  color: var(--space);
   width: 19px;
   height: 19px;
   flex: none;
@@ -50,7 +50,7 @@
   font-weight: 700;
 }
 .cm-attention {
-  color: var(--cy-2);
+  color: var(--space-hi);
 }
 .cm-layout {
   display: grid;
@@ -66,8 +66,6 @@
   margin-bottom: var(--s4);
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--tx-2);
 }
 .cm-section {
@@ -91,9 +89,9 @@
 .cm-circle > .cm-section,
 .cm-teams > .cm-section {
   padding: var(--s4);
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: var(--r3);
-  background: var(--bg-1);
+  background: var(--bg-2);
 }
 .cm-team-label {
   margin-top: var(--s7);
@@ -121,7 +119,7 @@
 .cm-requests h3 {
   margin-bottom: var(--s2);
   font-size: 15px;
-  color: var(--cy-2);
+  color: var(--space-hi);
 }
 .cm-request {
   flex-wrap: wrap;
@@ -158,7 +156,7 @@
   align-items: start;
 }
 .cm-preview .t-icon {
-  color: var(--cy);
+  color: var(--space);
   flex: none;
   margin-top: 2px;
 }

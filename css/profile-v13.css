@@ -29,17 +29,17 @@
   flex-direction: column-reverse;
   gap: .4rem;
   padding: 1rem;
-  border: 1px solid var(--line);
-  background: var(--bg-2);
-  border-radius: 16px;
+  border: 0;
+  background: var(--bg-3);
+  border-radius: var(--r3);
   min-width: 0;
 }
 #profil .pf-passport-stats dt { color: var(--tx-2); font-size: .8125rem; overflow-wrap: anywhere; }
-#profil .pf-passport-stats dd { margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: var(--tx); overflow-wrap: anywhere; }
+#profil .pf-passport-stats dd { margin: 0; font-family: var(--font-display); font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.5rem; color: var(--tx); overflow-wrap: anywhere; }
 #profil .pf-sport-passport, #profil .pf-passport-group {
-  border: 1px solid var(--line);
-  background: var(--bg-2);
-  border-radius: 18px;
+  border: 0;
+  background: var(--bg-3);
+  border-radius: var(--r3);
   min-width: 0;
 }
 #profil .pf-sport-passport, #profil .pf-passport-group > summary {
@@ -50,14 +50,14 @@
   min-height: 80px;
 }
 #profil .pf-sport-passport { text-decoration: none; }
-#profil .pf-sport-passport > svg { flex: 0 0 24px; color: var(--cy); }
+#profil .pf-sport-passport > svg { flex: 0 0 24px; color: var(--space); }
 #profil .pf-sport-passport > span, #profil .pf-passport-group > summary > span { display: grid; gap: .4rem; flex: 1; min-width: 0; }
-#profil .pf-sport-passport strong { font-family: var(--font-display); font-size: 1.25rem; color: var(--tx); }
+#profil .pf-sport-passport strong { font-family: var(--font-display); font-stretch: var(--w-title); font-size: 1.25rem; color: var(--tx); }
 #profil .pf-passport-group > summary { cursor: pointer; list-style: none; }
 #profil .pf-passport-group > summary::-webkit-details-marker { display: none; }
 #profil .pf-passport-group > summary strong { font-size: 1.125rem; color: var(--tx); }
 #profil .pf-passport-group > summary small, #profil .pf-sport-passport small { color: var(--tx-2); }
-#profil .pf-passport-group > summary > svg { flex: 0 0 20px; color: var(--cy); transform: rotate(90deg); }
+#profil .pf-passport-group > summary > svg { flex: 0 0 20px; color: var(--space); transform: rotate(90deg); }
 #profil .pf-passport-group[open] > summary > svg { transform: rotate(-90deg); }
 #profil .pf-group-body { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--line); }
 #profil .pf-group-body .asc-section { margin: 1.25rem 0 0; }
@@ -69,7 +69,7 @@
 #profil .pf-inline, #profil .pf-target, #profil .asc-section-head { flex-wrap: wrap; }
 #profil .pf-inline .asc-input { flex: 1 1 180px; min-width: 0; }
 #profil .pf-target button { min-width: 48px; }
-#profil summary:focus-visible, #profil .pf-sport-passport:focus-visible { outline: 2px solid var(--cy); outline-offset: 4px; }
+#profil summary:focus-visible, #profil .pf-sport-passport:focus-visible { outline: 2px solid var(--space); outline-offset: 4px; }
 #profil .asc-eyebrow, #profil .pf-toggle small, #profil .pf-avatar-pick small { font-size: .75rem; }
 #profil .asc-small, #profil small, #profil .asc-row-sub { font-size: .8125rem; }
 #profil .asc-btn, #profil input, #profil select, #profil .asc-field, #profil .pf-avatar-pick strong,

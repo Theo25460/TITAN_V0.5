@@ -123,7 +123,7 @@ doc({
 <p><strong>Statut</strong> : projet étudiant en version publique. L’adresse postale, le numéro d’immatriculation et, le cas échéant, les informations TVA seront publiés ici dès qu’une structure juridique portera le service.</p>
 <h2>Hébergement et prestataires</h2><ul><li><strong>Site</strong> : Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis — netlify.com</li><li><strong>Comptes et données</strong> : Supabase, Inc. — supabase.com</li><li><strong>Paiement des abonnements (TITAN+, Coach, Coach Ultra)</strong> : Google Play, dans l’application Android uniquement. TITAN ne collecte pas les numéros de carte bancaire. Le fournisseur de paiement historique reste intégré pour les droits existants, sans nouvelle vente web. Voir les <a href="/legal_cgu">conditions d’utilisation</a> pour la gestion et les remboursements.</li><li><strong>Publicité, mesure d’audience et e-mails</strong> : Google AdMob (application Android gratuite), Google Analytics 4 (facultatif, après ton accord) et Resend (réponses de l’assistance). Le détail figure dans la politique de confidentialité, § 7.</li></ul>
 <h2>Propriété intellectuelle</h2><p>Le code, les textes, les règles de progression, les mondes, gardiens et personnages, ainsi que l’identité visuelle de TITAN, sont protégés. Certains éléments de code, de texte et d’illustration ont été produits avec l’assistance d’outils d’intelligence artificielle ; l’équipe reste responsable de leur choix, de leur vérification et de leur publication. Toute reproduction non autorisée est interdite.</p>
-<h2>Composants libres</h2><ul><li>Archivo et Manrope — polices sous licence SIL Open Font License, hébergées par TITAN.</li><li>supabase-js — licence MIT.</li><li>qrcode-generator (Kazuhiko Arase) — licence MIT.</li></ul>
+<h2>Composants libres</h2><ul><li>Archivo — police sous licence SIL Open Font License, hébergée par TITAN.</li><li>supabase-js — licence MIT.</li><li>qrcode-generator (Kazuhiko Arase) — licence MIT.</li></ul>
 <h2>Responsabilité</h2><p>TITAN est fourni en l’état. Les informations affichées sont des repères personnels, pas des avis médicaux ou professionnels. Chacun reste responsable de sa pratique sportive.</p>
 <h2>Données personnelles</h2><p>Voir la <a href="/legal_privacy">politique de confidentialité</a>. Contact RGPD : <a href="mailto:titanteam.app@gmail.com">titanteam.app@gmail.com</a>.</p>`,
 });
@@ -236,7 +236,7 @@ writeFileSync(
     description: "Assistance de TITAN, l’application de suivi sportif : connexion, séance en attente, XP, TITAN+, données, signalement. Trouve ta réponse ou écris à l’équipe.",
     image: "valley",
     schema: [help.schema],
-    styles: ["/css/assistance.css?v=300.3"],
+    styles: ["/css/assistance.css?v=302.0"],
     scripts: ["/js/app/analytics.js?v=300.5", "/js/app/assistance.js?v=300.2"],
     body: readFileSync(new URL("./content/service-main.tpl", import.meta.url), "utf8"),
   }),
