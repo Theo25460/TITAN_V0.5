@@ -29,7 +29,7 @@ if (!/^\d{14}$/.test(AFTER)) throw new Error("--after must be a 14-digit migrati
 export const EXPECTED = {
   before: { private: [86, "cc64c1801f5b", "37dc682f45a7"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
   productionBeforeD1: { private: [86, "cc64c1801f5b", "a8ec1799e8ca"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
-  after: { private: [90, "c69503b11b12", "afebddce1b88"], public: [293, "db4eeb91a3d2", "7df661985ca5"] },
+  after: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "7df661985ca5"] },
 };
 
 export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonctions,
@@ -101,8 +101,9 @@ export function build(after = AFTER) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { list, files } = build();
-  rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
+  // Only the generated SQL is replaced: the README beside it is written by hand.
+  for (const f of readdirSync(OUT)) if (f.endsWith(".sql")) rmSync(join(OUT, f));
   for (const [name, text] of Object.entries(files)) writeFileSync(join(OUT, name), text);
   console.log(`${list.length} migrations after ${AFTER} → ${OUT}`);
   for (const name of Object.keys(files)) console.log("  " + name);

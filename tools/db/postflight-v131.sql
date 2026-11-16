@@ -1,7 +1,7 @@
 -- Read-only. Run alongside postflight-v13.sql after the authorized migration window.
 -- Every row must be true before exposing the corresponding services.
 with versions(version) as (values
-  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000'), ('20261114170000'), ('20261114180000')
+  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000'), ('20261114170000'), ('20261114180000'), ('20261116100000')
 ), restricted(signature) as (values
   ('private.titan_coach_plan(uuid)'),
   ('private.titan_coach_capacity(uuid)'),
@@ -130,4 +130,22 @@ select 'import dedupe:a session saved now is matched by its end, empty search_pa
      and f.prosecdef and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
      and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
     from pg_proc f where f.oid = to_regprocedure('private.titan_import_core(uuid,text,text,text,timestamptz,numeric,numeric)')), false)
+union all
+-- 20261116100000 (D11, D8): start-up diagnostics capped per account and day and kept 90 days; avatars bucket bounded.
+select 'diagnostics:daily cap trigger, closed to API roles', exists (
+  select 1 from pg_trigger t join pg_proc f on f.oid = t.tgfoid
+   where t.tgrelid = to_regclass('public.titan_cache_reconciliation_reports') and t.tgname = 'titan_cache_reconciliation_daily_cap'
+     and t.tgenabled = 'O' and (t.tgtype & 2) = 2 and (t.tgtype & 4) = 4
+     and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
+     and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
+)
+union all
+select 'diagnostics:kept 90 days', exists (
+  select 1 from private.titan_retention_rules r where r.id = 'cache_reconciliation' and r.keep = interval '90 days'
+    and r.relation = 'public.titan_cache_reconciliation_reports'
+)
+union all
+select 'storage:avatars bucket limited to 2 MB images', coalesce((
+  select b.file_size_limit <= 2097152 and b.allowed_mime_types <@ array['image/png', 'image/jpeg', 'image/webp']
+    from storage.buckets b where b.id = 'avatars'), to_regclass('storage.buckets') is null)
 order by ok, "check";

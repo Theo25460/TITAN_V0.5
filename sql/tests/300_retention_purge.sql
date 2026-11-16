@@ -9,7 +9,7 @@ begin
 
   -- 1. The rules are exactly the ones the published matrix lists.
   select array_agg(id order by id) into ids from private.titan_retention_rules;
-  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_log','support_general','support_payment','support_rights','suspicious_actions','verification_requests'], 'rule ids: '||array_to_string(ids,',');
+  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','cache_reconciliation','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_log','support_general','support_payment','support_rights','suspicious_actions','verification_requests'], 'rule ids: '||array_to_string(ids,',');
   assert (select keep from private.titan_retention_rules where id='analytics')=interval '13 months' and (select keep from private.titan_retention_rules where id='support_general')=interval '6 months'
     and (select keep from private.titan_retention_rules where id='support_rights')=interval '12 months' and (select keep from private.titan_retention_rules where id='billing_events')=interval '13 months', 'documented durations';
 
