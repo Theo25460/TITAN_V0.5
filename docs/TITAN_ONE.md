@@ -5,8 +5,9 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 
 ## 0. Opération Masterpiece (16 novembre 2026, après-midi et soir) — état réel
 
-Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système, quand la refonte Web est intégrée). Captures :
-`docs/design/captures/android/` (simulation navigateur de l'application à 412 dp, **pas un téléphone**).
+Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système tel que construit, Android et Web). Captures :
+`docs/design/captures/android/` (simulation navigateur de l'application à 412 dp, **pas un téléphone**) et
+`docs/design/captures/web/` (Chromium sans écran, 390×844 et 1440×900, avant/après de sept pages).
 
 ### Ce qui est fait et poussé
 
@@ -15,6 +16,7 @@ Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système,
 | 1. Migrations v14 | Fichiers 01 à 07 **appliqués en production** (TITAN LIVE, calendrier des événements, défi par lien, semaine tenue, lettres à soi-même, import d'historique, chronique de guilde) | — | Registre de production : 128 migrations, dernière `20261117150000` |
 | 2. Système « Programme » | Une couleur franche par espace (citron Séance, azur Progrès, mousse Aventure, craie Profil, corail Communauté ; cyan = progression, ambre = records), Archivo seul en trois largeurs, cartes sans contour, sections sous filet, figure signature « le programme » (sports × jours) partagée Web/Android | `425047f` | `tests/program-grid.test.mjs` (8), Jest |
 | 3. Android | QG, Séance, Progrès, Aventure, Profil (raccourci), fin de séance recomposés ; visite guidée avant inscription (4 étapes, facultative, reprise, sans aucune écriture) | `425047f`, `a139220`, `a921cec`, `9d2c6b4` | Jest 941 tests / 105 suites ; 12 tests de la visite |
+| 4. Web | QG, Profil, Progrès, Séance, Aventure, Journal, Communauté recomposés sur téléphone et sur grand écran (deux colonnes au QG, identité en colonne fixe au Profil, journal en tableau, programme sur 26 semaines) ; les autres pages héritent du système ; Manrope retirée | `76d66a1` … `00c3e92` | `pnpm run verify` : 668 tests ; suite navigateur complète 1042/1042 (lancée sur `0f2278f` dans la copie de l'agent, avant le dernier commit qui n'ajoute qu'un test unitaire) |
 | 6. Cohérence | 9 contradictions corrigées entre textes et code (confidentialité v13, CGU v9, suppression v3, crédits de la semaine tenue, sièges coach, Garmin, publicité) ; test automatique | `c4cee5a` … `f0c62d0` | `tests/coherence-offers.test.mjs` (13, 17 mutations détectées) |
 
 ### Ce qui n'est pas fait
@@ -29,12 +31,15 @@ Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système,
   ou Légende, aucune illustration nouvelle. Rien n'a été remplacé par une icône générique.
 - **Publication** : rien n'est publié. La PR #149 n'est pas fusionnée, Netlify sert l'ancienne version, aucun envoi à Google Play.
 - **Appareil réel** : aucun écran n'a été vu sur un téléphone ; TalkBack non testé.
+- **Défauts Web connus** (détail dans `DESIGN.md`) : la barre haute du téléphone dépend de `:has()` et `color-mix()` ; la page
+  Aventure montre deux fois la même peinture (en-tête et carte) ; environ 80 petits libellés subsistent au-dessus des titres ;
+  largeurs 960–1099 px, texte à 200 %, survol et focus non capturés ; les pages publiques de présentation gardent leur composition.
 
 ### Les trois objectifs
 
 | Objectif | Statut | Pourquoi |
 |---|---|---|
-| A. Refonte visuelle et UX | ORANGE | Android refondu et testé ; Web : voir § Web ci-dessous ; aucune vérification sur appareil |
+| A. Refonte visuelle et UX | ORANGE | Android et Web refondus et testés ; aucune vérification sur appareil réel, ni Firefox ni Safari ; pages secondaires Web (Coaching, Objectifs, Défi, Recours, Atelier) non revues avec des données serveur ; rien n'est en ligne |
 | B. Illustrations et immersion | ROUGE | Trois blasons manquants, aucune illustration nouvelle faute de générateur |
 | C. Finalisation et publication | ORANGE | 7 migrations sur 9 appliquées ; CI « Qualite » verte sur `a139220` ; rien de publié |
 
