@@ -222,27 +222,23 @@ const helpFaq = [
   ["Comment corriger ou supprimer une séance ?", "Journal, puis la séance : « Modifier » ou « Archiver ». Les analyses et les records se mettent à jour ; l’XP n’est pas redonnée."],
   ["Comment installer TITAN sur mon téléphone ?", "Android (Chrome) : menu ⋮ puis « Installer l’application ». iPhone (Safari) : bouton Partager puis « Sur l’écran d’accueil »."],
   ["Comment exporter ou supprimer mes données ?", "Profil, section Compte et données : export JSON complet, export CSV du journal, suppression définitive du compte."],
-  ["Comment arrêter TITAN+ ?", "TITAN+ n’est pas encore en vente. À son ouverture, l’abonnement se gère dans Google Play ; l’accès reste actif jusqu’à la fin de la période payée."],
+  ["Comment arrêter TITAN+ ?", "L’abonnement se gère dans Google Play, avec le compte Google utilisé lors de l’achat : arrête le renouvellement dans tes abonnements Google Play ; l’accès reste actif jusqu’à la fin de la période payée. Tant que l’achat n’est pas ouvert dans l’application Android, TITAN+ n’est pas encore en vente et il n’y a rien à arrêter."],
   ["Quelqu’un me harcèle.", "Bloque la personne depuis Communauté (menu de l’ami), puis écris-nous avec le nom affiché et ce qui s’est passé."],
 ];
 const help = faq(helpFaq, "Les réponses rapides");
+// The help centre (categories, support form wired by js/app/assistance.js) is written in tools/content/service-main.tpl:
+// this generator only wraps it in the shared header, footer, metadata and FAQ schema, so a rebuild never reverts it.
 writeFileSync(
   "service.html",
   page({
     route: "/service",
-    title: "Aide et contact | TITAN",
-    description: "Synchronisation, connexion, XP, corrections, installation, export, TITAN+ et signalement : les réponses rapides et le contact de l’équipe TITAN.",
+    title: "Assistance TITAN : aide, connexion et contact — application de sport",
+    description: "Assistance de TITAN, l’application de suivi sportif : connexion, séance en attente, XP, TITAN+, données, signalement. Trouve ta réponse ou écris à l’équipe.",
     image: "valley",
     schema: [help.schema],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Aide</p><h1>On t’aide.</h1><p class="pub-lead">Les réponses aux questions les plus fréquentes. Pour tout le reste, une vraie personne te répond.</p>
-      <div class="pub-cta"><a class="asc-btn asc-btn-primary" href="mailto:${SUPPORT}">${icon("send")} Écrire à l’équipe</a><a class="asc-btn asc-btn-secondary" href="/debuter-titan">Bien démarrer</a></div></div></header>
-      ${help.html}
-      <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comprendre</p><h2>Les guides</h2></div>${cards([
-        ["compass", "Bien démarrer", "Ton premier jour en deux minutes.", "/debuter-titan"],
-        ["crown", "Les règles de progression", "XP, plafonds, rangs, maîtrise, cadence.", "/niveaux-et-xp"],
-        ["chart", "Comprendre mes données", "Mesures, records, limites des comparaisons.", "/comprendre-mes-donnees"],
-        ["lock", "Confidentialité", "Ce que nous traitons et tes droits.", "/legal_privacy"],
-      ], 4)}</div></section>`,
+    styles: ["/css/assistance.css?v=300.3"],
+    scripts: ["/js/app/analytics.js?v=300.5", "/js/app/assistance.js?v=300.2"],
+    body: readFileSync(new URL("./content/service-main.tpl", import.meta.url), "utf8"),
   }),
 );
 
