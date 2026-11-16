@@ -79,8 +79,13 @@ test("an unfindable profile is offered the switch first; cancelling sends nothin
   expect(share).not.toHaveBeenCalled();
   expect(mockSave).not.toHaveBeenCalled();
 
-  fireEvent.press(screen.getByTestId("share-friend-code"));
-  fireEvent.press(await screen.findByText("Rendre trouvable et partager", undefined, slow));
+  // The button stays locked until the question it opened is answered (V12-41), and « Annuler » answers one timer turn after the
+  // dialog left: a second press sent in that gap is swallowed as a double tap. Press like a person does, until the question shows.
+  await waitFor(() => {
+    if (!screen.queryByText("Rendre ton profil trouvable ?")) fireEvent.press(screen.getByTestId("share-friend-code"));
+    expect(screen.getByText("Rendre trouvable et partager")).toBeTruthy();
+  }, slow);
+  fireEvent.press(screen.getByText("Rendre trouvable et partager"));
   await waitFor(() => expect(share).toHaveBeenCalled(), slow);
   expect(mockSave).toHaveBeenCalledWith({ prefs: {}, privacy: { publicProfile: true, showStats: true, socialPresence: false, friendRankings: false } });
 });
