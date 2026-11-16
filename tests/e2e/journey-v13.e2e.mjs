@@ -65,6 +65,9 @@ test('campaign receipts restore the correct world and clear on account change', 
       window.TitanAdventure.snapshot = { ...previous, rewards: [
         { world: 'aube', chapter: 1, earned_at: '2026-11-05T12:00:00Z' },
       ] };
+      // Persist it where publish() does: a guest refresh during boot rebuilds the snapshot from this copy, so the receipt
+      // must survive it (it otherwise raced the injected in-memory value under load).
+      localStorage.setItem(`titan_adventure_v1:${previous.owner}`, JSON.stringify(window.TitanAdventure.snapshot));
       dispatchEvent(new Event('titan:adventure-updated'));
     });
     await story.getByText('Les lanternes du sentier', { exact: true }).waitFor();
