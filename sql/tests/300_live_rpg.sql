@@ -3,37 +3,41 @@
 begin;
 do $$declare a uuid:=gen_random_uuid(); b uuid:=gen_random_uuid(); c uuid:=gen_random_uuid();
  e1 uuid:=gen_random_uuid(); e2 uuid:=gen_random_uuid(); e3 uuid:=gen_random_uuid(); e4 uuid:=gen_random_uuid();
- e5 uuid:=gen_random_uuid(); e6 uuid:=gen_random_uuid(); e7 uuid:=gen_random_uuid(); e8 uuid:=gen_random_uuid(); held uuid; l4 uuid;
+ e5 uuid:=gen_random_uuid(); e6 uuid:=gen_random_uuid(); e7 uuid:=gen_random_uuid(); e8 uuid:=gen_random_uuid(); e9 uuid:=gen_random_uuid(); held uuid; l4 uuid;
  j jsonb:='{"v":1,"voie":"forge","intent":"depasser","activeMin":58,"beats":12,
    "missions":[{"id":"forge.plan"},{"id":"sentier.echo"},{"id":"forge.r_nope"},{"id":"forge.braise","declared":true},{"id":"forge.r_warmup_sets"},{"id":"forge.nettes"}]}';
 begin
  perform set_config('titan.live_a',a::text,true); perform set_config('titan.live_b',b::text,true); perform set_config('titan.live_c',c::text,true);
  perform set_config('titan.live_e1',e1::text,true); perform set_config('titan.live_e2',e2::text,true); perform set_config('titan.live_e3',e3::text,true);
  perform set_config('titan.live_e4',e4::text,true); perform set_config('titan.live_e5',e5::text,true); perform set_config('titan.live_e6',e6::text,true);
- perform set_config('titan.live_e7',e7::text,true); perform set_config('titan.live_e8',e8::text,true);
+ perform set_config('titan.live_e7',e7::text,true); perform set_config('titan.live_e8',e8::text,true); perform set_config('titan.live_e9',e9::text,true);
  insert into auth.users(id,raw_user_meta_data) values(a,'{}'),(b,'{}'),(c,'{}');
  set local session_replication_role=replica;
  insert into public.profiles(id,username,level,xp,credits,is_suspended) values(a,'qa_live_a',5,1000,100,false),(b,'qa_live_b',1,0,0,false),(c,'qa_live_c',1,0,0,true)
  on conflict(id) do update set level=excluded.level,xp=excluded.xp,credits=excluded.credits,is_suspended=excluded.is_suspended;
  -- e1: strength session, 60 effort-minutes, one valid report mission, one foreign mission, two declared missions.
  insert into public.training_logs(user_id,client_event_id,sport,category,val,unit,xp,date,created_at,details) values
- (a,e1,'muscu_gym','force',3000,'kg',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60),
+ (a,e1,'muscu_gym','force',3000,'kg',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60,'minutes',60),
    'extras',jsonb_build_object('warmup_sets',3),'live',j)),
  -- e2: same day, 60 more effort-minutes: only 30 essence left under the daily cap of 90.
- (a,e2,'muscu_gym','force',3000,'kg',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60),
+ (a,e2,'muscu_gym','force',3000,'kg',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60,'minutes',60),
    'extras',jsonb_build_object('warmup_sets',1),'live',j)),
  -- e3: inflated journal (500 active minutes for a 30-minute session): missions ignored, essence still from the server effort.
- (a,e3,'yoga','mobility',30,'min',300,now(),now(),jsonb_build_object('duration',30,'serverReward',true,'effort',jsonb_build_object('effort_minutes',30),
+ (a,e3,'yoga','mobility',30,'min',300,now(),now(),jsonb_build_object('duration',30,'serverReward',true,'effort',jsonb_build_object('effort_minutes',30,'minutes',30),
    'live','{"v":1,"voie":"sanctuaire","intent":"explorer","activeMin":500,"beats":5,"missions":[{"id":"sanctuaire.terrasses"}]}'::jsonb)),
  -- e8: two declared missions: only the first counts.
- (a,e8,'yoga','mobility',40,'min',400,now(),now(),jsonb_build_object('duration',40,'serverReward',true,'effort',jsonb_build_object('effort_minutes',40),
+ (a,e8,'yoga','mobility',40,'min',400,now(),now(),jsonb_build_object('duration',40,'serverReward',true,'effort',jsonb_build_object('effort_minutes',40,'minutes',40),
    'live','{"v":1,"voie":"sanctuaire","intent":"atteindre","activeMin":40,"beats":10,"missions":[{"id":"sanctuaire.souffle"},{"id":"sanctuaire.nouvelle"},{"id":"sanctuaire.terrasses"}]}'::jsonb)),
+ -- e9: forged journal on a session whose GPX moving time is "NaN": missions ignored, nothing inflated.
+ (a,e9,'running','cardio',5,'km',300,now(),now(),jsonb_build_object('duration',30,'serverReward',true,'gpxStats',jsonb_build_object('movingMinutes','NaN'),
+   'effort',jsonb_build_object('effort_minutes',30,'minutes',30),
+   'live','{"v":1,"voie":"sentier","intent":"atteindre","activeMin":600,"beats":10,"missions":[{"id":"sentier.cap_moitie"}]}'::jsonb)),
  -- e5: historical session (no server reward).
  (a,e5,'running','cardio',10,'km',0,now()-interval '40 days',now(),jsonb_build_object('duration',50,'historical',true,'serverReward',false,'live',j)),
  -- e6: suspicious session.
  (a,e6,'running','cardio',10,'km',500,now(),now(),jsonb_build_object('duration',50,'serverReward',true,'live','{"v":1,"voie":"sentier"}'::jsonb)),
  -- e7: a session of b.
- (b,e7,'tennis','racket',60,'min',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60),
+ (b,e7,'tennis','racket',60,'min',600,now(),now(),jsonb_build_object('duration',60,'serverReward',true,'effort',jsonb_build_object('effort_minutes',60,'minutes',60),
    'live','{"v":1,"voie":"joute","intent":"atteindre","activeMin":60,"beats":6,"missions":[]}'::jsonb));
  update public.training_logs set is_suspicious=true where client_event_id=e6;
  -- e4: held reward.
@@ -89,8 +93,11 @@ do $$declare r jsonb; r2 jsonb; w jsonb;begin
  assert (r->>'missionsIgnored')::boolean and r->'missions'='[]'::jsonb and (r->>'essenceAmount')::int=0, r::text;
  assert (r->>'eclats')::int in (10,13), r::text;
 
+ -- Fourth session of the day: essence still counted under the cap, but no éclats from base or missions.
  r:=public.titan_live_settle_v1(current_setting('titan.live_e8')::uuid);
- assert r->'missions'='["sanctuaire.souffle", "sanctuaire.terrasses"]'::jsonb, r::text;
+ assert r->'missions'='[]'::jsonb and (r->>'eclats')::int=0, r::text;
+ r:=public.titan_live_settle_v1(current_setting('titan.live_e9')::uuid);
+ assert (r->>'missionsIgnored')::boolean and r->'missions'='[]'::jsonb and (r->>'essenceAmount')::int=0, r::text;
  -- Held, historical and suspicious sessions are not settled.
  assert public.titan_live_settle_v1(current_setting('titan.live_e4')::uuid)->>'status'='held';
  assert public.titan_live_settle_v1(current_setting('titan.live_e5')::uuid)->>'status'='not_eligible';
@@ -107,7 +114,7 @@ do $$declare r jsonb; r2 jsonb; w jsonb;begin
  begin perform public.titan_live_build_v1('phare'); perform public.titan_live_build_v1('phare'); perform public.titan_live_build_v1('phare');
   raise exception 'phare without éclats'; exception when invalid_parameter_value then null; end;
  begin perform public.titan_live_build_v1('casino'); raise exception 'unknown building'; exception when invalid_parameter_value then null; end;
- assert (w->'voies'->'forge'->>'sessions')::int=2 and (w->>'days')::int=1 and (w->>'distinctVoies')::int=2, w::text;
+ assert (w->'voies'->'forge'->>'sessions')::int=2 and (w->>'days')::int=1 and (w->>'distinctVoies')::int=3, w::text;
  -- Nothing touched XP or credits.
  assert (select xp=1000 and credits=100 from public.profiles where id=auth.uid());
 end $$;
@@ -132,7 +139,7 @@ reset role;
 -- The export carries the live world; deleting the account removes it.
 do $$declare x jsonb;begin
  x:=private.titan_live_export_v1(current_setting('titan.live_a')::uuid);
- assert jsonb_array_length(x->'liveSettlements')=4 and jsonb_array_length(x->'liveBuildings')=1, x::text;
+ assert jsonb_array_length(x->'liveSettlements')=5 and jsonb_array_length(x->'liveBuildings')=1, x::text;
  delete from auth.users where id=current_setting('titan.live_a')::uuid;
  assert not exists(select 1 from private.titan_live_settlements where user_id=current_setting('titan.live_a')::uuid);
  assert not exists(select 1 from private.titan_live_wallets where user_id=current_setting('titan.live_a')::uuid);

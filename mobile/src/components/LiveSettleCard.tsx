@@ -36,7 +36,7 @@ export function LiveSettleCard({ owner, eventId, payload, confirmed }: { owner: 
           <T variant="h3">+{result!.essenceAmount} {LiveVoies.ESSENCES[result!.essence ?? ""]?.label ?? ""} · +{result!.eclats} éclats</T>
           {result!.missions?.length ? <T variant="small" tone="muted">{result!.missions.length} mission{result!.missions.length > 1 ? "s" : ""} vérifiée{result!.missions.length > 1 ? "s" : ""} par le serveur.</T> : null}
           {result!.missionsIgnored ? <T variant="small" tone="muted">Le journal ne correspondait pas à la séance enregistrée : seules les ressources d’effort comptent.</T> : null}
-          {result!.find ? <T variant="small" tone={result!.findNew ? "amber" : "muted"}>Trouvaille : {result!.find_name ?? LiveWorld.FINDS[result!.find.split(":")[0]]?.[Number(result!.find.split(":")[1])]?.[0]}{result!.findNew ? " (nouvelle)" : " (déjà dans ta collection, +3 éclats)"}</T> : null}
+          {result!.find ? <T variant="small" tone={result!.findNew ? "amber" : "muted"}>Trouvaille : {result!.findName ?? LiveWorld.FINDS[result!.find.split(":")[0]]?.[Number(result!.find.split(":")[1])]?.[0]}{result!.findNew ? " (nouvelle)" : " (déjà dans ta collection)"}</T> : null}
         </>
       )}
     </View>

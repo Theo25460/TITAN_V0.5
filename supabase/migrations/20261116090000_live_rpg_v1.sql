@@ -1,7 +1,8 @@
 -- TITAN LIVE v1: settles a live-session journal (training_logs.details.live) into cosmetic world progression
 -- (Camp de base, Marches, Chronicles, finds). Never XP, never credits, never an advantage. Gated by flag screens.live.
 -- Additive/replayable. Caller owns transaction. Rollback: drop the private.titan_live_* objects and the two public
--- wrappers. Players' XP, credits and sessions are never touched by this migration.
+-- wrappers. Players' XP, credits and sessions are never touched by this migration. A session excluded after its
+-- settlement keeps its cosmetic resources (nothing is clawed back, like the rest of TITAN).
 
 -- Catalogue mirrored from js/core/live-*.js (generated seed at the end, checked by tools/build-live-sql.mjs --check).
 create table if not exists private.titan_live_voies(
@@ -81,6 +82,14 @@ begin
 end $$;
 revoke all on function private.titan_live_hash(text) from public,anon,authenticated;
 
+-- A JSON number that is finite (NaN and ±Infinity are refused: they would defeat every comparison).
+create or replace function private.titan_live_num(p jsonb, p_key text)
+returns numeric language sql immutable set search_path='' as $$
+ select case when x is null or x::text in ('NaN','Infinity','-Infinity') then null else x end
+ from (select public.titan_numeric_from_json(p,p_key) x) v;
+$$;
+revoke all on function private.titan_live_num(jsonb,text) from public,anon,authenticated;
+
 create or replace function private.titan_live_enabled()
 returns boolean language sql stable security definer set search_path='' as $$
  select coalesce((public.titan_feature_flags_v1()->'flags'->>'screens.live')::boolean,false);
@@ -110,7 +119,8 @@ begin
  if found then return private.titan_live_result(v_set,true); end if;
  v_j:=v_log.details->'live';
  if v_j is null or jsonb_typeof(v_j)<>'object' or coalesce(v_j->>'v','')<>'1' then return jsonb_build_object('status','no_journal'); end if;
- if v_log.archived_at is not null or coalesce(v_log.is_suspicious,false) or coalesce(v_log.status,'valid') in('rejected','flagged','pending_review','suspicious')
+ if v_log.archived_at is not null or coalesce(v_log.is_suspicious,false)
+    or coalesce(v_log.status,'valid')<>'valid'
     or coalesce(v_log.details->>'historical','false')='true' or coalesce(v_log.details->>'serverReward','false')<>'true' then
   return jsonb_build_object('status','not_eligible');
  end if;
@@ -121,20 +131,22 @@ begin
  select s.voie,v.essence,v.family into v_voie,v_essence,v_family from private.titan_live_sports s join private.titan_live_voies v using(voie) where s.sport=v_log.sport;
  if v_voie is null then return jsonb_build_object('status','unknown_sport'); end if;
  v_intent:=case when v_j->>'intent' in('atteindre','depasser','explorer') then v_j->>'intent' else 'atteindre' end;
- v_effort:=least(1440,greatest(0,floor(coalesce(public.titan_numeric_from_json(v_log.details->'effort','effort_minutes'),0))))::integer;
+ v_effort:=least(1440,greatest(0,floor(coalesce(private.titan_live_num(v_log.details->'effort','effort_minutes'),0))))::integer;
  v_day:=(v_log.created_at at time zone 'Europe/Paris')::date;
  v_week:=date_trunc('week',v_day)::date;
  select coalesce(sum(essence_amount),0),count(*) into v_today,v_sessions from private.titan_live_settlements where user_id=v_uid and day=v_day;
  v_amount:=greatest(0,least(v_effort,90-v_today));
+ -- Éclats from the base, missions and finds only for the first two settlements of the day: many tiny sessions earn nothing more.
  if v_sessions<2 then v_eclats:=v_eclats+10; end if;
 
  -- Missions: the journal may only claim missions of its own Voie, plausible against the stored session.
- v_duration:=coalesce(public.titan_numeric_from_json(v_log.details->'gpxStats','movingMinutes'),public.titan_numeric_from_json(v_log.details,'val2'),
-  public.titan_numeric_from_json(v_log.details,'duration'),case when v_log.unit='min' then v_log.val end,0);
- v_active:=coalesce(public.titan_numeric_from_json(v_j,'activeMin'),0);
- v_beats:=coalesce(public.titan_numeric_from_json(v_j,'beats'),0);
- if coalesce(v_j->>'voie','')<>v_voie or v_active>v_duration*1.1+2 or v_beats>v_active*4+10 or v_beats<0 then v_ignored:=true; end if;
- if not v_ignored and least(v_active,v_duration)>=5 and jsonb_typeof(v_j->'missions')='array' then
+ -- Reference duration: the server's own stamp at submission (clamped 0..1440, never edited afterwards).
+ v_duration:=least(1440,greatest(0,coalesce(private.titan_live_num(v_log.details->'effort','minutes'),0)));
+ v_active:=private.titan_live_num(v_j,'activeMin');
+ v_beats:=private.titan_live_num(v_j,'beats');
+ if coalesce(v_j->>'voie','')<>v_voie or v_active is null or v_beats is null or v_active<0 or v_active>v_duration*1.1+2
+    or v_beats>v_active*4+10 or v_beats<0 then v_ignored:=true; end if;
+ if not v_ignored and v_sessions<2 and least(v_active,v_duration)>=5 and jsonb_typeof(v_j->'missions')='array' then
   for v_m in select value from jsonb_array_elements(v_j->'missions') with ordinality as e(value,n) order by n limit 6 loop
    exit when cardinality(v_missions)>=3;
    v_id:=v_m->>'id';
@@ -145,14 +157,14 @@ begin
    if v_rule.verify='declared' then
     v_ok:=v_declared<1; if v_ok then v_declared:=v_declared+1; end if;
    elsif v_rule.verify='report' then
-    v_val:=public.titan_numeric_from_json(v_log.details->'extras',v_rule.field);
+    v_val:=private.titan_live_num(v_log.details->'extras',v_rule.field);
     v_ok:=v_val is not null;
-    if v_ok and v_rule.requires is not null then v_ok:=public.titan_numeric_from_json(v_log.details->'extras',v_rule.requires) is not null; end if;
+    if v_ok and v_rule.requires is not null then v_ok:=private.titan_live_num(v_log.details->'extras',v_rule.requires) is not null; end if;
     if v_ok and v_rule.op='gte' then v_ok:=v_val>=v_rule.threshold; end if;
     if v_ok and v_rule.op='lte' then v_ok:=v_val<=v_rule.threshold; end if;
-    if v_ok and v_rule.op='per' then v_req:=public.titan_numeric_from_json(v_log.details->'extras',v_rule.per_field); v_ok:=v_req>0 and v_val<=v_req*v_rule.per_max; end if;
+    if v_ok and v_rule.op='per' then v_req:=private.titan_live_num(v_log.details->'extras',v_rule.per_field); v_ok:=coalesce(v_req>0 and v_val<=v_req*v_rule.per_max,false); end if;
    elsif v_rule.verify='log' then
-    if v_rule.field='elevationM' then v_ok:=coalesce(public.titan_numeric_from_json(v_log.details,'elevation'),0)>=coalesce(v_rule.threshold,1);
+    if v_rule.field='elevationM' then v_ok:=coalesce(private.titan_live_num(v_log.details,'elevation'),0)>=coalesce(v_rule.threshold,1);
     elsif v_rule.field='distanceM' then v_ok:=v_log.unit='km' and v_log.val*1000>=coalesce(v_rule.threshold,1);
     else v_ok:=v_duration>=coalesce(v_rule.threshold,5); end if;
    end if;
@@ -174,7 +186,7 @@ begin
    insert into private.titan_live_collection(user_id,find_key,log_id) values(v_uid,v_find,v_log.id) on conflict(user_id,find_key) do nothing;
    get diagnostics v_n=row_count;
    v_find_new:=v_n=1;
-   if not v_find_new then v_eclats:=v_eclats+3; end if;
+   if not v_find_new and v_sessions<2 then v_eclats:=v_eclats+3; end if;
   end if;
  end if;
 
@@ -191,10 +203,10 @@ begin
 end $$;
 
 create or replace function private.titan_live_result(s private.titan_live_settlements, p_replay boolean)
-returns jsonb language sql stable security definer set search_path='' as $$
+returns jsonb language sql stable security invoker set search_path='' as $$
  select jsonb_build_object('status','settled','replay',p_replay,'voie',s.voie,'essence',s.essence,'essenceAmount',s.essence_amount,
   'eclats',s.eclats,'missions',to_jsonb(s.missions),'missionsIgnored',s.missions_ignored,'find',s.find_key,'findNew',s.find_new,
-  'find_name',(select f.name from private.titan_live_finds f where s.find_key=f.voie||':'||f.idx));
+  'findName',(select f.name from private.titan_live_finds f where s.find_key=f.voie||':'||f.idx));
 $$;
 
 -- Raise a Camp building one level: its own essence first, universal éclats for the remainder.

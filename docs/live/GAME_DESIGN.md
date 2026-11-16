@@ -120,8 +120,8 @@ Un moteur **à règles**, pas une IA générative : instantané, hors ligne, gra
 - **Essence** de la famille de la Voie (Souffle, Acier, Prisme, Ardeur, Sève : les familles du TITAN DNA) :
   **1 par minute d'effort comptée par le serveur, 90 par jour au total**, tous sports confondus. Une heure de yoga vaut
   une heure de vélo ; un ultra ne vaut pas plus que 90 minutes.
-- **Éclats** (universels) : 10 pour les deux premières séances du jour, 5 par mission vérifiée (3 au plus, dont une
-  seule déclarée), 10 d'accomplissement si au moins une mission (identique pour les trois intentions), 10 d'**harmonie**
+- **Éclats** (universels), **uniquement pour les deux premières séances du jour** (au-delà, seule l'essence compte) :
+  10 de base, 5 par mission vérifiée (3 au plus, dont une seule déclarée), 10 d'accomplissement si au moins une mission (identique pour les trois intentions), 10 d'**harmonie**
   pour la première séance d'une famille dans la semaine, 3 pour une trouvaille déjà possédée. Plafond par séance : 48.
 
 ### Le Camp de base (QG interactif)
@@ -214,10 +214,14 @@ régularité.
 Le client ne décide de rien. `titan_live_settle_v1` :
 
 - lit la séance **stockée** (par `client_event_id`, propriétaire = `auth.uid()`), jamais un paramètre client ;
-- refuse les séances historiques, suspectes, archivées, rejetées ou sans récompense serveur ; diffère les séances
+- n'accepte que les séances au statut `valid` (liste blanche), non historiques, non suspectes, non archivées et
+  récompensées par le serveur ; diffère les séances
   retenues (`titan_reward_holds` « held ») ; ignore celles de plus de 3 jours ;
 - détermine la Voie depuis le sport (table seedée), pas depuis le journal ;
-- calcule l'essence depuis `details.effort.effort_minutes` (serveur) et le plafond journalier ;
+- calcule l'essence depuis `details.effort.effort_minutes` (serveur) et le plafond journalier ; ne donne d'éclats qu'aux
+  deux premières séances du jour ; refuse tout nombre non fini (NaN, ±Infinity) ;
+- compare le journal à la durée **tamponnée par le serveur** à l'envoi (`details.effort.minutes`), jamais à un champ
+  modifiable par le client ;
 - ne retient que les missions de la bonne Voie, connues de la table seedée, dans la limite de trois et d'une seule
   déclarée ; vérifie les missions de rapport dans `details.extras` et les missions de journal contre la durée, la
   distance et le dénivelé stockés ; ignore toutes les missions d'un journal invraisemblable (temps actif > durée × 1,1 +

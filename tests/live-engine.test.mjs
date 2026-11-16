@@ -316,3 +316,10 @@ test("performance: one step stays cheap on a loaded session and the saved state 
   assert.ok(perStep < 5, `${perStep.toFixed(2)} ms per step`);
   assert.ok(JSON.stringify(s).length < 120000, `${JSON.stringify(s).length} bytes saved`);
 });
+
+test("many tiny sessions in a day earn no extra éclats: base, missions and finds count for the first two only", () => {
+  const j = { voie: "forge", intent: "atteindre", seed: "s", beats: 6, activeMin: 6, missions: [{ id: "forge.plan" }, { id: "forge.nettes" }] };
+  const third = World.settlePreview(j, { effortMinutes: 6, essenceToday: 12, sessionsToday: 2, familySettledThisWeek: true, ownedFinds: [] });
+  assert.equal(third.eclats, 0);
+  assert.equal(third.essenceAmount, 6, "effort still counts under the daily cap");
+});

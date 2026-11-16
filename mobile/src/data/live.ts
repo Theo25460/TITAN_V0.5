@@ -19,7 +19,7 @@ export type LiveWorldSnapshot = {
 export type LiveSettlement = {
   status: "settled" | "held" | "no_journal" | "not_eligible" | "too_late" | "unknown_sport";
   replay?: boolean; voie?: string; essence?: string; essenceAmount?: number; eclats?: number; missions?: string[];
-  missionsIgnored?: boolean; find?: string | null; findNew?: boolean; find_name?: string | null;
+  missionsIgnored?: boolean; find?: string | null; findNew?: boolean; findName?: string | null;
 };
 
 type Stored = { state: LiveState; savedAt: number } | null;

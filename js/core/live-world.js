@@ -38,14 +38,16 @@
     const missions = verifiedMissions(journal, ctx.extras);
     let eclats = 0;
     const lines = [];
-    if ((ctx.sessionsToday || 0) < RULE.baseSessionsPerDay) { eclats += RULE.baseEclats; lines.push({ id: "base", eclats: RULE.baseEclats }); }
-    if (missions.length) {
+    // Éclats from the base, missions and finds only for the first two settlements of a day: many tiny sessions earn nothing.
+    const counted = (ctx.sessionsToday || 0) < RULE.baseSessionsPerDay;
+    if (counted) { eclats += RULE.baseEclats; lines.push({ id: "base", eclats: RULE.baseEclats }); }
+    if (counted && missions.length) {
       eclats += missions.length * RULE.missionEclats; lines.push({ id: "missions", eclats: missions.length * RULE.missionEclats });
       eclats += RULE.accomplishmentEclats; lines.push({ id: voies.INTENTS[journal.intent]?.rewardLabel || "Accompli", eclats: RULE.accomplishmentEclats });
     }
     if (!ctx.familySettledThisWeek) { eclats += RULE.harmonyEclats; lines.push({ id: "harmonie", eclats: RULE.harmonyEclats }); }
     const find = findOf(journal);
-    if (find && (ctx.ownedFinds || []).includes(find.key)) { eclats += RULE.duplicateFindEclats; lines.push({ id: "doublon", eclats: RULE.duplicateFindEclats }); }
+    if (counted && find && (ctx.ownedFinds || []).includes(find.key)) { eclats += RULE.duplicateFindEclats; lines.push({ id: "doublon", eclats: RULE.duplicateFindEclats }); }
     return { ok: true, essence, essenceAmount, eclats, missions: missions.map((x) => x.id), find, lines };
   }
 
