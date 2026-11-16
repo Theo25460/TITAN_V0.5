@@ -1,5 +1,11 @@
 # Paquet de production V1.3.1 (généré)
 
+> **Appliqué en production le 16 novembre 2026**, fichiers `01` à `10` dans l'ordre, chacun confirmé par le propriétaire. Après
+> application : empreinte des fonctions identique à la réplique (`private 91 bae05c10ca57 d52d12beba17`,
+> `public 293 db4eeb91a3d2 8f112d92ff21`), registre `20261110140000` → `20261116110000`, postflight V1.3.1 54/54 et V1.3 42/42 vrais,
+> empreintes des comptes, profils, journal, aventure et consentements inchangées. Le seul conseiller de sécurité restant à traiter
+> est la protection des mots de passe compromis (tableau de bord).
+
 Généré par `node tools/db/build-production-bundle.mjs` depuis `supabase/migrations/`. **Ne pas modifier à la main** : le test
 `tests/production-bundle.test.mjs` échoue si un fichier diffère de sa source. Régénérer après tout changement de migration.
 

@@ -14,7 +14,7 @@ changé depuis, ce qui a été prouvé aujourd'hui et par quoi reprendre. Aucun 
 | `2ebe2dc` | Test E2E `journey-v13` stabilisé : le reçu injecté passe par la copie locale que l'application relit (course sous charge, 1 033/1 034) | 40 exécutions du fichier sous charge CPU, 0 échec ; assertions inchangées |
 | `c465054` | Android : 6 modules natifs Expo alignés sur la table d'Expo 57.0.32 (dont `expo-location` et `expo-task-manager`, utilisés par le GPS) | Contrôle hors ligne contre `expo/bundledNativeModules.json` : 31 modules, 0 écart ; typage et 808 tests Jest |
 
-Les deux nouvelles migrations (`20261116100000`, `20261116110000`) **ne sont pas appliquées en production**.
+**Mise à jour, phase 2** : les 10 fichiers du paquet ont été appliqués en production le 16 novembre (voir `supabase/release-v131/README.md` pour les preuves : empreinte identique à la réplique, postflights 54/54 et 42/42, données inchangées). La faille d'amitié forcée est fermée en production.
 
 ## 2. Production observée aujourd'hui (lecture seule)
 
