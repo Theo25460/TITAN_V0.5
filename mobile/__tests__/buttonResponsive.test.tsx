@@ -8,7 +8,11 @@ import { TOUCH } from "../src/theme/tokens";
 describe("Android button sizing on compact screens", () => {
   test.each([true, false])("small=%s stays tappable and keeps explanatory labels", (small) => {
     const label = "Synchroniser mes pas avec Santé Connect";
+    // React Native's Jest preset reports fontScale 2: this case is the default system text size, so it says so.
+    const dims = require("react-native/Libraries/Utilities/useWindowDimensions");
+    const spy = jest.spyOn(dims, "default").mockReturnValue({ width: 360, height: 740, scale: 3, fontScale: 1 });
     render(<Button label={label} small={small} onPress={jest.fn()} />);
+    spy.mockRestore();
 
     const control = screen.getByRole("button", { name: label });
     // Tap passes a pressed-state style callback through to React Native's Pressable.
@@ -16,6 +20,15 @@ describe("Android button sizing on compact screens", () => {
     const style = StyleSheet.flatten(typeof rawStyle === "function" ? rawStyle({ pressed: false }) : rawStyle);
     expect(style.minHeight).toBeGreaterThanOrEqual(TOUCH);
     expect(screen.getByText(label).props.numberOfLines).toBe(2);
+  });
+
+  test.each([1.5, 2])("at a system text size of %s× the label is never cut (A22)", (fontScale) => {
+    const dims = require("react-native/Libraries/Utilities/useWindowDimensions");
+    const spy = jest.spyOn(dims, "default").mockReturnValue({ width: 360, height: 740, scale: 3, fontScale });
+    const label = "Exporter le parcours en attente";
+    render(<Button label={label} small onPress={jest.fn()} />);
+    expect(screen.getByText(label).props.numberOfLines).toBeUndefined();
+    spy.mockRestore();
   });
 });
 
