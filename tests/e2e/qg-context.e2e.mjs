@@ -67,7 +67,10 @@ test('QG recovers an owner-scoped draft as its only primary action', async () =>
   assert.equal(await hero.count(),1);
   assert.equal(await hero.getAttribute('href'),'/training?sport=yoga');
   const nav=page.getByRole('navigation',{name:'Raccourcis du QG'});
-  for(const [name,href] of [['Sport','/training'],['Aventure','/adventure'],['Progrès','/stats']]) {
+  // « Programme » (16/11/2026): the navigation already reaches Séance, Aventure and Progrès from every page; the QG shows the two
+  // places it does not, as two doors.
+  assert.equal(await nav.getByRole('link').count(),2);
+  for(const [name,href] of [['Ma communauté','/social'],['Prévoir ma semaine','/prevoir']]) {
    assert.equal(await nav.getByRole('link',{name}).getAttribute('href'),href);
   }
   await page.evaluate(()=>window.qgSwitch());

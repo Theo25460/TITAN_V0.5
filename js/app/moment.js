@@ -291,8 +291,11 @@
         window.TitanAdventure?.refresh?.({ force: true });
       }
     }
+    const openedAt = performance.now();
     body.addEventListener("click", (e) => {
       if (!live()) { if (dialog.open) dialog.close(); return; }
+      // The sheet opens under the pointer that just saved: the second click of a double click on « Enregistrer » is not a choice made here.
+      if (e.detail > 1 && performance.now() - openedAt < 700) return;
       if (e.target.closest("[data-moment='done']")) dialog.close();
       if (e.target.closest("[data-moment='share']")) {
         const l = current(log);
