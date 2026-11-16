@@ -1331,20 +1331,47 @@
 .wk-main {
   --content: 1200px;
 }
+/* The week of the recap: what it says on the left, its programme and its minutes per day on the right. On the ground, no card. */
 .wk-hero {
   display: grid;
+  gap: var(--s6);
+  min-width: 0;
+}
+.wk-hero-copy,
+.wk-hero-figure {
+  display: grid;
   gap: var(--s3);
+  align-content: start;
+  min-width: 0;
+}
+.wk-hero-figure .asc-btn {
+  justify-self: start;
+}
+.wk-hero-copy > .asc-btn {
+  justify-self: start;
+  margin-left: calc(-1 * var(--s3));
 }
 .wk-nav {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
-  gap: var(--s2);
-  text-align: center;
-  margin-bottom: var(--s2);
+  gap: var(--s1) var(--s2);
+  margin: 0 0 var(--s2) calc(-1 * var(--s3));
+}
+.wk-nav > div {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+}
+.wk-nav > #wk-next {
+  grid-column: 2;
+  grid-row: 1;
+}
+.wk-nav .asc-eyebrow {
+  font-size: 15px;
 }
 .wk-title {
-  font-size: clamp(28px, 6vw, 44px);
+  font-size: clamp(30px, 7vw, 48px);
   font-stretch: var(--w-title);
   line-height: 1;
   max-width: 20ch;
@@ -1352,31 +1379,45 @@
 .wk-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s3);
+  gap: var(--s3) var(--s5);
   margin: var(--s3) 0 0;
 }
+.wk-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
 .wk-stats dt {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--tx-3);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-2);
 }
 .wk-stats dd {
-  margin: 2px 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-stretch: var(--w-figure); font-variant-numeric: tabular-nums;
   font-weight: 700;
-  font-size: clamp(26px, 6vw, 36px);
-  line-height: 1.05;
+  font-size: clamp(30px, 7vw, 40px);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wk-hero .wk-stats dd {
+  font-weight: 300;
+  font-size: clamp(48px, 13vw, 76px);
+  line-height: 0.92;
 }
 .wk-stats dd small {
-  font-size: 0.55em;
-  color: var(--tx-3);
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--tx-2);
 }
 .wk-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-top: var(--s3);
+  gap: 4px;
+  margin-top: var(--s2);
 }
 .wk-day {
   display: grid;
@@ -1385,8 +1426,8 @@
 }
 .wk-bar {
   width: 100%;
-  height: 72px;
-  border-radius: 8px;
+  height: 56px;
+  border-radius: 2px;
   background: var(--bg-2);
   display: flex;
   align-items: flex-end;
@@ -1397,7 +1438,43 @@
   height: var(--h);
   min-height: 0;
   background: var(--space);
-  border-radius: 8px 8px 0 0;
+}
+/* The same seven columns under the programme: the minutes of each day line up with its cells. */
+.wk-hero-figure .wk-days {
+  margin-left: calc(47% + var(--s3));
+}
+.wk-cols {
+  display: grid;
+  min-width: 0;
+}
+.wk-cols > * {
+  min-width: 0;
+}
+.wk-program-wide {
+  display: none;
+}
+@media (min-width: 720px) {
+  .wk-hero-figure .wk-days {
+    margin-left: calc(230px + var(--s4));
+  }
+}
+@media (min-width: 1100px) {
+  .wk-hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    column-gap: var(--s9);
+    align-items: start;
+  }
+  .wk-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--s9);
+    align-items: start;
+  }
+  .wk-program-wide {
+    display: revert;
+  }
+  .wk-program-narrow {
+    display: none;
+  }
 }
 .wk-bar > span[data-on="true"] {
   min-height: 6px;
@@ -1416,31 +1493,52 @@
 }
 .asc-row-icon.am {
   color: var(--am);
-  border-color: var(--am-line);
-  background: var(--am-soft);
 }
 .asc-row-icon[data-family] {
   color: var(--fam-color);
 }
+/* The answers side by side: each one under its hairline, no card. */
 .wk-questions {
   display: grid;
-  gap: var(--s4);
+  gap: 0 var(--s8);
 }
 @media (min-width: 860px) {
   .wk-questions {
     grid-template-columns: 1fr 1fr;
   }
 }
+@media (min-width: 1280px) {
+  .wk-questions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .wk-q {
   display: grid;
   gap: var(--s3);
   align-content: start;
-  padding: var(--s5);
-  border-radius: 0;
-  border: 0; border-top: 1px solid var(--line-2);
-  background: transparent; padding-left: 0; padding-right: 0; }
+  padding: var(--s4) 0 var(--s6);
+  border-top: 1px solid var(--line-2);
+  min-width: 0;
+}
+.wk-questions > .wk-q:first-child,
+.asc-section-head + .wk-questions > .wk-q:nth-child(-n + 1) {
+  border-top: 0;
+  padding-top: 0;
+}
+@media (min-width: 860px) {
+  .asc-section-head + .wk-questions > .wk-q:nth-child(-n + 2) {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+@media (min-width: 1280px) {
+  .asc-section-head + .wk-questions > .wk-q:nth-child(-n + 3) {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
 .wk-q h3 {
-  font-size: 17px;
+  font-size: 19px;
   font-stretch: var(--w-title);
 }
 .wk-answer {
@@ -1471,7 +1569,7 @@
   align-self: end;
   height: var(--h);
   min-height: 2px;
-  border-radius: 5px 5px 2px 2px;
+  border-radius: 2px;
   background: var(--bg-4);
 }
 .wk-col.is-last .wk-col-bar {
@@ -1490,7 +1588,7 @@
 .wk-stack {
   display: flex;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 2px;
   overflow: hidden;
   background: var(--bg-2);
   gap: 2px;
@@ -1516,7 +1614,7 @@
 .wk-legend i {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 2px;
   background: var(--fam-color, var(--cy));
 }
 .wk-top {
@@ -1532,7 +1630,7 @@
   justify-content: space-between;
   gap: var(--s3);
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
 }
 .wk-grades {
   display: flex;

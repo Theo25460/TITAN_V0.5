@@ -85,7 +85,13 @@
     const w = r.week;
     const max = firstWeekOffset();
     const range = offset === 0 ? "Cette semaine" : offset === 1 ? "La semaine dernière" : `Semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
-    return `<section class="asc-hero wk-hero" aria-labelledby="wk-title">
+    // The week of the recap carries its programme: sports × days, the usual week as dashed frames while the week is running.
+    const V = window.TitanProgramView;
+    const active = P().activeLogs(logs());
+    const grid = V && window.TitanProgram && active.length
+      ? V.week(active, { now: new Date(), start: r.from, plan: offset === 0 && D().plan ? D().plan().map((p) => p.sport) : null }) : null;
+    return `<section class="wk-hero" aria-labelledby="wk-title">
+      <div class="wk-hero-copy">
       <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-previous" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
         <div><p class="asc-eyebrow cy">${esc(range)}</p><p class="asc-small asc-muted">${esc(r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} – ${esc(r.to.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p></div>
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-next" data-week="${offset - 1}" aria-label="Semaine suivante" ${offset === 0 ? "disabled" : ""}>${icon("chevron")}</button></div>
@@ -99,9 +105,42 @@
         <div><dt>Temps</dt><dd class="asc-num">${w.minutes ? esc(F().duration(w.minutes)) : "—"}</dd></div>
         ${w.distance ? `<div><dt>Distance</dt><dd class="asc-num">${esc(F().distance(w.distance))}</dd></div>` : `<div><dt>Séances</dt><dd class="asc-num">${w.sessions}</dd></div>`}
       </dl>
+      </div>
+      <div class="wk-hero-figure">
+      ${grid ? V.html(grid, { label: offset === 0 ? "Programme de la semaine" : `Programme de la semaine du ${r.from.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` }) : ""}
       ${dayStrip(r)}
       ${w.estimatedMinutes ? `<p class="asc-small asc-faint">Dont ${esc(F().duration(w.estimatedMinutes))} estimées pour des séances sans durée.</p>` : ""}
       ${w.sessions && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm wk-card" data-week-card>${icon("share")} Image de ma semaine</button>` : ""}
+      </div>
+    </section>`;
+  }
+
+  /* The last thirty days in three figures, on the azure field of the space (the same three as the Android header). */
+  function fieldFigures() {
+    const host = document.getElementById("wk-field");
+    if (!host) return;
+    const since = Date.now() - 30 * 86400000;
+    const recent = P().activeLogs(logs()).filter((l) => new Date(l.date).getTime() >= since);
+    if (!recent.length) { host.innerHTML = ""; host.hidden = true; return; }
+    const minutes = recent.reduce((sum, l) => sum + (P().minutesOf(l).minutes || 0), 0);
+    const days = new Set(recent.map((l) => F().dateKey(l.date))).size;
+    host.hidden = false;
+    host.innerHTML = `<div><dd>${recent.length}</dd><dt>séance${recent.length > 1 ? "s" : ""} en 30 jours</dt></div>
+      <div><dd>${esc(F().hours ? F().hours(minutes) : F().duration(minutes))}</dd><dt>de pratique</dt></div>
+      <div><dd>${days}</dd><dt>jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""}</dt></div>`;
+  }
+
+  /* The practice over a period, as a programme: sports × weeks. Twelve weeks on a phone, twenty-six where the screen has the width. */
+  function programHtml() {
+    const V = window.TitanProgramView;
+    const active = P().activeLogs(logs());
+    if (!V || !window.TitanProgram || !active.length) return "";
+    const wide = V.span(active, { weeks: 26, maxRows: 6 });
+    const narrow = V.span(active, { weeks: 12, maxRows: 5 });
+    return `<section class="asc-section wk-program" aria-labelledby="wk-program-title">
+      <div class="asc-section-head"><h2 id="wk-program-title">Mon programme</h2><span class="asc-small asc-muted"><span class="wk-program-wide">26 semaines</span><span class="wk-program-narrow">12 semaines</span></span></div>
+      <div class="wk-program-wide">${V.html(wide, { label: "Mon programme des 26 dernières semaines" })}${V.legend(wide)}</div>
+      <div class="wk-program-narrow">${V.html(narrow, { label: "Mon programme des 12 dernières semaines" })}${V.legend(narrow)}</div>
     </section>`;
   }
 
@@ -300,8 +339,14 @@
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
-    root.innerHTML = `${heroHtml(r)}${weekHtml()}${highlightsHtml(r)}${periodHtml("month")}${window.TitanStepsCard?.monthHtml?.() || ""}${periodHtml("year")}
-      ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}`;
+    fieldFigures();
+    // The week and its programme, then the practice over the period, then the answers side by side, then the month and the year.
+    root.innerHTML = `${heroHtml(r)}
+      ${programHtml()}
+      <div class="wk-cols">${weekHtml()}${highlightsHtml(r)}</div>
+      ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}
+      <div class="wk-cols wk-periods">${periodHtml("month")}${periodHtml("year")}</div>
+      ${window.TitanStepsCard?.monthHtml?.() || ""}`;
     root.setAttribute("aria-busy", "false");
     if (focusId) {
       const target = document.getElementById(focusId);

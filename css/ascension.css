@@ -689,6 +689,47 @@ body.asc {
   background: var(--space-ink);
   color: var(--space);
 }
+/* Figures set on a field: the number in the field's ink, its label under it. */
+.asc-field-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  gap: var(--s3) var(--s7);
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.asc-field-figures > div {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+.asc-field-figures dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--space-ink);
+}
+.asc-field-figures dt {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--space-ink) 82%, transparent);
+}
+@media (max-width: 719px) {
+  .asc-field-figures {
+    flex-basis: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s3);
+  }
+  .asc-field-figures dd {
+    font-size: 38px;
+  }
+}
 /* The top row of a phone takes the ink of what it sits on. */
 body.asc {
   --head-ink: var(--space-ink);

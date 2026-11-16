@@ -57,14 +57,45 @@
     const u = window.shellUser?.() || window.titanShell?.user?.() || {};
     const next = pr.nextRank;
     const pct = Math.round(Math.min(1, pr.xp / Math.max(1, pr.next)) * 100);
-    return `<section class="asc-hero pf-hero">
+    // Who I am, on the chalk field of this space: the face, the name, the rank and its crest, and the XP towards the next level.
+    return `<section class="pf-hero asc-on-field" aria-label="Mon identité">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
-        <div class="pf-id-main"><p class="asc-eyebrow">Mon passeport TITAN</p><p class="asc-eyebrow cy">${esc(pr.rank.name)}</p><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small asc-muted">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div></div>
-      <div class="pf-level">${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}<div class="pf-level-main"><div class="asc-between"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span>${pr.guest || pr.confirmed ? `<span class="asc-small asc-muted asc-num">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div>
+        <div class="pf-id-main"><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2><p class="pf-rank"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span> · ${esc(pr.rank.name)}</p>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small pf-since">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div>
+        ${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
+      <div class="pf-level"><div class="pf-level-main">
         ${pr.guest || pr.confirmed ? `<span class="asc-ascent" role="progressbar" aria-label="Progression vers le niveau suivant" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="--p:${pct}%"></span></span>` : ""}
-        <p class="asc-small asc-muted">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p></div></div>
+        <div class="asc-between"><p class="asc-small">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p>${pr.guest || pr.confirmed ? `<span class="asc-small asc-num pf-xp">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div></div></div>
       <a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>
     </section>`;
+  }
+
+  /* My sports as my programme of the last eight weeks: which ones, how often. The figures themselves live in Progrès. */
+  function sportsHtml() {
+    const V = window.TitanProgramView;
+    const list = P().activeLogs ? P().activeLogs(logs()) : logs();
+    const grid = V && window.TitanProgram && list.length ? V.span(list, { weeks: 8, maxRows: 5 }) : null;
+    return `<section class="pf-sports" aria-labelledby="pf-sports-title">
+      <div class="asc-section-head"><h2 id="pf-sports-title">Mes sports</h2><a class="asc-link pf-sport-passport" href="/stats">Mon parcours sportif ${icon("chevron")}</a></div>
+      ${grid && (grid.rows.length || grid.more) ? V.html(grid, { label: "Mes sports sur les 8 dernières semaines" }) : `<p class="asc-small asc-muted">Enregistre une séance : tes sports, tes records et ta maîtrise apparaîtront ici.</p>`}
+    </section>`;
+  }
+
+  /* What the effort earned, one line each: the latest record (amber is the colour of records), the insignia, the credits. Each line
+     leads to the page that holds the whole list, so nothing is repeated here. */
+  function earnedHtml() {
+    const s = A()?.snapshot;
+    const mine = s && s.owner === window.state?.user?.id ? s : null;
+    const recs = (window.TitanInsights?.records?.(logs(), "all", Date.now()) || []).filter((r) => r.log?.date);
+    const marks = recs.filter((r) => r.kind !== "duration");
+    const best = (marks.length ? marks : recs).slice().sort((a, b) => new Date(b.log.date) - new Date(a.log.date))[0];
+    const worlds = window.TitanCodex?.worlds?.length || 4;
+    const row = (href, name, tone, title, sub, value) => `<a class="pf-earned-row${tone ? " is-" + tone : ""}" href="${href}">${icon(name)}<span class="pf-earned-text"><strong>${title}</strong><small>${sub}</small></span>${value ? `<span class="pf-earned-value asc-num">${value}</span>` : ""}${icon("chevron")}</a>`;
+    const lines = [
+      best ? row("/records", "trophy", "record", `${esc(best.label)} · ${esc(SP().label(best.sport))}`, recs.length > 1 ? `et ${recs.length - 1} autre${recs.length > 2 ? "s" : ""} record${recs.length > 2 ? "s" : ""} dans ton livre` : "Ton record le plus récent", esc(F().recordValue(best.unit, best.value))) : "",
+      mine ? row("/adventure", "medal", "", "Insignes d’aventure", "Un insigne par chapitre terminé", `${(mine.rewards || []).length}<small> / ${worlds * 9}</small>`) : "",
+      mine && !guest() ? row("/boutique", "sparkle", "", "Crédits", "À dépenser à l’Atelier", esc(F().number(mine.credits || 0))) : "",
+    ].join("");
+    return lines ? `<nav class="pf-earned" aria-label="Ce que mon effort a gagné">${lines}</nav>` : "";
   }
 
   function masteryHtml() {
@@ -721,14 +752,19 @@
     // Any other focused control of the profile (a link, a button, a section heading reached with Tab) is found again after the redraw:
     // a save that completes in the background must not send the keyboard back to the top of the page.
     const place = !attribute && root.contains(document.activeElement) && !document.activeElement.id ? focusPlace(document.activeElement) : null;
-    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}${passportStatsHtml()}
-      <a class="pf-sport-passport" href="/stats">${icon("chart")}<span><strong>Mon parcours sportif</strong><small>Maîtrises, régularité et évolution de ta pratique.</small></span>${icon("chevron")}</a>
-      <div data-profile-career></div>
-      ${profileGroup("identity", "Mon identité", "Personnage, titres et collection", `${identityHtml()}${avatarHtml()}${collectionHtml()}${publicHtml()}`, opened)}
+    // Short on purpose: identity, three figures, the programme, one line each for what was earned, then the groups. What Progrès
+    // and Aventure already show is one tap away, not repeated; the career milestones live in « Mon identité ».
+    B().preserveFocus(() => { root.innerHTML = `${heroHtml()}
+      <div class="pf-body">${passportStatsHtml()}
+      ${sportsHtml()}
+      ${earnedHtml()}
+      <div class="pf-groups">
+      ${profileGroup("identity", "Mon identité", "Personnage, titres, collection et jalons", `${identityHtml()}${avatarHtml()}<div data-profile-career></div>${collectionHtml()}${publicHtml()}`, opened)}
       ${profileGroup("sport", "Mon sport", "Favoris, objectifs et historique", `<nav class="pf-sport-links" aria-label="Mon sport"><a class="asc-btn asc-btn-secondary" href="/objectifs">Mes objectifs</a><a class="asc-btn asc-btn-secondary" href="/journal">Mon historique</a></nav>${cadenceHtml()}${masteryHtml()}${dnaHtml()}`, opened)}
       ${profileGroup("account", "Connexions &amp; compte", "Sources, confidentialité et abonnement", `<section class="asc-section" id="sources"><div class="asc-section-head"><h2>Sources et capteurs</h2></div><p class="asc-small asc-muted">Tes autorisations et sources disponibles apparaissent ici. Les capteurs du téléphone se règlent dans l’application Android.</p></section>${accountHtml()}${settingsHtml()}`, opened)}
       ${profileGroup("preferences", "Aide &amp; préférences", "Rappels, affichage et assistance", preferencesHtml(), opened)}
-      ${guest() ? "" : `<button type="button" class="asc-btn asc-btn-ghost pf-signout" data-signout>${icon("logout")} Se déconnecter</button>`}`; });
+      </div>
+      ${guest() ? "" : `<button type="button" class="asc-btn asc-btn-ghost pf-signout" data-signout>${icon("logout")} Se déconnecter</button>`}</div>`; });
     window.TitanJourneyPanel?.mount(root.querySelector("[data-profile-career]"), "career");
     if (attribute && document.activeElement === document.body) {
       const next = [...root.querySelectorAll(`[role="radio"][${attribute}]`)].find(radio => radio.getAttribute(attribute) === value && radio.getAttribute("aria-disabled") !== "true");

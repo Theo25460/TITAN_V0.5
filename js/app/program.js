@@ -8,6 +8,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const icon = (n) => (window.titanIcon ? window.titanIcon(n) : "");
   const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  const SHORT = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
   const FAMILIES = ["endurance", "force", "technique", "jeu", "mobilite"];
   const sessions = (n) => `${n} séance${n > 1 ? "s" : ""}`;
   const duration = (m) => (window.TitanFormat?.duration ? window.TitanFormat.duration(Math.round(m)) : `${Math.round(m)} min`);
@@ -56,7 +57,7 @@
     const heads = wk
       ? wk.days.map((d) => `<span class="prg-col${d.today ? " is-mark" : ""}">${d.letter}</span>`)
       : grid.columns.map((c, i, all) => {
-          const text = c.current ? "Sem." : i === 0 || c.date <= 7 ? MONTHS[c.month].slice(0, 3) : all.length > 10 ? "" : String(c.date);
+          const text = c.current ? "Sem." : i === 0 || c.date <= 7 ? SHORT[c.month] : all.length > 10 ? "" : String(c.date);
           return `<span class="prg-col${c.current ? " is-mark" : ""}">${text}</span>`;
         });
     const at = (i) => (wk ? { future: wk.days[i].future, mark: wk.days[i].today } : { future: false, mark: grid.columns[i].current });

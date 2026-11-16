@@ -1,65 +1,104 @@
-/* Passport layout, disclosure controls, and narrow screens at 200% text. */
+/* Profil, short: who I am on the chalk field of this space, three figures, « Mes sports » as the programme of eight weeks, one line
+   each for what the effort earned, then four groups. On a wide screen the chalk field is the left column of the page, from top to
+   bottom, and everything else sits on the ground at its right. */
+.pf-main {
+  --content: 1240px;
+  --pf-field: 420px;
+}
+.pf-head {
+  margin-bottom: 0;
+  padding-bottom: var(--s3);
+  align-items: center;
+}
+.pf-head h1 {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.pf-head .asc-btn {
+  min-height: 44px;
+  padding: 0 var(--s4);
+  font-size: 14.5px;
+}
 #profil {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
+  gap: 0;
 }
-#profil .pf-hero { margin: 0; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
-#profil .pf-id { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 1rem; }
-#profil .pf-id-main { min-width: 0; }
-#profil .pf-name { font-size: clamp(1.625rem, 6vw, 2.375rem); white-space: normal; overflow-wrap: anywhere; }
-/* Character sheet: identity first, then the rank crest beside the level and its XP bar. */
-#profil .pf-level { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem; }
-#profil .pf-level-main { min-width: 0; display: grid; gap: var(--s2); }
+#profil .pf-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s4);
+  margin: 0 calc(-1 * var(--pad));
+  padding: var(--s2) var(--pad) var(--s5);
+  background: var(--space);
+  color: var(--space-ink);
+}
+#profil .pf-id { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: var(--s4); }
+#profil .pf-id-main { min-width: 0; display: grid; gap: 2px; }
+#profil .pf-avatar img { width: 76px; height: 76px; border-radius: 50%; background: color-mix(in srgb, var(--space-ink) 12%, transparent); }
+#profil .pf-name { font-size: clamp(30px, 8.4vw, 44px); line-height: 1; color: var(--space-ink); white-space: normal; overflow-wrap: anywhere; }
+#profil .pf-rank { font-size: 16px; font-weight: 700; color: color-mix(in srgb, var(--space-ink) 84%, transparent); }
+#profil .pf-level-n { font-size: inherit; font-weight: inherit; color: inherit; }
+#profil .pf-level-n strong { font-size: 1.25em; margin-left: 2px; color: var(--space-ink); }
+#profil .pf-title { color: var(--space-ink); font-size: 13.5px; }
+#profil .pf-since, #profil .pf-hero .asc-small { color: color-mix(in srgb, var(--space-ink) 84%, transparent); }
+#profil .pf-xp { color: var(--space-ink); font-size: 16px; white-space: nowrap; }
 #profil .pf-crest { display: flex; margin: 0; flex: none; }
-#profil .pf-crest .crest { width: 72px; height: auto; }
+#profil .pf-crest .crest { width: 76px; height: auto; }
+/* On the chalk the XP line is drawn in ink: cyan would not be read there. */
+#profil .pf-level { display: grid; gap: var(--s2); }
+#profil .pf-level-main { min-width: 0; display: grid; gap: 6px; }
+#profil .pf-level .asc-ascent { height: 4px; background: color-mix(in srgb, var(--space-ink) 16%, transparent); }
+#profil .pf-level .asc-ascent > span { background: var(--space-ink); }
+#profil .pf-level .asc-between { flex-wrap: wrap; gap: 2px var(--s4); align-items: baseline; }
 #profil [data-profile-personalize], #profil .pf-signout { justify-self: start; }
-#profil .pf-level .asc-between { flex-wrap: wrap; gap: .5rem 1rem; }
-#profil .pf-level-n { font-size: 1rem; }
-#profil .pf-level-n strong { font-size: 2rem; }
+#profil .pf-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s6); padding-top: var(--s5); min-width: 0; }
 #profil [data-profile-career]:empty { display: none; }
+/* Three figures, set large and light, on the ground: no box per figure. */
 #profil .pf-passport-stats {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
-  gap: .75rem;
+  gap: var(--s4) var(--s5);
 }
-#profil .pf-passport-stats > div {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: .4rem;
-  padding: 1rem;
-  border: 0;
-  background: var(--bg-3);
-  border-radius: var(--r3);
-  min-width: 0;
-}
-#profil .pf-passport-stats dt { color: var(--tx-2); font-size: .8125rem; overflow-wrap: anywhere; }
-#profil .pf-passport-stats dd { margin: 0; font-family: var(--font-display); font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.5rem; color: var(--tx); overflow-wrap: anywhere; }
-#profil .pf-sport-passport, #profil .pf-passport-group {
-  border: 0;
-  background: var(--bg-3);
-  border-radius: var(--r3);
-  min-width: 0;
-}
-#profil .pf-sport-passport, #profil .pf-passport-group > summary {
+#profil .pf-passport-stats > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 2px; min-width: 0; }
+#profil .pf-passport-stats dt { color: var(--tx-2); font-size: .8125rem; font-weight: 600; overflow-wrap: anywhere; }
+#profil .pf-passport-stats dd { margin: 0; font-family: var(--font-display); font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 300; font-size: clamp(3rem, 15vw, 4.5rem); line-height: .92; color: var(--tx); overflow-wrap: anywhere; }
+#profil .pf-passport-stats [data-profile-metric="favorite"] dd { font-stretch: var(--w-title); font-weight: 800; font-size: 1.5rem; line-height: 1.1; padding-top: .5rem; }
+#profil .pf-sports { min-width: 0; }
+#profil .pf-sport-passport { min-height: 44px; font-size: .875rem; text-decoration: none; }
+/* What the effort earned: one ruled line each. */
+#profil .pf-earned { border-top: 2px solid var(--tx); }
+#profil .pf-earned-row { display: flex; align-items: center; gap: var(--s3); min-height: 68px; padding: var(--s3) 0; border-bottom: 1px solid var(--line-2); color: var(--tx); }
+#profil .pf-earned-row > .t-icon:first-child { width: 22px; height: 22px; color: var(--tx-2); }
+#profil .pf-earned-row > .t-icon:last-child { color: var(--tx-3); }
+#profil .pf-earned-row.is-record > .t-icon:first-child, #profil .pf-earned-row.is-record .pf-earned-value { color: var(--am); }
+#profil .pf-earned-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+#profil .pf-earned-text strong { font-size: 1rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+#profil .pf-earned-text small { color: var(--tx-2); }
+#profil .pf-earned-value { font-size: 1.625rem; line-height: 1; white-space: nowrap; }
+#profil .pf-earned-value small { font-size: .55em; font-weight: 700; color: var(--tx-2); }
+#profil .pf-earned-row:hover strong { color: var(--space); }
+/* The groups: ruled disclosure lines, not cards. */
+#profil .pf-groups { border-top: 2px solid var(--tx); min-width: 0; }
+#profil .pf-passport-group { border-bottom: 1px solid var(--line-2); min-width: 0; }
+#profil .pf-passport-group > summary {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem;
-  min-height: 80px;
+  padding: var(--s3) 0;
+  min-height: 72px;
 }
-#profil .pf-sport-passport { text-decoration: none; }
-#profil .pf-sport-passport > svg { flex: 0 0 24px; color: var(--space); }
-#profil .pf-sport-passport > span, #profil .pf-passport-group > summary > span { display: grid; gap: .4rem; flex: 1; min-width: 0; }
-#profil .pf-sport-passport strong { font-family: var(--font-display); font-stretch: var(--w-title); font-size: 1.25rem; color: var(--tx); }
+#profil .pf-passport-group > summary > span { display: grid; gap: 2px; flex: 1; min-width: 0; }
 #profil .pf-passport-group > summary { cursor: pointer; list-style: none; }
 #profil .pf-passport-group > summary::-webkit-details-marker { display: none; }
-#profil .pf-passport-group > summary strong { font-size: 1.125rem; color: var(--tx); }
-#profil .pf-passport-group > summary small, #profil .pf-sport-passport small { color: var(--tx-2); }
-#profil .pf-passport-group > summary > svg { flex: 0 0 20px; color: var(--space); transform: rotate(90deg); }
+#profil .pf-passport-group > summary strong { font-family: var(--font-display); font-stretch: var(--w-title); font-weight: 800; font-size: 1.3125rem; line-height: 1.15; color: var(--tx); }
+#profil .pf-passport-group > summary small { color: var(--tx-2); }
+#profil .pf-passport-group > summary > svg { flex: 0 0 20px; color: var(--tx-2); transform: rotate(90deg); }
 #profil .pf-passport-group[open] > summary > svg { transform: rotate(-90deg); }
-#profil .pf-group-body { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--line); }
+#profil .pf-passport-group > summary:hover strong { color: var(--space); }
+#profil .pf-group-body { padding: 0 0 var(--s6); }
 #profil .pf-group-body .asc-section { margin: 1.25rem 0 0; }
 #profil .pf-group-body .asc-section .asc-section { padding: 0; border: 0; }
 #profil .pf-sport-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
@@ -85,24 +124,43 @@
 #profil .pf-avatar-pick { width: auto; min-width: 0; }
 #profil .pf-metric-choices { margin: 1rem 0 0; padding: 0; border: 0; display: grid; gap: 1rem; min-width: 0; }
 
-@media (min-width: 760px) {
-  #profil .pf-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; column-gap: 2.5rem; }
-  #profil .pf-id { grid-column: 1; }
-  #profil .pf-level { grid-column: 2; grid-row: 1 / span 2; }
-  #profil [data-profile-personalize] { grid-column: 1; }
-  #profil .pf-crest .crest { width: 104px; }
+@media (min-width: 1100px) {
+  /* The chalk field is the left column of the page, from top to bottom; the identity stays in view while the right column scrolls. */
+  .pf-main {
+    display: grid;
+    grid-template-columns: var(--pf-field) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--s9);
+    min-height: 100vh;
+    background: linear-gradient(90deg, var(--space) 0, var(--space) calc(var(--pad) + var(--pf-field)), transparent calc(var(--pad) + var(--pf-field)));
+  }
+  .pf-head { grid-column: 1; grid-row: 1; align-self: start; margin: calc(-1 * var(--s8)) 0 0 calc(-1 * var(--pad)); padding: var(--s8) var(--s8) var(--s4) var(--pad); background: transparent; }
+  #profil { display: contents; }
+  #profil .pf-hero { grid-column: 1; grid-row: 2; margin: 0 0 0 calc(-1 * var(--pad)); padding: var(--s8) var(--s8) var(--s6) var(--pad); background: transparent; align-self: start; position: sticky; top: var(--s6); gap: var(--s5); }
+  #profil .pf-id { grid-template-columns: minmax(0, 1fr) auto; row-gap: var(--s5); align-items: end; }
+  #profil .pf-avatar { grid-column: 1; }
+  #profil .pf-avatar img { width: 132px; height: 132px; }
+  #profil .pf-crest { grid-column: 2; grid-row: 1; }
+  #profil .pf-crest .crest { width: 116px; }
+  #profil .pf-id-main { grid-column: 1 / -1; gap: var(--s1); }
+  #profil .pf-name { font-size: clamp(44px, 4.4vw, 64px); }
+  #profil .pf-rank { font-size: 18px; }
+  #profil .pf-body { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; gap: var(--s8); }
+  #profil .pf-passport-stats dd { font-size: clamp(4.5rem, 7vw, 6.5rem); }
+  #profil .pf-passport-stats { gap: var(--s5) var(--s8); }
+  body[data-territory="profil"] .asc-main.pf-main > .asc-skeleton { grid-column: 2; }
 }
 @media (max-width: 540px) {
-  #profil .pf-group-body { padding-right: 1rem; padding-left: 1rem; }
   #profil .pf-mastery-row, #profil .pf-mastery-main .asc-between, #profil .pf-public-share { flex-wrap: wrap; }
   #profil .pf-mastery-main { flex: 1 1 180px; }
   #profil .pf-mastery-main .asc-between { gap: .25rem; }
   #profil .pf-avatars { grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); }
 }
 @media (max-width: 360px) {
-  #profil .pf-id { grid-template-columns: 64px minmax(0, 1fr); }
-  #profil .pf-crest .crest { width: 56px; }
+  #profil .pf-id { grid-template-columns: 56px minmax(0, 1fr) auto; gap: var(--s3); }
+  #profil .pf-avatar img { width: 56px; height: 56px; }
+  #profil .pf-crest .crest { width: 52px; }
 }
 @media (max-width: 300px) {
-  #profil .pf-id, #profil .pf-level { grid-template-columns: minmax(0, 1fr); }
+  #profil .pf-id { grid-template-columns: minmax(0, 1fr); }
 }
