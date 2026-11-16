@@ -19,21 +19,31 @@ const opt = (name, fallback) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
-const AFTER = opt("--after", "20261110130137");
-// The V1.3.1 bundle was applied to production on 16 November 2026: it is frozen at its last migration. Later migrations belong to
-// the next bundle (--after 20261116110000 --until <last> --out supabase/release-<name>).
-const UNTIL = opt("--until", "20261116110000");
-const OUT = join(ROOT, opt("--out", "supabase/release-v131"));
-if (!/^\d{14}$/.test(AFTER)) throw new Error("--after must be a 14-digit migration version");
-
-// Function fingerprints (query in FINGERPRINT_SQL) on a replica from this repository. BEFORE = registry ending at AFTER;
-// AFTER = every migration below applied. Production before differs only by D1 (private.titan_export_extras_before_rpg_v1,
-// retyped by hand and broken), which 20261114170000 reinstalls: production must match AFTER exactly once the bundle has run.
-export const EXPECTED = {
-  before: { private: [86, "cc64c1801f5b", "37dc682f45a7"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
-  productionBeforeD1: { private: [86, "cc64c1801f5b", "a8ec1799e8ca"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
-  after: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
+// One entry per production bundle. `after` is the last version already in production's registry when the bundle starts,
+// `until` its last migration. `before` and `expected` are function fingerprints (FINGERPRINT_SQL) measured on a replica built from
+// this repository: production must show `before` when the bundle starts and `expected` once it has run.
+export const BUNDLES = {
+  // Applied to production on 16 November 2026: frozen. Production started with drift D1 (one body retyped by hand, repaired by
+  // 20261114170000), hence a `before` that differs from a clean replica (private bodies 37dc682f45a7 there).
+  v131: {
+    out: "supabase/release-v131", after: "20261110130137", until: "20261116110000",
+    before: { private: [86, "cc64c1801f5b", "a8ec1799e8ca"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
+    expected: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
+    beforeLabel: "Before the bundle (production with drift D1, or a clean replica: one of the two)",
+    beforeNote: "On a replica built from the repository the private bodies read 37dc682f45a7 instead (no D1).",
+    afterNote: "Then run tools/db/postflight-v13.sql and tools/db/postflight-v131.sql: every row true.",
+  },
+  // TITAN LIVE and the Android features of 15 and 16 November. NOT applied: additive, rehearsed on a replica.
+  v14: {
+    out: "supabase/release-v14", after: "20261116110000", until: "20261117160000",
+    before: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
+    expected: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "b22346e0e254"] },
+    beforeNote: "This is the state production reached on 16 November 2026 (end of the V1.3.1 bundle).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
+const NAME = opt("--bundle", "v131");
+if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
 
 export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonctions,
   substr(md5(string_agg(p.oid::regprocedure::text || '|' || p.prosecdef || has_function_privilege('anon', p.oid, 'EXECUTE') || has_function_privilege('authenticated', p.oid, 'EXECUTE')
@@ -43,7 +53,8 @@ export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonction
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 where n.nspname in ('public', 'private') group by 1 order by 1`;
 
-export function pendingMigrations(after = AFTER, until = UNTIL) {
+export function pendingMigrations(name = NAME) {
+  const { after, until } = BUNDLES[name];
   return readdirSync(join(ROOT, "supabase/migrations"))
     .filter((f) => /^\d{14}_[a-z0-9_]+\.sql$/.test(f) && f.slice(0, 14) > after && f.slice(0, 14) <= until)
     .sort()
@@ -90,24 +101,24 @@ function check(label, expected) {
   ].join("\n");
 }
 
-export function build(after = AFTER) {
-  const list = pendingMigrations(after);
-  const files = { "00-check-before.sql": check("Before the bundle (production with drift D1, or a clean replica: one of the two)", EXPECTED.productionBeforeD1)
-    + "\n-- On a replica built from the repository the private bodies read 37dc682f45a7 instead (no D1).\n" };
+export function build(name = NAME) {
+  const bundle = BUNDLES[name];
+  const list = pendingMigrations(name);
+  const files = { "00-check-before.sql": check(bundle.beforeLabel ?? "Before the bundle", bundle.before) + `\n-- ${bundle.beforeNote}\n` };
   list.forEach((m, i) => {
-    files[`${String(i + 1).padStart(2, "0")}-${m.file}`] = wrap(m, i === 0 ? after : list[i - 1].version);
+    files[`${String(i + 1).padStart(2, "0")}-${m.file}`] = wrap(m, i === 0 ? bundle.after : list[i - 1].version);
   });
-  files["99-check-after.sql"] = check("After the bundle", EXPECTED.after)
-    + "\n-- Then run tools/db/postflight-v13.sql and tools/db/postflight-v131.sql: every row true.\n";
-  return { list, files };
+  files["99-check-after.sql"] = check("After the bundle", bundle.expected) + `\n-- ${bundle.afterNote}\n`;
+  return { list, files, out: bundle.out };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { list, files } = build();
+  const { list, files, out } = build();
+  const OUT = join(ROOT, out);
   mkdirSync(OUT, { recursive: true });
   // Only the generated SQL is replaced: the README beside it is written by hand.
   for (const f of readdirSync(OUT)) if (f.endsWith(".sql")) rmSync(join(OUT, f));
   for (const [name, text] of Object.entries(files)) writeFileSync(join(OUT, name), text);
-  console.log(`${list.length} migrations after ${AFTER} → ${OUT}`);
+  console.log(`${list.length} migrations after ${BUNDLES[NAME].after} → ${OUT}`);
   for (const name of Object.keys(files)) console.log("  " + name);
 }
