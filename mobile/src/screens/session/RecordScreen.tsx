@@ -147,7 +147,7 @@ export function RecordScreen() {
           <Section title="Autres façons d’enregistrer">
             <Card tone="plain">
               <Way icon="route" title="Suivre ma sortie en GPS" text={`${Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé`} onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} testID="gps-shortcut" />
-              <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est en haut des mesures.`} onPress={() => open(gpsSport)} testID="record-gpx" />
+              <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est sous les mesures.`} onPress={() => open(gpsSport)} testID="record-gpx" />
               <Way line icon="cloud" title="Depuis une montre ou un capteur" text="Garmin, Santé Connect : voir ce qui est connecté et ce qui arrive dans ton journal." onPress={() => navigation.navigate("Sources")} testID="record-sources" />
             </Card>
           </Section>

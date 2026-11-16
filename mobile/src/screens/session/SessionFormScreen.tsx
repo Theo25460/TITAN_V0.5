@@ -357,6 +357,15 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
+            <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
+            {durationBlock("Durée", true)}
+            {km && dur ? (
+              <T variant="small" tone="accent">
+                {Sports.paceMode(sport) === "pace" ? `Allure ${Format.pace(km, dur)}` : `Vitesse ${Format.speed(km, dur)}`}
+              </T>
+            ) : null}
+            {Sports.hasElevation(sport) ? <Field label="Dénivelé positif (facultatif)" value={draft.elevation} onChangeText={(elevation) => setDraft({ elevation })} keyboardType="number-pad" suffix="m" placeholder="0" /> : null}
+            {/* The file import comes after the fields: distance and duration stay above the keyboard while typing. */}
             <Button small kind="secondary" icon="route" label={gpxBusy ? "Analyse du fichier…" : draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} loading={gpxBusy} onPress={importGpx} testID="gpx-import" />
             {draft.gpx ? <>
               {draft.gpx.timing === "missing" ? <T tone="muted">Pas de données de temps dans ce GPX.</T> :
@@ -370,14 +379,6 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
                 setDraft(removeGpxImport);
               }} />
             </> : null}
-            <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
-            {durationBlock("Durée", true)}
-            {km && dur ? (
-              <T variant="small" tone="accent">
-                {Sports.paceMode(sport) === "pace" ? `Allure ${Format.pace(km, dur)}` : `Vitesse ${Format.speed(km, dur)}`}
-              </T>
-            ) : null}
-            {Sports.hasElevation(sport) ? <Field label="Dénivelé positif (facultatif)" value={draft.elevation} onChangeText={(elevation) => setDraft({ elevation })} keyboardType="number-pad" suffix="m" placeholder="0" /> : null}
           </>
         ) : form === "swim" ? (
           <>
