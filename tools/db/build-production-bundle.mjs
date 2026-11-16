@@ -29,7 +29,7 @@ if (!/^\d{14}$/.test(AFTER)) throw new Error("--after must be a 14-digit migrati
 export const EXPECTED = {
   before: { private: [86, "cc64c1801f5b", "37dc682f45a7"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
   productionBeforeD1: { private: [86, "cc64c1801f5b", "a8ec1799e8ca"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
-  after: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "7df661985ca5"] },
+  after: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
 };
 
 export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonctions,

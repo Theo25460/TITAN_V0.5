@@ -1,7 +1,7 @@
 -- Read-only. Run alongside postflight-v13.sql after the authorized migration window.
 -- Every row must be true before exposing the corresponding services.
 with versions(version) as (values
-  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000'), ('20261114170000'), ('20261114180000'), ('20261116100000')
+  ('20261110140000'), ('20261110142656'), ('20261110152700'), ('20261110152800'), ('20261110152900'), ('20261114160000'), ('20261114170000'), ('20261114180000'), ('20261116100000'), ('20261116110000')
 ), restricted(signature) as (values
   ('private.titan_coach_plan(uuid)'),
   ('private.titan_coach_capacity(uuid)'),
@@ -148,4 +148,9 @@ union all
 select 'storage:avatars bucket limited to 2 MB images', coalesce((
   select b.file_size_limit <= 2097152 and b.allowed_mime_types <@ array['image/png', 'image/jpeg', 'image/webp']
     from storage.buckets b where b.id = 'avatars'), to_regclass('storage.buckets') is null)
+union all
+select 'friend code lookup:rate limited, still open to players only', coalesce((
+  select position('friend_code_lookup' in f.prosrc) > 0 and f.provolatile = 'v'
+     and has_function_privilege('authenticated', f.oid, 'EXECUTE') and not has_function_privilege('anon', f.oid, 'EXECUTE')
+    from pg_proc f where f.oid = to_regprocedure('public.titan_find_profile_by_friend_code(text)')), false)
 order by ok, "check";

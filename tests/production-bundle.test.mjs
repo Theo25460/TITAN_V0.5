@@ -16,7 +16,7 @@ test("bundle files match the generator output byte for byte", () => {
 
 test("every migration body is embedded unchanged, guarded and registered under its own version", () => {
   const list = pendingMigrations();
-  assert.ok(list.length >= 9);
+  assert.ok(list.length >= 10);
   list.forEach((m, i) => {
     const text = wrap(m, i === 0 ? "20261110130137" : list[i - 1].version);
     assert.ok(text.includes(m.sql.replace(/\s*$/, "")), `${m.file} embedded verbatim`);
