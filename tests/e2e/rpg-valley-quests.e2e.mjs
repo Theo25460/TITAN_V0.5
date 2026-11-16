@@ -46,7 +46,7 @@ const active={chapter:2,target:2,effort_target:0,started_at:'2026-10-01T12:00:00
 test('valley quests: narrative and three optional objectives appear at both widths',async()=>{
  for(const width of [360,1280]){const {page,context,errors}=await campaignPage('/adventure',active,width);try{
  const panel=page.locator('[data-valley-encounter]');await panel.waitFor();assert.match(await panel.textContent(),/pont/);
- const quests=page.locator('[data-rpg-quests]');await quests.locator('summary').click();await page.locator('[data-quest="days"]').waitFor();assert.equal(await page.locator('[data-quest]').count(),3);assert.match(await quests.textContent(),/facultatives/);assert.match(await quests.textContent(),/ni XP ni coins/);assert.equal(await page.locator('[data-claim="2"]').count(),0);assert.deepEqual(errors,[]);
+ const quests=page.locator('[data-rpg-quests]');await quests.locator('summary').click();await page.locator('[data-quest="days"]').waitFor();assert.equal(await page.locator('[data-quest]').count(),3);assert.match(await quests.textContent(),/facultatives/);assert.match(await quests.textContent(),/ni XP ni crédits/);assert.equal(await page.locator('[data-claim="2"]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}}
 });
 test('valley quests: source annotation updates a quest and refresh retains the opened journal',async()=>{

@@ -3,6 +3,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
+import { maybeAskForReview } from "../../lib/review";
+import { shareCardImage } from "../../lib/shareImage";
+import { ShareCard, type ShareCardData } from "../../components/ShareCard";
+import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -17,6 +21,9 @@ import { worldImages } from "../../core/images";
 import { recordText, sessionMetrics, sessionRecords } from "../../core/moment";
 import type { TrainingLog } from "../../core/types";
 import { momentShare } from "../../data/api";
+import { useSocial } from "../../data/hooks";
+import { contributions, readAutoShare } from "../../lib/community";
+import { useEvents } from "../community/EventsScreen";
 import { useAdventure, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { useReceipt } from "../../data/receipts";
@@ -64,6 +71,7 @@ export function resultNextStep(i: {
 /** The moment after a session, in four beats: what was done, what the server confirmed, what it moved in the adventure, what to do next. */
 /** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
 const revealed = new Set<string>();
+const autoShared = new Set<string>();
 
 export function SessionResultScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionResult">) {
   const { eventId, stored } = route.params;
@@ -82,6 +90,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const [shared, setShared] = useState(false);
   const [revealing, setRevealing] = useState(() => !revealed.has(eventId));
   const [sharing, setSharing] = useState(false);
+  const social = useSocial().data;
+  const events = useEvents().data;
   const queued = queue.owner === owner ? queue.items.find((i) => i.payload.details.client_event_id === eventId) : undefined;
   const payload = queued?.payload ?? (stored?.owner === owner && stored.payload.details.client_event_id === eventId ? stored.payload : undefined);
   const localLog = useMemo<TrainingLog | null>(() => payload ? { ...payload, id: eventId, client_event_id: eventId, cat: payload.category, xp: 0 } : null, [payload, eventId]);
@@ -90,6 +100,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
   // One tactile "done" when the server confirms, not on every re-render.
   const confirmedOnce = useRef(false);
+  const cardRef = useRef<View>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   useEffect(() => {
     if (status === "confirmed" && !confirmedOnce.current) {
       confirmedOnce.current = true;
@@ -110,6 +122,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const campaign = adventure?.campaigns.find((c) => c.id === impact.campaignId) ?? adventure?.campaigns.find((c) => c.id === adventure.selected_world && c.chapter > 0 && c.chapter <= 9) ?? adventure?.campaigns.find((c) => c.chapter > 0 && c.chapter <= 9);
   const world = campaign ? Codex.worlds.find((w) => w.id === campaign.id) : undefined;
   const chapterDays = campaign ? Math.min(Number(campaign.evidence?.days ?? 0), campaign.target) : 0;
+
+  // C3: with « Partager mes séances automatiquement » on, a confirmed session reaches friends' moments once, without a tap.
+  const shareRef = useRef<(() => Promise<void>) | null>(null);
+  const autoTried = useRef(false);
+  const canAutoShare = status === "confirmed" && !!log && !log.details?.historical && online && !shared && !autoShared.has(eventId);
+  useEffect(() => {
+    if (!canAutoShare || autoTried.current) return;
+    autoTried.current = true;
+    readAutoShare(owner).then((on) => {
+      if (!on || autoShared.has(eventId)) return;
+      autoShared.add(eventId);
+      return shareRef.current?.();
+    }).catch(() => {});
+  }, [canAutoShare, owner, eventId]);
 
   if (!log)
     return (
@@ -166,13 +192,40 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
     }
   }
 
+  shareRef.current = share;
+  const counts = status === "confirmed" && !historical ? contributions(social, events) : [];
+
+  // AUD-21: the story card mirrors this screen — a record first, otherwise the session's main measure, and the week in notches.
+  const cardRecord = records.find((r) => !r.first);
+  const cardData: ShareCardData = {
+    eyebrow: cardRecord ? "Nouveau record" : "Séance du jour",
+    title: Sports.label(log.sport),
+    value: cardRecord ? recordText(cardRecord) : headline?.[1] ?? Sports.label(log.sport),
+    caption: cardRecord ? `${cardRecord.label}${cardRecord.previous ? ` · avant : ${recordText(cardRecord, cardRecord.previous.value)}` : ""}` : headline?.[0] ?? null,
+    facts: facts.filter(([k]) => k !== "Ressenti").slice(0, 3),
+    icon: Sports.iconOf(log.sport),
+    week: thisWeek && !historical && !cadence.currentPaused ? { done: cadence.currentDays, target: cadence.target } : null,
+    record: !!cardRecord,
+  };
+  async function shareImage() {
+    if (imageBusy) return;
+    setImageBusy(true);
+    try {
+      await shareCardImage(cardRef, "Partager ma séance");
+    } catch (e) {
+      toast({ kind: "err", title: "Image impossible à partager", message: errorMessage(e) });
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Reveal order={0} style={{ gap: space.s4 }}>
           <View style={styles.head}>
             <View style={[styles.sportDisc, { backgroundColor: `${tint}26`, borderColor: `${tint}66` }]}>
-              <Icon name={Sports.FAMILY_ICON[fam]} size={26} color={tint} />
+              <Icon name={Sports.iconOf(log.sport)} size={26} color={tint} />
             </View>
             <View style={{ flex: 1 }}>
               <T variant="eyebrow" tone="accent">
@@ -223,8 +276,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                     Récompense en vérification
                   </T>
                   <T variant="small">
-                    {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits sont retenus par précaution, au plus{" "}
-                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h : ils arrivent d’eux-mêmes si rien n’est trouvé. Ta séance est bien enregistrée.
+                    Ta séance est bien enregistrée. Tes {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits arrivent d’eux-mêmes d’ici{" "}
+                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h, après une vérification de routine.
                   </T>
                 </View>
               </View>
@@ -248,9 +301,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="small" accessibilityLiveRegion="polite">
                   {capped
                     ? xp > 0
-                      ? `XP confirmés, plafond de fair-play atteint : ${Format.number(xp)} comptés sur ${Format.number(receipt!.requested_xp)}.`
+                      ? `Plafond de fair-play atteint : ${Format.number(xp)} XP comptés sur ${Format.number(receipt!.requested_xp)}.`
                       : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP."
-                    : "XP confirmés par le serveur."}
+                    : "Bien joué : ton effort est compté."}
                 </T>
                 {leveledUp ? (
                   <View style={styles.levelUp}>
@@ -277,7 +330,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <Icon name={status === "confirmed" ? "journal" : status === "error" ? "alert" : "offline"} size={22} color={status === "confirmed" ? colors.cy : status === "error" ? colors.err : colors.warn} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <T variant="bodyStrong" accessibilityLiveRegion="polite">
-                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Le serveur a refusé cette séance" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
+                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Cette séance n’a pas pu être enregistrée" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
                   </T>
                   <T variant="small">
                     {status === "confirmed"
@@ -320,10 +373,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
-        {(thisWeek && !historical) || mastery ? <Tap accessibilityLabel="Mes repères sportifs" accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
-          <T variant="bodyStrong">Mes repères sportifs</T><Icon name="chevron" size={18} color={colors.tx4} />
-        </Tap> : null}
-        {detailsExpanded && thisWeek && !historical ? (
+        {/* The week is TITAN's return mechanic: it is shown at the moment of reward, never folded away (AUD-17). Mastery stays one tap away. */}
+        {thisWeek && !historical ? (
           <Reveal order={3}>
             <View style={styles.block}>
               <View style={styles.between}>
@@ -348,6 +399,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
+        {mastery ? <Tap accessibilityLabel={`Ma maîtrise ${mastery.label}`} accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
+          <T variant="bodyStrong">Ma maîtrise · {mastery.label}</T><Icon name="chevron" size={18} color={colors.tx4} />
+        </Tap> : null}
         {detailsExpanded && mastery ? (
           <Reveal order={4}>
             <View style={styles.block}>
@@ -387,6 +441,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
             </Tap>
           </Reveal>
         ) : !historical ? <Reveal order={5}><Card style={{ gap: space.s3 }}><T variant="eyebrow">Dans ton aventure</T><T accessibilityLiveRegion="polite">{impact.text}</T><Button label="Découvrir les mondes" kind="secondary" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} /></Card></Reveal> : null}
+        {counts.length ? (
+          <Reveal order={6}>
+            <Card style={{ gap: 4 }} testID="result-contributions">
+              <T variant="eyebrow" tone="accent">Ta séance compte aussi pour</T>
+              {counts.map((c) => <T key={c} variant="small">· {c}</T>)}
+            </Card>
+          </Reveal>
+        ) : null}
 
         <View style={styles.block} testID="result-next">
           <T variant="eyebrow">Et maintenant</T>
@@ -403,19 +465,37 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           }}
         />
       ) : null}
+      {status === "confirmed" ? <View style={{ paddingHorizontal: space.s4 }}><DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} /></View> : null}
+      {status === "confirmed" && !historical ? (
+        <View style={styles.offscreen} pointerEvents="none">
+          <ShareCard ref={cardRef} data={cardData} />
+        </View>
+      ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
         <View style={{ flexDirection: "row", gap: space.s3 }}>
-          {status === "confirmed" && !shared && !historical ? <Button small label="Partager" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
+          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={{ flex: 1 }} testID="share-image" /> : null}
+          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
           <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
         </View>
-        <Button label="Terminer" onPress={() => { maybeAd().catch(() => {}); navigation.navigate("Tabs", { screen: "QG" }); }} testID="result-done" />
+        <Button
+          label="Terminer"
+          onPress={() => {
+            maybeAd().catch(() => {});
+            // AUD-13: a rare Play rating request at a proud moment (new record or tenth session), never for an unconfirmed or historical one.
+            if (status === "confirmed" && log)
+              void maybeAskForReview(owner, { confirmedSessions: logs.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus).length, newRecord: records.some((r) => !r.first), historical: !!log.details?.historical });
+            navigation.navigate("Tabs", { screen: "QG" });
+          }}
+          testID="result-done"
+        />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  offscreen: { position: "absolute", left: -10000, top: 0 },
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: space.s4, paddingTop: space.s5, gap: space.s5 },
   head: { flexDirection: "row", alignItems: "center", gap: space.s3 },

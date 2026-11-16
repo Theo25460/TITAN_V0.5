@@ -33,7 +33,7 @@ export function JourneyCard({ owner }: { owner: string }) {
     <View style={styles.heading}><Icon name="compass" color={colors.cy} /><T variant="h3" style={{ flex: 1 }}>Les Sentiers du Titan</T></View>
     <T variant="small">Tes pas explorent les lieux ; tes séances ouvrent les chapitres. Le niveau raconte ta carrière. Trois chemins, le même effort réel.</T>
     {!m || !s ? <>
-      <T variant="small" accessibilityRole={q.error ? 'alert' : undefined}>{q.loading ? 'La carte se prépare…' : 'Tes campagnes restent disponibles. Les sentiers attendent une connexion au serveur compatible.'}</T>
+      <T variant="small" accessibilityRole={q.error ? 'alert' : undefined}>{q.loading ? 'La carte se prépare…' : 'Tes campagnes restent disponibles. Les sentiers ne sont pas encore ouverts ici : ils arrivent bientôt.'}</T>
       {!q.loading ? <Button label="Réessayer" kind="secondary" onPress={q.refresh} /> : null}
     </> : <>
       <View style={styles.map} accessible accessibilityRole="image" accessibilityLabel={Codex.worlds.map(w => `${w.name}, ${m.earned.filter(d => d.world === w.id).length} découvertes confirmées`).join('. ')}>

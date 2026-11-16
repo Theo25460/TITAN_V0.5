@@ -12,6 +12,12 @@ import { WelcomeScreen } from "../screens/auth/WelcomeScreen";
 import { WorldScreen } from "../screens/adventure/WorldScreen";
 import { SentiersScreen } from "../screens/adventure/SentiersScreen";
 import { CommunityScreen } from "../screens/community/CommunityScreen";
+import { EventsScreen } from "../screens/community/EventsScreen";
+import { RetroScreen } from "../screens/progress/RetroScreen";
+import { SaveAccountScreen } from "../screens/settings/SaveAccountScreen";
+import { CapsuleScreen } from "../screens/profile/CapsuleScreen";
+import { HistoryImportScreen } from "../screens/settings/HistoryImportScreen";
+import { ReminderSync } from "../data/ReminderSync";
 import { GoalsScreen } from "../screens/progress/GoalsScreen";
 import { JournalScreen } from "../screens/progress/JournalScreen";
 import { PlanScreen } from "../screens/progress/PlanScreen";
@@ -86,6 +92,8 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
   // A profile without onboarding goes through the short first-run flow; offline without cache, the app opens directly.
   const needsOnboarding = profile.data ? !prefsOf(profile.data).onboardedAt : false;
   return (
+    <>
+    <ReminderSync />
     <Stack.Navigator screenOptions={options}>
       {needsOnboarding ? <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} /> : null}
       <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
@@ -108,6 +116,11 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="Sentiers" component={SentiersScreen} options={{ title: "Les Sentiers du Titan" }} />
       <Stack.Screen name="Atelier" component={AtelierScreen} options={{ title: "Atelier" }} />
       <Stack.Screen name="Community" component={CommunityScreen} options={{ title: "Communauté" }} />
+      <Stack.Screen name="Events" component={EventsScreen} options={{ title: "Quêtes et événements" }} />
+      <Stack.Screen name="Retro" component={RetroScreen} options={{ title: "TITAN Rétro" }} />
+      <Stack.Screen name="SaveAccount" component={SaveAccountScreen} options={{ title: "Sauvegarder mon compte" }} />
+      <Stack.Screen name="Capsules" component={CapsuleScreen} options={{ title: "Lettres à moi-même" }} />
+      <Stack.Screen name="HistoryImport" component={HistoryImportScreen} options={{ title: "Importer mon historique" }} />
       <Stack.Screen name="PublicCard" component={PublicCardScreen} options={{ title: "Carte publique" }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Réglages" }} />
       <Stack.Screen name="Account" component={AccountScreen} options={{ title: "Compte" }} />
@@ -127,5 +140,6 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="TitanPlus" component={TitanPlusScreen} options={{ title: "TITAN+" }} />
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} options={{ title: "Supprimer mon compte" }} />
     </Stack.Navigator>
+    </>
   );
 }

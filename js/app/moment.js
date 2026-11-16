@@ -88,7 +88,7 @@
     if (isGuest()) return { state: "local", big: "Gardée sur cet appareil", sub: "Tu pourras ajouter cette séance à ton compte après inscription." };
     if (log.syncStatus === "confirmed" && r && r.reward_held) {
       const hours = Math.max(1, Math.ceil((new Date(r.release_at) - Date.now()) / 3600000)) || 24;
-      return { state: "pending", big: "Récompense en vérification", sub: `${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits sont retenus par précaution, au plus ${F().number(hours)} h : ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+      return { state: "pending", big: "Récompense en vérification", sub: `Tes ${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits arrivent d’eux-mêmes d’ici ${F().number(hours)} h, après une vérification de routine.` };
     }
     if (log.syncStatus === "confirmed" && r) {
       const capped = Number(r.requested_xp) > Number(r.xp);

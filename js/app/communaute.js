@@ -21,6 +21,20 @@
     { id: "guilde", title: "Guilde", icon: "shield", description: "Une équipe, un objectif et une discussion." },
   ];
 
+  /* AUD-11: an invitation link /social?ami=TN-…|guilde=G-… pre-fills the matching field once, and survives sign-up through ?next=.
+     Only well-formed codes are read; the server still checks the code, the consent and the blocks. */
+  const INVITE = (() => {
+    try {
+      const q = new URLSearchParams(location.search);
+      const ami = String(q.get("ami") || "").trim().toUpperCase();
+      const guilde = String(q.get("guilde") || "").trim().toUpperCase();
+      return { ami: /^TN-[A-Z0-9]{4,10}$/.test(ami) ? ami : "", guilde: /^G-[A-Z0-9]{4,10}$/.test(guilde) ? guilde : "" };
+    } catch { return { ami: "", guilde: "" }; }
+  })();
+  let inviteApplied = false;
+  const inviteNext = () => (INVITE.ami || INVITE.guilde ? `next=${encodeURIComponent(location.pathname + location.search)}` : "");
+  const friendLink = (code) => `${location.origin}/social?ami=${encodeURIComponent(code)}`;
+
   let root = null;
   let data = null;
   let guild = null;
@@ -292,7 +306,7 @@
   function challengesHtml() {
     const list = data?.challenges || [];
     const friends = data?.friends || [];
-    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2>${friends.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
+    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button></div>
       <p class="cm-section-intro">Avancez vers le même objectif. La progression de chacun se voit dans son défi.</p>
       ${list.length ? `<div class="cm-challenges">${list
         .map((c) => {
@@ -354,7 +368,8 @@
     if (status === "guest") {
       root.innerHTML = `<section class="asc-hero cm-guest"><p class="asc-eyebrow cy">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
         <p class="asc-lead">Retrouve tes amis, partage tes progrès et participe aux expéditions.</p>
-        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login">Se connecter</a></div>
+        ${INVITE.ami || INVITE.guilde ? `<p class="asc-note">${icon("userPlus")}<span>On t’a invité ${INVITE.guilde ? "dans une guilde" : "à devenir ami"} sur TITAN. Crée ton compte ou connecte-toi : le code ${esc(INVITE.ami || INVITE.guilde)} sera prêt.</span></p>` : ""}
+        <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup${inviteNext() ? `&${inviteNext()}` : ""}">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login${inviteNext() ? `?${inviteNext()}` : ""}">Se connecter</a></div>
         <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p>
         <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`;
       return;
@@ -385,6 +400,20 @@
     }
     const chat = root.querySelector(".cm-chat-list");
     if (chat) chat.scrollTop = chat.scrollHeight;
+    if (!inviteApplied && (INVITE.ami || INVITE.guilde)) {
+      inviteApplied = true;
+      const field = INVITE.ami ? root.querySelector("#cm-code") : root.querySelector("#cm-guild-code");
+      if (field) {
+        field.value = INVITE.ami || INVITE.guilde;
+        const job = viewContext;
+        requestAnimationFrame(() => {
+          if (!current(job) || !field.isConnected) return;
+          field.scrollIntoView({ block: "center", behavior: "instant" });
+          field.focus({ preventScroll: true });
+        });
+        initialSection = false;
+      }
+    }
     if (initialSection) {
       initialSection = false;
       const id = location.hash.slice(1);
@@ -449,7 +478,7 @@
       <label class="asc-field" data-sport-field hidden><span>Sport</span><select name="sport">${["running", "cycling", "walking", "hiking", "trail", "swimming"].filter((s) => window.SPORTS_CONFIG?.[s]).map((s) => `<option value="${s}">${esc(SP().label(s))}</option>`).join("")}</select></label>
       <div class="asc-form-grid"><label class="asc-field"><span>Objectif</span><input class="asc-input" type="number" name="target" min="1" max="100000" value="300" required></label>
       <label class="asc-field"><span>Durée</span><select name="days">${[3, 7, 14, 21, 28].map((d) => `<option value="${d}" ${d === 7 ? "selected" : ""}>${d} jours</option>`).join("")}</select></label></div>
-      <fieldset class="pf-privacy"><legend class="seance-label">Inviter</legend>${friends.map((f) => `<label class="auth-check"><input type="checkbox" name="invite" value="${esc(f.id)}" ${preselect.includes(f.id) ? "checked" : ""}><span>${esc(f.name)}</span></label>`).join("")}</fieldset>
+      <fieldset class="pf-privacy"><legend class="seance-label">Inviter</legend><p class="asc-small asc-muted">${friends.length ? "Coche des amis, ou personne pour obtenir un lien que n’importe qui peut rejoindre." : "Tu obtiendras un lien à envoyer : n’importe qui peut rejoindre, même sans être ton ami."}</p>${friends.map((f) => `<label class="auth-check"><input type="checkbox" name="invite" value="${esc(f.id)}" ${preselect.includes(f.id) ? "checked" : ""}><span>${esc(f.name)}</span></label>`).join("")}</fieldset>
       <p class="asc-small jr-edit-error" role="alert"></p>
       <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Lancer</button></div>`;
     let metric = "effort_minutes";
@@ -478,17 +507,23 @@
       if (!d.open || !current(job) || sending()) return;
       const err = form.querySelector(".jr-edit-error");
       const invitees = [...form.querySelectorAll("[name=invite]:checked")].map((i) => i.value);
-      if (!invitees.length) return (err.textContent = "Invite au moins un ami.");
       err.textContent = "";
       const task = beginMutation(job, form);
       if (!task) return;
       operation = task;
       try {
-        await rpc("titan_challenge_create", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value), p_invitees: invitees }, job);
+        // AUD-34: without a ticked friend, the challenge is open to whoever receives its one-use link (titan_challenge_open_create_v1).
+        let link = null;
+        if (invitees.length) await rpc("titan_challenge_create", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value), p_invitees: invitees }, job);
+        else {
+          const answer = await rpc("titan_challenge_open_create_v1", { p_title: form.querySelector("[name=title]").value.trim(), p_metric: metric, p_sport: metric === "distance_km" ? form.querySelector("[name=sport]").value : null, p_target: Number(form.querySelector("[name=target]").value), p_days: Number(form.querySelector("[name=days]").value) }, job);
+          link = answer?.token ? `${location.origin}/defi?t=${answer.token}` : null;
+          if (link) { try { await navigator.clipboard.writeText(link); } catch {} }
+        }
         endMutation(task);
         if (!current(job)) return;
         d.close();
-        window.titanShell.toast({ type: "ok", title: "Défi lancé", message: "Tes amis le trouvent dans leur Communauté." });
+        window.titanShell.toast(link ? { type: "ok", title: "Défi lancé · lien copié", message: link } : { type: "ok", title: "Défi lancé", message: "Tes amis le trouvent dans leur Communauté." });
         load();
       } catch (error) {
         endMutation(task);
@@ -529,8 +564,9 @@
     }
     if (b.dataset.deleteMoment) return confirm({ title: "Supprimer ce Moment ?", confirmLabel: "Supprimer", action: job => rpc("titan_moment_delete", { p_id: b.dataset.deleteMoment }, job).catch(failed) });
     if (b.dataset.copyCode) {
-      (navigator.clipboard?.writeText(b.dataset.copyCode) || Promise.reject())
-        .then(() => current(job) && window.titanShell.toast({ type: "ok", title: "Code copié", message: b.dataset.copyCode }))
+      const invite = `Rejoins-moi sur TITAN : ${friendLink(b.dataset.copyCode)} (mon code ami : ${b.dataset.copyCode})`;
+      (navigator.clipboard?.writeText(invite) || Promise.reject())
+        .then(() => current(job) && window.titanShell.toast({ type: "ok", title: "Invitation copiée (lien et code)", message: b.dataset.copyCode }))
         .catch(() => current(job) && window.titanShell.toast({ type: "warn", title: "Copie impossible", message: `Ton code : ${b.dataset.copyCode}` }));
       return;
     }

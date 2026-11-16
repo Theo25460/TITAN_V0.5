@@ -941,10 +941,10 @@ test("onboarding finish: small screens contain the sports choice while pending a
   }
 });
 
-async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
+async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "", query = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
-  await page.goto(BASE + "/social" + hash, { waitUntil: "load" });
+  await page.goto(BASE + "/social" + query + hash, { waitUntil: "load" });
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
   await page.evaluate(({ hold, guild, wrongOwner, overview }) => {
     window.state.user.id = "alice";
@@ -1046,6 +1046,28 @@ test("community pending actions: accepting and declining the same request cannot
   const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_social_respond"));
   await releaseCommunity(page, index);
   await page.waitForFunction(() => !document.querySelector("[data-accept]").disabled);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: without a ticked friend a challenge is open to anyone and its link is copied (AUD-34)", async () => {
+  const { page, context, errors } = await communityPage({ overview: { friends: [] } });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t) => { window.copied = t; } }, configurable: true });
+    const original = window.titanClient.rpc;
+    window.titanClient.rpc = (name, params) => {
+      if (name !== "titan_challenge_open_create_v1") return original(name, params);
+      window.openCreate = params;
+      const result = Promise.resolve({ data: { id: "c-open", token: "f".repeat(64), expiresAt: new Date(Date.now() + 86400000).toISOString() } });
+      const query = { setHeader: () => query, then: (yes, no) => result.then(yes, no) };
+      return query;
+    };
+  });
+  await page.locator("[data-new-challenge]").click();
+  await page.locator("dialog[open] form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => typeof window.copied === "string");
+  assert.match(await page.evaluate(() => window.copied), /\/defi\?t=f{64}$/);
+  assert.equal(await page.evaluate(() => "p_invitees" in window.openCreate), false);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -1429,6 +1451,35 @@ test("community: replacing the client rejects its late overview and focus loads 
   assert.equal(await page.locator(".cm-code-value").count(), 0);
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await page.getByText("Moment privé nouveau client", { exact: true }).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: an invitation link pre-fills the friend code once, and a malformed code is ignored (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage({ query: "?ami=tn-zz99" });
+  await page.waitForFunction(() => document.querySelector("#cm-code")?.value === "TN-ZZ99");
+  await context.close();
+  const bad = await communityPage({ query: "?ami=%3Cimg%3E" });
+  assert.equal(await bad.page.locator("#cm-code").inputValue(), "");
+  assert.deepEqual([...errors, ...bad.errors], []);
+  await bad.context.close();
+});
+
+test("community: a guild invitation link pre-fills the join field for someone without a guild (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage({ query: "?guilde=G-K7P2Q" });
+  await page.waitForFunction(() => document.querySelector("#cm-guild-code")?.value === "G-K7P2Q");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: copying the friend code copies an invitation link that carries it (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t) => { window.copied = t; } }, configurable: true }));
+  await page.locator("[data-copy-code]").click();
+  await page.waitForFunction(() => typeof window.copied === "string");
+  const copied = await page.evaluate(() => window.copied);
+  assert.match(copied, /\/social\?ami=TN-alice/);
+  assert.match(copied, /TN-alice/);
   assert.deepEqual(errors, []);
   await context.close();
 });

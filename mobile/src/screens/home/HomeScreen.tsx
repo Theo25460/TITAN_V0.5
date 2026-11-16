@@ -4,6 +4,18 @@ import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
+import { EventsTeaser } from "../community/EventsScreen";
+import { periodBounds, retroMonth, retroYear } from "../../lib/retro";
+import { DiscoveryBanner } from "../settings/SaveAccountScreen";
+import { CadenceNotches } from "../../components/Cadence";
+import { baselineLine, weeklyBaseline } from "../../lib/baseline";
+import { HealthDetectCard } from "../../components/HealthDetectCard";
+import { MemoryCard } from "../../components/MemoryCard";
+import { MilestoneCard } from "../../components/MilestoneCard";
+import { EnergyCheckIn, HabitStrip, SundayRitualCard } from "../../components/HabitCards";
+import { CircleCard, FriendsFeedCard, IntentCard } from "../../components/CommunityCards";
+import { CapsuleArrivedCard } from "../profile/CapsuleScreen";
+import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { useOwner } from "../../data/auth";
 import { QgBanner } from "../../components/QgBanner";
 import { QgProgress, type QgChapter } from "../../components/QgProgress";
@@ -20,7 +32,7 @@ import { Section } from "../../components/Section";
 import { SessionRow } from "../../components/SessionRow";
 import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
-import { Codex, EffortRules, Progress, Sports } from "../../core";
+import { Codex, EffortRules, Format, Progress, Sports } from "../../core";
 import { useAdventure, useGoals, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useDraftSport } from "../../data/drafts";
 import { useQueue } from "../../data/queue";
@@ -35,9 +47,9 @@ import { colors, radius, space, TOUCH } from "../../theme/tokens";
 const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 /** One of the three stable accesses under the main action: a name, and one line that says what is behind it right now. */
-function Access({ icon, label, hint, onPress, stacked }: { icon: IconName; label: string; hint: string; onPress: () => void; stacked: boolean }) {
+function Access({ icon, label, hint, onPress, stacked, testID }: { icon: IconName; label: string; hint: string; onPress: () => void; stacked: boolean; testID?: string }) {
   return (
-    <Tap onPress={onPress} accessibilityLabel={label} accessibilityHint={hint} style={[styles.access, stacked && styles.accessStacked]}>
+    <Tap onPress={onPress} testID={testID} accessibilityLabel={label} accessibilityHint={hint} style={[styles.access, stacked && styles.accessStacked]}>
       <Icon name={icon} size={20} color={colors.cy} />
       <View style={stacked ? { flex: 1, minWidth: 0 } : { alignSelf: "stretch" }}>
         <T variant="bodyStrong">{label}</T>
@@ -155,10 +167,25 @@ export function HomeScreen() {
             <Button label={action.cta.label} onPress={() => navigateHref(navigation, action.cta.href)} testID="qg-hero-cta" />
           </Card>
         </Reveal>
+        {/* AUD-23/24: the tab bar already reaches Séance, Aventure and Progrès; the QG now surfaces what only it can — events and the circle. */}
+        <DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} />
+        {retroYear() && active.length ? (
+          <Card tone="amber" onPress={() => navigation.navigate("Retro", { year: retroYear()! })} accessibilityLabel={`TITAN Rétro ${retroYear()} : ton année en images`} testID="qg-retro">
+            <T variant="eyebrow" tone="amber">TITAN Rétro {retroYear()}</T>
+            <T variant="bodyStrong">Ton année en images est prête : à partager en story.</T>
+          </Card>
+        ) : null}
+        {!retroYear() && retroMonth() && active.length ? (
+          <Card tone="accent" onPress={() => navigation.navigate("Retro", retroMonth()!)} accessibilityLabel={`TITAN Rétro de ${periodBounds(retroMonth()!).label}`} testID="qg-retro-month">
+            <T variant="eyebrow" tone="accent">TITAN Rétro · {periodBounds(retroMonth()!).label}</T>
+            <T variant="bodyStrong">Ton mois en images, comparé au précédent.</T>
+          </Card>
+        ) : null}
+        <EventsTeaser onPress={() => navigation.navigate("Events")} />
+        {/* Same tile as the V1.3.1 QG (label and one line of what is behind it), for the two places the tab bar does not reach. */}
         <View style={[styles.destinations, stacked && { flexDirection: "column" }]}>
-          <Access stacked={stacked} icon="plus" label="Sport" hint="Enregistrer une séance" onPress={() => navigation.navigate("Tabs", { screen: "Record" })} />
-          <Access stacked={stacked} icon="compass" label="Aventure" hint={chapter ? `Chapitre ${chapter.chapter}/9` : "Les quatre mondes"} onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
-          <Access stacked={stacked} icon="chart" label="Progrès" hint="Semaine, records, journal" onPress={() => navigation.navigate("Tabs", { screen: "Progress" })} />
+          <Access stacked={stacked} icon="flag" label="Quêtes et événements" hint="Ce qui se joue cette semaine" onPress={() => navigation.navigate("Events")} testID="qg-events" />
+          <Access stacked={stacked} icon="group" label="Ma communauté" hint="Amis, défis, clubs" onPress={() => navigation.navigate("Community")} testID="qg-community" />
         </View>
         {loading ? (
           <LoadingCards count={2} />
@@ -166,6 +193,16 @@ export function HomeScreen() {
           <ErrorState error={logsQ.error} onRetry={() => logsQ.refetch()} />
         ) : (
           <>
+            <HealthDetectCard logs={active} />
+            <CapsuleArrivedCard onPress={() => navigation.navigate("Capsules")} />
+            <SundayRitualCard />
+            <HabitStrip logs={active} cadence={cadence} favorite={prefs.favoriteSports.find((x) => Sports.conf(x)) ?? null} />
+            <EnergyCheckIn />
+            <IntentCard />
+            <CircleCard />
+            <FriendsFeedCard />
+            <MilestoneCard logs={active} cadence={cadence} />
+            <MemoryCard logs={active} />
             <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* Where I stand: the week (confirmed XP only) and the chapter in progress. Always visible, never behind a toggle. */}
@@ -181,6 +218,19 @@ export function HomeScreen() {
                 onChapter={() => (chapter && world ? navigation.navigate("World", { id: world.id }) : navigation.navigate("Tabs", { screen: "Adventure" }))}
               />
             </Reveal>
+            {/* AUD-24: the signature of TITAN on the QG — the last eight weeks in notches — and the session most likely to be repeated. */}
+            {active.length ? (
+              <Card style={{ gap: space.s2 }} testID="qg-cadence">
+                <T variant="eyebrow" tone="accent">Mes 8 dernières semaines</T>
+                <CadenceNotches cadence={cadence} />
+                <T variant="caption" tone="muted">{cadence.held}/{cadence.window} semaines tenues · {cadence.lifetimeHeld} depuis tes débuts</T>
+                {(() => {
+                  const b = weeklyBaseline(active);
+                  return b ? <T variant="small" testID="qg-baseline">{baselineLine(b, Format.duration)}</T> : null;
+                })()}
+              </Card>
+            ) : null}
+            {draft ? null : lastSessionsToRepeat(active, 1).map((log) => <RepeatLastCard key={log.id} log={log} compact />)}
 
             {active.length ? (
               <Section title="Dernières séances" action="Journal" onAction={() => navigation.navigate("Journal")}>

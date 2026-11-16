@@ -82,7 +82,8 @@ Principe : décris ce que l'application collecte ; tout est **chiffré en transi
 | Identifiant d'utilisateur | Oui | Non | Oui | compte, fonctions sociales |
 | Nom / pseudo | Oui | Non (visible des amis choisis) | Oui | fonctionnement de l'application |
 | Informations de forme physique (séances, durées, distances, notes) | Oui | Non | Non | fonctionnement de l'application |
-| **Localisation** | **Non** | — | — | l'application n'a aucune permission de localisation ; un fichier GPX importé n'est conservé que sous forme de **statistiques** (distance, durée, dénivelé), jamais de coordonnées |
+| **Localisation précise** | **Oui** | Non | Non (seulement si tu utilises le suivi GPS) | fonctionnement de l'application : pendant un enregistrement GPS (permission `ACCESS_FINE_LOCATION`, service de premier plan « localisation »), la trace est envoyée sur le compte (`titan_route_save_v1`, bibliothèque privée « Mes parcours ») ; elle n'est jamais partagée et se supprime une par une ou avec le compte. Corrigé le 15/11/2026 (AUD-02) : l'ancienne ligne « Non » était fausse depuis l'ajout du GPS natif |
+| Santé et remise en forme : pas et séances lus dans Santé Connect | Oui | Non | Non (consentement par source, révocable) | fonctionnement de l'application : import des séances et des pas du jour (`READ_EXERCISE`, `READ_STEPS`) |
 | Messages (guilde) | Oui | Non | Non | fonctionnement de l'application |
 | Photos, contacts, appareil photo, stockage | **Non** | — | — | aucune permission correspondante |
 | Activité dans l'application, journaux d'erreurs | **Non** | — | — | aucune mesure d'audience ni envoi automatique de plantage dans l'application Android |

@@ -34,6 +34,7 @@ export const MODULES = [
   "js/core/live-voies.js",
   "js/core/live-engine.js",
   "js/core/live-world.js",
+  "js/core/periodic-quests.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

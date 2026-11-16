@@ -21,6 +21,7 @@ import { currentSpeed } from "../../lib/gpsTrack";
 import { IS_E2E } from "../../lib/config";
 import { haptic } from "../../lib/haptics";
 import { ensurePermission as ensureNotificationPermission } from "../../lib/reminders";
+import { setVoiceEnabled, speak, splitAnnouncement, voiceEnabled } from "../../lib/voiceCoach";
 import { colors, space } from "../../theme/tokens";
 import type { RootParams } from "../../navigation/types";
 
@@ -80,6 +81,23 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
   }, [live]);
 
   const summary = useMemo(() => (rec ? recorder.summary(rec, now) : null), [rec, now]);
+  // AUD-30: one spoken split per whole kilometre while recording.
+  const [voice, setVoice] = useState(true);
+  useEffect(() => {
+    voiceEnabled().then((v) => mounted.current && setVoice(v));
+  }, []);
+  const lastKm = useRef<number | null>(null);
+  useEffect(() => {
+    if (!summary || !live) return;
+    const km = summary.distanceKm;
+    if (lastKm.current === null) {
+      lastKm.current = km;
+      return;
+    }
+    const text = splitAnnouncement(lastKm.current, km, summary.activeSeconds, Sports.paceMode(rec?.sport ?? sport) === "pace" ? "pace" : "speed");
+    lastKm.current = km;
+    if (text && voice) speak(text);
+  }, [summary, live, voice, rec?.sport, sport]);
   const speed = rec && live ? currentSpeed(rec.track, now) : null;
   const paceMode = Sports.paceMode(rec?.sport ?? sport);
   const shown = (kmh: number | null) => (kmh === null ? "–" : paceMode === "pace" ? Format.pace(1, 60 / Math.max(kmh, 0.1)) : `${kmh.toFixed(1).replace(".", ",")} km/h`);
@@ -165,13 +183,17 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       await shareTextFile(`titan-${rec.sport}-${day}.gpx`, recorder.gpx(rec, `${Sports.label(rec.sport)} ${day}`), "application/gpx+xml");
     }, "Export impossible");
 
-  const discard = () =>
-    run(async () => {
+  /* A whole outing must never vanish on one tap (AUD-07): the trace is only deleted after an explicit confirmation. */
+  const discard = async () => {
+    const sure = await ask("Abandonner cette séance ?", "La trace GPS et la durée enregistrées seront supprimées de ce téléphone. Tu ne pourras pas les récupérer.", { confirmLabel: "Supprimer la trace", cancelLabel: "Garder" });
+    if (!sure || !mounted.current) return;
+    return run(async () => {
       await recorder.discard(owner);
       await setActiveOwner(null, owner);
       setRec(null);
       navigation.goBack();
     }, "Abandon impossible");
+  };
 
   if (readError) return <Screen><T tone="err" accessibilityRole="alert">Impossible de lire l’enregistrement sur ce téléphone.</T><Button label="Réessayer" onPress={() => retryRead((n) => n + 1)} /></Screen>;
   if (!ready) return <Screen><T tone="muted">Chargement…</T></Screen>;
@@ -219,6 +241,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <View style={{ flexDirection: "row", gap: space.s2 }}>
             <Button label={live ? "Pause" : "Reprendre"} kind="secondary" icon={live ? "pause" : "play"} loading={busy} onPress={toggle} style={{ flex: 1 }} testID="gps-toggle" />
             <Button label="Terminer" icon="check" loading={busy} onPress={finish} style={{ flex: 1 }} testID="gps-finish" />
+            <Button small kind="ghost" label={voice ? "Voix : oui" : "Voix : non"} accessibilityHint="Annonce vocale à chaque kilomètre" onPress={() => { const next = !voice; setVoice(next); void setVoiceEnabled(next); }} testID="gps-voice" />
           </View>
         )
       }
@@ -236,7 +259,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
           <T tone="muted">Android a arrêté le suivi (arrêt de l’application, batterie). TITAN a gardé ce qui était enregistré jusqu’à la dernière position. Reprends, ou termine.</T>
         </Card>
       ) : null}
-      {noSignal ? <T variant="small" tone="warn" accessibilityRole="alert">Signal GPS faible : TITAN attend une position fiable. Rien n’est inventé.</T> : null}
+      {noSignal ? <T variant="small" tone="warn" accessibilityRole="alert">Signal GPS faible : TITAN attend une position fiable avant de compter la distance.</T> : null}
       <Card>
         <T variant="display" accessibilityLabel={`Temps actif ${clock(s.activeSeconds)}`}>{clock(s.activeSeconds)}</T>
         <T tone="muted">Temps actif</T>

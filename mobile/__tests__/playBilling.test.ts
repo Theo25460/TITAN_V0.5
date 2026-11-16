@@ -1,4 +1,4 @@
-import { BILLING_TIMEOUT_MS, BillingError, buy, checkoutInFlight, loadOffers, messageFor, offerPriceLabel, PLANS, recoverPurchases, restore, verifyOnServer, type IapLib, type IapPurchase } from "../src/lib/playBilling";
+import { BILLING_TIMEOUT_MS, BillingError, buy, checkoutInFlight, FREE_PLAN, loadOffers, mentionsAds, messageFor, offerPriceLabel, PLANS, recoverPurchases, restore, verifyOnServer, visiblePerks, type IapLib, type IapPurchase } from "../src/lib/playBilling";
 
 type Listener<T> = (v: T) => void;
 function fakeStore(over: Partial<IapLib> = {}, products = PLANS.map((p) => ({ id: p.id, displayPrice: `${p.id} price`, subscriptionOffers: [{ offerTokenAndroid: `offer-${p.id}`, displayPrice: `${p.id} price` }] }))) {
@@ -424,4 +424,16 @@ describe("automatic recovery of a payment that was never confirmed", () => {
     await purchase;
     expect(checkoutInFlight()).toBe(false);
   });
+});
+
+test("every displayed perk exists, and a build without ads never mentions ads (AUD-03)", () => {
+  const all: string[] = [...PLANS.flatMap((p): string[] => [p.tagline, ...p.perks]), ...FREE_PLAN.perks];
+  expect(all.join(" ")).not.toMatch(/Analyses plus poussées/);
+  for (const plan of [...PLANS, FREE_PLAN]) {
+    const shown = visiblePerks(plan.perks, false);
+    expect(shown.some(mentionsAds)).toBe(false);
+    expect(shown.length).toBeGreaterThan(0);
+  }
+  expect(visiblePerks(PLANS[0].perks, true)).toContain("Aucune publicité");
+  for (const coach of PLANS.filter((p) => p.kind === "coach")) expect(visiblePerks(coach.perks, false)).toContain("TITAN+ pour toi");
 });

@@ -18,7 +18,7 @@ export type RootParams = {
   // Signed in
   Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
-  SessionForm: { sport: string; duplicateOf?: string } ;
+  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number } ;
   GpsRecord: { sport: string };
   LiveSession: { sport: string };
   Camp: undefined;
@@ -35,7 +35,12 @@ export type RootParams = {
   World: { id: string };
   Sentiers: undefined;
   Atelier: undefined;
-  Community: undefined;
+  Community: { ami?: string; guilde?: string } | undefined;
+  Events: undefined;
+  Retro: { year?: number; month?: number } | undefined;
+  SaveAccount: undefined;
+  Capsules: undefined;
+  HistoryImport: undefined;
   Settings: undefined;
   Account: undefined;
   Privacy: undefined;

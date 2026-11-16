@@ -30,6 +30,16 @@ async function rpc<T>(name: string, params?: Record<string, unknown>, ms?: numbe
   return data as T;
 }
 
+/** Public feature flags, readable before any sign-in (titan_feature_flags_v1 answers visitors too). Unknown = off. */
+export async function fetchPublicFlags(): Promise<Record<string, boolean>> {
+  try {
+    const r = await rpc<{ flags?: Record<string, boolean> }>("titan_feature_flags_v1", {}, 6000);
+    return r?.flags ?? {};
+  } catch {
+    return {};
+  }
+}
+
 /** Ensures the request runs for the account that asked for it (no cross-account leak after a switch). */
 export async function assertOwner(owner: string) {
   const { data } = await supabase.auth.getSession();
@@ -249,6 +259,10 @@ export const momentShare = (p: { kind: string; title: string; detail?: string | 
   rpc("titan_moment_share", { p_kind: p.kind, p_title: p.title, p_detail: p.detail ?? null, p_sport: p.sport ?? null, p_log_id: p.logId ?? null, p_visibility: p.visibility ?? "friends" });
 export const challengeCreate = (p: { title: string; metric: Challenge["metric"]; sport: string | null; target: number; days: number; invitees: string[] }) =>
   rpc<{ id: string; invited: number }>("titan_challenge_create", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days, p_invitees: p.invitees });
+/** AUD-22: a challenge open to anyone holding its one-use link (no friend needed), and a fresh link for an existing own challenge. */
+export const challengeOpenCreate = (p: { title: string; metric: Challenge["metric"]; sport: string | null; target: number; days: number }) =>
+  rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_open_create_v1", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days });
+export const challengeLinkCreate = (id: string) => rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_link_create_v1", { p_challenge: id });
 export const challengeRespond = (id: string, action: "join" | "decline" | "leave") => rpc("titan_challenge_respond", { p_id: id, p_action: action });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };
@@ -276,10 +290,84 @@ export const duoNudge = (owner: string, id: string) => ownerRpc(owner, "titan_bu
 export const duoEnd = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_buddy_end_v1", { p_id: id });
 
 export const fetchGuild = () => rpc<Record<string, unknown> | null>("titan_get_my_guild");
+/** AUD-44: the guild's chronicle — last weeks against the target, weeks held together, best streak (members only). */
+export type GuildHistory = { target: number; weeks: { week: string; minutes: number; held: boolean }[]; held: number; bestStreak: number } | null;
+export const fetchGuildHistory = (owner: string) => ownerRpc<GuildHistory>(owner, "titan_guild_history_v1", { p_weeks: 12 });
+/** The guild's join code and name, read from the member-only RPC the website already uses (AUD-05): the weekly payload has no code. */
+export type GuildIdentity = { id: string; code: string; name: string };
+export async function fetchGuildIdentity(owner: string): Promise<GuildIdentity | null> {
+  const g = await ownerRpc<Record<string, unknown> | null>(owner, "titan_get_my_guild", {});
+  if (!g || typeof g.id !== "string") return null;
+  return { id: g.id, code: typeof g.code === "string" ? g.code : "", name: typeof g.name === "string" ? g.name : "" };
+}
 export const guildCreate = (name: string, motto: string) => rpc("titan_create_guild", { p_name: name, p_motto: motto });
 export const guildJoin = (code: string) => rpc("titan_join_guild", { p_code: code });
 export const guildLeave = () => rpc("titan_leave_guild");
 export const guildSend = (content: string) => rpc("titan_send_guild_message", { p_content: content });
+
+/* ---------- Events (AUD-23): the server layer the website already shows ---------- */
+export type PeriodicQuests = { version: number; week: unknown; month: unknown; souvenirs: { weeks: number; months: number } };
+export type CommonQuest = { id: string; title: string; detail: string | null; weekStart: string; endsAt: string; target: number; minutes: number; members: number; joined: boolean; mine: number; state: "open" | "done" | "closed" } | null;
+export type SeasonState = { current: { id: string; name: string; rules: string | null; startsOn: string; endsOn: string; state: "upcoming" | "running"; participants: number; joined: boolean; myMinutes: number; myDays: number } | null; archive: unknown[] };
+export type WorldGoal = { id: string; title: string; detail: string | null; startsOn: string; endsOn: string; levels: number[]; minutes: number; members: number; joined: boolean; mine: number; level: number; state: "open" | "upcoming" | "closed" } | null;
+export type CadenceWeek = { week: string; days: number; target: number; held: boolean; claimed: boolean; reward: number };
+export type CadenceStatus = { current: CadenceWeek; previous: CadenceWeek } | null;
+export type ExpeditionTitle = { id: string; title: string; expedition: string; ended_at: string };
+export type EventsState = { quests: PeriodicQuests | null; common: CommonQuest; season: SeasonState | null; goal: WorldGoal; cadence: CadenceStatus; titles: ExpeditionTitle[] };
+
+/** Each piece is optional: an RPC missing on an older server only hides its card. */
+export async function fetchEvents(owner: string): Promise<EventsState> {
+  const safe = <T,>(p: Promise<T>) => p.catch((e) => (toAppError(e).code === "UNAVAILABLE" ? null : Promise.reject(e)));
+  const [quests, common, season, goal, cadence, titles] = await Promise.all([
+    safe(ownerRpc<PeriodicQuests>(owner, "titan_periodic_quests_v1", {})),
+    safe(ownerRpc<CommonQuest>(owner, "titan_common_quest_v1", {})),
+    safe(ownerRpc<SeasonState>(owner, "titan_season_v1", {})),
+    safe(ownerRpc<WorldGoal>(owner, "titan_world_goal_v1", {})),
+    safe(ownerRpc<CadenceStatus>(owner, "titan_cadence_week_status_v1", {})),
+    safe(ownerRpc<ExpeditionTitle[]>(owner, "titan_expedition_titles", {})),
+  ]);
+  return { quests: quests ?? null, common: common ?? null, season: season ?? null, goal: goal ?? null, cadence: cadence ?? null, titles: Array.isArray(titles) ? titles : [] };
+}
+/** AUD-25: +50 cosmetic credits for a held week (current or previous), once. */
+export const cadenceClaim = (owner: string, week: string) => ownerRpc<{ week: string; credits: number; balance: number }>(owner, "titan_cadence_week_claim_v1", { p_week: week });
+export const questClaim = (owner: string, scope: "week" | "month") => ownerRpc(owner, "titan_periodic_quest_claim_v1", { p_scope: scope });
+export const commonQuestJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_common_quest_join_v1", { p_quest: id, p_join: join });
+export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_season_join_v1", { p_season: id, p_join: join });
+export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
+
+/* ---------- History import (AUD-43) ---------- */
+export type HistoryImportResult = { imported: number; linked: number; duplicate: number; skipped: number; done: number; remaining: number; limited: boolean };
+export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
+  ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
+
+/* ---------- Community lot 8 (C4 ranking, C5 intents, C7 clubs) ---------- */
+export type Ranking = { optedIn: boolean; entries?: { rank: number; name: string; score: number; activeDays: number; progressPct: number | null; me: boolean }[]; me?: { score: number; activeDays: number; progressPct: number | null } | null };
+export const fetchRanking = (owner: string) => ownerRpc<Ranking>(owner, "titan_ranking_v1", { p_sport: null });
+export const rankingSet = (owner: string, on: boolean) => ownerRpc<boolean>(owner, "titan_ranking_set_v1", { p_on: on });
+export type Intents = { mine: { intent: string; visibility: string; done: boolean; cheers: number } | null; friends: { userId: string; name: string; intent: string; done: boolean; cheered: boolean }[] };
+export const fetchIntents = (owner: string, day: string) => ownerRpc<Intents>(owner, "titan_intents_v1", { p_day: day });
+export const intentSet = (owner: string, day: string, text: string, friends: boolean) => ownerRpc(owner, "titan_intent_set_v1", { p_day: day, p_text: text, p_visibility: friends ? "friends" : "private" });
+export const intentDone = (owner: string, day: string, done: boolean) => ownerRpc(owner, "titan_intent_done_v1", { p_day: day, p_done: done });
+export const intentCheer = (owner: string, friend: string, day: string, on: boolean) => ownerRpc(owner, "titan_intent_cheer_v1", { p_owner: friend, p_day: day, p_on: on });
+export type Club = { id: string; name: string; description: string | null; role: string; members: number; code: string | null; trophies?: { id: string; title: string; note: string | null; on: string }[]; announcements?: { id: string; body: string; at: string }[] };
+export const fetchClubs = (owner: string) => ownerRpc<Club[] | null>(owner, "titan_club_my_v1", {});
+export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner, "titan_club_join_v1", { p_code: code, p_club: null });
+
+/* ---------- Life chapters (AUD-48) ---------- */
+export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };
+export const fetchChapters = (owner: string) => ownerRpc<LifeChapter[]>(owner, "titan_chapters_v1", {});
+export const chapterStart = (owner: string, title: string) => ownerRpc<string>(owner, "titan_chapter_start_v1", { p_title: title, p_starts_on: null });
+export const chapterClose = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_chapter_close_v1", { p_id: id, p_ends_on: null });
+
+/* ---------- Time capsules (AUD-40) ---------- */
+export type Practice = { minutes: number; days: number };
+export type Capsules = {
+  delivered: { id: string; message: string; months: number; writtenOn: string; deliverOn: string; opened: boolean; then: Practice; now: Practice }[];
+  waiting: { id: string; months: number; deliverOn: string }[];
+};
+export const fetchCapsules = (owner: string) => ownerRpc<Capsules>(owner, "titan_capsules_v1", {});
+export const capsuleCreate = (owner: string, message: string, months: 3 | 6 | 12) => ownerRpc<{ id: string; deliverOn: string }>(owner, "titan_capsule_create_v1", { p_message: message, p_months: months });
+export const capsuleOpen = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_capsule_open_v1", { p_id: id });
 
 /* ---------- Public card ---------- */
 export type CardSettings = { enabled: boolean; slug: string | null; show: Record<string, boolean> } & Record<string, unknown>;

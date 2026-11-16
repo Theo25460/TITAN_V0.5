@@ -1,5 +1,6 @@
 import { ADS_BUILD } from "../../ads/adIds";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Brand } from "../../components/Brand";
@@ -10,6 +11,7 @@ import { Shade } from "../../components/Shade";
 import { T } from "../../components/Text";
 import { heroImage, worldImages } from "../../core/images";
 import { useAuth } from "../../data/auth";
+import { fetchPublicFlags } from "../../data/api";
 import type { RootParams } from "../../navigation/types";
 import { colors, radius, space } from "../../theme/tokens";
 
@@ -22,7 +24,18 @@ const LOOP: { icon?: IconName; image?: number; color: string; title: string; tex
 
 export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams, "Welcome">) {
   const insets = useSafeAreaInsets();
-  const { notice, clearNotice } = useAuth();
+  const { notice, clearNotice, startDiscovery } = useAuth();
+  // AUD-20: « Essayer sans compte » only when the owner opened discovery accounts (flag auth.anonymous + Supabase anonymous sign-ins).
+  const [discovery, setDiscovery] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetchPublicFlags().then((f) => alive && setDiscovery(f["auth.anonymous"] === true));
+    return () => {
+      alive = false;
+    };
+  }, []);
   return (
     <View style={[styles.root, { paddingTop: insets.top + space.s4, paddingBottom: insets.bottom + space.s4 }]}>
       <View style={styles.heroWrap}>
@@ -72,6 +85,27 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
         <View style={{ gap: space.s3 }}>
           <Button label="Créer mon compte" testID="welcome-signup" onPress={() => { clearNotice(); navigation.navigate("Signup"); }} />
           <Button label="J’ai déjà un compte" kind="secondary" testID="welcome-login" onPress={() => { clearNotice(); navigation.navigate("Login"); }} />
+          {discovery ? (
+            <Button
+              label="Essayer sans compte"
+              kind="ghost"
+              testID="welcome-discovery"
+              loading={starting}
+              onPress={async () => {
+                clearNotice();
+                setDiscoveryError(null);
+                setStarting(true);
+                try {
+                  await startDiscovery();
+                } catch (e) {
+                  setDiscoveryError(e instanceof Error ? e.message : String(e));
+                } finally {
+                  setStarting(false);
+                }
+              }}
+            />
+          ) : null}
+          {discoveryError ? <T variant="small" tone="warn" accessibilityRole="alert">{discoveryError}</T> : null}
           <T variant="caption" tone="faint" center>
             Le même compte que sur titan-app.fr : tes séances et ta progression te suivent.
           </T>

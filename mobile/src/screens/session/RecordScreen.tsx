@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon, type IconName } from "../../components/Icon";
-import { lastSessionToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
+import { lastSessionsToRepeat, RepeatLastCard } from "../../components/RepeatLastCard";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
@@ -56,7 +56,7 @@ export function RecordScreen() {
     return [...seen.entries()].slice(0, 6);
   }, [active]);
   const gpsSport = useMemo(() => gpsShortcutSport(prefs.favoriteSports, recent.map(([s]) => s)), [prefs.favoriteSports, recent]);
-  const repeat = useMemo(() => lastSessionToRepeat(active), [active]);
+  const repeats = useMemo(() => lastSessionsToRepeat(active, 3), [active]);
   const open = (sport: string) => {
     setChoosing(false);
     if (liveEnabled && mode === "live") navigation.navigate("LiveSession", { sport });
@@ -64,7 +64,8 @@ export function RecordScreen() {
   };
   const favorites = prefs.favoriteSports.filter((s) => Sports.conf(s));
   const popular = Sports.POPULAR.filter((s) => !favorites.includes(s) && !recent.some(([r]) => r === s));
-  const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 2);
+  // Four shortcuts (AUD-15): two left most people opening the full catalogue for their third sport.
+  const shortcuts = [...new Set([...favorites, ...recent.map(([sport]) => sport), ...popular])].slice(0, 4);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.bg }}>
@@ -98,6 +99,15 @@ export function RecordScreen() {
         {draft ? (
           <Button label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
         ) : null}
+        {!choosing && repeats.length ? (
+          <Section title="Refaire">
+            <View style={{ gap: space.s2 }}>
+              {repeats.map((log, i) =>
+                i === 0 ? <RepeatLastCard key={log.id} log={log} compact /> : <RepeatLastCard key={log.id} log={log} compact title={`Refaire · ${Sports.label(log.sport)}`} testID={`repeat-${log.sport}`} />,
+              )}
+            </View>
+          </Section>
+        ) : null}
         {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
         <Button label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} kind={draft || choosing ? "secondary" : "primary"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
         {choosing ? (
@@ -114,7 +124,7 @@ export function RecordScreen() {
                   {recent.map(([sport, date]) => (
                     <Tap key={sport} onPress={() => open(sport)} accessibilityLabel={`${Sports.label(sport)}, dernière séance ${Format.relativeDay(date)}`} style={{ borderRadius: 14 }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line }}>
-                        <Icon name={Sports.FAMILY_ICON[Sports.familyOf(sport)]} size={22} color={colors.cy} />
+                        <Icon name={Sports.iconOf(sport)} size={22} color={colors.cy} />
                         <View style={{ flex: 1 }}>
                           <T variant="bodyStrong">{Sports.label(sport)}</T>
                           <T variant="caption" tone="faint">
@@ -133,7 +143,6 @@ export function RecordScreen() {
             </Section>
           </>
         ) : null}
-        {repeat && !choosing ? <RepeatLastCard log={repeat} /> : null}
         {/* The GPS used to be reachable only from inside a running/cycling form (V12-10), the GPX import and the watch from nowhere on
             this screen: the three other ways now sit together, each with what it does. */}
         {!choosing ? (

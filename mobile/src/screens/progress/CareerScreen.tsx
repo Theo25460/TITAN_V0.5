@@ -1,4 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
+import { Button } from "../../components/Button";
+import { LifeChapters } from "../../components/LifeChapters";
 import { useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Card } from "../../components/Card";
@@ -183,6 +185,8 @@ export function CareerScreen() {
                 {c.totals.unmeasuredSessions} séance{c.totals.unmeasuredSessions > 1 ? "s" : ""} sans durée renseignée {c.totals.unmeasuredSessions > 1 ? "ne comptent" : "ne compte"} pas dans le temps.
               </T>
             ) : null}
+            <Button small kind="secondary" icon="share" label={`Mon année ${new Date().getFullYear()} en images`} onPress={() => navigation.navigate("Retro", { year: new Date().getFullYear() })} testID="career-retro" />
+            <Button small kind="ghost" icon="calendar" label="Mon mois en images" onPress={() => navigation.navigate("Retro", { year: new Date().getFullYear(), month: new Date().getMonth() })} testID="career-retro-month" />
           </Card>
 
           {c.distance.footKm + c.distance.bikeKm + c.distance.swimMeters + c.elevation.meters > 0 ? (
@@ -241,6 +245,7 @@ export function CareerScreen() {
             </Section>
           ) : null}
 
+          <LifeChapters />
           <Section title="Grands moments">
             {c.milestones.length ? (
               <Card style={{ gap: space.s3 }} testID="career-milestones">

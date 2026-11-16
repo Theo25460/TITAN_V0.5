@@ -19,6 +19,7 @@ require("./web/campaign-encounters.js");
 require("./web/sport-navigation.js");
 require("./web/gpx.js");
 require("./web/career.js");
+require("./web/periodic-quests.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +93,8 @@ export const Sports = g.TitanSports as {
   FORMS: Record<SportForm, { label: string; measures: string[] }>;
   FAMILY_LABEL: Record<Family, string>;
   FAMILY_ICON: Record<Family, "run" | "weight" | "mountain" | "target" | "leaf">;
+  /** One drawing per kind of practice (racket, glove, ball, bike, wave…), the family icon otherwise. */
+  iconOf(id: string): import("./icons.generated").IconName;
   POPULAR: string[];
   ensure(): number;
   label(id: string): string;
@@ -149,6 +152,9 @@ export const Questions = g.TitanQuestions as {
   familyShare(logs: TrainingLog[], opts?: { now?: Date; days?: number }): { total: number; sessions: number; families: { id: Family; minutes: number; share: number }[]; sports: { sport: string; label: string; minutes: number; sessions: number }[] };
 };
 
+export type QuestView = { scope: "week" | "month"; kind: string; scopeLabel: string; title: string; text: string; value: number; target: number; percent: number; unit: string[]; state: "claimed" | "ready" | "open"; focus: string[] };
+/** Wording of the server's weekly and monthly quests (no rule lives here). */
+export const PeriodicQuests = g.TitanPeriodicQuestText as { describe(q: unknown, options?: { sportLabel?: (sport: string) => string }): QuestView | null };
 export const Codex = g.TitanCodex as { worlds: World[]; ranks: { level: number; name: string }[]; avatars: AvatarDef[]; routes: RouteDef[]; version: number };
 
 type WeeklyQuest = { id: string; name: string; text: string; href: string; value?: number; target?: number; unit?: string; icon?: string };

@@ -96,7 +96,7 @@
         <li>Pratique le sport de ton choix et enregistre ta séance. Les séances admissibles font avancer les jours de l’étape ; le chemin Observation demande aussi une note de 10 caractères minimum.</li>
         <li>Quand tous les objectifs sont atteints, reviens allumer la balise. Le gardien demande aussi l’effort indiqué ; plusieurs séances le même jour ne créent pas plusieurs jours actifs.</li>
         <li>La balise débloque un insigne cosmétique, sans XP ni crédits supplémentaires. Les XP et les crédits d’une séance suivent leurs propres règles. Une pause n’efface pas tes insignes.</li></ol>
-        <p class="asc-small">${isGuest() ? "En découverte, la progression est calculée sur cet appareil." : "Avec un compte, le serveur confirme la progression et les récompenses."}</p></details>
+        <p class="asc-small">${isGuest() ? "En découverte, la progression est calculée sur cet appareil." : "Avec un compte, ta progression et tes récompenses sont sauvegardées et suivent tous tes appareils."}</p></details>
         <button type="button" class="asc-btn asc-btn-primary" data-start>${icon("compass")} Commencer la campagne</button>
         <p class="asc-small asc-faint">Les séances comptent à partir du départ, une seule fois par jour. Aucune échéance, aucune pénalité.</p></section>`;
     const ch = world.chapters[p.chapter - 1];
@@ -134,7 +134,7 @@
       <p class="asc-eyebrow">${esc(world.name)} · rencontre du chapitre ${p.chapter}</p>
       <h2 class="asc-h2">${esc(model.encounter.name)}</h2><p>${esc(model.encounter.text)}</p>
       <details class="av-rules" data-rpg-quests="${esc(world.id)}:${p.chapter}"><summary>Missions facultatives · ${model.completed}/3 préparatifs réunis</summary>
-        <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni coins supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
+        <p class="asc-small asc-muted">Ces missions personnelles accompagnent ton chapitre : elles ne sont pas nécessaires pour allumer la balise et ne donnent ni XP ni crédits supplémentaires. Elles se renouvellent au chapitre suivant, sans pénalité.</p>
         <p class="asc-small asc-muted">${model.authority === "server" ? `Cibles figées par le serveur au départ du chapitre : ${F().number(model.profile.daysTarget)} jour(s) et ${F().number(model.profile.effortTarget)} min d’effort, d’après les jours admissibles des 28 jours précédents (90 min au plus par jour).${model.profile.legacy ? " Chapitre déjà commencé : cibles douces conservées." : ""} Les souvenirs des missions remplies sont confirmés quand tu allumes la balise ; une mission incomplète ne bloque pas la suite.` : `${model.profile.days ? `Cibles indicatives sur les ${model.profile.days} jours actifs des 28 jours avant ce chapitre : ${model.profile.daysTarget} jour(s) et ${model.profile.effortTarget} min d’effort, 90 min au plus par jour.` : "Historique admissible insuffisant avant ce chapitre : départ doux, 1 jour et 15 min d’effort."} ${isGuest() ? "En découverte, ces repères sont calculés sur cet appareil, sans nouveaux souvenirs." : "Ces préparatifs sont indicatifs sur cette version du serveur, sans nouveaux souvenirs."}`}</p>
         <div class="asc-stack">${model.quests.map(q => `<article class="asc-note" data-quest="${q.id}" data-complete="${q.complete}">
           ${icon(q.complete ? "check" : q.id === "note" ? "journal" : "route")}<div class="asc-stack-sm"><strong>${esc(q.name)}</strong>
@@ -190,7 +190,7 @@
     if (!owner || snapshot.owner !== owner || window.titanAccountTransition?.active || isGuest() || snapshot.version < 3) return "";
     const earned = (Array.isArray(snapshot.quest_rewards) ? snapshot.quest_rewards : []).filter(r => r.world === world.id && Number.isInteger(r.chapter) && r.chapter >= 1 && r.chapter <= 9 && window.TitanCampaignQuests?.rewardName(r.quest_id));
     if (!earned.length) return "";
-    return `<section class="asc-section av-panel" data-quest-souvenirs><h2 class="asc-h2">Souvenirs de quêtes confirmés</h2><p class="asc-small asc-muted">Conservés dans ton carnet, même après une correction de séance. Ils ne donnent ni XP ni coins.</p><div class="asc-stack">${earned.map(r => `<p class="asc-note" data-quest-souvenir>${icon("star")}<span>Chapitre ${r.chapter} · ${esc(window.TitanCampaignQuests.rewardName(r.quest_id))}</span></p>`).join("")}</div></section>`;
+    return `<section class="asc-section av-panel" data-quest-souvenirs><h2 class="asc-h2">Souvenirs de quêtes confirmés</h2><p class="asc-small asc-muted">Conservés dans ton carnet, même après une correction de séance. Ils ne donnent ni XP ni crédits.</p><div class="asc-stack">${earned.map(r => `<p class="asc-note" data-quest-souvenir>${icon("star")}<span>Chapitre ${r.chapter} · ${esc(window.TitanCampaignQuests.rewardName(r.quest_id))}</span></p>`).join("")}</div></section>`;
   }
 
   function guardianHtml(world, p, snapshot) {

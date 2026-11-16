@@ -156,13 +156,19 @@ describe("with account data", () => {
       await cleanup();
     }
   });
-  test("QG garde les accès Sport, Aventure et Progrès pendant le chargement", () => {
+  test("QG montre les 8 dernières semaines et la séance à refaire (AUD-24)", () => {
+    show(<S.Home />);
+    expect(screen.getByTestId("qg-cadence")).toBeTruthy();
+    expect(screen.getByText("Mes 8 dernières semaines")).toBeTruthy();
+    expect(screen.getByTestId("repeat-last")).toBeTruthy();
+  });
+  test("QG garde l’accès aux événements et à la communauté pendant le chargement (AUD-23/24)", () => {
     mockState.loading = true;
     show(<S.Home />);
-    for (const [name, target] of [["Sport", "Record"], ["Aventure", "Adventure"], ["Progrès", "Progress"]]) {
-      fireEvent.press(screen.getByRole("button", { name }));
-      expect(mockNav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: target });
-    }
+    fireEvent.press(screen.getByTestId("qg-events"));
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("Events");
+    fireEvent.press(screen.getByTestId("qg-community"));
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("Community");
   });
   test("QG ouvre les séances en attente et propose une action locale hors ligne", async () => {
     const online = jest.spyOn(network, "useOnline").mockReturnValue(false);
@@ -452,12 +458,13 @@ describe("V1.3.1 · grand texte et petit écran", () => {
     const dimensions = jest.spyOn(require("react-native"), "useWindowDimensions").mockReturnValue({ width, height: 740, scale: 2, fontScale });
     try {
       show(<S.Home />);
-      // The three accesses stack instead of squeezing their labels; each keeps its name, its hint and its destination.
-      for (const [name, target] of [["Sport", "Record"], ["Aventure", "Adventure"], ["Progrès", "Progress"]]) {
+      // The accesses stack instead of squeezing their labels; each keeps its name, its hint and its destination. Since the
+      // consolidation of 16 November they lead where the tab bar does not (events, community): Sport, Aventure and Progrès are tabs.
+      for (const [name, target] of [["Quêtes et événements", "Events"], ["Ma communauté", "Community"]]) {
         const access = screen.getByRole("button", { name });
         expect(access.props.accessibilityHint).toBeTruthy();
         fireEvent.press(access);
-        expect(mockNav.navigate).toHaveBeenLastCalledWith("Tabs", { screen: target });
+        expect(mockNav.navigate).toHaveBeenLastCalledWith(target);
       }
       expect(screen.getByTestId("qg-progress")).toBeTruthy();
       // No text of the new blocks is clipped to one line.

@@ -10,7 +10,7 @@ import { T } from "../../components/Text";
 import { fetchProfile } from "../../data/api";
 import { useOwner } from "../../data/auth";
 import { keys, useProfile } from "../../data/hooks";
-import { BILLING_BUILD, BillingError, buy, FREE_PLAN, loadCurrentPlayProduct, loadOffers, manageInPlay, messageFor, PLANS, restore, type Offer } from "../../lib/playBilling";
+import { BILLING_BUILD, BillingError, buy, FREE_PLAN, mentionsAds, visiblePerks, loadCurrentPlayProduct, loadOffers, manageInPlay, messageFor, PLANS, restore, type Offer } from "../../lib/playBilling";
 import { supabase } from "../../lib/supabase";
 import { colors } from "../../theme/tokens";
 
@@ -151,7 +151,7 @@ export function TitanPlusScreen() {
       <Card style={{ gap: 6 }} testID="plan-free">
         <T variant="h3">{FREE_PLAN.name}</T>
         <T variant="caption" tone="faint">{FREE_PLAN.tagline}</T>
-        {FREE_PLAN.perks.filter((p) => ADS_BUILD || !/Publicités/.test(p)).map((p) => (
+        {visiblePerks(FREE_PLAN.perks, ADS_BUILD).map((p) => (
           <T key={p} variant="small">• {p}</T>
         ))}
       </Card>
@@ -161,9 +161,9 @@ export function TitanPlusScreen() {
         return (
           <Card key={plan.id} tone={plan.kind === "coach" ? "amber" : "accent"} style={{ gap: 6 }} testID={`plan-${plan.plan}`}>
             <T variant="h3">{plan.name}</T>
-            <T variant="caption" tone="faint">{plan.tagline}</T>
+            {ADS_BUILD || !mentionsAds(plan.tagline) ? <T variant="caption" tone="faint">{plan.tagline}</T> : null}
             <T variant="bodyStrong">{o ? o.price : live ? "Pas encore proposé" : "Bientôt disponible"}</T>
-            {plan.perks.map((p) => (
+            {visiblePerks(plan.perks, ADS_BUILD).map((p) => (
               <T key={p} variant="small">• {p}</T>
             ))}
             {plan.id === currentPlayProduct ? <T variant="caption" tone="muted">Offre détectée dans Google Play</T> : null}

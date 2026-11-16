@@ -25,7 +25,7 @@ export function SessionRow({ log, onPress, record = false }: { log: TrainingLog;
     <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${record ? ", record actuel" : ""}${pending ? ", en attente d’envoi" : ""}`} style={styles.tap}>
       <View style={styles.row}>
         <View style={[styles.icon, { backgroundColor: `${familyColors[fam]}22` }]}>
-          <Icon name={Sports.FAMILY_ICON[fam]} size={20} color={familyColors[fam]} />
+          <Icon name={Sports.iconOf(log.sport)} size={20} color={familyColors[fam]} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <T variant="bodyStrong" numberOfLines={1}>

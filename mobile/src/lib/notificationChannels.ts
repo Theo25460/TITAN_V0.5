@@ -10,10 +10,11 @@ export const GROUP = "titan";
 
 export type ChannelDef = { id: string; name: string; description: string; importance: "DEFAULT" | "LOW"; sound: boolean; vibrate: boolean };
 /** `reminders` keeps its historical id so existing installs keep their settings. */
-export const CHANNELS: Record<"reminders" | "recap" | "recording", ChannelDef> = {
+export const CHANNELS: Record<"reminders" | "recap" | "recording" | "rest", ChannelDef> = {
   reminders: { id: "reminders", name: "Rappels d’entraînement", description: "Les créneaux sportifs que tu as choisis", importance: "DEFAULT", sound: false, vibrate: true },
   recap: { id: "recap", name: "Récap de la semaine", description: "Ton bilan du lundi : volume, records, prochaine étape", importance: "DEFAULT", sound: false, vibrate: false },
   recording: { id: "recording", name: "Enregistrement en cours", description: "Visible pendant un suivi GPS que tu as démarré, jamais autrement", importance: "LOW", sound: false, vibrate: false },
+  rest: { id: "rest", name: "Fin du repos", description: "Quand ton temps de repos entre deux séries est écoulé", importance: "DEFAULT", sound: true, vibrate: true },
 };
 
 export const CATEGORY_REMINDER = "titan-reminder";

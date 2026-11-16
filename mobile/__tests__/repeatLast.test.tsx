@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Progress } from "../src/core";
-import { lastSessionToRepeat, RepeatLastCard } from "../src/components/RepeatLastCard";
+import { lastSessionsToRepeat, lastSessionToRepeat, RepeatLastCard } from "../src/components/RepeatLastCard";
 import { RecordScreen } from "../src/screens/session/RecordScreen";
 import { logs as mockLogs } from "../test-fixtures/data";
 
@@ -46,6 +46,22 @@ describe("Refaire ma dernière séance (V12-13/32)", () => {
     expect(screen.getByTestId("sport-search")).toBeTruthy();
     fireEvent.press(screen.getByTestId("sport-running"));
     expect(mockNavigate).toHaveBeenLastCalledWith("SessionForm", { sport: "running" });
+  });
+
+  test("after a run, the last strength and climbing sessions stay one tap away (AUD-15)", () => {
+    const active = Progress.activeLogs(mockLogs);
+    expect(lastSessionsToRepeat(active, 3).map((l) => l.sport)).toEqual(["running", "muscu_gym", "bouldering"]);
+    expect(lastSessionsToRepeat(active, 10).filter((l) => l.sport === "running")).toHaveLength(1);
+    mockNavigate.mockClear();
+    render(<SafeAreaProvider initialMetrics={metrics}><RecordScreen /></SafeAreaProvider>);
+    fireEvent.press(screen.getByTestId("repeat-muscu_gym"));
+    expect(mockNavigate).toHaveBeenCalledWith("SessionForm", { sport: "muscu_gym", duplicateOf: mockLogs[1].id });
+  });
+
+  test("the session tab shows four sports in quick access (AUD-15)", () => {
+    render(<SafeAreaProvider initialMetrics={metrics}><RecordScreen /></SafeAreaProvider>);
+    const quick = screen.getAllByTestId(/^sport-/);
+    expect(quick.length).toBe(4);
   });
 
   test("the first view of the session tab opens a favourite sport without expanding the catalogue", () => {

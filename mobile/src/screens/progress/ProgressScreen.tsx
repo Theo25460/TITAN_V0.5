@@ -12,6 +12,8 @@ import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section, Stat, StatRow } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
+import { SelfComparisonCard } from "../../components/MemoryCard";
+import { YearSquares } from "../../components/HabitCards";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Codex, Format, Progress, Questions, Sports, Training, type Recap, type WeekChapter } from "../../core";
@@ -187,6 +189,8 @@ export function ProgressScreen() {
           </>
         ) : view === "trends" ? (
           <>
+            <YearSquares logs={active} />
+            <SelfComparisonCard logs={active} />
             <Section title="Tes questions">
               <SportQuestions logs={active} cadenceTarget={prefs.weeklyGoalSessions} pauses={prefs.cadencePauses} />
             </Section>

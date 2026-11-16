@@ -14,7 +14,7 @@ jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => mockOnline(), isOnline: () => mockOnline() }));
 jest.mock("../src/data/hooks", () => {
   const { social } = jest.requireActual("../test-fixtures/data");
-  return { keys: { social: (owner: string) => ["social", owner] }, useSocial: () => ({ data: social, refetch: jest.fn() }) };
+  return { keys: { social: (owner: string) => ["social", owner], profile: (owner: string) => ["profile", owner] }, useSocial: () => ({ data: social, refetch: jest.fn() }), useSavePrefs: () => ({ mutateAsync: jest.fn(async () => ({})) }) };
 });
 
 const partner = { id: "friend-1", name: "Alex Duo" };

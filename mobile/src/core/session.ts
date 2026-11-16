@@ -2,7 +2,7 @@
    so a session recorded on Android has exactly the same shape as one recorded on titan-app.fr: same units, same
    val/val1/val2/duration fields, same exercise rows, same bounds. The server recomputes effort and rewards. */
 import { Sports, type GpxResult, type SportForm } from "./index";
-import type { Exercise, SessionDetails, TrainingPayload } from "./types";
+import type { Exercise, SessionDetails, TrainingLog, TrainingPayload } from "./types";
 import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
 import { sanitizeLiveJournal, type LiveJournal } from "./liveJournal";
 
@@ -40,6 +40,12 @@ export type SessionDraft = {
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
 export const BELAYS = ["Tête", "Moulinette", "Auto-assurage"] as const;
+/** AUD-29: grades offered as chips (one tap instead of typing « 6a+ »), each accepted by the grade check below. */
+export const GRADE_LADDER: Record<string, string[]> = {
+  "Fontainebleau bloc": ["3", "4", "4+", "5", "5+", "6A", "6A+", "6B", "6B+", "6C", "6C+", "7A", "7A+", "7B", "7B+", "7C", "7C+", "8A"],
+  "V-scale bloc": ["VB", "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12"],
+  "Français voie": ["4b", "4c", "5a", "5b", "5c", "6a", "6a+", "6b", "6b+", "6c", "6c+", "7a", "7a+", "7b", "7b+", "7c", "7c+", "8a", "8a+", "8b"],
+};
 export const RPE_TEXT: Record<number, string> = { 1: "Très facile", 2: "Très facile", 3: "Facile", 4: "Facile", 5: "Modéré", 6: "Modéré", 7: "Difficile", 8: "Difficile", 9: "Très difficile", 10: "Maximal" };
 export const COMMON_EXERCISES = ["Développé couché", "Squat", "Soulevé de terre", "Développé militaire", "Rowing barre", "Tractions", "Dips", "Fentes", "Presse à cuisses", "Hip thrust", "Tirage vertical", "Tirage horizontal", "Curl biceps", "Extension triceps", "Élévations latérales", "Leg curl", "Leg extension", "Mollets", "Pompes", "Gainage"];
 export const COMMON_MOVES = ["Pompes", "Tractions", "Dips", "Squats", "Fentes", "Gainage (planche)", "Planche latérale", "Burpees", "Relevés de jambes", "Muscle-up", "Pistol squat", "L-sit", "Front lever", "Handstand"];
@@ -163,6 +169,34 @@ export function exerciseDraftPayload(exercises: ExerciseDraft[]): Exercise[] {
 
 export function exerciseDrafts(exercises: Exercise[] = []): ExerciseDraft[] {
   return exercises.map((e) => ({ name: e.name, variant: e.variant || "", kind: e.kind || "weighted", sets: (e.setRows || []).map((s) => ({ weight: String(s.weight ?? 0), reps: String(s.reps ?? ""), rir: s.rir == null ? "" : String(s.rir), seconds: String(s.seconds ?? "") })) }));
+}
+
+/** How an exercise name is compared across sessions: case, accents and spacing do not matter. */
+export const exerciseKey = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+
+export type LastPerformance = { date: string; sets: SetDraft[]; summary: string };
+
+/** AUD-16: the most recent time this exercise was done in the journal (newest first), as reusable set rows and a one-line summary.
+    Read from the local journal only: nothing is sent and nothing is estimated. */
+export function lastPerformance(logs: TrainingLog[], name: string): LastPerformance | null {
+  const key = exerciseKey(name);
+  if (!key) return null;
+  for (const log of logs) {
+    const ex = (log.details?.exercises || []).find((e) => exerciseKey(e.name || "") === key && (e.setRows || []).length);
+    if (!ex) continue;
+    const sets = exerciseDrafts([ex])[0].sets;
+    const rows = ex.setRows || [];
+    const n = rows.length;
+    let summary: string;
+    if (ex.kind === "hold") summary = `${n} × ${Math.max(...rows.map((r) => r.seconds || 0))} s`;
+    else {
+      const top = rows.reduce((best, r) => ((r.weight || 0) > (best.weight || 0) || ((r.weight || 0) === (best.weight || 0) && (r.reps || 0) > (best.reps || 0)) ? r : best), rows[0]);
+      const load = top.weight ? `${String(top.weight).replace(".", ",")} kg × ${top.reps || 0}` : `${top.reps || 0} répét.`;
+      summary = `${n} série${n > 1 ? "s" : ""} · ${load}`;
+    }
+    return { date: log.date, sets, summary };
+  }
+  return null;
 }
 
 export function exerciseDraftError(exercises: ExerciseDraft[]): string | null {
