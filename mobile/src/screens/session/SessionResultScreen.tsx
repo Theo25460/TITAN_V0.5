@@ -1,3 +1,4 @@
+import { SpaceProvider } from "../../theme/space";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
@@ -33,7 +34,9 @@ import { errorMessage } from "../../lib/errors";
 import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
+import { colors, familyColors, fonts, radius, space, spaces } from "../../theme/tokens";
+
+const INK = spaces.seance.ink;
 import { LiveSettleCard } from "../../components/LiveSettleCard";
 
 type Objective = { id: string; remaining: number };
@@ -220,27 +223,27 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Reveal order={0} style={{ gap: space.s4 }}>
+    <SpaceProvider space="seance">
+    <View style={styles.root}>
+      <ScrollView>
+        {/* The effort first, on the lime field of the session: the sport, then the one figure that says what was done, in the
+            field's ink. What TITAN grants for it comes under it, on the ground, in the colour of progression. */}
+        <Reveal order={0} style={[styles.field, { paddingTop: insets.top + space.s5 }]}>
           <View style={styles.head}>
-            <View style={[styles.sportDisc, { backgroundColor: `${tint}26`, borderColor: `${tint}66` }]}>
-              <Icon name={Sports.iconOf(log.sport)} size={26} color={tint} />
-            </View>
+            <Icon name={Sports.iconOf(log.sport)} size={28} color={INK} />
             <View style={{ flex: 1 }}>
-              <T variant="eyebrow" tone="accent">
+              <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                 {historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · {Format.relativeDay(log.date)}
               </T>
-              <T variant="h2" numberOfLines={2}>
+              <T variant="h2" color={INK} numberOfLines={2}>
                 {Sports.label(log.sport)}
               </T>
             </View>
           </View>
           {headline ? (
             <View>
-              <T variant="eyebrow">Tu as fait</T>
-              <T style={styles.hero}>{headline[1]}</T>
-              <T variant="caption" tone="faint">
+              <T style={styles.hero} numberOfLines={1} adjustsFontSizeToFit>{headline[1]}</T>
+              <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                 {headline[0]}
                 {effort.effortMinutes > 0 ? ` · ${Math.round(effort.effortMinutes)} min d’effort${effort.estimated ? " (durée estimée)" : ""}` : ""}
               </T>
@@ -248,18 +251,19 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           ) : null}
           {facts.length ? (
             <View style={styles.facts}>
-              {facts.map(([k, v], i) => (
-                <View key={k} style={[styles.fact, i > 0 && styles.factLine]}>
-                  <T variant="caption" tone="faint">
+              {facts.map(([k, v]) => (
+                <View key={k} style={styles.fact}>
+                  <T variant="num" color={INK}>{v}</T>
+                  <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                     {k}
                   </T>
-                  <T variant="num">{v}</T>
                 </View>
               ))}
             </View>
           ) : null}
         </Reveal>
 
+        <View style={styles.scroll}>
         <Reveal order={1}>
           <LiveSettleCard owner={owner} eventId={eventId} payload={payload} confirmed={status === "confirmed"} />
           {/* The accent tone and "TITAN a confirmé" are reserved for what the server really granted: a held reward, a refusal or a
@@ -454,6 +458,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           <T variant="eyebrow">Et maintenant</T>
           <T accessibilityLiveRegion="polite">{next}</T>
         </View>
+        </View>
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
       {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (
@@ -491,18 +496,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         />
       </View>
     </View>
+    </SpaceProvider>
   );
 }
 
 const styles = StyleSheet.create({
   offscreen: { position: "absolute", left: -10000, top: 0 },
   root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: space.s4, paddingTop: space.s5, gap: space.s5 },
+  field: { backgroundColor: spaces.seance.accent, paddingHorizontal: space.s5, paddingBottom: space.s5, gap: space.s4 },
+  scroll: { padding: space.s5, gap: space.s5 },
   head: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   sportDisc: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  hero: { fontFamily: fonts.display, fontSize: 56, lineHeight: 60, color: colors.tx, fontVariant: ["tabular-nums"] },
-  facts: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line, paddingVertical: space.s3 },
-  fact: { flex: 1, gap: 2, paddingHorizontal: space.s2 },
+  hero: { fontFamily: fonts.figure, fontSize: 96, lineHeight: 92, letterSpacing: -1.5, color: spaces.seance.ink, fontVariant: ["tabular-nums"] },
+  facts: { flexDirection: "row", gap: space.s5, borderTopWidth: 1.5, borderColor: "rgba(22,28,0,0.28)", paddingTop: space.s3 },
+  fact: { flex: 1, gap: 0 },
   factLine: { borderLeftWidth: 1, borderLeftColor: colors.line },
   rewardRow: { flexDirection: "row", alignItems: "flex-end", gap: 6 },
   xp: { fontFamily: fonts.display, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
