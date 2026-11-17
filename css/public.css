@@ -703,6 +703,10 @@ a.pub-card:hover {
   display: grid;
   gap: var(--s4);
 }
+/* An action in the page head keeps the width of its label instead of stretching across the page. */
+.pub-page-head .pub-wrap > .asc-btn {
+  justify-self: start;
+}
 .pub-breadcrumb ol {
   display: flex;
   flex-wrap: wrap;

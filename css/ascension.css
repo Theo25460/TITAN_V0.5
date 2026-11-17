@@ -1428,6 +1428,16 @@ button.asc-row:hover .asc-row-title {
   margin-top: 2px;
   color: var(--tx-2);
 }
+/* A note that carries an action: the sentence takes the room, the action keeps its label on one line at the end. */
+.asc-note > :where(span, p):first-child {
+  flex: 1;
+  min-width: 0;
+}
+.asc-note > .asc-btn {
+  flex: none;
+  align-self: center;
+  white-space: nowrap;
+}
 .asc-note.warn {
   background: rgba(240, 162, 74, 0.1);
 }
@@ -1611,8 +1621,20 @@ html[data-motion="reduced"] *::after {
 .asc-more {
   margin-right: var(--s1);
 }
+/* The current page lives in the « Plus » sheet: the button carries a small dot in its own ink. It used to be a 3 px inner
+   shadow, which the rounded corners turned into a bracket under the icon that read as a rendering fault. */
 .asc-more[aria-current="page"] {
-  box-shadow: inset 0 -3px 0 currentColor;
+  position: relative;
+}
+.asc-more[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 .asc-more-legal {
   margin-top: var(--s4);
