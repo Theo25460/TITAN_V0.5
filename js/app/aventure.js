@@ -115,11 +115,13 @@
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
-      <p class="asc-small asc-muted">Ce que ça apporte : l’insigne <strong>${esc(ch.title)}</strong>, cosmétique, sans XP ni crédits. Tes XP viennent de l’effort de chaque séance.</p>
-      ${personalTargetHtml(p)}
       <p class="av-story">${esc(ch.story)}</p>
-      <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
+      <details class="av-more"><summary>Ce que ça apporte<span class="av-more-prize">${icon("star")} ${esc(ch.title)}</span></summary>
+        <p class="asc-small">L’insigne <strong>${esc(ch.title)}</strong>, cosmétique, sans XP ni crédits. Tes XP viennent de l’effort de chaque séance.</p>
+        ${personalTargetHtml(p)}
+        <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
+      </details>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm av-mission-details" data-chapter="${ch.index}">Détails du chapitre</button>
     </section>`;
   }
 

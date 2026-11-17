@@ -34,6 +34,12 @@
 .qg-head h1 {
   font-size: clamp(38px, 10.5vw, 72px);
 }
+/* A shorter painting on a phone: the greeting, the week and the action of the day share the first screen. */
+@media (max-width: 599px) {
+  .qg-head {
+    min-height: 236px;
+  }
+}
 .qg-guest,
 .qg-offline {
   margin-top: var(--s4);
@@ -41,11 +47,115 @@
 .qg-guest strong {
   color: var(--tx);
 }
-/* Rank line: character, level and rank, XP bar, crest. One row on every width, no box. */
-.qg-ascent {
+/* The status band under the greeting: where the week stands (the pulse), then the rank. Both are single lines on the ground;
+   the action of the day under them stays the only slab. On a wide screen they share one row, aligned with the two columns. */
+.qg-status {
+  display: grid;
+  gap: 0;
   margin: 0 0 var(--s5);
-  padding: var(--s1) 0 var(--s2);
   border-bottom: 1px solid var(--line-2);
+}
+/* The week on one line: seven days in the grammar of the programme (an inked day, a dashed day still to come, a dot for a rest
+   day, today under the mark of the space), then the count of active days against the usual week, set as a figure. */
+.qg-pulse {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--s4);
+  padding: var(--s1) 0 var(--s4);
+  color: var(--tx);
+  border-radius: var(--r1);
+}
+.prg-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 36px));
+  gap: 5px;
+  min-width: 0;
+}
+.prg-day {
+  display: grid;
+  gap: 5px;
+  justify-items: stretch;
+  --fam: var(--tx-2);
+}
+.prg-day[data-family="endurance"] { --fam: var(--fam-endurance); }
+.prg-day[data-family="force"] { --fam: var(--fam-force); }
+.prg-day[data-family="technique"] { --fam: var(--fam-technique); }
+.prg-day[data-family="jeu"] { --fam: var(--fam-jeu); }
+.prg-day[data-family="mobilite"] { --fam: var(--fam-mobilite); }
+.prg-day em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  color: var(--tx-3);
+}
+.prg-day.is-mark em {
+  color: var(--space);
+}
+.prg-day .prg-cell {
+  max-height: none;
+  background: var(--bg-2);
+  border-radius: 3px;
+}
+.prg-day.is-done .prg-cell {
+  background: none;
+}
+.prg-day.is-mark .prg-cell {
+  box-shadow: 0 5px 0 -3px var(--space);
+}
+.prg-day .prg-ink,
+.prg-day .prg-frame {
+  border-radius: 3px;
+}
+.qg-pulse-text {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s2);
+  min-width: 0;
+}
+.qg-pulse-text strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 300;
+  font-size: clamp(44px, 12vw, 56px);
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.qg-pulse-text strong small {
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--tx-2);
+  margin-left: 1px;
+}
+.qg-pulse-label {
+  display: grid;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  padding-bottom: 1px;
+}
+.qg-pulse-label small {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tx-3);
+}
+.qg-pulse:hover .qg-pulse-state {
+  color: var(--space);
+}
+@media (max-width: 359px) {
+  .qg-pulse { gap: var(--s3); }
+  .prg-days { gap: 3px; }
+  .qg-pulse-label small { display: none; }
+}
+/* Rank line: character, level and rank, XP bar, crest. One row on every width, no box; the explanation and the way to the profile
+   share one quiet line under it. */
+.qg-ascent {
+  margin: 0;
+  padding: var(--s3) 0 var(--s1);
+  border-top: 1px solid var(--line-2);
 }
 .qg-rank {
   display: flex;
@@ -56,9 +166,9 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-stretch: var(--w-title);
-  font-size: clamp(20px, 5.4vw, 26px);
+  font-size: clamp(18px, 4.9vw, 22px);
   line-height: 1.1;
-  margin: 0 0 var(--s2);
+  margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
 .qg-ascent .asc-ascent {
@@ -66,7 +176,8 @@
   height: 4px;
 }
 .qg-ascent-line {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
+  font-size: 12.5px;
 }
 .qg-ascent .asc-small strong,
 .qg-xp {
@@ -81,12 +192,15 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s3);
-  margin-top: var(--s1);
 }
 .qg-ascent-foot .qg-why {
   flex: 1;
   min-width: 0;
   margin-top: 0;
+}
+.qg-ascent-foot .qg-why > summary {
+  color: var(--tx-3);
+  font-weight: 600;
 }
 .qg-ascent-foot .asc-link {
   display: inline-flex;
@@ -94,9 +208,26 @@
   min-height: 44px;
   flex: none;
 }
-@media (max-width: 519px) {
-  .qg-portrait { width: 48px; height: 48px; }
-  .qg-crest .crest { width: 48px; height: auto; }
+.qg-portrait { width: 48px; height: 48px; }
+.qg-crest .crest { width: 48px; height: auto; }
+@media (min-width: 1100px) {
+  .qg-status {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    column-gap: var(--s9);
+    align-items: end;
+  }
+  .qg-pulse {
+    padding-bottom: var(--s5);
+    align-items: end;
+  }
+  .prg-days {
+    grid-template-columns: repeat(7, minmax(0, 44px));
+    gap: 6px;
+  }
+  .qg-ascent {
+    border-top: 0;
+    padding-top: 0;
+  }
 }
 /* The action of the day: the one slab of the page. It takes the cyan of the QG, the amber of a record, and stays on the ground
    for an alert (an error is never a celebration of colour). */
@@ -279,6 +410,30 @@
   line-height: 1.3;
 }
 #qg-week { white-space: nowrap; }
+.qg-week-change {
+  margin: calc(-1 * var(--s2)) 0 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--tx-2);
+  text-wrap: pretty;
+}
+.qg-week-change strong {
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--tx);
+  margin-right: 2px;
+}
+.qg-week-change strong.is-up {
+  color: var(--cy);
+}
+.qg-week-change strong small {
+  font-size: 0.7em;
+}
+.qg-cadence-line {
+  margin: 0;
+}
 .qg-program {
   display: grid;
   gap: var(--s2);
@@ -2637,6 +2792,13 @@
     background: none;
   }
 }
+/* On a phone the worlds are a row of short plates: the page is about the world being looked at, whose map follows the mission. */
+@media (max-width: 599px) {
+  .av-world { min-height: 84px; }
+  .av-world-copy > span { display: none; }
+  .av-worlds { grid-auto-columns: minmax(176px, 1fr); margin-bottom: var(--s4); }
+  .av-head { padding: var(--s2) 0 var(--s3); }
+}
 .av-world-copy {
   display: grid;
   gap: 2px;
@@ -2686,7 +2848,38 @@
 }
 .av-todo { display: grid; gap: 2px; margin: 0; padding: var(--s3) 0; border-top: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; font-weight: 700; font-size: 17px; line-height: 1.35; }
 .av-todo-label { font-size: 13px; font-weight: 800; }
-.av-story { color: var(--tx-2); }
+.av-story { color: var(--tx-2); margin: 0; font-size: 15px; line-height: 1.45; text-wrap: pretty; }
+/* What the chapter brings and how it is counted: one labelled line that opens. The mission itself stays four things — what to
+   do, how far, the action, the line of story — so the map of the world is on the first screen of a phone. */
+.av-more { border-top: 1.5px solid currentColor; }
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .av-more { border-top-color: color-mix(in srgb, var(--space-ink) 30%, transparent); }
+}
+.av-more > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: 44px;
+  padding: var(--s2) 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.av-more > summary::-webkit-details-marker { display: none; }
+.av-more-prize {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-weight: 800;
+  text-align: right;
+}
+.av-more-prize .t-icon { width: 15px; height: 15px; flex: none; }
+.av-more[open] > summary { margin-bottom: var(--s2); }
+.av-more > :not(summary) { margin: 0 0 var(--s3); }
+.av-more > :last-child { margin-bottom: var(--s2); }
 /* WCAG 2.2 target size: the two path radios and the folded explanations are at least 24 px high. */
 .av-route input[type="radio"] { width: 24px; height: 24px; flex: none; margin: 0; }
 .av-rules > summary { min-height: 24px; padding-block: 2px; }
@@ -2704,14 +2897,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.85) brightness(0.72);
+  filter: saturate(0.92) brightness(0.86);
 }
 .av-map::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(9, 12, 16, 0.75));
+  background: radial-gradient(120% 90% at 50% 50%, transparent 46%, rgba(9, 12, 16, 0.62));
   pointer-events: none;
 }
 .av-trail {
@@ -4428,8 +4621,8 @@
 }
 .qg-portrait {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   padding: 3px;
   align-self: center;
@@ -4542,7 +4735,7 @@
 /* An approved rank badge (js/app/crest.js) is a square transparent image: it keeps its ratio wherever a crest was sized by width. */
 .crest-badge { display: block; height: auto; max-width: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 .qg-crest { flex: none; display: block; }
-.qg-crest .crest { width: 60px; height: auto; }
+.qg-crest .crest { width: 48px; height: auto; }
 .qg-rank-reward { display: flex; flex: none; align-items: center; margin-left: auto; }
 .moment-hero { display: grid; place-items: center; padding: var(--s4) 0 var(--s3); }
 .moment-ring { position: relative; width: 132px; height: 132px; }

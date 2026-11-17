@@ -92,17 +92,16 @@
         return `<span class="asc-notch" data-state="${wk.state}" style="--fill:${wk.fill}%" role="img" aria-label="${esc(label)}" title="${esc(label)}"></span>`;
       })
       .join("");
-    const status = cad.currentPaused ? "<strong>Cadence en pause</strong>" : cad.remaining === 0
-      ? `<strong class="qg-held">${icon("check")} Semaine tenue</strong>`
-      : `<strong>${cad.currentDays}/${cad.target}</strong> jour${cad.target > 1 ? "s" : ""} actif${cad.target > 1 ? "s" : ""} cette semaine`;
     const delta = recapNow.deltaMinutes;
     // A new account reads its week target only: three zeros and « pas encore d’historique » said nothing (V13-40, ANTI-IA-06).
+    // Three figures say the week; what changed against the usual week is a sentence under them, not a fourth figure.
+    const same = delta !== null && Math.round(delta) === 0;
+    const change = delta === null ? "" : `<p class="qg-week-change" title="Comparé à la moyenne de tes 4 dernières semaines, au même jour de la semaine">${same ? "Comme d’habitude à ce stade de la semaine." : `<strong class="asc-num${delta > 0 ? " is-up" : ""}">${statDur(delta)}</strong> de ${delta > 0 ? "plus" : "moins"} que d’habitude à ce stade de la semaine.`}</p>`;
     const stats = hasSessions ? `<div class="asc-stats">
           <div class="asc-stat"><span class="asc-stat-value">${w.sessions}</span><span class="asc-stat-label">séance${w.sessions > 1 ? "s" : ""}</span></div>
           <div class="asc-stat"><span class="asc-stat-value">${statDur(w.minutes)}</span><span class="asc-stat-label">de pratique${w.estimatedMinutes ? " (en partie estimée)" : ""}</span></div>
           ${w.distance ? `<div class="asc-stat"><span class="asc-stat-value">${f.number(w.distance, 1)}<small>km</small></span><span class="asc-stat-label">parcourus</span></div>` : ""}
-          ${delta === null ? "" : `<div class="asc-stat" title="Comparé à la moyenne de tes 4 dernières semaines, au même jour de la semaine"><span class="asc-stat-value ${delta > 0 ? "is-up" : ""}">${Math.round(delta) === 0 ? "=" : statDur(delta)}</span><span class="asc-stat-label">${Math.round(delta) === 0 ? "comme d’habitude à ce stade" : delta > 0 ? "de plus que d’habitude à ce stade" : "de moins que d’habitude à ce stade"}</span></div>`}
-        </div>` : "";
+        </div>${change}` : "";
     const held = hasSessions ? `<span class="asc-faint">${cad.held} semaine${cad.held > 1 ? "s" : ""} tenue${cad.held > 1 ? "s" : ""} sur les ${cad.window} dernières · ${f.number(cad.lifetimeHeld)} au total</span>`
       : `<span class="asc-faint">Une semaine est tenue quand tu atteins ta semaine type. Le repos ne coûte rien.</span>`;
     return `<section class="asc-section asc-appear" aria-labelledby="qg-week">
@@ -112,10 +111,30 @@
         ${programHtml(hasSessions)}
         <div class="qg-cadence">
           <div class="asc-notches" aria-label="Cadence des 8 dernières semaines">${notches}</div>
-          <div class="asc-between asc-small" style="flex-wrap:wrap;gap:var(--s1) var(--s3)"><span class="asc-muted">${status}</span>${held}</div>
+          <p class="asc-small qg-cadence-line">${held}</p>
         </div>
       </div>
     </section>`;
+  }
+
+  /* The week in one glance, right under the greeting: seven days in the grammar of the programme and the count of active days
+     against the usual week. It answers « where do I stand » before the action of the day asks for anything. */
+  function pulseHtml(cad, recapNow) {
+    const V = window.TitanProgramView;
+    const now = new Date();
+    const list = P().activeLogs(D().logs());
+    const plan = D().plan ? D().plan().map((p) => p.sport) : null;
+    const grid = V && window.TitanProgram ? V.week(list, { now, plan }) : null;
+    const days = cad.currentDays, target = cad.target;
+    const minutes = recapNow.week.minutes;
+    const state = cad.currentPaused ? `<span class="qg-pulse-state">Cadence en pause</span>`
+      : cad.remaining === 0 ? `<span class="qg-pulse-state qg-held">${icon("check")} Semaine tenue</span>`
+      : `<span class="qg-pulse-state">jour${target > 1 ? "s" : ""} actif${target > 1 ? "s" : ""}</span>`;
+    const said = cad.currentPaused ? "cadence en pause" : `${days} jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""} sur ${target}${cad.remaining === 0 ? ", semaine tenue" : ""}`;
+    return `<a class="qg-pulse asc-appear" href="/stats" aria-label="Cette semaine : ${esc(said)}${minutes ? `, ${esc(F().duration ? F().duration(Math.round(minutes)) : Math.round(minutes) + " min")} de pratique` : ""}. Voir ma semaine dans Progrès.">
+      ${grid ? V.days(grid) : ""}
+      <span class="qg-pulse-text" aria-hidden="true"><strong class="asc-num">${days}<small>/${target}</small></strong><span class="qg-pulse-label">${state}<small>cette semaine</small></span></span>
+    </a>`;
   }
 
   /* The week as a programme: one line per sport, one column per day, the usual week as dashed frames. On a Monday morning the week
@@ -441,7 +460,10 @@
     // Two columns on a wide screen: what I do (the action, my week) on the left; where I stand and where to go on the right.
     paint(el, `
       ${list.length ? "" : `<p class="asc-lead" id="qg-lead">Ton journal de sport : chaque séance fait monter ton niveau et avancer ton aventure.</p>`}
-      ${ascentHtml(D().progression())}
+      <div class="qg-status">
+        ${pulseHtml(cad, recapNow)}
+        ${ascentHtml(D().progression())}
+      </div>
       <div class="qg-cols">
         <div class="qg-col qg-col-main">
           ${heroHtml(action)}

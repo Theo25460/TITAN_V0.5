@@ -98,5 +98,21 @@
     return `<ul class="prg-legend" aria-label="Familles de sports">${seen.map((f) => `<li data-family="${f}"><i></i>${esc(S?.FAMILY_LABEL?.[f] || f)}</li>`).join("")}</ul>`;
   }
 
-  window.TitanProgramView = { week, span, html, legend };
+
+  /** The week on one line, every sport together: seven days, each inked in the family that took most of that day. The summary a
+      page shows before the programme itself (the QG, under the greeting). Decorative: the caller names it in a sentence. */
+  function days(grid) {
+    if (!grid || grid.kind !== "week") return "";
+    const lines = [...grid.rows, ...(grid.more ? [{ family: "none", cells: grid.more.cells }] : [])];
+    return `<span class="prg-days" aria-hidden="true">${grid.days.map((d, i) => {
+      let minutes = 0, top = null;
+      for (const r of lines) { const c = r.cells[i]; if (!c) continue; minutes += c.minutes || 0; if (!top || (c.minutes || 0) > top.minutes) top = { minutes: c.minutes || 0, family: r.family }; }
+      const planned = !top && grid.planned.some((p) => p.day === i);
+      const level = top ? window.TitanProgram.level ? window.TitanProgram.level(minutes) : (minutes < 20 ? 1 : minutes < 45 ? 2 : minutes < 75 ? 3 : 4) : 0;
+      const inner = top ? `<b class="prg-ink" data-level="${Math.max(1, Math.min(4, level))}"></b>` : planned ? '<b class="prg-frame"></b>' : d.future || d.today ? "" : '<b class="prg-dot"></b>';
+      return `<span class="prg-day${d.today ? " is-mark" : ""}${top ? " is-done" : ""}" data-family="${fam(top ? top.family : planned ? "plan" : "none")}"><em>${d.letter}</em><i class="prg-cell">${inner}</i></span>`;
+    }).join("")}</span>`;
+  }
+
+  window.TitanProgramView = { week, span, html, legend, days };
 })();
