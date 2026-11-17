@@ -1047,5 +1047,45 @@
     "height": 5665
    }
   }
- ]
+ ],
+ "android": {
+  "note": "Browser simulation of the native screens (react-native-web export with fixture data, mobile/scripts/preview-shots.mjs), not a phone and not an emulator. Taken on the working tree that became commit fdb84b4.",
+  "captures": [
+   {
+    "what": "Profil: the two identity buttons are readable on the chalk field at 320, 360 and 412 dp",
+    "file": "android/profile.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "Session form (strength): the set row with 102.5 / 1000 / 10 typed, unclipped at 320, 360 and 412 dp",
+    "file": "android/session-form-strength.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "Session result: whole buttons, one-line labels",
+    "file": "android/session-result-footer.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "QG: the figures of the week are whole at 320 dp",
+    "file": "android/qg-week.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "Welcome: the painting fills its box",
+    "file": "android/welcome.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "Progrès: programme labels are whole or absent",
+    "file": "android/progress-programme.webp",
+    "widths": "320, 360, 412 dp side by side"
+   },
+   {
+    "what": "Tab bar: the record button no longer covers the « Séance » label (before / after, 360 dp)",
+    "file": "android/tab-bar.webp",
+    "widths": "360 dp"
+   }
+  ]
+ }
 }
