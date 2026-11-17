@@ -169,6 +169,10 @@ body[data-territory="coaching"],
 .asc * {
   box-sizing: border-box;
 }
+/* Netlify adds its review drawer to deploy previews; the site's Content-Security-Policy refuses its frame, which leaves a grey bar
+   fixed over the bottom navigation of every preview page. The drawer does not exist on the live site. */
+[data-netlify-deploy-id] { display: none !important; }
+
 html.asc-root {
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
