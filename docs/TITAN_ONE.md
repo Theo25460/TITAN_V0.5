@@ -3,6 +3,9 @@
 Branche de référence : `claude/youthful-knuth-pgg96r` (PR #149). Ce document remplace `docs/v131/RELAIS_FABLE.md` comme point
 d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub : [`CONSOLIDATION_GITHUB.md`](CONSOLIDATION_GITHUB.md).
 
+> **18 novembre 2026 — Excellence sportive** : fiabilité de la chaîne séance → statistiques, contrats de mesures des 260 sports,
+> intégrations, progression personnelle. État, preuves, limites et relais : [`SPORT_EXCELLENCE.md`](SPORT_EXCELLENCE.md).
+
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 
 Pourquoi la preview paraissait cassée alors que tout était vert, et ce qui a été corrigé (détail et garde-fous : `DESIGN.md` § 10) :
