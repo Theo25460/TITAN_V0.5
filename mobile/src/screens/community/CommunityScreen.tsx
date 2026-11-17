@@ -28,6 +28,10 @@ import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
+import { BlockedAccounts, FriendLinkCard, InvitationCard } from "./FriendLinks";
+import { CordeePanel } from "./CordeePanel";
+import { CircleDigestCard } from "./CircleDigestCard";
+import { useServerFlag } from "../../data/flags";
 import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
 import { CHALLENGE_TEMPLATES, readAutoShare, writeAutoShare } from "../../lib/community";
 
@@ -50,6 +54,8 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
   const [autoShare, setAutoShare] = useState(false);
+  const [invitation, setInvitation] = useState<string | null>(invite.invitation);
+  const linksOn = useServerFlag("screens.friendlinks");
   useEffect(() => {
     readAutoShare(owner).then(setAutoShare).catch(() => {});
   }, [owner]);
@@ -57,11 +63,14 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
 
   /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
   useEffect(() => {
-    if (invite.friend) {
+    if (invite.invitation) {
+      setTab("friends");
+      setInvitation(invite.invitation);
+    } else if (invite.friend) {
       setTab("friends");
       setCode(invite.friend);
     } else if (invite.guild) setTab("guild");
-  }, [invite.friend, invite.guild]);
+  }, [invite.friend, invite.guild, invite.invitation]);
 
   /* Sharing a code nobody can use was a silent dead end (AUD-06): the server only finds a "findable" profile. Before sharing,
      an unfindable profile is offered the switch, with what it reveals; refusing cancels the share instead of sending a dead code. */
@@ -121,6 +130,8 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
 
         {tab === "friends" ? (
           <>
+            {invitation ? <InvitationCard owner={owner} token={invitation} online={online} onDone={() => setInvitation(null)} /> : null}
+            <CircleDigestCard owner={owner} online={online} />
             <DuoCard key={owner} owner={owner} online={online} />
             <Card style={{ gap: space.s2 }} testID="auto-share">
               <View style={styles.row}>
@@ -131,7 +142,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
             </Card>
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
-              <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
+              <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : `Ton code ne sert que si ton profil est trouvable.${linksOn ? " Le lien personnel ci-dessous marche toujours." : ""}`}</T>
               <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
               <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
             </Card>
@@ -170,10 +181,19 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                 ))}
               </Section>
             ) : null}
+            {linksOn ? <FriendLinkCard owner={owner} online={online} /> : null}
             {s.requests_out.length ? (
-              <T variant="caption" tone="faint">
-                En attente : {s.requests_out.map((r) => r.name).join(", ")}
-              </T>
+              <Section title="Demandes envoyées">
+                {s.requests_out.map((r) => (
+                  <Card key={r.id} style={styles.row}>
+                    <View style={{ flex: 1 }}>
+                      <T variant="bodyStrong">{r.name}</T>
+                      <T variant="caption" tone="faint">En attente{r.expires_at ? ` · expire ${Format.relativeDay(r.expires_at)}` : ""}</T>
+                    </View>
+                    <Button small kind="ghost" label="Annuler la demande" loading={busy === `cx-${r.id}`} onPress={() => act(`cx-${r.id}`, () => api.friendRemove(r.id), "Demande annulée")} />
+                  </Card>
+                ))}
+              </Section>
             ) : null}
             <Section title={`Amis (${s.friends.length})`}>
               {!s.friends.length ? (
@@ -205,6 +225,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                 ))
               )}
             </Section>
+            <BlockedAccounts owner={owner} online={online} />
           </>
         ) : tab === "moments" ? (
           !s.moments.length ? (
@@ -242,6 +263,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           )
         ) : tab === "challenges" ? (
           <>
+            <CordeePanel owner={owner} online={online} friends={s.friends.map((f) => ({ id: f.id, name: f.name }))} />
             <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
             <RankingPanel />
             {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}

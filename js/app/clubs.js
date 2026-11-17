@@ -20,6 +20,8 @@
     CANNOT_REMOVE_ADMIN: "Un administrateur ne peut pas être retiré ici.",
     ADMIN_REQUIRED: "Cette action est réservée aux administrateurs du club.",
     RATE_LIMITED: "Beaucoup d’actions en peu de temps. Réessaie dans un instant.",
+    CLUB_GOAL_INVALID: "Un objectif de club va de 60 à 100 000 minutes d’effort par semaine.",
+    CLUB_ADMIN_REQUIRED: "Seuls les administrateurs fixent l’objectif du club.",
   };
 
   let data = null;
@@ -46,7 +48,8 @@
   };
   const date = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); };
 
-  function reset() { data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
+  let weeks = {};
+  function reset() { weeks = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -67,6 +70,10 @@
         if (mine.error) { if (missingFn(mine.error)) missing = true; else notice = failure(mine.error); return; }
         if (Array.isArray(mine.data)) { data = mine.data; notice = ""; }
         discover = Array.isArray(found.data) ? found.data : [];
+        // Social lot B: each club's common goal of the week (a total, never a name); an older server simply has none.
+        const answers = await Promise.all((data || []).map((c) => ask.client.rpc("titan_club_week_v1", { p_club: c.id }).then((r) => [c.id, r.error ? null : r.data], () => [c.id, null])));
+        if (!same(ask, context())) return;
+        weeks = Object.fromEntries(answers);
       } catch { if (same(ask, context())) notice = "Les clubs ne répondent pas pour l’instant."; }
       finally { flight = null; if (same(ask, context())) render(); }
     })();
@@ -98,6 +105,18 @@
       <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Envoyer le signalement</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report-cancel>Annuler</button></div></form>`;
   }
 
+  function weekHtml(c) {
+    const w = weeks[c.id];
+    if (!w) return "";
+    const goal = Number(w.goal) || 0;
+    const pct = goal ? Math.min(100, Math.round((Number(w.minutes) / goal) * 100)) : 0;
+    const set = w.canSet ? `<div class="asc-actions"><label class="sr-only" for="club-goal-${esc(c.id)}">Objectif de la semaine en minutes</label><input id="club-goal-${esc(c.id)}" class="asc-input" type="number" min="60" max="100000" step="30" inputmode="numeric" data-club-draft="goal-${esc(c.id)}" value="${esc(val("goal-" + c.id) || (goal || ""))}" placeholder="Minutes" style="max-width:9rem">
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-goal="${esc(c.id)}" ${busy ? "disabled" : ""}>${goal ? "Changer l’objectif" : "Fixer un objectif"}</button></div>` : "";
+    return `<div class="asc-stack" data-club-week="${esc(c.id)}"><p class="asc-small"><strong>Cette semaine ensemble</strong> · ${n(w.minutes)} min d’effort${goal ? ` / ${n(goal)}` : ""} · ${n(w.active)} membre${Number(w.active) > 1 ? "s" : ""} actif${Number(w.active) > 1 ? "s" : ""} sur ${n(w.members)}</p>
+      ${goal ? `<span class="asc-ascent thin" role="progressbar" aria-label="Objectif commun du club" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(goal, Number(w.minutes))}"><span style="--p:${pct}%"></span></span>${Number(w.minutes) >= goal ? '<p class="asc-small cy">Objectif de la semaine atteint ensemble.</p>' : ""}` : (w.canSet ? '<p class="asc-small asc-muted">Fixe un objectif commun en minutes d’effort : tous les sports comptent pareil, 90 min au plus par personne et par jour.</p>' : "")}
+      <p class="asc-small asc-faint">Seul le total est visible : personne ne voit la part d’un autre membre.</p>${set}</div>`;
+  }
+
   function clubHtml(c) {
     const admin = c.role === "admin";
     const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span><span class="asc-actions">${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}${a.mine ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="${esc(a.id)}" aria-label="Signaler cette annonce">Signaler</button>`}</span></li>`).join("");
@@ -111,6 +130,7 @@
     return `<article class="asc-panel qg-steps-card" data-club="${esc(c.id)}"><p><strong>${esc(c.name)}</strong> <span class="asc-small asc-muted">· ${n(c.members)} membre${Number(c.members) > 1 ? "s" : ""}${admin ? " · tu administres" : ""}${c.discoverable ? " · visible dans la liste" : " · privé"}</span></p>
       ${c.description ? `<p class="asc-small asc-muted">${esc(c.description)}</p>` : ""}
       ${(c.trophies || []).length ? `<ul class="rv-list" data-club-trophies aria-label="Trophées du club">${c.trophies.map((t) => `<li><strong>${esc(t.title)}</strong> <span class="asc-small asc-muted">· ${esc(date(t.on))}</span>${t.note ? `<br><span class="asc-small asc-muted">${esc(t.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
+      ${weekHtml(c)}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
       ${reporting && reporting.club === c.id ? reportForm(c) : ""}
@@ -178,6 +198,11 @@
       if (!body) { notice = MESSAGES.BAD_ANNOUNCEMENT; render(); return; }
       act("titan_club_announce_v1", { p_club: id, p_body: body }, () => { delete draft["ann-" + id]; });
     } else if (t.dataset.clubAnnRemove) act("titan_club_announce_remove_v1", { p_announcement: t.dataset.clubAnnRemove });
+    else if (t.dataset.clubGoal) {
+      const id = t.dataset.clubGoal, raw = val("goal-" + id).trim(), minutes = Number(raw || weeks[id]?.goal || 0);
+      if (!Number.isInteger(minutes) || minutes < 60 || minutes > 100000) { notice = MESSAGES.CLUB_GOAL_INVALID; render(); return; }
+      act("titan_club_goal_set_v1", { p_club: id, p_minutes: minutes }, () => { delete draft["goal-" + id]; });
+    }
     else if (t.dataset.clubCodeNew) {
       const c = club(t.dataset.clubCodeNew);
       if (c) act("titan_club_set_v1", { p_club: c.id, p_name: c.name, p_description: c.description, p_discoverable: c.discoverable, p_new_code: true });

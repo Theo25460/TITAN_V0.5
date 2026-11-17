@@ -242,7 +242,7 @@ export type SocialOverview = {
   me: { id: string; friend_code: string; findable: boolean };
   friends: Friend[];
   requests_in: { id: string; name: string; avatar: string; at: string }[];
-  requests_out: { id: string; name: string; at: string }[];
+  requests_out: { id: string; name: string; at: string; expires_at?: string }[];
   moments: Moment[];
   challenges: Challenge[];
   expedition: unknown;
@@ -253,6 +253,14 @@ export const friendRequest = (code: string) => rpc<{ status: string }>("titan_so
 export const friendRespond = (user: string, accept: boolean) => rpc<{ status: string }>("titan_social_respond", { p_user: user, p_accept: accept });
 export const friendRemove = (user: string) => rpc("titan_social_remove", { p_user: user });
 export const blockUser = (user: string) => rpc("titan_block_user", { p_blocked_id: user, p_reason: "android" });
+/* Social lot A: personal invitation links (one use, 7 days, revocable) and one's own blocks. */
+export type FriendLinkPreview = { valid: boolean; expiresAt?: string; own?: boolean; friends?: boolean; inviter?: { name: string; avatar: string } };
+export const friendLinkCreate = (owner: string) => ownerRpc<{ id: string; token: string; expiresAt: string }>(owner, "titan_friend_link_create_v1", {});
+export const friendLinkPreview = (owner: string, token: string) => ownerRpc<FriendLinkPreview>(owner, "titan_friend_link_preview_v1", { p_token: token });
+export const friendLinkAccept = (owner: string, token: string) => ownerRpc<{ status: "friends"; id: string; name: string; spent: boolean }>(owner, "titan_friend_link_accept_v1", { p_token: token });
+export type BlockedAccount = { id: string; name: string; at: string };
+export const fetchBlocks = (owner: string) => ownerRpc<BlockedAccount[]>(owner, "titan_blocks_v1", {});
+export const unblockUser = (owner: string, user: string) => ownerRpc<boolean>(owner, "titan_unblock_user", { p_blocked_id: user });
 export const momentCheer = (id: string) => rpc("titan_moment_cheer", { p_id: id });
 export const momentDelete = (id: string) => rpc("titan_moment_delete", { p_id: id });
 export const momentShare = (p: { kind: string; title: string; detail?: string | null; sport?: string | null; logId?: string | null; visibility?: "friends" | "private" }) =>
@@ -264,10 +272,20 @@ export const challengeOpenCreate = (p: { title: string; metric: Challenge["metri
   rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_open_create_v1", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days });
 export const challengeLinkCreate = (id: string) => rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_link_create_v1", { p_challenge: id });
 export const challengeRespond = (id: string, action: "join" | "decline" | "leave") => rpc("titan_challenge_respond", { p_id: id, p_action: action });
+/* Social lot C: La Grande Cordée (a cooperative mode of the friends' challenge). The server counts longueurs, summit and title. */
+export type CordeeList = { cordees: import("../core/cordee").CordeeState[]; titles: string[] };
+export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "titan_cordees_v1", {});
+export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
+  ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
+/** Social lot D: what happened in one's circle since a moment (the server clamps it to 1 hour .. 30 days). */
+export const fetchSocialDigest = (owner: string, since: string | null) => ownerRpc<import("../core/cordee").SocialDigest>(owner, "titan_social_digest_v1", { p_since: since });
+export const wearTitle = (owner: string, key: string | null) => ownerRpc<{ key: string | null; label: string | null }>(owner, "titan_set_displayed_title", { p_key: key });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };
 type DuoPair = { id: string; role: "inviter" | "invitee"; partner: DuoFriend };
-export type DuoState = { status: "none"; friends: DuoFriend[] }
+/** Social lot B: the frozen outcome of the last Duo that reached its end (14 days), the partner named only while still a friend. */
+export type DuoLast = { id: string; endsOn: string; target: number; reached: boolean; myDays: number; together: number; partner: DuoFriend | null } | null;
+export type DuoState = { status: "none"; friends: DuoFriend[]; last?: DuoLast }
   | (DuoPair & { status: "pending" })
   | (DuoPair & { status: "active"; daysLeft: number; target: number; myDays: number; partnerDays: number; together: number; nudgedToday: boolean; nudgesReceived: number });
 
@@ -352,6 +370,9 @@ export const intentCheer = (owner: string, friend: string, day: string, on: bool
 export type Club = { id: string; name: string; description: string | null; role: string; members: number; code: string | null; trophies?: { id: string; title: string; note: string | null; on: string }[]; announcements?: { id: string; body: string; at: string }[] };
 export const fetchClubs = (owner: string) => ownerRpc<Club[] | null>(owner, "titan_club_my_v1", {});
 export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner, "titan_club_join_v1", { p_code: code, p_club: null });
+/** Social lot B: the common goal of the week, read by every member as a total (never a name). */
+export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number; members: number; active: number; canSet: boolean };
+export const fetchClubWeek = (owner: string, club: string) => ownerRpc<ClubWeek>(owner, "titan_club_week_v1", { p_club: club });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };

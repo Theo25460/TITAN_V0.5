@@ -94,9 +94,9 @@ begin
   set local session_replication_role = replica;
   update public.titan_challenges set starts_at = now() - interval '5 days', ends_at = now() - interval '1 day' where id = ch;
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
-    (a, 'running', 5, 'km', 10, now() - interval '3 days', '{"effort":{"effort_minutes":45}}', now() - interval '3 days'),
-    (a, 'running', 5, 'km', 10, now() - interval '2 days', '{"effort":{"effort_minutes":30}}', now() - interval '2 days'),
-    (n, 'swimming', 1, 'km', 10, now() - interval '3 days', '{"effort":{"effort_minutes":20}}', now() - interval '3 days');
+    (a, 'running', 5, 'km', 10, now() - interval '3 days', '{"serverReward":true,"effort":{"effort_minutes":45}}', now() - interval '3 days'),
+    (a, 'running', 5, 'km', 10, now() - interval '2 days', '{"serverReward":true,"effort":{"effort_minutes":30}}', now() - interval '2 days'),
+    (n, 'swimming', 1, 'km', 10, now() - interval '3 days', '{"serverReward":true,"effort":{"effort_minutes":20}}', now() - interval '3 days');
   set local session_replication_role = origin;
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',s,'role','authenticated')::text,true);

@@ -122,10 +122,17 @@
         <div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-bd-end="${esc(data.id)}" ${lock}>Annuler l’invitation</button></div>`;
     } else {
       const friends = Array.isArray(data.friends) ? data.friends : [];
-      body = friends.length
+      // Social lot B: the outcome of the last Duo that reached its 14 days, for 14 days; the partner is named only while still a friend.
+      const last = data.last && typeof data.last === "object" ? data.last : null;
+      const lastName = last?.partner?.name ? esc(last.partner.name) : "ton ancien binôme";
+      const again = last?.partner?.id && friends.some((f) => f.id === last.partner.id);
+      const recap = last ? `<div class="qg-bd-last" data-bd-last><p><strong>${last.reached ? `Objectif atteint avec ${lastName}` : `Votre Duo avec ${lastName} est terminé`}</strong></p>
+        <p class="asc-small asc-muted">À deux : <strong>${Number(last.together)}</strong> / ${Number(last.target)} jours actifs · toi ${Number(last.myDays)}.${last.reached ? "" : " Ce qui est fait reste fait."}</p>
+        ${again ? `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-again="${esc(last.partner.id)}" ${lock}>Repartir avec ${esc(String(last.partner.name).split(/\s+/)[0])}</button></div>` : ""}</div>` : "";
+      body = recap + (friends.length
         ? `<p class="asc-muted">Propose une expédition de 14 jours à un ami et avancez à votre rythme. Facultatif, et chacun peut arrêter quand il veut.</p>
            <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-choose ${lock}>Choisir un ami</button></div>`
-        : `<p class="asc-muted">Quand tu auras ajouté un ami disponible, tu pourras lui proposer une expédition de 14 jours.</p>`;
+        : `<p class="asc-muted">Quand tu auras ajouté un ami disponible, tu pourras lui proposer une expédition de 14 jours.</p>`);
     }
     return frame(data.status, `${body}${notice ? `<p class="asc-small" role="status" data-bd-notice>${esc(notice)}</p>` : ""}
       <p class="asc-small asc-muted">Tous les sports comptent. Un jour actif par personne et par jour, confirmé par TITAN. Vos jours actifs s’additionnent.</p>
@@ -163,6 +170,7 @@
     else if (t.matches("[data-bd-retry]")) refresh();
     else if (t.matches("[data-bd-respond]")) act("titan_buddy_respond_v1", { p_id: t.dataset.bdId, p_accept: t.dataset.bdRespond === "true" });
     else if (t.matches("[data-bd-nudge]")) act("titan_buddy_nudge_v1", { p_id: t.dataset.bdNudge });
+    else if (t.matches("[data-bd-again]")) act("titan_buddy_invite_v1", { p_friend: t.dataset.bdAgain });
     else if (t.matches("[data-bd-end]")) {
       const id = t.dataset.bdEnd;
       const ask = context();

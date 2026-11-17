@@ -52,8 +52,8 @@ begin
   perform set_config('request.jwt.claims','{}',true);
   reset role;
   update private.titan_buddies set accepted_at = clock_timestamp() where id = id1;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":40}}', clock_timestamp());
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (b, 'swimming', 1, 'km', 10, now(), '{"effort":{"effort_minutes":30}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":40}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (b, 'swimming', 1, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":30}}', clock_timestamp());
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   r := public.titan_buddy_v1();

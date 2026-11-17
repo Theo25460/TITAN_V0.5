@@ -185,7 +185,14 @@ d'Obsidienne, Aurores) sans les modifier.
 Six objets par Voie (dont deux rares), tirés **du même hachage FNV-1a** côté client et serveur à partir du
 `client_event_id` : impossible de « relancer » une trouvaille, et le doublon rapporte 3 éclats.
 
-## 8. Expériences collectives (conçues ; à brancher sur l'infrastructure existante)
+## 8. Expériences collectives
+
+> **20 novembre 2026 — La Grande Cordée est opérationnelle** (derrière `screens.cordee`), réglée par le serveur
+> (`20261120110000_grande_cordee.sql`) et décrite dans [`../SOCIAL_EXCELLENCE.md`](../SOCIAL_EXCELLENCE.md) § C. Écart assumé avec
+> le point 1 ci-dessous : les trois familles ne sont **pas** une condition du sommet (deux amis coureurs n'auraient jamais pu
+> réussir) ; chaque famille au-delà de la première ouvre 2 longueurs. Le compteur n'est pas en minutes brutes mais en
+> **longueurs** (1 à 12 min d'effort compté dans la journée, 2 à 35 min), avec une part plafonnée à 1,5 × la part de chacun.
+> Les points 2 à 5 restent à brancher.
 
 Principes : équitables entre sports (minutes d'effort comptées, plafond 90/jour), aucun classement brut, jeu solo jamais
 pénalisé, opt-in explicite.

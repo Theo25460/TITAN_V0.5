@@ -30,12 +30,29 @@ export function guildInviteMessage(name: string, code: string): string {
   return `Rejoins ${team} sur TITAN : chaque minute d’effort compte pour l’équipe. ${guildInviteUrl(code)}\nCode de guilde : ${clean(code)}`;
 }
 
-export type InviteParams = { ami?: string; guilde?: string };
+export type InviteParams = { ami?: string; guilde?: string; invitation?: string };
 
-/** Reads the parameters of an opened link: only a well-formed code is kept, anything else is ignored. */
-export function parseInvite(params: unknown): { friend: string | null; guild: string | null } {
+/* Social lot A: a personal one-use invitation link. It works while the inviter stays private (not findable); the person who opens it
+   sees who invites them once signed in, then accepts or ignores. The token is 64 hex characters; only its hash is stored server-side. */
+const INVITATION = /^[0-9a-f]{64}$/;
+export const isInvitationToken = (raw: unknown) => typeof raw === "string" && INVITATION.test(raw.trim().toLowerCase());
+
+export function friendLinkUrl(token: string): string {
+  return `${INVITE_ORIGIN}/social?invitation=${encodeURIComponent(token.trim().toLowerCase())}`;
+}
+
+export function friendLinkMessage(token: string): string {
+  return `Rejoins-moi sur TITAN pour qu’on s’encourage. Ce lien est pour toi seul·e, valable 7 jours : ${friendLinkUrl(token)}`;
+}
+
+/** Reads the parameters of an opened link: only a well-formed code or token is kept, anything else is ignored. */
+export function parseInvite(params: unknown): { friend: string | null; guild: string | null; invitation: string | null } {
   const p = (params && typeof params === "object" ? params : {}) as Record<string, unknown>;
-  return { friend: isFriendCode(p.ami) ? clean(p.ami) : null, guild: isGuildCode(p.guilde) ? clean(p.guilde) : null };
+  return {
+    friend: isFriendCode(p.ami) ? clean(p.ami) : null,
+    guild: isGuildCode(p.guilde) ? clean(p.guilde) : null,
+    invitation: isInvitationToken(p.invitation) ? String(p.invitation).trim().toLowerCase() : null,
+  };
 }
 
 /** AUD-22: the website's public challenge page shows the rules, then sign-in and « Rejoindre ». The token is one-use. */

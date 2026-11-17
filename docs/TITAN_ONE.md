@@ -10,6 +10,11 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 > la dernière séance comparable, découvertes sans chiffre), moments calmes pendant les repos, récit de fin, boucle « ce qui
 > vient » au Camp ; missions alignées sur les contrats sportifs. Détail : [`live/GAME_DESIGN.md`](live/GAME_DESIGN.md) § 2 bis,
 > relais et limites : [`live/INTEGRATION.md`](live/INTEGRATION.md) § 4 ter. Paquets v15 et v16 non appliqués.
+>
+> **20 novembre 2026 — Opération Connexion (social)** : liens d'invitation personnels, demandes qui expirent, blocages levables,
+> limites anti-spam qui s'appliquent enfin, **séances confirmées seulement** dans tous les comptes collectifs, résultat du TITAN Duo,
+> objectif de club, **La Grande Cordée** (coopération multisport réglée par le serveur), « Depuis ta dernière visite ». État, preuves,
+> limites et relais : [`SOCIAL_EXCELLENCE.md`](SOCIAL_EXCELLENCE.md). Paquet v17 préparé, non appliqué ; trois drapeaux fermés.
 
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 

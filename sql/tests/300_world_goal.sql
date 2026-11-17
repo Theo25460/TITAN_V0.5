@@ -44,7 +44,7 @@ begin
   -- A session recorded BEFORE joining does not count; one recorded after does, capped per day.
   perform set_config('request.jwt.claims','{}',true);
   reset role;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (a, 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":40}}');
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (a, 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":40}}');
   perform pg_sleep(0.01);
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
@@ -60,9 +60,9 @@ begin
   assert (r->>'members')::int=1 and (r->>'joined')::boolean and (r->>'minutes')::int=0, 'joined once; the earlier session does not count: '||r::text;
   perform set_config('request.jwt.claims','{}',true);
   reset role;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'swimming', 1, 'km', 10, now(), '{"effort":{"effort_minutes":50}}', clock_timestamp());
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'yoga', 30, 'min', 10, now(), '{"effort":{"effort_minutes":200}}', clock_timestamp());
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, is_suspicious, created_at) values (a, 'cycling', 30, 'km', 10, now(), '{"effort":{"effort_minutes":90}}', true, clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'swimming', 1, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":50}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'yoga', 30, 'min', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":200}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, is_suspicious, created_at) values (a, 'cycling', 30, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":90}}', true, clock_timestamp());
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   r := public.titan_world_goal_v1();
@@ -74,7 +74,7 @@ begin
   perform set_config('request.jwt.claims','{}',true);
   reset role;
   update private.titan_world_goal_members set joined_at = clock_timestamp() where user_id = b;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (b, 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":30}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (b, 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":30}}', clock_timestamp());
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',b,'role','authenticated')::text,true);
   r := public.titan_world_goal_v1();

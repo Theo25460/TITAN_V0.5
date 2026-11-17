@@ -201,3 +201,18 @@
 #clubs textarea.asc-input { width: 100%; resize: vertical; }
 #clubs .asc-stack > * { min-width: 0; }
 #clubs .asc-row { flex-wrap: wrap; }
+
+/* Social lot C — La Grande Cordée: the route's four camps as waypoints of the ascent motif. Existing tokens only; final art comes later. */
+.cm-cordee { margin-top: var(--s7); }
+.cm-cordee-card { display: grid; gap: var(--s3); }
+.cm-cordee-card h3 { font-size: 19px; margin: 0; }
+.cm-cordee-camps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); margin: 0; padding: 0; list-style: none; }
+.cm-cordee-camps li { display: grid; gap: var(--s1); justify-items: start; font-size: 13px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.cm-cordee-camp-dot { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-3); font-weight: 700; font-size: 13px; }
+.cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-dot { border-color: var(--space); background: var(--space-soft); color: var(--space); }
+.cm-cordee-members li > span:first-child small { margin-left: 4px; }
+@media (max-width: 420px) { .cm-cordee-camps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Social lot D — « Depuis ta dernière visite »: a short list of what happened, each line leading where it happened. */
+.cm-retour-section { margin-bottom: var(--s6); }
+.cm-retour .asc-row { align-items: center; gap: var(--s3); }
+.cm-retour .asc-row-title { white-space: normal; }

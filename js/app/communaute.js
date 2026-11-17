@@ -28,12 +28,20 @@
       const q = new URLSearchParams(location.search);
       const ami = String(q.get("ami") || "").trim().toUpperCase();
       const guilde = String(q.get("guilde") || "").trim().toUpperCase();
-      return { ami: /^TN-[A-Z0-9]{4,10}$/.test(ami) ? ami : "", guilde: /^G-[A-Z0-9]{4,10}$/.test(guilde) ? guilde : "" };
-    } catch { return { ami: "", guilde: "" }; }
+      // Social lot A: a personal invitation link (/social?invitation=<64 hex>) works without the inviter being findable.
+      const invitation = String(q.get("invitation") || "").trim().toLowerCase();
+      return { ami: /^TN-[A-Z0-9]{4,10}$/.test(ami) ? ami : "", guilde: /^G-[A-Z0-9]{4,10}$/.test(guilde) ? guilde : "",
+        invitation: /^[0-9a-f]{64}$/.test(invitation) ? invitation : "" };
+    } catch { return { ami: "", guilde: "", invitation: "" }; }
   })();
   let inviteApplied = false;
-  const inviteNext = () => (INVITE.ami || INVITE.guilde ? `next=${encodeURIComponent(location.pathname + location.search)}` : "");
+  /* The invitation card: null until the preview answered, then { valid, inviter, own, friends } or { done } once answered. */
+  let invitation = null;
+  const inviteNext = () => (INVITE.ami || INVITE.guilde || INVITE.invitation ? `next=${encodeURIComponent(location.pathname + location.search)}` : "");
   const friendLink = (code) => `${location.origin}/social?ami=${encodeURIComponent(code)}`;
+  /* Creating personal links opens with the server flag screens.friendlinks (an opened link is always readable). */
+  const linksOn = () => window.titanFlags?.enabled?.("screens.friendlinks", false) === true;
+  const personalLink = (token) => `${location.origin}/social?invitation=${encodeURIComponent(token)}`;
 
   let root = null;
   let data = null;
@@ -83,6 +91,10 @@
     REQUEST_NOT_FOUND: "Cette demande n’existe plus.",
     CHALLENGE_TRANSITION_INVALID: "Ce défi a déjà changé d’état.",
     MOMENT_NOT_FOUND: "Ce Moment n’est plus visible.",
+    LINK_INVALID: "Ce lien n’est plus valable : il a déjà servi, a expiré ou a été retiré. Demande un nouveau lien.",
+    LINK_OWN: "C’est ton propre lien : envoie-le à la personne que tu veux inviter.",
+    LINK_LIMIT_5: "Tu as déjà 5 liens en attente. Retire-en un ou attends qu’ils servent.",
+    ACCOUNT_SUSPENDED: "Ce compte ne peut pas faire cette action pour le moment.",
   };
   const human = (e) => {
     const raw = String(e?.message || e || "");
@@ -197,6 +209,10 @@
       if (overview?.me?.id !== job.owner) throw new Error("INVALID_COMMUNITY_RESPONSE");
       const team = overview.guild ? await rpc("titan_get_my_guild", {}, job).catch(() => null) : null;
       if (!latest()) return;
+      if (INVITE.invitation && !invitation) {
+        invitation = await rpc("titan_friend_link_preview_v1", { p_token: INVITE.invitation }, job).catch(() => ({ valid: false }));
+        if (!latest()) return;
+      }
       data = overview;
       guild = team;
       viewContext = job;
@@ -288,19 +304,75 @@
     const list = data?.friends || [];
     const out = data?.requests_out || [];
     return `<section class="asc-section cm-section" id="amis" tabindex="-1" aria-labelledby="cm-friends-title"><div class="asc-section-head"><h2 id="cm-friends-title">Amis</h2><span class="asc-chip">${list.length} ami${list.length > 1 ? "s" : ""}</span></div>
-      <p class="cm-section-intro">Échangez vos codes. Chacun choisit ce qu’il partage.</p>
+      <p class="cm-section-intro">Un lien personnel ou vos codes. Chacun choisit ce qu’il partage.</p>
+      ${invitationHtml()}
       ${requestsHtml()}
+      ${linksOn() ? `<div class="cm-code cm-invite-link"><div><p class="asc-small asc-muted">Inviter un ami</p><p class="asc-small">Un lien pour une seule personne, valable 7 jours. Ton profil reste privé : seule la personne qui l’ouvre te voit et choisit d’accepter.</p></div>
+        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-friend-link>${icon("share")} Créer un lien</button></div>` : ""}
       <div class="cm-code"><div><p class="asc-small asc-muted">Ton code ami</p><p class="cm-code-value asc-num">${esc(me.friend_code || "—")}</p>
-        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Tu n’es pas trouvable. <a href="/profile#reglages">Activer dans Confidentialité</a> pour recevoir des demandes.`}</p></div>
+        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Ton code ne sert que si tu es trouvable (<a href="/profile#reglages">Confidentialité</a>).${linksOn() ? " Le lien personnel, lui, marche toujours." : ""}`}</p></div>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-copy-code="${esc(me.friend_code || "")}">${icon("copy")} Copier</button></div>
       <form class="cm-add" data-add-friend><label class="sr-only" for="cm-code">Code ami</label><input id="cm-code" class="asc-input" name="code" placeholder="Code d’un ami : TN-AB12" autocapitalize="characters" autocomplete="off" maxlength="12"><button type="submit" class="asc-btn asc-btn-primary">${icon("userPlus")} Demander</button></form>
-      ${out.length ? `<p class="asc-small asc-muted">${out.length} demande${out.length > 1 ? "s" : ""} en attente de réponse.</p>` : ""}
+      ${out.length ? `<div class="asc-list cm-requests-out" aria-label="Demandes envoyées">${out.map((r) => `<div class="asc-row"><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">Demande envoyée${r.expires_at ? ` · expire ${esc(F().relativeDay(r.expires_at))}` : ""}</span></span>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-request="${esc(r.id)}" aria-label="Annuler la demande à ${esc(r.name)}">Annuler</button></div>`).join("")}</div>` : ""}
       ${list.length ? `<div class="asc-list">${list
         .map((f) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(f.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
           <span class="asc-row-main"><span class="asc-row-title">${esc(f.name)}</span><span class="asc-row-sub">${[f.level ? `Niveau ${f.level}` : "", f.week_days !== null && f.week_days !== undefined ? `${f.week_days} jour${f.week_days > 1 ? "s" : ""} actif${f.week_days > 1 ? "s" : ""} cette semaine` : "", f.last_active ? `actif ${F().relativeDay(f.last_active + "T12:00:00")}` : ""].filter(Boolean).join(" · ") || "Statistiques privées"}</span></span>
           <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-friend-menu="${esc(f.id)}" aria-label="Options pour ${esc(f.name)}">${icon("more")}</button></div>`)
-        .join("")}</div>` : `<p class="asc-small asc-muted">Échange vos codes : la personne accepte ta demande, puis vous voyez seulement ce que chacun a choisi de partager.</p>`}
+        .join("")}</div>` : `<p class="asc-small asc-muted">Envoie un lien ou échangez vos codes : la personne accepte, puis vous voyez seulement ce que chacun a choisi de partager.</p>`}
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-blocks>${icon("lock")} Comptes bloqués</button>
     </section>`;
+  }
+
+  /* An opened invitation link: who invites (signed-in only), then accept or ignore. Nothing happens without « Accepter ». */
+  function invitationHtml() {
+    if (!INVITE.invitation || !invitation || invitation.done) return "";
+    if (!invitation.valid) return `<div class="asc-note cm-invitation" role="status">${icon("userPlus")}<span>${esc(MESSAGES.LINK_INVALID)}</span></div>`;
+    if (invitation.own) return `<div class="asc-note cm-invitation" role="status">${icon("userPlus")}<span>${esc(MESSAGES.LINK_OWN)}</span></div>`;
+    if (invitation.friends) return `<div class="asc-note cm-invitation" role="status">${icon("check")}<span>Vous êtes déjà amis avec ${esc(invitation.inviter?.name || "cette personne")}.</span></div>`;
+    return `<div class="cm-invitation cm-request" role="group" aria-labelledby="cm-invitation-title"><span class="cm-avatar"><img src="/assets/renaissance/${esc(invitation.inviter?.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
+      <div class="asc-row-main"><h3 id="cm-invitation-title" class="asc-row-title">${esc(invitation.inviter?.name || "Un athlète")} t’invite à devenir ami</h3>
+        <p class="asc-row-sub">En acceptant, vous voyez ce que chacun a choisi de partager. Tu peux retirer ou bloquer à tout moment.</p></div>
+      <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept-invitation>Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ignore-invitation>Ignorer</button></span></div>`;
+  }
+
+  async function createFriendLink(job) {
+    const r = await rpc("titan_friend_link_create_v1", {}, job);
+    if (!current(job) || !r?.token) return;
+    const url = personalLink(r.token);
+    const text = "Rejoins-moi sur TITAN pour qu’on s’encourage. Ce lien est pour toi seul·e, valable 7 jours :";
+    let shared = false;
+    try { if (navigator.share) { await navigator.share({ title: "TITAN", text, url }); shared = true; } } catch {}
+    if (!shared) { try { await navigator.clipboard.writeText(`${text} ${url}`); } catch {} }
+    if (current(job)) window.titanShell.toast({ type: "ok", title: shared ? "Lien partagé" : "Lien copié", message: url });
+  }
+
+  async function openBlocks(job = viewContext) {
+    if (!current(job) || sending()) return;
+    let list = [];
+    try { list = await rpc("titan_blocks_v1", {}, job); } catch (e) { return current(job) && window.titanShell.toast({ type: "warn", message: human(e) }); }
+    if (!current(job)) return;
+    const body = document.createElement("div");
+    body.className = "asc-stack";
+    const draw = () => {
+      body.innerHTML = list.length ? `<p class="asc-small asc-muted">Débloquer permet de nouveau les demandes et les liens. L’amitié n’est pas rétablie : il faudra se redemander.</p><div class="asc-list">${list.map((b) => `<div class="asc-row"><span class="asc-row-main"><span class="asc-row-title">${esc(b.name)}</span><span class="asc-row-sub">Bloqué ${esc(F().relativeDay(b.at))}</span></span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-unblock="${esc(b.id)}">Débloquer</button></div>`).join("")}</div>`
+        : `<p class="asc-small asc-muted">Tu n’as bloqué personne.</p>`;
+    };
+    draw();
+    const d = window.titanShell.sheet({ title: "Comptes bloqués", eyebrow: "Confidentialité", body });
+    body.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-unblock]");
+      if (!b || !d.open || !current(job)) return;
+      b.disabled = true;
+      try {
+        await rpc("titan_unblock_user", { p_blocked_id: b.dataset.unblock }, job);
+        list = list.filter((x) => x.id !== b.dataset.unblock);
+        if (current(job)) { draw(); window.titanShell.toast({ type: "ok", title: "Compte débloqué" }); }
+      } catch (err) {
+        b.disabled = false;
+        if (current(job)) window.titanShell.toast({ type: "warn", message: human(err) });
+      }
+    });
   }
 
   function challengesHtml() {
@@ -368,7 +440,8 @@
     if (status === "guest") {
       root.innerHTML = `<section class="asc-hero cm-guest"><p class="asc-eyebrow cy">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
         <p class="asc-lead">Retrouve tes amis, partage tes progrès et participe aux expéditions.</p>
-        ${INVITE.ami || INVITE.guilde ? `<p class="asc-note">${icon("userPlus")}<span>On t’a invité ${INVITE.guilde ? "dans une guilde" : "à devenir ami"} sur TITAN. Crée ton compte ou connecte-toi : le code ${esc(INVITE.ami || INVITE.guilde)} sera prêt.</span></p>` : ""}
+        ${INVITE.invitation ? `<p class="asc-note">${icon("userPlus")}<span>On t’a envoyé une invitation personnelle sur TITAN. Crée ton compte ou connecte-toi : tu verras qui t’invite, puis tu choisiras d’accepter.</span></p>`
+          : INVITE.ami || INVITE.guilde ? `<p class="asc-note">${icon("userPlus")}<span>On t’a invité ${INVITE.guilde ? "dans une guilde" : "à devenir ami"} sur TITAN. Crée ton compte ou connecte-toi : le code ${esc(INVITE.ami || INVITE.guilde)} sera prêt.</span></p>` : ""}
         <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup${inviteNext() ? `&${inviteNext()}` : ""}">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login${inviteNext() ? `?${inviteNext()}` : ""}">Se connecter</a></div>
         <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p>
         <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`;
@@ -455,7 +528,7 @@
     const body = document.createElement("div");
     body.className = "asc-list";
     body.innerHTML = `<button type="button" class="asc-row" data-m="challenge">${icon("target")}<span class="asc-row-main"><span class="asc-row-title">Lancer un défi</span></span></button>
-      <button type="button" class="asc-row" data-m="remove">${icon("minus")}<span class="asc-row-main"><span class="asc-row-title">Retirer de mes amis</span><span class="asc-row-sub">Sans prévenir ; vous pourrez redevenir amis par code.</span></span></button>
+      <button type="button" class="asc-row" data-m="remove">${icon("minus")}<span class="asc-row-main"><span class="asc-row-title">Retirer de mes amis</span><span class="asc-row-sub">Sans prévenir ; vous pourrez redevenir amis par lien ou par code.</span></span></button>
       <button type="button" class="asc-row pf-danger" data-m="block">${icon("lock")}<span class="asc-row-main"><span class="asc-row-title">Bloquer</span><span class="asc-row-sub">Plus aucune demande ni Moment entre vous.</span></span></button>`;
     const d = window.titanShell.sheet({ title: f.name, eyebrow: "Ami", body });
     body.addEventListener("click", (e) => {
@@ -464,7 +537,7 @@
       d.close();
       if (b.dataset.m === "challenge") return newChallenge([id], job, friends);
       if (b.dataset.m === "remove") return confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: job => rpc("titan_social_remove", { p_user: id }, job).catch(failed) }, job);
-      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN. Débloquer reste possible depuis le support.", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).catch(failed) }, job);
+      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN : plus de demande, de lien, de Moment ni de défi entre vous. Débloquer reste possible depuis « Comptes bloqués ».", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).catch(failed) }, job);
     });
   }
 
@@ -550,6 +623,14 @@
     if (b.dataset.joinExpedition) return act(job => rpc("titan_expedition_join", { p_id: b.dataset.joinExpedition }, job), { title: "Expédition rejointe", message: "Chaque séance compte désormais." });
     if (b.dataset.accept) return act(job => rpc("titan_social_respond", { p_user: b.dataset.accept, p_accept: true }, job), { title: "Nouvel ami" });
     if (b.dataset.decline) return act(job => rpc("titan_social_respond", { p_user: b.dataset.decline, p_accept: false }, job));
+    if (b.dataset.cancelRequest) return act(job => rpc("titan_social_remove", { p_user: b.dataset.cancelRequest }, job), { title: "Demande annulée" });
+    if (b.hasAttribute("data-accept-invitation")) return act(job => rpc("titan_friend_link_accept_v1", { p_token: INVITE.invitation }, job).then((r) => {
+      invitation = { done: true };
+      if (current(job)) window.titanShell.toast({ type: "ok", title: `Toi et ${r?.name || "ton ami"} êtes amis`, message: "Vous voyez maintenant ce que chacun partage." });
+    }).catch((e) => { invitation = { valid: false }; throw e; }));
+    if (b.hasAttribute("data-ignore-invitation")) { invitation = { done: true }; return render(); }
+    if (b.hasAttribute("data-friend-link")) return act(job => createFriendLink(job));
+    if (b.hasAttribute("data-blocks")) return openBlocks(job);
     if (b.dataset.cheer) {
       const task = beginMutation(job);
       if (!task) return;

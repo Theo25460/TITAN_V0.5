@@ -15,7 +15,7 @@ begin
   values ('qa-titre','QA titre','Une expédition terminée pour tester les titres.','Le Testeur',now()-interval '3 days',now()-interval '1 hour',600,1,30,'Testeur');
   insert into public.titan_expedition_members(expedition_id,user_id,joined_at) values ('qa-titre',a,now()-interval '3 days');
   insert into public.training_logs(user_id,sport,category,val,unit,xp,date,details,client_event_id,created_at)
-  values (a,'running','cardio',10,'km',0,now()-interval '2 days','{"effort":{"effort_minutes":60},"historical":false}',gen_random_uuid(),now()-interval '2 days');
+  values (a,'running','cardio',10,'km',0,now()-interval '2 days','{"serverReward":true,"effort":{"effort_minutes":60},"historical":false}',gen_random_uuid(),now()-interval '2 days');
   perform set_config('titan.ti_a',a::text,true); perform set_config('titan.ti_b',b::text,true);
 end $$;
 

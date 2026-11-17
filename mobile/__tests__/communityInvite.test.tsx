@@ -58,8 +58,8 @@ test("codes and links: only well-formed codes are accepted and every message car
   expect(friendInviteUrl("tn-ab12")).toBe("https://titan-app.fr/social?ami=TN-AB12");
   expect(friendInviteMessage("TN-AB12")).toContain("https://titan-app.fr/social?ami=TN-AB12");
   expect(guildInviteMessage("Les Aubes", "G-K7P2Q")).toContain("https://titan-app.fr/social?guilde=G-K7P2Q");
-  expect(parseInvite({ ami: "TN-AB12", guilde: "nope" })).toEqual({ friend: "TN-AB12", guild: null });
-  expect(parseInvite(undefined)).toEqual({ friend: null, guild: null });
+  expect(parseInvite({ ami: "TN-AB12", guilde: "nope" })).toEqual({ friend: "TN-AB12", guild: null, invitation: null });
+  expect(parseInvite(undefined)).toEqual({ friend: null, guild: null, invitation: null });
 });
 
 test("a findable profile shares its code with a link at once", async () => {

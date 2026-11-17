@@ -6,7 +6,7 @@ declare a uuid := gen_random_uuid(); b uuid := gen_random_uuid();
 begin
   insert into auth.users(id,raw_user_meta_data) values (a,'{}'),(b,'{}');
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at)
-  values (a, 'running', 5, 'km', 10, now() - interval '2 days', '{"effort":{"effort_minutes":45}}', now() - interval '2 days');
+  values (a, 'running', 5, 'km', 10, now() - interval '2 days', '{"serverReward":true,"effort":{"effort_minutes":45}}', now() - interval '2 days');
   perform set_config('titan.tc_a',a::text,true); perform set_config('titan.tc_b',b::text,true);
   assert not has_table_privilege('authenticated','private.titan_time_capsules','select'), 'no API grant on the capsules';
   assert not has_function_privilege('anon','public.titan_capsule_create_v1(text,integer)','execute'), 'anonymous cannot write';

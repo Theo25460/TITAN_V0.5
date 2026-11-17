@@ -23,7 +23,24 @@
   const when = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }); };
   const next = () => encodeURIComponent(`/defi?t=${token}`);
 
+  /* Social lot C: a Grande Cordée link says what it is — a common goal across sports — still without any name. */
+  function renderCordee(p, actions) {
+    const C = window.TitanCordee;
+    const route = C?.ROUTES?.[p.route];
+    const pace = C?.PACES?.[p.pace];
+    show(`<section class="asc-panel qg-steps-card" data-defi-card data-defi-cordee><p class="asc-eyebrow">Grande Cordée</p><h2>${esc(p.title)}</h2>
+      ${route ? `<p>${esc(route.intro)}</p>` : ""}
+      <p>Un objectif commun, chacun avec son sport : <strong>${esc(window.TitanFormat.number(p.target))} longueurs</strong> par membre${pace ? ` (allure ${esc(pace.label.toLowerCase())})` : ""}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
+      <p class="asc-small asc-muted">Un jour avec 12 minutes d’effort confirmé apporte une longueur, 35 minutes deux. Chaque nouvelle famille de sport ouvre des longueurs en plus. ${Number(p.participants) > 1 ? `${Number(p.participants)} membres déjà.` : "Un membre pour l’instant."}</p>
+      <p class="asc-small asc-faint">En rejoignant, ton pseudo et tes longueurs sont visibles des membres qui sont tes amis et de la personne qui t’a invité ; les autres voient « Membre de la cordée ». Ni XP ni crédit : un titre au sommet. Tu peux quitter à tout moment.</p>
+      ${actions}<p class="asc-small" role="status" data-defi-notice hidden></p></section>`);
+  }
+
   function render(p) {
+    if (p.kind === "cordee") return renderCordee(p, signedIn()
+      ? `<button type="button" class="asc-btn asc-btn-primary" data-defi-join>S’encorder</button>`
+      : `<p class="asc-small asc-muted">Pour rejoindre, connecte-toi ou crée un compte : tu reviendras ici ensuite.</p>
+         <div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/login?next=${next()}" data-defi-login>Se connecter</a><a class="asc-btn asc-btn-secondary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a></div>`);
     const metric = METRICS[p.metric] || p.metric;
     const sport = p.sport ? ` en ${esc(window.TitanSports?.label?.(p.sport) || p.sport)}` : "";
     const actions = signedIn()
@@ -53,8 +70,9 @@
         if (button) button.disabled = false;
         return;
       }
-      window.titanShell?.toast?.({ type: "ok", title: "Défi rejoint", message: "Il t’attend dans la Communauté." });
-      location.assign("/social#defis");
+      const cordee = !!document.querySelector("[data-defi-cordee]");
+      window.titanShell?.toast?.({ type: "ok", title: cordee ? "Tu es encordé" : "Défi rejoint", message: "Il t’attend dans la Communauté." });
+      location.assign(cordee ? "/social#cordee" : "/social#defis");
     } catch {
       if (notice) { notice.hidden = false; notice.textContent = "Impossible pour l’instant. Réessaie dans un moment."; }
       if (button) button.disabled = false;

@@ -9,11 +9,11 @@ begin
   -- Weeks -1, -2, -3: 60 + 60 minutes (held); week -4: 30 minutes (not held).
   for k in 1..3 loop
     insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
-      (a, 'running', 5, 'km', 10, ((w - 7 * k + 1)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"effort":{"effort_minutes":60}}', ((w - 7 * k + 1)::timestamp + interval '11 hours') at time zone 'Europe/Paris'),
-      (b, 'yoga', 30, 'min', 10, ((w - 7 * k + 2)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"effort":{"effort_minutes":60}}', ((w - 7 * k + 2)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
+      (a, 'running', 5, 'km', 10, ((w - 7 * k + 1)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"serverReward":true,"effort":{"effort_minutes":60}}', ((w - 7 * k + 1)::timestamp + interval '11 hours') at time zone 'Europe/Paris'),
+      (b, 'yoga', 30, 'min', 10, ((w - 7 * k + 2)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"serverReward":true,"effort":{"effort_minutes":60}}', ((w - 7 * k + 2)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
   end loop;
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
-    (a, 'running', 5, 'km', 10, ((w - 28 + 1)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"effort":{"effort_minutes":30}}', ((w - 28 + 1)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
+    (a, 'running', 5, 'km', 10, ((w - 28 + 1)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"serverReward":true,"effort":{"effort_minutes":30}}', ((w - 28 + 1)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
   perform set_config('titan.gh_a',a::text,true); perform set_config('titan.gh_o',o::text,true);
 end $$;
 set local role authenticated;

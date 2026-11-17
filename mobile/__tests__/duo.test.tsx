@@ -111,3 +111,20 @@ test.each(["disabled", "missing", "mismatched owner"])("hide Duo when it is %s",
   expect(screen.queryByText("TITAN Duo")).toBeNull();
   if (state !== "missing") expect(mockRpc).not.toHaveBeenCalledWith("titan_buddy_v1", expect.anything());
 });
+
+test("social lot B: a finished Duo shows its outcome and offers to start again with the same friend", async () => {
+  Object.assign(fixture, { data: { status: "none", friends: [partner], last: { id: "duo-0", endsOn: "2026-11-15", target: 12, reached: true, myDays: 7, together: 13, partner } } });
+  show();
+  expect(await screen.findByText("Objectif atteint avec Alex Duo", undefined, { timeout: 5000 })).toBeTruthy();
+  expect(screen.getByText(/13 \/ 12 jours actifs · toi 7/)).toBeTruthy();
+  fireEvent.press(screen.getByTestId("duo-again"));
+  await waitFor(() => expect(mockRpc).toHaveBeenCalledWith("titan_buddy_invite_v1", { p_friend: "friend-1" }), { timeout: 5000 });
+});
+
+test("social lot B: a former partner who is no longer a friend is not named and cannot be invited again", async () => {
+  Object.assign(fixture, { data: { status: "none", friends: [], last: { id: "duo-0", endsOn: "2026-11-15", target: 12, reached: false, myDays: 3, together: 8, partner: null } } });
+  show();
+  expect(await screen.findByText("Votre TITAN Duo avec ton ancien binôme est terminé", undefined, { timeout: 5000 })).toBeTruthy();
+  expect(screen.getByText(/Ce qui est fait reste fait/)).toBeTruthy();
+  expect(screen.queryByTestId("duo-again")).toBeNull();
+});

@@ -273,6 +273,7 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_live_wallets: ["Ton monde : ressources", "ressources"],
     titan_live_buildings: ["bâtiments du Camp de base", "bâtiments"],
     titan_live_collection: ["trouvailles", "trouvailles"],
+    titan_cordee_titles: ["cordées de la Grande Cordée et titres de route obtenus", "tes cordées et tes titres de route"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];
