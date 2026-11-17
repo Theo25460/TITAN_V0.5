@@ -803,22 +803,30 @@ body.asc {
     --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
   }
 }
-/* A verification alert (js/app/shell.js) comes first in the page. The header under it then starts under the alert instead of
-   pulling itself up over it, and the top row, which sits on the ground again, keeps its light ink. */
+/* A verification alert (js/app/shell.js) or the card of local preferences to check (js/state.js) comes first in the page. The
+   header under it then starts under it instead of pulling itself up over it (the card's last row could not be pressed), and the
+   top row, which sits on the ground again, keeps its light ink. */
 .asc-verify-alert + .asc-page-head,
 .asc-verify-alert + .asc-art-head,
-.asc-verify-alert + * > .asc-page-head:first-child {
+.asc-verify-alert + * > .asc-page-head:first-child,
+#titan-profile-recovery + .asc-page-head,
+#titan-profile-recovery + .asc-art-head,
+#titan-profile-recovery + * > .asc-page-head:first-child {
   margin-top: 0;
 }
 @media (max-width: 959px) {
   .asc-verify-alert + .asc-page-head,
   .asc-verify-alert + .asc-art-head,
-  .asc-verify-alert + * > .asc-page-head:first-child {
+  .asc-verify-alert + * > .asc-page-head:first-child,
+  #titan-profile-recovery + .asc-page-head,
+  #titan-profile-recovery + .asc-art-head,
+  #titan-profile-recovery + * > .asc-page-head:first-child {
     padding-top: var(--s5);
   }
 }
 @supports selector(:has(*)) {
-  body.asc:has(.asc-verify-alert) {
+  body.asc:has(.asc-verify-alert),
+  body.asc:has(#titan-profile-recovery) {
     --head-ink: var(--tx);
     --head-line: rgba(241, 243, 239, 0.34);
     --head-wash: rgba(9, 12, 16, 0.4);

@@ -3705,7 +3705,9 @@ test("assistance: installed PWA can reach help offline before its first visit", 
   assert.equal(new URL(page.url()).pathname, '/service');
   assert.equal(await page.getByRole('navigation', { name: 'Choisir une catégorie' }).locator('a').count(), 6);
   assert.equal(await page.locator('.help-topics').evaluate(el => getComputedStyle(el).display), 'grid');
-  assert.equal(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).borderTopStyle), 'solid');
+  // The public stylesheet is applied offline: a panel is one tone above the ground (it has no outline any more, see DESIGN.md).
+  assert.notEqual(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)');
+  assert.equal(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).borderTopStyle), 'none');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await page.locator('a[href="#help-bug"]').click();
   await page.locator('section[aria-labelledby="help-bug"] summary').first().click();
