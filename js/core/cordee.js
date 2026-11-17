@@ -12,6 +12,7 @@
     twoLongueurs: 35,  // and for 2, the most a day can bring: regularity beats volume
     dailyCap: 90,      // counted minutes per day, as everywhere in TITAN
     capShare: 1.5,     // a member's contribution counts up to 1.5 × the share: nobody summits alone
+    contributors: 2,   // with two people or more (joined or invited), two of them must have brought a longueur
     varietyPerFamily: 2, // each sport family beyond the first brings 2 longueurs once
     varietyMax: 8,
     camps: 4,          // at 25, 50, 75 and 100 %
@@ -98,7 +99,10 @@
     const families = [...new Set(members.flatMap((m) => m.families || []))];
     const target = s * Math.max(1, members.length);
     const total = counted.reduce((a, b) => a + b, 0) + variety(families);
-    return { share: s, cap: c, target, counted, variety: variety(families), total, summit: total >= target, camps: Math.min(RULE.camps, Math.floor((RULE.camps * total) / target)) };
+    // With two people or more, at least two of them must have brought a longueur (the server's « needs »).
+    const contributors = counted.filter((n) => n > 0).length;
+    const summit = total >= target && contributors >= Math.min(2, members.length);
+    return { share: s, cap: c, target, counted, variety: variety(families), total, contributors, summit, camps: Math.min(RULE.camps, Math.floor((RULE.camps * total) / target)) };
   }
 
   /* ------------------------------------------------------------------ what a player reads */

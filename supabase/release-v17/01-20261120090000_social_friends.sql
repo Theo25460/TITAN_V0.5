@@ -50,6 +50,10 @@ as $function$
 declare
   v_count integer;
 begin
+  -- Two parallel calls of one account on one action are serialised, so they cannot both pass the count.
+  if p_actor_id is not null then
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_actor_id::text || ':social:' || p_action, 0));
+  end if;
   select count(*)::integer into v_count
     from public.titan_social_action_log
    where actor_id = p_actor_id and action = p_action and created_at > now() - p_window;
@@ -169,11 +173,11 @@ begin
   for v_try in 1..3 loop
     select * into v_row from public.friendships f
      where (f.user_id_1 = v_uid and f.user_id_2 = v_target.id) or (f.user_id_1 = v_target.id and f.user_id_2 = v_uid)
-     order by f.created_at limit 1;
+     order by f.created_at limit 1 for update;
     if v_row.id is not null and v_row.status = 'pending' and private.titan_friend_request_expired(v_row.created_at) then
       -- An expired request is gone: it is removed, then this request is a new one (counted like any other).
       perform set_config('titan.friendship_delete', 'expired', true);
-      delete from public.friendships where id = v_row.id;
+      delete from public.friendships where id = v_row.id and status = 'pending';
       perform set_config('titan.friendship_delete', '', true);
       v_row := null;
     end if;
@@ -215,10 +219,8 @@ begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   select id, created_at into v_id, v_created from public.friendships where user_id_1 = p_user and user_id_2 = v_uid and status = 'pending';
   if v_id is null then raise exception 'REQUEST_NOT_FOUND' using errcode = 'P0002'; end if;
+  -- An expired request is refused (it is replaced the next time one of the two asks: titan_social_request).
   if private.titan_friend_request_expired(v_created) then
-    perform set_config('titan.friendship_delete', 'expired', true);
-    delete from public.friendships where id = v_id;
-    perform set_config('titan.friendship_delete', '', true);
     raise exception 'REQUEST_NOT_FOUND' using errcode = 'P0002';
   end if;
   if exists (select 1 from public.titan_user_blocks b where (b.blocker_id = v_uid and b.blocked_id = p_user) or (b.blocker_id = p_user and b.blocked_id = v_uid))
@@ -289,10 +291,11 @@ begin
   if exists (select 1 from public.profiles p where p.id = v_uid and coalesce(p.is_suspended, false)) then raise exception 'ACCOUNT_SUSPENDED' using errcode = '42501'; end if;
   -- Creating links opens with the flag screens.friendlinks; a link already given keeps working if the flag closes again.
   if not private.titan_flag_on('screens.friendlinks') then raise exception 'FEATURE_DISABLED' using errcode = '42501'; end if;
+  -- The limiter first: it serialises this account's link creations, so the count of live links below cannot be raced.
+  perform public.titan_social_rate_limit(v_uid, 'friend_link', interval '1 day', 20);
   if (select count(*) from private.titan_friend_invites i where i.created_by = v_uid and i.revoked_at is null and i.used_at is null and i.expires_at > now()) >= 5 then
     raise exception 'LINK_LIMIT_5' using errcode = '22023';
   end if;
-  perform public.titan_social_rate_limit(v_uid, 'friend_link', interval '1 day', 20);
   v_token := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
   insert into private.titan_friend_invites (created_by, token_hash, expires_at)
   values (v_uid, encode(sha256(convert_to(v_token, 'UTF8')), 'hex'), v_expires) returning id into v_id;
@@ -424,7 +427,13 @@ declare v_uid uuid := auth.uid();
 begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   return coalesce((
-    select jsonb_agg(jsonb_build_object('id', b.blocked_id, 'name', coalesce(nullif(p.username, ''), 'Athlète'), 'at', b.created_at) order by b.created_at desc)
+    -- A name only for someone the player was in contact with (a friend request between the two, either way) or who is findable:
+    -- blocking an identifier never reveals the name behind it.
+    select jsonb_agg(jsonb_build_object('id', b.blocked_id, 'at', b.created_at,
+        'name', case when coalesce((p.privacy ->> 'publicProfile')::boolean, false)
+                       or exists (select 1 from public.titan_social_action_log g where g.action = 'friend_add'
+                                   and ((g.actor_id = v_uid and g.target_id = b.blocked_id) or (g.actor_id = b.blocked_id and g.target_id = v_uid)))
+                     then coalesce(nullif(p.username, ''), 'Athlète') else 'Compte bloqué' end) order by b.created_at desc)
       from (select * from public.titan_user_blocks x where x.blocker_id = v_uid order by x.created_at desc limit 200) b
       left join public.profiles p on p.id = b.blocked_id), '[]'::jsonb);
 end;

@@ -66,7 +66,7 @@ export const BUNDLES = {
   v17: {
     out: "supabase/release-v17", after: "20261119090000", until: "20261120120000",
     before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
-    expected: { private: [116, "365bcfe300a2", "5301cdbff49c"], public: [320, "28448708715e", "7f002d4e2d20"] },
+    expected: { private: [116, "365bcfe300a2", "10fb8e93b6cc"], public: [320, "28448708715e", "6a3a797bdb5d"] },
     beforeNote: "This is the state production reaches at the end of the v16 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },

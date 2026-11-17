@@ -29,7 +29,7 @@ const ACTIVE = {
   members: [
     { id: OWNER, name: "Moi", status: "joined", me: true, pitches: 15, strand: true, families: ["endurance"] },
     { id: "u-lea", name: `Léa ${evil}`, status: "joined", me: false, pitches: 4, strand: false, families: ["mobilite"] },
-    { id: null, name: "Membre de la cordée", status: "joined", me: false, pitches: 6, strand: false, families: ["force"] },
+    { id: null, name: "Membre de la cordée", status: "joined", me: false },
   ],
 };
 

@@ -85,6 +85,20 @@ l'allure suit les 28 derniers jours (jamais plus que ce qui a été fait). Rien 
 n'apparaît quand rien ne s'est passé ; aucun jour manqué, aucune série, aucune urgence (`tests/social-digest.test.mjs`,
 `tests/no-pressure-mechanics.test.mjs`).
 
+## Relecture indépendante (agent relecteur, 20 novembre 2026) et corrections
+
+| Constat | Correction |
+|---|---|
+| Une cordée pouvait atteindre le sommet avec son seul créateur (part × 1) puis se fermer avant que les invités répondent | Un invité qui n'a pas répondu compte dans l'objectif ; dès deux personnes, deux membres doivent avoir apporté une longueur ; aucun sommet dans les 48 premières heures |
+| `titan_challenge_result_v1` pouvait figer une cordée comme un défi individuel avant son sommet (titres perdus, Panthéon faussé) | Une cordée y est réglée par sa propre règle ; résultats d'un inconnu sans progression |
+| La variété comptait des familles de séances symboliques (1 min) | Une famille compte seulement pour une séance avec effort, un jour qui a apporté au moins une longueur |
+| Un membre sans nom exposait sa progression et ses familles de sport | Un membre que l'on ne peut pas voir n'est que « Membre de la cordée » ; seuls les totaux de la cordée restent |
+| La liste des blocages pouvait révéler le pseudo d'un compte privé à partir de son identifiant | Nom seulement pour un profil trouvable ou un ancien contact (demande d'ami entre les deux) ; sinon « Compte bloqué » |
+| Effacement inutile d'une demande expirée (annulé par l'erreur qui suivait) ; effacement possible d'une amitié acceptée en concurrence | Refus simple ; verrou de ligne et effacement limité à une demande encore en attente |
+| Boucle de règlement sur toutes les anciennes cordées | Limitée à la fenêtre affichée (14 jours) |
+| Limites (liens vivants, cordées en cours, compteurs sociaux) contournables par appels parallèles | Verrou consultatif par compte et par action dans le limiteur, appelé avant les comptages |
+| Les titres de route disparaissaient si le créateur d'une cordée effaçait son compte | Titres conservés dans `private.titan_cordee_titles` (effacés seulement avec le compte de leur titulaire) ; décrits dans la politique de confidentialité et la page de suppression |
+
 ## Fiabilité et sécurité — ce qui est vérifié
 
 | Exigence | Preuve |

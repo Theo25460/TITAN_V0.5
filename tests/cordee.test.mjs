@@ -85,3 +85,16 @@ test("the suggested pace never asks more than what the player already does", () 
   assert.equal(C.suggestPace(8), "reguliere");
   assert.equal(C.suggestPace(20), "soutenue");
 });
+
+test("with friends in it, two members must bring longueurs: one strong member with two sports cannot summit alone", () => {
+  const strong = { days: [60, 40, 0, 0, 0, 0, 0], families: ["endurance", "mobilite"] };
+  const waiting = { days: [], families: [] };
+  const pair = C.simulate({ pace: "douce", days: 7, members: [strong, waiting] });
+  assert.equal(pair.total, 6, "4 longueurs + 2 of variety");
+  assert.equal(pair.target, 6);
+  assert.equal(pair.summit, false, "one contributor out of two");
+  assert.equal(C.simulate({ pace: "douce", days: 7, members: [strong] }).summit, true, "a solo climb stays possible");
+  const SQL2 = readFileSync(new URL("../supabase/migrations/20261120110000_grande_cordee.sql", import.meta.url), "utf8");
+  assert.match(SQL2, /'needs', least\(2, v_joined \+ v_pending\)/);
+  assert.equal(C.RULE.contributors, 2);
+});

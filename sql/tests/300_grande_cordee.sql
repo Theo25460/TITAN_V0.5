@@ -47,8 +47,9 @@ begin
   id1 := (r->>'id')::uuid;
   tok := public.titan_challenge_link_create_v1(id1)->>'token';
   r := public.titan_cordees_v1()->'cordees'->0;
-  assert r->>'title' = 'Les crêtes de l’Aube' and (r->>'share')::int = 10 and (r->>'cap')::int = 15 and (r->>'target')::int = 10 and r->>'status' = 'active',
-    'share of 10 longueurs (5 a week, 14 days), cap 15, alone for now: ' || r::text;
+  assert r->>'title' = 'Les crêtes de l’Aube' and (r->>'share')::int = 10 and (r->>'cap')::int = 15 and (r->>'target')::int = 30
+     and (r->>'pending')::int = 2 and r->>'status' = 'active',
+    'share of 10 longueurs (5 a week, 14 days), cap 15; the two friends who have not answered already count in the target: ' || r::text;
   assert jsonb_array_length(public.titan_social_overview()->'challenges') = 0, 'the friends'' challenge list keeps individual challenges only';
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   assert public.titan_cordees_v1()->'cordees'->0->>'myStatus' = 'invited', 'b sees the invitation';
@@ -113,10 +114,41 @@ begin
   assert (r->>'total')::int = 29 and (r->>'camps')::int = 2 and r->>'status' = 'active', '29 / 40: two camps reached: ' || r::text;
   select array_agg(m->>'name' order by m->>'name') into names from jsonb_array_elements(r->'members') m;
   assert names = array['Membre de la cordée', 'Membre de la cordée', 'qa_co_a', 'qa_co_b'], 'b sees itself and its friend a only: ' || r::text;
+  assert not exists (select 1 from jsonb_array_elements(r->'members') m where m->>'id' is null and (m ? 'pitches' or m ? 'families' or m ? 'strand')),
+    'a nameless member shows nothing personal: ' || r::text;
   perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
   r := public.titan_cordees_v1()->'cordees'->0;
   select array_agg(m->>'name' order by m->>'name') into names from jsonb_array_elements(r->'members') m;
   assert names = array['Membre de la cordée', 'Membre de la cordée', 'qa_co_a', 'qa_co_d'], 'the stranger sees itself and the link creator only: ' || r::text;
+end $$;
+
+-- titan_challenge_result_v1 cannot freeze a running cordée as an individual challenge.
+do $$
+declare ok boolean := false;
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', current_setting('titan.co_b'), 'role', 'authenticated')::text, true);
+  begin perform public.titan_challenge_result_v1(current_setting('titan.co_id')::uuid); exception when others then ok := sqlerrm = 'CHALLENGE_RUNNING'; end;
+  assert ok, 'a running cordée has no result yet';
+end $$;
+reset role;
+do $$
+declare id1 uuid := current_setting('titan.co_id')::uuid;
+begin
+  perform set_config('request.jwt.claims', '{}', true);
+  assert not exists (select 1 from private.titan_challenge_results where challenge_id = id1), 'nothing was frozen';
+  -- d logs a 5-minute climbing session: a token session brings no family (and no longueur).
+  set local session_replication_role = replica;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at)
+  values (current_setting('titan.co_d')::uuid, 'football', 1, 'session', 10, now() - interval '2 days', '{"serverReward":true,"effort":{"effort_minutes":5}}', now() - interval '2 days');
+  set local session_replication_role = origin;
+end $$;
+set local role authenticated;
+do $$
+declare r jsonb;
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', current_setting('titan.co_d'), 'role', 'authenticated')::text, true);
+  r := public.titan_cordees_v1()->'cordees'->0;
+  assert (r->>'variety')::int = 4 and not (r->'families' @> '["jeu"]'::jsonb) and (r->'me'->>'pitches')::int = 0, 'a 5-minute session opens no route: ' || r::text;
 end $$;
 
 -- d leaves (a stranger who did nothing): the target falls to 30. The lifter adds one short session.
@@ -175,6 +207,18 @@ begin
   assert (select final_progress from private.titan_challenge_results where challenge_id = id1 and user_id = c) = 7, 'results stay frozen';
 end $$;
 
+-- The route titles survive the erasure of the cordée's creator.
+reset role;
+do $$
+declare b uuid := current_setting('titan.co_b')::uuid; a uuid := current_setting('titan.co_a')::uuid;
+begin
+  perform set_config('request.jwt.claims', '{}', true);
+  assert private.titan_title_earned(b, 'cordee:aube'), 'b holds the title';
+  -- A second cordée of a is created by a and then a is erased (cascade from auth.users, as the account erasure does).
+  perform set_config('titan.co_keep', a::text, true);
+end $$;
+set local role authenticated;
+
 -- Limits and blocks.
 set local role authenticated;
 do $$
@@ -194,5 +238,41 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   r := (select x from jsonb_array_elements(public.titan_cordees_v1()->'cordees') x where x->>'id' = id2::text);
   assert (r->>'joined')::int = 1, 'the blocked member left the blocker''s cordée: ' || r::text;
+end $$;
+reset role;
+do $$
+declare a uuid := current_setting('titan.co_a')::uuid; b uuid := current_setting('titan.co_b')::uuid;
+begin
+  perform set_config('request.jwt.claims', '{}', true);
+  delete from auth.users where id = a;
+  assert not exists (select 1 from public.titan_challenges where creator_id = a), 'the creator''s cordées are gone with the account';
+  assert private.titan_title_earned(b, 'cordee:aube'), 'b keeps the title earned with the erased creator';
+end $$;
+
+-- A cordée formed with friends invited cannot summit alone, even with a strong first day.
+do $$
+declare c uuid := current_setting('titan.co_c')::uuid; e uuid := current_setting('titan.co_e')::uuid; id3 uuid;
+begin
+  update private.titan_feature_flags set enabled = true where key = 'screens.cordee';
+  perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
+  insert into public.friendships(user_id_1, user_id_2, status) values (e, c, 'pending');
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  perform public.titan_social_respond(e, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
+  id3 := (public.titan_cordee_create_v1('aube', 'douce', 7, array[c])->>'id')::uuid;
+  perform set_config('request.jwt.claims', '{}', true);
+  update public.titan_challenges set starts_at = now() - interval '3 days' where id = id3;
+  set local session_replication_role = replica;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
+    (e, 'running', 10, 'km', 10, now() - interval '2 days', '{"serverReward":true,"effort":{"effort_minutes":60}}', now() - interval '2 days'),
+    (e, 'yoga', 1, 'session', 10, now() - interval '1 day', '{"serverReward":true,"effort":{"effort_minutes":40}}', now() - interval '1 day');
+  set local session_replication_role = origin;
+  perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
+  -- e alone: 4 longueurs + 2 of variety = 6 = target 3 × 2 (c has not answered), but only one member brought longueurs: no summit.
+  assert (select x->>'status' from jsonb_array_elements(public.titan_cordees_v1()->'cordees') x where x->>'id' = id3::text) = 'active',
+    'no summit while the invited friend has not answered';
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  perform public.titan_challenge_respond(id3, 'join');
+  assert (select x->>'myStatus' from jsonb_array_elements(public.titan_cordees_v1()->'cordees') x where x->>'id' = id3::text) = 'joined', 'c could still join';
 end $$;
 rollback;

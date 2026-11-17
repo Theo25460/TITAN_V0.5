@@ -102,8 +102,9 @@
 
   function membersHtml(c) {
     const F = C().FAMILIES;
+    // A member the player may not see is only « Membre de la cordée »: the server sends nothing personal, so no bar either.
     return `<ul class="cm-board cm-cordee-members">${(c.members || []).map((m) => `<li><span>${esc(m.me ? "Toi" : m.name)}${m.status === "invited" ? ' <small class="asc-faint">invité</small>' : ""}${(m.families || []).length ? ` <small class="asc-faint">${esc(m.families.map((f) => F[f]?.label || f).join(", "))}</small>` : ""}</span>
-      ${m.status === "joined" ? `<span class="asc-ascent thin" aria-hidden="true"><span style="--p:${Math.min(100, Math.round((Number(m.pitches) / Math.max(1, Number(c.share))) * 100))}%"></span></span><strong class="asc-num">${n(m.pitches)}${m.strand ? ` ${icon("check")}` : ""}</strong>` : "<span></span><span></span>"}</li>`).join("")}</ul>`;
+      ${m.status === "joined" && m.pitches != null ? `<span class="asc-ascent thin" aria-hidden="true"><span style="--p:${Math.min(100, Math.round((Number(m.pitches) / Math.max(1, Number(c.share))) * 100))}%"></span></span><strong class="asc-num">${n(m.pitches)}${m.strand ? ` ${icon("check")}` : ""}</strong>` : "<span></span><span></span>"}</li>`).join("")}</ul>`;
   }
 
   function cordeeHtml(c) {

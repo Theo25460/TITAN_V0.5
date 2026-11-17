@@ -23,7 +23,7 @@ const ACTIVE = {
   members: [
     { id: "owner-a", name: "Moi", status: "joined", me: true, pitches: 4, strand: false, families: ["mobilite"] },
     { id: "u-max", name: "Max", status: "joined", me: false, pitches: 15, strand: true, families: ["endurance"] },
-    { id: null, name: "Membre de la cordée", status: "joined", me: false, pitches: 6, strand: false, families: ["force"] },
+    { id: null, name: "Membre de la cordée", status: "joined", me: false },
   ],
 };
 let state: { flag: boolean; cordees: unknown[] } = { flag: true, cordees: [ACTIVE] };
@@ -72,7 +72,7 @@ test("a running cordée says the common goal, my part, the group and what is unl
   expect(screen.getByTestId("cordee-mine-k1").props.children).toMatch(/Ta part : 4 longueurs sur 10/);
   expect(screen.getByText(/La cordée : 29 \/ 30 \(dont 4 grâce à la variété des sports\)/)).toBeTruthy();
   expect(screen.getByText(/Débloqué : Le gué des premiers pas · La terrasse des bergers · Le col des Sentinelles/)).toBeTruthy();
-  expect(screen.getByText(/Membre de la cordée · Acier/)).toBeTruthy();
+  expect(screen.getByText("Membre de la cordée")).toBeTruthy();
 });
 
 test("forming a cordée sends the route, the pace, the duration and the friends ticked", async () => {

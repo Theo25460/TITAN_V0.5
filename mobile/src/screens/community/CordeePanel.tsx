@@ -97,8 +97,8 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
       {words.next ? <T variant="caption" tone="faint">Prochain camp : {words.next.name} à {words.next.at} longueurs.</T> : null}
       {c.members.map((m, i) => (
         <View key={m.id ?? `m-${i}`} style={styles.row}>
-          <T variant="small" style={{ flex: 1 }}>{m.me ? "Toi" : m.name}{m.status === "invited" ? " · invité" : ""}{m.families.length ? ` · ${m.families.map((f) => Cordee.FAMILIES[f]?.label ?? f).join(", ")}` : ""}</T>
-          {m.status === "joined" ? <T variant="caption" tone="muted">{m.pitches}{m.strand ? " ✓" : ""}</T> : null}
+          <T variant="small" style={{ flex: 1 }}>{m.me ? "Toi" : m.name}{m.status === "invited" ? " · invité" : ""}{m.families?.length ? ` · ${m.families.map((f) => Cordee.FAMILIES[f]?.label ?? f).join(", ")}` : ""}</T>
+          {m.status === "joined" && m.pitches != null ? <T variant="caption" tone="muted">{m.pitches}{m.strand ? " ✓" : ""}</T> : null}
         </View>
       ))}
       {c.myStatus === "invited" && c.status === "active" ? (

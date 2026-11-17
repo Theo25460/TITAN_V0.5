@@ -15,12 +15,19 @@
 --     (private.titan_challenge_results) and every member who brought at least one longueur earns the route's title (cosmetic, worn through
 --     titan_set_displayed_title, key 'cordee:<route>'). No XP, credit, essence, éclat or anything bought; the RPG balance is untouched.
 --   * Only CONFIRMED sessions count (private.titan_confirmed_sessions, the rule of lot B), recorded after the cordée started.
+--   * Nobody summits alone while friends are on the way: an invitation not yet answered counts in the target, at least two members must
+--     have brought a longueur as soon as the cordée has two people (joined or invited), and no cordée summits in its first 48 hours (the
+--     time to answer or join by link). A cordée formed with nobody invited, or whose invitees declined, is a solo climb.
+--   * Members the viewer may not see (not friends, not link partners, blocked) appear as « Membre de la cordée » with nothing personal.
+--   * The generic titan_challenge_result_v1 settles a cordée with the cordée rule instead of freezing it as an individual challenge.
+--   * Earned route titles live in private.titan_cordee_titles: they survive the erasure of the cordée's creator.
 --   * Limits: 3 cordées created a day, 3 running cordées per creator, 7 invited friends, 10 members (the link limit of challenges).
 --   * Creating a cordée opens with the server flag screens.cordee (absent = closed), checked here.
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop functions public.titan_cordee_create_v1(text,text,integer,uuid[]), public.titan_cordees_v1(), private.titan_cordee_settle(uuid),
 -- private.titan_cordee_state(uuid,uuid), private.titan_cordee_member(uuid,uuid), private.titan_cordee_share(text,integer),
--- private.titan_confirmed_sessions(uuid,timestamptz,timestamptz,timestamptz); re-apply private.titan_effort_days and titan_challenge_progress from
+-- private.titan_confirmed_sessions(uuid,timestamptz,timestamptz,timestamptz), table private.titan_cordee_titles; re-apply titan_challenge_result_v1 from
+-- 20261120100000, private.titan_effort_days and titan_challenge_progress from
 -- 20261120100000, titan_social_overview from 20261120090000, the title functions from 20261021010000 and titan_challenge_link_preview_v1 from
 -- 20261029160000; delete from public.titan_challenges where kind = 'cordee'; drop the columns kind, route, pace, summited_at and restore the metric check.
 
@@ -113,7 +120,9 @@ as $$
   select jsonb_build_object(
     'pitches', coalesce((select sum(case when minutes >= 35 then 2 when minutes >= 12 then 1 else 0 end) from d), 0),
     'days', coalesce((select count(*) from d where minutes >= 12), 0),
-    'families', coalesce((select jsonb_agg(distinct family) from s where family is not null), '[]'::jsonb));
+    -- A family counts only when it really contributed: a session with effort on a day that brought at least one longueur.
+    'families', coalesce((select jsonb_agg(distinct s.family) from s join d on d.day = s.day
+                           where s.family is not null and s.effort_minutes > 0 and d.minutes >= 12), '[]'::jsonb));
 $$;
 revoke all on function private.titan_cordee_member(uuid, uuid) from public, anon, authenticated;
 
@@ -128,7 +137,7 @@ as $function$
 declare
   v_c public.titan_challenges%rowtype;
   v_share integer; v_cap integer; v_joined integer; v_target integer;
-  v_sum integer := 0; v_families jsonb := '[]'::jsonb; v_bonus integer; v_total integer;
+  v_sum integer := 0; v_families jsonb := '[]'::jsonb; v_bonus integer; v_total integer; v_contributors integer := 0; v_pending integer;
   v_members jsonb := '[]'::jsonb; v_me jsonb := null; v_my_status text;
   r record; m jsonb; v_named boolean; v_counted integer;
 begin
@@ -138,14 +147,18 @@ begin
   v_share := greatest(1, round(v_c.target))::integer;
   v_cap := ceil(v_share * 1.5)::integer;
   select count(*)::integer into v_joined from public.titan_challenge_members where challenge_id = p_challenge and status = 'joined';
-  v_target := v_share * greatest(1, v_joined);
+  -- An invited friend who has not answered yet already counts in the target: nobody summits alone while friends are on the way
+  -- (declining lowers it at once). A cordée formed alone, with no invitation, stays a solo climb.
+  select count(*)::integer into v_pending from public.titan_challenge_members where challenge_id = p_challenge and status = 'invited';
+  v_target := v_share * greatest(1, v_joined + v_pending);
   for r in select mm.user_id, mm.status, p.username from public.titan_challenge_members mm left join public.profiles p on p.id = mm.user_id
-            where mm.challenge_id = p_challenge and mm.status in ('joined', 'invited') order by mm.joined_at nulls last, p.username loop
+            where mm.challenge_id = p_challenge and mm.status in ('joined', 'invited') order by mm.status, mm.joined_at nulls last, mm.user_id loop
     v_named := private.titan_member_named(p_viewer, r.user_id, p_challenge);
     if r.status = 'joined' then
       m := private.titan_cordee_member(p_challenge, r.user_id);
       v_counted := least(v_cap, (m->>'pitches')::integer);
       v_sum := v_sum + v_counted;
+      if v_counted > 0 then v_contributors := v_contributors + 1; end if;
       select coalesce(jsonb_agg(distinct f), '[]'::jsonb) into v_families
         from (select jsonb_array_elements_text(v_families) as f union select jsonb_array_elements_text(m->'families')) u;
     else
@@ -158,8 +171,8 @@ begin
     v_members := v_members || jsonb_build_array(case when v_named then jsonb_build_object(
         'id', r.user_id, 'name', coalesce(nullif(r.username, ''), 'Athlète'), 'status', r.status, 'me', r.user_id = p_viewer,
         'pitches', v_counted, 'strand', v_counted >= v_share, 'families', m->'families')
-      else jsonb_build_object('id', null, 'name', 'Membre de la cordée', 'status', r.status, 'me', false,
-        'pitches', v_counted, 'strand', v_counted >= v_share, 'families', m->'families') end);
+      -- Someone the viewer may not see (not a friend, not a link partner, or blocked): present, nothing personal.
+      else jsonb_build_object('id', null, 'name', 'Membre de la cordée', 'status', r.status, 'me', false) end);
   end loop;
   v_bonus := least(8, 2 * greatest(0, jsonb_array_length(v_families) - 1));
   v_total := v_sum + v_bonus;
@@ -169,14 +182,29 @@ begin
     'status', case when v_c.summited_at is not null then 'summited' when now() > v_c.ends_at then 'ended' else 'active' end,
     'summitedAt', v_c.summited_at, 'mine', v_c.creator_id = p_viewer, 'myStatus', v_my_status,
     'share', v_share, 'cap', v_cap, 'target', v_target, 'longueurs', v_sum, 'variety', v_bonus, 'total', least(v_total, v_target),
+    'pending', v_pending, 'contributors', v_contributors,
+    -- With friends in it (joined or still invited), at least two members must have brought a longueur.
+    'needs', least(2, v_joined + v_pending),
     'percent', least(100, floor(100.0 * v_total / greatest(1, v_target)))::integer,
     'camps', least(4, floor(4.0 * v_total / greatest(1, v_target)))::integer,
     'families', v_families, 'joined', v_joined, 'members', v_members, 'me', v_me,
     'title_key', 'cordee:' || v_c.route,
-    'earned', exists (select 1 from private.titan_challenge_results x where x.challenge_id = v_c.id and x.user_id = p_viewer and x.reached and v_c.summited_at is not null));
+    'earned', v_c.summited_at is not null and exists (select 1 from private.titan_challenge_results x where x.challenge_id = v_c.id and x.user_id = p_viewer and x.reached));
 end;
 $function$;
 revoke all on function private.titan_cordee_state(uuid, uuid) from public, anon, authenticated;
+
+-- Earned route titles, one per account and route; erased with the account only.
+create table if not exists private.titan_cordee_titles (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  route text not null check (route in ('aube', 'marees', 'forge', 'aurores')),
+  challenge_id uuid references public.titan_challenges(id) on delete set null,
+  earned_at timestamptz not null default now(),
+  primary key (user_id, route)
+);
+create index if not exists titan_cordee_titles_challenge_idx on private.titan_cordee_titles (challenge_id);
+alter table private.titan_cordee_titles enable row level security;
+revoke all on private.titan_cordee_titles from public, anon, authenticated;
 
 -- Summit or end, once: the challenge row is locked, the summit is written once, the results are frozen once.
 create or replace function private.titan_cordee_settle(p_challenge uuid)
@@ -195,7 +223,12 @@ begin
   if not found or v_c.summited_at is not null then return; end if;
   if exists (select 1 from private.titan_challenge_results x where x.challenge_id = p_challenge) then return; end if;
   v_state := private.titan_cordee_state(p_challenge, v_c.creator_id);
-  v_reached := (v_state->>'joined')::integer > 0 and (v_state->>'longueurs')::integer + (v_state->>'variety')::integer >= (v_state->>'target')::integer;
+  v_reached := (v_state->>'joined')::integer > 0 and (v_state->>'contributors')::integer >= (v_state->>'needs')::integer
+    and (v_state->>'longueurs')::integer + (v_state->>'variety')::integer >= (v_state->>'target')::integer;
+  -- Never in the first 48 hours (the time for friends to answer and for link invitees to join), unless the period itself ends sooner.
+  if v_reached and now() < least(v_c.ends_at, v_c.starts_at + interval '48 hours') then
+    return;
+  end if;
   if v_reached then
     update public.titan_challenges set summited_at = now(), ends_at = greatest(starts_at + interval '1 minute', least(ends_at, now())) where id = p_challenge;
   elsif now() <= v_c.ends_at then
@@ -208,9 +241,57 @@ begin
       from (select private.titan_cordee_member(p_challenge, r.user_id) as m) x
     on conflict do nothing;
   end loop;
+  -- The route titles are kept apart from the cordée: they stay earned if its creator later erases their account.
+  if v_reached then
+    insert into private.titan_cordee_titles (user_id, route, challenge_id)
+    select x.user_id, v_c.route, p_challenge from private.titan_challenge_results x where x.challenge_id = p_challenge and x.reached
+    on conflict do nothing;
+  end if;
 end;
 $function$;
 revoke all on function private.titan_cordee_settle(uuid) from public, anon, authenticated;
+
+-- The result of a finished challenge. A cordée is settled with its own rule (summit, shares, titles) and never frozen as an individual
+-- challenge: otherwise any member could freeze it before the summit was written and deny the others their title.
+create or replace function public.titan_challenge_result_v1(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+set statement_timeout = '15s'
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_c public.titan_challenges%rowtype;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  select * into v_c from public.titan_challenges where id = p_id;
+  if not found or not exists (select 1 from public.titan_challenge_members m where m.challenge_id = p_id and m.user_id = v_uid and m.status = 'joined') then
+    raise exception 'CHALLENGE_NOT_FOUND' using errcode = 'P0002';
+  end if;
+  if v_c.kind = 'cordee' then
+    perform private.titan_cordee_settle(p_id);
+    select * into v_c from public.titan_challenges where id = p_id;
+    if v_c.ends_at > now() then raise exception 'CHALLENGE_RUNNING' using errcode = '22023'; end if;
+  else
+    if v_c.ends_at > now() then raise exception 'CHALLENGE_RUNNING' using errcode = '22023'; end if;
+    insert into private.titan_challenge_results (challenge_id, user_id, final_progress, reached)
+    select p_id, m.user_id, private.titan_challenge_progress(p_id, m.user_id), private.titan_challenge_progress(p_id, m.user_id) >= v_c.target
+      from public.titan_challenge_members m where m.challenge_id = p_id and m.status = 'joined'
+    on conflict do nothing;
+  end if;
+  return jsonb_build_object('title', v_c.title, 'metric', v_c.metric, 'target', v_c.target, 'endedAt', v_c.ends_at, 'results', coalesce((
+    select jsonb_agg(jsonb_build_object(
+        'name', case when x.named then coalesce(p.username, 'Athlète') else 'Participant' end,
+        'progress', case when x.named then r.final_progress end, 'reached', r.reached, 'me', r.user_id = v_uid)
+      order by case when x.named then r.final_progress end desc nulls last, case when x.named then p.username end)
+      from private.titan_challenge_results r left join public.profiles p on p.id = r.user_id
+      cross join lateral (select private.titan_member_named(v_uid, r.user_id, p_id) as named) x
+     where r.challenge_id = p_id), '[]'::jsonb));
+end;
+$function$;
+revoke all on function public.titan_challenge_result_v1(uuid) from public, anon;
+grant execute on function public.titan_challenge_result_v1(uuid) to authenticated;
 
 -- The challenge progress of a cordée member is their counted longueurs (used if a client asks titan_challenge_result_v1).
 create or replace function private.titan_challenge_progress(p_challenge uuid, p_user uuid)
@@ -264,10 +345,11 @@ begin
     raise exception 'CORDEE_INVALID' using errcode = '22023';
   end if;
   if coalesce(array_length(p_invitees, 1), 0) > 7 then raise exception 'CORDEE_INVITEES' using errcode = '22023'; end if;
+  -- The limiter first: it serialises this account's creations, so the running count below cannot be raced.
+  perform public.titan_social_rate_limit(v_uid, 'cordee_create', interval '1 day', 3);
   if (select count(*) from public.titan_challenges c where c.creator_id = v_uid and c.kind = 'cordee' and c.ends_at > now() and c.summited_at is null) >= 3 then
     raise exception 'CORDEE_LIMIT_3' using errcode = '22023';
   end if;
-  perform public.titan_social_rate_limit(v_uid, 'cordee_create', interval '1 day', 3);
   v_title := case p_route when 'aube' then 'Les crêtes de l’Aube' when 'marees' then 'La passe des Marées'
                           when 'forge' then 'Les cols d’Obsidienne' else 'La voûte des Aurores' end;
   insert into public.titan_challenges(creator_id, title, metric, sport, target, starts_at, ends_at, kind, route, pace)
@@ -299,7 +381,7 @@ declare
 begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   for v_id in select c.id from public.titan_challenges c join public.titan_challenge_members m on m.challenge_id = c.id and m.user_id = v_uid
-               where c.kind = 'cordee' and c.summited_at is null and m.status in ('joined', 'invited') loop
+               where c.kind = 'cordee' and c.summited_at is null and m.status in ('joined', 'invited') and c.ends_at > now() - interval '14 days' loop
     perform private.titan_cordee_settle(v_id);
   end loop;
   return jsonb_build_object(
@@ -307,10 +389,7 @@ begin
       select jsonb_agg(private.titan_cordee_state(c.id, v_uid) order by (c.summited_at is null and c.ends_at > now()) desc, c.ends_at desc)
         from public.titan_challenges c join public.titan_challenge_members m on m.challenge_id = c.id and m.user_id = v_uid
        where c.kind = 'cordee' and m.status in ('joined', 'invited') and c.ends_at > now() - interval '14 days'), '[]'::jsonb),
-    'titles', coalesce((
-      select jsonb_agg(distinct c.route)
-        from public.titan_challenges c join private.titan_challenge_results r on r.challenge_id = c.id and r.user_id = v_uid and r.reached
-       where c.kind = 'cordee' and c.summited_at is not null), '[]'::jsonb));
+    'titles', coalesce((select jsonb_agg(t.route order by t.route) from private.titan_cordee_titles t where t.user_id = v_uid), '[]'::jsonb));
 end;
 $function$;
 revoke all on function public.titan_cordee_create_v1(text, text, integer, uuid[]), public.titan_cordees_v1() from public, anon;
@@ -347,8 +426,7 @@ begin
   end if;
   m := regexp_match(p_key, '^cordee:(aube|marees|forge|aurores)$');
   if m is not null then
-    return exists (select 1 from public.titan_challenges c join private.titan_challenge_results r on r.challenge_id = c.id
-                    where c.kind = 'cordee' and c.route = m[1] and c.summited_at is not null and r.user_id = p_uid and r.reached);
+    return exists (select 1 from private.titan_cordee_titles t where t.user_id = p_uid and t.route = m[1]);
   end if;
   return false;
 end;

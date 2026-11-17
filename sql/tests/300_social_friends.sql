@@ -105,7 +105,8 @@ begin
   ok := false; begin perform public.titan_friend_link_accept_v1(t3); exception when others then ok := sqlerrm = 'LINK_INVALID'; end;
   assert ok, 'a block refuses the link';
   r := public.titan_blocks_v1();
-  assert jsonb_array_length(r) = 1 and r->0->>'id' = a::text and r->0->>'name' = 'qa_fl_a', 'd sees their own block: ' || r::text;
+  assert jsonb_array_length(r) = 1 and r->0->>'id' = a::text and r->0->>'name' = 'Compte bloqué',
+    'd sees their own block, without the name of a private account it never was in contact with: ' || r::text;
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   assert jsonb_array_length(public.titan_blocks_v1()) = 0, 'a does not see that d blocked them';
 
@@ -125,6 +126,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   perform public.titan_block_user(a, null);
   assert jsonb_array_length(public.titan_social_overview()->'friends') = 0, 'blocked: no longer friends';
+  assert public.titan_blocks_v1()->0->>'name' = 'qa_fl_a', 'a former friend is named in one''s own blocks';
   perform public.titan_unblock_user(a);
   assert jsonb_array_length(public.titan_social_overview()->'friends') = 0 and jsonb_array_length(public.titan_blocks_v1()) = 0,
     'unblocking does not restore the friendship';
