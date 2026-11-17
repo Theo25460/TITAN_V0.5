@@ -5,11 +5,14 @@
 //   node tools/visual/capture.mjs --base https://deploy-preview-149--titano-app.netlify.app --out /tmp/shots --widths 390,1440 --state visitor
 //   node tools/visual/capture.mjs --base http://127.0.0.1:4173 --pages qg,seance --widths 320,768 --state populated
 //
+// Flags: `--flags production` (default) answers the feature-flag request with tools/visual/flags-production.json, the set a real visitor
+// receives; `--flags none` leaves every flag off (what the network-cut e2e journeys see); `--flags live` adds screens.live to production.
+//
 // States: `visitor` (first visit, discovery mode, no session), `populated` (the same discovery account holding about 400 sessions in a dozen
 // sports, injected in the page like tests/e2e/populated-accounts.e2e.mjs does). No production data is read: every request that leaves the
 // served host is refused.
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
@@ -38,6 +41,8 @@ const STATE = args.state || "visitor";
 const NAMES = args.pages ? args.pages.split(",") : Object.keys(PAGES);
 const ZOOM = Number(args.zoom || 1); // 2 = the text-at-200 % check: same CSS width, half the layout viewport
 const SHA = args.sha || (() => { try { return execFileSync("git", ["rev-parse", "--short", "HEAD"]).toString().trim(); } catch { return "unknown"; } })();
+const FLAGS = args.flags || "production";
+const flagBody = (() => { if (FLAGS === "none") return null; const set = JSON.parse(readFileSync(new URL("./flags-production.json", import.meta.url), "utf8")); if (FLAGS === "live") set.flags["screens.live"] = true; return JSON.stringify({ flags: set.flags, version: set.version }); })();
 const heightFor = w => (w < 600 ? 844 : w < 1100 ? 1024 : 900);
 
 function measure() {
@@ -75,16 +80,20 @@ for (const width of WIDTHS) {
   const context = await browser.newContext({ viewport: { width: Math.round(width / ZOOM), height: Math.round(heightFor(width) / ZOOM) }, deviceScaleFactor: ZOOM, locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block", reducedMotion: "reduce" });
   await context.addInitScript(() => { try { if (localStorage.getItem("titan_ga4_consent_v1") === null) localStorage.setItem("titan_ga4_consent_v1", "denied"); } catch (_) { /* storage blocked */ } });
   const host = new URL(BASE).host;
-  await context.route(url => url.host !== host, route => route.abort("internetdisconnected"));
+  await context.route(url => url.host !== host, route => {
+    if (flagBody && /\/rpc\/titan_feature_flags_v1$/.test(new URL(route.request().url()).pathname)) return route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: flagBody });
+    return route.abort("internetdisconnected");
+  });
   for (const name of NAMES) {
     const path = PAGES[name]; if (!path) { console.error("unknown page", name); continue; }
     const page = await context.newPage(), errors = [], missing = [];
     page.on("pageerror", e => errors.push(e.message.slice(0, 200)));
     page.on("response", r => { if (r.status() >= 400 && new URL(r.url()).host === host && !r.url().includes("/.netlify/")) missing.push(`${r.status()} ${new URL(r.url()).pathname}`); });
-    const entry = { page: name, path, width, zoom: ZOOM, state: STATE, sha: SHA, base: BASE };
+    const entry = { page: name, path, width, zoom: ZOOM, state: STATE, flags: FLAGS, sha: SHA, base: BASE };
     try {
       await page.goto(BASE + path, { waitUntil: "load", timeout: 45000 });
       await page.waitForFunction(() => !document.querySelector("script[src*='js/state.js']") || (window.state && window.state.user), null, { timeout: 9000 }).catch(() => { entry.note = "state not ready"; });
+      if (flagBody) entry.flagsOn = await page.waitForFunction(() => !window.titanFlags || window.titanFlags.enabled("screens.activityhub"), null, { timeout: 4000 }).then(() => true, () => false);
       if (STATE === "populated") entry.populated = await page.evaluate(populate, Number(args.count || 400)).catch(() => false);
       await page.waitForTimeout(1500);
       await page.evaluate(() => document.fonts && document.fonts.ready);

@@ -28,6 +28,7 @@
   let hubSport = null;
   let hubQuery = "";
   let manualRequested = false;
+  let importRequested = false; // /training?mode=import opens on the import view once the server has opened it
   let initialSport = new URLSearchParams(location.search).get("sport");
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
 
@@ -324,12 +325,24 @@
     return `<a class="seance-live-entry" href="/seance-live" data-live-entry><span class="seance-mode-icon">${icon("play")}</span><span><strong>Vivre la séance en direct</strong><small>Chrono, missions et expédition propres à ton sport. Tu vérifies et enregistres à la fin.</small></span>${icon("chevron")}</a>`;
   }
 
-  function modeHtml() {
+  /* The session page always opens on the question « Qu’as-tu fait ? »; importing a file is one tap away, on a two-way switch that
+     sits in the field under the title (on the ground under the header of a form). It used to be two tiles above the page header, and
+     the page used to open on the GPX import: both were only ever seen with the flag on, which no journey of the redesign had. */
+  function modeHtml(inForm) {
     if (!hubOn()) return "";
+    // A form already imports a GPX for its own sport; the other way in is one quiet line under it, not a second switch over the form.
+    if (inForm) return `<p class="seance-modes seance-modes-link"><button type="button" class="asc-link" data-act="hub">${icon("route")}<span>Importer plutôt une sortie (GPX, Garmin)</span></button></p>`;
+    const importing = hubOpen || !!S.gpx;
     return `<div class="seance-modes" role="group" aria-label="Méthode d’enregistrement">
-      <button type="button" data-act="manual" aria-pressed="${!hubOpen && !S.gpx}"><span class="seance-mode-icon">${icon("edit")}</span><span><strong>Manuel</strong><small>Choisis ton sport et tes mesures</small></span></button>
-      <button type="button" data-act="hub" aria-pressed="${hubOpen || !!S.gpx}"><span class="seance-mode-icon">${icon("route")}</span><span><strong>GPX / Garmin</strong><small>Fichier GPX ou compte Garmin</small></span></button>
+      <button type="button" data-act="manual" aria-pressed="${!importing}">${icon("edit")}<span>Manuel</span></button>
+      <button type="button" data-act="hub" aria-pressed="${importing}">${icon("route")}<span>GPX / Garmin</span></button>
     </div>`;
+  }
+  /* A late answer of the flags adds the switch where a full render would have put it, without redrawing a search or a form. */
+  function placeModes() {
+    const title = root.querySelector("[data-pick-title], [data-hub-title]");
+    if (title) title.insertAdjacentHTML("afterend", modeHtml());
+    else root.querySelector(".seance-form")?.insertAdjacentHTML("beforeend", modeHtml(true));
   }
 
   function hubHtml() {
@@ -337,7 +350,7 @@
     hubSport = sports.some(s => s.id === hubSport) ? hubSport : sports.some(s => s.id === S.sport) ? S.sport : "running";
     const garmin = !window.state?.user?.guest && window.titanFlags?.enabled?.("screens.garmin", false) === true;
     return `<div data-activity-hub>
-      <header class="asc-page-head"><div><h1 tabindex="-1" data-hub-title>Ajouter une activité</h1><p class="asc-lead">Importe une sortie ou saisis ce que tu as fait. Aucune montre ni formule payante nécessaire.</p></div></header>
+      <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-hub-title>Importer une sortie</h1>${modeHtml()}<p class="asc-lead">Un fichier GPX ou ton compte Garmin. La saisie à la main reste gratuite, sans montre.</p></div></header>
       <nav class="asc-subnav" data-subnav></nav>
       ${S.step === "form" ? `<section class="asc-note"><span>Brouillon conservé : ${esc(S_().label(S.sport))}.</span><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="resume">Reprendre le brouillon</button></section>` : ""}
       <section class="seance-block" aria-labelledby="hub-import-title"><p class="asc-eyebrow cy">Depuis un fichier</p><h2 id="hub-import-title">Importer un GPX</h2>
@@ -396,7 +409,7 @@
     }
     // The lime field asks one question and holds the one action: the search. On a wide screen « mine » and « every sport » sit side by side.
     return `
-      <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1></div>
+      <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1>${modeHtml()}</div>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
@@ -614,6 +627,7 @@
           <p class="asc-small asc-faint">${window.TitanData?.rulesV300?.() ? "L’intensité ajuste ton XP : 1 minute d’effort modéré ≈ 10 XP." : "L’intensité reste dans ton journal ; l’XP est calculée par le serveur."}</p>
         </section>
         <section class="seance-block"><label class="asc-field"><span>Note <small class="asc-faint">facultatif</small></span><textarea data-k="note" maxlength="2000" placeholder="Un repère pour plus tard : sensations, parcours, partenaire…">${esc(S.note)}</textarea></label></section>
+        ${modeHtml(true)}
       </div>
       <div class="seance-bar" role="region" aria-label="Enregistrer">
         <p id="seance-status" class="asc-small seance-status" role="status"></p>
@@ -628,7 +642,7 @@
     if (oldSport) hubSport = oldSport;
     const focusSelector = hubOpen && ["[data-hub-query]", ...importSports().map(s => `[data-hub-choice="${s.id}"]`), "[data-hub-gpx]", "[data-hub-garmin]", '[data-act="hub"]', '[data-act="manual"]', '[data-act="resume"]', "[data-hub-title]"]
       .find(selector => document.activeElement?.matches(selector));
-    root.innerHTML = modeHtml() + (hubOpen ? hubHtml() : S.step === "pick" ? pickHtml() : formHtml());
+    root.innerHTML = hubOpen ? hubHtml() : S.step === "pick" ? pickHtml() : formHtml();
     if (hubOpen) {
       window.titanShell?.refresh();
       if (focusSelector) (root.querySelector(focusSelector) || root.querySelector("[data-hub-title]"))?.focus({preventScroll:true});
@@ -723,7 +737,7 @@
       invalidateGpx();
       localGpxOriginal = null;
       S = fresh();
-      hubOpen = hubOn() && !manualRequested;
+      hubOpen = false;
       render();
       (root.querySelector("[data-pick-title]") || root.querySelector("[data-hub-title]"))?.focus({ preventScroll: true });
       window.scrollTo({ top: 0 });
@@ -832,7 +846,7 @@
       localGpxOriginal = null;
       const fromPicker = history.state?.seance === "form";
       S = fresh();
-      hubOpen = hubOn();
+      hubOpen = false;
       // The form was one history step after the picker: step back onto it, so Back after the result leaves the page in one press.
       if (fromPicker) history.back();
       else history.replaceState(null, "", "/training");
@@ -1058,8 +1072,8 @@
     if (t.dataset.gpxColor) return window.TitanGpxView?.setMode(t.closest(".gpx-preview"),S.gpx,t.dataset.gpxColor);
     if (t.dataset.act === "hub") {
       if (hubOpen || !hubOn()) return;
-      invalidateGpx(); persist(); hubOpen = true; manualRequested = false;
-      history.replaceState(null,"","/training"); render(); root.querySelector("[data-hub-title]")?.focus(); return;
+      invalidateGpx(); persist(); hubOpen = true; manualRequested = false; importRequested = true;
+      history.replaceState(null,"","/training?mode=import"); render(); root.querySelector("[data-hub-title]")?.focus(); return;
     }
     if (t.dataset.act === "resume") { invalidateGpx(); hubOpen = false; render(); root.querySelector("h1")?.setAttribute("tabindex","-1"); root.querySelector("h1")?.focus(); return; }
     if (t.dataset.act === "manual") {
@@ -1067,7 +1081,7 @@
       invalidateGpx();
       return replaceFromHub(() => {
         localGpxOriginal = null;
-        manualRequested = true; hubOpen = false; S = fresh(); clearDraft();
+        manualRequested = true; importRequested = false; hubOpen = false; S = fresh(); clearDraft();
         history.replaceState(null,"","/training?mode=manual"); render(); root.querySelector("#sport-q")?.focus();
       });
     }
@@ -1210,6 +1224,7 @@
     S_().ensure();
     const params = new URLSearchParams(location.search);
     manualRequested = params.get("mode") === "manual";
+    importRequested = params.get("mode") === "import";
     hubOpen = false;
     let duplicate = null;
     try {
@@ -1229,7 +1244,7 @@
       status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
     } else {
       S = fresh();
-      hubOpen = hubOn() && !manualRequested;
+      hubOpen = hubOn() && importRequested;
       render();
     }
     root.addEventListener("input", onInput);
@@ -1259,7 +1274,7 @@
       }
     }
     initialSport = null;
-    S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; booted = false;
+    S = null; hubOpen = false; hubSport = null; hubQuery = ""; manualRequested = false; importRequested = false; booted = false;
     if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>';
   });
   window.addEventListener("titan:account-changed", () => start());
@@ -1267,9 +1282,9 @@
     if (!booted || !S) return;
     const modes = root.querySelector(".seance-modes");
     if (!hubOn()) modes?.remove();
-    else if (!modes) root.insertAdjacentHTML("afterbegin", modeHtml());
+    else if (!modes) placeModes();
     if (hubOpen) { if (!hubOn()) { invalidateGpx(); hubOpen = false; } render(); }
-    else if (S.step === "pick" && !S.query && !manualRequested && hubOn()) { hubOpen = true; render(); }
+    else if (S.step === "pick" && !S.query && importRequested && hubOn()) { hubOpen = true; render(); }
     // A late rollout response must never replace an edited form or search.
     // The live entry follows its own flag without redrawing the page: it is added or removed in place.
     const entry = root.querySelector("[data-live-entry]");
