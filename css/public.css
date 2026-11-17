@@ -410,12 +410,12 @@
   gap: var(--s3);
   align-content: start;
   padding: var(--s5);
-  border-radius: var(--r4);
-  border: 1px solid var(--line);
-  background: var(--bg-1);
+  border-radius: var(--r3);
+  border: 0;
+  background: var(--bg-2);
 }
 a.pub-card:hover {
-  border-color: var(--line-3);
+  background: var(--bg-3);
 }
 .pub-card > .t-icon {
   width: 26px;
@@ -551,8 +551,8 @@ a.pub-card:hover {
   align-items: start;
   padding: var(--s4);
   border-radius: var(--r3);
-  border: 1px solid var(--line);
-  background: var(--bg-1);
+  border: 0;
+  background: var(--bg-2);
 }
 .pub-loop li::before {
   counter-increment: step;
@@ -694,10 +694,62 @@ a.pub-card:hover {
 }
 
 /* Guide pages */
+/* A public page opens like a page of the application: a flat field of the space colour (cyan, the QG's), its title in the field's
+   ink. Text on the field is that ink at two strengths, never grey; actions and links take the ink too. */
 .pub-page-head {
-  padding: clamp(48px, 9vw, 104px) 0 clamp(32px, 5vw, 56px);
-  border-bottom: 1px solid var(--line);
-  background: radial-gradient(90% 120% at 100% 0%, rgba(61, 217, 232, 0.07), transparent 60%);
+  padding: clamp(40px, 7vw, 88px) 0 clamp(28px, 4vw, 48px);
+  background: var(--space);
+  color: var(--space-ink);
+}
+.pub-page-head h1,
+.pub-page-head h2,
+.pub-page-head p,
+.pub-page-head li,
+.pub-page-head small,
+.pub-page-head time,
+.pub-page-head strong,
+.pub-page-head .pub-eyebrow,
+.pub-page-head .pub-lead,
+.pub-page-head .pub-breadcrumb ol,
+.pub-page-head .t-icon {
+  color: var(--space-ink);
+}
+.pub-page-head .pub-lead,
+.pub-page-head .pub-breadcrumb ol,
+.pub-page-head small,
+.pub-page-head time {
+  opacity: 0.86;
+}
+.pub-page-head a:not(.asc-btn),
+.pub-page-head .pub-breadcrumb a {
+  color: var(--space-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pub-page-head .pub-toc a {
+  border-color: var(--space-ink);
+  color: var(--space-ink);
+  text-decoration: none;
+}
+.pub-page-head .pub-toc a:hover {
+  background: var(--space-ink);
+  color: var(--space);
+}
+.pub-page-head .asc-btn-primary {
+  background: var(--space-ink);
+  color: var(--space);
+}
+.pub-page-head :where(.asc-btn-secondary, .asc-btn-ghost) {
+  border: 1.5px solid var(--space-ink);
+  background: transparent;
+  color: var(--space-ink);
+}
+.pub-page-head :focus-visible {
+  outline-color: var(--space-ink);
+}
+.pub-page-head ::selection {
+  background: var(--space-ink);
+  color: var(--space);
 }
 .pub-page-head .pub-wrap {
   display: grid;
@@ -803,8 +855,8 @@ a.pub-card:hover {
 }
 .pub-faq details {
   border-radius: var(--r3);
-  border: 1px solid var(--line);
-  background: var(--bg-1);
+  border: 0;
+  background: var(--bg-2);
 }
 .pub-faq summary {
   cursor: pointer;
@@ -989,6 +1041,15 @@ a.pub-card:hover {
   font-size: clamp(24px, 4.4vw, 32px);
   font-stretch: 85%;
   line-height: 1.1;
+}
+/* A title placed straight after a paragraph (the trust centre) keeps its distance: the shared reset is more specific than the
+   :where() spacing above. */
+.pub-doc > h2,
+.pub-doc > h3 {
+  margin: 1.6em 0 0.6em;
+}
+.pub-doc > p {
+  margin: 0 0 1em;
 }
 .pub-doc h3 {
   font-size: 20px;
