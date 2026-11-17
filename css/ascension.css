@@ -793,6 +793,27 @@ body.asc {
     --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
   }
 }
+/* A verification alert (js/app/shell.js) comes first in the page. The header under it then starts under the alert instead of
+   pulling itself up over it, and the top row, which sits on the ground again, keeps its light ink. */
+.asc-verify-alert + .asc-page-head,
+.asc-verify-alert + .asc-art-head,
+.asc-verify-alert + * > .asc-page-head:first-child {
+  margin-top: 0;
+}
+@media (max-width: 959px) {
+  .asc-verify-alert + .asc-page-head,
+  .asc-verify-alert + .asc-art-head,
+  .asc-verify-alert + * > .asc-page-head:first-child {
+    padding-top: var(--s5);
+  }
+}
+@supports selector(:has(*)) {
+  body.asc:has(.asc-verify-alert) {
+    --head-ink: var(--tx);
+    --head-line: rgba(241, 243, 239, 0.34);
+    --head-wash: rgba(9, 12, 16, 0.4);
+  }
+}
 @media (min-width: 960px) {
   .asc-page-head {
     margin: calc(-1 * var(--s8)) calc(-1 * var(--pad)) var(--s7);

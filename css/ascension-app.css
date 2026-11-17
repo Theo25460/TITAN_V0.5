@@ -4288,6 +4288,20 @@
 #views-draft-form input { width: 100%; }
 .view-confirm { margin-top: 12px; }
 
+/* Recours: the page had no rule of its own, so a request was one crowded line wider than a phone. A line holds its label and its
+   state; what was written (the request, a reply, the answer form) goes under them at full width. */
+#recours { display: grid; gap: var(--s6); min-width: 0; }
+#recours section { display: grid; gap: var(--s3); min-width: 0; }
+#recours h2 { font-size: 21px; padding-top: var(--s3); border-top: 2px solid var(--tx); }
+#recours .asc-row { flex-wrap: wrap; row-gap: var(--s2); min-height: 0; }
+#recours .asc-row > span:first-child { flex: 1 1 12rem; min-width: 0; }
+#recours .asc-row > p,
+#recours .asc-row > form { flex: 1 1 100%; min-width: 0; margin: 0; }
+#recours .asc-form { display: grid; gap: var(--s2); min-width: 0; }
+#recours textarea { width: 100%; }
+/* The live line stays in the page for screen readers; empty, it draws nothing. */
+#recours [data-appeal-live]:empty { padding: 0; background: none; }
+
 /* BOT06: alert shown while an administrator's verification request is open (informs and links, never blocks). */
 .asc-verify-alert { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0 0 1rem; padding: 0.75rem 1rem; border: 1px solid var(--am-line); border-radius: var(--r3); background: var(--am-soft); color: var(--tx); }
 .asc-verify-alert > span { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
