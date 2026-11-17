@@ -141,7 +141,8 @@
   /* La révélation de progression (web): the gain counts up while the level bar moves from where it stood to where it stands; on a new level the rank crest settles beside the figure.
      Decorative (aria-hidden: the text of the reward right below says everything); only for a gain the server confirmed; once per opening of the sheet;
      the final state is shown at once with "reduire les animations". */
-  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  // The system's setting, or TITAN's own « Animations réduites » (shell.js sets data-motion on the document).
+  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || document.documentElement.getAttribute("data-motion") === "reduced";
   function hero(log, play) {
     const rw = reward(log);
     if (!(rw.state === "confirmed" || rw.state === "capped") || !(rw.xp > 0) || !window.TitanCrest) return "";
