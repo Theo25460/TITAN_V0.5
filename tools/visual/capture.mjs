@@ -38,9 +38,12 @@ export const PAGES = {
   introuvable: "/cette-page-n-existe-pas", horsligne: "/network-error",
   // states of a page that a signed-in account reaches by a link or a tab (not in the default list: ask for them with --pages)
   profilIdentite: "/profile#identite", profilSport: "/profile#cadence", profilCompte: "/profile#sources", profilPreferences: "/profile#preferences",
-  coachingCoach: "/coaching"
+  coachingCoach: "/coaching",
+  // the session form itself: an endurance sport (distance, time), strength (exercises and sets) and climbing (attempts)
+  seanceCourse: "/training?sport=running", seanceMuscu: "/training?sport=muscu_gym", seanceBloc: "/training?sport=bouldering",
+  journalCalendrier: "/journal", aventureAube: "/adventure?world=aube"
 };
-const VARIANTS = new Set(["profilIdentite", "profilSport", "profilCompte", "profilPreferences", "coachingCoach"]);
+const VARIANTS = new Set(["profilIdentite", "profilSport", "profilCompte", "profilPreferences", "coachingCoach", "seanceCourse", "seanceMuscu", "seanceBloc", "journalCalendrier", "aventureAube"]);
 // A control pressed once the page is ready, for the states no address leads to.
 const PRESS = { coachingCoach: "#co-tab-coach" };
 
@@ -144,6 +147,9 @@ for (const width of WIDTHS) {
         await Promise.all([...document.images].filter(i => !i.complete).map(i => new Promise(r => { i.addEventListener("load", r, { once: true }); i.addEventListener("error", r, { once: true }); setTimeout(r, 1500); })));
       }).catch(() => {});
       await page.waitForTimeout(150);
+      // The tab bar of a phone is fixed: on a full-page capture it would be drawn once, across the content of the first screen. It is
+      // on the first-screen capture already; the long one shows what it covered.
+      await page.addStyleTag({ content: ".asc-tabbar{display:none!important}" }).catch(() => {});
       await page.screenshot({ path: join(OUT, stem + "--full.png"), fullPage: true });
       entry.fold = stem + "--fold.png"; entry.full = stem + "--full.png";
     } catch (error) { entry.failure = String(error.message || error).slice(0, 200); }

@@ -111,7 +111,7 @@
     const days = c.currentDays;
     const notches = Array.from({ length: c.target }, (_, i) => `<span class="asc-notch" data-state="${i < days ? "held" : "current"}" style="--fill:0%"></span>`).join("");
     const text = days >= c.target ? (days === c.target ? "Semaine tenue. Tout ce qui suit est du bonus, pas une obligation." : `Semaine tenue, ${days} jours actifs.`) : `Encore ${c.remaining} jour${c.remaining > 1 ? "s" : ""} actif${c.remaining > 1 ? "s" : ""} pour tenir ta semaine.`;
-    return `<section class="moment-block"><div class="asc-between"><p class="asc-eyebrow">Ta semaine</p><span class="asc-small asc-muted">${days}/${c.target} jours actifs</span></div>
+    return `<section class="moment-block"><div class="asc-between"><p class="moment-label">Ta semaine</p><span class="asc-small asc-muted">${days}/${c.target} jours actifs</span></div>
       <div class="asc-notches moment-notches" style="grid-template-columns:repeat(${c.target},1fr)" aria-hidden="true">${notches}</div><p class="asc-small asc-muted">${esc(text)}</p></section>`;
   }
 
@@ -119,7 +119,7 @@
     const m = P().mastery(window.state?.history || []).find((x) => x.sport === log.sport);
     if (!m) return "";
     const pct = Math.round(m.progress * 100);
-    return `<section class="moment-block"><div class="asc-between"><p class="asc-eyebrow">Maîtrise · ${esc(m.label)}</p><span class="asc-small asc-muted">${esc(m.name)}</span></div>
+    return `<section class="moment-block"><div class="asc-between"><p class="moment-label">Maîtrise · ${esc(m.label)}</p><span class="asc-small asc-muted">${esc(m.name)}</span></div>
       <span class="asc-ascent thin" aria-hidden="true"><span style="--p:${pct}%"></span></span>
       <p class="asc-small asc-muted">${m.next ? `${pct} % vers ${esc(m.next.name)} · ${F().duration(m.minutes)} sur ${F().number(m.weeks)} semaine${m.weeks > 1 ? "s" : ""}` : "Niveau Référence : le sommet de cette discipline."}</p></section>`;
   }
@@ -138,10 +138,11 @@
       <span class="asc-row-sub">${esc(world?.name || "Aventure")} · ${days}/${c.target} jour${c.target > 1 ? "s" : ""} actif${c.target > 1 ? "s" : ""}${log.syncStatus === "confirmed" ? "" : " · mis à jour après confirmation"}</span></span>${icon("chevron")}</a>`;
   }
 
-  /* La révélation de progression (web): the XP ring fills, the number counts up, embers rise, and on a new level the rank crest strikes into place.
+  /* La révélation de progression (web): the gain counts up while the level bar moves from where it stood to where it stands; on a new level the rank crest settles beside the figure.
      Decorative (aria-hidden: the text of the reward right below says everything); only for a gain the server confirmed; once per opening of the sheet;
      the final state is shown at once with "reduire les animations". */
-  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  // The system's setting, or TITAN's own « Animations réduites » (shell.js sets data-motion on the document).
+  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || document.documentElement.getAttribute("data-motion") === "reduced";
   function hero(log, play) {
     const rw = reward(log);
     if (!(rw.state === "confirmed" || rw.state === "capped") || !(rw.xp > 0) || !window.TitanCrest) return "";
@@ -152,29 +153,29 @@
     const to = rw.levelUp ? 1 : after;
     const animate = play && !reducedMotion();
     const rank = window.TitanCrest.rankIdOf(level);
+    const known = rw.levelAfter !== null && rw.xpAfter !== null;
+    // The gain is the figure; the level it moves is the same bar as on the QG. Before this session the bar stood at `from`
+    // (drawn as a quieter tone under the fill), after it at `to`.
     return `<section class="moment-hero${animate ? "" : " struck"}" aria-hidden="true" data-level-up="${rw.levelUp ? 1 : 0}" data-play="${animate ? 1 : 0}" data-to="${to}" style="--accent:${window.TitanCrest.ACCENT[rank]}">
-      <div class="moment-ring">
-        <svg viewBox="0 0 120 120"><circle class="mr-track" cx="60" cy="60" r="52"/><circle class="mr-fill" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 * (1 - (animate ? from : to))).toFixed(2)}"/></svg>
-        <div class="moment-ring-center"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></div>
+      <div class="moment-ring moment-climb">
+        <p class="moment-climb-figure"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></p>
+        ${known ? `<div class="moment-climb-bar"><span class="mc-before" style="width:${(from * 100).toFixed(2)}%"></span><span class="mc-fill" style="width:${((animate ? from : to) * 100).toFixed(2)}%"></span></div>
+        <p class="moment-climb-legend"><span>${rw.levelUp ? `Niveau ${F().number(level)} atteint` : `Niveau ${F().number(level)}`}</span><span>${rw.levelUp ? esc(E().rank(level).name) : `vers le niveau ${F().number(level + 1)}`}</span></p>` : ""}
         ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 104)}</div>` : ""}
-        <div class="moment-embers"></div>
       </div>
     </section>`;
   }
   function playHero(root) {
     const h = root.querySelector(".moment-hero[data-play='1']");
     if (!h) return;
-    const fill = h.querySelector(".mr-fill"), num = h.querySelector(".moment-ring-xp"), embers = h.querySelector(".moment-embers");
+    const fill = h.querySelector(".mc-fill"), num = h.querySelector(".moment-ring-xp");
     const to = Number(h.dataset.to) || 0, xp = Number(num?.dataset.count) || 0;
-    const burst = (n, colors) => { for (let i = 0; i < n; i++) { const e = document.createElement("span"); e.className = "ember"; e.style.cssText = `--s:${(2 + Math.random() * 4).toFixed(1)}px;--c:${colors[i % colors.length]};--dx:${((Math.random() - 0.5) * 120).toFixed(0)}px;--ry:-${(70 + Math.random() * 150).toFixed(0)}px;--d:${(1.1 + Math.random()).toFixed(2)}s;--dl:${(Math.random() * 0.5).toFixed(2)}s;margin-left:${((Math.random() - 0.5) * 120).toFixed(0)}px`; embers.appendChild(e); } };
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      fill.style.strokeDashoffset = String(100 * (1 - to));
-      burst(22, ["#3DD9E8", "#8CEAF2", "#FFFFFF"]);
+      if (fill) fill.style.width = `${(to * 100).toFixed(2)}%`;
       const t0 = performance.now();
-      const step = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); const v = k <= 0 ? 0 : Math.round(xp * (1 - Math.pow(1 - k, 3))); if (num) num.textContent = "+" + F().number(v); if (k < 1) requestAnimationFrame(step); else if (num) num.textContent = "+" + F().number(xp); };
+      const step = (now) => { const k = Math.min(1, (now - t0 - 200) / 900); const v = k <= 0 ? 0 : Math.round(xp * (1 - Math.pow(1 - k, 4))); if (num) num.textContent = "+" + F().number(v); if (k < 1) requestAnimationFrame(step); else if (num) num.textContent = "+" + F().number(xp); };
       requestAnimationFrame(step);
-      if (h.dataset.levelUp === "1") setTimeout(() => { h.classList.add("struck"); burst(34, [h.style.getPropertyValue("--accent") || "#F4BB54", "#FFFFFF", "#F4BB54"]); }, 1450);
-      else setTimeout(() => h.classList.add("struck"), 1450);
+      setTimeout(() => h.classList.add("struck"), 1300);
     }));
   }
 
@@ -204,13 +205,22 @@
     const recs = records(log);
     const m = metrics(log);
     const ring = hero(log, play);
-    return `<div class="moment" data-state="${rw.state}">
-      <h3 class="asc-eyebrow">Tu as fait</h3>
-      <dl class="moment-metrics">${m.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
-      ${recs.length ? `<section class="moment-block moment-records"><p class="asc-eyebrow am">${recs.every((r) => r.first) ? (recs.length > 1 ? "Premiers repères" : "Premier repère") : recs.length > 1 ? "Records" : "Record"}</p>${recs
+    // The session leads with one figure set large on the field (its distance, its volume, or its time); the rest follows as a row.
+    // A record that fell leads instead: it is what the session will be remembered for, and the field turns amber.
+    const top = recs.find((r) => !r.first) || null;
+    const lead = top ? [`Record · ${top.label}`, fmtRecord(top)] : m.find(([k]) => k === "Distance") || m.find(([k]) => k === "Volume") || m.find(([k]) => k === "Durée") || m[0];
+    const rest = top ? m : m.filter((x) => x !== lead);
+    const others = recs.filter((r) => r !== top);
+    return `<div class="moment" data-state="${rw.state}"${top ? ' data-record="1"' : ""}>
+      <div class="moment-field">
+        <h3 class="moment-label">Tu as fait</h3>
+        ${lead ? `<p class="moment-lead"><span class="asc-num">${esc(lead[1])}</span><small>${esc(lead[0])}${top && top.previous ? `<br>avant : ${esc(fmtRecord(top, top.previous.value))}` : ""}</small></p>` : ""}
+        <dl class="moment-metrics">${rest.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}${lead && !top ? `<div class="sr-only"><dt>${esc(lead[0])}</dt><dd>${esc(lead[1])}</dd></div>` : ""}</dl>
+      </div>
+      ${others.length ? `<section class="moment-block moment-records"><p class="moment-label am">${others.every((r) => r.first) ? (others.length > 1 ? "Premiers repères" : "Premier repère") : others.length > 1 ? "Autres records" : "Autre record"}</p>${others
         .map((r) => `<div class="moment-record"><span class="moment-record-label">${esc(r.label)}</span><strong class="asc-num">${esc(fmtRecord(r))}</strong><span class="asc-small asc-faint">${r.previous ? `avant : ${esc(fmtRecord(r, r.previous.value))}` : "ta référence pour la suite"}</span></div>`)
         .join("")}</section>` : ""}
-      <h3 class="asc-eyebrow">Ce que ça change</h3>
+      <h3 class="moment-label">Ce que ça change</h3>
       <div class="moment-gain${ring ? " has-ring" : ""}">
         ${ring}
         <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
@@ -223,7 +233,7 @@
       ${cadenceHtml(log)}
       ${masteryHtml(log)}
       ${adventureHtml(log)}
-      <h3 class="asc-eyebrow">Et ensuite ?</h3>
+      <h3 class="moment-label">Et ensuite ?</h3>
       <p class="moment-next">${esc(nextStep(log, rw))}</p>
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
@@ -267,6 +277,10 @@
       },
     });
     dialog.classList.add("moment-sheet");
+    // The end of a session is set in the lime of the Séance space, whatever page it opens over; a record turns its field amber.
+    dialog.dataset.space = "seance";
+    const markRecord = () => dialog.toggleAttribute("data-record", !!body.querySelector(".moment[data-record]"));
+    markRecord();
     const initialFocus = document.activeElement;
     const live = () => !closed && dialog.isConnected && dialog.open && currentContext();
     const topmost = () => [...document.querySelectorAll("dialog[open]")].at(-1) === dialog;
@@ -284,6 +298,7 @@
         : action ? `a[href="${CSS.escape(action.getAttribute("href"))}"]` : null;
       const l = current(log);
       body.innerHTML = firstHtml();
+      markRecord();
       playHero(body);
       if (selector) restoreAction(selector);
       if (!wasConfirmed && l.syncStatus === "confirmed") {

@@ -115,11 +115,13 @@
       ${effortTarget ? `<div class="av-track"><div class="asc-between"><span>Effort pour le gardien</span><strong class="asc-num">${F().number(effort)} / ${effortTarget} min</strong></div><span class="asc-ascent"><span style="--p:${Math.round((effort / effortTarget) * 100)}%"></span></span><p class="asc-small asc-faint">Minutes d’effort depuis le début du chapitre, 90 au plus par jour : l’épreuve récompense la constance, pas une séance démesurée.</p></div>` : ""}
       ${ch.boss && !effortRule() ? `<p class="asc-small asc-faint">${SOON}</p>` : ""}
       ${ready ? `<button type="button" class="asc-btn asc-btn-primary" data-claim="${ch.index}">${icon("star")} ${ch.boss ? "Affronter le gardien" : "Allumer la balise"}</button>` : `<a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a>`}
-      <p class="asc-small asc-muted">Ce que ça apporte : l’insigne <strong>${esc(ch.title)}</strong>, cosmétique, sans XP ni crédits. Tes XP viennent de l’effort de chaque séance.</p>
-      ${personalTargetHtml(p)}
       <p class="av-story">${esc(ch.story)}</p>
-      <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-chapter="${ch.index}">Détails du chapitre</button>
+      <details class="av-more"><summary>Ce que ça apporte<span class="av-more-prize">${icon("star")} ${esc(ch.title)}</span></summary>
+        <p class="asc-small">L’insigne <strong>${esc(ch.title)}</strong>, cosmétique, sans XP ni crédits. Tes XP viennent de l’effort de chaque séance.</p>
+        ${personalTargetHtml(p)}
+        <div class="av-practice"><p class="asc-eyebrow">Le repère à emporter</p><p>${esc(ch.practice)}</p></div>
+      </details>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm av-mission-details" data-chapter="${ch.index}">Détails du chapitre</button>
     </section>`;
   }
 
@@ -316,18 +318,28 @@
     }
   }
 
+  /* A beacon was lit: the sheet opens on the painting of the world, with the trail of its nine beacons under it — those already
+     lit, the one that just lit, the ones ahead. The guardian keeps its portrait. Everything shown is what the server confirmed. */
   function celebrate(world, index) {
     const ch = world.chapters[index - 1];
     const body = document.createElement("div");
     body.className = "asc-stack av-celebrate";
-    body.innerHTML = `${ch.boss ? `<img src="/assets/renaissance/guardian-${world.id}.webp" alt="${esc(world.guardian)}" width="640" height="640">` : `<div class="av-celebrate-badge">${badge(world, index, true)}</div>`}
+    const trail = world.chapters.map((c) => `<li class="${c.index < index ? "is-lit" : c.index === index ? "is-lit is-new" : ""}${c.boss ? " is-boss" : ""}">${c.index === index ? `<span>${c.index}</span>` : ""}</li>`).join("");
+    body.innerHTML = `<figure class="av-celebrate-art" style="--world:${world.color}">
+        <img src="/assets/renaissance/${ch.boss ? `guardian-${world.id}` : `${world.image}-small`}.webp" alt="${ch.boss ? esc(world.guardian) : ""}" width="${ch.boss ? 640 : 800}" height="${ch.boss ? 640 : 450}" decoding="async"${ch.boss ? ' class="is-guardian"' : ""}>
+        <ol class="av-celebrate-trail" aria-label="Balise ${index} sur 9">${trail}</ol>
+      </figure>
       <p class="asc-eyebrow am">Insigne obtenu</p><p class="av-celebrate-title">${esc(ch.title)}</p>
-      <p>${esc(ch.boss ? world.ending : ch.story)}</p>
+      <p class="av-celebrate-story">${esc(ch.boss ? world.ending : ch.story)}</p>
       ${!ch.boss ? `<p class="asc-small asc-muted">Prochaine étape : <strong>${esc(world.chapters[index]?.name || "")}</strong>.</p>` : ""}
       <button type="button" class="asc-btn asc-btn-primary" data-close-celebrate>Continuer</button>`;
     const d = window.titanShell.sheet({ title: ch.boss ? world.guardian : `Balise ${index} allumée`, eyebrow: world.name, body });
+    d.classList.add("av-celebrate-sheet");
+    d.dataset.space = "aventure";
     body.querySelector("[data-close-celebrate]").addEventListener("click", () => d.close());
   }
+  // The capture bench and the journeys open this moment without playing a whole chapter.
+  window.TitanAdventureMoment = { celebrate: (worldId, index) => { const w = C().worlds.find((x) => x.id === worldId); if (w && w.chapters[index - 1]) celebrate(w, index); } };
 
   function openChapter(index) {
     const world = C().worlds.find((w) => w.id === selected) || C().worlds[0];
