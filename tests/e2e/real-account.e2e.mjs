@@ -77,7 +77,8 @@ test("QG of a signed-in account: the practice first, the seven optional blocks f
     await page.locator("#qg-more-ss > summary").click();
     await page.locator("[data-ss-current]").waitFor();
     assert.ok(await sideways(page) <= 1, "an opened row stays inside the screen");
-    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem("titan_qg_open_v1"))), ["ss"]);
+    // The toggle event is delivered after the row opens: wait for the device to have remembered it rather than read at once.
+    await page.waitForFunction(() => localStorage.getItem("titan_qg_open_v1") === '["ss"]', null, { timeout: 5000 });
     await page.reload({ waitUntil: "load" });
     await page.locator("#qg-more-ss[open] [data-ss-current]").waitFor();
     assert.deepEqual(errors, []);
