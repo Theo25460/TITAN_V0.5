@@ -231,3 +231,35 @@ Nothing here adds a token. These are compositions built from the system above; t
 
 Motion added: one count-up and one bar on the moment, one beacon settling on the trail. Each has its final state at once under
 `prefers-reduced-motion` and TITAN's own setting.
+
+## 11. « Signature » (17 November 2026, web) — what makes TITAN recognisable without its logo
+
+« Programme » gave TITAN a system; the owner asked for a signature: premium, immersive, with the RPG's character, never
+overloaded. Four ideas, in `css/signature.css` (loaded after `ascension-app.css` by every application page), used everywhere
+and for nothing else. Each space of the app adds its own sheet (`css/one-*.css`) built with them.
+
+| Idea | What it is | Where | Rule |
+|---|---|---|---|
+| **La coupe** | One corner cut at 45°, the angle of the double chevron (`--cut` 18 px, 28 px wide; `--cut-sm`) | The header field, the slab, the record action of the navigation, a plate | Only on what is primary. Never on a row, an input or a chip. It replaces nothing of the 4 / 8 / 12 radii elsewhere |
+| **Le relief** | Contour lines of a summit (`assets/ascension/contours.svg` as a mask) inked in the colour of what they sit on | Fields, slabs, plates, the empty state | Ink of the surface at low strength, never under a figure that must be read at a glance, never a second colour |
+| **L'objet** | Ranks, relics, chests and seals are objects that stand on the ground with their own shadow (`.sig-object`), on a steel plate (`.sig-plate`) when they are the subject | QG rank plate, Records, Atelier, Aventure, Carrière | Never an icon in a ring. Locked is desaturated and said in words (`.sig-state`); nothing shown as owned before the server says so |
+| **Le passage** | Page to page is one movement: the navigation is on the first frame (`js/app/shell-nav.js`) and stays, the content cross-fades (cross-document view transitions) | Every page of the site | 110 ms out, 260 ms in. The system setting and TITAN's « Animations réduites » cut it. No entrance replayed on a data refresh |
+
+What changes in the rules above:
+
+- § 3: a slab and a header field end with la coupe at their lower right corner; a panel that carries a precious thing is a
+  steel plate (three tones, a highlight on its upper edge) instead of a flat tone.
+- § 4: a field carries le relief. Onboarding and sign-in open on the valley like the QG opens on the world in progress.
+- § 7: `@view-transition { navigation: auto }` is in both base sheets (`ascension.css`, `design-system.css`) so that no page
+  disagrees with the next; the rail and the tab bar are named and do not move.
+- § 9: « no uppercase tracked kicker » now holds on the public pages too (`.pub-eyebrow` is a plain small label).
+- Navigation: the rail, the top row and the tab bar are drawn by `shell-nav.js`, the first script of the page, from what the
+  device remembers of the account (`titan_shell_nav_v1`, read strictly, forgotten on sign-out). They used to arrive about
+  80 ms after the first frame and blink at every navigation. The sub-navigation of Progrès and Séance is written in the page.
+  The rank worn in the navigation is the approved sculpted crest, when the rank has one.
+
+Illustrations (see `design/titan-visual-library/global-v2/registry/fusion-20261117.json` for each decision): the four approved
+crests are untouched; three true-alpha objects from the owner's Drive are in use (`assets/objects/`: the chest is the reserve
+of credits in the Atelier, the relic belongs to Records, the seal to the exploration notebook); the Champion, Titan and
+Légende candidates of PR #147 are kept ready and inactive until approved (`BADGES` in `js/app/crest.js`).
+

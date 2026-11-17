@@ -72,3 +72,20 @@ test("a rank without an approved crest shows none; a focused flow draws no navig
   nav.remember({ guest: true });
   assert.equal(store.has("titan_shell_nav_v1"), false);
 });
+
+test("every page that opts in to page transitions reads passage.js in its head, and only the two page families opt in", () => {
+  const sheets = readdirSync(ROOT + "css").filter(f => f.endsWith(".css") && /@view-transition/.test(readFileSync(ROOT + "css/" + f, "utf8")));
+  assert.deepEqual(sheets.sort(), ["public.css", "signature.css"]);
+  let count = 0;
+  for (const page of readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
+    const html = readFileSync(ROOT + page, "utf8");
+    if (!/css\/(signature|public)\.css/.test(html)) continue;
+    count++;
+    const head = html.slice(0, html.indexOf("</head>"));
+    assert.match(head, /<script src="\/js\/passage\.js\?v=[^"]+"><\/script>/, `${page}: passage.js is read before the page is shown`);
+  }
+  assert.ok(count >= 45);
+  const passage = readFileSync(ROOT + "js/passage.js", "utf8");
+  assert.match(passage, /pagereveal/);
+  assert.match(passage, /\^Transition was \(aborted\|skipped\)/, "only the browser's own abandoned transition is answered");
+});

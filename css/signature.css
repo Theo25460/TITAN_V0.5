@@ -32,9 +32,12 @@
 
 /* ---------- 1. Le passage : page to page ----------
    A same-site navigation cross-fades the content while the rail and the tab bar, drawn on the first frame by shell-nav.js,
-   stay where they are. Browsers without cross-document view transitions simply navigate. The opt-in itself (@view-transition)
-   is in ascension.css and design-system.css, so that every page of the site agrees: a page that opts in while the next one
-   does not makes the browser report an aborted transition. */
+   stay where they are. Browsers without cross-document view transitions simply navigate. Application pages opt in here and
+   public pages in public.css; js/passage.js, read in the <head> of both, answers the transitions the browser gives up. */
+@view-transition { navigation: auto; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
 .asc-rail { view-transition-name: titan-rail; }
 .asc-tabbar { view-transition-name: titan-tabbar; }
 ::view-transition-group(titan-rail),

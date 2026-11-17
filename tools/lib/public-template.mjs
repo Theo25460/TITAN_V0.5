@@ -129,6 +129,7 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <link rel="stylesheet" href="/css/ascension.css?v=300.12"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.10" : "300.9"}">${styles.map(h => `<link rel="stylesheet" href="${h}">`).join("")}
 <script src="/js/pwa.js?v=${V}" defer></script>${scripts.map(h => `\n<script src="${h}" defer></script>`).join("")}${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
+<script src="/js/passage.js?v=1"></script>
 </head>
 <body class="asc pub">${header(route)}<main id="contenu">${numberTables(body)}</main>${footer}</body>
 </html>
