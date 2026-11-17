@@ -23,7 +23,8 @@ jest.mock("../src/lib/gpsNative", () => ({
 }));
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () => ({ status: "signedIn", owner: "owner-a" }) }));
 jest.mock("../src/data/drafts", () => ({ saveDraft: (...a: unknown[]) => mockDraft(...a) }));
-jest.mock("../src/data/hooks", () => ({ useLogs: () => ({ active: [], confirmed: [] }) }));
+const mockLogs: never[] = [];
+jest.mock("../src/data/hooks", () => ({ useLogs: () => ({ active: mockLogs, confirmed: mockLogs }) }));
 jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
 jest.mock("../src/lib/liveCompanion", () => ({ deliver: (outs: { type: string; cue?: unknown }[]) => outs.filter((o) => o.type === "cue").map((o) => o.cue), clearLiveNotification: jest.fn() }));
 

@@ -143,7 +143,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const [picked, setPicked] = useState<string[]>([]);
   // What this session may compare itself with comes from the shared core, and only from rows the server holds: a session
   // still waiting in the offline queue is not a reference yet.
-  const ctx = useMemo(() => LivePrepare.context(sport, confirmed ?? [], { now: Date.now() }), [confirmed, sport]);
+  const ctx = useMemo(() => LivePrepare.context(sport, confirmed, { now: Date.now() }), [confirmed, sport]);
   // Exercises offered under the field: those of the latest sessions first (each one has its « last time » line), then the rest.
   const suggested = useMemo(() => [...new Set([...Object.values(ctx.reference?.exercises ?? {}).map((e) => e.name ?? ""), ...ctx.knownExercises.slice().reverse()].filter(Boolean))], [ctx]);
   const free = intent === "explorer"; // exploring carries no figure: neither goal nor plan nor comparison
@@ -155,7 +155,8 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   }), [sport, intent, immersion, owner, recovery, project, ctx, free, goalKind, goalValue, planCount]);
   const draftState = useMemo(() => prepState("prepare"), [prepState]);
   const preparable = useMemo(() => LiveEngine.preparable(draftState), [draftState]);
-  useEffect(() => setPicked((p) => p.filter((id) => preparable.some((m) => m.id === id))), [preparable]);
+  // Keeps the same array when nothing was dropped: the missions are rebuilt at every change of the preparation.
+  useEffect(() => setPicked((p) => (p.every((id) => preparable.some((m) => m.id === id)) ? p : p.filter((id) => preparable.some((m) => m.id === id)))), [preparable]);
   // The camp's snapshot is shared with the Camp screen (same query): it is only asked for while preparing, and the stake
   // still says what the session feeds when it is missing (offline, guest).
   const world = useLiveWorld(!state || state.status === "ready");

@@ -36,6 +36,7 @@ const { ToastProvider } = require("../src/components/Toast");
 const { LiveEngine, LivePrepare, LiveVoies } = require("../src/core/live");
 const { CampScreen } = require("../src/screens/live/CampScreen");
 const { LiveSessionScreen } = require("../src/screens/live/LiveSessionScreen");
+const { saveLive } = require("../src/data/live");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 const metrics = { frame: { x: 0, y: 0, width: 320, height: 640 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
@@ -67,7 +68,8 @@ function logSet(exercise: string, load: string, reps: string) {
   fireEvent.press(screen.getByTestId("live-log-set"));
 }
 
-beforeEach(() => { mockStore.clear(); mockDraft.mockClear(); nav.replace.mockClear(); mockLogs = [squatSession()]; });
+// Each test starts without a running session: the store of the phone and the copy kept in memory are both emptied.
+beforeEach(async () => { await saveLive("owner-a", null); mockStore.clear(); mockDraft.mockClear(); nav.replace.mockClear(); mockLogs = [squatSession()]; });
 
 test("the phone reads the comparable sessions through the shared core, never from a refused or archived one", () => {
   const now = Date.now();
@@ -86,7 +88,7 @@ test("yoga prepares in silence, a strength session with notifications", async ()
   fireEvent.press(screen.getByTestId("live-start"));
   await waitFor(() => expect(savedState().immersion).toBe("silence"));
   yoga.unmount();
-  mockStore.clear();
+  await act(async () => { await saveLive("owner-a", null); });
   show("muscu_gym");
   expect(await screen.findByText("La Forge")).toBeTruthy();
   expect(screen.getByRole("tab", { name: "Notifications" }).props.accessibilityState.selected).toBe(true);
