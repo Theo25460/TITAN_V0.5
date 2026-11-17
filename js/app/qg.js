@@ -376,13 +376,13 @@
       const module = window[name], html = module?.html?.() || "";
       if (!html) return "";
       const brief = module.brief?.() || "";
-      return `<details class="qg-more-item" id="qg-more-${key}" data-more="${key}"${open.has(key) ? " open" : ""}><summary><span class="asc-row-icon">${icon(glyph)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(title)}</span>${brief ? `<span class="asc-row-sub">${esc(brief)}</span>` : ""}</span></summary><div class="qg-more-body">${html}</div></details>`;
+      return `<details class="asc-fold" id="qg-more-${key}" data-more="${key}"${open.has(key) ? " open" : ""}><summary><span class="asc-row-icon">${icon(glyph)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(title)}</span>${brief ? `<span class="asc-row-sub">${esc(brief)}</span>` : ""}</span></summary><div class="asc-fold-body">${html}</div></details>`;
     }).join("");
-    return rows ? `<section class="asc-section asc-appear qg-more" aria-labelledby="qg-more-title"><div class="asc-section-head"><h2 id="qg-more-title">Autour de ta pratique</h2><span class="asc-small asc-faint">Facultatif</span></div><div class="qg-more-list">${rows}</div></section>` : "";
+    return rows ? `<section class="asc-section asc-appear qg-more" aria-labelledby="qg-more-title"><div class="asc-section-head"><h2 id="qg-more-title">Autour de ta pratique</h2><span class="asc-small asc-faint">Facultatif</span></div><div class="asc-fold-list">${rows}</div></section>` : "";
   }
   document.addEventListener("toggle", (event) => {
     const row = event.target;
-    if (!(row instanceof HTMLElement) || !row.matches?.(".qg-more-item")) return;
+    if (!(row instanceof HTMLElement) || !row.matches?.(".asc-fold[data-more]")) return;
     const open = moreOpen();
     if (row.open) open.add(row.dataset.more); else open.delete(row.dataset.more);
     try { localStorage.setItem(MORE_KEY, JSON.stringify([...open])); } catch { /* storage refused: the row still opens */ }

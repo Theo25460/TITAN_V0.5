@@ -1598,6 +1598,18 @@ html[data-motion="reduced"] *::after {
   justify-content: space-between;
   gap: var(--s3);
 }
+/* Text on one side, its actions on the other: the text takes the room and wraps, the actions keep their width and stay inside. */
+.asc-between > :where(span, div, p):first-child:not(:only-child) {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.asc-between > .asc-actions,
+.asc-between > .asc-btn {
+  flex: none;
+  justify-content: flex-end;
+  gap: var(--s1);
+}
 .asc-hide-mobile {
   display: none;
 }

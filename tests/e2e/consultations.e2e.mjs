@@ -31,6 +31,8 @@ const ITEMS = [
 ];
 async function page({ flag = true, missing = false, signedIn = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: "block" });
+  // The optional panels of the Communauté are folded rows (js/app/communaute-extras.js); these journeys read inside them.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_cm_open_v1", JSON.stringify(["consultations", "duels", "clubs", "factions", "pantheon"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const p = await context.newPage();
   const errors = []; p.on("pageerror", e => errors.push(e.message));
