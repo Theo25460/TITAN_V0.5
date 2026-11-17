@@ -2,6 +2,7 @@
    The server counts; this module only words the state and mirrors the rule for previews. */
 /* eslint-disable @typescript-eslint/no-require-imports */
 require("./web/cordee.js");
+require("./web/social-digest.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,3 +36,17 @@ export const Cordee = g.TitanCordee as {
   explain(state: CordeeState): CordeeWords;
   suggestPace(activeDays28: number): CordeePace;
 };
+
+/* « Depuis ta dernière visite », social part (public.titan_social_digest_v1), worded by the website's module. */
+export type SocialDigest = {
+  since: string; requestsIn: number; cheersReceived: number;
+  friendMoments: { count: number; latest: { id: string; kind: string; title: string; at: string; author: string }[] };
+  friendsActive: string[];
+  cordees: { id: string; route: CordeeRouteId; status: string; myStatus: string; percent: number; camps: number; total: number; target: number; mine: number; earned: boolean; summitedSince: boolean }[];
+  duo: { status: "active" | "invited" | "finished"; partner: string | null; together?: number; target?: number; daysLeft?: number; reached?: boolean } | null;
+  challengesEnded: { id: string; title: string; reached: boolean | null }[];
+  memories: { id: string; route: CordeeRouteId; summitedAt: string; members: number }[];
+  suggestion: { kind: "cordee"; pace: CordeePace; activeDays28: number; friends: number } | null;
+};
+export type DigestLine = { id: string; text: string; href: string; kind: "celebrate" | "together" | "circle" | "memory" | "suggest"; pace?: CordeePace };
+export const SocialDigestWords = g.TitanSocialDigest as { lines(d: SocialDigest | null, now?: number): DigestLine[]; hasNews(d: SocialDigest | null, now?: number): boolean };

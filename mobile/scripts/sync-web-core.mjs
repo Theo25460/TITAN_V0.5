@@ -41,6 +41,7 @@ export const MODULES = [
   "js/core/program-grid.js",
   "js/core/periodic-quests.js",
   "js/core/cordee.js",
+  "js/core/social-digest.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

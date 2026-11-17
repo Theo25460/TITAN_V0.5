@@ -44,5 +44,8 @@ Aucun drapeau n'est créé par une migration, donc rien n'apparaît tant que le 
 | `auth.google` | bouton « Continuer avec Google » (web ; Android par `EXPO_PUBLIC_TITAN_GOOGLE`) | — (fournisseur Google à activer côté Supabase par Théo) | V11-77 |
 | `screens.factions` | trois factions | 54 | V11-74 |
 | `screens.pantheon` | Panthéon des Titans | 54 | V11-74 |
+| `screens.friendlinks` | création des liens d'invitation personnels (Communauté > Amis, Web et Android) ; **vérifié par le serveur** (`FEATURE_DISABLED`) ; un lien déjà envoyé reste utilisable si le drapeau se referme | 20261120090000 | Social, lot A |
+| `screens.cordee` | La Grande Cordée (Communauté, Web ; Communauté > Défis, Android) ; la **création** est vérifiée par le serveur ; les cordées en cours restent lisibles si le drapeau se referme | 20261120110000 | Social, lot C |
+| `screens.digest` | « Depuis ta dernière visite » (haut de la Communauté, Web) et « Dans ton cercle » (Communauté > Amis, Android) ; lecture seule | 20261120120000 | Social, lot D |
 
 Le Panthéon et les clubs ouverts au public demandent qu'une personne de l'équipe traite la file des signalements (centre de contrôle, « Votes et idées »).

@@ -11,6 +11,7 @@ n'est supprimée, aucune XP ni aucun crédit n'est accordé, aucune signature ex
 | `01` amis | Lien d'invitation personnel (un usage, 7 jours, révocable), demandes d'ami expirées après 30 jours, liste de ses blocages, six limites anti-spam qui ne s'appliquaient pas, export | Oui dès que les clients sont publiés : bouton « Créer un lien », « Comptes bloqués », demandes envoyées annulables |
 | `02` groupes | **Séances confirmées seulement** dans tous les comptes collectifs (une séance dont la récompense est retenue ou annulée par l'anti-triche, ou jamais tamponnée par le serveur, ne compte plus nulle part ; elle compte dès sa libération) ; résultat d'un défi terminé sans nom d'inconnu ; résultat du TITAN Duo conservé ; objectif hebdomadaire de club | Oui : une séance retenue ne fait plus avancer Duo, défis, guilde, quête commune, saison, objectif mondial, « semaine tenue » (crédits cosmétiques) tant qu'elle est retenue |
 | `03` Grande Cordée | Expédition coopérative entre amis de sports différents (mode des défis entre amis) : longueurs par jour, part plafonnée, variété des familles, quatre camps, sommet unique, titre de route ; réglage serveur `screens.cordee` | Seulement quand `screens.cordee` est ouvert (fermé par défaut) |
+| `04` retour | « Depuis ta dernière visite » : lecture seule (Moments partagés par des amis, encouragements, demandes, amis actifs s'ils l'autorisent, cordées, Duo, défis terminés, souvenirs, une allure de cordée adaptée) ; réglage client `screens.digest` | Seulement quand `screens.digest` est ouvert |
 
 ## Procédure
 

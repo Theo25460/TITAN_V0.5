@@ -277,6 +277,8 @@ export type CordeeList = { cordees: import("../core/cordee").CordeeState[]; titl
 export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "titan_cordees_v1", {});
 export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
   ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
+/** Social lot D: what happened in one's circle since a moment (the server clamps it to 1 hour .. 30 days). */
+export const fetchSocialDigest = (owner: string, since: string | null) => ownerRpc<import("../core/cordee").SocialDigest>(owner, "titan_social_digest_v1", { p_since: since });
 export const wearTitle = (owner: string, key: string | null) => ownerRpc<{ key: string | null; label: string | null }>(owner, "titan_set_displayed_title", { p_key: key });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };

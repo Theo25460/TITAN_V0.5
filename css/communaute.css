@@ -212,3 +212,7 @@
 .cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-dot { border-color: var(--space); background: var(--space-soft); color: var(--space); }
 .cm-cordee-members li > span:first-child small { margin-left: 4px; }
 @media (max-width: 420px) { .cm-cordee-camps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Social lot D — « Depuis ta dernière visite »: a short list of what happened, each line leading where it happened. */
+.cm-retour-section { margin-bottom: var(--s6); }
+.cm-retour .asc-row { align-items: center; gap: var(--s3); }
+.cm-retour .asc-row-title { white-space: normal; }

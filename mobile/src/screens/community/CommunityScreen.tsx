@@ -30,6 +30,7 @@ import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
 import { BlockedAccounts, FriendLinkCard, InvitationCard } from "./FriendLinks";
 import { CordeePanel } from "./CordeePanel";
+import { CircleDigestCard } from "./CircleDigestCard";
 import { useServerFlag } from "../../data/flags";
 import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
 import { CHALLENGE_TEMPLATES, readAutoShare, writeAutoShare } from "../../lib/community";
@@ -130,6 +131,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
         {tab === "friends" ? (
           <>
             {invitation ? <InvitationCard owner={owner} token={invitation} online={online} onDone={() => setInvitation(null)} /> : null}
+            <CircleDigestCard owner={owner} online={online} />
             <DuoCard key={owner} owner={owner} online={online} />
             <Card style={{ gap: space.s2 }} testID="auto-share">
               <View style={styles.row}>
