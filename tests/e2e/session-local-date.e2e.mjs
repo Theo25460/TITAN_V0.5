@@ -118,7 +118,9 @@ test("session date: Hier follows local dates in New York and UTC", async () => {
   }
 });
 
-test("session date: Maintenant and explicit dates keep their existing local semantics", async () => {
+// Lot A (sport excellence): « Maintenant » is saved right after the effort, so a 30-minute session starts 30 minutes before the save
+// (it used to be dated at the save, i.e. at the end of the effort, which moved late sessions to the next day and week).
+test("session date: Maintenant starts the duration before the save; explicit dates keep their local semantics", async () => {
   for (const when of ["now", "other"]) {
     const { page, context, errors } = await sessionPage("2026-10-17T12:00:00Z");
     try {
@@ -127,7 +129,7 @@ test("session date: Maintenant and explicit dates keep their existing local sema
         await page.locator('[data-k="date"]').fill("2026-10-15");
         await page.locator('[data-k="time"]').fill("00:00");
       }
-      await saveAt(page, when === "now" ? "2026-10-17T12:00:00.000Z" : "2026-10-14T22:00:00.000Z");
+      await saveAt(page, when === "now" ? "2026-10-17T11:30:00.000Z" : "2026-10-14T22:00:00.000Z");
       assert.deepEqual(errors, []);
     } finally { await context.close(); }
   }
@@ -174,6 +176,26 @@ test("session save: offline, the session is kept on the device and survives a re
     // The durable device store, not only the saved page state, holds the session.
     const durable = await page.evaluate(async () => (await window.TitanQueue.readHistory(window.state.user.id)).length + window.TitanQueue.list().length);
     assert.ok(durable >= 1, "session present in the IndexedDB store");
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+// Lot A (sport excellence): the same effort already in the journal under a neighbouring sport id (a watch import of a treadmill run)
+// is pointed out before a second session is created; the athlete decides, nothing is merged.
+test("session save: the same effort already in the journal asks once before creating a second session", async () => {
+  const { page, context, errors } = await sessionPage("2026-10-17T12:00:00Z");
+  try {
+    await page.evaluate(() => {
+      window.state.history.push({ id: "watch-1", client_event_id: "watch-1", sport: "treadmill", unit: "km", val: 5, date: "2026-10-17T11:32:00.000Z",
+        created_at: "2026-10-17T11:59:00.000Z", syncStatus: "confirmed", details: { duration: 28, import_source: "garmin" } });
+    });
+    await page.locator('[data-act="save"]').click();
+    const dialog = page.locator("dialog.asc-sheet[open]");
+    await dialog.waitFor();
+    assert.match(await dialog.textContent(), /semble déjà dans ton journal/);
+    assert.equal(await page.evaluate(() => window.dateSubmissions.length), 0, "nothing saved before the athlete decides");
+    await dialog.locator("[data-ok]").click();
+    await page.waitForFunction(() => window.dateSubmissions.length === 1);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

@@ -68,7 +68,10 @@ export const Format = g.TitanFormat as {
   clock(minutes: number): string;
 };
 
+export type MeasureIssue = { code: string; field: string; message: string };
 export const Training = g.TitanTraining as {
+  BOUNDS: { maxKm: number; kmWithoutDuration: number; maxKmh: number; maxMeters: number; maxMinutes: number; maxElevation: number; maxExercises: number };
+  measureIssues(m: { km?: number | null; minutes?: number | null; meters?: number | null; exercises?: unknown[] | null }): MeasureIssue[];
   duration(log: Partial<TrainingLog>): number | null;
   load(log: Partial<TrainingLog>): number | null;
   dateKey(d: string | Date): string;
@@ -119,6 +122,8 @@ export const SportContracts = g.TitanSportContracts as {
   retiredReason(sport: string, field: SportContractField): string;
   entryFields<F extends SportContractField>(sport: string, fields: F[], opts?: { values?: Record<string, unknown>; skip?: string[] }): F[];
   contract(sport: string): { form: SportForm; profile: string; label: string; structured: string[]; progress: string };
+  dedupeGroup(sport: string): string;
+  findDuplicate<L extends { sport: string; date: string }>(candidate: { sport: string; date: string; minutes?: number | null; id?: string }, logs: L[]): L | null;
 };
 
 export const Insights = g.TitanInsights as {

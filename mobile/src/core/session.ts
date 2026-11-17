@@ -1,7 +1,7 @@
 /* Session form → server payload. Port of js/app/seance.js build() and titanSanitizeSessionDetails() from the website,
    so a session recorded on Android has exactly the same shape as one recorded on titan-app.fr: same units, same
    val/val1/val2/duration fields, same exercise rows, same bounds. The server recomputes effort and rewards. */
-import { Sports, type GpxResult, type SportForm } from "./index";
+import { Insights, Sports, Training, type GpxResult, type SportForm } from "./index";
 import type { Exercise, SessionDetails, TrainingLog, TrainingPayload } from "./types";
 import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
 import { sanitizeLiveJournal, type LiveJournal } from "./liveJournal";
@@ -137,7 +137,11 @@ export function removeGpxImport(draft: SessionDraft): SessionDraft {
 }
 
 export function performedAt(d: SessionDraft, now = new Date()): Date | null {
-  if (d.when === "now") return now;
+  // « Maintenant » is saved right after the effort: the session starts its duration earlier (same rule as the website).
+  if (d.when === "now") {
+    const minutes = draftDuration(d);
+    return minutes && minutes <= 1440 ? new Date(now.getTime() - Math.round(minutes * 60000)) : now;
+  }
   if (d.when === "yesterday") {
     const y = new Date(now);
     y.setDate(y.getDate() - 1);
@@ -239,9 +243,17 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
   let unit = Sports.unitOf(sport);
   if (form === "distance") {
     const km = num(d.distance);
-    if (!(km !== null && km > 0)) fail("Indique la distance.", "distance");
-    else if (km > 300) fail("La distance d’une séance est limitée à 300 km.", "distance");
-    data.val1 = km ?? undefined;
+    if (km === null && dur !== null && !d.gpx) {
+      // Same contract as the website (V11-11): an unknown distance is not 0 km; the session is recorded by its duration alone.
+      data.unitOverride = "min";
+      data.val1 = dur;
+      (data.extras as Record<string, unknown>).distance_unknown = true;
+    } else {
+      if (!(km !== null && km > 0)) fail("Indique la distance, ou au moins la durée.", "distance");
+      // Shared bounds (js/training-store.js), aligned on the server trigger: 1000 km, duration beyond 300 km, plausible speed.
+      else for (const issue of Training.measureIssues({ km, minutes: dur })) fail(issue.message, issue.field);
+      data.val1 = km ?? undefined;
+    }
     const elev = num(d.elevation);
     if (elev !== null) data.elevation = Math.min(12000, Math.max(0, elev));
     if (d.gpx) {
@@ -253,10 +265,12 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
   } else if (form === "swim") {
     const m = num(d.meters);
     if (!(m !== null && m > 0)) fail("Indique la distance nagée.", "meters");
+    else for (const issue of Training.measureIssues({ meters: m })) fail(issue.message, issue.field);
     data.val1 = m ?? undefined;
     (data.extras as Record<string, unknown>).pool = d.pool;
   } else if (form === "strength") {
     data.exercises = exerciseDraftPayload(d.exercises);
+    for (const issue of Training.measureIssues({ exercises: data.exercises })) fail(issue.message, "exercises");
     if (!data.exercises.length && dur === null) fail("Ajoute au moins une série complète (exercice et répétitions), ou une durée.", "exercises");
     if (!data.exercises.length && dur !== null) {
       data.unitOverride = "min";
@@ -293,7 +307,8 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
     if (successes !== null) extras.successful_routes = Math.round(successes);
     if (successes !== null && attempts !== null && successes > attempts) fail("Les réussites ne peuvent pas dépasser les essais.", "climbing.successes");
     if (c.best.trim()) {
-      if (!/^(V(B|\d{1,2})|[1-9][abc]?\+?)$/i.test(c.best.trim())) fail(`Cotation « ${c.best.trim()} » non reconnue pour ${c.system}.`, "climbing.best");
+      // The same grade reader as records and the website: a « V5 » typed under Fontainebleau would never count as a record.
+      if (!Insights.grade(c.best.trim(), c.system)) fail(`Cotation « ${c.best.trim()} » non reconnue pour ${c.system}.`, "climbing.best");
       else extras.max_done = c.best.trim();
     }
     data.extras = extras;

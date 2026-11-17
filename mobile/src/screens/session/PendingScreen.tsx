@@ -58,6 +58,9 @@ export function PendingScreen() {
                   kind="danger"
                   label="Supprimer"
                   style={{ flex: 1 }}
+                  // While the queue is sending, this item may already be on its way: deleting it here would not stop the server
+                  // from recording it, and the athlete would believe it gone.
+                  disabled={queue.sending}
                   onPress={() =>
                     Alert.alert("Supprimer cette séance ?", "Elle n’a pas été envoyée : elle disparaîtra définitivement de ce téléphone.", [
                       { text: "Garder", style: "cancel" },

@@ -34,6 +34,7 @@ const MESSAGES: Record<string, string> = {
   DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
   EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
   SESSION_INVALID: "Une valeur n’est pas valide pour cette séance.",
+  TRAINING_REJECTED: "Le serveur refuse cette séance : une valeur sort des limites (distance, durée, vitesse ou date). Corrige-la puis renvoie-la.",
   TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",
   FRIEND_CODE_NOT_FOUND: "Aucun profil trouvable avec ce code. Ton ami doit rendre son profil trouvable dans la confidentialité.",
   INVALID_FRIEND_CODE: "Le code ami ressemble à TN-XXXX.",
@@ -77,7 +78,12 @@ export function toAppError(e: unknown): AppError {
   const code = String((e as { code?: unknown })?.code ?? "");
   if (isNetworkError(e)) return { code: "NETWORK", message: "Connexion indisponible. Vérifie ton accès à Internet puis réessaie.", network: true, permanent: false, raw };
   const status = (e as { status?: number })?.status;
-  if (status === 429 || /rate limit|too many/i.test(m)) return { code: "RATE_LIMITED", message: MESSAGES.RATE_LIMITED, network: false, permanent: false, raw };
+  // A rate limit is temporary by nature, whatever its spelling (TRAINING_RATE_LIMIT is raised with SQLSTATE 23514): marking it
+  // permanent left every queued session after the 12th of the hour « refused » until the athlete noticed and retried by hand.
+  if (status === 429 || /rate[ _]?limit|too many/i.test(m)) {
+    const key = Object.keys(MESSAGES).find((k) => /RATE_LIMIT/.test(k) && m.includes(k)) || "RATE_LIMITED";
+    return { code: key, message: MESSAGES[key], network: false, permanent: false, raw };
+  }
   for (const key of Object.keys(MESSAGES)) if (m.includes(key)) return { code: key, message: MESSAGES[key], network: false, permanent: true, raw };
   if (/JWT expired|invalid JWT|refresh token/i.test(m)) return { code: "AUTH_REQUIRED", message: MESSAGES.AUTH_REQUIRED, network: false, permanent: false, raw };
   if (code === "PGRST202" || /Could not find the function/i.test(m)) return { code: "UNAVAILABLE", message: "Cette fonction n’est pas encore disponible sur le serveur TITAN.", network: false, permanent: true, raw };

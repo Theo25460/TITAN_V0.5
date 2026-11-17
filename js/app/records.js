@@ -47,18 +47,17 @@
       .filter((l) => l.sport === rec.sport && !l.archived_at)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(-600);
+    // Linear: each session's own value for this record (records() of a single session, same rules), then a running best. It used
+    // to recompute every record on every prefix of the history (4 s for 600 strength sessions, per opening of the sheet).
+    const score = (r) => (r.kind === "climbing" ? I().grade(r.value, r.log?.details?.extras?.grade_system)?.score ?? -Infinity : Number(r.value));
+    const better = (a, b) => (rec.kind === "time" ? score(a) < score(b) : score(a) > score(b));
     const steps = [];
-    const prefix = [];
-    let last = null;
+    let best = null;
     for (const l of pool) {
-      prefix.push(l);
-      const r = I().records(prefix, rec.sport, Date.now()).find((x) => x.id === rec.id);
-      if (!r) continue;
-      const v = String(r.value);
-      if (v !== last) {
-        steps.push({ value: r.value, date: r.log.date, log: r.log });
-        last = v;
-      }
+      const r = I().records([l], rec.sport, Date.now()).find((x) => x.id === rec.id);
+      if (!r || (best && !better(r, best))) continue;
+      best = r;
+      steps.push({ value: r.value, date: r.log.date, log: r.log });
     }
     return steps;
   }

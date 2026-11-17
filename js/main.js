@@ -187,6 +187,28 @@ async function submitTrainingSessionToCloud(payload, session) {
     const row=Array.isArray(result.data)?result.data[0]:result.data;
     return result.error?{error:result.error}:row?.log_id?{data:{id:row.log_id,serverReward:row}}:{error:new Error('SERVER_AUTHORITY_REQUIRED')};
 }
+/* A session the server refused for good stays on this device until the athlete decides: it used to have no way out at all (editing and
+   archiving need a confirmed session) and kept counting in local lists. Removing it is explicit, per account, and only for refused items. */
+window.titanDiscardRefusedSessions = async function() {
+    const account = captureCloudAccount();
+    const ownerId = account.ownerId;
+    if (!ownerId || !window.TitanQueue) return 0;
+    const refused = (window.TitanQueue.list() || []).filter(item => item.ownerId === ownerId && item.status === 'error' && !item.deferred);
+    for (const item of refused) {
+        if (!cloudAccountIsCurrent(account)) break;
+        await window.TitanQueue.remove(item.key, ownerId);
+        const eventId = item.payload?.details?.client_event_id;
+        const history = window.state?.history || [];
+        const index = history.findIndex(log => log.syncStatus === 'error' && (log.client_event_id === eventId || log.details?.client_event_id === eventId));
+        if (index >= 0) history.splice(index, 1);
+    }
+    if (cloudAccountIsCurrent(account) && refused.length) {
+        await window.TitanQueue.saveHistory(ownerId, [...(window.state?.history || []), ...(window.state?.archivedHistory || [])]).catch(() => {});
+        window.dispatchEvent(new CustomEvent('titan:history-updated'));
+    }
+    return refused.length;
+};
+
 const trainingFlushes = new Map();
 window.flushPendingTrainingLogs = function(options = {}) {
     const account = captureCloudAccount();
@@ -203,6 +225,17 @@ window.flushPendingTrainingLogs = function(options = {}) {
     }
     const job = { client, epoch, rescan: false, retry: options.retry === true, promise: null };
 
+    /** What the athlete reads: never a raw server code. */
+    const refusalReason = (error, rateLimited) => {
+        const m = String(error?.message || '');
+        if (rateLimited) return 'Beaucoup de séances envoyées en peu de temps : envoi repris automatiquement dans un moment';
+        if (m.includes('TRAINING_REJECTED')) return 'une valeur sort des limites acceptées (distance, durée, vitesse ou date)';
+        if (m.includes('TRAINING_DATE_OUT_OF_RANGE')) return 'la date est hors de la période acceptée';
+        if (error?.code === '42501') return 'ce compte n’a pas le droit d’enregistrer cette séance';
+        if (['22023', '22P02', '23514', '23505'].includes(error?.code)) return 'données refusées par le serveur';
+        return m && !/^[A-Z_]+$/.test(m) ? m : 'Connexion indisponible';
+    };
+
     const sendPass = async (items, session, retry) => {
         let sent = 0;
         for (const item of items) {
@@ -217,12 +250,16 @@ window.flushPendingTrainingLogs = function(options = {}) {
                 result = data;
             } catch (error) {
                 if (!current()) break;
-                const permanent = ['22023', '22P02', '23514', '23505', '42501'].includes(error.code);
+                // A rate limit is temporary even though the server raises it with SQLSTATE 23514: it used to mark every session
+                // after the 12th of the hour « refused », until the athlete retried by hand or typed them again (duplicates).
+                const rateLimited = /RATE_LIMIT|rate limit|too many/i.test(String(error.message || '')) || error.status === 429;
+                const permanent = !rateLimited && ['22023', '22P02', '23514', '23505', '42501'].includes(error.code);
                 const tooOld = String(error.message || '').includes('TRAINING_DATE_OUT_OF_RANGE')
                     && new Date(item.payload.date).getTime() < Date.now() - 30 * 86400000;
                 const status = permanent ? 'error' : 'pending';
                 await window.TitanQueue.put({ ...item, status, deferred: tooOld,
-                    reason: tooOld ? 'Séance de plus de 30 jours : pas encore acceptée par le serveur' : (error.message || 'Connexion indisponible') });
+                    code: String(error.message || error.code || '').slice(0, 80),
+                    reason: tooOld ? 'Séance de plus de 30 jours : pas encore acceptée par le serveur' : refusalReason(error, rateLimited) });
                 if (!current()) break;
                 const failedLocal = window.state.history.find(matchesEvent);
                 if (failedLocal) failedLocal.syncStatus = status;
@@ -472,7 +509,10 @@ window.logActivity = async function(sportKey, dataInput, options = {}) {
     if(owner!==window.state?.user?.id||client!==window.titanClient||epoch!==window.titanAccountTransition?.epoch||window.titanAccountTransition?.active)return log;
     window.state.history=window.state.history||[];
     if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);
-    window.saveState?.();window.dispatchEvent(new CustomEvent('titan:history-updated'));
+    // The session is already durable (IndexedDB above). A full localStorage snapshot must not turn that success into « not saved »:
+    // the athlete would save again and create a duplicate with a new client_event_id.
+    try { window.saveState?.(); } catch (error) { console.warn('TITAN: local snapshot not refreshed', error?.name || error); }
+    window.dispatchEvent(new CustomEvent('titan:history-updated'));
     window.flushPendingTrainingLogs({ newEntry: true }).catch(() => {
         if (cloudAccountIsCurrent({ ownerId: owner, client, epoch })) window.titanSetSyncStatus?.('pending', 'Séance conservée sur cet appareil');
     });

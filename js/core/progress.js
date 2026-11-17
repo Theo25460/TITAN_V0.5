@@ -51,8 +51,10 @@
   /* ---------- Journal helpers ---------- */
   function activeLogs(logs, now = Date.now()) {
     const t = now instanceof Date ? now.getTime() : now;
+    // Sessions held for review or refused by the server are not progress (same rule as career and the month report).
+    const counted = (l) => (T()?.counted ? T().counted(l) : !l.archived_at);
     return (logs || []).filter(
-      (l) => l && !l.archived_at && Number.isFinite(new Date(l.date).getTime()) && new Date(l.date).getTime() <= t + 10 * 60000,
+      (l) => l && counted(l) && Number.isFinite(new Date(l.date).getTime()) && new Date(l.date).getTime() <= t + 10 * 60000,
     );
   }
 

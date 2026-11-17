@@ -26,7 +26,8 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
     for (const l of q.logs) count.set(l.sport, (count.get(l.sport) || 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
   }, [q.logs]);
-  const holders = useMemo(() => recordHolders(q.logs), [q.logs]);
+  // A record badge belongs to a session the server confirmed: a pending or refused one must not take it from the real holder.
+  const holders = useMemo(() => recordHolders(q.logs.filter((l) => !(l as { syncStatus?: string }).syncStatus)), [q.logs]);
   const sections = useMemo(() => {
     const list = source.filter((l) => !sport || l.sport === sport).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const groups = new Map<string, TrainingLog[]>();

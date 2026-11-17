@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
+import { discardDraft, draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
 import { freshDraft } from "../src/core/session";
 import { ownerKey } from "../src/lib/storage";
 jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: "b" }) }));
@@ -60,4 +60,25 @@ test("a late old-account draft load cannot replace the new account's pending dra
   await jest.advanceTimersByTimeAsync(300);
   expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "b")))!)).toMatchObject({ draft: { sport: "cycling", distance: "50" } });
   (AsyncStorage.getItem as jest.Mock).mockImplementation(original);
+});
+
+test("Lot A: a finished GPS recording is pinned — another sport's form cannot overwrite it, its own form can edit it", async () => {
+  await loadDrafts("a");
+  const run = { ...freshDraft("running"), distance: "10.02", durM: "52", gpsRouteId: "route-1" };
+  await saveDraft("a", run);
+  await saveDraft("a", { ...freshDraft("muscu_gym"), note: "Une série" });
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "a")))!)).toMatchObject({ draft: { sport: "running", gpsRouteId: "route-1" } });
+  await saveDraft("a", { ...run, note: "Sortie du soir" });
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "a")))!)).toMatchObject({ draft: { note: "Sortie du soir" } });
+});
+
+test("Lot A: a pinned GPS recording survives the 48-hour form expiry and can still be given up explicitly", async () => {
+  const run = { ...freshDraft("running"), distance: "8", durM: "40", gpsRouteId: "route-2" };
+  await AsyncStorage.setItem(ownerKey("draft", "c"), JSON.stringify({ draft: run, updatedAt: Date.now() - 5 * 86400000, id: "x" }));
+  await loadDrafts("c");
+  // Still loaded although five days old: another sport's form therefore cannot replace it.
+  await saveDraft("c", { ...freshDraft("yoga"), note: "Étirements" });
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "c")))!)).toMatchObject({ draft: { gpsRouteId: "route-2" } });
+  await discardDraft("c");
+  expect(await AsyncStorage.getItem(ownerKey("draft", "c"))).toBeNull();
 });

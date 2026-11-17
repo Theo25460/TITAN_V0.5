@@ -29,18 +29,40 @@ export function loadDrafts(owner: string) {
     const stored = await readJSON<Stored>(ownerKey("draft", owner), null);
     const timer = await readJSON<Stopwatch>(ownerKey("draft-timer", owner), { elapsed: 0, started: null });
     if (epoch !== loadEpoch) return;
-    current = { owner, stored: stored && Date.now() - stored.updatedAt < 2 * DAY ? stored : null, timer };
+    // A recorded GPS session is a measure, not a half-typed form: it never expires silently (the 48-hour rule is for forms).
+    current = { owner, stored: stored && (isRecording(stored) || Date.now() - stored.updatedAt < 2 * DAY) ? stored : null, timer };
     emit();
   });
 }
 
+/** The draft holds a finished GPS recording (its trace already waits in the route outbox). */
+const isRecording = (stored: Stored) => Boolean(stored?.draft?.gpsRouteId);
+
+/** One draft per account. A finished GPS recording is pinned in it until it is sent or explicitly cleaned: typing in another
+    sport's form must not overwrite the only copy of a measured distance and duration (the recorder is released once the draft
+    is on disk). Edits of that same recording are saved as usual. */
 export function saveDraft(owner: string, draft: SessionDraft) {
   const stored = { draft, updatedAt: Date.now(), id: randomUUID() };
+  // Only another sport's form is held back: the recording's own form may edit it, even clear its trace.
+  const pinned = (s: Stored) => isRecording(s) && s!.draft.sport !== draft.sport;
+  if (current.owner === owner && pinned(current.stored)) return Promise.resolve();
   if (current.owner === owner) {
     current = { ...current, stored };
     emit();
   }
-  return serialize(owner, () => writeJSON(ownerKey("draft", owner), stored));
+  return serialize(owner, async () => {
+    if (pinned(await readJSON<Stored>(ownerKey("draft", owner), null))) return;
+    await writeJSON(ownerKey("draft", owner), stored);
+  });
+}
+
+/** The athlete explicitly gives up the stored draft (a pinned GPS recording included). */
+export function discardDraft(owner: string) {
+  if (current.owner === owner) {
+    current = { ...current, stored: null };
+    emit();
+  }
+  return serialize(owner, () => remove(ownerKey("draft", owner)));
 }
 
 /** Capture the stored draft before enqueue. After it succeeds, only remove that owner's matching copy. */

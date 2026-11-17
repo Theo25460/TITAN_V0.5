@@ -18,11 +18,11 @@ import { Section } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { EffortRules, Format, Gpx, Sports } from "../../core";
+import { EffortRules, Format, Gpx, SportContracts, Sports } from "../../core";
 import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_LADDER, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
-import { draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
+import { discardDraft, draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
@@ -121,6 +121,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     });
   };
 
+  const pinnedRecording = drafts.stored?.draft?.gpsRouteId && drafts.stored.draft.sport !== sport ? drafts.stored.draft : null;
   const form = Sports.formOf(sport);
   const fam = Sports.familyOf(sport);
   const timer = drafts.timer;
@@ -245,6 +246,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     }
   }
 
+  const duplicateAccepted = useRef<string | null>(null);
   async function save() {
     if (saving.current || saved.current) return;
     const submitted = draftRef.current;
@@ -253,6 +255,18 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       setErrors(b.errors[0]);
       haptic("error");
       scroll.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
+    // The same effort already in the journal (watch or Health Connect import, a session typed again): ask once, never merge.
+    const details = b.details as { performedAt?: string; duration?: number };
+    const twin = details.performedAt ? SportContracts.findDuplicate({ sport, date: details.performedAt, minutes: details.duration ?? null }, logs) : null;
+    const twinId = twin ? String(twin.client_event_id || twin.id) : null;
+    if (twin && duplicateAccepted.current !== twinId) {
+      const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
+      Alert.alert("Cette séance semble déjà dans ton journal", `${Sports.label(twin.sport)}, ${when} : elle couvre au moins la moitié de cet effort. Enregistrer quand même crée une seconde séance.`, [
+        { text: "Garder l’existante", style: "cancel" },
+        { text: "Enregistrer quand même", onPress: () => { duplicateAccepted.current = twinId; void save(); } },
+      ]);
       return;
     }
     const clearSubmitted = draftCleanup(owner, submitted);
@@ -333,6 +347,20 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </Tap>
         </View>
       </View>
+
+      {/* A finished GPS recording of another sport is kept on the phone until it is sent or given up: say so, never overwrite it. */}
+      {pinnedRecording ? (
+        <Card style={{ gap: 8 }} testID="pinned-recording">
+          <T variant="small">Ta séance GPS de {Sports.label(pinnedRecording.sport).toLowerCase()} attend encore d’être enregistrée sur ce téléphone. Ce formulaire-ci ne sera pas gardé en brouillon tant qu’elle attend.</T>
+          <View style={{ flexDirection: "row", gap: space.s2 }}>
+            <Button small kind="secondary" label="L’ouvrir" style={{ flex: 1 }} onPress={() => navigation.replace("SessionForm", { sport: pinnedRecording.sport })} />
+            <Button small kind="ghost" label="L’abandonner" style={{ flex: 1 }} onPress={() => Alert.alert("Abandonner la séance GPS ?", "Sa distance et sa durée seront effacées de ce téléphone. La trace reste dans « Mes parcours ».", [
+              { text: "Garder", style: "cancel" },
+              { text: "Abandonner", style: "destructive", onPress: () => void discardDraft(owner) },
+            ])} />
+          </View>
+        </Card>
+      ) : null}
 
       <Section title="Quand">
         <Segmented

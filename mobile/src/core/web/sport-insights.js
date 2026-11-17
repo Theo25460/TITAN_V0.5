@@ -7,10 +7,15 @@
     Number.isFinite(Number(value))
       ? Number(value)
       : null;
+  // Records and trends read only sessions the server did not hold or refuse, with plausible measures (js/training-store.js).
+  const counted = (l) => (root.TitanTraining?.counted ? root.TitanTraining.counted(l) : !l.archived_at);
+  const plausible = (l) => (root.TitanTraining?.plausible ? root.TitanTraining.plausible(l) : true);
   const active = (logs, now = Date.now()) =>
     (logs || []).filter(
       (l) =>
-        !l.archived_at &&
+        l &&
+        counted(l) &&
+        plausible(l) &&
         Number.isFinite(new Date(l.date).getTime()) &&
         new Date(l.date).getTime() <= now,
     );

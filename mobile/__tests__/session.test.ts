@@ -12,7 +12,35 @@ describe("session payload (same contract as js/app/seance.js + logActivity)", ()
     const p = toPayload(b, "running", ID, "Europe/Paris", false, NOW.getTime());
     expect(p).toMatchObject({ sport: "running", unit: "km", val: 10.5, category: Sports.conf("running")!.cat });
     expect(p.details).toMatchObject({ val1: 10.5, val2: 55, duration: 55, bio: { rpe: 6 }, client_event_id: ID, schemaVersion: 2, timezone: "Europe/Paris" });
-    expect(p.date).toBe(NOW.toISOString());
+    // « Maintenant » is saved right after the effort: the session starts 55 minutes earlier (same rule as the website).
+    expect(p.date).toBe(new Date(NOW.getTime() - 55 * 60000).toISOString());
+  });
+
+  test("Lot A: a session saved « now » after midnight stays on the day it started", () => {
+    const late = new Date("2026-11-16T00:12:00");
+    const b = buildSession({ ...freshDraft("running", late), distance: "9", durM: "55" }, late);
+    expect(b.errors).toEqual([]);
+    expect(b.at!.getDate()).toBe(15);
+  });
+
+  test("Lot A: shared bounds — implausible speed, ultra-distance without duration, 1000 km cap, unknown distance", () => {
+    expect(buildSession({ ...freshDraft("running", NOW), distance: "21,1", durM: "7" }, NOW).errors[0].message).toMatch(/vitesse moyenne/);
+    expect(buildSession({ ...freshDraft("cycling", NOW), distance: "350" }, NOW).errors[0].message).toMatch(/au-delà de 300 km/i);
+    expect(buildSession({ ...freshDraft("cycling", NOW), distance: "350", durH: "14" }, NOW).errors).toEqual([]);
+    expect(buildSession({ ...freshDraft("cycling", NOW), distance: "1200", durH: "23" }, NOW).errors[0].message).toMatch(/1000 km/);
+    const unknown = buildSession({ ...freshDraft("running", NOW), durM: "40" }, NOW);
+    expect(unknown.errors).toEqual([]);
+    expect(unknown.unit).toBe("min");
+    expect((unknown.details.extras as Record<string, unknown>).distance_unknown).toBe(true);
+    expect(buildSession({ ...freshDraft("swimming", NOW), meters: "400000", durM: "60" }, NOW).errors[0].message).toMatch(/nagée/);
+  });
+
+  test("Lot A: a climbing grade must be read in its own system (a V-scale grade under Fontainebleau is refused)", () => {
+    const base = freshDraft("bouldering", NOW);
+    const bad = buildSession({ ...base, durM: "60", climbing: { ...base.climbing, system: "Fontainebleau bloc", best: "V5" } }, NOW);
+    expect(bad.errors[0].message).toMatch(/non reconnue/);
+    const good = buildSession({ ...base, durM: "60", climbing: { ...base.climbing, system: "Fontainebleau bloc", best: "6B+" } }, NOW);
+    expect(good.errors).toEqual([]);
   });
 
   test("strength session: per-set rows, volume as value in kg", () => {

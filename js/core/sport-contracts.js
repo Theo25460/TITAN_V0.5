@@ -134,7 +134,62 @@
     return { sport: id, ...contract(id), asked, retired };
   }
 
-  const api = { version: 1, FORM_CONTRACTS, SELF_RATED, contract, structuredKeys, retiredReason, entryFields, audit };
+  /* ---------- Same effort recorded twice ----------
+     A watch, Health Connect, a GPX file and a hand-typed entry can describe the same effort under neighbouring sport ids (a treadmill
+     run sent as « running », a mountain-bike ride as « cycling »). The server links imports to the journal within one sport id only;
+     before a NEW entry is saved, the clients look for the same effort in the account's own journal and ask. Nothing is ever merged
+     or deleted automatically. */
+  const DEDUPE_GROUPS = {
+    run: "running treadmill trail fell_running orienteering race_walking",
+    ride: "cycling cycling_road cycling_indoor spinning mountain_bike gravel cyclocross velotaf handbike para_cycling",
+    swim: "swimming open_water_swimming para_swimming finswimming",
+    walk: "walking nordic_walk hiking trekking rucking snowshoeing",
+    strength: "muscu_gym muscu_home muscu_builder powerlifting weightlifting kettlebell",
+    row: "rowing rowing_machine coastal_rowing",
+    yoga: "yoga yoga_mobility stretching pilates",
+  };
+  const GROUP_OF = new Map();
+  for (const [group, ids] of Object.entries(DEDUPE_GROUPS)) for (const id of ids.split(" ")) GROUP_OF.set(id, group);
+  const dedupeGroup = (sport) => GROUP_OF.get(sport) || String(sport || "");
+
+  const minutesOfLog = (l) => {
+    const d = root.TitanTraining?.duration?.(l);
+    return d && d > 0 ? d : l && l.unit === "min" && Number(l.val) > 0 ? Number(l.val) : 30;
+  };
+  /** Readings of an effort: always from its date; also up to its date when it was saved « now » with no trace (older entries). */
+  function readings(l, minutes) {
+    const t = new Date(l.date).getTime();
+    const out = [[t, t + minutes * 60000]];
+    const created = new Date(l.created_at || l.date).getTime();
+    const traced = l.details?.hasGpx || l.details?.gpxStats || l.details?.source || l.details?.import_source;
+    if (Number.isFinite(created) && Math.abs(created - t) <= 10 * 60000 && !traced) out.push([t - minutes * 60000, t]);
+    return out;
+  }
+  /** The journal session that very likely records the same effort as `candidate` ({ sport, date, minutes }), or null. */
+  function findDuplicate(candidate, logs) {
+    if (!candidate || !candidate.sport) return null;
+    const start = new Date(candidate.date).getTime();
+    if (!Number.isFinite(start)) return null;
+    const minutes = Number(candidate.minutes) > 0 ? Number(candidate.minutes) : 30;
+    const group = dedupeGroup(candidate.sport);
+    const own = [start, start + minutes * 60000];
+    let best = null;
+    for (const l of logs || []) {
+      if (!l || l.archived_at || dedupeGroup(l.sport) !== group) continue;
+      if (candidate.id && (l.id === candidate.id || l.client_event_id === candidate.id)) continue;
+      const t = new Date(l.date).getTime();
+      if (!Number.isFinite(t) || Math.abs(t - start) > 86400000) continue;
+      const m = minutesOfLog(l);
+      const need = 0.5 * Math.min(m, minutes) * 60000;
+      for (const [a, b] of readings(l, m)) {
+        const shared = Math.min(b, own[1]) - Math.max(a, own[0]);
+        if (shared >= need && (!best || shared > best.shared)) best = { log: l, shared };
+      }
+    }
+    return best ? best.log : null;
+  }
+
+  const api = { version: 1, FORM_CONTRACTS, SELF_RATED, DEDUPE_GROUPS, contract, structuredKeys, retiredReason, entryFields, audit, dedupeGroup, findDuplicate };
   root.TitanSportContracts = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -58,9 +58,19 @@
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
+  /* Records of the whole history are computed once per change of the history, not on every render, keystroke and calendar row
+     (141 ms for 2 000 sessions each time). The key is cheap and changes on add, edit (revision), archive and confirmation. */
+  let recordCache = { key: "", ids: new Map() };
+  window.addEventListener("titan:history-updated", () => { recordCache = { key: "", ids: new Map() }; });
   function recordIds() {
+    const history = window.state?.history || [];
+    let sig = 0;
+    for (const l of history) sig += (Number(l.revision) || 0) + (l.archived_at ? 7 : 0) + (l.syncStatus === "confirmed" ? 3 : 0);
+    const key = `${history.length}:${sig}:${X().idOf(history[history.length - 1] || {})}`;
+    if (recordCache.key === key) return recordCache.ids;
     const ids = new Map();
-    for (const r of window.TitanInsights?.records?.(window.state?.history || [], "all", Date.now()) || []) {
+    recordCache = { key, ids };
+    for (const r of window.TitanInsights?.records?.(history, "all", Date.now()) || []) {
       if (r.kind === "duration") continue;
       const id = X().idOf(r.log);
       if (!ids.has(id)) ids.set(id, []);
@@ -95,7 +105,9 @@
     const mets = window.TitanMoment?.metrics(l) || [];
     const mins = minutes(l);
     const dist = mets.find(([k]) => k === "Distance")?.[1] || "";
-    const rpe = Number(l.details?.rpe) > 0 ? String(Math.round(Number(l.details.rpe))) : "";
+    // The effort rating is saved under details.bio.rpe (details.rpe only on very old sessions): the column was always empty.
+    const rawRpe = Number(l.details?.bio?.rpe ?? l.details?.rpe);
+    const rpe = rawRpe > 0 ? String(Math.round(rawRpe)) : "";
     const rest = mets.filter(([k]) => !["Distance", "Durée", "Ressenti"].includes(k)).slice(0, 3).map(([k, v]) => (LABELLED[k] ? LABELLED[k](v) : v)).join(" · ");
     return `<button type="button" class="jr-row" data-open="${esc(X().idOf(l))}" data-family="${esc(fam)}">
       <span class="jr-date"><span class="asc-num">${d.getDate()}</span><small>${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small></span>
@@ -195,7 +207,7 @@
     const errors = items.filter((i) => i.status === "error");
     return `<section id="attente" tabindex="-1" aria-label="Séances en attente d’envoi" class="asc-note ${errors.length ? "err" : ""} jr-pending">${icon(errors.length ? "alert" : "cloudUp")}<div class="asc-stack-sm">
       <p><strong>${items.length} séance${items.length > 1 ? "s" : ""} sur cet appareil</strong> ${errors.length ? `dont ${errors.length} refusée${errors.length > 1 ? "s" : ""} par le serveur (${esc(errors[0].reason || "données invalides")}).` : navigator.onLine ? "en attente d’envoi." : "en attente du retour du réseau."}</p>
-      <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry ${navigator.onLine ? "" : "disabled"}>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button></div></div></section>`;
+      <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry ${navigator.onLine ? "" : "disabled"}>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button>${errors.some((i) => !i.deferred) ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-discard-refused>${icon("trash")} Retirer les séances refusées</button>` : ""}</div></div></section>`;
   }
 
   function summaryHtml(list) {
@@ -540,6 +552,8 @@
           const ex = exercises[Number(fs.dataset.ex)];
           return {
             name: ex.name,
+            // The server defaults a missing kind to « weighted »: a bodyweight exercise must keep its own.
+            ...(ex.kind ? { kind: ex.kind } : {}),
             variant: ex.variant || "",
             equipment: ex.equipment || "",
             setRows: [...fs.querySelectorAll("[data-set]")].map((r) => ({ weight: Number(r.querySelector("[name=w]").value) || 0, reps: Math.round(Number(r.querySelector("[name=r]").value)) || 0, rir: r.querySelector("[name=rir]").value === "" ? null : Number(r.querySelector("[name=rir]").value) })),
@@ -561,6 +575,13 @@
         if (!(m >= 1 && m <= 1440)) return (err.textContent = "La durée va de 1 minute à 24 heures.");
         patch.duration = m;
       } else patch.duration = null;
+      // Same plausibility as creation (shared bounds): a marathon corrected to 1 minute used to become a record.
+      {
+        const finalMinutes = patch.duration !== undefined ? patch.duration : minutes(l) || null;
+        const finalVal = patch.val !== undefined ? patch.val : Number(l.val);
+        const issue = (window.TitanTraining?.measureIssues?.({ km: l.unit === "km" ? finalVal : null, meters: l.unit === "m" ? finalVal : null, minutes: finalMinutes }) || [])[0];
+        if (issue) return (err.textContent = issue.message);
+      }
       if (climbing) {
         const best = String(fd.get("max_done") || "").trim();
         const system = l.details?.extras?.grade_system || "Fontainebleau bloc";
@@ -652,6 +673,21 @@
     }
     if (t.hasAttribute("data-export")) return window.titanExportSessionsCSV?.(filtered());
     if (t.hasAttribute("data-export-pending")) return window.titanExportPending?.();
+    if (t.hasAttribute("data-discard-refused")) {
+      const context = accountContext();
+      if (!currentAccount(context)) return;
+      return window.titanShell.confirm({
+        title: "Retirer les séances refusées ?",
+        message: "Le serveur les a refusées : elles ne sont ni dans tes statistiques serveur ni récompensées. Elles disparaîtront de cet appareil.",
+        detail: "Exporte d’abord une copie si tu veux les ressaisir avec des valeurs corrigées.",
+        confirmLabel: "Retirer",
+        danger: true,
+        action: async () => {
+          if (!currentAccount(context)) throw new Error("Le compte a changé.");
+          await window.titanDiscardRefusedSessions?.();
+        },
+      }).then(() => { if (currentAccount(context)) render(); });
+    }
     if (t.hasAttribute("data-retry")) {
       const context = accountContext();
       if (!currentAccount(context)) return;

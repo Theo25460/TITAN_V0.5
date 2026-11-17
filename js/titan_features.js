@@ -782,6 +782,10 @@
         });
 
         if (raw.terrain) clean.terrain = String(raw.terrain).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32);
+        // Structured facts of the forms themselves, not catalogue fields: the pool chosen for a swim (Android already sends it) and an
+        // unknown distance (a session recorded by its duration alone). They used to be stripped here, so neither was ever saved.
+        if (['25', '50', 'open'].includes(String(raw.pool))) clean.pool = String(raw.pool);
+        if (raw.distance_unknown === true) clean.distance_unknown = true;
         return clean;
     }
 

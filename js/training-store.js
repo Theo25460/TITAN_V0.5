@@ -123,7 +123,51 @@
     }
     return { logs, total: total ?? logs.length };
   }
+  /* Bounds shared by the website and the Android app, aligned on the server trigger (titan_validate_training_log) so that a
+     session the server would refuse is refused in the form, with a message, instead of failing later in the offline queue. */
+  const BOUNDS = { maxKm: 1000, kmWithoutDuration: 300, maxKmh: 120, maxMeters: 300000, maxMinutes: 1440, maxElevation: 12000, maxExercises: 30 };
+  /** Issues of the measured part of a session: [{ code, field, message }]. Empty means plausible, not true. */
+  function measureIssues({ km = null, minutes = null, meters = null, exercises = null } = {}) {
+    const out = [];
+    const add = (code, field, message) => out.push({ code, field, message });
+    const k = number(km), m = number(minutes), w = number(meters);
+    if (m !== null && (m <= 0 || m > BOUNDS.maxMinutes)) add("DURATION_RANGE", "duration", "Une séance dure entre 1 minute et 24 h.");
+    if (k !== null) {
+      if (k <= 0) add("DISTANCE_ZERO", "distance", "Indique la distance.");
+      else if (k > BOUNDS.maxKm) add("DISTANCE_RANGE", "distance", `La distance d’une séance est limitée à ${BOUNDS.maxKm} km.`);
+      else if (k > BOUNDS.kmWithoutDuration && m === null) add("ULTRA_NEEDS_DURATION", "duration", `Au-delà de ${BOUNDS.kmWithoutDuration} km, indique aussi la durée.`);
+      else if (m !== null && m > 0 && k / (m / 60) > BOUNDS.maxKmh) add("SPEED_IMPLAUSIBLE", "distance", "Cette vitesse moyenne semble irréaliste : vérifie la distance et la durée.");
+    }
+    if (w !== null && (w <= 0 || w > BOUNDS.maxMeters)) add("METERS_RANGE", "meters", "La distance nagée va de 1 m à 300 km.");
+    if (Array.isArray(exercises) && exercises.length > BOUNDS.maxExercises) add("EXERCISES_RANGE", "exercises", `Une séance compte au plus ${BOUNDS.maxExercises} exercices.`);
+    return out;
+  }
+  /** A session statistics may count: in the journal (not archived), not held or refused by the server's checks. The same rule
+      as career, endurance and the month report, now shared by records, progress, weekly summaries and the Android app. */
+  const EXCLUDED_STATUS = ["rejected", "flagged", "pending_review"];
+  function counted(log) {
+    if (!log || log.archived_at || log.is_suspicious) return false;
+    if (EXCLUDED_STATUS.includes(String(log.status || ""))) return false;
+    return log.syncStatus !== "error";
+  }
+  /** A measured value a record or a trend may use: within the server's bounds and at a plausible average speed. Older sessions
+      edited before the edit form checked speed (a marathon corrected to 1 minute) stay in the journal but feed no record. */
+  function plausible(log) {
+    const m = duration(log);
+    if (m !== null && m > BOUNDS.maxMinutes) return false;
+    if (log?.unit === "km") {
+      const km = number(log.val);
+      if (km === null || km <= 0 || km > BOUNDS.maxKm) return false;
+      if (m !== null && km / (m / 60) > BOUNDS.maxKmh) return false;
+    }
+    if (log?.unit === "m" && number(log.val) !== null && number(log.val) > BOUNDS.maxMeters) return false;
+    return true;
+  }
   root.TitanTraining = {
+    BOUNDS,
+    measureIssues,
+    counted,
+    plausible,
     number,
     duration,
     load,

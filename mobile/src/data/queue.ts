@@ -132,7 +132,9 @@ export function flushQueue(owner: string, onSent?: (eventId: string, receipt: Su
             if (!active()) break;
             const receipt = await submitSession(owner, item.payload);
             const eventId = item.payload.details.client_event_id!;
-            if (item.gpsRouteId) await queueRouteLink(owner, item.gpsRouteId, eventId);
+            // The session is on the server now: a full route outbox must not keep it in the queue (it would block every later
+            // item). The trace stays in « Mes parcours », unlinked, as when the link is refused.
+            if (item.gpsRouteId) await queueRouteLink(owner, item.gpsRouteId, eventId).catch(() => undefined);
             receipts[eventId] = receipt;
             await discard(owner, item.key);
             sent++;

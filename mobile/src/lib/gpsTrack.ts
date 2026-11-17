@@ -183,7 +183,15 @@ export function toGpx(track: Track, name: string, opts: { time?: boolean; ele?: 
 }
 
 /** Sports for which a live GPS recording makes sense (distance-based, outdoors). */
-export const GPS_SPORTS = new Set(["running", "trail", "walking", "hiking", "cycling", "cycling_road", "mtb", "gravel", "cyclocross"]);
+/** Sports for which a live GPS recording makes sense (distance-based, outdoors). Ids are catalogue ids: the list once named
+    « mtb », a family, not a sport, so mountain biking had no GPS button. Indoor distance sports (treadmill, home trainer,
+    elliptical) are left out on purpose; water and snow sports are in, a phone in a waterproof case records them well. */
+export const GPS_SPORTS = new Set([
+  "running", "trail", "fell_running", "orienteering", "race_walking", "walking", "nordic_walk", "hiking", "trekking", "rucking", "snowshoeing",
+  "cycling", "cycling_road", "mountain_bike", "gravel", "cyclocross", "velotaf", "handbike", "para_cycling",
+  "roller", "inline_speed_skating", "roller_ski", "cross_country_skiing", "ski_touring", "ski_mountaineering",
+  "kayak", "paddle", "rowing", "coastal_rowing", "canoe_sprint", "outrigger_canoe", "surfski",
+]);
 
 /** The sport the GPS shortcut proposes: the first GPS sport among the favourites, then the most recent sessions, then running. */
 export function gpsShortcutSport(favorites: string[], recent: string[]): string {

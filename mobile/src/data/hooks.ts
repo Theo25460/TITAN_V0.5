@@ -99,7 +99,9 @@ export function useLogs() {
     const pending = queue.owner === owner ? provisionalLogs(queue.items, ids) : [];
     const all = [...confirmed.filter((l) => !l.archived_at), ...pending].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const archived = confirmed.filter((l) => l.archived_at);
-    return { logs: all, active: Progress.activeLogs(all), archived, pending, confirmed };
+    // Statistics never count a session the server refused (« error » in the queue): it stays listed in the journal with its
+    // reason, but it is not a measure. A session still waiting to be sent does count, shown as pending.
+    return { logs: all, active: Progress.activeLogs(all.filter((l) => (l as { syncStatus?: string }).syncStatus !== "error")), archived, pending, confirmed };
   }, [q.data, queue, owner]);
   return { ...q, ...value };
 }

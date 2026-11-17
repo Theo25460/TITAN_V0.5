@@ -133,7 +133,12 @@
     return total > 0 ? Math.round(total * 100) / 100 : null;
   };
   function performedAt() {
-    if (S.when === "now") return new Date();
+    // « Maintenant » is saved right after the effort: the session starts its duration earlier. Dated at the save, a 23:15–00:10
+    // Sunday run landed on Monday, in the next week, and an import of the same effort could not overlap it once sent offline.
+    if (S.when === "now") {
+      const minutes = duration();
+      return minutes && minutes > 0 && minutes <= 1440 ? new Date(Date.now() - Math.round(minutes * 60000)) : new Date();
+    }
     if (S.when === "yesterday") {
       const d = F().addDays(new Date(), -1);
       const [hh, mm] = (S.time || "18:00").split(":").map(Number);
@@ -200,6 +205,11 @@
       data.val2 = Math.round(dur * 100) / 100;
       data.duration = data.val2;
     }
+    // A number the browser cannot parse (« 10-5 », or « 5,2 » where the comma is refused) reaches us as an empty field: it must not
+    // be saved silently as « distance unknown » or as no value at all.
+    const unreadable = (k) => root?.querySelector(`[data-k="${k}"]`)?.validity?.badInput === true;
+    for (const [k, label] of [["distance", "La distance"], ["meters", "La distance nagée"], ["elevation", "Le dénivelé"], ["value", "La valeur"]])
+      if (unreadable(k)) fail(`${label} saisie n’est pas un nombre lisible (exemple : 5.2).`, k);
     let unit = S_().unitOf(sport);
     if (form === "distance") {
       if (S.gpx && (S.gpx.kind !== "recorded" || !(S.gpx.movingMinutes > 0))) fail("Ce GPX ne fournit pas de temps sportif exploitable. Repars en saisie manuelle pour déclarer ton activité réelle.", "distance");
@@ -228,11 +238,14 @@
     } else if (form === "swim") {
       const m = num(S.meters);
       if (!(m > 0)) fail("Indique la distance nagée.", "meters");
+      else for (const issue of window.TitanTraining?.measureIssues?.({ meters: m }) || []) fail(issue.message, "meters");
       data.val1 = m;
       data.extras.pool = S.pool;
       Object.assign(data.extras, collectExtras(["pool", "distance"]));
     } else if (form === "strength") {
       data.exercises = exercisesPayload();
+      // The correction RPC accepts 1 to 30 exercises: a longer session could never be corrected afterwards.
+      for (const issue of window.TitanTraining?.measureIssues?.({ exercises: data.exercises }) || []) fail(issue.message, "exercises.0.name");
       Object.assign(data.extras, collectExtras(["sets", "reps", "top_load", "volume"]));
       if (!data.exercises.length && dur === null) fail("Ajoute au moins une série complète (exercice et répétitions), ou une durée.", "exercises.0.name");
       if (!data.exercises.length && dur !== null) {
@@ -795,9 +808,31 @@
     return p;
   }
 
+  /* The same effort already in the journal (a watch import, a GPX imported twice, a session typed again after an error): ask once,
+     never merge nor block. Shared rule with Android (js/core/sport-contracts.js). */
+  let duplicateAccepted = null;
+  const X_id = (l) => String(l?.client_event_id || l?.details?.client_event_id || l?.id || "");
+  function duplicateOf(b) {
+    const C = window.TitanSportContracts;
+    if (!C?.findDuplicate || !b.data.performedAt) return null;
+    const minutes = b.data.duration || (b.unit === "min" ? b.val : null);
+    return C.findDuplicate({ sport: S.sport, date: b.data.performedAt, minutes }, [...(window.state?.history || [])]);
+  }
+
   async function save(btn) {
     if (saving || btn.disabled) return;
     const b = build();
+    const twin = !b.errors.length ? duplicateOf(b) : null;
+    if (twin && duplicateAccepted !== X_id(twin)) {
+      const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
+      return window.titanShell.confirm({
+        title: "Cette séance semble déjà dans ton journal",
+        message: `${S_().label(twin.sport)}, ${when}${twin.details?.import_source || twin.details?.source ? " (importée)" : ""} : elle couvre au moins la moitié de cet effort.`,
+        detail: "Enregistrer quand même crée une seconde séance. Si c’est le même effort, garde l’existante.",
+        confirmLabel: "Enregistrer quand même",
+        action: () => { duplicateAccepted = X_id(twin); },
+      }).then(() => { if (duplicateAccepted === X_id(twin)) save(btn); });
+    }
     if (b.errors.length) {
       // The message sits next to the save button; the faulty field is marked and focused.
       status(b.errors[0], "err");
