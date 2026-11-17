@@ -1,0 +1,489 @@
+{
+  "version": "fusion-20261117",
+  "date": "2026-11-17",
+  "note": "Fusion des deux sources d'illustrations : A = GitHub, branche design/titan-illustrations-global-v2-20261113 (PR #147, registre registry/assets.json, non modifié ici) ; B = Google Drive « TITAN — Références graphiques Gemini ». Ce fichier est un complément : il ne remplace pas registry/assets.json, tenu par l'agent Work sur sa branche.",
+  "rules": [
+    "Les quatre blasons approuvés (Éclaireur, Explorateur, Sentinelle, Gardien) ne sont pas touchés.",
+    "Un fichier en attente de validation n'est pas actif dans le produit : son intégration est préparée.",
+    "Objet isolé = PNG RGBA à canal alpha réel, vérifié (coins à 0, intérieur à 255)."
+  ],
+  "assets": [
+    {
+      "id": "drive-gemini-20261117/champion",
+      "family": "rank-crest",
+      "source": "B",
+      "driveFileId": "1ynGG3aoWGm1A4O_vfSSLBnPBpju5VgRC",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "b6a7da45531cdc7b7e75aed89dd1a6c453ceb6b622b208495d99cb092e7c815d",
+      "decision": "not-retained",
+      "reason": "Texte gravé dans l'image, néons et sabres : hors de la famille des quatre blasons approuvés. Le candidat GitHub « mission-1 » de même fonction est retenu.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/champion.png",
+          "bytes": 1429230,
+          "sha256": "ea1ca7cf93b99cb161f63b2fd365f9ea1df9f86a5a816b53727f05cee6adbbf4"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/champion-512.png",
+          "bytes": 413026,
+          "sha256": "0bd4d4bfb828268e51ecbdc6ec6f83b6df9b33aa2ca6d5d123abbb54861a5378"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/champion-512.webp",
+          "bytes": 57622,
+          "sha256": "29718177246e45e1df886e829eaded062cb1d15067a2c5014f352d500ffd57e2"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/champion-256.webp",
+          "bytes": 20462,
+          "sha256": "f47a33c886043ccb748228083ad967a70dbdb125e30975970567b60f05e1c7ca"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/champion-96.webp",
+          "bytes": 4964,
+          "sha256": "6456bc292ba7f34c075696769cb57b9c1a804b2cc3b808cf6fd3f333999495dd"
+        }
+      ]
+    },
+    {
+      "id": "drive-gemini-20261117/titan",
+      "family": "rank-crest",
+      "source": "B",
+      "driveFileId": "1fskUI1zm-dH9pmfnPmejI4ucF0i_Jaju",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "90ff815c9d12282c6cde615b8e45289d9f492393ec8cc2e9b2dc4689af2bbb57",
+      "decision": "not-retained",
+      "reason": "Texte dans l'image, visage casqué néon : hors famille. Candidat GitHub « mission-1 » retenu.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/titan.png",
+          "bytes": 1330544,
+          "sha256": "12cf19a7c4f5cf857ecbb6868708b0aab6f9e257f44eca7f94dfe41ab5eafbda"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/titan-512.png",
+          "bytes": 386062,
+          "sha256": "93dbd557c34ce9934b83b49178d1619dd23aa4dac52b79b19bbc80f64c5f20c0"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/titan-512.webp",
+          "bytes": 55570,
+          "sha256": "1cda9e1506beaadf8d22d7c29fbd8aa5622fbd981bf209205b5436f4a33cad5d"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/titan-256.webp",
+          "bytes": 19906,
+          "sha256": "ec323e3bf153363fb36eda6ef6c98b7f18d73deaa9af7ca9953ac748fdb95054"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/titan-96.webp",
+          "bytes": 5148,
+          "sha256": "63b922556c1f360cbbd67d3ea44168bc6484db9bf4d24fdd08022dd3087a5d50"
+        }
+      ]
+    },
+    {
+      "id": "drive-gemini-20261117/legende",
+      "family": "rank-crest",
+      "source": "B",
+      "driveFileId": "1t2zXlyDDyECyan9lDf31T4hcmpSeKTGB",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "16cedbcc4dfae3c2aca44f61c7051c23cd538c3d75653f19c1098b3904319952",
+      "decision": "not-retained",
+      "reason": "Le plus proche de la charte (ailes, étoile), mais texte dans l'image et finition différente des quatre approuvés. Candidat GitHub « mission-1 » retenu.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/legende.png",
+          "bytes": 1318957,
+          "sha256": "c1376a01360990be9fb31c1a48c0d58eefd4d850f870107d187529da402052a7"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/legende-512.png",
+          "bytes": 378248,
+          "sha256": "534ee8db0e1cecb627da5455a7a98bb2f12831a32b536c3788f66b173b235718"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/legende-512.webp",
+          "bytes": 64298,
+          "sha256": "0d88d230fa64bc39526eb59cde77a07cada42a93356f28bfc268e03d68f1ccd4"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/legende-256.webp",
+          "bytes": 22298,
+          "sha256": "e5d5f8b323642de43213742cfa9d72b4034b5473671a63780bd86dafa218250c"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/legende-96.webp",
+          "bytes": 5360,
+          "sha256": "c1132611df9b2391b851eaa7e27c75799cd0e81b08a79a9e3d7eeab232ff16f3"
+        }
+      ]
+    },
+    {
+      "id": "drive-gemini-20261117/coffre-tactique",
+      "family": "reward-object",
+      "source": "B",
+      "driveFileId": "1ftC3gFdmzNXOi4lKb5CS5UE01YLCyk7B",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "4621517fb1623568a5fa4da9e48225d421df435140117a169aa4044d9a27592c",
+      "decision": "integrated",
+      "reason": "Aucun équivalent dans la bibliothèque GitHub (les médaillons « rewards » sont des icônes dans un anneau). Intégré comme réserve de crédits de l'Atelier.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/coffre-tactique.png",
+          "bytes": 1111006,
+          "sha256": "b91e57ec175e4f93dff9b4e439b7b4af0c5ed4f853a928051ec8e1201d937e76"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/coffre-tactique-512.png",
+          "bytes": 307377,
+          "sha256": "f7e0cfe2683bd327f6575363e4ef6e0984764e7a4459d30860323ee51d34d18d"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/coffre-tactique-512.webp",
+          "bytes": 34678,
+          "sha256": "ecadbbdecb9bcde18b2fea69b5c614740595d23bb866b48a2f5ea1b19be68785"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/coffre-tactique-256.webp",
+          "bytes": 12952,
+          "sha256": "d917eadcb49146b88cb4cbd762a5651ef56d9e77f5633c421c18810cda63686a"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/coffre-tactique-96.webp",
+          "bytes": 3630,
+          "sha256": "3c64e73a7574df1847665b172ead93e4852edc95f0c1d93b1b2c42213553ce38"
+        }
+      ],
+      "web": {
+        "usage": "boutique.html (js/app/atelier.js)",
+        "files": [
+          {
+            "path": "assets/objects/coffre-tactique-96.webp",
+            "bytes": 3630,
+            "sha256": "3c64e73a7574df1847665b172ead93e4852edc95f0c1d93b1b2c42213553ce38"
+          },
+          {
+            "path": "assets/objects/coffre-tactique-256.webp",
+            "bytes": 12952,
+            "sha256": "d917eadcb49146b88cb4cbd762a5651ef56d9e77f5633c421c18810cda63686a"
+          },
+          {
+            "path": "assets/objects/coffre-tactique-512.webp",
+            "bytes": 34678,
+            "sha256": "ecadbbdecb9bcde18b2fea69b5c614740595d23bb866b48a2f5ea1b19be68785"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drive-gemini-20261117/relique-maitrise",
+      "family": "reward-object",
+      "source": "B",
+      "driveFileId": "1FUMs5l6LqEfiie7-evEFfjNDBn5f0rKv",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "24cce5af764bad2bafd16237e84777d6767b20d1b0c360837192fc51b5e85d61",
+      "decision": "integrated",
+      "reason": "Aucun équivalent GitHub. Intégré comme objet des records (page Records).",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/relique-maitrise.png",
+          "bytes": 1445447,
+          "sha256": "ed0ae730d1e939a0255bdbe36d516a565847e6fd6a8989f6c05820022394a5fd"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/relique-maitrise-512.png",
+          "bytes": 412423,
+          "sha256": "6e8b620d98891fe18dcd3656dbb0d9bdfc70766f34f10474a31b23eab87cec3f"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/relique-maitrise-512.webp",
+          "bytes": 74324,
+          "sha256": "203c14ad8c221b9fea3b4e1ae3bbfef5b509d5a27ef1aa11d9f0e9f22345387f"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/relique-maitrise-256.webp",
+          "bytes": 26090,
+          "sha256": "09c6b4a6d8800e007273d39608fd05515b50786d71a976c0aadd0d04886cb0fc"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/relique-maitrise-96.webp",
+          "bytes": 6306,
+          "sha256": "4155a31651ced2a4b808b96cddd8f252775510175f016534ed8b7fcb3985c160"
+        }
+      ],
+      "web": {
+        "usage": "records.html (js/app/records.js)",
+        "files": [
+          {
+            "path": "assets/objects/relique-maitrise-96.webp",
+            "bytes": 6306,
+            "sha256": "4155a31651ced2a4b808b96cddd8f252775510175f016534ed8b7fcb3985c160"
+          },
+          {
+            "path": "assets/objects/relique-maitrise-256.webp",
+            "bytes": 26090,
+            "sha256": "09c6b4a6d8800e007273d39608fd05515b50786d71a976c0aadd0d04886cb0fc"
+          },
+          {
+            "path": "assets/objects/relique-maitrise-512.webp",
+            "bytes": 74324,
+            "sha256": "203c14ad8c221b9fea3b4e1ae3bbfef5b509d5a27ef1aa11d9f0e9f22345387f"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drive-gemini-20261117/sceau-exploration",
+      "family": "reward-object",
+      "source": "B",
+      "driveFileId": "1GDH02THKWsIVLM1V_4e4ssCanF5xzktN",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "b721740cecf99de05f347c35522c7742e6032fa2f2511ad9f8d1cacb0d371df6",
+      "decision": "integrated",
+      "reason": "Aucun équivalent GitHub réaliste. Intégré comme sceau du carnet d'exploration (page Aventure).",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/sceau-exploration.png",
+          "bytes": 1605966,
+          "sha256": "1cc2f99f9593be224175a7070e29a40a70ec5b8e2ed34a6610e2d8f54b213a14"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/sceau-exploration-512.png",
+          "bytes": 450809,
+          "sha256": "9d49ef8819588d3fb055d16a17a5d08c9c23a3b981d689f2aafab65b99e706ff"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/sceau-exploration-512.webp",
+          "bytes": 65432,
+          "sha256": "16103169214a1e639a859d1acd2cdcf56763637ca5f03be3e3dcb9ac25038a5f"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/sceau-exploration-256.webp",
+          "bytes": 21422,
+          "sha256": "7f93998b871a183e83bfb29387a2a85310b0e4e86d877ad89b1164b1f0d102a7"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/sceau-exploration-96.webp",
+          "bytes": 4704,
+          "sha256": "a417392883375d01bff3a3472b3cbc6667d786188394b0729303784128a07f41"
+        }
+      ],
+      "web": {
+        "usage": "adventure.html (js/app/aventure.js)",
+        "files": [
+          {
+            "path": "assets/objects/sceau-exploration-96.webp",
+            "bytes": 4704,
+            "sha256": "a417392883375d01bff3a3472b3cbc6667d786188394b0729303784128a07f41"
+          },
+          {
+            "path": "assets/objects/sceau-exploration-256.webp",
+            "bytes": 21422,
+            "sha256": "7f93998b871a183e83bfb29387a2a85310b0e4e86d877ad89b1164b1f0d102a7"
+          },
+          {
+            "path": "assets/objects/sceau-exploration-512.webp",
+            "bytes": 65432,
+            "sha256": "16103169214a1e639a859d1acd2cdcf56763637ca5f03be3e3dcb9ac25038a5f"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drive-gemini-20261117/balise-chapitre-01",
+      "family": "chapter-beacon",
+      "source": "B",
+      "driveFileId": "14EpMG8liYukztocE8ijAwJpkN7p6J9Y1",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "d3435cc10b0496a3becbc0c214793c312aa0b47c5107b0d06a4cdfeed152330f",
+      "decision": "reference-only",
+      "reason": "Le titre « L'Éveil » est gravé dans l'image et ne correspond à aucun chapitre du produit. Détouré et conservé comme référence de style ; les balises actives (dessin vectoriel) restent en place.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/balise-chapitre-01.png",
+          "bytes": 1026097,
+          "sha256": "347e6ed5430da34e54313d5e758f5212afc1c8739577ec933cbca3b5554664b5"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-01-512.png",
+          "bytes": 283592,
+          "sha256": "92d34344a97f10a8eb1873c07e92c761f6ae3038dc0e57a4d8d403b8b2fe40ff"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-01-512.webp",
+          "bytes": 34692,
+          "sha256": "90e24f0fd0aa660030eaf1b3cc79baa235ba021045dfc9b1a267c1eb2d1a7cd2"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-01-256.webp",
+          "bytes": 12430,
+          "sha256": "57ed6ac8bac480d02001134213d48e3c094058e6c0d2c4a44d798719953d62f9"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-01-96.webp",
+          "bytes": 3466,
+          "sha256": "982617cd5bce5a022c06af1ea62e39e370634ae2256cbcf75c8794dcf13b9e93"
+        }
+      ]
+    },
+    {
+      "id": "drive-gemini-20261117/balise-chapitre-02",
+      "family": "chapter-beacon",
+      "source": "B",
+      "driveFileId": "18o9wThLWErcKQsUc-6-EMNynVIhSB_C-",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "fbcd8721617a7d3f03907b3dd8bcbba58594c90f568cb8a783256e952eb0d948",
+      "decision": "reference-only",
+      "reason": "Titre « L'Émergence » gravé, absent du produit. Référence de style.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/balise-chapitre-02.png",
+          "bytes": 977019,
+          "sha256": "ac124b07b3fcc484484ee6b731800e1ffbccc461c08c1231c34adc62f09272e3"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-02-512.png",
+          "bytes": 273549,
+          "sha256": "60d8833097a127baa345536904a7b7944f99fb114415a6a250845b114701d3a5"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-02-512.webp",
+          "bytes": 43084,
+          "sha256": "35f93989eb6479a550436bc7da1bc03faa49728904ec4ac78ee38260b795c50a"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-02-256.webp",
+          "bytes": 15120,
+          "sha256": "8966cf082db3a1a768f1a67cfd5f56e9ec4b646fc0960a5aa03caf78884b9f35"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-02-96.webp",
+          "bytes": 3964,
+          "sha256": "d02e4db81df62d87afdb6d305f95aa1c4ba1c1f0f7194069883a29881d3e0150"
+        }
+      ]
+    },
+    {
+      "id": "drive-gemini-20261117/balise-chapitre-03",
+      "family": "chapter-beacon",
+      "source": "B",
+      "driveFileId": "1mKO0RwSCAJ7O3dt_NCeO4YgseRb6R7VU",
+      "sourceFormat": "JPEG 1024×1024 sur fond noir (extension .png sur Drive)",
+      "sourceSha256": "427a7d12eb4fef22424de7cdbe47e1a7e892eaf0c709ec257ce587ef9d52c400",
+      "decision": "reference-only",
+      "reason": "Titre « La Brèche » gravé, absent du produit. Référence de style.",
+      "alpha": "réel, détouré (birefnet-general-lite + matting closed-form, couleurs décontaminées)",
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/masters/drive-gemini-20261117/balise-chapitre-03.png",
+          "bytes": 983851,
+          "sha256": "3969ed097cf1c0dc246893a0908402273c75aa82d13a03069077f9d6ef8cbaae"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-03-512.png",
+          "bytes": 275438,
+          "sha256": "4a15ca1a076b7f719d1fa13f595fd3494ad159a1a7fa632f016474f586e6e8e7"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-03-512.webp",
+          "bytes": 42532,
+          "sha256": "0cb4a0f63f4066a0a270c9615dec2953fe99f855694a2574cd7a049788ad1881"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-03-256.webp",
+          "bytes": 14916,
+          "sha256": "52b6c7cb1a6fc73aa958ffc3186f615d6dd6b4748d54c8db4ea27050b7ce17be"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117/balise-chapitre-03-96.webp",
+          "bytes": 3934,
+          "sha256": "1b3ccab7f0669312515b53af759e5120f631e8442dd6d59be31c98ebd983055e"
+        }
+      ]
+    },
+    {
+      "id": "ranks/mission-1-20261117/champion",
+      "family": "rank-crest",
+      "source": "A",
+      "decision": "retained-pending-validation",
+      "reason": "Même famille que les quatre blasons approuvés (acier, émail sarcelle, or), canal alpha réel, aucun texte. Préféré au fichier Drive de même fonction. Reste une proposition : le blason vectoriel actif est conservé.",
+      "rankLevel": 15,
+      "activation": [
+        "Copier les deux fichiers dans assets/ranks/ sous les noms champion-256.webp et champion-512.webp",
+        "Ajouter \"champion\" à BADGES dans js/app/crest.js",
+        "node tools/v13-asset-registry.mjs puis pnpm test"
+      ],
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-256.webp",
+          "bytes": 20294,
+          "sha256": "58cbfc7d33d3842422a727c14a35eb04a2a3bc2b3bea8c43de261c513b137011"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-512.webp",
+          "bytes": 55180,
+          "sha256": "65b477d464a65005abc88420dd6a05ca9ace38ffa139557096df576c1052abfb"
+        }
+      ]
+    },
+    {
+      "id": "ranks/mission-1-20261117/titan",
+      "family": "rank-crest",
+      "source": "A",
+      "decision": "retained-pending-validation",
+      "reason": "Même famille que les quatre blasons approuvés (acier, émail sarcelle, or), canal alpha réel, aucun texte. Préféré au fichier Drive de même fonction. Reste une proposition : le blason vectoriel actif est conservé.",
+      "rankLevel": 25,
+      "activation": [
+        "Copier les deux fichiers dans assets/ranks/ sous les noms titan-256.webp et titan-512.webp",
+        "Ajouter \"titan\" à BADGES dans js/app/crest.js",
+        "node tools/v13-asset-registry.mjs puis pnpm test"
+      ],
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-256.webp",
+          "bytes": 19226,
+          "sha256": "cf21135dec56bc0e9bb638dfb3041204f79ef450e480666a7ecab9aa42071662"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-512.webp",
+          "bytes": 50986,
+          "sha256": "ddba7eee7b79671bcffc0858b0b7519283d6daa282a8ac9f40a55a95b65b77d4"
+        }
+      ]
+    },
+    {
+      "id": "ranks/mission-1-20261117/legende",
+      "family": "rank-crest",
+      "source": "A",
+      "decision": "retained-pending-validation",
+      "reason": "Même famille que les quatre blasons approuvés (acier, émail sarcelle, or), canal alpha réel, aucun texte. Préféré au fichier Drive de même fonction. Reste une proposition : le blason vectoriel actif est conservé.",
+      "rankLevel": 40,
+      "activation": [
+        "Copier les deux fichiers dans assets/ranks/ sous les noms legende-256.webp et legende-512.webp",
+        "Ajouter \"legende\" à BADGES dans js/app/crest.js",
+        "node tools/v13-asset-registry.mjs puis pnpm test"
+      ],
+      "files": [
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-256.webp",
+          "bytes": 19672,
+          "sha256": "aee4c89a98a1aa516d9e704b88b727842b3e421b56f59598d705cfa2cc378595"
+        },
+        {
+          "path": "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-512.webp",
+          "bytes": 52452,
+          "sha256": "da1e84d3e5818d275c814525a7bbeee7f904ad790001682e4f18ff08081e8cf9"
+        }
+      ]
+    }
+  ]
+}

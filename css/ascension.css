@@ -2085,3 +2085,10 @@ html[data-motion="reduced"] *::after {
     padding: var(--s10) var(--pad) var(--s5);
   }
 }
+
+/* Page to page: every page of the site opts in to a cross-document view transition (see css/signature.css for the application's
+   own movement; elsewhere it is the browser's plain cross-fade). Both base sheets carry the same rule so no page disagrees. */
+@view-transition { navigation: auto; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}

@@ -1,0 +1,306 @@
+/* =====================================================================
+   TITAN « Signature » — the layer that makes the « Programme » system
+   recognisable without its logo. Loaded after ascension-app.css by every
+   application page. See DESIGN.md § 11.
+
+   Four ideas, used everywhere and nowhere else:
+   1. La coupe — one corner cut at 45°, the angle of the double chevron.
+      It marks what is primary: the header field, the slab, the record
+      action, a precious object's plate.
+   2. Le relief — contour lines of a summit, inked in the colour of what
+      they sit on. A field is a piece of terrain, not a rectangle.
+   3. L'objet — rewards, ranks and relics are objects that stand on the
+      ground with their own light, never an icon in a ring.
+   4. Le passage — going from one page to the next is one movement: the
+      navigation stays, the field changes colour, the content follows.
+   ===================================================================== */
+
+:root {
+  --cut: 18px;
+  --cut-sm: 10px;
+  --relief: url(/assets/ascension/contours.svg);
+  /* Steel: the material of crests and plates (three tones and a highlight). */
+  --steel-1: #1b232c;
+  --steel-2: #131920;
+  --steel-3: #0d1116;
+  --steel-hi: rgba(226, 234, 236, 0.14);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (min-width: 960px) {
+  :root { --cut: 28px; --cut-sm: 12px; }
+}
+
+/* ---------- 1. Le passage : page to page ----------
+   A same-site navigation cross-fades the content while the rail and the tab bar, drawn on the first frame by shell-nav.js,
+   stay where they are. Browsers without cross-document view transitions simply navigate. The opt-in itself (@view-transition)
+   is in ascension.css and design-system.css, so that every page of the site agrees: a page that opts in while the next one
+   does not makes the browser report an aborted transition. */
+.asc-rail { view-transition-name: titan-rail; }
+.asc-tabbar { view-transition-name: titan-tabbar; }
+::view-transition-group(titan-rail),
+::view-transition-group(titan-tabbar) { animation: none; z-index: 2; }
+::view-transition-old(titan-rail),
+::view-transition-old(titan-tabbar) { display: none; }
+::view-transition-new(titan-rail),
+::view-transition-new(titan-tabbar) { animation: none; }
+::view-transition-old(root) { animation: sig-leave 110ms ease-in both; }
+::view-transition-new(root) { animation: sig-enter 260ms var(--ease-out) both; }
+@keyframes sig-leave { to { opacity: 0; } }
+@keyframes sig-enter { from { opacity: 0; transform: translateY(10px); } }
+/* TITAN's own « Animations réduites » (set on the document by shell-nav.js before the first frame). */
+html[data-motion="reduced"]::view-transition-group(*),
+html[data-motion="reduced"]::view-transition-old(*),
+html[data-motion="reduced"]::view-transition-new(*) { animation: none !important; }
+
+/* ---------- 2. Le relief et la coupe : the header field ---------- */
+.asc-page-head {
+  position: relative;
+  isolation: isolate;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.asc-page-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--space-ink);
+  -webkit-mask: var(--relief) right -250px top -150px / 760px auto no-repeat;
+  mask: var(--relief) right -250px top -150px / 760px auto no-repeat;
+  opacity: 0.6;
+  pointer-events: none;
+}
+@media (min-width: 960px) {
+  .asc-page-head::before {
+    -webkit-mask-size: 1100px auto;
+    mask-size: 1100px auto;
+    -webkit-mask-position: right -80px top -180px;
+    mask-position: right -80px top -180px;
+  }
+}
+/* A field that holds a control whose list opens below it (the sport search) keeps its straight edge: nothing may be clipped. */
+.asc-page-head.is-open-edge { clip-path: none; }
+
+/* The solid block of a page takes the same cut and the same terrain. */
+.asc-slab,
+.qg-hero {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.asc-slab::before,
+.qg-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: currentColor;
+  -webkit-mask: var(--relief) right -230px bottom -190px / 640px auto no-repeat;
+  mask: var(--relief) right -230px bottom -190px / 640px auto no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ---------- 3. Navigation ---------- */
+/* Phone: the bar floats over the content it covers; where I am is a filled pill, the record action is the cut lime key. */
+.asc-tabbar {
+  background: rgba(9, 12, 16, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border-top-color: var(--line-2);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .asc-tabbar { background: var(--bg); }
+}
+.asc-tab {
+  border-top: 0;
+  margin-top: 0;
+  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+.asc-tab > .t-icon {
+  box-sizing: content-box;
+  padding: 4px 16px;
+  border-radius: 999px;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.asc-tab[aria-current="page"] > .t-icon {
+  background: var(--space-soft);
+}
+.asc-tab:active > .t-icon { transform: scale(0.92); }
+.asc-tab-record .asc-tab-plus {
+  width: 56px;
+  height: 40px;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  transform: translateY(-3px);
+}
+.asc-tab-record:active .asc-tab-plus { transform: translateY(-3px) scale(0.95); }
+
+/* The rank worn in the navigation. */
+.asc-nav-crest {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+@media (min-width: 960px) {
+  .asc-rail {
+    background:
+      linear-gradient(180deg, rgba(226, 234, 236, 0.025), transparent 180px),
+      var(--bg);
+  }
+  .asc-rail-link { position: relative; }
+  .asc-rail-link .t-icon { transition: transform var(--t-fast) var(--ease); }
+  .asc-rail-link:hover .t-icon { transform: translateX(1px); }
+  .asc-rail-record,
+  .asc-rail-record[aria-current="page"] {
+    border-radius: var(--r2) var(--r2) 0 var(--r2);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+    min-height: 48px;
+  }
+  .asc-rail-foot { gap: var(--s2); padding-left: var(--s2); padding-right: var(--s2); }
+  .asc-rail-foot > span:not(.asc-avatar) { min-width: 0; flex: 1; }
+  .asc-rail-foot strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .asc-rail-foot small { white-space: nowrap; }
+}
+
+/* ---------- 4. Section : the chalk rule starts in the colour of the space ---------- */
+.asc-section-head {
+  border-image: linear-gradient(90deg, var(--space) 0 44px, var(--tx) 44px) 1;
+}
+
+/* ---------- 5. L'objet : plates and objects ---------- */
+/* A plate is brushed steel one tone above the ground, lit from above, with the cut. It carries one precious thing. */
+.sig-plate {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, var(--steel-hi), transparent 1px),
+    linear-gradient(165deg, var(--steel-1), var(--steel-2) 55%, var(--steel-3));
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.sig-plate.is-relief::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--plate-ink, var(--space));
+  -webkit-mask: var(--relief) right -140px top -80px / 620px auto no-repeat;
+  mask: var(--relief) right -140px top -80px / 620px auto no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.sig-plate.is-amber { --plate-ink: var(--am); }
+.sig-plate.is-cyan { --plate-ink: var(--cy); }
+
+/* An object stands on the ground: its own shadow under it, never a ring around it. */
+.sig-object {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--obj, 96px);
+  aspect-ratio: 1;
+}
+.sig-object::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -2%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), transparent);
+  z-index: -1;
+}
+.sig-object > img,
+.sig-object > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
+.sig-object.is-locked > img,
+.sig-object.is-locked > svg { filter: grayscale(1) brightness(0.55) contrast(0.9); opacity: 0.8; }
+.sig-object.is-float > img,
+.sig-object.is-float > svg { animation: sig-float 5.2s ease-in-out infinite; }
+@keyframes sig-float {
+  50% { transform: translateY(-4px); }
+}
+
+/* The three states of something one can own, said in words and in shape, never by colour alone. */
+.sig-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 0 var(--s2);
+  border-radius: var(--r1);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  background: var(--bg-3);
+  color: var(--tx-2);
+}
+.sig-state .t-icon { width: 14px; height: 14px; }
+.sig-state.is-worn { background: var(--space); color: var(--space-ink); }
+.sig-state.is-owned { background: var(--cy-soft); color: var(--cy-2); }
+.sig-state.is-locked { background: transparent; box-shadow: inset 0 0 0 1px var(--line-3); color: var(--tx-2); }
+.sig-state.is-rare { background: var(--am-soft); color: var(--am); }
+
+/* ---------- 6. Empty, loading, error ---------- */
+.sig-empty {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: start;
+  gap: var(--s3);
+  padding: var(--s6) var(--s5);
+  border-radius: var(--r3);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.sig-empty::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--space);
+  -webkit-mask: var(--relief) right -180px top -120px / 620px auto no-repeat;
+  mask: var(--relief) right -180px top -120px / 620px auto no-repeat;
+  opacity: 0.5;
+}
+.sig-empty h3 { margin: 0; font-size: 19px; }
+.sig-empty p { margin: 0; color: var(--tx-2); max-width: 46ch; }
+.sig-empty > .t-icon { width: 28px; height: 28px; color: var(--space); }
+
+.asc-skeleton {
+  background: linear-gradient(100deg, var(--bg-2) 30%, var(--bg-3) 50%, var(--bg-2) 70%);
+  background-size: 220% 100%;
+}
+
+/* ---------- 7. Touch and motion ---------- */
+.asc-btn { transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform 90ms var(--ease); }
+.asc-btn:active:not(:disabled) { transform: scale(0.975); }
+a.asc-row,
+button.asc-row { transition: background var(--t-fast) var(--ease); }
+a.asc-row:active,
+button.asc-row:active { background: var(--bg-2); }
+
+/* The first frame of a page: the field is there, the content rises once under it. Containers only: what a script
+   redraws inside them never replays an entrance. */
+@media (prefers-reduced-motion: no-preference) {
+  .asc-main > :not(.asc-page-head, .asc-art-head, .asc-subnav, script, [hidden]) {
+    animation: sig-rise 420ms var(--ease-out) both;
+  }
+  .asc-main > :nth-child(n + 4):not(.asc-page-head, .asc-art-head, .asc-subnav, script, [hidden]) { animation-delay: 60ms; }
+  /* A bar of progression fills once when it appears. */
+  .asc-ascent > span { animation: sig-fill 700ms var(--ease-out) both; transform-origin: left center; }
+}
+@keyframes sig-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes sig-fill { from { transform: scaleX(0); } }

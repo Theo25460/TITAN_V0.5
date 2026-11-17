@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 214 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 165 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 223 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 171 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -9,7 +9,7 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | Famille | Fichiers | Octets dépôt | Octets candidats à la distribution |
 |---|---:|---:|---:|
 | avatars | 38 | 44963566 | 1771536 |
-| brand | 13 | 115792 | 115792 |
+| brand | 22 | 365330 | 365330 |
 | guardians | 12 | 574642 | 574642 |
 | legacy-encounters | 80 | 89968606 | 5771850 |
 | notifications | 1 | 1382 | 1382 |
@@ -73,7 +73,16 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 
 | Fichier | Famille | Octets | Dimensions | Décision |
 |---|---|---:|---|---|
-| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | fix |
+| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | retain |
+| `assets/objects/coffre-tactique-256.webp` | brand | 12952 | 256×256 | fix |
+| `assets/objects/coffre-tactique-512.webp` | brand | 34678 | 512×512 | fix |
+| `assets/objects/coffre-tactique-96.webp` | brand | 3630 | 96×96 | fix |
+| `assets/objects/relique-maitrise-256.webp` | brand | 26090 | 256×256 | fix |
+| `assets/objects/relique-maitrise-512.webp` | brand | 74324 | 512×512 | fix |
+| `assets/objects/relique-maitrise-96.webp` | brand | 6306 | 96×96 | fix |
+| `assets/objects/sceau-exploration-256.webp` | brand | 21422 | 256×256 | fix |
+| `assets/objects/sceau-exploration-512.webp` | brand | 65432 | 512×512 | fix |
+| `assets/objects/sceau-exploration-96.webp` | brand | 4704 | 96×96 | fix |
 | `assets/ranks/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
 | `assets/ranks/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
 | `assets/ranks/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
