@@ -90,6 +90,15 @@ test("an athlete whose TITAN+ is only a coach seat can still buy an offer of the
   } finally { fetcher.mockRestore(); }
 });
 
+test("an ended subscription whose summary is still marked TITAN+ does not block a new subscription", async () => {
+  mockProfile.data = { is_elite: true };
+  Object.assign(mockPlan, { own: false, viaCoach: false });
+  fake([{ id: "titan01", price: "Plus offer" }]);
+  show();
+  expect(await screen.findByTestId("subscribe-titan_plus")).toBeTruthy();
+  expect(screen.queryByText("Ton TITAN+ est inclus par ton coach.")).toBeNull();
+});
+
 test("an access of the account's own (offered or paid outside Play) still offers nothing to buy twice", async () => {
   mockProfile.data = { is_elite: true };
   fake([{ id: "titan01", price: "Plus offer" }, { id: "titan02", price: "Coach offer" }]);

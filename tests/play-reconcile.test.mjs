@@ -20,6 +20,7 @@ const answers = {
     'tok-gone-0123456789abcd': { status: 410, data: {} },
     'tok-down-0123456789abcd': { status: 503, data: {} },
     'tok-other-0123456789abc': { status: 200, data: sub('SUBSCRIPTION_STATE_ACTIVE', future(), 'unlisted_product') },
+    'tok-pending-0123456789a': { status: 200, data: { ...sub('SUBSCRIPTION_STATE_ACTIVE', future()), acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', externalAccountIdentifiers: { obfuscatedExternalAccountId: '00000000-0000-4000-8000-0000000000a6' } } },
 };
 async function run(callback, { env = {}, rows = due } = {}) {
     const pn = globalThis.Netlify, pf = globalThis.fetch;
@@ -32,6 +33,7 @@ async function run(callback, { env = {}, rows = due } = {}) {
         if (u.pathname.endsWith('/titan_play_entitlements_due_v1')) return Response.json(rows);
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) { const a = answers[decodeURIComponent(u.pathname.split('/').pop())]; return Response.json(a.data, { status: a.status }); }
         if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return Response.json(true);
+        if (u.pathname.endsWith(':acknowledge')) return Response.json({});
         throw new Error(`unexpected request ${url}`);
     };
     try { return await callback(calls); } finally { globalThis.Netlify = pn; globalThis.fetch = pf; }
@@ -70,4 +72,18 @@ test('nothing due means no Google call; the time budget stops a long run cleanly
         const body = await (await handler(new Request('https://x.test'), { budgetMs: 1000, now: () => (t += 600) })).json();
         assert.ok(body.checked < 5);
     });
+});
+
+test('a purchase recorded while pending is opened and acknowledged once Google confirms it, even if its notification was lost', async () => {
+    const rows = [{ user_id: '00000000-0000-4000-8000-0000000000a6', external_id: 'tok-pending-0123456789a' }];
+    await run(async calls => {
+        const r = await handler(new Request('https://x.test'));
+        assert.equal(r.status, 200);
+        const [write] = applied(calls);
+        assert.equal(write.p_is_active, true);
+        assert.equal(write.p_user_id, '00000000-0000-4000-8000-0000000000a6');
+        const ack = calls.findIndex(c => c.path.endsWith(':acknowledge'));
+        assert.ok(ack > calls.findIndex(c => c.path.endsWith('/titan_apply_play_entitlement_v1')), 'acknowledged after the write, before the three-day refund');
+        assert.deepEqual(await r.json(), { checked: 1, updated: 1, failed: 0 });
+    }, { rows });
 });

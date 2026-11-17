@@ -24,8 +24,10 @@ export function TitanPlusScreen() {
   const [currentPlayProduct, setCurrentPlayProduct] = useState<string | null>();
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  /** True when the account's TITAN+ is only a seat included by a coach: the athlete may still buy an offer of their own. */
-  const [seatOnly, setSeatOnly] = useState<boolean | null>(null);
+  /** Where the server says the TITAN+ flag comes from. Without a source of the account's own (only a seat included by a coach, or an
+      ended subscription whose summary was not refreshed yet) the player may buy an offer of their own. */
+  const [plan, setPlan] = useState<{ own: boolean; viaCoach: boolean } | null>(null);
+  const seatOnly = plan?.own === false && plan.viaCoach;
   const alive = useRef(true);
   const actionRunning = useRef(false);
   useEffect(() => {
@@ -49,11 +51,11 @@ export function TitanPlusScreen() {
   }, [owner]);
 
   useEffect(() => {
-    if (!profile?.is_elite) { setSeatOnly(null); return; }
+    if (!profile?.is_elite) { setPlan(null); return; }
     let current = true;
     fetchMyPlan(owner)
-      .then((p) => current && alive.current && setSeatOnly(!p.own && p.viaCoach))
-      .catch(() => current && alive.current && setSeatOnly(null));
+      .then((p) => current && alive.current && setPlan({ own: p.own, viaCoach: p.viaCoach }))
+      .catch(() => current && alive.current && setPlan(null));
     return () => { current = false; };
   }, [owner, profile?.is_elite]);
 
@@ -133,7 +135,7 @@ export function TitanPlusScreen() {
 
   const live = BILLING_BUILD && offers !== null && offers.length > 0;
   const offerOf = (id: string) => offers?.find((o) => o.id === id);
-  const canSubscribe = !!profile && !profile.is_suspended && currentPlayProduct === null && (profile.is_elite === false || seatOnly === true);
+  const canSubscribe = !!profile && !profile.is_suspended && currentPlayProduct === null && (profile.is_elite === false || plan?.own === false);
   const canChange = !!profile && !profile.is_suspended && typeof currentPlayProduct === "string";
   const manage = () => manageInPlay(currentPlayProduct ?? undefined).catch(() => setNote("Ouvre Google Play > Paiements et abonnements."));
   return (
