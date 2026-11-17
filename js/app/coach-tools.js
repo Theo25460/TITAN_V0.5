@@ -5,7 +5,7 @@
   const esc = (s) => window.titanEsc(s);
   const MSG = {
     RATE_LIMITED: "Trop de demandes : réessaie dans un instant.",
-    SHARING_UNAVAILABLE: "Ce suivi n’est plus actif.",
+    SHARING_UNAVAILABLE: "Ce suivi n’est plus actif, ou il est en pause faute de place dans l’offre du coach.",
     BAD_BODY: "Le message est vide ou trop long.",
     BAD_SCORES: "Choisis au moins une note de 1 à 5.",
     BAD_NOTE: "La note est trop longue (500 caractères).",
