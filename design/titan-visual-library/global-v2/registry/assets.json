@@ -937,7 +937,20 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "candidate_20261117": {
+        "status": "proposed",
+        "technique": "Generated raster illustration, reference: approved ranks, transparent alpha",
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/champion.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/champion-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/champion-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/champion-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/champion-96.webp"
+        ],
+        "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
+        "notes": "À examiner dans le produit et sur appareil."
+      }
     },
     {
       "id": "titan",
@@ -990,7 +1003,20 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "candidate_20261117": {
+        "status": "proposed",
+        "technique": "Generated raster illustration, reference: approved ranks, transparent alpha",
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/titan.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/titan-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/titan-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/titan-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/titan-96.webp"
+        ],
+        "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
+        "notes": "À examiner dans le produit et sur appareil."
+      }
     },
     {
       "id": "legende",
@@ -1043,7 +1069,20 @@
       "legacy_android_targets": [
         "mobile/src/components/Crest.tsx"
       ],
-      "rules_unchanged": true
+      "rules_unchanged": true,
+      "candidate_20261117": {
+        "status": "proposed",
+        "technique": "Generated raster illustration, reference: approved ranks, transparent alpha",
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/legende.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/legende-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/legende-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/legende-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/final-candidates-20261117/legende-96.webp"
+        ],
+        "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
+        "notes": "Motif de forteresse proche du grade Gardien ; différenciation à revoir."
+      }
     },
     {
       "id": "level-tiers-eclaireur-tier-1",
