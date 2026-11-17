@@ -106,7 +106,7 @@ export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
 
 export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean; access_kind?: "test" | "verified_purchase" };
 export class BillingError extends Error {
-  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "PLAN_UNCERTAIN" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED" | "TEST_PURCHASE") {
+  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "PLAN_UNCERTAIN" | "OTHER_ACCOUNT" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED" | "TEST_PURCHASE") {
     super(code);
   }
 }
@@ -122,6 +122,8 @@ async function readCurrentPlayPurchase(owner: string, l: IapLib) {
   const known = purchases.filter((p) => PLANS.some((plan) => plan.id === p.productId));
   if (known.length === 0) return null;
   const [purchase] = known;
+  // The Google account of this phone already pays a TITAN subscription for ANOTHER TITAN account: nothing here can attach or replace it.
+  if (known.length === 1 && purchase.obfuscatedAccountIdAndroid && purchase.obfuscatedAccountIdAndroid !== owner) throw new BillingError("OTHER_ACCOUNT");
   if (known.length !== 1 || purchase.obfuscatedAccountIdAndroid !== owner || !purchase.purchaseToken
     || purchase.purchaseState !== "purchased" || purchase.isSuspendedAndroid || purchase.pendingPurchaseUpdateAndroid) {
     throw new BillingError("PLAN_UNCERTAIN");
@@ -387,6 +389,7 @@ export const messageFor = (e: unknown): string => {
       VERIFICATION_UNAVAILABLE: "TITAN ne peut pas vérifier ton achat pour le moment. Consulte Google Play, puis utilise « Restaurer mes achats ».",
       STORE_UNAVAILABLE: "La facturation Google Play est indisponible sur cet appareil ou ce compte. Vérifie le compte Play et la version installée.",
       PLAN_UNCERTAIN: "Vérifie ton abonnement dans Google Play ou utilise « Restaurer mes achats » avant de choisir une offre.",
+      OTHER_ACCOUNT: "Le compte Google Play de ce téléphone paie déjà un abonnement TITAN rattaché à un autre compte TITAN. Reconnecte-toi à ce compte-là, ou gère l’abonnement dans Google Play. Il ne peut pas être transféré ici.",
       AUTH: "Reconnecte-toi, puis réessaie.",
       ALREADY_USED: "Cet abonnement est déjà utilisé par un autre compte TITAN.",
       NOT_BOUND: "Cet achat n’a pas été fait depuis ce compte TITAN. Il n’est pas rattaché.",

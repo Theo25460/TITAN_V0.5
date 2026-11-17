@@ -94,7 +94,26 @@ test('tests, other packages, other event kinds and unlinked tokens are acknowled
     await run(async calls => { assert.equal((await handler(push({ version: '1.0', packageName: 'fr.titanapp.app', eventTimeMillis: '1', testNotification: { version: '1.0' } }))).status, 200); assert.deepEqual(calls, []); });
     await run(async calls => { assert.equal((await handler(push(event(2, { packageName: 'com.other.app' })))).status, 200); assert.deepEqual(calls, []); });
     await run(async calls => { assert.equal((await handler(push(event(2, { subscriptionNotification: { purchaseToken: 'x' } })))).status, 200); assert.deepEqual(calls, []); });
-    await run(async calls => { assert.equal((await handler(push(event()))).status, 200); assert.equal(applied(calls).length, 0, 'not linked yet: the player\'s own call will record it'); assert.ok(!calls.some(c => c.host.includes('google')), 'Google is not asked for an unlinked token'); }, { owner: null });
+    for (const type of [3, 5, 6, 10, 12, 13, 20]) {
+        await run(async calls => { assert.equal((await handler(push(event(type)))).status, 200); assert.equal(applied(calls).length, 0, 'not linked yet and nothing paid to record'); assert.ok(!calls.some(c => c.host.includes('google')), `Google is not asked for an unlinked token (type ${type})`); }, { owner: null });
+    }
+    // An unlinked token without a bound TITAN account is never attached, whatever the event.
+    await run(async calls => { assert.equal((await handler(push(event(2)))).status, 200); assert.equal(applied(calls).length, 0); }, { owner: null });
+});
+
+test('a purchase whose first notification was lost is recorded from the next renewal, recovery or restart', async () => {
+    const bound = { ...subscription(), acknowledgementState: 'ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED', externalAccountIdentifiers: { obfuscatedExternalAccountId: USER } };
+    for (const type of [1, 2, 7]) {
+        await run(async calls => {
+            assert.equal((await handler(push(event(type)))).status, 200);
+            const [recorded] = applied(calls);
+            assert.equal(recorded?.body.p_user_id, USER, `type ${type} attaches the purchase to the account Google bound it to`);
+            assert.equal(recorded.body.p_is_active, true);
+        }, { owner: null, google: { status: 200, data: bound } });
+    }
+    // Same events for a subscription Google says ended: nothing is created.
+    await run(async calls => { assert.equal((await handler(push(event(2)))).status, 200); assert.equal(applied(calls).length, 0); },
+        { owner: null, google: { status: 200, data: { ...bound, subscriptionState: 'SUBSCRIPTION_STATE_EXPIRED', lineItems: [{ productId: 'titan_plus', expiryTime: new Date(Date.now() - 1000).toISOString() }] } } });
 });
 
 test('an outage makes Pub/Sub retry (5xx) and never changes access', async () => {

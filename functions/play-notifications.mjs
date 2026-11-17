@@ -64,7 +64,10 @@ export default async function handler(request) {
         if (!owner.ok) return reply(503);
         const firstPurchase = owner.data === null;
         if (!firstPurchase && (typeof owner.data !== 'string' || !PLAY_ACCOUNT_ID.test(owner.data))) return reply(503);
-        if (firstPurchase && notification.subscriptionNotification?.notificationType !== 4) return reply(200);
+        // A token we have never recorded is only worth a Google read when the event means "this subscription is paid now": the purchase
+        // itself (4), and also a renewal (2), a recovery (1) or a restart (7), so that a purchase whose first notification was lost (Pub/Sub
+        // gave up during an outage) is not forgotten until the player reopens the app. Google's answer and its bound account still decide.
+        if (firstPurchase && ![1, 2, 4, 7].includes(Number(notification.subscriptionNotification?.notificationType))) return reply(200);
 
         const accessToken = await googleAccessToken(account);
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
