@@ -2761,16 +2761,20 @@
     box-shadow: 0 0 0 12px rgba(127, 224, 176, 0.05);
   }
 }
+/* The name of the world and its count sit on a painting: a dark plate behind them, and the count in the text colour, so both
+   read whatever is painted under them. */
 .av-map-caption {
   position: absolute;
   z-index: 3;
-  left: var(--s4);
+  left: var(--s3);
   top: var(--s3);
   pointer-events: none;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
   display: grid;
+  padding: 6px 10px;
+  border-radius: var(--r2);
+  background: rgba(9, 12, 16, 0.68);
   font-size: 13px;
-  color: var(--tx-2);
+  color: var(--tx);
 }
 .av-map-caption strong {
   font-family: var(--font-display);
@@ -3318,10 +3322,48 @@
   font-size: 13px;
   font-weight: 700;
 }
+.pf-chips li {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pf-chips li small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .pf-chips .t-icon {
+  flex: none;
   width: 14px;
   height: 14px;
   color: var(--space);
+}
+/* A chip that is a choice (the title worn, the showcase): the button is the chip. It used to be an outlined rectangle inside a
+   pill, and the chosen one looked like the others. */
+.pf-chips li.pf-chip-choice {
+  padding: 0;
+  overflow: visible;
+  background: none;
+}
+.pf-chips li.pf-chip-choice > .asc-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--tx);
+  font-size: 13px;
+}
+.pf-chips li.pf-chip-choice > .asc-btn[aria-pressed="true"] {
+  background: var(--space);
+  color: var(--space-ink);
+}
+.pf-chips li.pf-chip-choice > .asc-btn[aria-pressed="true"] .t-icon {
+  color: var(--space-ink);
+}
+.pf-chips li.pf-chip-choice > .asc-btn[disabled] {
+  opacity: 0.45;
 }
 .pf-avatars {
   display: grid;
@@ -4749,4 +4791,9 @@
   [data-co-roster] .asc-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* The optional quest of the week, under the sports of the week: a line of its own, not glued to the last sport. */
+[data-week-quest] {
+  margin-top: var(--s3);
 }

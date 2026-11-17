@@ -30,6 +30,9 @@
 #carriere .cr-list li { border-bottom: 1px solid var(--line-2); min-height: 44px; }
 .cr-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 32px; min-width: 0; }
 .cr-list li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+/* A record row is icon, label, value: the label takes the room and starts at the same edge on every row. */
+.cr-list li > .t-icon { flex: none; }
+.cr-list li > .t-icon + span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .cr-moments { list-style: none; margin: 0; display: grid; gap: var(--s4); }
 .cr-moments li { display: flex; align-items: flex-start; gap: var(--s3); min-width: 0; }
 .cr-moments li > div { display: grid; min-width: 0; overflow-wrap: anywhere; }

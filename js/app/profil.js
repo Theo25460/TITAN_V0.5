@@ -345,7 +345,7 @@
     const full = picked.size >= 3;
     return `<div class="pf-col-block" data-showcase-block><p class="asc-eyebrow">Vitrine</p>
       <p class="asc-small asc-muted">Choisis jusqu’à trois distinctions à montrer sur ta carte publique${card?.enabled ? "" : " (quand tu l’activeras)"} — ${picked.size} sur 3.</p>
-      <ul class="pf-chips" role="group" aria-label="Distinctions de la vitrine">${options.map((t) => `<li><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-showcase-toggle="${esc(t.key)}" aria-pressed="${picked.has(t.key)}" ${showcaseTask || (full && !picked.has(t.key)) ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}</button></li>`).join("")}</ul>
+      <ul class="pf-chips" role="group" aria-label="Distinctions de la vitrine">${options.map((t) => `<li class="pf-chip-choice"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-showcase-toggle="${esc(t.key)}" aria-pressed="${picked.has(t.key)}" ${showcaseTask || (full && !picked.has(t.key)) ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}</button></li>`).join("")}</ul>
       <p class="asc-small asc-faint">Purement décoratif : aucune distinction ne donne d’XP ni de crédits.</p></div>`;
   }
 
@@ -355,7 +355,7 @@
     const name = wornName();
     return `<div class="pf-col-block" data-title-block><p class="asc-eyebrow">Titre porté</p>
       <p class="asc-small ${name ? "" : "asc-muted"}" data-worn-title>${name ? `Tu portes « ${esc(name)} », visible sur ton profil${card?.enabled ? " et ta carte publique (si les titres sont affichés)" : ""}.` : options.length ? "Aucun titre porté. Choisis-en un parmi ceux que tu as gagnés." : "Gagne un insigne d’aventure pour porter ton premier titre."}</p>
-      ${options.length ? `<ul class="pf-chips" role="group" aria-label="Titres gagnés">${options.map((t) => `<li><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear-title="${esc(t.key)}" aria-pressed="${worn.key === t.key}" ${wornTask ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}${worn.key === t.key ? " · porté" : ""}</button></li>`).join("")}</ul>
+      ${options.length ? `<ul class="pf-chips" role="group" aria-label="Titres gagnés">${options.map((t) => `<li class="pf-chip-choice"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear-title="${esc(t.key)}" aria-pressed="${worn.key === t.key}" ${wornTask ? "disabled" : ""}>${icon(t.source === "expedition" ? "mountain" : "star")} ${esc(t.label)}${worn.key === t.key ? " · porté" : ""}</button></li>`).join("")}</ul>
       ${worn.key ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-wear-title="" ${wornTask ? "disabled" : ""}>Ne plus porter de titre</button>` : ""}` : ""}
       <p class="asc-small asc-faint">Un titre est purement décoratif : il ne donne ni XP ni crédits.</p></div>`;
   }
