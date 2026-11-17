@@ -226,8 +226,13 @@
     const archivedCount = (window.state?.archivedHistory || []).length;
     const focus = document.activeElement?.id;
     root.innerHTML = `
-      ${window.titanFlags?.enabled?.("screens.activityhub", false) === true ? `<div class="asc-actions jr-add"><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Ajouter une activité</a><a class="asc-btn asc-btn-secondary" href="/training?mode=manual" data-journal-manual>Saisie manuelle</a></div>` : ""}
-      ${window.titanFlags?.enabled?.("screens.routes", false) === true ? `<div class="asc-actions jr-routes"><button type="button" class="asc-btn asc-btn-secondary" data-routes-open>${icon("route")} Mes parcours</button></div>` : ""}
+      ${(() => {
+        // One quiet row of entries, whatever the server has opened: adding by hand, importing a file, saved routes. They used to be
+        // two stacked rows of three large buttons that pushed the journal itself under the first screen of a phone.
+        const hub = window.titanFlags?.enabled?.("screens.activityhub", false) === true, routes = window.titanFlags?.enabled?.("screens.routes", false) === true;
+        if (!hub && !routes) return "";
+        return `<div class="jr-add">${hub ? `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=manual" data-journal-manual>${icon("plus")} Ajouter</a><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=import" data-journal-import>${icon("upload")} Importer</a>` : ""}${routes ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-routes-open aria-label="Mes parcours">${icon("route")} Parcours</button>` : ""}</div>`;
+      })()}
       ${pendingHtml()}
       <div class="jr-tools">
         <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>

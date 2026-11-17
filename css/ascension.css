@@ -1620,7 +1620,6 @@ html[data-motion="reduced"] *::after {
 }
 
 /* Routes (GPS traces seen on the web): a plain drawing of the trace, no map server. */
-.jr-routes { margin-bottom: var(--s3, 12px); }
 .rt-map { width: 100%; height: auto; display: block; border-radius: var(--r3); }
 .rt-map-bg { fill: var(--bg-2); }
 .rt-line { stroke: var(--space); }
@@ -1631,6 +1630,60 @@ html[data-motion="reduced"] *::after {
 .rt-dot.rt-end { background: var(--am); }
 .rt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rt-legend { margin: 6px 0 0; }
+
+/* Folding sections carry one mark everywhere: a chevron at the end of the line that turns when the section opens, instead of the
+   browser's triangle at its start. Components that draw their own mark (the QG « why », the optional measures of a session,
+   the public menu, coaching rows) are left alone; the rule has no specificity, so any component can still restyle its summary. */
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  list-style: none;
+  cursor: pointer;
+}
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::-webkit-details-marker {
+  display: none;
+}
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::after {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin: 0 6px 4px auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.72;
+  transform: rotate(45deg);
+  transition: transform var(--t-fast, 0.16s) ease;
+}
+:where(.asc) details[open]:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::after {
+  margin-bottom: -4px;
+  transform: rotate(-135deg);
+}
+/* A title never leaves one word, or a lone question mark, on its last line; a paragraph avoids a one-word last line. Browsers that
+   do not know these values keep their ordinary wrapping. */
+:where(.asc) :where(h1, h2, h3, .asc-h1, .asc-h2, .asc-h3, summary) {
+  text-wrap: balance;
+}
+:where(.asc) :where(p, li, dd) {
+  text-wrap: pretty;
+}
+/* A link written inside a sentence is recognisable as a link: the colour of the space and an underline. */
+:where(.asc-main) :where(p, li, dd) > a:where(:not([class])) {
+  color: var(--space);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  font-weight: 600;
+}
+:where(.asc-main) :where(p, li, dd) > a:where(:not([class])):hover {
+  color: var(--space-hi);
+}
+/* On a field of colour (a page header, the QG's next step) the link keeps the ink of the field. */
+:where(.asc-page-head, .qg-hero, [data-on-colour]) :where(p, li, dd) > a:where(:not([class])),
+:where(.asc-page-head, .qg-hero, [data-on-colour]) :where(p, li, dd) > a:where(:not([class])):hover {
+  color: inherit;
+}
 
 /* Touch targets (WCAG 2.2 AA 2.5.8): text links outside a paragraph, check boxes, radios and folding summaries are never smaller than a thumb allows. */
 @media (pointer: coarse) {
