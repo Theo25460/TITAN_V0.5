@@ -5,7 +5,9 @@
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
-import { Format, Sports } from "../core";
+import { Format, SportContracts, Sports } from "../core";
+import * as api from "../data/api";
+import { useOwner } from "../data/auth";
 import type { TrainingLog } from "../core/types";
 import { healthConnect, type SessionCandidate } from "../lib/healthConnect";
 import { Card } from "./Card";
@@ -19,12 +21,15 @@ export function newHealthSessions(candidates: SessionCandidate[], logs: Training
   return candidates.filter((c) => {
     const t = Date.parse(c.startedAt);
     if (!Number.isFinite(t) || now - t > WINDOW_MS || t > now) return false;
-    return !logs.some((l) => l.sport === c.sport && Math.abs(Date.parse(l.date) - t) <= MATCH_MS);
+    // Same sport within 45 minutes, or the same effort under a neighbouring id (a treadmill session typed as running).
+    if (logs.some((l) => l.sport === c.sport && Math.abs(Date.parse(l.date) - t) <= MATCH_MS)) return false;
+    return !SportContracts.findDuplicate({ sport: c.sport, date: c.startedAt, minutes: c.minutes }, logs);
   });
 }
 
 export function HealthDetectCard({ logs }: { logs: TrainingLog[] }) {
   const navigation = useNavigation();
+  const owner = useOwner();
   const [found, setFound] = useState<SessionCandidate[]>([]);
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -37,6 +42,10 @@ export function HealthDetectCard({ logs }: { logs: TrainingLog[] }) {
       try {
         const hc = healthConnect();
         if ((await hc.availability()) !== "ready" || !(await hc.granted()).exercise) return;
+        // The Android permission alone is not TITAN's consent: after « Arrêter » the permission may survive until the app restarts,
+        // and nothing may be read in the meantime (same double check as the steps refresh).
+        const sources = owner ? await api.sourcesStatus(owner) : null;
+        if (!alive || !Array.isArray(sources) || !sources.some((s) => s.source === "health_connect" && s.granted)) return;
         const list = await hc.readSessions();
         if (alive) setFound(newHealthSessions(list, logs));
       } catch {
@@ -46,7 +55,7 @@ export function HealthDetectCard({ logs }: { logs: TrainingLog[] }) {
     return () => {
       alive = false;
     };
-  }, [logs, tick]);
+  }, [logs, tick, owner]);
   if (!found.length) return null;
   const first = found[0];
   return (

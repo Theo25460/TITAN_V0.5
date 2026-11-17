@@ -393,7 +393,7 @@ export async function importDailySteps(owner: string, day: string, steps: number
   if (result?.day !== day || result.steps !== steps) throw new Error("STEPS_IMPORT_UNCONFIRMED");
   return result;
 }
-export const archiveImported = (owner: string, source: "health_connect", current?: () => boolean) =>
+export const archiveImported = (owner: string, source: "health_connect" | "garmin", current?: () => boolean) =>
   ownerRpc<number>(owner, "titan_archive_imported_v1", { p_source: source }, current);
 
 /* ---------- Route library (private GPS traces) ---------- */

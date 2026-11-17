@@ -163,8 +163,10 @@ begin
   perform public.titan_submit_training_session('running','cardio',7,'km',jsonb_build_object('duration',40),now() - interval '9 hours');
   -- 5b. A 30 min ride saved "now"; the watch holds another ride that ended before this one began.
   perform public.titan_submit_training_session('cycling','cardio',30,'min',jsonb_build_object('duration',30),now() - interval '1 minute');
-  -- 5c. A 6 min hike recorded with the GPS: dated at its START, saved 7 minutes later. It must never be read as "saved at the end".
-  perform public.titan_submit_training_session('hiking','cardio',0.5,'km',jsonb_build_object('duration',6,'hasGpx',true),now() - interval '7 minutes');
+  -- 5c. A 6 min row recorded with the GPS: dated at its START, saved 7 minutes later. It must never be read as "saved at the end".
+  -- (Sport excellence, 20261118090000: walking and hiking are one effort family now, so this pair uses rowing; a hike and a walk at
+  -- the very same minutes are one effort and are linked, as 300_sport_excellence_imports.sql states for neighbouring ids.)
+  perform public.titan_submit_training_session('rowing','cardio',1.5,'km',jsonb_build_object('duration',6,'hasGpx',true),now() - interval '7 minutes');
   -- 5d. A 6 min walk imported from the phone within minutes of its start: an import always carries a real start.
   perform public.titan_import_activity_v1('health_connect','dd-hc-short','walking',now() - interval '7 minutes',6);
 end $$;
@@ -178,8 +180,8 @@ begin
   assert r->>'status'='imported', '5a: a morning run and an evening run are two sessions: '||r::text;
   r := public.titan_garmin_ingest_v1('dd-garmin-c', jsonb_build_object('summaryId','dd-earlier-ride','activityType','CYCLING','startTimeInSeconds',at_s - 75*60,'durationInSeconds',2400,'distanceInMeters',15000));
   assert r->>'status'='imported', '5b: a ride that ended before the saved one began is its own session: '||r::text;
-  r := public.titan_garmin_ingest_v1('dd-garmin-c', jsonb_build_object('summaryId','dd-hike-before','activityType','HIKING','startTimeInSeconds',at_s - 14*60,'durationInSeconds',360,'distanceInMeters',500));
-  assert r->>'status'='imported', '5c: the hike that ended when the GPS-dated one started is not absorbed: '||r::text;
+  r := public.titan_garmin_ingest_v1('dd-garmin-c', jsonb_build_object('summaryId','dd-row-before','activityType','ROWING','startTimeInSeconds',at_s - 14*60,'durationInSeconds',360,'distanceInMeters',1400));
+  assert r->>'status'='imported', '5c: the row that ended when the GPS-dated one started is not absorbed: '||r::text;
   r := public.titan_garmin_ingest_v1('dd-garmin-c', jsonb_build_object('summaryId','dd-walk-before','activityType','WALKING','startTimeInSeconds',at_s - 14*60,'durationInSeconds',360,'distanceInMeters',450));
   assert r->>'status'='imported', '5d: the walk that ended when the imported one started is not absorbed: '||r::text;
 end $$;

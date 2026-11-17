@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { AppState, Linking } from "react-native";
 import { Button } from "../../components/Button";
@@ -7,12 +7,16 @@ import { Screen } from "../../components/Screen";
 import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
+import { archiveImported } from "../../data/api";
 import { useOwner } from "../../data/auth";
+import { invalidateAfterSession } from "../../data/hooks";
+import { Alert } from "../../components/Dialog";
 import { completeGarmin, connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, garminWithdrawalMessage, parseGarminReturn, readGarmin } from "../../lib/nativeConnections";
 
 export function GarminScreen() {
   const owner = useOwner();
   const q = useQuery({ queryKey: ["garmin", owner], queryFn: () => readGarmin(owner), retry: false });
+  const qc = useQueryClient();
   const [consent, setConsent] = useState(false);
   const [dailyConsent, setDailyConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -98,6 +102,23 @@ export function GarminScreen() {
       if (current()) { lock.current = false; setBusy(false); }
     }
   }
+  async function archiveGarmin() {
+    if (lock.current) return;
+    const generation = epoch.current;
+    const current = () => alive.current && generation === epoch.current;
+    lock.current = true;
+    setBusy(true);
+    try {
+      const n = Number(await archiveImported(owner, "garmin", current)) || 0;
+      if (current()) setMessage(`${n} activité${n > 1 ? "s" : ""} Garmin archivée${n > 1 ? "s" : ""}.`);
+      invalidateAfterSession(qc, owner);
+      await q.refetch();
+    } catch (error) {
+      if (current()) setMessage(garminFailureMessage(error));
+    } finally {
+      if (current()) { lock.current = false; setBusy(false); }
+    }
+  }
   return <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
     <T tone="muted">Tes activités peuvent rejoindre ton journal après ton autorisation. Les pas seuls ne donnent pas d’XP. Les doublons sont contrôlés côté serveur.</T>
     {q.isLoading ? <LoadingCards count={1} /> : q.error ? <ErrorState error={q.error} onRetry={() => q.refetch()} title="Garmin indisponible" /> : <>
@@ -118,6 +139,11 @@ export function GarminScreen() {
         {q.data.linked && q.data.authorized ? <Button label="Autoriser les pas Garmin" kind="secondary" loading={busy} onPress={() => run(false, true)} /> : null}
       </> : null}
       <Button label="Retirer l’autorisation Garmin" kind="secondary" loading={busy} onPress={() => run(true)} testID="garmin-disconnect" />
+      {/* Same action as on the website: what Garmin brought leaves the journal and its statistics, without being deleted. */}
+      {q.data?.imported ? <Button label="Archiver les activités importées de Garmin" kind="ghost" loading={busy} testID="garmin-archive" accessibilityHint="Les retire du journal sans les supprimer" onPress={() => Alert.alert("Archiver les activités Garmin ?", "Elles sortent de ton journal, de tes statistiques et de tes records, et restent dans les archives. Les récompenses déjà obtenues ne changent pas.", [
+        { text: "Garder", style: "cancel" },
+        { text: "Archiver", style: "destructive", onPress: () => void archiveGarmin() },
+      ])} /> : null}
     </>}
     {message ? <T accessibilityRole="alert">{message}</T> : null}
     <Button label="Actualiser l’état" kind="ghost" onPress={() => q.refetch()} />

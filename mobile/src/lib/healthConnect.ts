@@ -37,10 +37,19 @@ export type Access = { steps: boolean; exercise: boolean };
 export type DaySteps = { day: string; steps: number };
 export type SessionCandidate = { externalId: string; sport: string; startedAt: string; minutes: number; title: string | null };
 
-/** The eleven TITAN sports an Android exercise type is recognised as. Every other type is left out rather than guessed. */
+/** Android Health Connect exercise types (react-native-health-connect ExerciseType) recognised as a TITAN sport. Only an
+    unambiguous type is mapped: « martial arts », « skiing », « paddling » or « frisbee » could each be several sports, so they are
+    left out rather than guessed. The previous table read 13 (CALISTHENICS) as dance and 49 (PLANK) as pilates, and missed real
+    dance (16) and pilates (48). */
 export const SPORT_BY_EXERCISE: Record<number, string> = {
-  8: "cycling", 9: "cycling", 13: "dance", 25: "elliptical", 37: "hiking", 49: "pilates", 53: "rowing", 54: "rowing",
-  56: "running", 57: "running", 70: "muscu_gym", 81: "muscu_gym", 73: "swimming", 74: "swimming", 79: "walking", 83: "yoga",
+  2: "badminton", 4: "baseball", 5: "basketball", 8: "cycling", 9: "cycling_indoor", 10: "hiit", 11: "boxing", 13: "street_workout",
+  14: "cricket", 16: "dance", 25: "elliptical", 26: "fitness_class", 27: "fencing", 28: "american_football", 29: "australian_rules_football",
+  32: "golf", 34: "gymnastics", 35: "handball", 36: "hiit", 37: "hiking", 38: "ice_hockey", 39: "ice_skating", 41: "rope_jump",
+  47: "paragliding", 48: "pilates", 50: "racquetball", 51: "climbing", 52: "inline_hockey", 53: "rowing", 54: "rowing_machine",
+  55: "rugby", 56: "running", 57: "treadmill", 58: "sailing", 59: "diving", 60: "roller", 62: "snowboard", 63: "snowshoeing",
+  64: "football", 65: "softball", 66: "squash", 68: "stair_climbing", 69: "stair_climbing", 70: "muscu_gym", 71: "stretching",
+  72: "surfing", 73: "open_water_swimming", 74: "swimming", 75: "table_tennis", 76: "tennis", 78: "volleyball", 79: "walking",
+  80: "water_polo", 81: "muscu_gym", 83: "yoga",
 };
 
 export const sportOf = (exerciseType: number): string | null => SPORT_BY_EXERCISE[exerciseType] ?? null;

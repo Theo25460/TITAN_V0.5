@@ -5,6 +5,9 @@ import type { TrainingLog } from "../src/core/types";
 import { _setHealthConnectForTests, createHealthConnect, type SessionCandidate } from "../src/lib/healthConnect";
 
 jest.mock("@react-navigation/native", () => ({ ...jest.requireActual("@react-navigation/native"), useNavigation: () => ({ navigate: jest.fn() }) }));
+jest.mock("../src/data/auth", () => ({ useOwner: () => "u1" }));
+const mockSources = jest.fn(async () => [{ source: "health_connect", granted: true }]);
+jest.mock("../src/data/api", () => ({ sourcesStatus: () => mockSources() }));
 
 const now = Date.now();
 const iso = (msAgo: number) => new Date(now - msAgo).toISOString();
@@ -27,4 +30,21 @@ test("the card appears only with the permission already granted", async () => {
   await new Promise((r) => setTimeout(r, 20));
   expect(second.queryByTestId("qg-health-detect")).toBeNull();
   _setHealthConnectForTests(null);
+});
+
+test("Lot C: the Android permission alone is not TITAN's consent — after « Arrêter » nothing is read", async () => {
+  const reads = jest.fn(async () => [run]);
+  _setHealthConnectForTests({ ...createHealthConnect(null), availability: async () => "ready" as const, granted: async () => ({ steps: false, exercise: true }), readSessions: reads } as never);
+  mockSources.mockResolvedValueOnce([{ source: "health_connect", granted: false }]);
+  const view = render(<HealthDetectCard logs={[]} />);
+  await new Promise((r) => setTimeout(r, 20));
+  expect(view.queryByTestId("qg-health-detect")).toBeNull();
+  expect(reads).not.toHaveBeenCalled();
+  _setHealthConnectForTests(null);
+});
+
+test("Lot C: a treadmill session already typed as a run is not offered again", () => {
+  const treadmill: SessionCandidate = { externalId: "hc-9", sport: "treadmill", startedAt: iso(2 * 3600_000), minutes: 40, title: null };
+  const typed = [{ id: "t", sport: "running", unit: "km", val: 7, date: iso(2 * 3600_000 - 5 * 60_000), details: { duration: 40 } }] as unknown as TrainingLog[];
+  expect(newHealthSessions([treadmill], typed, now)).toEqual([]);
 });

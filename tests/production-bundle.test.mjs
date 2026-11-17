@@ -17,7 +17,8 @@ for (const name of Object.keys(BUNDLES)) {
 
   test(`${name}: every migration body is embedded unchanged, guarded and registered under its own version`, () => {
     const list = pendingMigrations(name);
-    assert.ok(list.length >= 8);
+    // A bundle carries at least one migration (the sport-excellence bundle v15 has one; the earlier ones had eight or more).
+    assert.ok(list.length >= 1);
     list.forEach((m, i) => {
       const text = wrap(m, i === 0 ? BUNDLES[name].after : list[i - 1].version);
       assert.ok(text.includes(m.sql.replace(/\s*$/, "")), `${m.file} embedded verbatim`);

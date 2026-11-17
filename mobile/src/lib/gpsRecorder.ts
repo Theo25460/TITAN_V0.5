@@ -1,7 +1,9 @@
 /* Native GPS recording: Démarrer → Pause/Reprendre → Terminer. The state lives on the phone (per account) and is
    written after every batch of fixes, so a background service, a locked screen or a restart of the JS side loses nothing.
    Android does not keep a service alive after a force stop: an interrupted recording is closed at its last fix, never
-   extended with invented time. Positions stay on the phone; only the totals are sent when the session is saved. */
+   extended with invented time. While recording, positions stay on the phone. When the athlete saves the session, the session
+   carries only the totals, and the trace goes to the athlete's private route library (« Mes parcours », private.titan_routes,
+   ~1 m precision, start and end included) as the save screen says; the ends are trimmed only when a route is shared. */
 import { addFix, emptyTrack, summarize, toGpx, type Fix, type Summary, type Track } from "./gpsTrack";
 
 export type Status = "recording" | "paused" | "ended";

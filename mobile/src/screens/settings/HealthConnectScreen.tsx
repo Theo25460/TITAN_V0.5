@@ -163,7 +163,12 @@ export function HealthConnectScreen() {
         <T variant="small">Les pas s’affichent, sans jamais créer de séance, d’XP ni de récompense. Une séance importée passe par les mêmes règles que celles saisies à la main : aucune récompense en plus.</T>
       </Card>
       {!connected ? (
-        <Button label="Autoriser la lecture dans Santé Connect" onPress={authorize} loading={busy} disabled={!online} testID="hc-authorize" accessibilityHint="Android te demande ensuite ton accord pour les pas et les séances" />
+        <>
+          <Button label="Autoriser la lecture dans Santé Connect" onPress={authorize} loading={busy} disabled={!online} testID="hc-authorize" accessibilityHint="Android te demande ensuite ton accord pour les pas et les séances" />
+          {/* Archiving what was imported needs no Health Connect access: after « Arrêter » or a permission withdrawn in Android
+              settings, the toast promised this button, which used to disappear with the connection. */}
+          {consent === false ? <Button label="Archiver les séances importées" kind="ghost" onPress={archive} loading={busy} disabled={!online} testID="hc-archive" accessibilityHint="Les retire du journal sans les supprimer" /> : null}
+        </>
       ) : (
         <>
           <Section title="Mes pas">
@@ -187,7 +192,7 @@ export function HealthConnectScreen() {
                   </View>
                 )}
               </Card>
-            )) : <T variant="small" tone="muted">Aucune séance reconnue sur les 7 derniers jours (running, marche, vélo, natation, randonnée, yoga, pilates, rameur, danse, elliptique, musculation).</T>) : null}
+            )) : <T variant="small" tone="muted">Aucune séance reconnue sur les 7 derniers jours. Les types ambigus pour Android (arts martiaux, ski, pagaie, frisbee, « autre ») ne sont pas importés : enregistre-les ici.</T>) : null}
           </Section>
           <Section title="Arrêter">
             <Button label="Arrêter la synchronisation" kind="danger" onPress={stop} loading={busy} testID="hc-stop" />

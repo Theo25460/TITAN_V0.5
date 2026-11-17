@@ -87,6 +87,12 @@ Reprise Claude (29/10/2026) — état au sens du cahier GAR-14 :
 | **B. Secrets, déploiement, migrations** | variables Netlify (tableau §3), migrations 40 et 41 à appliquer dans l'ordre, déclaration chez Garmin de l'adresse de réception (`?action=push&token=…`, distincte du callback) | **non fait, à faire par le propriétaire**, sans que je voie le secret |
 | **C. Garmin réel** | état réel des cases « Enabled » et « On Hold » par flux, réponse de Garmin sur l'accès (pause des nouvelles demandes), format exact des messages, essai avec une montre synchronisée sur deux comptes distincts, schéma des permissions et de la notice de changement | **attente Garmin / propriétaire** ; rien n'est présenté comme réussi |
 
+Limite connue (audit du 18 novembre 2026) : une activité **modifiée** chez Garmin (`manuallyUpdatedActivities`) arrive sous la même
+clé `g-<summaryId>` que l'originale ; elle est acquittée comme `duplicate` et **la correction n'est pas reportée** dans le journal
+(l'athlète corrige sa séance dans TITAN). Un report demanderait une RPC de mise à jour d'import, hors de ce lot. Depuis le paquet v15
+(non appliqué), un import rejoint aussi une séance saisie sous un identifiant voisin (tapis/course, VTT/vélo, eau libre/piscine) et
+une nage arrive en mètres.
+
 Hypothèses de format à vérifier à la première réception réelle : noms de champs de l'activité, clés `manuallyUpdatedActivities` et `userPermissionsChange` (et la forme de `permissions`), nom des permissions (`ACTIVITY_EXPORT` attendu : la fonction accepte toute chaîne contenant « ACTIVITY »). Un format de permissions inconnu ne bloque pas la liaison.
 
 La révocation chez le fournisseur est faite par la déconnexion (`provider` vaut `withdrawn`, `refused`, `unavailable` ou `skipped`) ; la suppression d'un compte TITAN l'appelle d'abord, au mieux (Profil > Supprimer mon compte : si une liaison Garmin est active, la déconnexion est demandée avant la suppression ; un échec ne bloque jamais la suppression). Si Garmin ne répond pas, ses envois suivants sont ignorés (`not_linked`) et le joueur peut aussi retirer l'application depuis Garmin.

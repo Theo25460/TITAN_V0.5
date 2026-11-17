@@ -234,6 +234,12 @@
         data.hasGpx = true;
         const g = S.gpx;
         data.gpxStats = { distanceKm:g.distanceKm, movingMinutes:g.movingMinutes, elapsedMinutes:g.elapsedMinutes, pauseMinutes:g.pauseMinutes, ascent:g.ascent, descent:g.descent, points:g.points, cleanPoints:g.cleanPoints, ignoredPoints:g.ignoredPoints, kind:g.kind, altitudeSource:g.altitudeSource, analysisVersion:g.analysisVersion, terrainVersion:g.terrainVersion, primaryClimb:g.primaryClimb, pauses:g.pauses, source:"gpx_import", verified:false, profile:g.profile, splits:g.splits };
+        // The server refuses session details above 50 kB (titan_validate_training_log): a very long track (≈ 600 km of splits) was
+        // queued, then refused for good. The summary always fits; the profile and the splits are thinned until the whole fits.
+        const fits = () => JSON.stringify(data).length <= 40000;
+        if (!fits() && Array.isArray(data.gpxStats.splits)) data.gpxStats.splits = data.gpxStats.splits.filter((_, i, all) => i % Math.ceil(all.length / 100) === 0);
+        if (!fits() && Array.isArray(data.gpxStats.profile)) data.gpxStats.profile = data.gpxStats.profile.filter((_, i, all) => i % Math.ceil(all.length / 120) === 0);
+        if (!fits()) { delete data.gpxStats.profile; delete data.gpxStats.splits; delete data.gpxStats.pauses; }
       }
     } else if (form === "swim") {
       const m = num(S.meters);

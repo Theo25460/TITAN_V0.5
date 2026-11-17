@@ -59,8 +59,26 @@ describe("Health Connect (read only, on request)", () => {
     expect(days).toEqual([{ day: "2026-10-30", steps: 8421 }, { day: "2026-11-01", steps: 5200 }]);
     expect(days.every((d) => w.days.includes(d.day))).toBe(true);
   });
-  test("only the eleven recognised sports become candidates, with a stable id, a bounded duration and a local start", () => {
-    expect(new Set(Object.values(SPORT_BY_EXERCISE)).size).toBe(11);
+  test("Lot C: each exercise type maps to the sport the library names (CALISTHENICS is not dance, PLANK is not pilates)", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ExerciseType } = require("react-native-health-connect/src/constants") as { ExerciseType: Record<string, number> };
+    expect(sportOf(ExerciseType.DANCING)).toBe("dance");
+    expect(sportOf(ExerciseType.PILATES)).toBe("pilates");
+    expect(sportOf(ExerciseType.CALISTHENICS)).toBe("street_workout");
+    expect(sportOf(ExerciseType.PLANK)).toBeNull();
+    expect(sportOf(ExerciseType.RUNNING_TREADMILL)).toBe("treadmill");
+    expect(sportOf(ExerciseType.ROWING_MACHINE)).toBe("rowing_machine");
+    expect(sportOf(ExerciseType.SWIMMING_OPEN_WATER)).toBe("open_water_swimming");
+    expect(sportOf(ExerciseType.SWIMMING_POOL)).toBe("swimming");
+    expect(sportOf(ExerciseType.TENNIS)).toBe("tennis");
+    for (const ambiguous of ["MARTIAL_ARTS", "SKIING", "PADDLING", "FRISBEE_DISC", "OTHER_WORKOUT"]) expect(sportOf(ExerciseType[ambiguous])).toBeNull();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("../src/core");
+    const g = globalThis as unknown as { TITAN_SPORTS_SNAPSHOT: unknown[][] };
+    const ids = new Set(g.TITAN_SPORTS_SNAPSHOT.map((r) => r[0]));
+    for (const sport of Object.values(SPORT_BY_EXERCISE)) expect([sport, ids.has(sport)]).toEqual([sport, true]);
+  });
+  test("only recognised sports become candidates, with a stable id, a bounded duration and a local start", () => {
     expect(sportOf(56)).toBe("running");
     expect(sportOf(999)).toBeNull();
     const ok = toCandidate({ startTime: iso(2026, 10, 1, 8, 0), endTime: iso(2026, 10, 1, 8, 45), exerciseType: 56, title: " Footing ", metadata: { id: "hc-abc_1" } });

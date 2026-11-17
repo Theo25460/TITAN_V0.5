@@ -41,6 +41,15 @@ export const BUNDLES = {
     beforeNote: "This is the state production reached on 16 November 2026 (end of the V1.3.1 bundle).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // Sport excellence (lot C, 18 November 2026): imports linked across neighbouring sport ids, watch swims in metres, the Strava
+  // history archivable. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_sport_excellence_imports.sql).
+  v15: {
+    out: "supabase/release-v15", after: "20261117170000", until: "20261118090000",
+    before: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "95c0de5e6ce0"] },
+    expected: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    beforeNote: "This is the state production reaches at the end of the v14 bundle.",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
