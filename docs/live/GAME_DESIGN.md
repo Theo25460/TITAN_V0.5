@@ -35,8 +35,8 @@ mesure**, sans changer la valeur de la séance ni la saisie sportive (`tests/liv
 | | Atteindre | Se dépasser | Explorer |
 |---|---|---|---|
 | Avant | Le plan ou l'objectif est découpé en **étapes** (4 au plus), affichées avant de commencer. | **Un seul seuil**, tiré de la dernière séance réellement comparable, avec sa justification. Sans séance comparable : « TITAN observe », aucun seuil. | Ni objectif ni plan à régler. |
-| Pendant | Les étapes se cochent ; le compagnon annonce chaque étape, une fois. Aucune comparaison. | Force : sous l'exercice saisi, « La dernière fois : 60 kg × 8 » et le seuil du jour (« 60 kg × 9, ou 62,5 kg, en gardant une répétition en réserve »). Endurance : un peu plus longtemps que la médiane récente (+5 %, 10 min au plus), **jamais plus vite**. | **Aucun chiffre** sur la vue aventure. Un carnet de découvertes : une à 8, 20, 35 et 50 min, plus une par nouveauté réelle (lieu, exercice, technique, condition). |
-| Garde-fous | — | Le seuil se compte une fois par exercice, exige de la réserve (RIR ≥ 1), ignore un saut de charge de plus de 10 %, se retire en récupération ou dès que l'effort ressenti atteint 8. Aucun seuil chiffré en collectif, raquettes, combat, escalade, pratiques à risque ou sereines. | Les découvertes sont du texte : aucune valeur, aucune rareté, aucune récompense. |
+| Pendant | Les étapes se cochent ; le compagnon annonce chaque étape, une fois. Aucune comparaison. | Force : sous l'exercice saisi, « La dernière fois : 60 kg × 8 » et le seuil du jour (« 60 kg × 9, ou 62,5 kg, en gardant une répétition en réserve »). Endurance à pied, sur roues et sur rameur d'intérieur : un peu plus longtemps que la médiane récente (+5 %, 10 min au plus), **jamais plus vite**. | **Aucun chiffre** sur la vue aventure. Un carnet de découvertes : une à 8, 20, 35 et 50 min, plus une par **type** de nouveauté réelle (lieu, exercice, technique, condition). Les missions en cours n'affichent pas de compteur. |
+| Garde-fous | — | Le seuil se compte une fois par exercice, exige de la réserve (RIR ≥ 1), ignore un saut de charge de plus de 10 %, se retire en récupération ou dès que l'effort ressenti atteint 8. Le seuil est mesuré, jamais déclaré ; une fois franchi, il le reste. Aucun seuil chiffré en collectif, raquettes, combat, escalade, montagne (l'heure de demi-tour prime), eau libre, natation, pratiques à risque ou sereines. | Les découvertes sont du texte : aucune valeur, aucune rareté, aucune récompense. |
 | Après | « Plan tenu jusqu'au bout » ou « 2 étapes sur 4 franchies. Ce qui est fait reste fait. » | « Seuil franchi, avec de la réserve » ou « mis de côté quand il le fallait ». | Un récit sans un seul chiffre. |
 
 - **Référence comparable** (`js/core/live-prepare.js`, partagé) : seulement les séances comptées par le serveur et
@@ -46,6 +46,11 @@ mesure**, sans changer la valeur de la séance ni la saisie sportive (`tests/liv
 - **Moments calmes** : entre deux efforts (repos de série, changement de côté, pause, repos de cloche), une ligne de la
   Voie s'affiche, à l'écran seulement : jamais de voix, jamais de notification, rien à toucher, rien en mode Silencieux
   ni pendant le jeu d'un sport en concentration totale. C'est là que l'aventure avance pendant que le corps récupère.
+  Un point de raquette n'ouvre pas de moment calme (le jeu continue) ; la ligne disparaît dès que l'effort reprend.
+- **Séance silencieuse** : étapes, seuil et découvertes ne s'affichent pas pendant l'effort, seulement dans le récit de
+  fin. Le fait sportif « La dernière fois » reste visible sous l'exercice.
+- **Match** : tant qu'aucune période n'est notée, le plan se mesure en temps de jeu réel (2 × 45 min = 90 min), jamais en
+  battements de 15 minutes.
 - **Récit de fin** (`TitanLiveEngine.recap`) : construit depuis ce qui s'est réellement passé (étapes, seuil,
   découvertes, événements, repos tenus, missions). C'est la seule chose qu'une séance silencieuse montre.
 - **Voies sereines** (Sanctuaire : yoga, pilates, étirements, taï-chi, qi gong…) : immersion Silencieux par défaut,

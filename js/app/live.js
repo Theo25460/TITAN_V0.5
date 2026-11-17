@@ -229,7 +229,8 @@
     const missions = L().preparable(ds).slice(0, 8);
     const free = prep.intent === "explorer";
     const imm = Object.values(V().IMMERSION).map((i) => [i.id, i.label, i.level > c.maxImmersion]);
-    const goals = [["none", "Aucun"], ["time", "Durée"], ...(c.unit === "km" ? [["distance", "Distance"]] : []), ["beats", cap(c.beat.many)]];
+    // The web records no GPS trace: a distance goal could never move, so it is not offered here (Android measures it).
+    const goals = [["none", "Aucun"], ["time", "Durée"], ["beats", cap(c.beat.many)]];
     const stake = W().stake(prep.sport, world);
     return `<section class="asc-stack">
       <div><p class="asc-eyebrow cy">${esc(c.voieName)}</p><h1 class="asc-h1">${esc(c.label)}</h1><p class="asc-muted">${esc(c.signature)}</p></div>
@@ -276,7 +277,7 @@
       case "sets": return `${v.restLeftS !== null ? `<p class="asc-eyebrow ${v.restLeftS ? "" : "cy"}">${v.restLeftS ? "La braise refroidit" : "Prêt pour la frappe suivante"}</p><p class="live-clock-sm">${clock(v.restLeftS)}</p>` : ""}
         <div class="live-form"><label class="asc-field"><span>Exercice</span><input class="asc-input" data-k="exercise" value="${esc(prep?.exercise || "")}" placeholder="Squat, pompes…" aria-describedby="live-ref"><span class="asc-small asc-muted live-ref" id="live-ref">${refText()}</span></label>
         <label class="asc-field"><span>Répétitions</span><input class="asc-input" data-k="reps" inputmode="numeric" value="${esc(prep?.reps || "8")}"></label>
-        ${c.voie === "forge" ? `<label class="asc-field"><span>Charge (kg)</span><input class="asc-input" data-k="load" inputmode="decimal" value="${esc(prep?.load || "")}"></label>` : ""}
+        <label class="asc-field"><span>${c.voie === "forge" ? "Charge (kg)" : "Lest (kg, facultatif)"}</span><input class="asc-input" data-k="load" inputmode="decimal" value="${esc(prep?.load || "")}"></label>
         <label class="asc-field"><span>Répétitions en réserve</span><input class="asc-input" data-k="rir" inputmode="numeric" value="${esc(prep?.rir ?? "2")}"></label></div>
         <button type="button" class="asc-btn asc-btn-primary asc-btn-block" data-act="set">Valider la ${esc(c.beat.one)}</button>`;
       case "wall": return `<label class="asc-field"><span>Cotation (facultatif)</span><input class="asc-input" data-k="grade" value="${esc(prep?.grade || "")}"></label><div class="live-row">${big("attempt", "Flash", "du premier coup", 'data-v="flash"')}${big("attempt", "Réussite", "", 'data-v="send"')}${big("attempt", "Chute", "prise révélée", 'data-v="fall"')}</div>`;
@@ -404,7 +405,7 @@
       }
       case "pause": send({ type: state.status === "active" ? "pause" : "resume" }); keepAwake(state.status === "active"); break;
       case "finish": send({ type: "end" }); keepAwake(false); window.speechSynthesis?.cancel?.(); break;
-      case "set": send({ type: "beat", kind: "set", data: { exercise: (prep?.exercise || "Exercice").slice(0, 40), reps: Number(prep?.reps || 0) || 0, ...(prep?.load ? { load: Number(String(prep.load).replace(",", ".")) || 0 } : {}), ...(prep?.rir !== "" && prep?.rir != null ? { rir: Number(prep.rir) } : { rir: 2 }) } }); break;
+      case "set": send({ type: "beat", kind: "set", data: { exercise: (prep?.exercise || "Exercice").slice(0, 40), reps: Number(prep?.reps || 0) || 0, ...(prep?.load ? { load: Number(String(prep.load).replace(",", ".")) || 0 } : {}), ...(prep?.rir === "" ? {} : { rir: Number(prep?.rir ?? 2) || 0 }) } }); break;
       case "attempt": send({ type: "beat", kind: "attempt", data: v === "mark" ? {} : { result: v, grade: String(prep?.grade || "").slice(0, 8), project: !!state.project } }); break;
       case "point": send({ type: "beat", kind: "point", data: { won: v === "1" } }); break;
       case "game": send({ type: "beat", kind: "game", data: { won: v === "1", trailing: Number(state.fields.pointsLost || 0) > Number(state.fields.pointsWon || 0) } }); break;
@@ -441,6 +442,8 @@
     if (k === "recovery" || k === "project") { prep[k] = e.target.checked; if (!state) render(); return; }
     prep[k] = e.target.value;
     if (k === "exercise") { const ref = root.querySelector("#live-ref"); if (ref) ref.innerHTML = refText(); }
+    // The stages follow the goal as it is typed, without rebuilding the page (the field keeps its caret).
+    if (k === "goalValue" && !state) { const box = root.querySelector(".live-intent"); if (box) box.outerHTML = intentPreview(prepState("prepare"), V().resolve(prep.sport)); }
   }
 
   function boot() {

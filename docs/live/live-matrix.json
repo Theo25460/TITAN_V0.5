@@ -3434,7 +3434,7 @@
  {
   "sport": "arm_wrestling",
   "label": "Bras de fer sportif",
-  "signature": "La Forge à la cloche : 8 rounds de 1 min, repos 120 s.",
+  "signature": "Bras de fer sportif dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
   "voie": "forge",
   "essence": "acier",
   "family": "force",
@@ -3442,10 +3442,9 @@
   "safety": "libre",
   "gps": false,
   "plan": {
-   "kind": "round",
-   "count": 8,
-   "workS": 60,
-   "restS": 120
+   "kind": "set",
+   "count": 12,
+   "restS": 90
   },
   "missions": [
    "forge.plan",

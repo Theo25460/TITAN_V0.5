@@ -5,7 +5,7 @@
      refused or impossible session is never a reference;
    - same discipline only, the ten most recent ones;
    - strength and bodyweight: the top set of the LAST session in which each exercise was done (TitanInsights.sets), never
-     an estimated maximum;
+     an estimated maximum; a session whose reward the server holds back is never one;
    - nothing is invented: no reference means no threshold, and the engine says so.
    Pure: no I/O, no clock other than the `now` it is given. */
 (function (root) {
@@ -16,7 +16,9 @@
 
   const num = (v) => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
   const time = (l) => new Date(l?.date).getTime();
-  const usable = (l) => !!l && !l.archived_at && Number.isFinite(time(l))
+  /** A session whose reward the server holds back is under review: like in endurance.js, it is never a reference. */
+  const held = (l) => !!(l.details?.rewardHeld || l.details?.reward_held || l.details?.held || l.details?.serverReward?.reward_held);
+  const usable = (l) => !!l && !l.archived_at && !l.is_suspicious && !held(l) && Number.isFinite(time(l))
     && (T()?.counted ? T().counted(l) : true) && (T()?.plausible ? T().plausible(l) : true);
   const minutesOf = (l) => {
     const d = T()?.duration ? T().duration(l) : null;
@@ -41,19 +43,26 @@
 
   /** Top set of each exercise in the last session where it was done: heaviest load, then most repetitions. */
   function exerciseReference(sessions) {
-    const out = {};
+    const out = Object.create(null);
+    let count = 0;
     for (const l of sessions.slice().reverse()) {
+      // The same exercise entered twice in one session (two variants, two blocks) is one exercise: its best row counts.
+      const session = Object.create(null);
       for (const ex of l?.details?.exercises || []) {
         const key = exKey(ex?.name);
-        if (!key || out[key] || ex.kind === "hold") continue;
-        const rows = rowsOf(ex);
-        if (!rows.length) continue;
-        const top = rows.reduce((b, r) => (r.weight > b.weight || (r.weight === b.weight && r.reps > b.reps) ? r : b), rows[0]);
-        out[key] = { name: String(ex.name).slice(0, 40), load: top.weight || 0, reps: top.reps };
-        if (Object.keys(out).length >= 30) return out;
+        if (!key || ex.kind === "hold") continue;
+        for (const r of rowsOf(ex)) {
+          const best = session[key];
+          if (!best || r.weight > best.load || (r.weight === best.load && r.reps > best.reps)) session[key] = { name: String(ex.name).slice(0, 40), load: r.weight || 0, reps: r.reps };
+        }
+      }
+      for (const key of Object.keys(session)) {
+        if (out[key]) continue;
+        out[key] = session[key];
+        if (++count >= 30) return { ...out };
       }
     }
-    return out;
+    return { ...out };
   }
 
   /**

@@ -280,3 +280,120 @@ test("the camp shows what comes next, nearest first, and never promises what the
   assert.equal(World.stake("yoga", null).lines.length, 1);
   for (const l of [...stake.lines, ...fresh.lines, ...h.map((x) => x.text)]) assert.doesNotMatch(l, /dernière chance|dépêche|expire|perdr/i);
 });
+
+/* ---- Regressions found by the independent review of the first version ---- */
+
+test("review: a session whose reward the server holds back is never the reference", () => {
+  const log = (date, weight, reps, details = {}) => ({ sport: "muscu_gym", date, unit: "min", val: 60, details: { duration: 60, exercises: [{ name: "Squat", setRows: [{ weight, reps }] }], ...details } });
+  for (const flag of [{ rewardHeld: true }, { reward_held: true }, { held: true }, { serverReward: { reward_held: true } }]) {
+    const ctx = Prepare.context("muscu_gym", [log("2026-11-01T10:00:00Z", 60, 8), log("2026-11-05T10:00:00Z", 180, 25, flag)], { now: Date.UTC(2026, 10, 17) });
+    assert.deepEqual(ctx.reference.exercises.squat, { name: "Squat", load: 60, reps: 8 }, JSON.stringify(flag));
+    assert.equal(ctx.comparable, 1);
+  }
+});
+
+test("review: the same exercise entered twice in a session gives its best row, and odd names never reach a prototype", () => {
+  const logs = [{ sport: "muscu_gym", date: "2026-11-05T10:00:00Z", unit: "min", val: 60, details: { duration: 60, exercises: [
+    { name: "Squat", setRows: [{ weight: 40, reps: 10 }] }, { name: "squat", setRows: [{ weight: 80, reps: 5 }] }, { name: "constructor", setRows: [{ weight: 20, reps: 5 }] }] } }];
+  const ctx = Prepare.context("muscu_gym", logs, { now: Date.UTC(2026, 10, 17) });
+  assert.equal(ctx.reference.exercises.squat.load, 80);
+  const s = Live.create({ sportId: "muscu_gym", intent: "depasser", seed: "c", reference: ctx.reference });
+  assert.equal(Live.referenceFor(s, "constructor").last, "20 kg × 5");
+  assert.equal(Live.referenceFor(Live.create({ sportId: "muscu_gym", intent: "depasser", seed: "c", reference: squatRef }), "constructor"), null);
+  assert.equal(Live.referenceFor(Live.create({ sportId: "muscu_gym", intent: "depasser", seed: "c", reference: squatRef }), "toString"), null);
+});
+
+test("review: a match is measured in its real playing time until a period is logged, never « plan tenu » at half an hour", () => {
+  const half = run("football", { intent: "atteindre" }, [[32, { type: "tick" }], [33, { type: "end" }]]);
+  const st = Live.stages(half.state, half.now);
+  assert.deepEqual(st.list.map((x) => x.label), ["23 min", "45 min", "68 min", "90 min"]);
+  assert.equal(st.reached, 1);
+  assert.doesNotMatch(Live.recap(half.state).lines[0], /Plan tenu/);
+  const logged = run("football", { intent: "atteindre" }, [[46, { type: "pause" }], [47, { type: "beat", kind: "period" }], [48, { type: "resume" }]]);
+  assert.deepEqual(Live.stages(logged.state, logged.now).list.map((x) => x.label), ["1 mi-temps", "2 mi-temps"]);
+});
+
+test("review: the endurance threshold never completes in recovery or once the effort feels hard, and stays crossed once crossed", () => {
+  const ticks = [[20, { type: "tick" }], [43, { type: "tick" }], [44, { type: "end" }]];
+  const rec = run("running", { intent: "depasser", baseline: baseline3, recovery: true, immersion: "aventure" }, ticks);
+  assert.equal(Live.thresholdOf(rec.state, rec.now).status, "aside");
+  assert.equal(Live.journal(rec.state).facts.threshold, 0);
+  assert.equal(rec.outs.filter((o) => o.type === "cue" && o.cue.id === "threshold_done").length, 0);
+  assert.doesNotMatch(Live.recap(rec.state).lines[0], /Seuil franchi/);
+  const hard = run("running", { intent: "depasser", baseline: baseline3 }, [[20, { type: "feel", value: 9 }], [43, { type: "tick" }], [44, { type: "end" }]]);
+  assert.equal(Live.thresholdOf(hard.state, hard.now).status, "aside");
+  const late = run("running", { intent: "depasser", baseline: baseline3 }, [[43, { type: "tick" }], [45, { type: "feel", value: 9 }], [46, { type: "end" }]]);
+  assert.equal(Live.thresholdOf(late.state, late.now).status, "done", "crossed before the effort felt hard: it stays crossed");
+  assert.equal(Live.journal(late.state).facts.threshold, 1);
+});
+
+test("review: staying longer is never the threshold in the mountains, on open water or in a silent practice", () => {
+  for (const sport of ["hiking", "alpinism", "open_water_swimming", "swimming", "kayak", "trail_running_never_exists"].filter((id) => ROWS.some((r) => r[0] === id)))
+    assert.equal(Live.thresholdOf(Live.create({ sportId: sport, intent: "depasser", baseline: baseline3, seed: "t" }), 0).status, "missions", sport);
+  for (const sport of ["running", "cycling", "rowing_machine"])
+    assert.equal(Live.thresholdOf(Live.create({ sportId: sport, intent: "depasser", baseline: baseline3, seed: "t" }), 0).status, "open", sport);
+});
+
+test("review: a threshold is measured, never declared, and compares loads without floating-point luck", () => {
+  const declared = run("muscu_gym", { intent: "depasser" }, [[3, { type: "beat", kind: "set", data: { exercise: "Curl", load: 10, reps: 5, rir: 1, threshold: true } }]]);
+  assert.equal(declared.state.fields.thresholdSets, undefined);
+  const below = run("muscu_gym", { intent: "depasser", reference: squatRef }, [[3, { type: "beat", kind: "set", data: { exercise: "Squat", load: 20, reps: 3, rir: 1, threshold: true } }]]);
+  assert.equal(below.state.fields.thresholdSets, undefined);
+  const ref = { exercises: { Curl: { load: 0.1 + 0.2, reps: 8 }, Squat: { load: 62.5, reps: 8 } } };
+  assert.equal(run("muscu_gym", { intent: "depasser", reference: ref }, [[3, set("Curl", 0.3, 9, 2)]]).state.fields.thresholdSets, 1, "0.1 + 0.2 is 0.3");
+  assert.equal(run("muscu_gym", { intent: "depasser", reference: ref }, [[3, set("Squat", 62.50000001, 6, 2)]]).state.fields.thresholdSets, undefined, "the same load is not a step of load");
+  const blank = run("muscu_gym", { intent: "depasser", reference: squatRef }, [[3, { type: "beat", kind: "set", data: { exercise: "Squat", load: 60, reps: 9 } }]]);
+  assert.equal(blank.state.fields.thresholdSets, undefined, "reserve not stated is not reserve kept");
+});
+
+test("review: nothing of the intent shows during a silent effort; the end tells it", () => {
+  const surf = run("surfing", { intent: "explorer" }, [[9, { type: "tick" }], [21, { type: "tick" }]]);
+  const during = Live.view(surf.state, surf.now);
+  assert.equal(during.discoveries, null);
+  assert.equal(during.interlude, null);
+  const silent = run("muscu_gym", { intent: "depasser", immersion: "silence", reference: squatRef }, [[3, set("Squat", 60, 9, 2)]]);
+  assert.equal(Live.view(silent.state, silent.now).threshold, null);
+  assert.equal(Live.referenceFor(silent.state, "Squat").suggest, null);
+  assert.equal(Live.referenceFor(silent.state, "Squat").last, "60 kg × 8", "the sport fact stays");
+  const ended = Live.step(silent.state, { type: "end" }, silent.now + MIN).state;
+  assert.equal(Live.view(ended, silent.now + MIN).threshold.status, "done");
+  assert.match(Live.recap(ended).lines[0], /Seuil franchi/);
+});
+
+test("review: one discovery per kind of novelty, and an explorer mission carries no counter", () => {
+  const script = Array.from({ length: 9 }, (_, i) => [i + 1, set(`Exercice ${i}`, 20, 10, 3)]);
+  const { state, outs, now } = run("muscu_gym", { intent: "explorer", immersion: "aventure", missions: ["forge.lame_neuve", "forge.braise"] }, script);
+  const v = Live.view(state, now);
+  assert.equal(v.discoveries.filter((d) => /mouvement nouveau/.test(d)).length, 1);
+  assert.equal(outs.filter((o) => o.type === "cue" && o.cue.id === "discovery" && /mouvement nouveau/.test(o.cue.text)).length, 1);
+  for (const m of v.missions.active) assert.deepEqual([m.value, m.target], [null, null]);
+  const long = run("running", { intent: "explorer", immersion: "aventure" }, [[46, { type: "tick" }]]);
+  for (const o of long.outs.filter((x) => x.type === "cue")) assert.doesNotMatch(o.cue.text, /\d/, o.cue.text);
+});
+
+test("review: the calm line belongs to real pauses — not to every point, not after the effort resumed, no phantom bell", () => {
+  let s = Live.step(Live.create({ sportId: "badminton", seed: "b" }), { type: "start" }, T0).state;
+  for (let i = 1; i <= 6; i++) s = Live.step(s, { type: "beat", kind: "point", data: { won: i % 2 === 0 } }, T0 + i * 24000).state;
+  assert.equal(Live.view(s, T0 + 150000).interlude, null, "points are play, not a pause");
+  let r = Live.step(Live.create({ sportId: "running", seed: "b" }), { type: "start" }, T0).state;
+  r = Live.step(r, { type: "pause" }, T0 + 5 * MIN).state;
+  assert.ok(Live.view(r, T0 + 5 * MIN + 1000).interlude);
+  r = Live.step(r, { type: "resume" }, T0 + 6 * MIN).state;
+  assert.equal(Live.view(r, T0 + 6 * MIN + 5000).interlude, null);
+  const arm = Voies.resolve("arm_wrestling");
+  assert.equal(arm.panel, "sets");
+  assert.equal(arm.plan.kind, "set");
+  assert.equal(arm.plan.workS, undefined);
+  const duel = run("arm_wrestling", { intent: "atteindre", plan: { count: 4 } }, [[2, set("Duel", 0, 1, 2)], [4, set("Duel", 0, 1, 2)], [6, set("Duel", 0, 1, 2)], [8, set("Duel", 0, 1, 2)]]);
+  assert.equal(Live.stages(duel.state, duel.now).reached, 4);
+  assert.equal(Live.view(duel.state, duel.now).bell, null);
+});
+
+test("review: a tiny distance goal never breaks the story, and an old state can be asked for its threshold", () => {
+  const { state } = run("running", { intent: "atteindre", goal: { kind: "distance", value: 0.04 } }, [[5, { type: "end" }]]);
+  assert.equal(Live.stages(state, T0), null);
+  assert.ok(Live.recap(state).lines.length >= 1);
+  const old = JSON.parse(JSON.stringify(Live.create({ sportId: "muscu_gym", intent: "depasser", seed: "old" })));
+  for (const k of ["thresholds", "discoveries", "calm", "reference"]) delete old[k];
+  assert.equal(Live.thresholdOf(old, T0).status, "none");
+});
