@@ -1655,18 +1655,18 @@ html[data-motion="reduced"] *::after {
 
 /* Folding sections carry one mark everywhere: a chevron at the end of the line that turns when the section opens, instead of the
    browser's triangle at its start. Components that draw their own mark (the QG « why », the optional measures of a session,
-   the public menu, coaching rows) are left alone; the rule has no specificity, so any component can still restyle its summary. */
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary {
+   the public menu, coaching rows, the groups of the profile) are left alone; the rule has no specificity, so any component can still restyle its summary. */
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary {
   display: flex;
   align-items: center;
   gap: var(--s3);
   list-style: none;
   cursor: pointer;
 }
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::-webkit-details-marker {
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::-webkit-details-marker {
   display: none;
 }
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::after {
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::after {
   content: "";
   flex: none;
   width: 9px;
@@ -1678,7 +1678,7 @@ html[data-motion="reduced"] *::after {
   transform: rotate(45deg);
   transition: transform var(--t-fast, 0.16s) ease;
 }
-:where(.asc) details[open]:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources)) > summary::after {
+:where(.asc) details[open]:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::after {
   margin-bottom: -4px;
   transform: rotate(-135deg);
 }

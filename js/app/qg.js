@@ -353,6 +353,41 @@
     remaining.forEach(child => child.remove());
   }
 
+  /* What the server opens beside the practice itself (steps, the day's intent, the common quest, the collective goal, TITAN Duo, the
+     season, the ranking between friends) used to be seven full cards under the QG: a signed-in account scrolled 6 700 px, five times
+     past the same « facultatif, aucun XP » note. They are one list of folded rows, each saying where it stands in a line; a row
+     opens in place and the device remembers which ones its owner keeps open. */
+  const MORE = [
+    ["pas", "TitanStepsCard", "gauge", "Pas aujourd’hui"],
+    ["rv", "TitanIntents", "target", "Rendez-vous du jour"],
+    ["cq", "TitanCommonQuest", "group", "Quête commune de la semaine"],
+    ["wg", "TitanWorldGoal", "globe", "Objectif collectif"],
+    ["bd", "TitanBuddy", "link", "TITAN Duo"],
+    ["ss", "TitanSeason", "calendar", "Saison"],
+    ["rk", "TitanRanking", "bars", "Classement entre amis"],
+  ];
+  const MORE_KEY = "titan_qg_open_v1";
+  function moreOpen() {
+    try { const v = JSON.parse(localStorage.getItem(MORE_KEY) || "[]"); return new Set(Array.isArray(v) ? v : []); } catch { return new Set(); }
+  }
+  function moreHtml() {
+    const open = moreOpen();
+    const rows = MORE.map(([key, name, glyph, title]) => {
+      const module = window[name], html = module?.html?.() || "";
+      if (!html) return "";
+      const brief = module.brief?.() || "";
+      return `<details class="qg-more-item" id="qg-more-${key}" data-more="${key}"${open.has(key) ? " open" : ""}><summary><span class="asc-row-icon">${icon(glyph)}</span><span class="asc-row-main"><span class="asc-row-title">${esc(title)}</span>${brief ? `<span class="asc-row-sub">${esc(brief)}</span>` : ""}</span></summary><div class="qg-more-body">${html}</div></details>`;
+    }).join("");
+    return rows ? `<section class="asc-section asc-appear qg-more" aria-labelledby="qg-more-title"><div class="asc-section-head"><h2 id="qg-more-title">Autour de ta pratique</h2><span class="asc-small asc-faint">Facultatif</span></div><div class="qg-more-list">${rows}</div></section>` : "";
+  }
+  document.addEventListener("toggle", (event) => {
+    const row = event.target;
+    if (!(row instanceof HTMLElement) || !row.matches?.(".qg-more-item")) return;
+    const open = moreOpen();
+    if (row.open) open.add(row.dataset.more); else open.delete(row.dataset.more);
+    try { localStorage.setItem(MORE_KEY, JSON.stringify([...open])); } catch { /* storage refused: the row still opens */ }
+  }, true);
+
   function paint(el, html) {
     const focused = el.contains(document.activeElement) ? document.activeElement : null;
     const template = document.createElement("template");
@@ -400,8 +435,7 @@
     document.getElementById("qg-date").textContent = f.longDate(now);
     document.getElementById("qg-title").textContent = guest || !name || /^agent$/i.test(name) ? "Ton QG" : `Bonjour, ${name.split(/\s+/)[0]}.`;
     paintBanner();
-    const more = [window.TitanStepsCard, window.TitanIntents, window.TitanCommonQuest, window.TitanWorldGoal, window.TitanBuddy, window.TitanSeason, window.TitanRanking]
-      .map((m) => m?.html?.() || "").join("");
+    const more = moreHtml();
     // A new account reads one line about TITAN first. It is drawn with the rest of the QG (not kept hidden in the page head), so
     // nothing already on screen moves when it appears.
     // Two columns on a wide screen: what I do (the action, my week) on the left; where I stand and where to go on the right.
@@ -428,7 +462,7 @@
           ${insightsHtml(others)}
         </div>
       </div>
-      ${more ? `<div class="qg-more">${more}</div>` : ""}`);
+      ${more}`);
     el.setAttribute("aria-busy", "false");
   }
 

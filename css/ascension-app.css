@@ -335,12 +335,60 @@
 .qg-col {
   min-width: 0;
 }
-.qg-more {
-  display: grid;
+/* What the server opens beside the practice: one list of folded rows. A row is a list row (icon, title, one line of status) and
+   opens in place; the block inside keeps its own actions and loses its section title, which the row already says. */
+.qg-more,
+.qg-more-list {
   min-width: 0;
 }
-.qg-more > * {
+.qg-more-list {
+  display: grid;
+  align-items: start;
+}
+.qg-more-item {
   min-width: 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.qg-more-item > summary {
+  min-height: 64px;
+  padding: var(--s3) 0;
+}
+.qg-more-item > summary .asc-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.qg-more-item > summary .asc-row-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qg-more-item[open] > summary .asc-row-title {
+  color: var(--space);
+}
+.qg-more-body {
+  min-width: 0;
+  padding-bottom: var(--s5);
+}
+.qg-more-body > .asc-section {
+  margin-top: 0;
+}
+.qg-more-body .asc-section-head {
+  justify-content: flex-end;
+  min-height: 0;
+  margin-bottom: var(--s2);
+  padding-top: 0;
+  border-top: 0;
+}
+.qg-more-body details {
+  margin-top: var(--s3);
+}
+.qg-more-body .asc-section-head > h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 @media (min-width: 1100px) {
   .qg-cols {
@@ -354,10 +402,9 @@
   .qg-hero {
     padding: var(--s8);
   }
-  .qg-more {
+  .qg-more-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--s9);
-    align-items: start;
   }
 }
 .qg-goal .asc-ascent,

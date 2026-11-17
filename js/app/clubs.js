@@ -95,7 +95,7 @@
       <p class="asc-small asc-muted">Ton signalement n’est lu que par l’équipe TITAN, jamais par le club.</p>
       <label class="asc-field"><span>Motif</span><select class="asc-select" data-club-draft="reason"><option value="">Choisir…</option>${[["spam", "Spam ou publicité"], ["harassment", "Harcèlement ou insultes"], ["inappropriate", "Contenu inapproprié"], ["other", "Autre"]].map(([v, l]) => `<option value="${v}" ${val("reason") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
       <label class="asc-field"><span>Précision (facultatif)</span><input class="asc-input" maxlength="300" data-club-draft="details" value="${esc(val("details"))}"></label>
-      <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Envoyer le signalement</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report-cancel>Annuler</button></div></form>`;
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Envoyer le signalement</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report-cancel>Annuler</button></div></form>`;
   }
 
   function clubHtml(c) {
@@ -105,7 +105,7 @@
     const tools = admin ? `<div class="asc-stack">
         <p class="asc-small">Code pour inviter : <strong data-club-code>${esc(c.code)}</strong></p>
         <label class="asc-field"><span>Nouvelle annonce</span><textarea class="asc-input" maxlength="500" rows="2" data-club-draft="ann-${esc(c.id)}">${esc(val("ann-" + c.id))}</textarea></label>
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-club-announce="${esc(c.id)}" ${busy ? "disabled" : ""}>Publier</button>
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-club-announce="${esc(c.id)}" ${busy ? "disabled" : ""}>Publier</button>
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-code-new="${esc(c.id)}" ${busy ? "disabled" : ""}>Renouveler le code</button>
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-discover="${esc(c.id)}" data-on="${c.discoverable ? "false" : "true"}" ${busy ? "disabled" : ""}>${c.discoverable ? "Ne plus afficher dans la liste" : "Afficher dans la liste"}</button></div></div>` : "";
     return `<article class="asc-panel qg-steps-card" data-club="${esc(c.id)}"><p><strong>${esc(c.name)}</strong> <span class="asc-small asc-muted">· ${n(c.members)} membre${Number(c.members) > 1 ? "s" : ""}${admin ? " · tu administres" : ""}${c.discoverable ? " · visible dans la liste" : " · privé"}</span></p>
@@ -114,7 +114,7 @@
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
       ${reporting && reporting.club === c.id ? reportForm(c) : ""}
-      <div class="asc-row"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="">Signaler ce club</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-leave="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Quitter le club</button></div></article>`;
+      <div class="asc-actions"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="">Signaler ce club</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-leave="${esc(c.id)}" data-name="${esc(c.name)}" ${busy ? "disabled" : ""}>Quitter le club</button></div></article>`;
   }
 
   function render() {
@@ -129,13 +129,13 @@
       <div class="asc-stack">${data.map(clubHtml).join("")}</div>
       <form class="asc-panel asc-stack" data-club-join-form novalidate><h3>Rejoindre avec un code</h3>
         <label class="asc-field"><span>Code du club</span><input class="asc-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-club-draft="code" value="${esc(val("code"))}"></label>
-        <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${lock}>Rejoindre</button></div></form>
+        <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${lock}>Rejoindre</button></div></form>
       ${found ? `<div class="asc-panel"><h3>Clubs ouverts</h3><ul class="rv-list" data-club-list>${found}</ul></div>` : ""}
       <form class="asc-panel asc-stack" data-club-create-form novalidate><h3>Créer un club</h3>
         <label class="asc-field"><span>Nom</span><input class="asc-input" maxlength="60" data-club-draft="name" value="${esc(val("name"))}"></label>
         <label class="asc-field"><span>Description (facultatif)</span><input class="asc-input" maxlength="300" data-club-draft="desc" value="${esc(val("desc"))}"></label>
         <label class="auth-check"><input type="checkbox" data-club-draft-check="open" ${draft.open ? "checked" : ""}><span>Afficher ce club dans la liste des clubs ouverts</span></label>
-        <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${lock}>Créer le club</button></div></form></section>`;
+        <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${lock}>Créer le club</button></div></form></section>`;
   }
 
   document.addEventListener("input", (e) => {

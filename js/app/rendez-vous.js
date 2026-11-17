@@ -96,7 +96,7 @@
     const own = mine
       ? `<div class="asc-panel rv-mine" data-rv-mine data-done="${mine.done ? "true" : "false"}"><p class="rv-text"><strong>${esc(mine.intent)}</strong></p>
           <p class="asc-small asc-muted">${mine.visibility === "friends" ? "Visible de tes amis." : "Privé : toi seul le vois."}${Number(mine.cheers) > 0 ? ` ${Number(mine.cheers)} ami${Number(mine.cheers) > 1 ? "s t’encouragent" : " t’encourage"}.` : ""}</p>
-          <div class="asc-row"><button type="button" class="asc-btn ${mine.done ? "asc-btn-secondary" : "asc-btn-primary"} asc-btn-sm" data-rv-done="${mine.done ? "false" : "true"}" aria-pressed="${mine.done ? "true" : "false"}" ${lock}>${mine.done ? "C’est fait ✓" : "C’est fait"}</button>
+          <div class="asc-actions"><button type="button" class="asc-btn ${mine.done ? "asc-btn-secondary" : "asc-btn-primary"} asc-btn-sm" data-rv-done="${mine.done ? "false" : "true"}" aria-pressed="${mine.done ? "true" : "false"}" ${lock}>${mine.done ? "C’est fait ✓" : "C’est fait"}</button>
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-edit ${lock}>Modifier</button>
           <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-clear ${lock}>Effacer</button></div></div>`
       : `<div class="asc-panel rv-empty" data-rv-empty><p class="asc-muted">Quel est ton objectif aujourd’hui ? C’est facultatif : un jour de repos est aussi un bon objectif, et rien n’est compté ni perdu.</p>
@@ -119,7 +119,7 @@
       <label class="asc-field"><span>Mon objectif du jour</span><input class="asc-input" name="intent" maxlength="80" placeholder="Courir 30 minutes" value="${esc(mine?.intent || "")}" required></label>
       <label class="rv-share"><input type="checkbox" name="friends" ${mine?.visibility === "friends" ? "checked" : ""}> Visible de mes amis</label>
       <p class="asc-small" role="alert" data-rv-error hidden></p>
-      <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button></div>`;
     const d = window.titanShell.sheet({ title: "Mon objectif du jour", eyebrow: "Facultatif", body, onClose: () => { if (dialog === d) dialog = null; } });
     dialog = d;
     body.addEventListener("submit", async (e) => {
@@ -145,7 +145,15 @@
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(); }));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
-  window.TitanIntents = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    const friends = Array.isArray(data.friends) ? data.friends.length : 0;
+    if (data.mine) return `${data.mine.done ? "Fait · " : ""}${data.mine.intent}`;
+    return friends ? `${friends} ami${friends > 1 ? "s ont" : " a"} posé le ${friends > 1 ? "leur" : "sien"}` : "Poser un objectif pour aujourd’hui";
+  }
+  window.TitanIntents = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

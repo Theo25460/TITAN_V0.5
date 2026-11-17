@@ -85,11 +85,11 @@
       const shown = fresh && fresh.challenge === c.id
         ? `<div class="asc-note" data-duel-fresh><p class="asc-small">Voici ton lien. Il ne s’affichera plus : copie-le maintenant. Il sert une seule fois et expire dans 7 jours au plus.</p>
            <input class="asc-input" readonly value="${esc(fresh.url)}" aria-label="Lien d’invitation" data-duel-url>
-           <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-duel-copy>Copier le lien</button>${navigator.share ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-share>Partager</button>` : ""}</div></div>`
+           <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-duel-copy>Copier le lien</button>${navigator.share ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-share>Partager</button>` : ""}</div></div>`
         : "";
       return `<article class="asc-panel qg-steps-card" data-duel="${esc(c.id)}"><p><strong>${esc(c.title)}</strong> <span class="asc-small asc-muted">· jusqu’au ${esc(date(c.endsAt))}</span></p>
         ${links ? `<ul class="rv-list">${links}</ul>` : ""}${shown}
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-create="${esc(c.id)}" ${lock}>Créer un lien d’invitation</button></div></article>`;
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-duel-create="${esc(c.id)}" ${lock}>Créer un lien d’invitation</button></div></article>`;
     }).join("");
     const done = ended.map((c) => {
       const open = results && results.id === c.id && results.data;

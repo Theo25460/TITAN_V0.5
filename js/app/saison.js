@@ -90,7 +90,7 @@
       <p class="asc-small asc-muted">${upcoming ? "Commence le" : "Du"} ${esc(day(c.startsOn))} au ${esc(day(c.endsOn))} · ${n(c.participants)} participant${Number(c.participants) > 1 ? "s" : ""}</p>
       ${c.rules ? `<p class="asc-small">${esc(c.rules)}</p>` : ""}
       ${c.joined ? `<p class="asc-small asc-muted" data-ss-mine>Ta saison jusqu’ici : <strong>${n(c.myMinutes)}</strong> min d’effort · <strong>${n(c.myDays)}</strong> jour${Number(c.myDays) > 1 ? "s" : ""} actif${Number(c.myDays) > 1 ? "s" : ""}</p>` : ""}
-      <div class="asc-row">${action}</div>
+      <div class="asc-actions">${action}</div>
       <p class="asc-small asc-faint">Facultative, sans obligation ni pénalité : se reposer fait partie du jeu. Seules les séances faites après ton inscription comptent. Aucun classement, aucun XP ni crédit.</p></div>`;
   }
 
@@ -105,7 +105,7 @@
       ? `<div class="asc-panel qg-steps-card" data-ss-closing><p><strong>${icon("check")} ${esc(last.name)} est terminée</strong></p>
           <p class="asc-small asc-muted">${n(last.participants)} participant${Number(last.participants) > 1 ? "s" : ""} · ${n(last.minutes)} min d’effort à eux tous.</p>
           ${last.mine ? `<p class="asc-small">Ta saison : <strong>${n(last.mine.minutes)}</strong> min d’effort · <strong>${n(last.mine.days)}</strong> jour${Number(last.mine.days) > 1 ? "s" : ""} actif${Number(last.mine.days) > 1 ? "s" : ""}. Bravo d’avoir pris part à l’aventure.</p>` : `<p class="asc-small asc-muted">Tu n’y as pas pris part : rien à signaler, la prochaine t’attend quand tu veux.</p>`}
-          ${last.mine && window.TitanCard ? `<div class="asc-row"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ss-card>${icon("share")} Partager</button></div>` : ""}</div>`
+          ${last.mine && window.TitanCard ? `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ss-card>${icon("share")} Partager</button></div>` : ""}</div>`
       : "";
     const old = archive.length
       ? `<details class="asc-small" data-ss-archive><summary>Saisons précédentes (${archive.length})</summary><ul class="rv-list">${archive.map((s) => `<li><strong>${esc(s.name)}</strong> · ${esc(day(s.startsOn))} – ${esc(day(s.endsOn))} · ${n(s.participants)} participant${Number(s.participants) > 1 ? "s" : ""}, ${n(s.minutes)} min${s.mine ? ` · ta part : ${n(s.mine.minutes)} min, ${n(s.mine.days)} j` : ""} <span class="asc-faint">(règles v${Number(s.rulesVersion) || 1})</span></li>`).join("")}</ul></details>`
@@ -130,7 +130,15 @@
   });
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(ev === "titan:history-updated"); }));
-  window.TitanSeason = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    const c = data.current, archive = Array.isArray(data.archive) ? data.archive : [];
+    if (c) return `${c.name} · ${c.joined ? `${n(c.myDays)} jour${Number(c.myDays) > 1 ? "s" : ""} actif${Number(c.myDays) > 1 ? "s" : ""}` : "à rejoindre si tu veux"}`;
+    return archive.length ? `${archive[0].name} est terminée` : "";
+  }
+  window.TitanSeason = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();
