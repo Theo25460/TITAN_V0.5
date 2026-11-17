@@ -507,6 +507,10 @@ export function buildConnectedData({ now = new Date(), live = false, flags: with
     titan_buddy_v1: buddy, titan_season_v1: season, titan_common_quest_v1: commonQuest, titan_world_goal_v1: worldGoal, titan_intents_v1: intents, titan_ranking_v1: ranking,
     titan_social_overview: social, titan_get_my_guild: guild, titan_challenge_links_v1: duels,
     titan_club_trophy_sync_v1: 0, titan_club_my_v1: clubs, titan_club_discover_v1: clubsFound,
+    // Social lot B: each club's common goal of the week (a total, never a name).
+    titan_club_week_v1: { __by: "p_club", cases: {
+      [clubs[0].id]: { club: clubs[0].id, weekStart: day(-3), goal: 900, minutes: 640, members: 18, active: 11, canSet: true },
+      [clubs[1].id]: { club: clubs[1].id, weekStart: day(-3), goal: null, minutes: 210, members: 9, active: 4, canSet: false } } },
     titan_faction_v1: factions, titan_pantheon_v1: pantheon, titan_polls_v1: polls, titan_roadmap_v1: roadmap,
     titan_public_card_settings: { enabled: true, slug: "kq7rm2xvtb", show: { name: true, level: true, totals: true, sports: true, titles: true } },
     titan_expedition_titles: titles, titan_displayed_title: { key: "exp:automne-2026", label: "Passe-brume" },
