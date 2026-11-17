@@ -840,7 +840,7 @@
   function signatureOf(sport, voie, tuning) {
     if (SIGNATURES[sport.id]) return SIGNATURES[sport.id];
     if (tuning.periods) return `${voie.name} au rythme du ${sport.label.toLowerCase()} : ${tuning.periods.count} ${tuning.periods.label}${tuning.periods.count > 1 && !/s$/.test(tuning.periods.label) ? "s" : ""} de ${tuning.periods.minutes} min, un serment, un rapport.`;
-    if (tuning.bell) return `${voie.name} à la cloche : ${tuning.bell.rounds} rounds de ${Math.round(tuning.bell.workS / 6) / 10} min, repos ${tuning.bell.restS} s.`;
+    if (tuning.bell && voie.panel === "rounds") return `${voie.name} à la cloche : ${tuning.bell.rounds} rounds de ${Math.round(tuning.bell.workS / 6) / 10} min, repos ${tuning.bell.restS} s.`;
     if (tuning.end) return `${voie.name} par ${tuning.end.many} : ${tuning.end.plan} prévues, chacune allume une étoile.`;
     if (tuning.score) return `${voie.name} en ${tuning.score.game}s et ${tuning.score.set}s${tuning.score.points ? ` à ${tuning.score.points} points` : ""}.`;
     if (tuning.interval) return `${voie.name} : ${tuning.interval.rounds} ${tuning.interval.label || "vague"}s à la cloche.`;
@@ -1116,8 +1116,9 @@
 
   function defaultPlan(sport, voie, tuning) {
     if (tuning.periods) return { kind: "period", count: tuning.periods.count, minutes: tuning.periods.minutes };
-    if (tuning.bell) return { kind: "round", count: tuning.bell.rounds, workS: tuning.bell.workS, restS: tuning.bell.restS };
-    if (tuning.interval) return { kind: "round", count: tuning.interval.rounds, workS: tuning.interval.workS, restS: tuning.interval.restS };
+    // A bell belongs to a panel of rounds: a strength duel logged set by set (arm wrestling) keeps the plan of its panel.
+    if (tuning.bell && voie.panel === "rounds") return { kind: "round", count: tuning.bell.rounds, workS: tuning.bell.workS, restS: tuning.bell.restS };
+    if (tuning.interval && voie.panel === "rounds") return { kind: "round", count: tuning.interval.rounds, workS: tuning.interval.workS, restS: tuning.interval.restS };
     if (tuning.end) return { kind: "end", count: tuning.end.plan };
     if (tuning.score) return { kind: "game", count: tuning.score.sets };
     switch (voie.panel) {
