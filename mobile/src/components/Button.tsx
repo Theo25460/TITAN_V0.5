@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from "react-native";
 import { useSpace } from "../theme/space";
 import { colors, fonts, radius, TOUCH } from "../theme/tokens";
@@ -39,6 +39,10 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
   // 200 %), the label wraps freely and the button grows: a truncated action is worse than a taller one.
   const { fontScale } = useWindowDimensions();
   const lines = fontScale > 1.3 ? undefined : 2;
+  // At the default size a label that would need a second line is first set a little smaller (16 → 14): most then fit on one line,
+  // and the few that still wrap no longer fill the button. Measured, not guessed: the label's own height says whether it wrapped.
+  const [tightFor, setTightFor] = useState<string | null>(null);
+  const tight = lines !== undefined && tightFor === label;
   const press = onPress
     ? () => {
         if (inFlight.current) return;
@@ -64,7 +68,9 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
     >
       <View style={styles.row}>
         {loading ? <ActivityIndicator color={palette.fg} size="small" /> : icon ? <Icon name={icon} size={small ? 18 : 20} color={palette.fg} strokeWidth={2} /> : null}
-        <T variant="title" numberOfLines={lines} style={[styles.label, small && { fontSize: 14 }]} color={palette.fg}>
+        <T variant="title" numberOfLines={lines} color={palette.fg}
+          onLayout={lines === undefined || tight ? undefined : (e) => { if (e.nativeEvent.layout.height > LABEL_LINE * fontScale * 1.5) setTightFor(label); }}
+          style={[styles.label, small && { fontSize: 14 }, tight && (small ? styles.tightSmall : styles.tight)]}>
           {label}
         </T>
       </View>
@@ -72,9 +78,15 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
   );
 }
 
+/** Line height of the label (the « title » variant). */
+const LABEL_LINE = 22;
+
 const styles = StyleSheet.create({
-  base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, justifyContent: "center", overflow: "hidden" },
+  // The vertical padding only shows when a label takes two lines: the text never touches the edge of the button.
+  base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, paddingVertical: 6, justifyContent: "center", overflow: "hidden" },
   small: { minHeight: TOUCH, paddingHorizontal: 14 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   label: { fontFamily: fonts.textBold, flexShrink: 1, textAlign: "center" },
+  tight: { fontSize: 14, lineHeight: 19 },
+  tightSmall: { fontSize: 12.5, lineHeight: 17 },
 });

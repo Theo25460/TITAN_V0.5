@@ -120,7 +120,7 @@ export function AtelierScreen() {
                     <Avatar id={adventure?.avatar} frame={item.cosmetic} size={58} />
                   ) : slot === "map" ? (
                     <View style={styles.mapPrev}>
-                      <Image source={worldImages.valley} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                      <Image source={worldImages.valley} style={styles.mapArt} resizeMode="cover" accessibilityIgnoresInvertColors />
                       <View style={[StyleSheet.absoluteFill, { backgroundColor: MAP_OVERLAYS[item.cosmetic]?.color, opacity: MAP_OVERLAYS[item.cosmetic]?.opacity ?? 0 }]} />
                     </View>
                   ) : (
@@ -167,5 +167,7 @@ const styles = StyleSheet.create({
   item: { width: "47.5%", flexGrow: 1, gap: space.s2, alignItems: "flex-start" },
   preview: { alignSelf: "stretch", height: 92, alignItems: "center", justifyContent: "center", borderRadius: radius.r2, backgroundColor: colors.bg1 },
   mapPrev: { width: "100%", height: "100%", borderRadius: radius.r2, overflow: "hidden" },
+  // A bundled image carries its own pixel size in its style: without an explicit size the painting is not scaled to its box.
+  mapArt: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
   cardPrev: { width: 110, height: 70, borderRadius: 10, borderWidth: 1, padding: 8, justifyContent: "space-between" },
 });

@@ -32,18 +32,20 @@ const DEFAULT_METRICS: Metric[] = ["sessions", "time", "weeks"];
 const validMetrics = (value: unknown): value is Metric[] =>
   Array.isArray(value) && value.length === 3 && new Set(value).size === 3 && value.every(key => Object.hasOwn(METRICS, key));
 
-function ProfileRow({ title, subtitle, icon, onPress, testID, disabled, compact = false, fill = false }: {
+function ProfileRow({ title, subtitle, icon, onPress, testID, disabled, compact = false, fill = false, onField = false }: {
   title: string; subtitle?: string; icon?: IconName; onPress: () => void; testID?: string; disabled?: boolean; compact?: boolean;
   /** Share a row with a sibling (the two actions under the character). */
   fill?: boolean;
+  /** The row sits on the chalk field: its icon and text take the field's ink, whatever the layout (side by side or stacked). */
+  onField?: boolean;
 }) {
   return (
     <Tap testID={testID} onPress={onPress} disabled={disabled} accessibilityState={{ disabled: !!disabled }}
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title} style={[compact ? styles.action : styles.row, fill && styles.fill]}>
-      {icon ? <Icon name={icon} color={compact && fill ? INK : colors.tx2} size={20} /> : null}
+      {icon ? <Icon name={icon} color={onField ? INK : colors.tx2} size={20} /> : null}
       <View style={styles.rowText}>
-        <T variant="bodyStrong" color={compact && fill ? INK : undefined}>{title}</T>
-        {subtitle ? <T variant="small" color={compact && fill ? INK : undefined} style={compact && fill ? { opacity: 0.76 } : undefined}>{subtitle}</T> : null}
+        <T variant="bodyStrong" color={onField ? INK : undefined}>{title}</T>
+        {subtitle ? <T variant="small" color={onField ? INK : undefined} style={onField ? { opacity: 0.76 } : undefined}>{subtitle}</T> : null}
       </View>
       {compact ? null : <Icon name="chevron" size={18} color={colors.tx3} />}
     </Tap>
@@ -205,8 +207,8 @@ export function ProfileScreen() {
             </View>
           </View> : null}
           <View style={[styles.actions, stacked && styles.stacked]}>
-            <ProfileRow compact fill={!stacked} title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
-            {code ? <ProfileRow compact fill={!stacked} title="Code ami" subtitle={`${code} · partager`} icon="share"
+            <ProfileRow compact onField fill={!stacked} title="Personnaliser" icon="settings" onPress={() => setPersonalise(true)} />
+            {code ? <ProfileRow compact onField fill={!stacked} title="Code ami" subtitle={`${code} · partager`} icon="share"
               onPress={() => { Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${code}` }).catch(() => {}); }} /> : null}
           </View>
         </View>

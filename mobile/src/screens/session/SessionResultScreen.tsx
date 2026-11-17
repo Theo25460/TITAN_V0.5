@@ -478,10 +478,11 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
       ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
-        <View style={{ flexDirection: "row", gap: space.s3 }}>
-          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={{ flex: 1 }} testID="share-image" /> : null}
-          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
-          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
+        {/* Whole buttons, each label on one line: those that do not fit side by side go to the next line and share its width. */}
+        <View style={styles.secondary}>
+          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={styles.secondaryButton} testID="share-image" /> : null}
+          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={styles.secondaryButton} /> : null}
+          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={styles.secondaryButton} />
         </View>
         <Button
           label="Terminer"
@@ -524,5 +525,7 @@ const styles = StyleSheet.create({
   dayBonus: { backgroundColor: colors.am },
   quest: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2 },
   questImg: { width: 64, height: 64, borderRadius: radius.r2 },
+  secondary: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  secondaryButton: { flexGrow: 1, flexShrink: 0, flexBasis: "auto" },
   actions: { paddingHorizontal: space.s4, paddingTop: space.s3, gap: space.s3, borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.bg },
 });

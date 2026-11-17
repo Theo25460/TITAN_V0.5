@@ -14,7 +14,7 @@ import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { Format, type Career, type CareerRange } from "../../core";
 import { useCareer } from "../../data/career";
-import { colors, familyColors, radius, space } from "../../theme/tokens";
+import { colors, familyColors, radius, space, spaces } from "../../theme/tokens";
 
 const RANGES: { value: CareerRange; label: string }[] = [
   { value: "7d", label: "7 jours" },
@@ -159,7 +159,7 @@ export function CareerScreen() {
       <View style={styles.ranges} accessibilityRole="tablist" accessibilityLabel="Période" testID="career-ranges">
         {RANGES.map((r) => (
           <Tap key={r.value} haptics={false} accessibilityRole="tab" accessibilityLabel={r.label} accessibilityState={{ selected: range === r.value }} onPress={() => setRange(r.value)} style={[styles.range, range === r.value && styles.rangeOn]}>
-            <T variant="caption" color={range === r.value ? colors.cyInk : colors.tx2} center>
+            <T variant="caption" color={range === r.value ? spaces.progres.ink : colors.tx2} center>
               {r.label}
             </T>
           </Tap>
@@ -239,7 +239,7 @@ export function CareerScreen() {
                   <T variant="small" tone="accent">
                     Tous les records
                   </T>
-                  <Icon name="chevron" size={16} color={colors.cy} />
+                  <Icon name="chevron" size={16} color={spaces.progres.accent} />
                 </Tap>
               </Card>
             </Section>
@@ -304,7 +304,8 @@ const styles = StyleSheet.create({
   more: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-end", minHeight: 48, paddingHorizontal: space.s2 },
   ranges: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
   range: { flexGrow: 1, flexBasis: "22%", minWidth: 84, minHeight: 44, paddingHorizontal: space.s3, borderRadius: radius.r2, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg2 },
-  rangeOn: { backgroundColor: colors.cy, borderColor: colors.cy },
+  // The selected period is a selection, not a progression: it takes the colour of the space (Progrès), not cyan.
+  rangeOn: { backgroundColor: spaces.progres.accent, borderColor: spaces.progres.accent },
   moment: { flexDirection: "row", alignItems: "flex-start", gap: space.s3 },
   dot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
   session: { flexDirection: "row", alignItems: "center", gap: space.s3, minHeight: 48, borderRadius: radius.r2 },

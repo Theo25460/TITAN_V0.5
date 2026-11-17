@@ -104,6 +104,8 @@ const styles = StyleSheet.create({
   adaptiveTab: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 10, paddingVertical: 8 },
   pendingBadge: { alignSelf: "center", fontFamily: fonts.textBold, fontSize: 11, color: colors.warn },
   label: { fontFamily: fonts.textBold, fontSize: 11, textAlign: "center" },
-  record: { width: 52, height: 36, borderRadius: 8, backgroundColor: colors.signal, alignItems: "center", justifyContent: "center", marginTop: -2 },
+  // The library centres the icon in a 28 dp slot with the label right under it: the plate (30 dp) is lifted so that it ends
+  // 2 dp above the slot's lower edge and never touches the « Séance » label or its accent.
+  record: { width: 52, height: 30, borderRadius: 8, backgroundColor: colors.signal, alignItems: "center", justifyContent: "center", transform: [{ translateY: -3 }] },
   recordOn: { backgroundColor: "#E6FA8C" },
 });

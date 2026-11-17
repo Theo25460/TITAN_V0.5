@@ -164,7 +164,8 @@ export function HomeScreen() {
             {action.eyebrow || action.tone === "err" ? <T variant="eyebrow" color={action.tone === "err" ? colors.err : spaces.qg.ink} style={action.tone === "err" ? undefined : { opacity: 0.72 }}>{action.eyebrow ?? "Attention"}</T> : null}
             <T variant="h1" color={action.tone === "err" ? colors.tx : spaces.qg.ink}>{action.title}</T>
             <T color={action.tone === "err" ? colors.tx2 : spaces.qg.ink} style={action.tone === "err" ? undefined : { opacity: 0.84 }}>{action.text}</T>
-            <Button kind={action.tone === "err" ? "primary" : "ink"} icon="chevron" label={action.cta.label} onPress={() => navigateHref(navigation, action.cta.href)} testID="qg-hero-cta" style={{ marginTop: space.s2 }} />
+            {/* The slab's title already says « Ta première séance »: its button keeps to one line on a narrow phone. */}
+            <Button kind={action.tone === "err" ? "primary" : "ink"} icon="chevron" label={action.id === "first" ? "Enregistrer ma séance" : action.cta.label} onPress={() => navigateHref(navigation, action.cta.href)} testID="qg-hero-cta" style={{ marginTop: space.s2 }} />
           </View>
         </Reveal>
         {/* AUD-23/24: the tab bar already reaches Séance, Aventure and Progrès; the QG now surfaces what only it can — events and the circle. */}

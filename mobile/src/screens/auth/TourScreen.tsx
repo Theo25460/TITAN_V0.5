@@ -280,7 +280,7 @@ export function TourScreen({ navigation, route }: NativeStackScreenProps<RootPar
           <T tone="muted">{stop.text}</T>
           <View style={styles.actions}>
             {index > 0 ? <Button kind="secondary" label="Retour" onPress={() => go(index - 1)} testID="tour-back" style={{ flexGrow: 1 }} /> : null}
-            <Button label={index === FIRST_VISIT_STEPS - 1 ? (replay ? "Terminer la visite" : "Créer mon compte et commencer") : "Continuer"} onPress={() => go(index + 1)} testID="tour-next" style={{ flexGrow: 2 }} />
+            <Button label={index === FIRST_VISIT_STEPS - 1 ? (replay ? "Terminer la visite" : "Créer mon compte") : "Continuer"} onPress={() => go(index + 1)} testID="tour-next" style={{ flexGrow: 2 }} />
           </View>
         </View>
       </View>

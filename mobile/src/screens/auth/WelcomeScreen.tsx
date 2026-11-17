@@ -39,7 +39,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
   return (
     <View style={[styles.root, { paddingTop: insets.top + space.s4, paddingBottom: insets.bottom + space.s4 }]}>
       <View style={styles.heroWrap}>
-        <Image source={heroImage} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+        <Image source={heroImage} style={styles.heroArt} resizeMode="cover" accessibilityIgnoresInvertColors />
         <Shade from={0.35} start={0.1} to={1} />
       </View>
       <View style={styles.content}>
@@ -72,7 +72,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
           </View>
         ) : null}
         <View style={{ gap: space.s3 }}>
-          <Button label="Créer mon compte et commencer" testID="welcome-signup" onPress={() => { clearNotice(); navigation.navigate("Signup"); }} />
+          <Button label="Créer mon compte" testID="welcome-signup" onPress={() => { clearNotice(); navigation.navigate("Signup"); }} />
           <Button label="J’ai déjà un compte" kind="secondary" testID="welcome-login" onPress={() => { clearNotice(); navigation.navigate("Login"); }} />
           {discovery ? (
             <Button
@@ -108,6 +108,8 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   heroWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" },
+  // A bundled image carries its own pixel size in its style: without an explicit size the painting is not scaled to its box.
+  heroArt: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
   content: { flex: 1, justifyContent: "space-between", paddingHorizontal: space.s5, gap: space.s4 },
   loop: { borderTopWidth: 2, borderTopColor: colors.tx },
   step: { flexDirection: "row", gap: space.s3, alignItems: "flex-start", paddingVertical: space.s3, borderBottomWidth: 1, borderBottomColor: colors.line2 },

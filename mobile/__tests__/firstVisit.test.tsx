@@ -76,7 +76,7 @@ describe("the four stops", () => {
       expect(screen.getByText(titles[i]!)).toBeTruthy();
       if (i < titles.length - 1) fireEvent.press(screen.getByTestId("tour-next"));
     }
-    expect(screen.getByText("Créer mon compte et commencer")).toBeTruthy();
+    expect(screen.getByText("Créer mon compte")).toBeTruthy();
     fireEvent.press(screen.getByTestId("tour-next"));
     expect(nav.reset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Welcome" }] });
     await waitFor(async () => expect(await stored()).toEqual({ seen: true, step: 0 }));

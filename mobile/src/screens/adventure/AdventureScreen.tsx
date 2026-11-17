@@ -161,9 +161,11 @@ export function AdventureScreen() {
                       accessibilityLabel={`${world.name}, ${world.subtitle.toLowerCase()}. ${chapter >= 10 ? "Monde terminé" : chapter ? `Chapitre ${chapter} sur 9${progress?.ready ? ", balise prête à allumer" : ""}${current ? ", monde en cours" : ""}` : unconfirmed ? "Disponibilité à confirmer" : "Pas encore commencé"}.`}
                       style={[styles.worldTile, wide && styles.worldTileWide]}>
                       <Image source={worldImages[world.image]} style={[styles.worldImg, unconfirmed && { opacity: 0.35 }]} resizeMode="cover" accessibilityIgnoresInvertColors />
-                      <Shade from={0.05} start={0.25} to={0.96} />
                       {unconfirmed ? <View style={styles.worldLock}><Icon name="lock" size={16} color={colors.tx2} /></View> : null}
                       <View style={styles.worldBody}>
+                        {/* The scrim follows the text, not the tile: a dark plate with a soft upper edge under the name and its
+                            status, however many lines they take; the painting stays clear above it. */}
+                        <View style={styles.worldScrim} pointerEvents="none"><Shade from={0} start={0} end={0.38} to={0.84} /></View>
                         <T variant="title">{world.name}</T>
                         <T variant="caption" tone={unconfirmed ? "muted" : "default"} color={progress?.ready ? colors.mousse : undefined}>
                           {status}
@@ -254,6 +256,7 @@ const styles = StyleSheet.create({
   worldTile: { flexBasis: "45%", flexGrow: 1, minHeight: 148, borderRadius: radius.r1, overflow: "hidden", backgroundColor: colors.bg1, justifyContent: "flex-end" },
   worldTileWide: { flexBasis: "100%", minHeight: 112 },
   worldBody: { padding: space.s3, gap: 4 },
+  worldScrim: { position: "absolute", left: 0, right: 0, bottom: 0, top: -36 },
   worldCurrent: { height: 4 },
   worldLock: { position: "absolute", top: space.s2, right: space.s2, width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.scrim },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },

@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { Format, Sports } from "../core";
 import type { ProgramCell, ProgramSpan, ProgramWeek } from "../core/program";
 import { Program } from "../core/program";
+import { unbreakable } from "../lib/typography";
 import { useSpace } from "../theme/space";
 import { colors, familyColors, fonts, space } from "../theme/tokens";
 import { Icon } from "./Icon";
@@ -31,8 +32,9 @@ function Line({ icon, label, sub, color, children }: { icon?: string; label: str
       <View style={styles.name}>
         {icon ? <Icon name={icon as never} size={18} color={color} /> : <View style={[styles.swatch, { backgroundColor: color }]} />}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <T variant="bodyStrong" numberOfLines={1}>{label}</T>
-          <T variant="caption" tone="faint" numberOfLines={1}>{sub}</T>
+          {/* The name of a sport is never cut (« Musculation en salle » on a narrow phone): it takes a second line, like on the site. */}
+          <T variant="bodyStrong" numberOfLines={2} style={styles.label}>{label}</T>
+          <T variant="caption" tone="faint" numberOfLines={2}>{sub}</T>
         </View>
       </View>
       <View style={styles.cells}>{children}</View>
@@ -40,7 +42,20 @@ function Line({ icon, label, sub, color, children }: { icon?: string; label: str
   );
 }
 
-const sessions = (n: number) => `${n} séance${n > 1 ? "s" : ""}`;
+const SHORT = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
+
+/** The label over a week of a period, by the site's rule (js/app/program.js): the current week is named, a month is named over
+    its first week (and over the first column), and the week or two before the current one stay bare so labels never meet.
+    A phone's columns are narrower than a date, so the other weeks carry no number: a whole label or none, never a fragment. */
+function spanLabel(c: ProgramSpan["columns"][number], i: number, all: ProgramSpan["columns"]) {
+  if (c.current) return "Sem.";
+  if (i === all.length - 2 || (all.length > 10 && i === all.length - 3) || (i === 0 && (all[1]?.date ?? 99) <= 7)) return "";
+  return i === 0 || c.date <= 7 ? SHORT[c.month] ?? "" : "";
+}
+
+// « 3 séances · 1 h 05 » may break at the middle dot only.
+const sessions = (n: number) => `${n}\u00a0séance${n > 1 ? "s" : ""}`;
+const duration = (minutes: number) => unbreakable(Format.duration(minutes));
 
 export function ProgramGrid({ grid, testID }: { grid: ProgramWeek | ProgramSpan; testID?: string }) {
   const theme = useSpace();
@@ -66,15 +81,17 @@ export function ProgramGrid({ grid, testID }: { grid: ProgramWeek | ProgramSpan;
                 </View>
               ))
             : (grid as ProgramSpan).columns.map((c, i, all) => (
-                <View key={c.key} style={styles.head}>
-                  <T variant="caption" style={styles.letter} color={c.current ? theme.accent : colors.tx3} numberOfLines={1}>{c.current ? "S." : all.length > 10 && i % 2 ? "" : String(c.date)}</T>
+                <View key={c.key} style={[styles.head, i === 0 && styles.headFirst, i === all.length - 1 && styles.headLast]}>
+                  {/* Wider than its column, the label (one short word, so one line) spills over its bare neighbours; the first and
+                      the last align to their edge. */}
+                  <T variant="caption" style={[styles.letter, styles.spanLabel, i === 0 && { textAlign: "left" }, i === all.length - 1 && { textAlign: "right" }]} color={c.current ? theme.accent : colors.tx3}>{spanLabel(c, i, all)}</T>
                   <View style={[styles.today, c.current && { backgroundColor: theme.accent }]} />
                 </View>
               ))}
         </View>
       </View>
       {grid.rows.map((r, rowIndex) => (
-        <Line key={r.sport} icon={Sports.iconOf(r.sport)} label={r.label} sub={`${sessions(r.sessions)} · ${Format.duration(r.minutes)}`} color={familyColors[r.family] ?? colors.tx2}>
+        <Line key={r.sport} icon={Sports.iconOf(r.sport)} label={r.label} sub={`${sessions(r.sessions)} · ${duration(r.minutes)}`} color={familyColors[r.family] ?? colors.tx2}>
           {r.cells.map((c, i) => (
             <Cell key={i} cell={c} color={familyColors[r.family] ?? colors.tx2} future={week ? week.days[i]!.future : false} planned={!!week && week.planned.some((p) => p.row === rowIndex && p.day === i)} mark={week ? week.days[i]!.today : (grid as ProgramSpan).columns[i]!.current} />
           ))}
@@ -86,7 +103,7 @@ export function ProgramGrid({ grid, testID }: { grid: ProgramWeek | ProgramSpan;
         </Line>
       ))}
       {grid.more ? (
-        <Line label={`${grid.more.sports} autre${grid.more.sports > 1 ? "s" : ""} sport${grid.more.sports > 1 ? "s" : ""}`} sub={`${sessions(grid.more.sessions)} · ${Format.duration(Math.round(grid.more.minutes))}`} color={colors.tx3}>
+        <Line label={`${grid.more.sports} autre${grid.more.sports > 1 ? "s" : ""} sport${grid.more.sports > 1 ? "s" : ""}`} sub={`${sessions(grid.more.sessions)} · ${duration(Math.round(grid.more.minutes))}`} color={colors.tx3}>
           {grid.more.cells.map((c, i) => <Cell key={i} cell={c} color={colors.tx2} future={week ? week.days[i]!.future : false} mark={week ? week.days[i]!.today : (grid as ProgramSpan).columns[i]!.current} />)}
         </Line>
       ) : null}
@@ -105,7 +122,11 @@ const styles = StyleSheet.create({
   swatch: { width: 18, height: 3 },
   cells: { flex: 1, flexDirection: "row", gap: 4, alignItems: "center" },
   head: { flex: 1, alignItems: "center", gap: 3, paddingTop: 2 },
+  headFirst: { alignItems: "flex-start" },
+  headLast: { alignItems: "flex-end" },
   letter: { fontFamily: fonts.textBold, fontSize: 12, lineHeight: 15, textAlign: "center" },
+  spanLabel: { width: 44 },
+  label: { lineHeight: 20 },
   today: { width: "100%", height: 2, backgroundColor: "transparent" },
   cell: { flex: 1, aspectRatio: 1, maxHeight: 36, alignItems: "center", justifyContent: "center" },
   cellMark: { backgroundColor: "rgba(226,234,236,0.05)" },

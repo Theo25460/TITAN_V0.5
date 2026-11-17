@@ -19,7 +19,7 @@ export function Chip({ label, icon, selected = false, onPress, tone = "default",
   );
   if (!onPress) return <View style={[styles.chip, { backgroundColor: bg }]}>{content}</View>;
   return (
-    <Tap onPress={onPress} testID={testID} accessibilityRole="button" accessibilityState={{ selected }} accessibilityLabel={label} style={[styles.chip, styles.tappable, { backgroundColor: bg, borderColor: selected ? colors.cy : colors.line2 }]}>
+    <Tap onPress={onPress} testID={testID} accessibilityRole="button" accessibilityState={{ selected }} accessibilityLabel={label} style={[styles.chip, styles.tappable, { backgroundColor: bg, borderColor: selected ? theme.accent : colors.line2 }]}>
       {content}
     </Tap>
   );

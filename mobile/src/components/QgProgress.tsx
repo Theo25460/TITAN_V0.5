@@ -1,5 +1,6 @@
 import { Image, StyleSheet, View } from "react-native";
 import { Format } from "../core";
+import { unbreakable } from "../lib/typography";
 import type { ProgramWeek } from "../core/program";
 import { colors, radius, space, TOUCH } from "../theme/tokens";
 import { Icon } from "./Icon";
@@ -65,16 +66,16 @@ export function QgProgress({ cadence, sessions, weekXp, weekMinutes, showWeek, c
                 {cadence.currentDays}
                 {cadence.currentPaused ? null : <T variant="num" tone="faint"> /{cadence.target}</T>}
               </T>
-              <T variant="caption" tone="muted">{cadence.currentPaused ? "jours actifs · en pause" : reached ? "jours actifs · semaine tenue" : "jours actifs"}</T>
+              <T variant="caption" tone="muted" style={styles.caption}>{cadence.currentPaused ? "jours actifs · en\u00a0pause" : reached ? "jours actifs · semaine\u00a0tenue" : "jours actifs"}</T>
             </View>
             <View style={styles.figure}>
               <T variant="figure">{sessions}</T>
-              <T variant="caption" tone="muted">{sessions > 1 ? "séances" : "séance"}{weekMinutes ? ` · ${Format.duration(weekMinutes)}` : ""}</T>
+              <T variant="caption" tone="muted" style={styles.caption}>{sessions > 1 ? "séances" : "séance"}{weekMinutes ? ` · ${unbreakable(Format.duration(weekMinutes))}` : ""}</T>
             </View>
             {weekXp > 0 ? (
               <View style={styles.figure}>
-                <T variant="figure" color={colors.cy} numberOfLines={1} adjustsFontSizeToFit>+{Format.number(weekXp)}</T>
-                <T variant="caption" tone="muted">XP confirmés</T>
+                <T variant="figure" color={colors.cy}>+{Format.number(weekXp)}</T>
+                <T variant="caption" tone="muted" style={styles.caption}>XP{"\u00a0"}confirmés</T>
               </View>
             ) : null}
           </View>
@@ -91,7 +92,7 @@ export function QgProgress({ cadence, sessions, weekXp, weekMinutes, showWeek, c
         {chapter ? <Image source={chapter.image} style={styles.thumb} accessibilityIgnoresInvertColors /> : <View style={styles.disc}><Icon name="compass" size={24} color={colors.mousse} /></View>}
         <View style={styles.text}>
           <T variant="caption" color={chapter?.color ?? colors.tx3}>
-            {chapter ? `${chapter.worldName} · chapitre ${chapter.chapter}/9` : "Aventure"}
+            {chapter ? `${chapter.worldName} · chapitre\u00a0${chapter.chapter}/9` : "Aventure"}
           </T>
           {chapter?.chapterName ? <T variant="title">{chapter.chapterName}</T> : null}
           <T variant={chapter ? "caption" : "small"} color={chapter?.status === "ready" && online ? colors.mousse : colors.tx2}>
@@ -107,8 +108,11 @@ export function QgProgress({ cadence, sessions, weekXp, weekMinutes, showWeek, c
 const styles = StyleSheet.create({
   week: { gap: space.s3, borderTopWidth: 2, borderTopColor: colors.tx, paddingTop: space.s2 },
   head: { flexDirection: "row", alignItems: "center", minHeight: 36 },
-  figures: { flexDirection: "row", gap: space.s5, alignItems: "flex-end", paddingBottom: space.s2 },
-  figure: { flexShrink: 1, minWidth: 0, gap: 2 },
+  // A figure is never squeezed or cut: each column keeps the width of its number, its caption wraps between words under it, and
+  // a column that does not fit (narrow phone, large text, a four-digit week) goes to the next line whole.
+  figures: { flexDirection: "row", flexWrap: "wrap", columnGap: space.s5, rowGap: space.s3, alignItems: "flex-end", paddingBottom: space.s2 },
+  figure: { flexShrink: 0, gap: 2 },
+  caption: { maxWidth: 116 },
   previous: { gap: space.s1, paddingTop: space.s3, borderTopWidth: 1, borderTopColor: colors.line, opacity: 0.72 },
   chapter: { flexDirection: "row", alignItems: "center", gap: space.s4, minHeight: TOUCH + space.s5, paddingVertical: space.s2 },
   line: { borderTopWidth: 1, borderTopColor: colors.line2, paddingTop: space.s4 },

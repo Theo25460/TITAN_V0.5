@@ -32,8 +32,9 @@ export function useCareer(range: CareerRange): { career: Career; loading: boolea
   const days = useMemo(() => (steps.isError && !ped.ledger ? null : mergeDays(ledgerRows(ped.ledger), steps.data ?? []).map((d) => ({ day: d.day, steps: d.steps }))), [ped.ledger, steps.data, steps.isError]);
   const level = adventure.data?.level ?? profile.data?.level ?? null;
   const xp = adventure.data ? adventure.data.xp : profile.data?.xp ?? null;
+  // Like the site (js/app/carriere.js): the rank's name and crest with the person's own level, not the level the rank starts at.
   const career = useMemo(
-    () => CareerRules.build(logsQ.active, { range, stepDays: days && days.length ? days : null, rank: level ? EffortRules.rank(level) : null, xp: typeof xp === "number" ? xp : null }),
+    () => CareerRules.build(logsQ.active, { range, stepDays: days && days.length ? days : null, rank: level ? { ...EffortRules.rank(level), level } : null, xp: typeof xp === "number" ? xp : null }),
     [logsQ.active, range, days, level, xp],
   );
   return { career, loading: logsQ.isLoading && !logsQ.data, stepsLoading: steps.isLoading, error: logsQ.error };

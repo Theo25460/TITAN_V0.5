@@ -27,7 +27,7 @@ import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, space, TOUCH } from "../../theme/tokens";
+import { colors, familyColors, space, spaces, TOUCH } from "../../theme/tokens";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
 import { ExerciseEditor } from "./ExerciseEditor";
 import { SportMetricsEditor } from "./SportMetricsEditor";
@@ -310,23 +310,28 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         </View>
       }
     >
+      {/* The kind of session keeps its line; the links sit beside it when there is room and under it, on the right, otherwise. */}
       <View style={styles.sportHead}>
-        <View style={[styles.famDot, { backgroundColor: familyColors[fam] }]} />
-        <T variant="caption" tone="muted" style={{ flex: 1 }}>
-          {Sports.FAMILY_LABEL[fam]} · {Sports.FORMS[form].label}
-        </T>
-        {GPS_SPORTS.has(sport) ? (
-          <Tap onPress={() => navigation.navigate("GpsRecord", { sport })} accessibilityLabel="Enregistrer avec le GPS" testID="gps-open" style={styles.change}>
-            <T variant="caption" color={colors.cy}>
-              Enregistrer en GPS
+        <View style={styles.sportKind}>
+          <View style={[styles.famDot, { backgroundColor: familyColors[fam] }]} />
+          <T variant="caption" tone="muted" style={styles.sportLabel}>
+            {Sports.FAMILY_LABEL[fam]} · {Sports.FORMS[form].label}
+          </T>
+        </View>
+        <View style={styles.sportLinks}>
+          {GPS_SPORTS.has(sport) ? (
+            <Tap onPress={() => navigation.navigate("GpsRecord", { sport })} accessibilityLabel="Enregistrer avec le GPS" testID="gps-open" style={styles.change}>
+              <T variant="caption" tone="accent">
+                Enregistrer en GPS
+              </T>
+            </Tap>
+          ) : null}
+          <Tap onPress={() => navigation.goBack()} accessibilityLabel="Changer de sport" style={styles.change}>
+            <T variant="caption" tone="accent">
+              Changer
             </T>
           </Tap>
-        ) : null}
-        <Tap onPress={() => navigation.goBack()} accessibilityLabel="Changer de sport" style={styles.change}>
-          <T variant="caption" color={colors.cy}>
-            Changer
-          </T>
-        </Tap>
+        </View>
       </View>
 
       <Section title="Quand">
@@ -462,7 +467,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
 
       <Card tone="flat" style={{ gap: space.s3 }}>
         <View style={styles.row}>
-          <Icon name="timer" size={22} color={running ? colors.cy : colors.tx3} />
+          <Icon name="timer" size={22} color={running ? spaces.seance.accent : colors.tx3} />
           <T variant="num" style={{ flex: 1 }} accessibilityLabel={`Chronomètre ${clock}`}>
             {clock}
           </T>
@@ -510,7 +515,10 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: space.s2, alignItems: "center" },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  sportHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  sportHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8 },
+  sportKind: { flexDirection: "row", alignItems: "center", gap: 8, flexGrow: 1, flexShrink: 1, minHeight: 32 },
+  sportLabel: { flexShrink: 1 },
+  sportLinks: { flexDirection: "row", alignItems: "center", marginLeft: "auto" },
   famDot: { width: 10, height: 10, borderRadius: 5 },
   change: { minHeight: TOUCH, paddingHorizontal: 8, justifyContent: "center" },
 });
