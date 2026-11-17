@@ -6,7 +6,7 @@ import type { Fix } from "../src/lib/gpsTrack";
 
 const mockStore = new Map<string, Recording | null>();
 const mockState = { permission: "ok" as "ok" | "denied" | "blocked" | "unavailable", updates: false, active: null as string | null };
-const mockDraft = jest.fn();
+const mockDraft = jest.fn(async (..._a: unknown[]) => true);
 const mockGuard = jest.fn(async (_owner: string | null) => {});
 let mockAuth: { status: string; owner: string | null };
 jest.mock("../src/lib/gpsNative", () => {
@@ -109,6 +109,21 @@ test("start, pause, resume, finish, then the totals become the form draft and th
   expect(JSON.stringify(draft)).not.toContain("48.85");
   expect(mockStore.get("titan.gps.v1:owner-a") ?? null).toBeNull();
   expect(mockState.active).toBeNull();
+});
+
+test("Lot A (review): when another recording already waits as the draft, « Garder » releases nothing and says why", async () => {
+  mockDraft.mockResolvedValueOnce(false);
+  nav.replace.mockClear();
+  render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><GpsRecordScreen navigation={nav} route={{ params: { sport: "running" } }} /><DialogHost /></ToastProvider></SafeAreaProvider>);
+  fireEvent.press(await screen.findByTestId("gps-start"));
+  await screen.findByText(/Enregistrement en cours/);
+  await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 12 }, (_, i) => fix(i)))));
+  fireEvent.press(screen.getByTestId("gps-finish"));
+  await screen.findByText(/Séance terminée/);
+  fireEvent.press(screen.getByTestId("gps-keep"));
+  expect(await screen.findByText(/Une autre séance GPS attend/)).toBeTruthy();
+  expect(nav.replace).not.toHaveBeenCalled();
+  expect(mockStore.get("titan.gps.v1:owner-a")).toBeTruthy();
 });
 
 test("abandoning a finished outing asks first: « Garder » keeps the trace, only an explicit confirmation deletes it (AUD-07)", async () => {

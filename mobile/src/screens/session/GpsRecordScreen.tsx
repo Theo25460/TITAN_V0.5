@@ -111,7 +111,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
     try {
       await fn();
     } catch (e) {
-      if (mounted.current) toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : (e as Error).message === "ROUTE_OUTBOX_FULL" ? "20 parcours attendent déjà leur envoi. Ta trace reste sur ce téléphone : exporte-la ou synchronise tes parcours avant de réessayer." : "Réessaie dans un instant. Ta trace reste sur ce téléphone." });
+      if (mounted.current) toast({ kind: "err", title: failure, message: (e as Error).message === "ALREADY_RECORDING" ? "Un enregistrement est déjà en cours." : (e as Error).message === "DRAFT_PINNED" ? "Une autre séance GPS attend d’être enregistrée. Ouvre la saisie pour l’enregistrer ou l’abandonner, puis reviens : cette trace-ci reste sur ce téléphone." : (e as Error).message === "ROUTE_OUTBOX_FULL" ? "20 parcours attendent déjà leur envoi. Ta trace reste sur ce téléphone : exporte-la ou synchronise tes parcours avant de réessayer." : "Réessaie dans un instant. Ta trace reste sur ce téléphone." });
     } finally {
       inFlight.current = false;
       if (mounted.current) setBusy(false);
@@ -169,7 +169,9 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
         await queueRoute(owner, pending);
         draft.gpsRouteId = pending.clientRouteId;
       }
-      await saveDraft(owner, draft); // on disk before the recording is released
+      // On disk before the recording is released. Another sport's finished recording may be pinned as the draft: then this one is
+      // NOT released (no discard below) and the athlete is told to send or give up the waiting one first.
+      if (!(await saveDraft(owner, draft, { release: true }))) throw new Error("DRAFT_PINNED");
       await recorder.discard(owner);
       await setActiveOwner(null, owner);
       flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event)).catch(() => {});

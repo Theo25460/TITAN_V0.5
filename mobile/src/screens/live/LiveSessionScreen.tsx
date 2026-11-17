@@ -232,7 +232,12 @@ export function LiveSessionScreen({ navigation, route }: Props) {
       exercises: ld.exercises?.length ? ld.exercises.map((e) => ({ name: e.name, variant: "", kind: config.voie === "corps" ? "bodyweight" : "weighted", sets: e.setRows.map((r) => ({ weight: r.load != null ? String(r.load) : "", reps: r.reps != null ? String(r.reps) : "", rir: r.rir != null ? String(r.rir) : "", seconds: "" })) })) : draft.exercises,
       live: LiveEngine.journal(s),
     };
-    await saveDraft(owner, draft);
+    // A GPS recording of another sport may be pinned as the draft: then nothing of this live session is released (recording, live
+    // journal) and the athlete is told what to do first.
+    if (!(await saveDraft(owner, draft, { release: true }))) {
+      await ask("Une autre séance attend d’être enregistrée", "Une séance GPS terminée attend dans la saisie. Enregistre-la ou abandonne-la, puis reviens ici : cette séance live reste sur ce téléphone.", { confirmLabel: "Compris" });
+      return;
+    }
     if (rec) { await recorder.discard(owner); await setActiveOwner(null, owner); flushRoutes(owner, (r) => routeSave(owner, r), (id, event) => routeLink(owner, id, event)).catch(() => {}); }
     await saveLive(owner, null);
     navigation.replace("SessionForm", { sport });

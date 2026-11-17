@@ -82,3 +82,25 @@ test("Lot A: a pinned GPS recording survives the 48-hour form expiry and can sti
   await discardDraft("c");
   expect(await AsyncStorage.getItem(ownerKey("draft", "c"))).toBeNull();
 });
+
+test("Lot A (review): releasing a second recording never replaces a waiting one, same sport or not — the caller is told", async () => {
+  await loadDrafts("d");
+  const first = { ...freshDraft("running"), distance: "10", durM: "50", gpsRouteId: "route-a" };
+  expect(await saveDraft("d", first, { release: true })).toBe(true);
+  expect(await saveDraft("d", { ...freshDraft("cycling"), distance: "30", durM: "60", gpsRouteId: "route-b" }, { release: true })).toBe(false);
+  expect(await saveDraft("d", { ...freshDraft("running"), distance: "5", durM: "25", gpsRouteId: "route-c" }, { release: true })).toBe(false);
+  expect(await saveDraft("d", { ...freshDraft("running"), durM: "30" }, { release: true })).toBe(false);
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "d")))!)).toMatchObject({ draft: { gpsRouteId: "route-a", distance: "10" } });
+});
+
+test("Lot A (review): saving another sport while a recording waits still resets the stopwatch, and keeps the recording", async () => {
+  await loadDrafts("e");
+  await saveDraft("e", { ...freshDraft("running"), distance: "10", durM: "50", gpsRouteId: "route-a" });
+  const { setStopwatch } = jest.requireActual("../src/data/drafts") as typeof import("../src/data/drafts");
+  setStopwatch("e", { elapsed: 120000, started: null });
+  const other = { ...freshDraft("yoga"), durM: "30" };
+  await saveDraft("e", other);
+  await draftCleanup("e", other)();
+  expect(await AsyncStorage.getItem(ownerKey("draft-timer", "e"))).toBeNull();
+  expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "e")))!)).toMatchObject({ draft: { gpsRouteId: "route-a" } });
+});

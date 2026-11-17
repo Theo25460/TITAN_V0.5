@@ -40,19 +40,22 @@ const isRecording = (stored: Stored) => Boolean(stored?.draft?.gpsRouteId);
 
 /** One draft per account. A finished GPS recording is pinned in it until it is sent or explicitly cleaned: typing in another
     sport's form must not overwrite the only copy of a measured distance and duration (the recorder is released once the draft
-    is on disk). Edits of that same recording are saved as usual. */
-export function saveDraft(owner: string, draft: SessionDraft) {
+    is on disk). Edits of that same recording are saved as usual. Resolves to false when the write was held back: a caller that
+    is about to release another measure (a second GPS recording, a TITAN LIVE session) must check it and keep its own copy. */
+export function saveDraft(owner: string, draft: SessionDraft, { release = false }: { release?: boolean } = {}): Promise<boolean> {
   const stored = { draft, updatedAt: Date.now(), id: randomUUID() };
-  // Only another sport's form is held back: the recording's own form may edit it, even clear its trace.
-  const pinned = (s: Stored) => isRecording(s) && s!.draft.sport !== draft.sport;
-  if (current.owner === owner && pinned(current.stored)) return Promise.resolve();
+  // A form only edits: another sport's form is held back, the recording's own form may edit it, even clear its trace.
+  // A caller that releases a measure (`release`: GPS or live « Garder ») never replaces a different waiting recording, same sport or not.
+  const pinned = (s: Stored) => isRecording(s) && (release ? s!.draft.gpsRouteId !== draft.gpsRouteId : s!.draft.sport !== draft.sport);
+  if (current.owner === owner && pinned(current.stored)) return Promise.resolve(false);
   if (current.owner === owner) {
     current = { ...current, stored };
     emit();
   }
   return serialize(owner, async () => {
-    if (pinned(await readJSON<Stored>(ownerKey("draft", owner), null))) return;
+    if (pinned(await readJSON<Stored>(ownerKey("draft", owner), null))) return false;
     await writeJSON(ownerKey("draft", owner), stored);
+    return true;
   });
 }
 
@@ -73,7 +76,16 @@ export function draftCleanup(owner: string, submitted: SessionDraft) {
   return () => serialize(owner, async () => {
     const key = ownerKey("draft", owner);
     const stored = await readJSONStrict<Stored>(key, null);
-    if (!matches(stored)) return;
+    if (!matches(stored)) {
+      // This form was never stored because a GPS recording of another sport is pinned: leave that draft alone, but the stopwatch
+      // of the session just saved still starts again from zero, as it always did.
+      if (!expected && timer && isRecording(stored) && current.owner === owner && current.timer === timer) {
+        current = { ...current, timer: { elapsed: 0, started: null } };
+        emit();
+        await remove(ownerKey("draft-timer", owner));
+      }
+      return;
+    }
     if (expected) await remove(key);
     if (current.owner !== owner || !matches(current.stored)) return;
     current = { ...current, stored: null };
