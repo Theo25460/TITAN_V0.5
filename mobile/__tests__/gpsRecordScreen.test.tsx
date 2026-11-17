@@ -6,7 +6,8 @@ import type { Fix } from "../src/lib/gpsTrack";
 
 const mockStore = new Map<string, Recording | null>();
 const mockState = { permission: "ok" as "ok" | "denied" | "blocked" | "unavailable", updates: false, active: null as string | null };
-const mockDraft = jest.fn(async (..._a: unknown[]) => true);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockDraft = jest.fn(async (..._a: any[]) => true);
 const mockGuard = jest.fn(async (_owner: string | null) => {});
 let mockAuth: { status: string; owner: string | null };
 jest.mock("../src/lib/gpsNative", () => {

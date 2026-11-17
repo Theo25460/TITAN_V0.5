@@ -5,7 +5,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const mockStore = new Map<string, unknown>();
-const mockDraft = jest.fn(async (..._a: unknown[]) => true);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockDraft = jest.fn(async (..._a: any[]) => true);
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: async (k: string) => (mockStore.has(k) ? JSON.stringify(mockStore.get(k)) : null),
   setItem: async (k: string, v: string) => void mockStore.set(k, JSON.parse(v)),
