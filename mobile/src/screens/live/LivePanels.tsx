@@ -11,7 +11,11 @@ import { Format, Sports } from "../../core";
 import type { LiveConfig, LiveInput, LiveView } from "../../core/live";
 import { colors, radius, space } from "../../theme/tokens";
 
-export type PanelProps = { view: LiveView; config: LiveConfig; send: (input: LiveInput) => void; known: string[] };
+export type PanelProps = {
+  view: LiveView; config: LiveConfig; send: (input: LiveInput) => void; known: string[];
+  /** What the athlete did last time on an exercise (LiveEngine.referenceFor on the running session), or null. */
+  referenceFor: (exercise: string) => { last: string; suggest: string | null } | null;
+};
 
 export const clock = (sec: number) => {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
@@ -59,12 +63,17 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 /** Strength and bodyweight: one tap per set, rest as the cooling ember. */
-export function SetsPanel({ view, config, send, known }: PanelProps) {
+export function SetsPanel({ view, config, send, known, referenceFor }: PanelProps) {
   const [exercise, setExercise] = useState(known[0] || "");
   const [reps, setReps] = useState("8");
   const [load, setLoad] = useState("");
   const [rir, setRir] = useState<number | null>(2);
   const hold = config.voie === "corps";
+  // A sport fact shown for every intent, read again at each keystroke so it follows the exercise being typed; the step
+  // above it only exists when surpassing was chosen (the engine decides).
+  const ref = referenceFor(exercise);
+  const refLast = ref ? `La dernière fois : ${ref.last}.` : "";
+  const refSuggest = ref?.suggest ? `Seuil du jour : ${ref.suggest}.` : "";
   const log = () => {
     const data: Record<string, unknown> = { exercise: exercise.trim().slice(0, 40) || "Exercice", reps: Number(reps.replace(",", ".")) || 0 };
     if (load) data.load = Number(load.replace(",", ".")) || 0;
@@ -83,7 +92,11 @@ export function SetsPanel({ view, config, send, known }: PanelProps) {
           </View>
         </View>
       ) : null}
-      <Field label="Exercice" value={exercise} onChangeText={setExercise} placeholder={hold ? "Pompes, gainage…" : "Squat, développé couché…"} testID="live-exercise" />
+      <View style={{ gap: space.s1 }}>
+        <Field label="Exercice" value={exercise} onChangeText={setExercise} placeholder={hold ? "Pompes, gainage…" : "Squat, développé couché…"} accessibilityHint={ref ? `${refLast}${refSuggest ? ` ${refSuggest}` : ""}` : undefined} testID="live-exercise" />
+        {ref ? <T variant="small" tone="muted" testID="live-ref">{refLast}</T> : null}
+        {refSuggest ? <T variant="small" tone="default" testID="live-ref-suggest">{refSuggest}</T> : null}
+      </View>
       {known.length ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>{known.slice(0, 6).map((k) => <Chip key={k} label={k} selected={k === exercise} onPress={() => setExercise(k)} />)}</View> : null}
       <View style={{ flexDirection: "row", gap: space.s2 }}>
         <View style={{ flex: 1 }}><Field compact label={hold ? "Répétitions ou secondes" : "Répétitions"} value={reps} onChangeText={setReps} keyboardType="number-pad" /></View>

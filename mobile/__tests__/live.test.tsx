@@ -1,6 +1,7 @@
 /* TITAN LIVE on Android: the same engine as the website, a bounded journal in the session payload, and the live screen
    handing everything to the usual session form (the live layer never saves a session by itself). */
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -14,13 +15,16 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
   multiRemove: async (ks: string[]) => ks.forEach((k) => mockStore.delete(k)),
   getAllKeys: async () => [...mockStore.keys()],
 }));
+// The preparation asks for the camp's snapshot (what the session feeds); here the camp is not reachable and the screen does without.
+jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: null } }) }, rpc: () => ({ setHeader: () => Promise.resolve({ data: null, error: { message: "OFFLINE" } }) }) } }));
 jest.mock("../src/lib/gpsNative", () => ({
   recorder: { subscribe: () => () => {}, reconcile: async () => null, summary: () => ({}) },
   ensureLocationPermission: async () => "denied", getActiveOwner: async () => null, setActiveOwner: async () => {},
 }));
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () => ({ status: "signedIn", owner: "owner-a" }) }));
 jest.mock("../src/data/drafts", () => ({ saveDraft: (...a: unknown[]) => mockDraft(...a) }));
-jest.mock("../src/data/hooks", () => ({ useLogs: () => ({ active: [] }) }));
+const mockLogs: never[] = [];
+jest.mock("../src/data/hooks", () => ({ useLogs: () => ({ active: mockLogs, confirmed: mockLogs }) }));
 jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
 jest.mock("../src/lib/liveCompanion", () => ({ deliver: (outs: { type: string; cue?: unknown }[]) => outs.filter((o) => o.type === "cue").map((o) => o.cue), clearLiveNotification: jest.fn() }));
 
@@ -35,12 +39,16 @@ const { LiveSessionScreen } = require("../src/screens/live/LiveSessionScreen");
 
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 const nav = { replace: jest.fn(), goBack: jest.fn(), navigate: jest.fn() };
-const show = (sport: string) => render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><LiveSessionScreen navigation={nav} route={{ params: { sport } }} /></ToastProvider></SafeAreaProvider>);
+const show = (sport: string) => render(
+  <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })}>
+    <SafeAreaProvider initialMetrics={metrics}><ToastProvider><LiveSessionScreen navigation={nav} route={{ params: { sport } }} /></ToastProvider></SafeAreaProvider>
+  </QueryClientProvider>,
+);
 
 beforeEach(() => { mockStore.clear(); mockDraft.mockClear(); nav.replace.mockClear(); });
 
 test("the Android copies of the live modules are the website's, byte for byte", () => {
-  for (const f of ["live-voies.js", "live-engine.js", "live-world.js"])
+  for (const f of ["live-voies.js", "live-engine.js", "live-world.js", "live-prepare.js"])
     expect(readFileSync(join(__dirname, "../src/core/web", f), "utf8")).toBe(readFileSync(join(__dirname, "../../js/core", f), "utf8"));
   expect(LiveVoies.resolve("badminton").voie).toBe("joute");
 });

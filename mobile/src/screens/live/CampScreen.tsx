@@ -28,6 +28,7 @@ export function CampScreen() {
   if (world.error || !world.data) return <Screen><ErrorState error={world.error} onRetry={() => void world.refetch()} /></Screen>;
   const w = world.data;
   const cordee = LiveWorld.cordee({ days: w.days, voies: w.distinctVoies });
+  const horizon = LiveWorld.horizon(w);
   const raise = (id: string) => build.mutate(id, {
     onSuccess: () => toast({ kind: "ok", title: "Le camp s’agrandit", message: LiveWorld.BUILDINGS[id].name }),
     onError: (e) => toast({ kind: "err", title: "Construction impossible", message: /LIVE_NOT_ENOUGH/.test(String((e as Error).message)) ? "Il manque encore des ressources : chaque séance live en rapporte." : errorMessage(e) }),
@@ -43,6 +44,18 @@ export function CampScreen() {
         <Resource label="Éclats" value={w.wallet.eclats} color={colors.cy} />
         {Object.values(LiveVoies.ESSENCES).map((e) => <Resource key={e.id} label={e.label} value={w.wallet.essences[e.id] ?? 0} color={familyColors[e.family as keyof typeof familyColors] ?? colors.tx2} />)}
       </View>
+      {/* A direction to walk in, nearest first: never a deadline, never a loss. */}
+      <Section title="Ce qui vient">
+        <View style={{ gap: space.s2 }} testID="camp-horizon">
+          {horizon.map((h) => (
+            <View key={`${h.kind}:${h.id}`} style={{ padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, gap: 2, borderLeftWidth: 3, borderLeftColor: h.ready ? colors.cy : colors.bg2 }}>
+              <T variant="bodyStrong">{h.title}</T>
+              <T variant="small" tone={h.ready ? "default" : "muted"}>{h.text}</T>
+            </View>
+          ))}
+        </View>
+        <T variant="small" tone="muted">Rien n’expire : ces repères avancent quand tu reviens, à ton rythme.</T>
+      </Section>
       <Section title="Bâtiments">
         <View style={{ gap: space.s2 }}>
           {Object.values(LiveWorld.BUILDINGS).map((b) => {

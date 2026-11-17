@@ -5,6 +5,11 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 
 > **18 novembre 2026 — Excellence sportive** : fiabilité de la chaîne séance → statistiques, contrats de mesures des 260 sports,
 > intégrations, progression personnelle. État, preuves, limites et relais : [`SPORT_EXCELLENCE.md`](SPORT_EXCELLENCE.md).
+>
+> **19 novembre 2026 — Opération Épopée (TITAN LIVE)** : les trois intentions changent réellement la séance (étapes, seuil tiré de
+> la dernière séance comparable, découvertes sans chiffre), moments calmes pendant les repos, récit de fin, boucle « ce qui
+> vient » au Camp ; missions alignées sur les contrats sportifs. Détail : [`live/GAME_DESIGN.md`](live/GAME_DESIGN.md) § 2 bis,
+> relais et limites : [`live/INTEGRATION.md`](live/INTEGRATION.md) § 4 ter. Paquets v15 et v16 non appliqués.
 
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 

@@ -10,6 +10,7 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Field } from "../../components/Field";
+import { Icon } from "../../components/Icon";
 import { LiveTrail } from "../../components/LiveTrail";
 import { ProgressBar } from "../../components/Progress";
 import { RpeSelector } from "../../components/RpeSelector";
@@ -20,12 +21,12 @@ import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useToast } from "../../components/Toast";
 import { Sports } from "../../core";
-import { baselineFrom, LiveEngine, LiveVoies, type Immersion, type Intent, type LiveCue, type LiveInput, type LiveOut, type LiveState, type PublicMission } from "../../core/live";
+import { LiveEngine, LivePrepare, LiveVoies, LiveWorld, type Immersion, type Intent, type LiveConfig, type LiveCue, type LiveInput, type LiveOut, type LiveState, type LiveView, type PublicMission } from "../../core/live";
 import { freshDraft, type SessionDraft } from "../../core/session";
 import { useOwner } from "../../data/auth";
 import { saveDraft } from "../../data/drafts";
 import { useLogs } from "../../data/hooks";
-import { loadLive, saveLive, useLiveSession } from "../../data/live";
+import { loadLive, saveLive, useLiveSession, useLiveWorld } from "../../data/live";
 import { routeLink, routeSave } from "../../data/api";
 import { ensureLocationPermission, getActiveOwner, recorder, setActiveOwner } from "../../lib/gpsNative";
 import { PERMISSION_COPY } from "../../lib/permissionCopy";
@@ -36,7 +37,7 @@ import { knownCells, newCellCount, rememberCells } from "../../lib/liveCells";
 import { clearLiveNotification, deliver } from "../../lib/liveCompanion";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, radius, space } from "../../theme/tokens";
+import { colors, fonts, radius, space } from "../../theme/tokens";
 import { clock, PANELS } from "./LivePanels";
 
 type Props = NativeStackScreenProps<RootParams, "LiveSession">;
@@ -47,7 +48,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const owner = useOwner();
   const toast = useToast();
   const saved = useLiveSession();
-  const { active: logs } = useLogs();
+  const { confirmed } = useLogs();
   const sport = saved?.sport ?? route.params.sport;
   const config = useMemo(() => LiveVoies.resolve(sport), [sport]);
   const [state, setState] = useState<LiveState | null>(null);
@@ -133,35 +134,36 @@ export function LiveSessionScreen({ navigation, route }: Props) {
 
   /* ---------------- preparation ---------------- */
   const [intent, setIntent] = useState<Intent>("atteindre");
-  const [immersion, setImmersion] = useState<Immersion>(config.maxImmersion >= 1 ? "notifications" : "silence");
+  const [immersion, setImmersion] = useState<Immersion>(config.defaultImmersion);
   const [goalKind, setGoalKind] = useState<"none" | "time" | "distance" | "beats">("none");
   const [goalValue, setGoalValue] = useState("");
   const [planCount, setPlanCount] = useState(config.plan.count ?? 0);
   const [recovery, setRecovery] = useState(false);
   const [project, setProject] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
-  const sameSport = useMemo(() => logs.filter((l) => l.sport === sport), [logs, sport]);
-  const baseline = useMemo(() => baselineFrom(logs as never, sport), [logs, sport]);
-  const echo = useMemo(() => {
-    const last = sameSport.find((l) => (l.details as { live?: { beats?: number; activeMin?: number } })?.live?.beats);
-    const j = (last?.details as { live?: { beats: number; activeMin: number } } | undefined)?.live;
-    return j && j.activeMin > 0 ? { minutes: j.activeMin, beats: j.beats } : null;
-  }, [sameSport]);
-  const knownExercises = useMemo(() => [...new Set(sameSport.flatMap((l) => (l.details?.exercises || []).map((e) => e.name)))].slice(0, 30), [sameSport]);
-  const draftState = useMemo(() => LiveEngine.create({
-    sportId: sport, intent, immersion, seed: "prepare", recovery, project, baseline, echo: intent === "depasser" ? echo : null,
-    goal: goalKind === "none" ? null : { kind: goalKind, value: Number(goalValue.replace(",", ".")) || 0 },
-    plan: planCount ? { count: planCount } : undefined,
-  }), [sport, intent, immersion, recovery, project, baseline, echo, goalKind, goalValue, planCount]);
+  // What this session may compare itself with comes from the shared core, and only from rows the server holds: a session
+  // still waiting in the offline queue is not a reference yet.
+  const ctx = useMemo(() => LivePrepare.context(sport, confirmed, { now: Date.now() }), [confirmed, sport]);
+  // Exercises offered under the field: those of the latest sessions first (each one has its « last time » line), then the rest.
+  const suggested = useMemo(() => [...new Set([...Object.values(ctx.reference?.exercises ?? {}).map((e) => e.name ?? ""), ...ctx.knownExercises.slice().reverse()].filter(Boolean))], [ctx]);
+  const free = intent === "explorer"; // exploring carries no figure: neither goal nor plan nor comparison
+  const prepState = useCallback((seed: string) => LiveEngine.create({
+    sportId: sport, intent, immersion, seed, owner, recovery, project,
+    baseline: ctx.baseline, echo: intent === "depasser" ? ctx.echo : null, reference: free ? null : ctx.reference,
+    goal: free || goalKind === "none" ? null : { kind: goalKind, value: Number(goalValue.replace(",", ".")) || 0 },
+    plan: planCount ? { count: planCount } : undefined, knownExercises: ctx.knownExercises,
+  }), [sport, intent, immersion, owner, recovery, project, ctx, free, goalKind, goalValue, planCount]);
+  const draftState = useMemo(() => prepState("prepare"), [prepState]);
   const preparable = useMemo(() => LiveEngine.preparable(draftState), [draftState]);
-  useEffect(() => setPicked((p) => p.filter((id) => preparable.some((m) => m.id === id))), [preparable]);
+  // Keeps the same array when nothing was dropped: the missions are rebuilt at every change of the preparation.
+  useEffect(() => setPicked((p) => (p.every((id) => preparable.some((m) => m.id === id)) ? p : p.filter((id) => preparable.some((m) => m.id === id)))), [preparable]);
+  // The camp's snapshot is shared with the Camp screen (same query): it is only asked for while preparing, and the stake
+  // still says what the session feeds when it is missing (offline, guest).
+  const world = useLiveWorld(!state || state.status === "ready");
+  const stake = useMemo(() => LiveWorld.stake(sport, world.data ?? null), [sport, world.data]);
 
   async function start() {
-    const s0 = LiveEngine.create({
-      sportId: sport, intent, immersion, seed: uuid(), owner, recovery, project, baseline, echo: intent === "depasser" ? echo : null,
-      goal: goalKind === "none" ? null : { kind: goalKind, value: Number(goalValue.replace(",", ".")) || 0 },
-      plan: planCount ? { count: planCount } : undefined, knownExercises,
-    });
+    const s0 = prepState(uuid());
     if (config.data.gps) {
       const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
       if (perm === "ok") {
@@ -272,12 +274,15 @@ export function LiveSessionScreen({ navigation, route }: Props) {
               </Card>
             ))}
           </View>
+          <IntentPreview intent={intent} draft={draftState} config={config} basis={ctx.basis} />
         </Section>
-        <Section title="Objectif (facultatif)">
-          <Segmented options={goalChoices} value={goalKind} onChange={setGoalKind} accessibilityLabel="Type d’objectif" />
-          {goalKind !== "none" ? <Field label={goalKind === "time" ? "Durée" : goalKind === "distance" ? "Distance" : capital(config.beat.many)} value={goalValue} onChangeText={setGoalValue} keyboardType="decimal-pad" suffix={goalKind === "time" ? "min" : goalKind === "distance" ? "km" : undefined} testID="live-goal" /> : <T variant="small" tone="muted">Aucun chiffre : le monde réagit à ta présence.</T>}
-        </Section>
-        {config.plan.count ? (
+        {free ? null : (
+          <Section title="Objectif (facultatif)">
+            <Segmented options={goalChoices} value={goalKind} onChange={setGoalKind} accessibilityLabel="Type d’objectif" />
+            {goalKind !== "none" ? <Field label={goalKind === "time" ? "Durée" : goalKind === "distance" ? "Distance" : capital(config.beat.many)} value={goalValue} onChangeText={setGoalValue} keyboardType="decimal-pad" suffix={goalKind === "time" ? "min" : goalKind === "distance" ? "km" : undefined} testID="live-goal" /> : <T variant="small" tone="muted">Sans objectif, {config.plan.count ? "ton plan sert de cap." : "la séance reste libre."}</T>}
+          </Section>
+        )}
+        {!free && config.plan.count ? (
           <Section title={`Plan : ${planCount} ${planCount > 1 ? config.beat.many : config.beat.one}`}>
             <View style={{ flexDirection: "row", gap: space.s2 }}>
               <Button small kind="secondary" icon="minus" label="Moins" onPress={() => setPlanCount(Math.max(1, planCount - 1))} style={{ flex: 1 }} />
@@ -308,6 +313,12 @@ export function LiveSessionScreen({ navigation, route }: Props) {
         </Section>
         <ToggleRow label="Séance de récupération" hint="Aucune mission de dépassement, un accompagnement calme." value={recovery} onChange={setRecovery} />
         {config.voie === "paroi" ? <ToggleRow label="Je travaille un projet" hint="Les essais marqués « projet » s’ajoutent à sa mémoire." value={project} onChange={setProject} /> : null}
+        <Section title="Ce que cette séance fait avancer">
+          <View style={{ gap: space.s1 }} testID="live-stake">
+            {stake.lines.map((l) => <T key={l} variant="small" tone="default">• {l}</T>)}
+          </View>
+          <T variant="small" tone="muted">La séance compte pour ton suivi sportif même si tu n’ouvres jamais le Camp de base.</T>
+        </Section>
         <T variant="caption" tone="faint">{config.fallback}</T>
       </Screen>
     );
@@ -317,13 +328,20 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const Panel = PANELS[v.panel];
   if (state.status === "ended") {
     const done = state.missions.done.length;
+    const recap = LiveEngine.recap(state);
     return (
       <Screen footer={<Button label="Vérifier et enregistrer" icon="check" onPress={() => void keep()} testID="live-keep" />}>
         <View style={{ gap: 4 }}>
           <T variant="eyebrow" tone="accent">{config.voieName} · séance terminée</T>
           <T variant="h1">{clock(v.activeS)}</T>
-          <T tone="muted">{v.beats} {v.beatLabel} · {done} mission{done > 1 ? "s" : ""} accomplie{done > 1 ? "s" : ""} · {(state.events as unknown[] | undefined)?.length ?? 0} événements</T>
         </View>
+        <Section title="Le récit de ta séance">
+          <View style={{ gap: space.s2 }} testID="live-recap">
+            {recap.lines.map((l, i) => <T key={i} variant={i ? "small" : "body"} tone={i ? "muted" : "default"}>{l}</T>)}
+          </View>
+        </Section>
+        {/* A session without numbers (« Explorer ») is told by its story alone. */}
+        {recap.numbers ? <T tone="muted" testID="live-figures">{v.beats} {v.beatLabel} · {done} mission{done > 1 ? "s" : ""} accomplie{done > 1 ? "s" : ""} · {(state.events as unknown[] | undefined)?.length ?? 0} événements</T> : null}
         <Section title="Effort ressenti">
           <RpeSelector value={rpe} onChange={setRpe} />
         </Section>
@@ -367,17 +385,24 @@ export function LiveSessionScreen({ navigation, route }: Props) {
         {v.goal ? <View style={{ alignSelf: "stretch", gap: 4 }}><ProgressBar value={v.goal.ratio} accessibilityLabel="Progression de l’objectif" /><T variant="caption" tone="muted" center>Cap : {Math.round(v.goal.ratio * 100)} %</T></View> : null}
       </View>
       {view === "sport" ? (
-        <Panel view={v} config={config} send={send} known={knownExercises} />
+        <Panel view={v} config={config} send={send} known={suggested} referenceFor={(name) => LiveEngine.referenceFor(state, name)} />
       ) : (
         <View style={{ gap: space.s3 }}>
-          <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elan={v.elan} />
-          <View style={{ gap: 4 }}>
-            <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
-            <ProgressBar value={v.elan.value / v.elan.max} color={colors.cy2} />
-          </View>
-          {v.lastEvent ? <T variant="small" tone="muted">{v.lastEvent.text}</T> : <T variant="small" tone="faint">{config.tagline}</T>}
+          <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elan={v.elan} numbers={v.numbers} />
+          {v.numbers ? (
+            <View style={{ gap: 4 }}>
+              <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
+              <ProgressBar value={v.elan.value / v.elan.max} color={colors.cy2} />
+            </View>
+          ) : null}
+          {/* The last event of the Voie, unless the companion box below already shows it, or it carries a figure in a session without numbers. */}
+          {v.lastEvent && ((cue && state.level >= 1 && cue.text === v.lastEvent.text) || (!v.numbers && /\d/.test(v.lastEvent.text))) ? null
+            : v.lastEvent ? <T variant="small" tone="muted">{v.lastEvent.text}</T> : <T variant="small" tone="faint">{config.tagline}</T>}
+          <IntentBlock view={v} />
         </View>
       )}
+      {/* The calm line between two efforts: plain text, not a live region, so it is never announced nor spoken. */}
+      {v.interlude ? <T variant="small" tone="muted" center testID="live-interlude">{v.interlude.text}</T> : null}
       {cue && state.level >= 1 ? (
         <View style={{ padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, borderLeftWidth: 3, borderLeftColor: colors.cy }} accessibilityLiveRegion="polite">
           <T variant="bodyStrong">{cue.text}</T>
@@ -415,6 +440,73 @@ export function LiveSessionScreen({ navigation, route }: Props) {
 }
 
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const block = { padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, gap: space.s2 } as const;
+const strong = { fontFamily: fonts.textSemi } as const;
+
+/** Preparation: what the chosen intent will concretely do in this session, for this sport, from this athlete's own journal. */
+function IntentPreview({ intent, draft, config, basis }: { intent: Intent; draft: LiveState; config: LiveConfig; basis: string }) {
+  const stages = intent === "atteindre" ? LiveEngine.stages(draft, 0) : null;
+  const threshold = intent === "depasser" ? LiveEngine.thresholdOf(draft, 0) : null;
+  return (
+    <View style={block} testID={`live-preview-${intent}`}>
+      <T variant="caption" tone="muted">Avec « {LiveVoies.INTENTS[intent].label} »</T>
+      <View style={{ gap: space.s1 }}>
+        {LiveVoies.INTENTS[intent].brings.map((b) => <T key={b} variant="small" tone="default">• {b}</T>)}
+      </View>
+      {intent === "atteindre" ? (
+        stages ? <T variant="small" tone="default"><T variant="small" tone="default" style={strong}>Tes étapes : </T>{stages.list.map((x) => x.label).join(" · ")}</T>
+          : <T variant="small" tone="muted">Choisis un objectif ou un plan : il sera découpé en étapes.</T>
+      ) : threshold ? (
+        <>
+          <T variant="small" tone="default"><T variant="small" tone="default" style={strong}>{threshold.status === "open" ? "Ton seuil" : "Aujourd’hui"} : </T>{threshold.text}</T>
+          {config.serene ? null : <T variant="small" tone="muted">{basis}</T>}
+        </>
+      ) : (
+        <T variant="small" tone="muted">Rien à régler : ni objectif, ni plan chiffré.{config.curios.length ? " Le monde se révèle au fil de la pratique." : ""}</T>
+      )}
+    </View>
+  );
+}
+
+/** Live: the part of the adventure view that belongs to the intent — stages to tick, one threshold, or discoveries without a figure. */
+function IntentBlock({ view }: { view: LiveView }) {
+  if (view.stages) {
+    return (
+      <View style={block} testID="live-intent-atteindre">
+        <T variant="caption" tone="muted">Tes étapes · {view.stages.reached} sur {view.stages.of}</T>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>
+          {view.stages.list.map((x) => (
+            // A reached stage is said in words to a screen reader: the check mark and the colour only repeat it.
+            <View key={x.index} accessible accessibilityLabel={`Étape ${x.index} : ${x.label}, ${x.reached ? "franchie" : "à venir"}`} testID={`live-stage-${x.index}`}
+              style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.r1, backgroundColor: x.reached ? colors.cySoft : colors.bg3 }}>
+              {x.reached ? <Icon name="check" size={14} color={colors.cy} strokeWidth={2.4} /> : <T variant="caption" tone="faint">{x.index}</T>}
+              <T variant="caption" tone={x.reached ? "default" : "muted"}>{x.label}</T>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
+  if (view.threshold) {
+    const th = view.threshold;
+    return (
+      <View style={block} testID="live-intent-depasser">
+        <T variant="caption" tone={th.status === "done" ? "accent" : "muted"}>{th.status === "done" ? "Seuil franchi" : th.status === "aside" ? "Seuil mis de côté" : "Un seul seuil"}</T>
+        <T variant="small" tone="default">{th.text}</T>
+      </View>
+    );
+  }
+  if (view.discoveries) {
+    return (
+      <View style={block} testID="live-intent-explorer">
+        <T variant="caption" tone="muted">Carnet de découvertes</T>
+        {view.discoveries.length ? view.discoveries.map((d, i) => <T key={i} variant="small" tone="default">• {capital(d)}</T>)
+          : <T variant="small" tone="muted">Rien à atteindre. Pratique : le monde se révèle en chemin.</T>}
+      </View>
+    );
+  }
+  return null;
+}
 
 function fieldLabel(config: ReturnType<typeof LiveVoies.resolve>, id: string) {
   // Labels come from the sport's own catalogue fields, the same as in the session form.

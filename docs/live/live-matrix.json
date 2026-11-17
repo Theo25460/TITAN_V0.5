@@ -152,8 +152,7 @@
    "brasier.vagues",
    "brasier.remparts",
    "brasier.vague_plus",
-   "brasier.format",
-   "brasier.r_drills"
+   "brasier.format"
   ]
  },
  {
@@ -1482,8 +1481,7 @@
    "elements.technique",
    "elements.r_tricks",
    "elements.r_routines",
-   "elements.r_runs",
-   "elements.r_elevation"
+   "elements.r_runs"
   ]
  },
  {
@@ -1737,8 +1735,7 @@
    "elements.securite",
    "elements.page",
    "elements.technique",
-   "elements.r_runs",
-   "elements.r_elevation"
+   "elements.r_runs"
   ]
  },
  {
@@ -1762,8 +1759,7 @@
    "elements.technique",
    "elements.r_tricks",
    "elements.r_landings",
-   "elements.r_runs",
-   "elements.r_elevation"
+   "elements.r_runs"
   ]
  },
  {
@@ -1812,8 +1808,7 @@
    "elements.technique",
    "elements.r_runs",
    "elements.r_vertical_m",
-   "elements.r_tricks",
-   "elements.r_elevation"
+   "elements.r_tricks"
   ]
  },
  {
@@ -2322,8 +2317,7 @@
    "escouade.rapport",
    "escouade.poste",
    "escouade.r_minutes_played",
-   "escouade.r_assists",
-   "escouade.r_elevation"
+   "escouade.r_assists"
   ]
  },
  {
@@ -2347,8 +2341,7 @@
    "escouade.rapport",
    "escouade.poste",
    "escouade.r_minutes_played",
-   "escouade.r_assists",
-   "escouade.r_elevation"
+   "escouade.r_assists"
   ]
  },
  {
@@ -3441,7 +3434,7 @@
  {
   "sport": "arm_wrestling",
   "label": "Bras de fer sportif",
-  "signature": "La Forge à la cloche : 8 rounds de 1 min, repos 120 s.",
+  "signature": "Bras de fer sportif dans la Forge : chaque série est une frappe ; chaque exercice, une lame que tu trempes.",
   "voie": "forge",
   "essence": "acier",
   "family": "force",
@@ -3449,10 +3442,9 @@
   "safety": "libre",
   "gps": false,
   "plan": {
-   "kind": "round",
-   "count": 8,
-   "workS": 60,
-   "restS": 120
+   "kind": "set",
+   "count": 12,
+   "restS": 90
   },
   "missions": [
    "forge.plan",
@@ -3818,8 +3810,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -3920,8 +3911,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -3970,8 +3960,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -3994,8 +3983,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -4018,8 +4006,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -4068,8 +4055,7 @@
    "joute.remontee",
    "joute.sequence",
    "joute.partenaire",
-   "joute.r_unforced_errors",
-   "joute.r_rally_quality_score"
+   "joute.r_unforced_errors"
   ]
  },
  {
@@ -4317,8 +4303,7 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_transitions_s",
-   "odyssee.r_obstacles",
-   "odyssee.r_stations"
+   "odyssee.r_obstacles"
   ]
  },
  {
@@ -4340,7 +4325,6 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_targets_hit",
-   "odyssee.r_runs",
    "odyssee.r_elevation"
   ]
  },
@@ -4362,7 +4346,6 @@
    "odyssee.segments",
    "odyssee.transitions",
    "odyssee.ordre",
-   "odyssee.r_runs",
    "odyssee.r_elevation"
   ]
  },
@@ -4386,8 +4369,7 @@
    "odyssee.ordre",
    "odyssee.r_obstacles",
    "odyssee.r_obstacles_failed",
-   "odyssee.r_elevation",
-   "odyssee.r_stations"
+   "odyssee.r_elevation"
   ]
  },
  {
@@ -4409,8 +4391,7 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_transitions_s",
-   "odyssee.r_obstacles",
-   "odyssee.r_stations"
+   "odyssee.r_obstacles"
   ]
  },
  {
@@ -4431,8 +4412,7 @@
    "odyssee.segments",
    "odyssee.transitions",
    "odyssee.ordre",
-   "odyssee.r_targets_hit",
-   "odyssee.r_stations"
+   "odyssee.r_targets_hit"
   ]
  },
  {
@@ -4454,8 +4434,7 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_transitions_s",
-   "odyssee.r_obstacles",
-   "odyssee.r_stations"
+   "odyssee.r_obstacles"
   ]
  },
  {
@@ -4477,8 +4456,7 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_transitions_s",
-   "odyssee.r_obstacles",
-   "odyssee.r_stations"
+   "odyssee.r_obstacles"
   ]
  },
  {
@@ -4500,8 +4478,7 @@
    "odyssee.transitions",
    "odyssee.ordre",
    "odyssee.r_transitions_s",
-   "odyssee.r_obstacles",
-   "odyssee.r_stations"
+   "odyssee.r_obstacles"
   ]
  },
  {
@@ -4667,8 +4644,7 @@
    "pilotage.constance",
    "pilotage.briefing",
    "pilotage.nouveau",
-   "pilotage.r_runs",
-   "pilotage.r_elevation"
+   "pilotage.r_runs"
   ]
  },
  {
@@ -4712,8 +4688,7 @@
    "pilotage.constance",
    "pilotage.briefing",
    "pilotage.nouveau",
-   "pilotage.r_runs",
-   "pilotage.r_elevation"
+   "pilotage.r_runs"
   ]
  },
  {
@@ -4735,8 +4710,7 @@
    "pilotage.constance",
    "pilotage.briefing",
    "pilotage.nouveau",
-   "pilotage.r_runs",
-   "pilotage.r_elevation"
+   "pilotage.r_runs"
   ]
  },
  {
@@ -4780,8 +4754,7 @@
    "pilotage.constance",
    "pilotage.briefing",
    "pilotage.nouveau",
-   "pilotage.r_runs",
-   "pilotage.r_elevation"
+   "pilotage.r_runs"
   ]
  },
  {
@@ -4804,8 +4777,7 @@
    "roue.cadence",
    "roue.relais",
    "roue.variations",
-   "roue.r_laps",
-   "roue.r_elevation"
+   "roue.r_laps"
   ]
  },
  {
@@ -4873,8 +4845,7 @@
    "roue.col",
    "roue.endurance",
    "roue.relais",
-   "roue.inconnu",
-   "roue.r_sprints"
+   "roue.inconnu"
   ]
  },
  {
@@ -4965,8 +4936,7 @@
    "roue.col",
    "roue.endurance",
    "roue.relais",
-   "roue.inconnu",
-   "roue.r_sprints"
+   "roue.inconnu"
   ]
  },
  {
@@ -5011,8 +4981,7 @@
    "roue.col",
    "roue.endurance",
    "roue.relais",
-   "roue.inconnu",
-   "roue.r_sprints"
+   "roue.inconnu"
   ]
  },
  {
@@ -5081,8 +5050,7 @@
    "sanctuaire.tenue",
    "sanctuaire.nouvelle",
    "sanctuaire.r_movements",
-   "sanctuaire.r_hold_seconds",
-   "sanctuaire.r_pain_after"
+   "sanctuaire.r_hold_seconds"
   ]
  },
  {
@@ -5105,14 +5073,13 @@
    "sanctuaire.tenue",
    "sanctuaire.nouvelle",
    "sanctuaire.r_movements",
-   "sanctuaire.r_hold_seconds",
-   "sanctuaire.r_pain_after"
+   "sanctuaire.r_hold_seconds"
   ]
  },
  {
   "sport": "stretching",
   "label": "Stretching",
-  "signature": "Des tenues confortables, une zone apaisée : la gêne qui baisse ouvre une fleur rare.",
+  "signature": "Des tenues confortables, une zone apaisée : le calme tenu ouvre une fleur rare.",
   "voie": "sanctuaire",
   "essence": "seve",
   "family": "mobilite",
@@ -5129,8 +5096,7 @@
    "sanctuaire.tenue",
    "sanctuaire.nouvelle",
    "sanctuaire.r_movements",
-   "sanctuaire.r_hold_seconds",
-   "sanctuaire.r_pain_after"
+   "sanctuaire.r_hold_seconds"
   ]
  },
  {
@@ -5153,14 +5119,13 @@
    "sanctuaire.tenue",
    "sanctuaire.nouvelle",
    "sanctuaire.r_movements",
-   "sanctuaire.r_hold_seconds",
-   "sanctuaire.r_pain_after"
+   "sanctuaire.r_hold_seconds"
   ]
  },
  {
   "sport": "yoga",
   "label": "Yoga",
-  "signature": "Silence par défaut, souffle guidé facultatif, gêne avant et après : le jardin pousse avec le calme.",
+  "signature": "Silence par défaut, souffle guidé facultatif, aucune mesure : le jardin pousse avec le calme.",
   "voie": "sanctuaire",
   "essence": "seve",
   "family": "mobilite",
@@ -5178,8 +5143,7 @@
    "sanctuaire.nouvelle",
    "sanctuaire.r_poses",
    "sanctuaire.r_breath_minutes",
-   "sanctuaire.r_hold_seconds",
-   "sanctuaire.r_pain_after"
+   "sanctuaire.r_hold_seconds"
   ]
  },
  {
@@ -5272,8 +5236,7 @@
    "scene.improvisation",
    "scene.echauffement",
    "scene.r_tricks",
-   "scene.r_routines",
-   "scene.r_elevation"
+   "scene.r_routines"
   ]
  },
  {
@@ -5527,9 +5490,7 @@
    "scene.improvisation",
    "scene.echauffement",
    "scene.r_routines",
-   "scene.r_spins",
-   "scene.r_runs",
-   "scene.r_elevation"
+   "scene.r_spins"
   ]
  },
  {
@@ -5717,8 +5678,7 @@
    "sentier.echo",
    "sentier.final_souple",
    "sentier.brouillard",
-   "sentier.halte",
-   "sentier.r_intervals"
+   "sentier.halte"
   ]
  },
  {
@@ -5766,8 +5726,7 @@
    "sentier.echo",
    "sentier.final_souple",
    "sentier.brouillard",
-   "sentier.halte",
-   "sentier.r_intervals"
+   "sentier.halte"
   ]
  },
  {
@@ -5793,8 +5752,7 @@
    "sentier.halte",
    "sentier.r_controls_missed",
    "sentier.r_navigation_errors",
-   "sentier.r_elevation",
-   "sentier.r_runs"
+   "sentier.r_elevation"
   ]
  },
  {
@@ -5818,9 +5776,7 @@
    "sentier.final_souple",
    "sentier.halte",
    "sentier.r_laps",
-   "sentier.r_intervals",
-   "sentier.r_runs",
-   "sentier.r_elevation"
+   "sentier.r_intervals"
   ]
  },
  {
@@ -5921,7 +5877,6 @@
    "sentier.halte",
    "sentier.r_laps",
    "sentier.r_intervals",
-   "sentier.r_runs",
    "sentier.r_elevation"
   ]
  },
@@ -5971,9 +5926,7 @@
    "sentier.final_souple",
    "sentier.halte",
    "sentier.r_laps",
-   "sentier.r_intervals",
-   "sentier.r_runs",
-   "sentier.r_elevation"
+   "sentier.r_intervals"
   ]
  },
  {
@@ -5997,8 +5950,7 @@
    "sentier.final_souple",
    "sentier.brouillard",
    "sentier.halte",
-   "sentier.r_elevation",
-   "sentier.r_runs"
+   "sentier.r_elevation"
   ]
  },
  {
@@ -6022,8 +5974,7 @@
    "sentier.final_souple",
    "sentier.brouillard",
    "sentier.halte",
-   "sentier.r_elevation",
-   "sentier.r_runs"
+   "sentier.r_elevation"
   ]
  },
  {
@@ -6114,8 +6065,7 @@
    "stade.tentatives",
    "stade.recuperation",
    "stade.marque",
-   "stade.epreuve",
-   "stade.r_elevation"
+   "stade.epreuve"
   ]
  },
  {
@@ -6138,8 +6088,7 @@
    "stade.recuperation",
    "stade.marque",
    "stade.epreuve",
-   "stade.r_runs",
-   "stade.r_elevation"
+   "stade.r_runs"
   ]
  },
  {
@@ -6205,8 +6154,7 @@
    "stade.tentatives",
    "stade.recuperation",
    "stade.marque",
-   "stade.epreuve",
-   "stade.r_elevation"
+   "stade.epreuve"
   ]
  },
  {

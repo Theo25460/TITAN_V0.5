@@ -180,3 +180,117 @@ test("live: the session page offers the live session only when the server opens 
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
+
+// The three intents are three different sessions: stages to tick, one threshold from the last comparable set, or
+// discoveries without a single figure. The reference only comes from the journal of the account.
+const SHOTS = process.env.TITAN_LIVE_SHOTS || "";
+const seedJournal = (page) => page.evaluate(() => {
+  const day = (n) => new Date(Date.now() - n * 86400000).toISOString();
+  const log = (n, weight, reps) => ({ id: `l${n}`, sport: "muscu_gym", date: day(n), unit: "min", val: 55, details: { duration: 55, exercises: [{ name: "Squat", setRows: [{ weight, reps }, { weight: weight - 5, reps: reps + 2 }] }] } });
+  window.state.history = [log(9, 55, 8), log(6, 57.5, 8), log(3, 60, 8)];
+});
+
+test("live: Atteindre ticks stages, Se dépasser shows one threshold from the last comparable set, Explorer shows no figure", async () => {
+  const context = await fresh();
+  try {
+    const page = await context.newPage();
+    const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(BASE + "/seance-live?sport=muscu_gym");
+    await page.waitForFunction(() => window.state?.user && document.querySelector("#live h1"));
+    await flagOn(page);
+    await seedJournal(page);
+
+    // Atteindre: the plan is cut into stages before the start, and each validated set ticks them.
+    await page.click('[data-act="intent"][data-v="atteindre"]');
+    assert.match(await page.locator(".live-intent").innerText(), /Tes étapes : 3 frappes · 6 frappes · 9 frappes · 12 frappes/);
+    assert.match(await page.locator(".live-stake").innerText(), /1 Acier/);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/prep-atteindre-390.png`, fullPage: true });
+    await page.click('[data-act="start"]');
+    await page.fill('[data-k="exercise"]', "Squat");
+    assert.match(await page.locator("#live-ref").innerText(), /La dernière fois : 60 kg × 8\./);
+    assert.doesNotMatch(await page.locator("#live-ref").innerText(), /Seuil du jour/, "no threshold outside Se dépasser");
+    for (let i = 0; i < 3; i++) await page.click('[data-act="set"]');
+    await page.click('[data-act="view"][data-v="aventure"]');
+    assert.equal(await page.locator(".live-stages li.on").count(), 1);
+    assert.match(await page.locator(".live-interlude").innerText(), /\S/, "the rest carries a calm line");
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/live-atteindre-390.png`, fullPage: true });
+    page.on("dialog", (d) => d.accept());
+    await page.click('[data-act="finish"]');
+    assert.match(await page.locator(".live-story").innerText(), /1 étape sur 4 franchie/);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/report-atteindre-390.png`, fullPage: true });
+    await page.click('[data-act="abandon"]');
+
+    // Se dépasser: one threshold, measured against the last counted session, reserve kept.
+    await page.goto(BASE + "/seance-live?sport=muscu_gym");
+    await page.waitForFunction(() => window.state?.user && document.querySelector("#live h1"));
+    await flagOn(page);
+    await seedJournal(page);
+    await page.click('[data-act="intent"][data-v="depasser"]');
+    assert.match(await page.locator(".live-intent").innerText(), /Un seul seuil aujourd’hui/);
+    await page.click('[data-act="start"]');
+    await page.fill('[data-k="exercise"]', "squat");
+    assert.match(await page.locator("#live-ref").innerText(), /Seuil du jour : 60 kg × 9, ou 62,5 kg/);
+    await page.fill('[data-k="load"]', "60");
+    await page.fill('[data-k="reps"]', "9");
+    await page.click('[data-act="set"]');
+    await page.click('[data-act="view"][data-v="aventure"]');
+    assert.equal(await page.locator('.live-intent[data-status="done"]').count(), 1);
+    assert.match(await page.locator(".live-intent").innerText(), /Seuil franchi sur squat/i);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/live-depasser-390.png`, fullPage: true });
+    await page.click('[data-act="finish"]');
+    await page.click('[data-act="abandon"]');
+
+    // Explorer: neither goal nor plan to set, no figure on the adventure view, a notebook of discoveries.
+    await page.goto(BASE + "/seance-live?sport=muscu_gym");
+    await page.waitForFunction(() => window.state?.user && document.querySelector("#live h1"));
+    await flagOn(page);
+    await seedJournal(page);
+    await page.click('[data-act="intent"][data-v="explorer"]');
+    assert.equal(await page.locator('[data-act="goal"]').count(), 0);
+    assert.equal(await page.locator('[data-act="plan"]').count(), 0);
+    await page.click('[data-act="start"]');
+    await page.fill('[data-k="exercise"]', "Fentes bulgares");
+    assert.equal((await page.locator("#live-ref").innerText()).trim(), "", "no comparison when exploring");
+    await page.click('[data-act="set"]');
+    await page.click('[data-act="view"][data-v="aventure"]');
+    const adventure = await page.locator(".live-pane-aventure").innerText();
+    assert.doesNotMatch(adventure, /\d/, "no figure on the adventure view");
+    assert.match(adventure, /Carnet de découvertes[\s\S]*Un mouvement nouveau dans ton répertoire/);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/live-explorer-390.png`, fullPage: true });
+    await page.click('[data-act="finish"]');
+    assert.equal(await page.locator(".live-recap").count(), 0);
+    assert.doesNotMatch(await page.locator(".live-story").innerText(), /\d/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("live: yoga prepares in silence, is never compared, and gravel never gets a relaunch mission", async () => {
+  const context = await fresh();
+  try {
+    const page = await context.newPage();
+    const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(BASE + "/seance-live?sport=yoga");
+    await page.waitForFunction(() => window.state?.user && document.querySelector("#live h1"));
+    await flagOn(page);
+    assert.equal(await page.locator('[data-act="immersion"][data-v="silence"]').getAttribute("aria-pressed"), "true");
+    await page.click('[data-act="intent"][data-v="depasser"]');
+    assert.match(await page.locator(".live-intent").innerText(), /jamais par un chiffre imposé/);
+    assert.doesNotMatch(await page.locator("#live").innerText(), /gêne (avant|après|de départ|déclarée)|douleur déclarée/i, "no health data is asked");
+    await page.click('[data-act="start"]');
+    assert.equal(await page.locator(".live-cue, .live-interlude").count(), 0, "a silent practice shows no line");
+    await page.click('[data-act="finish"]');
+    assert.ok((await page.locator(".live-story p").count()) >= 3, "the story is told at the end");
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/report-yoga-390.png`, fullPage: true });
+    page.once("dialog", (d) => d.accept());
+    await page.click('[data-act="abandon"]');
+    await page.goto(BASE + "/seance-live?sport=gravel");
+    await page.waitForFunction(() => window.state?.user && document.querySelector("#live h1"));
+    await flagOn(page);
+    for (const intent of ["atteindre", "depasser", "explorer"]) {
+      await page.click(`[data-act="intent"][data-v="${intent}"]`);
+      assert.doesNotMatch(await page.locator("#live").innerText(), /relances/i, `${intent}: no relaunch on the road`);
+    }
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});

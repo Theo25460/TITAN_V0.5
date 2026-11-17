@@ -92,6 +92,25 @@
   .live-run[data-view] .live-pane { display: grid; }
   .live-pane-aventure { position: sticky; top: var(--s5, 24px); }
 }
+/* What the intent changes: stages to tick (Atteindre), one threshold (Se dépasser), discoveries (Explorer). */
+.live-intent { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-2); margin-top: var(--s2); }
+.live-intent[data-status="done"] { box-shadow: inset 0 2px 0 var(--space); }
+.live-brings { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; color: var(--tx-2); font-size: 14px; line-height: 1.45; }
+.live-stages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: var(--s2); }
+.live-stages li { display: grid; justify-items: center; gap: 4px; padding: var(--s2); border-radius: var(--r2); background: var(--bg-3); color: var(--tx-2); font-size: 13px; text-align: center; }
+.live-stages li > span[aria-hidden] { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line-3); font-weight: 700; font-variant-numeric: tabular-nums; }
+.live-stages li.on { color: var(--tx); }
+.live-stages li.on > span[aria-hidden] { background: var(--space); border-color: var(--space); color: var(--space-ink); }
+.live-finds { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.live-finds li { padding: var(--s2) var(--s3); border-radius: var(--r2); background: var(--bg-3); font-size: 14px; }
+/* A calm line between two efforts: quiet type, no control, nothing to do. */
+.live-interlude { margin: 0; padding: var(--s3) var(--s4); border-left: 2px solid var(--line-3); color: var(--tx-2); font-style: italic; line-height: 1.5; }
+.live-ref { min-height: 1.2em; }
+.live-ref strong { color: var(--tx); font-weight: 600; }
+.live-story { display: grid; gap: var(--s2); padding: var(--s4); border-radius: var(--r3); background: var(--bg-2); }
+.live-story p { margin: 0; line-height: 1.55; max-width: 62ch; }
+.live-next { display: grid; gap: 2px; padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-2); margin-top: var(--s2); }
+.live-next.ready { box-shadow: inset 0 2px 0 var(--space); }
 .live-res { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--s2); }
 .live-res-item { display: grid; padding: var(--s3); border-radius: var(--r2); background: var(--bg-2); border-top: 2px solid var(--space); }
 .live-res-item[data-family="endurance"] { border-top-color: var(--fam-endurance); }

@@ -18,6 +18,9 @@ export type LiveJournal = {
   fields: Record<string, number>;
   interrupted: number;
   recovery: boolean;
+  /** What the intent produced, numbers only (stages ticked, threshold crossed, discoveries, rests kept). Same as the website
+   *  sends; informative: the server never settles them. */
+  facts: { stages: number; stagesOf: number; threshold: number; discoveries: number; calm: number };
 };
 
 const INTENTS = new Set(["atteindre", "depasser", "explorer"]);
@@ -45,6 +48,7 @@ export function sanitizeLiveJournal(raw: unknown): LiveJournal | null {
     .filter((m) => typeof m.id === "string" && /^[a-z]+\.[a-z_]{2,32}$/.test(m.id))
     .map((m) => ({ id: m.id as string, at: n(m.at, 86400), declared: m.declared === true }));
   const gps = (j.gps as Record<string, unknown>) || {};
+  const facts = (j.facts as Record<string, unknown>) || {};
   return {
     v: 1, seed: String(j.seed || "").slice(0, 64), voie, sport,
     intent: INTENTS.has(String(j.intent)) ? (j.intent as LiveJournal["intent"]) : "atteindre",
@@ -53,5 +57,6 @@ export function sanitizeLiveJournal(raw: unknown): LiveJournal | null {
     gps: { distanceM: n(gps.distanceM, 400000), elevationM: n(gps.elevationM, 12000), newPlaces: n(gps.newPlaces, 1000) },
     missions, events: (Array.isArray(j.events) ? j.events : []).filter((e): e is string => typeof e === "string" && /^[a-z_]{2,24}$/.test(e)).slice(0, 12),
     fields, interrupted: n(j.interrupted, 100), recovery: j.recovery === true,
+    facts: { stages: n(facts.stages, 4), stagesOf: n(facts.stagesOf, 4), threshold: n(facts.threshold, 1), discoveries: n(facts.discoveries, 8), calm: n(facts.calm, 400) },
   };
 }

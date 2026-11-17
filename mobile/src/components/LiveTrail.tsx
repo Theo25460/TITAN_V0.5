@@ -19,9 +19,11 @@ export function mix(a: string, b: string, ratio: number) {
 type Props = {
   lit: number; planned: number | null; echo: number | null; beatOne: string; beatMany: string; label: string;
   seed: string; family?: string; goalRatio?: number | null; elan?: { value: number; max: number }; ended?: boolean;
+  /** False for an « Explorer » session: the scene is then described without a single figure, to the eye and to a screen reader. */
+  numbers?: boolean;
 };
 
-export const LiveTrail = memo(function LiveTrail({ lit, planned, echo, beatOne, beatMany, label, seed, family, goalRatio = null, elan, ended = false }: Props) {
+export const LiveTrail = memo(function LiveTrail({ lit, planned, echo, beatOne, beatMany, label, seed, family, goalRatio = null, elan, ended = false, numbers = true }: Props) {
   const s = useMemo(
     () => LiveScene.scene({ beats: lit, planCount: planned, echoBeats: echo, goalRatio, elan, seed, ended }),
     [lit, planned, echo, goalRatio, elan?.value, elan?.max, seed, ended], // eslint-disable-line react-hooks/exhaustive-deps
@@ -35,7 +37,9 @@ export const LiveTrail = memo(function LiveTrail({ lit, planned, echo, beatOne, 
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`${label} : ${words}${elan ? `, élan du jour ${Math.round(elan.value)} sur ${elan.max}` : ""}${echo != null ? `, Écho à ${echo}` : ""}${s.summit.reached ? ", sommet atteint" : ""}`}
+      accessibilityLabel={numbers
+        ? `${label} : ${words}${elan ? `, élan du jour ${Math.round(elan.value)} sur ${elan.max}` : ""}${echo != null ? `, Écho à ${echo}` : ""}${s.summit.reached ? ", sommet atteint" : ""}`
+        : `${label} : le sentier avance avec ta pratique${s.summit.reached ? ", sommet atteint" : ""}`}
       style={{ gap: space.s2 }}
       testID="live-expedition"
     >
@@ -74,7 +78,7 @@ export const LiveTrail = memo(function LiveTrail({ lit, planned, echo, beatOne, 
         </Svg>
       </View>
       <T variant="caption" tone="muted" center>
-        {words}{echo != null ? ` · Écho : ${echo}` : ""}
+        {numbers ? `${words}${echo != null ? ` · Écho : ${echo}` : ""}` : "Le sentier avance avec ta pratique."}
       </T>
     </View>
   );

@@ -66,6 +66,28 @@ dessine la même scène sur le site et sur le téléphone. Elle ne fait que mont
   `mobile/__tests__/liveExpedition.test.tsx`.
 - Reste à faire : illustration de fond par Voie (emplacements dans `ASSETS.md`), rendu sur téléphone réel.
 
+## 4 ter. « Opération Épopée » (19 novembre 2026)
+
+Branche `claude/trusting-planck-4cbljf`, posée sur le chantier sportif (`claude/adoring-pascal-pq814x`, PR #151) pour
+reprendre `sport-contracts.js` et `progression.js`. Détail fonctionnel : [GAME_DESIGN.md](GAME_DESIGN.md) section 2 bis.
+
+| Zone | Fichiers |
+|---|---|
+| Moteur partagé | `js/core/live-voies.js`, `live-engine.js`, `live-world.js`, **`live-prepare.js` (nouveau)** + copies `mobile/src/core/web/` |
+| Web | `js/app/live.js`, `css/live.css`, `seance-live.html` (versions des scripts) |
+| Android | `mobile/src/core/live.ts`, `screens/live/*` |
+| Serveur | `supabase/migrations/20261119090000_live_seed_v2.sql`, paquet `supabase/release-v16/` — **non appliqué** |
+| Outils | `tools/build-live-sql.mjs` (`--migration`, liste `SEED_MIGRATIONS`), `tools/db/build-production-bundle.mjs` (v16) |
+| Tests | `tests/live-intents.test.mjs`, `tests/e2e/live-web.e2e.mjs` (+2 parcours) |
+
+- **Compatibilité** : `VERSION` du moteur inchangée (1). Une séance sauvegardée avant la mise à jour est complétée à la
+  reprise, jamais rejetée. Le journal gagne `facts` (cinq nombres) que le serveur ignore.
+- **Serveur** : aucune fonction modifiée, aucune règle de récompense changée. Le seed v2 retire onze missions que plus
+  aucun client ne propose ; sans lui rien ne casse (le serveur en connaît simplement onze de trop).
+- **Ordre** : PR sportive #151, puis cette branche ; paquet v15 (imports), puis v16 (seed), chacun sur décision.
+- **Non vérifié** : aucun téléphone réel ; les scénarios P3 (musculation), P5 (badminton) et P7 (yoga) de la section 5
+  couvrent les nouveautés et restent à jouer sur appareil.
+
 ## 5. Tests physiques (documentés, non bloquants pour un déploiement de test)
 
 À faire sur appareil réel, flag activé pour le compte de test uniquement. Noter appareil, version Android, résultat.

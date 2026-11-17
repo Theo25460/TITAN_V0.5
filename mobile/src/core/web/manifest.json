@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "e92dfdcaea3110dc8fcb3da02cf5d2caca386a0b",
+  "sha": "cc884aa0824b70c489dfe8126984086061633d9a",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -22,9 +22,10 @@
     "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
     "journey.js": "7496b2b2ba1cad6e695d8e580ea5a5583b4d079c3b89f38b19a0552e2514b921",
     "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265",
-    "live-voies.js": "368336ff1ff1e919e52219569304ed002de27147ace4ea898bc28e8e4be90187",
-    "live-engine.js": "2a6ec82247291f03e53c44f49282edbbb8b64ec07fd47df4ed8972aaa81625b4",
-    "live-world.js": "fe9691135928dc584c5853973f07662c74ff0b62fcd4d48dbb0bb0714a73c565",
+    "live-voies.js": "fec164646e5b07a5a7d20d16d8f6509bedc679d2c0f0ee304794263f773b7307",
+    "live-engine.js": "fbf5fe24c7b3346f85cfc8132974473b0f110577d4515ab4a78d5985a89744db",
+    "live-world.js": "7463b12de14776482976b360d892858de1b613cf1f9edfea61fc8cfa0586d840",
+    "live-prepare.js": "39727f72f3bc4356b83268f0d0127152e539bdee985ed36568d71d243a9bd1c7",
     "live-scene.js": "fbc87b2ffc4bc243e2dc4b90e30046e1685d4e361091484118c38f3a23e6ee10",
     "program-grid.js": "0d032a355db6cae62ca41160d70c0518d88ac30897c240d899efa1ceb5ff8db3",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51"
