@@ -15,16 +15,19 @@
       id: "atteindre", label: "Atteindre", short: "Mon objectif",
       promise: "Tenir le cap que tu as choisi, avec un accompagnement bienveillant.",
       tone: "encourage", rewardLabel: "Cap tenu",
+      brings: ["Ton plan ou ton objectif est découpé en étapes, cochées une à une.", "Le compagnon annonce chaque étape franchie, rien d’autre.", "Aucune comparaison avec tes séances passées."],
     },
     depasser: {
       id: "depasser", label: "Se dépasser", short: "Un cran plus loin",
       promise: "Tenter un léger progrès par rapport à tes séances comparables, sans forcer au-delà du raisonnable.",
       tone: "challenge", rewardLabel: "Seuil franchi",
+      brings: ["Un seul seuil, tiré de ta dernière séance réellement comparable.", "Il se retire de lui-même si l’effort ressenti atteint 8 ou si la séance est une récupération.", "Sans séance comparable, TITAN observe aujourd’hui et ne propose aucun seuil."],
     },
     explorer: {
       id: "explorer", label: "Explorer", short: "Sans chiffre",
       promise: "Pratiquer librement : le monde réagit à ta présence, pas à ta performance.",
       tone: "discover", rewardLabel: "Découverte",
+      brings: ["Aucun chiffre à l’écran d’aventure : ni compteur, ni objectif, ni comparaison.", "Ta pratique révèle des découvertes, et toute nouveauté réelle (lieu, exercice, technique, condition) en ajoute une.", "Le carnet de la séance se lit à la fin."],
     },
   };
 
@@ -372,25 +375,25 @@
       tagline: "Chaque souffle restaure une terrasse du jardin.",
       beat: { id: "souffle", one: "cycle de souffle", many: "cycles de souffle", every: { effortMin: 4 } },
       loop: [
-        "Avant : zone à apaiser (dos, hanches, épaules…) et, si tu veux, ta gêne de départ sur 10.",
+        "Avant : la zone à apaiser (dos, hanches, épaules…), si tu veux la garder en tête. Rien d’autre à préparer.",
         "Pendant : silence par défaut. Un guide de respiration facultatif ; un cycle de souffle tous les 4 minutes de pratique.",
         "Chaque cycle restaure une terrasse du jardin du Sanctuaire : herbes, eau, pierres. Le jardin change avec les saisons de ta pratique.",
-        "Après : ta gêne d’arrivée et de départ forme ton carnet d’apaisement. Aucune performance, aucune comparaison.",
+        "Après : le jardin garde la trace de ta pratique, et le récit de la séance se lit au calme. Aucune performance, aucune comparaison.",
       ],
       artefact: { id: "jardin", name: "Le Jardin du Sanctuaire", text: "Des terrasses restaurées, une saison par mois de pratique." },
       guardian: { name: "La Gardienne des sources", text: "Elle ne se montre qu’à ceux qui ralentissent." },
-      liveData: ["timer", "breath.pacer", "declared.pain_before", "declared.pain_after"],
+      liveData: ["timer", "breath.pacer"],
       missions: [
         m("sanctuaire.terrasses", ["atteindre"], "Restaurer les terrasses", "Pratique la durée que tu t’es fixée.", { phase: "start" }, { metric: "activeMin", gte: { goal: 1 } }, { verify: "log" }),
         m("sanctuaire.souffle", ALL, "Le souffle long", "Cinq minutes d’expirations plus longues que les inspirations.", { phase: "warm" }, { metric: "declared" }),
-        m("sanctuaire.tenue", ["depasser"], "La tenue confortable", "Garde une posture un peu plus longtemps qu’à l’habitude, sans douleur.", { phase: "mid", painBelow: 5 }, { metric: "declared" }, { safetyNote: "Désactivée si la gêne déclarée est de 5 ou plus." }),
+        m("sanctuaire.tenue", ["depasser"], "La tenue confortable", "Garde une posture un peu plus longtemps qu’à l’habitude, sans douleur.", { phase: "mid", painBelow: 5 }, { metric: "declared" }, { safetyNote: "Confortable veut dire sans douleur : à la moindre gêne, relâche." }),
         m("sanctuaire.nouvelle", ["explorer"], "La graine nouvelle", "Essaie une posture ou un enchaînement nouveau.", { phase: "warm" }, { metric: "declared" }),
       ],
       events: [
         { id: "terrasse", when: { everyBeats: 2 }, text: "Une terrasse du jardin retrouve son eau." },
-        { id: "apaisement", when: { field: "painDrop" }, text: "La gêne déclarée a baissé : une fleur rare s’ouvre au Sanctuaire." },
+        { id: "apaisement", when: { everyBeats: 5 }, text: "Vingt minutes de calme : une fleur rare s’ouvre au Sanctuaire." },
       ],
-      fallback: "Le mode par défaut est déjà silencieux. Sans saisie de gêne, le jardin pousse avec le temps de pratique.",
+      fallback: "Le mode par défaut est déjà silencieux : le jardin pousse avec le temps de pratique, sans rien saisir.",
     },
 
     cible: {
@@ -595,6 +598,56 @@
     },
   };
 
+  /* Calm moments: one line shown between two efforts (rest, pause, change of ends). Screen only: never a voice, never a
+     notification, nothing to tap. They are where the adventure moves while the body recovers. */
+  const CALM = {
+    sentier: ["La brume se pose sur le chemin parcouru. Il ne s’efface pas.", "Une borne attend au prochain virage ; elle ne compte pas le temps.", "Le Passeur marche à ta hauteur, sans rien dire."],
+    roue: ["Pied à terre : la région reliée reste reliée.", "Le vent tourne sur la carte. Rien ne presse.", "La Dame des cols regarde la vallée d’où tu viens."],
+    flots: ["Le sillage se referme derrière toi, régulier.", "Un amer veille sur la côte déjà longée.", "L’eau porte seule pendant que tu souffles."],
+    nage: ["Au bord du bassin, un îlot garde sa lumière.", "L’eau se calme autour de toi ; l’archipel aussi.", "Le Veilleur compte les retours, pas les longueurs."],
+    altitude: ["Au refuge, la gourde passe avant la carte.", "La crête sera encore là dans cinq minutes.", "L’Ermite approuve ceux qui s’arrêtent pour regarder."],
+    forge: ["La braise retombe. Une lame trempée trop vite casse.", "Le Colosse attend ; ses plaques ne remontent pas pendant ton repos.", "L’enclume refroidit, l’Arsenal garde ce que tu viens de forger."],
+    corps: ["Entre deux paliers, la constellation garde ses étoiles allumées.", "Secoue les bras : l’étoile suivante ne s’éteint pas.", "L’Acrobate attend que ton souffle soit revenu."],
+    paroi: ["Les avant-bras se vident. La paroi se relit depuis le sol.", "Chaque prise révélée reste révélée.", "La Sentinelle n’a jamais vu quelqu’un grimper mieux en se pressant."],
+    joute: ["Changement de côté : le tableau d’honneur retient la manche, pas la fatigue.", "Une gorgée d’eau. Le Chevalier salue l’échange qui vient de finir.", "Le filet ne bouge pas ; toi, tu peux souffler."],
+    escouade: ["Au banc, la bannière flotte pour toute l’escouade.", "Le Capitaine écoute ce qui se dit pendant la pause.", "Ton serment tient aussi quand tu récupères."],
+    dojo: ["Entre deux rounds, le souffle est une technique.", "Le parchemin sèche pendant que tu respires.", "Le Maître regarde ta garde au repos."],
+    sanctuaire: ["Rien à faire. Le jardin retient l’eau.", "Une terrasse se repose avec toi.", "La Gardienne reste là, sans rien attendre."],
+    cible: ["Le ciel garde l’étoile que tu viens d’allumer.", "L’Astronome ne note rien entre deux volées.", "Le geste revient mieux après un souffle long."],
+    scene: ["Les projecteurs baissent ; le tableau reste en mémoire.", "La Danseuse d’ombre répète pour toi pendant que tu bois.", "Le répertoire ne s’oublie pas en une pause."],
+    brasier: ["Derrière le rempart, la vague suivante n’est pas encore là.", "La Bête de cendre se lasse quand tu respires.", "Le foyer tient seul le temps du repos."],
+    stade: ["Le Starter ne lève pas le bras tant que tu n’as pas récupéré.", "La piste garde ta marque ; marche un peu.", "Une tentative pleine se prépare en ne faisant rien."],
+    elements: ["Les conditions changent ; l’Atlas attend ta lecture.", "Le Vent sans nom respecte ceux qui prennent leur temps.", "À terre, la page du jour est déjà écrite."],
+    pilotage: ["Au stand, le carnet se remplit de ce que tu as senti.", "L’Ingénieur écoute plus qu’il ne chronomètre.", "La piste refroidit avec toi."],
+    lien: ["Rênes longues : le lien se construit aussi au pas.", "Ta monture souffle avec toi.", "La Cavalière d’argent regarde l’accord, pas l’allure."],
+    odyssee: ["Dans le portail, un segment se ferme et l’autre n’a pas commencé.", "Le Héraut change de visage pendant que tu changes d’effort.", "La transition fait partie de l’Odyssée."],
+  };
+
+  /* Curios: what an « Explorer » session reveals along the way. Names only, no value, no rarity: the rewards stay the
+     server's (finds, lands). Four per Voie, drawn from the session seed. */
+  const CURIOS = {
+    sentier: ["un cairn que personne n’a signé", "une source sous la brume", "un banc tourné vers l’est", "une borne sans inscription"],
+    roue: ["un lavoir au bord de la route", "un col sans panneau", "une auberge de relais fermée depuis longtemps", "une ligne droite bordée de peupliers"],
+    flots: ["une crique sans nom", "une bouée repeinte à la main", "un héron sur un amer", "un courant plus clair que les autres"],
+    nage: ["une épave couverte de corail", "un banc de poissons d’argent", "une grotte éclairée par le fond", "une amphore intacte"],
+    altitude: ["un lac que la carte oublie", "un bouquetin sur l’arête", "une croix de bois au col", "un névé en plein été"],
+    forge: ["un poinçon d’ancien forgeron", "une lame inachevée sous l’établi", "une enclume gravée d’un nom", "un soufflet qui marche encore"],
+    corps: ["une étoile entre deux constellations", "une barre lisse comme un galet", "une figure que personne n’a nommée", "un anneau suspendu à une branche"],
+    paroi: ["une prise en forme d’oreille", "une fissure qui chante au vent", "un vieux piton rouillé", "un bivouac creusé dans la roche"],
+    joute: ["un filet rapiécé avec soin", "une balle marquée d’initiales", "une ligne retracée à la craie", "un banc d’arbitre vide"],
+    escouade: ["un fanion oublié au vestiaire", "un tableau noir couvert de flèches", "un brassard sans couleur", "une photo d’équipe sans date"],
+    dojo: ["un parchemin dans une langue ancienne", "une cloche plus petite que les autres", "une ceinture sans nœud", "un tatami usé au centre"],
+    sanctuaire: ["une mousse qui ne pousse qu’ici", "un bassin où dort une carpe", "une pierre chaude au soleil", "un carillon que le vent seul fait sonner"],
+    cible: ["une étoile très basse sur l’horizon", "une cible peinte sur une porte de grange", "une plume plantée dans l’herbe", "un pas de tir envahi de trèfle"],
+    scene: ["un costume resté sur un cintre", "un parquet qui garde les pas", "une partition annotée", "un miroir un peu trop généreux"],
+    brasier: ["une braise bleue", "un sablier à double fond", "une cendre qui dessine un visage", "un rempart couvert de lierre"],
+    stade: ["un couloir retracé à la main", "un vieux chronomètre arrêté", "un sautoir envahi d’herbe", "un témoin de relais gravé"],
+    elements: ["une rose des vents dessinée au sol", "un nuage en forme d’enclume", "une trace d’animal dans la neige", "un courant qui remonte la pente"],
+    pilotage: ["un vibreur repeint cent fois", "un panneau de stand écrit à la craie", "une trajectoire dessinée dans la poussière", "un casque accroché à un clou"],
+    lien: ["une clairière où brouter", "un fer trouvé sur le chemin", "un gué peu profond", "un abreuvoir de pierre"],
+    odyssee: ["un portail entrouvert", "un dossard d’une autre époque", "une carte à trois couleurs", "une horloge sans aiguilles"],
+  };
+
   /* ------------------------------------------------------------------------------------------- */
   /* Report missions: built from the sport's own statistics (catalogue fields). They are checked    */
   /* after the session against details.extras, by the engine and again by the server.               */
@@ -659,7 +712,7 @@
     R("hold_seconds", "La tenue", "Trente secondes de maintien confortable.", ["atteindre"], { gte: 30 }),
     R("pain_after", "L’apaisement mesuré", "Note ta gêne avant et après la séance.", ["atteindre"], { gte: 0, requires: "pain_before" }),
     R("drills", "Les éducatifs", "Un bloc d’éducatifs.", ["explorer"], { gte: 1 }),
-    R("sprints", "Les relances", "Trois relances courtes sur home trainer.", ["depasser"], { gte: 3, indoorOnly: true }),
+    R("sprints", "Les relances", "Trois relances courtes sur home trainer.", ["depasser"], { gte: 3 }, { indoorOnly: true }),
     R("bouts", "Les assauts", "Trois assauts ou plus.", ["atteindre"], { gte: 3 }),
     R("touches", "La touche propre", "Cinq touches données.", ["depasser"], { gte: 5 }),
     R("escapes", "Les sorties", "Deux sorties de position.", ["atteindre"], { gte: 2 }),
@@ -683,9 +736,23 @@
   ];
   const FIELD_MISSION_BY_FIELD = new Map(FIELD_MISSIONS.map((f) => [f.field, f]));
 
+  /* Sport measure contracts (js/core/sport-contracts.js): a statistic the entry form no longer asks for (historical field out
+     of place, self-rating, health data) can never be the object of a mission. */
+  const contracts = () => {
+    if (!root.TitanSports && typeof require === "function") { try { require("./sports.js"); } catch (_) { /* web: loaded by the page */ } }
+    if (!root.TitanSportContracts && typeof require === "function") { try { require("./sport-contracts.js"); } catch (_) { /* web: loaded by the page */ } }
+    return root.TitanSports && root.TitanSportContracts ? root.TitanSportContracts : null;
+  };
+  /** Fields a new entry of this sport really asks for (contract applied), in the catalogue's order. */
+  function askedFields(sport) {
+    const fields = (sport.fields || []).filter((f) => f && f.id && !f.legacy);
+    const C = contracts();
+    return C ? fields.filter((f) => !C.retiredReason(sport.id, f)) : fields;
+  }
+
   /** Report missions of one sport, prefixed by its Voie: `<voie>.r_<field>`. */
   function reportMissions(sport, voie, indoor) {
-    const fields = new Set((sport.fields || []).filter((f) => f && !f.legacy).map((f) => f.id));
+    const fields = new Set(askedFields(sport).map((f) => f.id));
     const out = [];
     for (const id of fields) {
       const def = FIELD_MISSION_BY_FIELD.get(id);
@@ -744,9 +811,9 @@
     bjj: "Des rolls de six minutes ; les sorties de position valent autant que les finitions.",
     karate: "Katas et kumite contrôlé : chaque technique a son parchemin.",
     fencing: "Assauts à la cloche, touches propres : la lame juste plutôt que forte.",
-    yoga: "Silence par défaut, souffle guidé facultatif, gêne avant et après : le jardin pousse avec le calme.",
+    yoga: "Silence par défaut, souffle guidé facultatif, aucune mesure : le jardin pousse avec le calme.",
     pilates: "La séquence complète et la respiration : des terrasses restaurées, jamais une performance.",
-    stretching: "Des tenues confortables, une zone apaisée : la gêne qui baisse ouvre une fleur rare.",
+    stretching: "Des tenues confortables, une zone apaisée : le calme tenu ouvre une fleur rare.",
     archery: "Douze volées, une étoile chacune ; la régularité dessine des constellations.",
     golf: "Neuf ou dix-huit trous, le green apaisé : la constance plutôt que le coup parfait.",
     petanque: "Treize mènes, pointer juste : la constellation de la régularité.",
@@ -969,7 +1036,7 @@
 
   /** Measurable data for one sport: what can be live, what is declared, what comes after. Never invented. */
   function dataOf(sport, voie) {
-    const fields = (sport.fields || []).filter((f) => f && !f.legacy).map((f) => f.id);
+    const fields = askedFields(sport).map((f) => f.id);
     const gps = sport.unit === "km" && !NO_GPS.has(sport.id) && ["route"].includes(voie.panel);
     const has = (id) => fields.includes(id);
     const declaredLive = [];
@@ -977,7 +1044,7 @@
     if (voie.panel === "wall") declaredLive.push("essais (réussite, flash, chute, cotation)");
     if (voie.panel === "score") declaredLive.push(voie.id === "escouade" ? "périodes" : voie.id === "cible" ? "score par unité" : "points et manches");
     if (voie.panel === "rounds") declaredLive.push(voie.id === "stade" ? "tentatives et marques" : "rounds terminés");
-    if (voie.panel === "flow") declaredLive.push(voie.id === "sanctuaire" ? "gêne avant/après" : "passages d’enchaînement");
+    if (voie.panel === "flow" && voie.id !== "sanctuaire") declaredLive.push("passages d’enchaînement");
     if (voie.panel === "legs") declaredLive.push("changements de segment");
     return {
       timer: true,
@@ -995,6 +1062,9 @@
     if (ROAD.has(sport.id) && voie.safety !== "aucune") return "mains_libres";
     return voie.safety;
   }
+
+  /** Voies where the practice itself is the point: silent by default, no comparison, no surpassing cue. */
+  const SERENE = new Set(["sanctuaire"]);
 
   const resolved = new Map();
   /** Full live configuration of one sport (memoised: the engine calls it on every step and never mutates it). */
@@ -1037,6 +1107,10 @@
       beat, plan, data, tuning,
       offerMode, missions, events: voie.events, artefact: voie.artefact, guardian: voie.guardian,
       fallback: voie.fallback, signature: signatureOf(sport, voie, tuning),
+      // Serene practices (yoga, pilates, stretching…) start silent and are never compared with a past session.
+      serene: SERENE.has(voie.id),
+      defaultImmersion: SAFETY[safety].maxLevel < 1 || SERENE.has(voie.id) ? "silence" : "notifications",
+      calm: CALM[voie.id] || [], curios: CURIOS[voie.id] || [],
     };
   }
 
@@ -1072,7 +1146,7 @@
     return [...index().keys()].map(resolve);
   }
 
-  const api = { INTENTS, IMMERSION, SAFETY, ESSENCES, VOIES, FIELD_MISSIONS, SIGNATURES, PROFILE_VOIE, SPORT_VOIE, SPORT_TUNING, STRICT_SILENCE, ROAD, resolve, all, voieIdOf, missionKind };
+  const api = { INTENTS, IMMERSION, SAFETY, ESSENCES, VOIES, CALM, CURIOS, SERENE, FIELD_MISSIONS, SIGNATURES, PROFILE_VOIE, SPORT_VOIE, SPORT_TUNING, STRICT_SILENCE, ROAD, resolve, all, voieIdOf, missionKind };
   root.TitanLiveVoies = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

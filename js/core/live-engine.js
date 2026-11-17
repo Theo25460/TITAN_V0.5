@@ -54,7 +54,10 @@
    * @param {{sportId:string, intent?:string, immersion?:string, goal?:{kind:string,value:number}|null, plan?:object,
    *   baseline?:{medianMinutes?:number, medianBeats?:number, medianElevationM?:number, sessions?:number}|null,
    *   echo?:{minutes:number, beats:number}|null, seed:string, owner?:string, project?:boolean, recovery?:boolean,
-   *   knownExercises?:string[], knownTechniques?:string[], knownConditions?:string[]}} opts
+   *   knownExercises?:string[], knownTechniques?:string[], knownConditions?:string[],
+   *   reference?:{exercises?:Record<string,{name?:string, load?:number, reps:number}>, basis?:string}|null}} opts
+   * `baseline`, `echo` and `reference` describe the athlete's own comparable sessions (TitanLivePrepare.context builds them
+   * from sessions the server counted). They are only read by « Se dépasser » and never in a serene Voie.
    */
   function create(opts) {
     const voies = V();
@@ -68,7 +71,8 @@
       sport: conf.sport, voie: conf.voie, intent, immersion: opts.immersion || "notifications", level,
       safety: conf.safety, offerMode: conf.offerMode, recovery: !!opts.recovery,
       goal, plan: { ...conf.plan, ...(opts.plan || {}) },
-      baseline: opts.baseline || null, echo: opts.echo || null, project: !!opts.project,
+      baseline: conf.serene ? null : opts.baseline || null, echo: conf.serene ? null : opts.echo || null, project: !!opts.project,
+      reference: conf.serene ? null : normReference(opts.reference), thresholds: [], discoveries: [], novelSeen: 0, calm: { n: 0, at: null }, stageSaid: 0,
       known: { exercises: opts.knownExercises || [], techniques: opts.knownTechniques || [], conditions: opts.knownConditions || [] },
       status: "ready", createdAt: null, startedAt: null, runStart: null, activeMs: 0, lastSeenAt: null, interrupted: 0,
       gps: { distanceM: 0, elevationM: 0, newPlaces: 0, available: conf.data.gps },
@@ -78,6 +82,25 @@
       events: [], cues: [], lastCueAt: null, firedRules: {},
       ended: null,
     };
+  }
+
+  /** Exercise key shared with the reference: case, accents and spacing never make two exercises out of one. */
+  const exKey = (name) => String(name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim().slice(0, 40);
+
+  function normReference(ref) {
+    if (!ref || typeof ref !== "object") return null;
+    const exercises = {};
+    for (const [k, v] of Object.entries(ref.exercises || {}).slice(0, 30)) {
+      const reps = num(v?.reps, 0), load = Math.max(0, num(v?.load, 0));
+      if (reps > 0 && exKey(k)) exercises[exKey(k)] = { name: String(v.name || k).slice(0, 40), load, reps };
+    }
+    return { exercises, basis: String(ref.basis || "").slice(0, 120) };
+  }
+
+  /** A state saved before the intents carried their own data (same VERSION) is completed, never rejected. */
+  function withDefaults(st) {
+    if (st && st.thresholds && st.discoveries && st.calm) return st;
+    return { ...st, reference: st.reference || null, thresholds: st.thresholds || [], discoveries: st.discoveries || [], calm: st.calm || { n: 0, at: null }, stageSaid: st.stageSaid || 0 };
   }
 
   function normGoal(goal) {
@@ -113,6 +136,133 @@
     else if (g.kind === "distance") value = state.gps.distanceM / 1000 || num(state.fields.declaredKm, 0);
     else value = beatCount(state, now);
     return { value: Math.round(value * 100) / 100, target: g.value, ratio: clamp(value / g.value, 0, 1) };
+  }
+
+  /** What the session is measured against: the goal when there is one, otherwise the plan (beats or minutes). */
+  function progressOf(state, now) {
+    const g = goalProgress(state, now);
+    if (g) return { ...g, kind: state.goal.kind };
+    const p = state.plan || {};
+    if (num(p.count) > 0 && p.kind && p.kind !== "time") {
+      const value = p.kind === "round" && num(p.workS) > 0 ? loggedBeats(state, "round") : beatCount(state, now);
+      return { value, target: p.count, ratio: clamp(value / p.count, 0, 1), kind: "beats" };
+    }
+    if (p.kind === "time" && num(p.minutes) > 0) {
+      const value = activeMin(state, now);
+      return { value: Math.round(value * 100) / 100, target: p.minutes, ratio: clamp(value / p.minutes, 0, 1), kind: "time" };
+    }
+    return null;
+  }
+
+  /** « Atteindre »: the plan or the goal cut into at most four stages, ticked one by one. Null without anything to reach. */
+  function stages(state, now) {
+    if (state.intent !== "atteindre") return null;
+    const p = progressOf(state, now);
+    if (!p || !(p.target > 0)) return null;
+    const marks = [];
+    for (const f of [0.25, 0.5, 0.75, 1]) {
+      const raw = p.target * f;
+      const at = p.kind === "distance" ? Math.round(raw * 10) / 10 : Math.max(1, Math.ceil(raw - 1e-9));
+      if (at > 0 && !marks.includes(at)) marks.push(at);
+    }
+    const label = (at) => (p.kind === "time" ? `${at} min` : p.kind === "distance" ? `${String(at).replace(".", ",")} km` : `${at} ${beatWord(state, at)}`);
+    const list = marks.map((at, i) => ({ index: i + 1, at, label: label(at), reached: p.value >= at - 1e-9 }));
+    return { list, reached: list.filter((x) => x.reached).length, of: list.length, kind: p.kind };
+  }
+
+  /** Voies where « a little longer at the same intensity » is a sound, safe way to progress. Never speed, never risk. */
+  const TIME_THRESHOLD_VOIES = ["sentier", "roue", "flots", "nage", "altitude"];
+
+  /** A set that crosses the threshold of the last comparable session of the same exercise, with reserve kept.
+   *  Same load and more repetitions, or a small step of load (10 % at most). A bigger jump is not what TITAN celebrates. */
+  function crossesThreshold(state, d) {
+    const ref = state.reference?.exercises?.[exKey(d.exercise)];
+    if (!ref || d.rir == null || !(num(d.rir, 0) >= 1)) return false;
+    const load = num(d.load, 0), reps = num(d.reps, 0);
+    if (ref.load > 0) return (load === ref.load && reps > ref.reps) || (load > ref.load && load <= ref.load * 1.1 && reps >= Math.max(1, ref.reps - 2));
+    return load === 0 && reps > ref.reps;
+  }
+
+  const fmtLoad = (n) => String(Math.round(n * 10) / 10).replace(".", ",");
+
+  /** What the athlete did last time on this exercise, and (« Se dépasser » only) the one reasonable step above it. */
+  function referenceFor(saved, exercise) {
+    const state = withDefaults(saved);
+    const ref = state.reference?.exercises?.[exKey(exercise)];
+    if (!ref) return null;
+    const last = ref.load > 0 ? `${fmtLoad(ref.load)} kg × ${ref.reps}` : `${ref.reps} répétitions`;
+    let suggest = null;
+    if (state.intent === "depasser" && !state.recovery && !(num(state.feel, 0) >= 8) && !state.thresholds.length) {
+      const stepUp = ref.load >= 40 ? 2.5 : ref.load >= 10 ? 1 : 0.5;
+      const next = ref.load > 0 && ref.load + stepUp <= ref.load * 1.1 ? ref.load + stepUp : null;
+      suggest = ref.load > 0
+        ? `${fmtLoad(ref.load)} kg × ${ref.reps + 1}${next ? `, ou ${fmtLoad(next)} kg` : ""}, en gardant au moins une répétition en réserve`
+        : `${ref.reps + 1} répétitions, en gardant au moins une en réserve`;
+    }
+    return { name: ref.name, load: ref.load, reps: ref.reps, last, suggest };
+  }
+
+  /** « Se dépasser »: one threshold, from a really comparable session, that withdraws by itself. Null for other intents. */
+  function thresholdOf(state, now) {
+    if (state.intent !== "depasser") return null;
+    const conf = V().resolve(state.sport);
+    const done = state.thresholds[0] || null;
+    if (done) return { status: "done", kind: "set", text: `Seuil franchi sur ${done.name}, avec de la réserve. Une seule tentative suffisait : la suite se fait dans ta zone habituelle.` };
+    const b = state.baseline;
+    const timeKind = TIME_THRESHOLD_VOIES.includes(conf.voie) && num(b?.sessions) >= 3 && num(b?.medianMinutes) > 0;
+    const target = timeKind ? Math.min(Math.ceil(b.medianMinutes * 1.05), Math.round(b.medianMinutes) + 10) : null;
+    if (timeKind && activeMin(state, now) >= target) return { status: "done", kind: "time", target, text: `Seuil franchi : ${target} min, un peu plus que ta médiane récente (${Math.round(b.medianMinutes)} min), sans hausser l’intensité.` };
+    if (state.recovery) return { status: "aside", kind: null, text: "Séance de récupération : aucun seuil aujourd’hui." };
+    if (num(state.feel, 0) >= 8) return { status: "aside", kind: null, text: "Effort ressenti élevé : le seuil est mis de côté. C’est la bonne décision." };
+    if (timeKind) return { status: "open", kind: "time", target, text: `Seuil du jour : ${target} min, un peu plus que ta médiane récente (${Math.round(b.medianMinutes)} min), à la même intensité. La vitesse n’entre pas en compte.` };
+    if (["sets"].includes(conf.panel)) {
+      return Object.keys(state.reference?.exercises || {}).length
+        ? { status: "open", kind: "set", text: "Un seul seuil aujourd’hui : sur un exercice déjà pratiqué, une répétition de plus à la même charge ou un petit palier, en gardant de la réserve." }
+        : { status: "none", kind: "set", text: "Pas encore d’exercice comparable : TITAN observe cette séance, elle servira de repère la prochaine fois." };
+    }
+    if (TIME_THRESHOLD_VOIES.includes(conf.voie)) return { status: "none", kind: "time", text: "Pas encore trois séances comparables : TITAN observe celle-ci, sans seuil." };
+    return { status: "missions", kind: null, text: "Dans cette Voie, se dépasser passe par une mission à la fois, jamais par un chiffre imposé." };
+  }
+
+  /* « Explorer »: the practice reveals curios at a slowing pace, and every real novelty (place, exercise, technique,
+     condition) adds one. Text only: nothing here is a reward, the finds stay the server's. */
+  const CURIO_AT_MIN = [8, 20, 35, 50];
+  const NOVEL_TEXT = {
+    newPlaces: "un lieu que tu n’avais jamais traversé", newExercises: "un mouvement nouveau dans ton répertoire",
+    newTechniques: "une technique que tu n’avais jamais notée", newConditions: "des conditions que ton atlas ne connaissait pas",
+  };
+  function runDiscoveries(state, now, out) {
+    if (state.intent !== "explorer") return;
+    const pool = V().resolve(state.sport).curios || [];
+    const add = (entry) => {
+      if (state.discoveries.length >= 8) return;
+      state.discoveries.push(entry);
+      out.push({ type: "discovery", discovery: { ...entry, text: discoveryText(state, entry) } });
+    };
+    const due = CURIO_AT_MIN.filter((m) => activeMin(state, now) >= m).length;
+    const have = state.discoveries.filter((d) => d.c != null).length;
+    const start = pool.length ? hash(`${state.seed}:curio`) % pool.length : 0;
+    for (let i = have; i < Math.min(due, pool.length); i++) add({ c: (start + i) % pool.length, at: Math.round(activeMs(state, now) / 1000) });
+    for (const k of Object.keys(NOVEL_TEXT)) {
+      const seen = num(state.novel?.[k], 0), now_ = num(state.fields[k], 0);
+      if (now_ > seen) { state.novel = { ...(state.novel || {}), [k]: now_ }; add({ n: k, at: Math.round(activeMs(state, now) / 1000) }); }
+    }
+  }
+  function discoveryText(state, d) {
+    if (d.n) return NOVEL_TEXT[d.n] || "";
+    return (V().resolve(state.sport).curios || [])[d.c] || "";
+  }
+
+  /** The calm line of the current pause, or null. Shown on screen only, never when the athlete asked for silence. */
+  function interludeOf(state, now, restLeftS, bell) {
+    if (state.level < 1 || state.status === "ended" || state.status === "ready") return null;
+    const lines = V().resolve(state.sport).calm || [];
+    if (!lines.length) return null;
+    const base = hash(`${state.seed}:calm`);
+    if (bell && bell.phase === "rest") return { text: lines[(base + bell.round) % lines.length], index: bell.round };
+    const open = state.status === "paused" || (restLeftS != null && restLeftS > 0) || (state.calm.at != null && now - state.calm.at < 40000);
+    if (!open || !state.calm.n) return null;
+    return { text: lines[(base + state.calm.n) % lines.length], index: state.calm.n };
   }
 
   /** Session phase used to time mission offers: start, warm, mid, late. */
@@ -233,6 +383,17 @@
     { id: "goal_done", minLevel: 1, priority: 3, once: true,
       when: (s, n) => { const p = goalProgress(s, n); return p && p.ratio >= 1; },
       text: () => "Cap tenu. Tout ce qui suit est du bonus, ou du repos.", why: "Objectif de la séance atteint." },
+    { id: "stage", minLevel: 1, priority: 2,
+      when: (s, n) => { const st = !s.goal && stages(s, n); return !!st && st.reached > num(s.stageSaid, 0); },
+      text: (s, n) => { const st = stages(s, n); const cur = st.list[st.reached - 1]; return st.reached >= st.of ? `Plan tenu : ${cur.label}. La suite est libre.` : `Étape ${st.reached} sur ${st.of} franchie : ${cur.label}.`; },
+      why: "Ton plan de séance, découpé en étapes.", after: (s, n) => { s.stageSaid = stages(s, n).reached; } },
+    { id: "threshold_done", minLevel: 1, priority: 2, once: true,
+      when: (s, n) => thresholdOf(s, n)?.status === "done",
+      text: (s, n) => thresholdOf(s, n).text, why: "Comparaison avec ta dernière séance réellement comparable, réserve gardée." },
+    { id: "discovery", minLevel: 1, priority: 1,
+      when: (s) => s.intent === "explorer" && s.discoveries.length > num(s.discoverySaid, 0),
+      text: (s) => `Découverte : ${discoveryText(s, s.discoveries[s.discoveries.length - 1])}.`,
+      why: "Tu explores : la pratique révèle le monde, sans rien mesurer.", after: (s) => { s.discoverySaid = s.discoveries.length; } },
     { id: "beyond_baseline", minLevel: 1, priority: 2, once: true,
       when: (s, n) => s.intent === "depasser" && num(s.baseline?.sessions) >= 3 && num(s.baseline?.medianBeats) > 0 && beatCount(s, n) > s.baseline.medianBeats,
       text: (s, n) => `Au-delà de ta médiane récente : ${beatCount(s, n)} ${beatWord(s, beatCount(s, n))} contre ${s.baseline.medianBeats}.`,
@@ -312,6 +473,7 @@
       const cue = { id: rule.id, at: now, text: rule.text(state, now), why: rule.why, channels: channelsFor(state.level), priority: rule.priority };
       state.firedRules[rule.id] = now;
       if (rule.mark) state.firedRules[key] = now;
+      if (rule.after) rule.after(state, now);
       state.lastCueAt = now;
       state.cues.push(cue);
       if (state.cues.length > MAX_CUES) state.cues.shift();
@@ -407,7 +569,7 @@
    * field{id, value} · feel{value} · accept{id} · decline{id} · declare{id} · end{rpe?}.
    */
   function step(prev, input, now) {
-    const state = clone(prev);
+    const state = withDefaults(clone(prev));
     const out = [];
     const prevBeats = beatCount(prev, now);
     // After the end, only the report (statistics and declared missions) may still change the session.
@@ -421,6 +583,7 @@
       case "pause":
         if (state.status !== "active") break;
         state.activeMs = activeMs(state, now); state.runStart = null; state.status = "paused"; state.pausedAt = now;
+        state.calm = { n: state.calm.n + 1, at: now };
         break;
       case "resume":
         if (state.status !== "paused") break;
@@ -437,6 +600,7 @@
         const restOk = state.rest.since != null && state.rest.targetS > 0 ? (now - state.rest.since) / 1000 >= state.rest.targetS * 0.9 : false;
         state.beats.push({ kind: String(input.kind || "beat").slice(0, 16), at: Math.round(activeMs(state, now) / 1000), data, restOk });
         derive(state, data, input.kind);
+        state.calm = { n: state.calm.n + 1, at: now }; // a logged beat means the athlete is between two efforts
         if (state.rest.targetS > 0 && ["set", "attempt", "round"].includes(input.kind)) state.rest.since = now;
         break;
       }
@@ -475,6 +639,7 @@
     if (state.status === "active" || input.type === "end") autoRounds(state, now);
     if (state.status === "ended" && input.type !== "end") runMissions(state, now, out);
     else if (state.status === "active" || input.type === "end") {
+      runDiscoveries(state, now, out);
       runMissions(state, now, out);
       runEvents(state, now, out, prevBeats);
       if (state.status !== "ended") runCompanion(state, now, out);
@@ -522,7 +687,14 @@
     const inc = (k, n = 1) => { f[k] = num(f[k], 0) + n; };
     if (kind === "set") {
       if (d.exercise && !state.known.exercises.includes(d.exercise)) { state.known.exercises.push(d.exercise); inc("newExercises"); }
-      if (d.threshold && num(d.rir, 0) >= 1) inc("thresholdSets");
+      // The threshold is measured against the reference, never declared: once per exercise, only when surpassing was chosen,
+      // never in a recovery session nor after the athlete said the effort is hard.
+      const key = exKey(d.exercise);
+      if (state.intent === "depasser" && !state.recovery && !(num(state.feel, 0) >= 8) && !state.thresholds.some((t) => t.k === key)
+        && (crossesThreshold(state, d) || (d.threshold && num(d.rir, 0) >= 1))) {
+        state.thresholds.push({ k: key, name: String(d.exercise || "cet exercice").slice(0, 40) });
+        inc("thresholdSets");
+      }
     }
     if (kind === "attempt") {
       if (d.result === "fall") inc("falls");
@@ -576,7 +748,7 @@
    *  existing stopwatch); an unattended gap is reported so the athlete can choose to remove it. */
   function resume(saved, now) {
     if (!saved || saved.v !== VERSION) return null;
-    const state = clone(saved);
+    const state = withDefaults(clone(saved));
     const gapS = state.lastSeenAt ? Math.round((now - state.lastSeenAt) / 1000) : 0;
     const out = [];
     if (state.status === "active" && gapS >= INTERRUPT_S) {
@@ -598,7 +770,8 @@
 
   /* ------------------------------------------------------------------ views */
   /** Everything a live screen needs, computed once per render. */
-  function view(state, now) {
+  function view(saved, now) {
+    const state = withDefaults(saved);
     const conf = V().resolve(state.sport);
     const beats = beatCount(state, now);
     const minutes = activeMin(state, now);
@@ -620,6 +793,11 @@
       lastEvent: state.events[state.events.length - 1] || null,
       lastCue: state.cues[state.cues.length - 1] || null,
       fields: state.fields,
+      // What the chosen intent changes on screen: stages to tick, one threshold, or discoveries without any number.
+      numbers: state.intent !== "explorer",
+      stages: stages(state, now), threshold: thresholdOf(state, now),
+      discoveries: state.intent === "explorer" ? state.discoveries.map((d) => discoveryText(state, d)) : null,
+      interlude: interludeOf(state, now, restLeftS, bell),
     };
   }
   function beatWordFor(conf, n) { return n > 1 ? conf.beat.many : conf.beat.one; }
@@ -638,7 +816,8 @@
 
   /* ------------------------------------------------------------------ journal */
   /** Compact, bounded journal stored in the session details (details.live) and settled by the server. */
-  function journal(state) {
+  function journal(saved) {
+    const state = withDefaults(saved);
     const conf = V().resolve(state.sport);
     const beatsByKind = {};
     for (const b of state.beats) beatsByKind[b.kind] = (beatsByKind[b.kind] || 0) + 1;
@@ -654,7 +833,55 @@
       gps: { distanceM: Math.round(state.gps.distanceM), elevationM: Math.round(state.gps.elevationM), newPlaces: state.gps.newPlaces },
       missions: state.missions.done.slice(0, MAX_DONE).map((d) => ({ id: d.id, at: d.at, declared: !!d.declared })),
       events: state.events.slice(-12).map((e) => e.id), fields, interrupted: state.interrupted, recovery: state.recovery,
+      facts: intentFacts(state, end),
     };
+  }
+
+  /** Numbers only: what the intent produced (stages ticked, threshold crossed, discoveries, calm moments). Informative:
+   *  the server settles missions and effort, never these. */
+  function intentFacts(state, end) {
+    const st = stages(state, end);
+    const th = thresholdOf(state, end);
+    return { stages: st ? st.reached : 0, stagesOf: st ? st.of : 0, threshold: th && th.status === "done" ? 1 : 0,
+      discoveries: state.discoveries.length, calm: state.beats.filter((b) => b.restOk).length };
+  }
+
+  /* ------------------------------------------------------------------ recap */
+  /** The story of the session, told once at the end from what really happened. It is the only thing a silent session
+   *  shows, and the last thing every session shows. Same inputs, same story. */
+  function recap(saved) {
+    const state = withDefaults(saved);
+    const conf = V().resolve(state.sport);
+    const end = state.ended?.at ?? state.lastSeenAt ?? 0;
+    const minutes = Math.round(activeMin(state, end));
+    const beats = beatCount(state, end);
+    const lines = [];
+    const st = stages(state, end), th = thresholdOf(state, end);
+    if (state.intent === "atteindre") {
+      if (st && st.reached >= st.of) lines.push(`Plan tenu jusqu’au bout : ${st.list[st.of - 1].label}. Tu avais dit ce que tu ferais, et tu l’as fait.`);
+      else if (st && st.reached > 0) lines.push(`${st.reached} étape${st.reached > 1 ? "s" : ""} sur ${st.of} franchie${st.reached > 1 ? "s" : ""}. Ce qui est fait reste fait.`);
+      else lines.push(`${minutes} min d’effort${beats ? `, ${beats} ${beats > 1 ? conf.beat.many : conf.beat.one}` : ""}. Le cap attendra, le chemin est tracé.`);
+    } else if (state.intent === "depasser") {
+      if (th?.status === "done") lines.push(th.kind === "set" ? `Seuil franchi sur ${state.thresholds[0].name}, avec de la réserve : un progrès mesuré, pas un coup de chance.` : `Seuil franchi : ${th.target} min à la même intensité. Un progrès mesuré, sans forcer.`);
+      else if (th?.status === "aside") lines.push("Le seuil a été mis de côté quand il le fallait. Renoncer au bon moment fait partie du progrès.");
+      else if (th?.status === "open") lines.push("Le seuil du jour attendra une prochaine séance comparable. Rien n’est perdu : celle-ci compte comme les autres.");
+      else if (th?.status === "none") lines.push("Pas encore de séance comparable : celle-ci servira de repère la prochaine fois.");
+      else lines.push(`${minutes} min d’effort dans ${conf.voieName.charAt(0).toLowerCase()}${conf.voieName.slice(1)}.`);
+    } else {
+      const found = state.discoveries.map((d) => discoveryText(state, d)).filter(Boolean);
+      lines.push(found.length ? `Sur ton chemin : ${found.length > 1 ? `${found.slice(0, -1).join(", ")} et ${found[found.length - 1]}` : found[0]}.` : "Séance libre, sans aucun chiffre : le monde a simplement avancé avec toi.");
+    }
+    const seen = new Set();
+    const moments = state.events.filter((e) => !seen.has(e.id) && seen.add(e.id)).slice(-2).map((e) => e.text);
+    const free = state.intent === "explorer"; // an explorer session is told without a single figure
+    lines.push(...moments.filter((t) => !free || !/\d/.test(t)));
+    const rests = state.beats.filter((b) => b.restOk).length;
+    if (rests >= 2 && conf.calm.length) lines.push(`${free ? "Des" : rests} repos tenus. ${conf.calm[hash(`${state.seed}:calm`) % conf.calm.length]}`);
+    const done = state.missions.done.map((d) => conf.missions.find((mi) => mi.id === d.id)?.label).filter(Boolean);
+    if (done.length) lines.push(`Mission${done.length > 1 ? "s" : ""} accomplie${done.length > 1 ? "s" : ""} : ${done.join(", ")}.`);
+    if (state.recovery) lines.push("Séance de récupération : le monde avance aussi avec le calme.");
+    lines.push(hash(`${state.seed}:close`) % 2 ? `${conf.guardian.name}. ${conf.guardian.text}` : `${conf.artefact.name}. ${conf.artefact.text}`);
+    return { title: conf.voieName, intent: state.intent, minutes, lines: lines.slice(0, 7), numbers: state.intent !== "explorer" };
   }
 
   /** Fields to prefill the regular session form: the live never bypasses the existing save path. */
@@ -693,7 +920,8 @@
   }
 
   const api = { VERSION, MAX_OFFERS, MAX_DONE, hash, draw, create, step, resume, trimGap, view, journal, toDraft, preparable,
-    beatCount, goalProgress, phaseOf, countedMinutes, activeMs, bellState, RULES };
+    beatCount, goalProgress, phaseOf, countedMinutes, activeMs, bellState, RULES,
+    exKey, progressOf, stages, thresholdOf, referenceFor, recap };
   root.TitanLiveEngine = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

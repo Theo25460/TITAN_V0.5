@@ -50,6 +50,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v14 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // TITAN LIVE seed v2 (19 November 2026): the report missions follow the sport measure contracts; eleven missions that
+  // targeted a statistic no entry form asks for any more are removed from the seeded table. NOT applied. Data only: no
+  // function is created or changed, so the fingerprint is the one the v15 bundle leaves.
+  v16: {
+    out: "supabase/release-v16", after: "20261118090000", until: "20261119090000",
+    before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    expected: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    beforeNote: "This is the state production reaches at the end of the v15 bundle.",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
