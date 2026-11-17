@@ -5,8 +5,8 @@ declare a uuid := gen_random_uuid(); b uuid := gen_random_uuid();
 begin
   insert into auth.users(id,raw_user_meta_data) values (a,'{}'),(b,'{}');
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
-    (a, 'running', 5, 'km', 10, now() - interval '40 days', '{"effort":{"effort_minutes":45}}', now() - interval '40 days'),
-    (a, 'running', 8, 'km', 10, now() - interval '10 days', '{"effort":{"effort_minutes":60}}', now() - interval '10 days');
+    (a, 'running', 5, 'km', 10, now() - interval '40 days', '{"serverReward":true,"effort":{"effort_minutes":45}}', now() - interval '40 days'),
+    (a, 'running', 8, 'km', 10, now() - interval '10 days', '{"serverReward":true,"effort":{"effort_minutes":60}}', now() - interval '10 days');
   perform set_config('titan.lc_a',a::text,true); perform set_config('titan.lc_b',b::text,true);
   assert not has_table_privilege('authenticated','private.titan_life_chapters','select'), 'no API grant';
 end $$;

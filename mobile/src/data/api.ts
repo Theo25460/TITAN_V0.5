@@ -275,7 +275,9 @@ export const challengeRespond = (id: string, action: "join" | "decline" | "leave
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };
 type DuoPair = { id: string; role: "inviter" | "invitee"; partner: DuoFriend };
-export type DuoState = { status: "none"; friends: DuoFriend[] }
+/** Social lot B: the frozen outcome of the last Duo that reached its end (14 days), the partner named only while still a friend. */
+export type DuoLast = { id: string; endsOn: string; target: number; reached: boolean; myDays: number; together: number; partner: DuoFriend | null } | null;
+export type DuoState = { status: "none"; friends: DuoFriend[]; last?: DuoLast }
   | (DuoPair & { status: "pending" })
   | (DuoPair & { status: "active"; daysLeft: number; target: number; myDays: number; partnerDays: number; together: number; nudgedToday: boolean; nudgesReceived: number });
 
@@ -360,6 +362,9 @@ export const intentCheer = (owner: string, friend: string, day: string, on: bool
 export type Club = { id: string; name: string; description: string | null; role: string; members: number; code: string | null; trophies?: { id: string; title: string; note: string | null; on: string }[]; announcements?: { id: string; body: string; at: string }[] };
 export const fetchClubs = (owner: string) => ownerRpc<Club[] | null>(owner, "titan_club_my_v1", {});
 export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner, "titan_club_join_v1", { p_code: code, p_club: null });
+/** Social lot B: the common goal of the week, read by every member as a total (never a name). */
+export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number; members: number; active: number; canSet: boolean };
+export const fetchClubWeek = (owner: string, club: string) => ownerRpc<ClubWeek>(owner, "titan_club_week_v1", { p_club: club });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };

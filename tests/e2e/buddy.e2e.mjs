@@ -154,3 +154,25 @@ test("TITAN Duo checks the authenticated account before reading private data", a
     assert.equal(await page.locator("[data-bd] [data-bd-choose]").count(), 0);
   } finally { await context.close(); }
 });
+
+test("social lot B: a finished Duo tells the outcome for both and offers to start again; a former friend is not named", async () => {
+  const last = { id: "b0", endsOn: "2026-10-27", target: 12, reached: true, myDays: 7, together: 13, partner: { id: "f1", name: "Alex" } };
+  const { page, context, errors } = await qg({ state: { status: "none", friends: FRIENDS, last } });
+  try {
+    const recap = page.locator("[data-bd-last]");
+    await recap.waitFor();
+    assert.match(await recap.innerText(), /Objectif atteint avec Alex[\s\S]*13 \/ 12 jours actifs · toi 7/);
+    await recap.getByRole("button", { name: "Repartir avec Alex" }).click();
+    await page.locator("[data-bd][data-status=pending]").waitFor();
+    assert.deepEqual(await page.evaluate(() => window.calls.find(c => c[0] === "titan_buddy_invite_v1")[1]), { p_friend: "f1" });
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+  const gone = await qg({ state: { status: "none", friends: [], last: { ...last, reached: false, together: 8, partner: null } } });
+  try {
+    const recap = gone.page.locator("[data-bd-last]");
+    await recap.waitFor();
+    assert.match(await recap.innerText(), /Votre Duo avec ton ancien binôme est terminé[\s\S]*Ce qui est fait reste fait/);
+    assert.equal(await recap.getByRole("button").count(), 0, "nobody to invite again");
+    assert.deepEqual(gone.errors, []);
+  } finally { await gone.context.close(); }
+});

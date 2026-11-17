@@ -11,6 +11,7 @@ import { space } from "../theme/tokens";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { Field } from "./Field";
+import { ProgressBar } from "./Progress";
 import { T } from "./Text";
 import { useToast } from "./Toast";
 
@@ -64,6 +65,22 @@ export function RankingPanel() {
   );
 }
 
+/** Social lot B: the club's common goal of the week — a total and the number of active members, never a name or a share. */
+function ClubWeek({ owner, club }: { owner: string; club: string }) {
+  const q = useQuery({ queryKey: ["club-week", owner, club], queryFn: () => api.fetchClubWeek(owner, club).catch(() => null), staleTime: 60_000 });
+  const w = q.data;
+  if (!w) return null;
+  const goal = w.goal ?? 0;
+  return (
+    <View style={{ gap: 4 }} testID={`club-week-${club}`}>
+      <T variant="small">Cette semaine ensemble : {w.minutes} min d’effort{goal ? ` / ${goal}` : ""} · {w.active} membre{w.active > 1 ? "s" : ""} actif{w.active > 1 ? "s" : ""} sur {w.members}</T>
+      {goal ? <ProgressBar value={Math.min(1, w.minutes / goal)} accessibilityLabel="Objectif commun du club" /> : null}
+      {goal && w.minutes >= goal ? <T variant="small" tone="ok">Objectif de la semaine atteint ensemble.</T> : null}
+      <T variant="caption" tone="faint">Seul le total est visible : personne ne voit la part d’un autre membre.</T>
+    </View>
+  );
+}
+
 /** C7: the clubs I belong to — a running club, a workplace, a group of friends — and joining one by its code. */
 export function ClubsPanel() {
   const owner = useOwner();
@@ -83,6 +100,7 @@ export function ClubsPanel() {
           {c.description ? <T variant="small">{c.description}</T> : null}
           {(c.announcements ?? []).slice(0, 2).map((a) => <T key={a.id} variant="small" tone="muted">« {a.body} »</T>)}
           {(c.trophies ?? []).slice(0, 3).map((t) => <T key={t.id} variant="caption" tone="amber">Trophée : {t.title}</T>)}
+          <ClubWeek owner={owner} club={c.id} />
         </Card>
       ))}
       <Card style={{ gap: space.s2 }}>

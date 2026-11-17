@@ -17,16 +17,16 @@ begin
   perform set_config('request.jwt.claims','{}',true);
   set local session_replication_role = replica;   -- the creation ceilings guard live inserts; here we seed history
   -- a: twelve days of 30 minutes, six in each fortnight, flat. Recent ones are running, the older ones cycling.
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select a, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"effort":{"effort_minutes":30}}' from unnest(array[1,3,5,7,9,11]) g;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select a, 'cycling', 5, 'km', 10, pg_temp.fr_day(g), '{"effort":{"effort_minutes":30}}' from unnest(array[15,17,19,21,23,25]) g;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, is_suspicious) values (a, 'running', 5, 'km', 10, pg_temp.fr_day(2), '{"effort":{"effort_minutes":90}}', true);
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select a, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"serverReward":true,"effort":{"effort_minutes":30}}' from unnest(array[1,3,5,7,9,11]) g;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select a, 'cycling', 5, 'km', 10, pg_temp.fr_day(g), '{"serverReward":true,"effort":{"effort_minutes":30}}' from unnest(array[15,17,19,21,23,25]) g;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, is_suspicious) values (a, 'running', 5, 'km', 10, pg_temp.fr_day(2), '{"serverReward":true,"effort":{"effort_minutes":90}}', true);
   -- b: a beginner, one short day before, three longer days now.
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (b, 'running', 5, 'km', 10, pg_temp.fr_day(20), '{"effort":{"effort_minutes":30}}');
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select b, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"effort":{"effort_minutes":60}}' from unnest(array[2,5,9]) g;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (b, 'running', 5, 'km', 10, pg_temp.fr_day(20), '{"serverReward":true,"effort":{"effort_minutes":30}}');
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select b, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"serverReward":true,"effort":{"effort_minutes":60}}' from unnest(array[2,5,9]) g;
   -- d: very trained: every day for four weeks, 200 minutes (capped at 90 a day).
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select d, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"effort":{"effort_minutes":200}}' from generate_series(0,27) g;
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) select d, 'running', 5, 'km', 10, pg_temp.fr_day(g), '{"serverReward":true,"effort":{"effort_minutes":200}}' from generate_series(0,27) g;
   -- c has sessions but never opts in; e opts in without any session; f is a stranger who opts in.
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (c, 'running', 5, 'km', 10, pg_temp.fr_day(3), '{"effort":{"effort_minutes":60}}'), (f, 'running', 5, 'km', 10, pg_temp.fr_day(3), '{"effort":{"effort_minutes":60}}');
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details) values (c, 'running', 5, 'km', 10, pg_temp.fr_day(3), '{"serverReward":true,"effort":{"effort_minutes":60}}'), (f, 'running', 5, 'km', 10, pg_temp.fr_day(3), '{"serverReward":true,"effort":{"effort_minutes":60}}');
   set local session_replication_role = origin;
   perform set_config('titan.fr_a',a::text,true); perform set_config('titan.fr_b',b::text,true); perform set_config('titan.fr_c',c::text,true);
   perform set_config('titan.fr_d',d::text,true); perform set_config('titan.fr_e',e::text,true); perform set_config('titan.fr_f',f::text,true);

@@ -59,6 +59,8 @@ async function panel({ flag = true, missing = false, signedIn = true } = {}) {
           if (name === "titan_club_create_v1") { window.data.mine.push({ id: "c9", name: args.p_name, description: args.p_description, discoverable: args.p_discoverable, role: "admin", members: 1, code: "ZZZZ9999", roster: [{ userId: "u1", name: "Alba", role: "admin" }], announcements: [] }); out = { data: "c9", error: null }; }
           if (name === "titan_club_report_v1") out = window.badReason ? { data: null, error: { code: "22023", message: "BAD_REASON" } } : { data: true, error: null };
           if (name === "titan_club_set_v1") out = { data: true, error: null };
+          if (name === "titan_club_week_v1") out = { data: { club: args.p_club, weekStart: "2026-10-26", goal: window.goals?.[args.p_club] ?? null, minutes: 240, members: 3, active: 2, canSet: args.p_club === "c1" }, error: null };
+          if (name === "titan_club_goal_set_v1") { window.goals = { ...(window.goals || {}), [args.p_club]: args.p_minutes }; out = { data: {}, error: null }; }
           if (name === "titan_club_member_remove_v1") { window.data.mine[0].roster = window.data.mine[0].roster.filter(m => m.userId !== args.p_user); window.data.mine[0].members -= 1; out = { data: true, error: null }; }
           if (name === "titan_club_leave_v1") { window.data.mine = window.data.mine.filter(c => c.id !== args.p_club); out = { data: true, error: null }; }
         }
@@ -182,6 +184,23 @@ test("clubs: a member reports an announcement privately, a reason is required, a
     await member.locator("[data-club-report-cancel]").click();
     assert.equal(await member.locator("[data-club-report-form]").count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("social lot B: a club's common goal is set by an administrator and read by members as a total, never a name", async () => {
+  const { page, context, errors } = await panel();
+  try {
+    const admin = page.locator("[data-club=c1] [data-club-week]");
+    await admin.waitFor();
+    assert.match(await admin.innerText(), /240 min d’effort · 2 membres actifs sur 3/);
+    await admin.locator("input").fill("600");
+    await admin.getByRole("button", { name: "Fixer un objectif" }).click();
+    await page.waitForFunction(() => /240 min d’effort \/ 600/.test(document.querySelector("[data-club=c1] [data-club-week]")?.innerText || ""));
+    assert.deepEqual(await page.evaluate(() => window.calls.find(c => c[0] === "titan_club_goal_set_v1")[1]), { p_club: "c1", p_minutes: 600 });
+    const member = page.locator("[data-club=c2] [data-club-week]");
+    assert.equal(await member.locator("input, button").count(), 0, "a member does not set the goal");
+    assert.match(await member.innerText(), /personne ne voit la part d’un autre membre/);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

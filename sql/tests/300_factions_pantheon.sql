@@ -52,7 +52,7 @@ begin
   perform set_config('request.jwt.claims','{}',true);
   reset role;
   update private.titan_faction_members set joined_at = now() - interval '1 hour' where user_id = u[1];
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (u[1], 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":200}}', now());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (u[1], 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":200}}', now());
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',u[1],'role','authenticated')::text,true);
   assert (public.titan_faction_v1()->'factions'->1->>'minutes')::int=90, 'capped at 90 minutes a day, counted once';

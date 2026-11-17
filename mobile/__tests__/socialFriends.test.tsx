@@ -111,7 +111,7 @@ test("a sent request can be cancelled and shows when it expires", async () => {
 });
 
 test("one's own blocks are listed and can be lifted", async () => {
-  const unblock = jest.fn(() => true);
+  const unblock = jest.fn((_p: unknown) => true);
   let blocks = [{ id: "u-x", name: "Xavier", at: "2026-11-15T10:00:00Z" }];
   answers({ titan_blocks_v1: () => blocks, titan_unblock_user: (p: unknown) => { blocks = []; return unblock(p); } });
   show();

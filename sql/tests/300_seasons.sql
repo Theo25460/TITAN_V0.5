@@ -40,7 +40,7 @@ begin
   perform set_config('request.jwt.claims','{}',true);
   reset role;
   update private.titan_season_members set joined_at = clock_timestamp() where user_id = a;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":45}}', clock_timestamp());
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":45}}', clock_timestamp());
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',a,'role','authenticated')::text,true);
   r := public.titan_season_v1();
@@ -62,7 +62,7 @@ begin
   assert (r->'archive'->0->>'participants')::int=1 and (r->'archive'->0->>'minutes')::int=45 and (r->'archive'->0->'mine'->>'minutes')::int=45 and (r->'archive'->0->'mine'->>'days')::int=1 and (r->'archive'->0->>'rulesVersion')::int=2, 'frozen result: '||r::text;
   perform set_config('request.jwt.claims','{}',true);
   reset role;
-  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'swimming', 1, 'km', 10, (week - 19)::timestamptz + interval '10 hours', '{"effort":{"effort_minutes":60}}', (week - 19)::timestamptz + interval '11 hours');
+  insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values (a, 'swimming', 1, 'km', 10, (week - 19)::timestamptz + interval '10 hours', '{"serverReward":true,"effort":{"effort_minutes":60}}', (week - 19)::timestamptz + interval '11 hours');
   set local role authenticated;
   perform set_config('request.jwt.claims',json_build_object('sub',adm,'role','authenticated')::text,true);
   ok:=false; begin perform public.titan_season_admin_save_v1(cur,week-28,'Renommée','x'); exception when others then ok:=sqlerrm='SEASON_FROZEN'; end; assert ok,'a frozen season cannot be edited';

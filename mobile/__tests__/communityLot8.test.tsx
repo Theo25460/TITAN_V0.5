@@ -138,3 +138,12 @@ test("C7: my clubs show members, announcements and trophies; a club is joined by
   fireEvent.press(screen.getByTestId("club-join"));
   await waitFor(() => expect(mockRpc).toHaveBeenCalledWith("titan_club_join_v1", { p_code: "ABCD-12", p_club: null }), slow);
 });
+
+test("social lot B: a club shows its common goal of the week as a total, never a name", async () => {
+  answers.titan_club_my_v1 = [{ id: "k", name: "Run Lyon 7", description: null, role: "member", members: 14, code: null, announcements: [], trophies: [] }];
+  answers.titan_club_week_v1 = { club: "k", weekStart: "2026-11-16", goal: 600, minutes: 640, members: 14, active: 9, canSet: false };
+  wrap(<ClubsPanel />);
+  expect(await screen.findByText("Cette semaine ensemble : 640 min d’effort / 600 · 9 membres actifs sur 14", {}, slow)).toBeTruthy();
+  expect(screen.getByText("Objectif de la semaine atteint ensemble.")).toBeTruthy();
+  expect(mockRpc).toHaveBeenCalledWith("titan_club_week_v1", { p_club: "k" });
+});

@@ -55,6 +55,15 @@ export function DuoCard({ owner, online }: { owner: string; online: boolean }) {
       <T variant="h3">TITAN Duo</T>
       {data.status === "none" ? (
         <>
+          {data.last ? (
+            <>
+              <T variant="bodyStrong" testID="duo-last">{data.last.reached ? `Objectif atteint avec ${data.last.partner?.name ?? "ton ancien binôme"}` : `Votre TITAN Duo avec ${data.last.partner?.name ?? "ton ancien binôme"} est terminé`}</T>
+              <T variant="small">À deux : {data.last.together} / {data.last.target} jours actifs · toi {data.last.myDays}.{data.last.reached ? "" : " Ce qui est fait reste fait."}</T>
+              {data.last.partner && data.friends.some((f) => f.id === data.last?.partner?.id) ? (
+                <Button small label={`Repartir avec ${data.last.partner.name}`} disabled={busy} testID="duo-again" onPress={() => { const id = data.last?.partner?.id; if (id) void act(() => api.duoInvite(owner, id)); }} />
+              ) : null}
+            </>
+          ) : null}
           <T variant="small">{data.friends.length ? "Propose un TITAN Duo de 14 jours à un ami et avancez à votre rythme. Chacun peut arrêter quand il veut." : "Quand un ami sera disponible, tu pourras lui proposer un TITAN Duo de 14 jours."}</T>
           {data.friends.length ? <Button small label="Choisir un ami" disabled={busy} onPress={() => { setFriend(null); setNotice(""); setChoosing(true); }} /> : null}
           <Sheet visible={choosing} onClose={() => setChoosing(false)} title="Choisir un ami" footer={<Button label="Envoyer l’invitation" loading={busy} disabled={!friend || !data.friends.some((item) => item.id === friend)} onPress={() => friend ? act(() => api.duoInvite(owner, friend)) : undefined} />}>

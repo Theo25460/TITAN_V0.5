@@ -167,7 +167,7 @@ begin
 end $$;
 reset role;
 insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at)
-select current_setting('titan.h_b')::uuid, 'running', 5, 'km', 10, now(), '{"effort":{"effort_minutes":40}}', clock_timestamp();
+select current_setting('titan.h_b')::uuid, 'running', 5, 'km', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":40}}', clock_timestamp();
 set local role authenticated;
 
 do $$

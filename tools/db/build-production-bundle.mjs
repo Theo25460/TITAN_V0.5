@@ -64,9 +64,9 @@ export const BUNDLES = {
   // limits that never applied, confirmed sessions only in every collective count, Duo outcome, club goal, the Grande Cordée and the
   // « Depuis ta dernière visite » digest. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh).
   v17: {
-    out: "supabase/release-v17", after: "20261119090000", until: "20261120090000",
+    out: "supabase/release-v17", after: "20261119090000", until: "20261120100000",
     before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
-    expected: { private: [107, "d47d6bb616ea", "b4a45b7ed5d6"], public: [315, "275f07821afc", "5f4b15f0832e"] },
+    expected: { private: [110, "6180d747b485", "7f8af17ea2bf"], public: [317, "c3a4731117d9", "dc0ea483f4d6"] },
     beforeNote: "This is the state production reaches at the end of the v16 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },

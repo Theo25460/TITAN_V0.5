@@ -10,10 +10,10 @@ begin
   -- Two active days in the previous week (Monday and Wednesday, Paris time), one this week.
   for d in 0..1 loop
     insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at)
-    values (a, 'running', 5, 'km', 10, ((week - 7 + d * 2)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"effort":{"effort_minutes":45}}', ((week - 7 + d * 2)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
+    values (a, 'running', 5, 'km', 10, ((week - 7 + d * 2)::timestamp + interval '10 hours') at time zone 'Europe/Paris', '{"serverReward":true,"effort":{"effort_minutes":45}}', ((week - 7 + d * 2)::timestamp + interval '11 hours') at time zone 'Europe/Paris');
   end loop;
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at)
-  values (a, 'yoga', 30, 'min', 10, now(), '{"effort":{"effort_minutes":30}}', clock_timestamp());
+  values (a, 'yoga', 30, 'min', 10, now(), '{"serverReward":true,"effort":{"effort_minutes":30}}', clock_timestamp());
   perform set_config('titan.cw_a',a::text,true); perform set_config('titan.cw_s',s::text,true);
   assert not has_table_privilege('authenticated','private.titan_cadence_claims','select'), 'no API grant on the claims';
   assert not has_function_privilege('anon','public.titan_cadence_week_claim_v1(date)','execute'), 'anonymous cannot claim';
