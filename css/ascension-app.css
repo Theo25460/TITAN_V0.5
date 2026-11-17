@@ -145,6 +145,17 @@
 .qg-pulse:hover .qg-pulse-state {
   color: var(--space);
 }
+/* From a tablet up the count sits right after the days it counts, not at the far edge of the row. */
+@media (min-width: 600px) {
+  .qg-pulse {
+    grid-template-columns: auto auto;
+    justify-content: start;
+    column-gap: var(--s6);
+  }
+  .prg-days {
+    grid-template-columns: repeat(7, 40px);
+  }
+}
 @media (max-width: 359px) {
   .qg-pulse { gap: var(--s3); }
   .prg-days { gap: 3px; }
@@ -225,7 +236,7 @@
     align-items: end;
   }
   .prg-days {
-    grid-template-columns: repeat(7, minmax(0, 44px));
+    grid-template-columns: repeat(7, 44px);
     gap: 6px;
   }
   .qg-ascent {
