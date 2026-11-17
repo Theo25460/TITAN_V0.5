@@ -3,7 +3,31 @@
 Branche de référence : `claude/youthful-knuth-pgg96r` (PR #149). Ce document remplace `docs/v131/RELAIS_FABLE.md` comme point
 d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub : [`CONSOLIDATION_GITHUB.md`](CONSOLIDATION_GITHUB.md).
 
-## 0. Opération Masterpiece (16 novembre 2026, après-midi et soir) — état réel
+## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
+
+Pourquoi la preview paraissait cassée alors que tout était vert, et ce qui a été corrigé (détail et garde-fous : `DESIGN.md` § 10) :
+
+| Cause | Effet pour une personne réelle | Correction | Preuve |
+|---|---|---|---|
+| Feuilles de style en cache 7 jours, clés `?v=` écrites à la main et restées identiques sur 9 déploiements | Nouvelles pages dessinées avec d'anciens styles chez quiconque avait déjà ouvert la preview ; même risque en production | Le build empreinte chaque feuille de style et script | `tests/asset-cache-keys.test.mjs` |
+| Tiroir de relecture Netlify bloqué par la CSP du site | Bande grise fixe sur la barre de navigation de toutes les pages de la preview | Masqué | capture avant/après 01 |
+| 21 réglages serveur actifs en production, aucun dans les parcours (réseau coupé) | Séance ouverte sur l'import GPX avec l'en-tête recouvert ; trois boutons empilés au Journal | La page Séance s'ouvre toujours sur « Qu'as-tu fait ? », import sur un interrupteur ; une rangée au Journal | `tests/e2e/activity-hub.e2e.mjs`, captures 02 à 04 |
+| Aucun écran vu avec un compte connecté | QG de 6 700 px qui défilait de côté, Communauté de 10 500 px idem, outils de coaching sans style, sélecteurs du Profil mal formés | Blocs facultatifs repliés en une liste (`.asc-fold`), rangées d'actions qui passent à la ligne, outils de coaching dessinés | `tests/e2e/real-account.e2e.mjs` (13 pages × 320, 390, 1440 px), captures 05 à 07 |
+
+Autres lots du jour : pages publiques ouvertes sur le même aplat de couleur que l'application ; TITAN LIVE (réglage fermé) fini sur
+l'échelle d'effort du formulaire ; Android : défauts visibles à 320 et 360 dp corrigés (voir la description de la PR #149).
+
+| Sujet | État | Preuve ou reste à faire |
+|---|---|---|
+| Migrations v14 | **Appliquées** (08 et 09 le 17 novembre) | Registre : 130 migrations ; contrôle final et trois postflights vrais (`supabase/release-v14/README.md`) |
+| Preview Web | Vérifiée visuellement sur le déploiement réel | `docs/design/captures/titan-one/` (58 captures, 7 avant/après, manifeste) |
+| Compte réel sur le vrai serveur | **Non vérifié** | La création d'un compte de test en production a été refusée à l'agent : l'état connecté est simulé avec des jeux d'essai |
+| Téléphone physique, Firefox, Safari, TalkBack | **Non vérifiés** | À faire par le propriétaire après mise à disposition |
+| Production Web | Dépend d'un geste du propriétaire | Netlify ne publie `main` que si `TITAN_APPROVED_RELEASE_SHA` vaut le commit de fusion (`tools/check-release-guard.mjs`) |
+| Android sur Google Play | Dépend d'un geste du propriétaire | Le flux `android-native.yml` produit l'AAB signé ; l'envoi dans la Play Console est manuel |
+| Illustrations (blasons Champion, Titan, Légende ; fonds TITAN LIVE) | **Manquantes** | Aucune image nouvelle : rien n'a été remplacé par un dessin générique |
+
+## 0 bis. Opération Masterpiece (16 novembre 2026, après-midi et soir) — historique
 
 Référence visuelle : `PRODUCT.md` (vérité produit) et `DESIGN.md` (système tel que construit, Android et Web). Captures :
 `docs/design/captures/android/` (simulation navigateur de l'application à 412 dp, **pas un téléphone**) et
@@ -75,7 +99,7 @@ aucune mécanique de pression (pas de série à ne pas casser, pas de compte à 
 | Appuis perdus en direct | La page ne se reconstruit plus chaque seconde | `c710e13` | Parcours rouge sans le correctif |
 | Entrée Web de TITAN LIVE | « Vivre la séance en direct » sur la page Séance, derrière `screens.live` | `c710e13` | Parcours Web |
 | Export de compte | Le monde live figure dans « Exporter toutes mes données » | `88c6c80` | Test SQL rouge puis vert |
-| Paquet de production v14 | 9 migrations prêtes, répétées, **non appliquées** | `0858e02`, `88c6c80` | Empreinte de départ et d'arrivée, rejeu refusé |
+| Paquet de production v14 | 9 migrations prêtes, répétées (appliquées depuis : § 0) | `0858e02`, `88c6c80` | Empreinte de départ et d'arrivée, rejeu refusé |
 
 Sessions précédentes du même jour (Opus) : 10 migrations V1.3.1 appliquées en production et vérifiées, faille d'amitié forcée
 fermée, résidus de sécurité, générateur des pages publiques, Atelier, traces GPS, texte agrandi (`docs/v131/RELAIS_FABLE.md`).
