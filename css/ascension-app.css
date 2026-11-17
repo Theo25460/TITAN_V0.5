@@ -4590,3 +4590,163 @@
 }
 .seance-search-empty { grid-column: 1 / -1; padding: 12px; }
 .seance-search-empty p { margin-bottom: 12px; }
+
+/* ---------- Coach tools (js/app/coach-tools.js): messages, weekly check-in, templates ----------
+   These three blocks were written without a single rule: messages were bare paragraphs, the label kept for screen readers was
+   printed, check-ins were a bulleted list with raw check boxes. Seen only with a signed-in account under the production flags. */
+.asc .asc-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.co-thread {
+  display: grid;
+  gap: var(--s3);
+  max-height: 560px;
+  margin: var(--s3) 0 var(--s4);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.co-msg {
+  justify-self: start;
+  max-width: 86%;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r3);
+  border-bottom-left-radius: 4px;
+  background: var(--bg-2);
+}
+.co-msg.is-mine {
+  justify-self: end;
+  border-bottom-left-radius: var(--r3);
+  border-bottom-right-radius: 4px;
+  background: var(--space-soft);
+}
+.co-msg p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.co-msg small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  color: var(--tx-3);
+  font-size: 12px;
+}
+.co-msg small .asc-btn {
+  min-height: 28px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+[data-ct-send] {
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+[data-ct-send] .asc-btn {
+  flex: none;
+  min-height: 52px;
+}
+.co-checkin {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+  align-items: end;
+  margin-bottom: var(--s5);
+}
+.co-checkin > .asc-field:nth-child(5),
+.co-checkin > .asc-check,
+.co-checkin > .asc-btn {
+  grid-column: 1 / -1;
+}
+.co-checkin > .asc-btn {
+  justify-self: start;
+}
+.co-checkin select,
+[data-co-roster] select {
+  width: 100%;
+  min-width: 0;
+}
+.asc-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 44px;
+  color: var(--tx-2);
+  font-size: 14px;
+  cursor: pointer;
+}
+.asc-check input,
+.co-checkins input[type="checkbox"] {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--space);
+}
+.co-checkins,
+.co-templates {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.co-checkins li,
+.co-templates li {
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line-2);
+  color: var(--tx-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.co-checkins li strong,
+.co-templates li strong {
+  color: var(--tx);
+}
+.co-checkins li label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin-left: var(--s2);
+  vertical-align: middle;
+}
+.co-templates li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+.co-templates li strong {
+  flex: 1 1 160px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[data-ct-tpl] {
+  align-items: start;
+  margin-top: var(--s4);
+}
+[data-ct-tpl] > .asc-btn {
+  align-self: end;
+  justify-self: start;
+}
+[data-ct-tpl] > .asc-field:nth-child(3),
+[data-ct-tpl] > .asc-btn {
+  grid-column: 1 / -1;
+}
+/* The month a coach is looking at leads its own line; the two arrows and « Mois actuel » share the next one. */
+.co-calendar-nav strong {
+  flex: 1 0 100%;
+  order: -1;
+}
+@media (max-width: 520px) {
+  [data-co-roster] .asc-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
