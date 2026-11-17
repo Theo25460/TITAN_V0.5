@@ -82,10 +82,12 @@ clients et n'a pas été dupliquée.
 |---|---|
 | `pnpm test` (Web, unitaires) | 697 tests, 0 échec ; nouveaux : `sport-contracts` (9), `session-reliability` (6), `progression` (9) |
 | `pnpm run typecheck` (sport core) | vert |
-| Jest Android + `tsc` | 956 tests, 107 suites, 0 échec |
+| Jest Android + `tsc` | 959 tests, 107 suites, 0 échec |
 | `pnpm run test:db` (réplique vierge, toutes migrations, tests SQL) | vert, dont `300_sport_excellence_imports.sql` |
 | Parcours navigateur ciblés | `sport-measures` 7/7 (260 formulaires à 360 px), `session-local-date` 9/9 (alerte de doublon), `progression` 2/2, chaîne de séance 448/448 |
-| Suite navigateur complète | voir la description de la PR |
+| `pnpm run verify` (typage, tests, build, audit, garde de publication) | vert |
+| Suite navigateur complète (`pnpm run test:e2e`, Chromium) | 1 050 / 1 052 ; les 2 échecs (onglets de l'Aventure, passeport du Profil à 1280 px) passent 3 fois sur 3 isolément : parcours intermittents sous charge déjà signalés (`TITAN_ONE.md` § 7.5), pages non modifiées hormis une balise de script |
+| Relecture indépendante du diff | 1 défaut réel trouvé et corrigé (`67190f7` : une seconde séance GPS ou live n'est plus perdue quand une autre attend) |
 
 Rien n'a été vérifié sur un téléphone, un compte Garmin réel ou une vraie base Santé Connect : les intégrations sont prouvées par
 tests automatisés et simulations uniquement.
