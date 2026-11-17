@@ -212,7 +212,60 @@
     odyssee: [["Portail miniature", "Une transition franchie."], ["Dossard tressé", "Trois couleurs, trois Voies."], ["Sablier de transition", "Il s’écoule entre deux segments."], ["Carte des segments", "Ton Odyssée, d’un seul trait."], ["Clé des Portails", "Rare : une Odyssée complète."], ["Masque du Héraut", "Rare : trois visages, un seul effort."]],
   };
 
-  const api = { RULE, settlePreview, verifiedMissions, findOf, BUILDINGS, LEVEL_COST, MAX_LEVEL, LEVEL_NAMES, buildPlan,
+  /* ------------------------------------------------------------------ the loop: what comes next */
+  /** What the camp is closest to, nearest first, three at most. A direction to walk in: never a deadline, never a loss.
+   *  `world` is the answer of titan_live_world_v1; everything shown here is what the server already granted. */
+  function horizon(world) {
+    const w = world || {};
+    const wallet = w.wallet || { eclats: 0, essences: {} };
+    const out = [];
+    let best = null;
+    for (const b of Object.values(BUILDINGS)) {
+      const level = (w.buildings || {})[b.id] || 0;
+      const plan = buildPlan(b.id, level, wallet);
+      if (!plan) continue;
+      const missing = Math.max(0, plan.useEclats - (wallet.eclats || 0));
+      if (!best || missing < best.missing || (missing === best.missing && plan.cost < best.plan.cost)) best = { b, plan, missing, level };
+    }
+    if (best) out.push({ kind: "building", id: best.b.id, ready: best.missing === 0, title: best.b.name, sessions: Math.ceil(best.missing / 60),
+      text: best.missing === 0 ? `Prêt à rebâtir : niveau « ${LEVEL_NAMES[best.level + 1]} ».` : `Encore ${best.missing} ressources pour le niveau « ${LEVEL_NAMES[best.level + 1]} ».` });
+    let land = null;
+    for (const [id, stats] of Object.entries(w.voies || {})) {
+      if (!V().VOIES[id]) continue;
+      const r = region(id, stats);
+      const sessions = stats?.sessions || 0, days = stats?.days || 0;
+      if (r.next) { const left = r.next - sessions; if (!land || left < land.sessions) land = { kind: "land", id, ready: false, title: r.name, sessions: left, text: `Encore ${left} séance${left > 1 ? "s" : ""} live pour révéler la terre ${r.lands + 1} sur ${r.of}.` }; }
+      else if (!r.guardianReady) {
+        const left = Math.max(GUARDIAN.sessions - sessions, GUARDIAN.days - days, 1);
+        if (!land || left < land.sessions) land = { kind: "guardian", id, ready: false, title: r.guardian, sessions: left, text: `${r.name} : il répond à la régularité, encore ${left} jour${left > 1 ? "s" : ""} de pratique environ.` };
+      }
+    }
+    if (land) out.push(land);
+    const c = cordee({ days: w.days, voies: w.distinctVoies });
+    if (c.next) { const left = c.next - c.score; out.push({ kind: "cordee", id: `chapitre-${c.unlocked + 1}`, ready: false, title: `La Cordée · chapitre ${c.unlocked + 1}`, sessions: left,
+      text: `Encore ${left} jour${left > 1 ? "s" : ""} actif${left > 1 ? "s" : ""}. Une Voie nouvelle en vaut deux.` }); }
+    return out.sort((x, y) => Number(y.ready) - Number(x.ready) || x.sessions - y.sessions).slice(0, 3);
+  }
+
+  /** Before a session: what this discipline feeds in the world. Conditional wording: the server confirms after the save. */
+  function stake(sportId, world) {
+    const conf = V().resolve(sportId);
+    const ess = V().ESSENCES[conf.essence];
+    const building = BUILDINGS[ess.building];
+    const lines = [`Chaque minute d’effort comptée apporte 1 ${ess.label} à ${building.name} (90 par jour au plus, tous sports confondus).`];
+    if (world && world.voies) {
+      const stats = world.voies[conf.voie];
+      const r = region(conf.voie, stats);
+      const left = r.next ? r.next - (stats?.sessions || 0) : 0;
+      if (r.next) lines.push(left <= 1 ? `Une fois confirmée, cette séance révèle une terre de ${r.name}.` : `Encore ${left} séances live pour la prochaine terre de ${r.name}.`);
+      else if (!r.guardianReady) lines.push(`${r.guardian} se rapproche. Il répond à la régularité, pas au volume.`);
+      else lines.push(`${r.guardian} t’attend au Camp de base.`);
+      if (!stats && Number(world.distinctVoies) >= 1) lines.push("Voie nouvelle pour toi : elle rapproche la Cordée de deux pas d’un coup.");
+    }
+    return { essence: ess.label, family: ess.family, building: building.name, voie: conf.voieName, lines };
+  }
+
+  const api = { horizon, stake, RULE, settlePreview, verifiedMissions, findOf, BUILDINGS, LEVEL_COST, MAX_LEVEL, LEVEL_NAMES, buildPlan,
     REGION_STEPS, GUARDIAN, region, CORDEE, CORDEE_STEPS, cordee, ARCS, arc, FINDS };
   root.TitanLiveWorld = api;
   if (typeof module !== "undefined") module.exports = api;
