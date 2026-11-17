@@ -1,4 +1,5 @@
 import { AdBanner } from "../../components/AdBanner";
+import { DisciplinesCard, PeriodsCard } from "../../components/ProgressionCards";
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -215,6 +216,8 @@ export function ProgressScreen() {
             <SelfComparisonCard logs={active} />
             <Section title="Tes questions">
               <SportQuestions logs={active} cadenceTarget={prefs.weeklyGoalSessions} pauses={prefs.cadencePauses} />
+              <PeriodsCard logs={active} />
+              <DisciplinesCard logs={active} />
             </Section>
             <Section title="Sur la durée">
               <Card style={{ gap: space.s3 }}>

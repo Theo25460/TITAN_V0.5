@@ -354,6 +354,23 @@
       <p class="asc-small asc-faint">Comparé à ta séance précédente de ${esc(SP().label(l.sport).toLowerCase())}. Le contexte (terrain, météo, fatigue) n’est pas pris en compte.</p></section>`;
   }
 
+  /* Lot D: the session against the last comparable one (same sport, comparable size, same exercise or grade system), measured
+     figures only (js/core/progression.js). A change below its threshold reads « stable »; shared measures are never judged. */
+  function comparisonHtml(l) {
+    const P = window.TitanProgression;
+    const c = P?.compare?.(l, window.state?.history || []);
+    if (!c || !c.items.length) return "";
+    // Reuses the metrics list of the session sheet (moment-metrics): the word, not a colour, carries the direction.
+    const line = (i) => {
+      const word = P.DIRECTION_TEXT[i.direction] || "";
+      const now = i.currentReps !== undefined ? `${P.formatValue(i)} × ${i.currentReps}` : P.formatValue(i);
+      const before = i.currentReps !== undefined ? `${P.formatValue(i, "previous")} × ${i.previousReps}` : P.formatValue(i, "previous");
+      return `<div><dt>${esc(i.label)}</dt><dd class="asc-num">${esc(now)} <small class="asc-faint">avant ${esc(before)}${word ? ` · ${esc(word)}` : ""}</small></dd></div>`;
+    };
+    return `<section class="jr-detail-block" data-comparison><p class="asc-eyebrow">Par rapport à ta séance du ${esc(new Date(c.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p>
+      <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p></section>`;
+  }
+
   function detailHtml(l) {
     const metrics = window.TitanMoment?.metrics(l) || [];
     const rw = rewardLine(l);
@@ -362,6 +379,7 @@
       <dl class="moment-metrics">${metrics.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       ${recs.length ? `<p class="jr-record">${icon("star")}<span>${recs.length > 1 ? "Records actuels" : "Record actuel"} : ${esc(recs.map((r) => r.label).join(", "))}</span></p>` : ""}
       <p class="jr-reward ${rw.cls}">${esc(rw.text)}${l.syncStatus === "pending" ? " En attente de synchronisation." : ""}${l.syncStatus === "error" ? (historical(l) ? " Le serveur ne l’a pas encore acceptée : elle reste ici et sera renvoyée automatiquement. Tu peux déjà l’exporter." : " Le serveur a refusé l’envoi : exporte cette séance puis enregistre-la de nouveau.") : ""}</p>
+      ${comparisonHtml(l)}
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
       ${l.details?.note ? `<section class="jr-detail-block"><p class="asc-eyebrow">Note</p><p class="jr-note">${esc(l.details.note)}</p></section>` : ""}

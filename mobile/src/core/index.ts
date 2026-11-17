@@ -12,6 +12,7 @@ require("./web/sports.js");
 require("./web/sport-contracts.js");
 require("./web/sport-insights.js");
 require("./web/progress.js");
+require("./web/progression.js");
 require("./web/questions.js");
 require("./web/renaissance-catalog.js");
 require("./web/renaissance-engine.js");
@@ -113,6 +114,19 @@ export const Sports = g.TitanSports as {
   conf(id: string): { label: string; unit: string; cat: string; balanceProfile?: string } | null;
 };
 Sports.ensure();
+
+export type ProgressionItem = { id: string; label: string; unit: string; current: number; previous: number; delta: number; direction: "better" | "worse" | "stable" | "neutral"; significant: boolean; currentReps?: number; previousReps?: number; currentDisplay?: string; previousDisplay?: string };
+export type ProgressionTrend = { label: string; unit: string; enough: boolean; sessions?: number; before?: number; after?: number; beforeDisplay?: string; afterDisplay?: string; beforeSessions?: number; afterSessions?: number; direction?: ProgressionItem["direction"] };
+export type PeriodSlice = { sessions: number; activeDays: number; minutes: number; unmeasuredSessions: number; estimatedMinutes: number };
+export type PeriodSport = { sport: string; label: string; family: Family; sessions: number; minutes: number; distanceKm: number };
+/** Personal progression from measured values only (js/core/progression.js, shared with the website). */
+export const Progression = g.TitanProgression as {
+  compare(log: TrainingLog, logs: TrainingLog[]): { previous: TrainingLog; items: ProgressionItem[]; basis: string } | null;
+  disciplines(logs: TrainingLog[], opts?: { now?: Date; weeks?: number; min?: number }): { sport: string; label: string; family: Family; sessions: number; minutes: number; measuredSessions: number; trend: ProgressionTrend | null }[];
+  periods(logs: TrainingLog[], opts?: { now?: Date; days?: number }): { days: number; current: PeriodSlice; previous: PeriodSlice & { partial: boolean }; delta: { sessions: number; activeDays: number; minutes: number } | null; sports: { sport: string; label: string; family: Family; current: PeriodSport | null; previous: PeriodSport | null }[] };
+  formatValue(item: Partial<ProgressionItem> & { unit: string }, which?: "current" | "previous"): string;
+  DIRECTION_TEXT: Record<string, string>;
+};
 
 export type SportContractField = { id: string; priority?: number; legacy?: boolean };
 /** Which catalogue fields a form asks for each discipline (js/core/sport-contracts.js, shared with the website). */

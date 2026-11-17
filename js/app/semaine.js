@@ -314,6 +314,39 @@
     return card("Est-ce que je grimpe plus dur ?", answer, `<ol class="wk-grades">${c.points.map((p) => `<li><span class="asc-faint">${esc(p.label)}</span><strong>${esc(p.grade)}</strong></li>`).join("")}</ol>`, "Meilleure cotation réussie par mois, comparée dans un seul système.");
   }
 
+  /* Lot D (js/core/progression.js): every discipline, not only the main one, on the figure it progresses on; then the last four
+     weeks against the four before, per discipline, in declared minutes (the unit all sports share). Estimates stay apart. */
+  const PR = () => window.TitanProgression;
+  function qDisciplines() {
+    const rows = PR()?.disciplines?.(logs(), { weeks: 12 }) || [];
+    const judged = rows.filter((r) => r.trend);
+    if (!judged.length) return "";
+    const enough = judged.filter((r) => r.trend.enough);
+    const better = enough.filter((r) => r.trend.direction === "better");
+    const answer = !enough.length
+      ? "Encore quelques séances mesurées : il en faut deux dans chaque moitié des 12 semaines pour une discipline."
+      : better.length
+        ? `<strong>${esc(better.map((r) => r.label).join(", "))}</strong> ${better.length > 1 ? "progressent" : "progresse"} sur 12 semaines.`
+        : "<strong>Stable</strong> : aucune discipline ne change au-delà de son seuil sur 12 semaines.";
+    const val = (t, which) => PR().formatValue({ unit: t.unit, current: t[which], currentDisplay: t[`${which}Display`] });
+    const list = `<ol class="wk-top">${judged.slice(0, 8).map((r) => `<li><span>${esc(r.label)} <small class="asc-faint">${esc(r.trend.label)}</small></span><span class="asc-muted asc-num">${r.trend.enough
+      ? `${esc(val(r.trend, "before"))} → ${esc(val(r.trend, "after"))} · ${esc(PR().DIRECTION_TEXT[r.trend.direction] || "")}`
+      : `${r.trend.sessions} séance${r.trend.sessions > 1 ? "s" : ""} mesurée${r.trend.sessions > 1 ? "s" : ""}`}</span></li>`).join("")}</ol>`;
+    return card("Quelles disciplines progressent ?", answer, list, "Médiane des 6 premières semaines contre les 6 dernières (meilleure cotation pour l’escalade, meilleure série de l’exercice le plus pratiqué pour la force). Stable : écart sous 2 % pour une allure, 2,5 % pour une charge.");
+  }
+  function qPeriods() {
+    const p = PR()?.periods?.(logs(), { days: 28 });
+    if (!p || !p.current.sessions) return "";
+    const d = p.delta;
+    const answer = !d
+      ? `${p.current.sessions} séance${p.current.sessions > 1 ? "s" : ""} en 4 semaines. Ton journal est plus récent que la période d’avant : pas de comparaison.`
+      : `<strong>${d.activeDays > 0 ? "Plus régulier" : d.activeDays < 0 ? "Moins de jours actifs" : "Même régularité"}</strong> : ${p.current.activeDays} jour${p.current.activeDays > 1 ? "s" : ""} actif${p.current.activeDays > 1 ? "s" : ""} contre ${p.previous.activeDays}, ${esc(F().duration(p.current.minutes))} déclarées contre ${esc(F().duration(p.previous.minutes))}.`;
+    const fmt = (x) => (x ? `${x.sessions} · ${x.minutes ? esc(F().duration(x.minutes)) : "durée non saisie"}${x.distanceKm ? ` · ${esc(F().distance(x.distanceKm))}` : ""}` : "—");
+    const list = `<ol class="wk-top">${p.sports.slice(0, 8).map((x) => `<li><span>${esc(x.label)}</span><span class="asc-muted asc-num">${fmt(x.current)} <small class="asc-faint">avant ${fmt(x.previous)}</small></span></li>`).join("")}</ol>`;
+    const basis = `28 derniers jours contre les 28 précédents, durées déclarées.${p.current.unmeasuredSessions ? ` ${p.current.unmeasuredSessions} séance${p.current.unmeasuredSessions > 1 ? "s" : ""} sans durée saisie (estimation TITAN : ${F().duration(p.current.estimatedMinutes)}, comptée à part).` : ""}`;
+    return card("Ces 4 semaines par rapport aux 4 précédentes ?", answer, list, basis);
+  }
+
   function qLoad() {
     const l = Q().load(logs());
     if (!l) return "";
@@ -337,7 +370,7 @@
     const active = document.activeElement;
     const focusId = root.contains(active) && ["wk-title", "wk-previous", "wk-next"].includes(active.id) ? active.id : null;
     const r = recapFor(offset);
-    const questions = [qVolume(), qShare(), qPace(), qStrength(), qClimb(), qLoad(), qCadence()].filter(Boolean);
+    const questions = [qVolume(), qShare(), qPeriods(), qPace(), qStrength(), qClimb(), qDisciplines(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
     fieldFigures();
     // The week and its programme, then the practice over the period, then the answers side by side, then the month and the year.

@@ -11,7 +11,7 @@ import { Icon } from "../../components/Icon";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Progress, Sports, Training } from "../../core";
+import { Format, Progress, Progression, Sports, Training } from "../../core";
 import { recordText, sessionRecords } from "../../core/moment";
 import { RPE_TEXT } from "../../core/session";
 import { metricFields } from "../../core/sportMetrics";
@@ -41,6 +41,8 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   const ex = d.exercises || [];
   const extras = (d.extras || {}) as Record<string, unknown>;
   const records = confirmed && !log.archived_at ? sessionRecords(logs, log) : [];
+  // Lot D: against the last comparable session of the same sport (measured values only, shared rule with the website).
+  const comparison = log.archived_at ? null : Progression.compare(log, logs);
 
   /* Archiving and restoring are reversible: no "are you sure?", the action happens and "Annuler" is one tap away (V12-17). */
   async function archive() {
@@ -181,6 +183,18 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
           </Card>
         </Section>
       ) : null}
+
+      {comparison && comparison.items.length ? <Section title={`Par rapport au ${new Date(comparison.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`}>
+        <Card tone="flat" style={{ gap: 8 }} testID="session-comparison">
+          {comparison.items.slice(0, 6).map((i) => {
+            const now = i.currentReps !== undefined ? `${Progression.formatValue(i)} × ${i.currentReps}` : Progression.formatValue(i);
+            const before = i.currentReps !== undefined ? `${Progression.formatValue(i, "previous")} × ${i.previousReps}` : Progression.formatValue(i, "previous");
+            const word = Progression.DIRECTION_TEXT[i.direction];
+            return <View key={i.id} style={{ gap: 2 }}><T variant="caption" tone="muted">{i.label}</T><T variant="small">{now} · avant {before}{word ? ` · ${word}` : ""}</T></View>;
+          })}
+          <T variant="caption" tone="faint">{comparison.basis} Seules les valeurs mesurées sont comparées.</T>
+        </Card>
+      </Section> : null}
 
       {metricFields(log.sport, true).some((f) => extras[f.id] !== undefined && extras[f.id] !== null && extras[f.id] !== "") ? <Section title="Mesures enregistrées">
         <Card tone="flat" style={{ gap: 8 }}>
