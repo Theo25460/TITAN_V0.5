@@ -1,4 +1,4 @@
-# Paquet de production v14 (généré) — NON APPLIQUÉ
+# Paquet de production v14 (généré) — APPLIQUÉ EN PRODUCTION (16 et 17 novembre 2026)
 
 Généré par `node tools/db/build-production-bundle.mjs --bundle v14` depuis `supabase/migrations/`. **Ne pas modifier à la main** :
 `tests/production-bundle.test.mjs` échoue si un fichier diffère de sa source.
@@ -17,6 +17,18 @@ Toutes additives : aucune fonction durcie par la V1.3.1 n'est redéfinie, aucune
 | `09` export de compte | « Exporter toutes mes données » contient le monde TITAN LIVE du joueur | Oui, sans effet tant que le joueur n'a pas de monde live (clés vides) |
 | `06` import d'historique | Import d'un export Strava en séances historiques (sans XP) | Seulement avec un client qui le propose |
 
+## État en production
+
+- `01` à `07` : appliqués le 16 novembre 2026. `08` et `09` : appliqués le 17 novembre 2026 (registre : 130 migrations, dernière
+  `20261117170000`).
+- `99-check-after.sql` : les deux lignes `ok = true`, empreintes identiques à la répétition
+  (`private 103 78dde17392e0 4f6481c4b912`, `public 309 5eb4c4873e06 95c0de5e6ce0`).
+- Postflights : `postflight-v11.sql` 328 lignes vraies sur 328, `postflight-v13.sql` 42 sur 42, `postflight-v131.sql` 54 sur 54.
+- Conseils Supabase : aucun niveau ERROR. Restent des réglages de tableau de bord (protection contre les mots de passe compromis
+  désactivée) et les avertissements attendus sur les fonctions `security definer` appelables par un compte connecté.
+- Aucune sauvegarde restaurable n'existait (offre gratuite) : chaque fichier donne sa procédure de retour en en-tête.
+- Rejouer un fichier est refusé par sa garde d'ordre. La procédure ci-dessous est conservée pour mémoire.
+
 ## Procédure
 
 1. Sauvegarde du jour confirmée ; aucun déploiement en cours.
@@ -28,5 +40,5 @@ Toutes additives : aucune fonction durcie par la V1.3.1 n'est redéfinie, aucune
 Répétition du 16 novembre 2026 sur une réplique placée dans l'état de la production (PostgreSQL 16) : contrôle de départ vrai,
 empreinte finale `private 103 78dde17392e0 4f6481c4b912`, `public 309 5eb4c4873e06 95c0de5e6ce0`, rejeu refusé.
 
-Tant que ce paquet n'est pas appliqué, les écrans Android concernés affichent « Cette fonction n'est pas encore disponible »
-(`mobile/src/lib/errors.ts`) : rien ne prétend fonctionner.
+Avant l'application, les écrans Android concernés affichaient « Cette fonction n'est pas encore disponible »
+(`mobile/src/lib/errors.ts`) ; ils répondent maintenant.

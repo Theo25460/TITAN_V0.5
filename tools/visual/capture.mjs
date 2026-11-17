@@ -94,7 +94,11 @@ for (const width of WIDTHS) {
   const context = await browser.newContext({ viewport: { width: Math.round(width / ZOOM), height: Math.round(heightFor(width) / ZOOM) }, deviceScaleFactor: ZOOM, locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block", reducedMotion: "reduce" });
   await context.addInitScript(() => { try { if (localStorage.getItem("titan_ga4_consent_v1") === null) localStorage.setItem("titan_ga4_consent_v1", "denied"); } catch (_) { /* storage blocked */ } });
   const host = new URL(BASE).host;
+  // --network live (visitor only): the page talks to the real server as an anonymous visitor would — the real flags, the real
+  // public catalogue — instead of the recorded flag set. Nothing is written and no account is used.
+  const LIVE_NETWORK = args.network === "live" && !connected;
   await context.route(url => url.host !== host, route => {
+    if (LIVE_NETWORK && /\.supabase\.co$/.test(new URL(route.request().url()).host)) return route.continue();
     if (flagBody && /\/rpc\/titan_feature_flags_v1$/.test(new URL(route.request().url()).pathname)) return route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: flagBody });
     return route.abort("internetdisconnected");
   });
