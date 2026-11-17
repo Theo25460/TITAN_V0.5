@@ -194,7 +194,7 @@
       return;
     }
     const tabs = seg("tab", [["seance", "Séance live"], ["camp", "Camp de base"]], tab);
-    root.innerHTML = `${tabs}${tab === "camp" ? campHtml() : state && state.status !== "ready" ? (state.status === "ended" ? reportHtml() : liveHtml()) : prep ? prepHtml() : pickHtml()}`;
+    root.innerHTML = `<div class="live-tabs">${tabs}</div>${tab === "camp" ? campHtml() : state && state.status !== "ready" ? (state.status === "ended" ? reportHtml() : liveHtml()) : prep ? prepHtml() : pickHtml()}`;
   }
 
   function pickHtml() {
@@ -311,7 +311,7 @@
         <div><dt>Missions accomplies</dt><dd class="asc-num">${state.missions.done.length}</dd></div>
         <div><dt>Élan du jour</dt><dd class="asc-num">${Math.round(v.elan.value)} / ${v.elan.max}</dd></div>
       </dl>
-      <div class="asc-section"><h2 class="asc-h3">Effort ressenti</h2><div class="asc-row-flex">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => `<button type="button" class="asc-chip${rpe === x ? " cy" : ""}" data-act="rpe" data-v="${x}">${x}</button>`).join("")}</div></div>
+      <div class="asc-section"><h2 class="asc-h3">Effort ressenti</h2><div class="asc-scale" role="group" aria-label="Effort ressenti de 1 à 10">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => `<button type="button" data-act="rpe" data-v="${x}" aria-pressed="${rpe === x}">${x}</button>`).join("")}</div></div>
       ${fields.length ? `<div class="asc-section"><h2 class="asc-h3">Rapport</h2>${fields.map((f) => `<label class="asc-field"><span>${esc(label(f))}</span><input class="asc-input" data-k="report:${esc(f)}" inputmode="decimal" value="${esc(report[f] ?? "")}"></label>`).join("")}</div>` : ""}
       ${declared.length ? `<div class="asc-section"><h2 class="asc-h3">Missions à confirmer</h2>${declared.map((m) => `<button type="button" class="live-choice" data-act="declare" data-v="${esc(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span><span class="asc-small">Je l’ai fait</span></button>`).join("")}</div>` : ""}
       <p class="asc-small asc-muted">Tu vérifies ensuite la séance dans le formulaire habituel. Les récompenses du monde sont confirmées par le serveur après l’envoi, à ta prochaine visite du Camp de base.</p>

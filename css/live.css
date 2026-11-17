@@ -1,6 +1,9 @@
 /* TITAN LIVE (web) — built only on Ascension tokens (css/ascension.css). Readable during effort: large numbers, large
    targets, one dominant element. The trail uses TITAN's contour-line motif; amber is kept for rare finds and guardians. */
 .live-main { --content: 640px; }
+/* The two tabs of the page, then the two views of a running session: each row stands clear of what follows. */
+.live-tabs { margin-bottom: var(--s5); }
+.live-viewseg { margin-bottom: var(--s4); }
 .live-skeleton { height: 320px; border-radius: var(--r3); }
 .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
 .live-choice {
