@@ -17,8 +17,10 @@
 .cr-big { display: grid; gap: 2px; min-width: 0; }
 .cr-big span { color: var(--tx-2); font-size: 0.8125rem; line-height: 1.3; overflow-wrap: anywhere; }
 .cr-num { font-size: clamp(2rem, 7vw, 2.75rem); line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; overflow-wrap: anywhere; animation: cr-rise 0.6s ease both; font-stretch: var(--w-figure); font-weight: 700; }
-.cr-num.cy { color: var(--cy); }
-.cr-num.am { color: var(--am); }
+/* A career figure is a fact, not a progression bar or a record: it is set in the text colour. Cyan stays progression and amber
+   stays records everywhere (DESIGN.md § 1), so neither is used here to decorate one figure among its neighbours. */
+.cr-num.cy,
+.cr-num.am { color: inherit; }
 .cr-steps { margin: 0; font-size: 1.25rem; }
 .cr-share { display: flex; height: 14px; border-radius: 2px; overflow: hidden; background: var(--bg-4); gap: 2px; }
 .cr-share span { background: var(--fam-endurance); min-width: 4px; }

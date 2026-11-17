@@ -354,8 +354,25 @@
     </section>`;
   }
 
+  /* The circle, on the coral field of the page: the faces of the friends who agreed, how many they are and how many moved today.
+     Only what the server returned; without friends the line of the page stays (« Des amis par consentement… »). */
+  const CIRCLE_DEFAULT = "Des amis par consentement : chacun choisit ce qu’il partage.";
+  function paintCircle() {
+    const el = document.getElementById("cm-circle");
+    if (!el) return;
+    const list = status === "ready" || data ? data?.friends || [] : [];
+    if (!list.length || status === "guest" || status === "transition") { if (el.dataset.count) { el.textContent = CIRCLE_DEFAULT; delete el.dataset.count; } return; }
+    const today = new Date(); const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const active = list.filter((f) => f.last_active === key).length;
+    const sig = `${list.length}:${active}:${list.slice(0, 6).map((f) => f.avatar).join(",")}`;
+    if (el.dataset.count === sig) return;
+    el.dataset.count = sig;
+    el.innerHTML = `<a class="cm-circle-link" href="#amis"><span class="cm-circle-faces" aria-hidden="true">${list.slice(0, 6).map((f) => `<img src="/assets/renaissance/${esc(f.avatar || "scout")}-s.webp" alt="" width="36" height="36" decoding="async">`).join("")}</span><span class="cm-circle-text"><strong>${list.length} ami${list.length > 1 ? "s" : ""}</strong>${active ? ` · ${active} actif${active > 1 ? "s" : ""} aujourd’hui` : ""}</span></a>`;
+  }
+
   function render() {
     if (!root) return;
+    paintCircle();
     root.setAttribute("aria-busy", String(status === "loading"));
     if (status === "transition") {
       root.innerHTML = '<p class="asc-empty" role="status">La session a changé. La communauté revient après la synchronisation du compte.</p>';

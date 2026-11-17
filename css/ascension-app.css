@@ -157,6 +157,10 @@
   padding: var(--s3) 0 var(--s1);
   border-top: 1px solid var(--line-2);
 }
+.qg-ascent:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
 .qg-rank {
   display: flex;
   align-items: center;
@@ -410,6 +414,9 @@
   line-height: 1.3;
 }
 #qg-week { white-space: nowrap; }
+/* « Semaine type : 4 jours » is one label: at 320 px it goes under the heading whole instead of breaking in two. */
+.qg-main .asc-section-head { flex-wrap: wrap; row-gap: 0; }
+.qg-main .asc-section-head > .asc-btn { white-space: nowrap; }
 .qg-week-change {
   margin: calc(-1 * var(--s2)) 0 0;
   font-size: 14.5px;
@@ -3384,32 +3391,123 @@
 .av-rules p {
   margin-top: var(--s3);
 }
+/* A beacon lit: the painting of the world edge to edge at the top of the sheet, the trail of its nine beacons across its foot,
+   then the name of what was earned in the amber of rare moments. Left-aligned like the rest of TITAN, no badge in a ring. */
 .av-celebrate {
-  justify-items: center;
-  text-align: center;
+  justify-items: stretch;
+  text-align: left;
 }
-.av-celebrate img {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
+.av-celebrate-sheet .asc-sheet-head {
+  margin-bottom: var(--s4);
+}
+.av-celebrate-art {
+  position: relative;
+  margin: 0 calc(-1 * var(--s5));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--bg-3);
+}
+.av-celebrate-art img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid var(--am);
+  display: block;
 }
-.av-celebrate-badge .av-badge {
-  width: 88px;
-  height: 88px;
-  border-radius: var(--r3);
+.av-celebrate-art img.is-guardian {
+  object-position: center 22%;
 }
-.av-celebrate-badge .t-icon {
+.av-celebrate-art::after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(9, 12, 16, 0.86));
+  pointer-events: none;
+}
+.av-celebrate-trail {
+  position: absolute;
+  z-index: 1;
+  left: var(--s5);
+  right: var(--s5);
+  bottom: var(--s4);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.av-celebrate-trail::before {
+  content: "";
+  position: absolute;
+  left: 5.5%;
+  right: 5.5%;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: rgba(241, 243, 239, 0.34);
+}
+.av-celebrate-trail li {
+  position: relative;
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid rgba(241, 243, 239, 0.6);
+}
+.av-celebrate-trail li.is-boss {
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+.av-celebrate-trail li.is-lit {
+  background: var(--space);
+  border-color: var(--space);
+}
+.av-celebrate-trail li.is-new {
   width: 34px;
   height: 34px;
+  display: grid;
+  place-items: center;
+  background: var(--am);
+  border-color: var(--am);
+  color: var(--am-ink);
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1;
+  animation: av-beacon 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+}
+.av-celebrate-trail li.is-new.is-boss span {
+  transform: rotate(-45deg);
+}
+@keyframes av-beacon {
+  from { transform: scale(0.4); box-shadow: 0 0 0 0 rgba(244, 187, 84, 0.7); }
+  60% { box-shadow: 0 0 0 14px rgba(244, 187, 84, 0); }
+}
+.av-celebrate-trail li.is-new.is-boss {
+  animation: none;
+}
+.av-celebrate .asc-eyebrow {
+  margin-bottom: calc(-1 * var(--s3));
 }
 .av-celebrate-title {
   font-family: var(--font-display);
   font-stretch: var(--w-title);
   font-weight: 800;
-  font-size: 34px;
+  font-size: clamp(34px, 9vw, 44px);
+  line-height: 1.02;
   color: var(--am);
+  text-wrap: balance;
+}
+.av-celebrate-story {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--tx);
+  text-wrap: pretty;
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-celebrate-trail li.is-new { animation: none; }
 }
 .av-main .asc-note {
   margin-bottom: var(--s4);

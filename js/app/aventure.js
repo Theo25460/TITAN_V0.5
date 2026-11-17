@@ -318,18 +318,28 @@
     }
   }
 
+  /* A beacon was lit: the sheet opens on the painting of the world, with the trail of its nine beacons under it — those already
+     lit, the one that just lit, the ones ahead. The guardian keeps its portrait. Everything shown is what the server confirmed. */
   function celebrate(world, index) {
     const ch = world.chapters[index - 1];
     const body = document.createElement("div");
     body.className = "asc-stack av-celebrate";
-    body.innerHTML = `${ch.boss ? `<img src="/assets/renaissance/guardian-${world.id}.webp" alt="${esc(world.guardian)}" width="640" height="640">` : `<div class="av-celebrate-badge">${badge(world, index, true)}</div>`}
+    const trail = world.chapters.map((c) => `<li class="${c.index < index ? "is-lit" : c.index === index ? "is-lit is-new" : ""}${c.boss ? " is-boss" : ""}">${c.index === index ? `<span>${c.index}</span>` : ""}</li>`).join("");
+    body.innerHTML = `<figure class="av-celebrate-art" style="--world:${world.color}">
+        <img src="/assets/renaissance/${ch.boss ? `guardian-${world.id}` : `${world.image}-small`}.webp" alt="${ch.boss ? esc(world.guardian) : ""}" width="${ch.boss ? 640 : 800}" height="${ch.boss ? 640 : 450}" decoding="async"${ch.boss ? ' class="is-guardian"' : ""}>
+        <ol class="av-celebrate-trail" aria-label="Balise ${index} sur 9">${trail}</ol>
+      </figure>
       <p class="asc-eyebrow am">Insigne obtenu</p><p class="av-celebrate-title">${esc(ch.title)}</p>
-      <p>${esc(ch.boss ? world.ending : ch.story)}</p>
+      <p class="av-celebrate-story">${esc(ch.boss ? world.ending : ch.story)}</p>
       ${!ch.boss ? `<p class="asc-small asc-muted">Prochaine étape : <strong>${esc(world.chapters[index]?.name || "")}</strong>.</p>` : ""}
       <button type="button" class="asc-btn asc-btn-primary" data-close-celebrate>Continuer</button>`;
     const d = window.titanShell.sheet({ title: ch.boss ? world.guardian : `Balise ${index} allumée`, eyebrow: world.name, body });
+    d.classList.add("av-celebrate-sheet");
+    d.dataset.space = "aventure";
     body.querySelector("[data-close-celebrate]").addEventListener("click", () => d.close());
   }
+  // The capture bench and the journeys open this moment without playing a whole chapter.
+  window.TitanAdventureMoment = { celebrate: (worldId, index) => { const w = C().worlds.find((x) => x.id === worldId); if (w && w.chapters[index - 1]) celebrate(w, index); } };
 
   function openChapter(index) {
     const world = C().worlds.find((w) => w.id === selected) || C().worlds[0];

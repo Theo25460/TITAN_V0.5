@@ -201,3 +201,47 @@
 #clubs textarea.asc-input { width: 100%; resize: vertical; }
 #clubs .asc-stack > * { min-width: 0; }
 #clubs .asc-row { flex-wrap: wrap; }
+
+/* The circle on the coral field: faces of the friends who agreed, then the count. One line whose height is reserved from the
+   first paint, so the page does not move when the server answers. */
+.cm-circle {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: var(--s2) 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.cm-circle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 44px;
+  color: inherit;
+  border-radius: var(--r1);
+}
+.cm-circle-faces {
+  display: inline-flex;
+  flex: none;
+  padding-left: 8px;
+}
+.cm-circle-faces img {
+  width: 36px;
+  height: 36px;
+  margin-left: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--space);
+  object-fit: cover;
+  background: var(--space-ink);
+}
+.cm-circle-text strong {
+  font-weight: 800;
+}
+.cm-circle-link:hover .cm-circle-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 359px) {
+  .cm-circle-faces img:nth-child(n + 5) { display: none; }
+}

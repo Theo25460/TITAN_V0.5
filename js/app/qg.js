@@ -119,6 +119,8 @@
 
   /* The week in one glance, right under the greeting: seven days in the grammar of the programme and the count of active days
      against the usual week. It answers « where do I stand » before the action of the day asks for anything. */
+  // A new account has no week to read yet (« 0/3 » would be an empty figure): the band then holds the rank alone, and the first
+  // session is the next thing on the screen.
   function pulseHtml(cad, recapNow) {
     const V = window.TitanProgramView;
     const now = new Date();
@@ -461,7 +463,7 @@
     paint(el, `
       ${list.length ? "" : `<p class="asc-lead" id="qg-lead">Ton journal de sport : chaque séance fait monter ton niveau et avancer ton aventure.</p>`}
       <div class="qg-status">
-        ${pulseHtml(cad, recapNow)}
+        ${list.length ? pulseHtml(cad, recapNow) : ""}
         ${ascentHtml(D().progression())}
       </div>
       <div class="qg-cols">
